@@ -102,7 +102,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
 		  	NULL);
 
   GAptr = new GraphicsAttributes(wAmrVisTopLevel);
-
+  
   FileType fileType = GetDefaultFileType();
   assert(fileType != INVALIDTYPE);
   dataServicesPtr = dataservicesptr;
@@ -117,7 +117,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     SetInitialDerived(dataServicesPtr->PlotVarNames()[0]);
   }
   currentDerived = PltApp::initialDerived;
-
+ 
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
   int finestLevel(amrData.FinestLevel());
   int maxlev = DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
@@ -146,8 +146,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     ivLowOffsetMAL.setVal(i, amrData.ProbDomain()[maxlev].smallEnd(i));
   }
   palFilename = PltApp::defaultPaletteString;
-  cout<<"GetDefaultShowBoxes() is "
-      <<( GetDefaultShowBoxes() ? "true" : "false" )<<endl;
   PltAppInit();
 }
 
@@ -225,7 +223,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 
   ivLowOffsetMAL = offset;
   currentDerived = newderived;
-
   PltAppInit();
 }
 
@@ -341,6 +338,7 @@ void PltApp::PltAppInit() {
                 NULL);
   XmStringFree(newOString);
 
+  
 // ****************************************** Level Menu
   char levelItem[LINELENGTH];
   XmStringTable levelStringList;
@@ -384,6 +382,7 @@ void PltApp::PltAppInit() {
                 XmNlabelString, newLString,
                 NULL);
   XmStringFree(newLString);
+
 
 // ****************************************** Derive Menu
 
@@ -638,7 +637,6 @@ void PltApp::PltAppInit() {
   wPlotArea = XtVaCreateWidget("plotarea", xmFormWidgetClass,
 		               wFrames[PLOTFRAME],
 		               NULL);
-
 // ******************************************************* XY
 
   wScrollArea[ZPLANE] = XtVaCreateManagedWidget("scrollAreaXY",
@@ -833,6 +831,7 @@ void PltApp::PltAppInit() {
 
 #endif
   // *************************************** Axis and animation control area
+
 
     int wc, wcfWidth = 150, wcfHeight = 260;
     int centerX = wcfWidth/2, centerY = wcfHeight / 2 - 16;
@@ -1031,6 +1030,7 @@ void PltApp::PltAppInit() {
 		NULL);
 #endif
 
+
 // ***************************************************************** 
 
   XtManageChild(wScaleMenu);
@@ -1109,7 +1109,6 @@ void PltApp::PltAppInit() {
     } 
   */
   }
-
 #if (BL_SPACEDIM == 3)
     Dimension width, height;
     XtVaGetValues(wTransDA, XmNwidth, &width, XmNheight, &height, NULL);
@@ -1118,20 +1117,17 @@ void PltApp::PltAppInit() {
     projPicturePtr = new ProjectionPicture(this, &viewTrans,
 				   wTransDA, daWidth, daHeight);
 #endif
-
-  for(np = 0; np < NPLANES; np++) {
-    amrPicturePtrArray[np]->CreatePicture(XtWindow(wPlotPlane[np]),
-				  pltPaletteptr, derivedStrings[cderived]);
+    for(np = 0; np < NPLANES; np++) {
+        amrPicturePtrArray[np]->CreatePicture(XtWindow(wPlotPlane[np]),
+                                              pltPaletteptr, derivedStrings[cderived]);
   }
   FileType fileType = dataServicesPtr->GetFileType();
   assert(fileType != INVALIDTYPE);
   if(fileType == FAB  || fileType == MULTIFAB) {
     currentDerived = amrPicturePtrArray[ZPLANE]->CurrentDerived();
   }
-
 #if (BL_SPACEDIM == 3)
     viewTrans.MakeTransform();
-
     XmToggleButtonSetState(wAutoDraw, false, false);
     labelAxes = false;
     transDetached = false;
@@ -1143,13 +1139,11 @@ void PltApp::PltAppInit() {
       finishcutY[np] = amrPicturePtrArray[np]->GetHLine();
     }
 #endif
-
   for(np = 0; np < NPLANES; np++) {
     XtAddEventHandler(wPlotPlane[np], ExposureMask, false, 
   	  (XtEventHandler) CBDoExposePicture,
 	  (XtPointer) amrPicturePtrArray[np]);
   }
-
 #if (BL_SPACEDIM == 3)
     XtAddEventHandler(wControlForm, ExposureMask, false,
   	              (XtEventHandler) CBDoExposeRef, (XtPointer) this);
@@ -1172,7 +1166,6 @@ void PltApp::PltAppInit() {
     rbgc = XCreateGC(GAptr->PDisplay(), GAptr->PRoot(), 0, NULL);
     cursor = XCreateFontCursor(GAptr->PDisplay(), XC_left_ptr);
     XSetFunction(GAptr->PDisplay(), rbgc, GXxor);
-
 #if (BL_SPACEDIM == 3)
   for(np = 0; np < NPLANES; np++) {
     amrPicturePtrArray[np]->ToggleShowSubCut(); 
@@ -1184,7 +1177,8 @@ void PltApp::PltAppInit() {
   for(np = 0; np < NPLANES; np++) {
     amrPicturePtrArray[np]->SetDataMin(amrPicturePtrArray[np]->GetRegionMin());
     amrPicturePtrArray[np]->SetDataMax(amrPicturePtrArray[np]->GetRegionMax());
-  }
+  }  
+
 }	// end of PltAppInit
 
 

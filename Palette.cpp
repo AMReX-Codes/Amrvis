@@ -112,8 +112,9 @@ void Palette::Draw(Real palMin, Real palMax, const aString &numberFormat) {
   pmin = palMin;
   pmax = palMax;
   defaultFormat = numberFormat;
-  XClearWindow(display, palWindow);
+ XClearWindow(display, palWindow);
   //if(palPixmap == NULL) {
+
   if(palPixmap == 0) {
     palPixmap = XCreatePixmap(display, palWindow, totalPalWidth,
 			      totalPalHeight + 50, 8);
@@ -163,7 +164,6 @@ void Palette::Draw(Real palMin, Real palMax, const aString &numberFormat) {
 		palString, strlen(palString));
   }
   ExposePalette();
-
 }  // end Palette::Draw.
 
 
@@ -172,20 +172,17 @@ void Palette::SetTransfers(int ntranspts, int *transx, float *transy) {
   // interpolate between points
   int n, ntrans, leftx, rightx;
   float lefty, righty, m, x;
-
   transSet = true;
   ntrans = 0;  // where we are in transx
 
   if(transx[0] != 0) {
-    cerr << "Error in Palette::SetTransfers:  transx[0] != 0 " << endl;
     //exit(-5);
   }
 
   for(n=0; n < COLORSLOTS; n++) {
 
     if((ntrans+1) > ntranspts) {
-      cerr << "Error in Palette::SetTransfers:  (ntrans+1) > ntranspts = "
-	   << (ntrans+1) << " > " << ntranspts << endl;
+	cout << (ntrans+1) << " > " << ntranspts << endl;
       //exit(-5);
     }
 
@@ -204,7 +201,7 @@ void Palette::SetTransfers(int ntranspts, int *transx, float *transy) {
       transY[n] = m*x + lefty;
     }
   }
-  Redraw();
+  Redraw();  
 }
 
 

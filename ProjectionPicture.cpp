@@ -36,7 +36,6 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
   showSubCut = false;
   pixCreated = false;
   imageData = NULL;
-
   maxDataLevel = amrPicturePtr->MaxAllowableLevel();
   theDomain = amrPicturePtr->GetSubDomain();
 
@@ -63,7 +62,6 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
       boxTransPoints[lev][iBox].resize(NVERTICIES);
     }
   }
-
   subCutColor = 160;
   boxColors.resize(maxDataLevel + 1);
   for(lev = minDrawnLevel; lev <= maxDataLevel; ++lev) {
@@ -84,7 +82,6 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
       }
     }
   }
-
   Box alignedBox(theDomain[minDrawnLevel]);
   alignedBox.refine(CRRBetweenLevels(minDrawnLevel, maxDataLevel,
 		     amrData.RefRatio()));
@@ -113,9 +110,7 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
 
   viewTransformPtr->SetObjCenter(xcenter, ycenter, zcenter);
   viewTransformPtr->SetScreenPosition(daWidth/2, daHeight/2);
-
   ReadTransferFile("vpramps.dat");
-  
 }  // end ProjectionPicture()
 
 

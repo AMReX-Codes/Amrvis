@@ -19,7 +19,6 @@ GraphicsAttributes::GraphicsAttributes(Widget topLevel) {
   visual = visual_info.visual;
   gc = screen->default_gc;
   root = RootWindow(display, DefaultScreen(display));
-  //depth = DefaultDepthOfScreen(screen);
   depth = 8;
   bytesPerPixel = CalculateNBP();
 }

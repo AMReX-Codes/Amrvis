@@ -595,7 +595,6 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
   assert(palptr != NULL);
   palPtr = palptr;
   AmrData &amrData = dataServicesPtr->AmrDataRef();
-
   if(currentDerived != derived || whichRange == USEFILE) {
     maxsFound = false;
     pltAppPtr->PaletteDrawn(false);
@@ -647,13 +646,13 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
 	                           &dataMin, &dataMax, &minMaxValid);
 	    if(minMaxValid) {
               dataMinRegion = Min(dataMinRegion, dataMin);
-              dataMaxRegion = Max(dataMaxRegion, dataMax);
+             dataMaxRegion = Max(dataMaxRegion, dataMax);
 	    }
 	  }
 	}  // end for(lev...)
       } else {
         dataMinAllGrids = pltAppPtr->GlobalMin();
-        dataMaxAllGrids = pltAppPtr->GlobalMax();
+       dataMaxAllGrids = pltAppPtr->GlobalMax();
         dataMinRegion = pltAppPtr->GlobalMin();
         dataMaxRegion = pltAppPtr->GlobalMax();
       }
@@ -672,7 +671,6 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
     }
 
   }  // end if( ! maxsFound)
-
   switch(whichRange) {
 	case USEGLOBAL:
     		minUsing = dataMinAllGrids;
@@ -695,7 +693,6 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
     		maxUsing = dataMaxAllGrids;
 	break;
   }
-
   VSHOWVAL(Verbose(), minUsing)
   VSHOWVAL(Verbose(), maxUsing)
 
@@ -712,13 +709,11 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
                 dataSizeH[iLevel], dataSizeV[iLevel],
                 imageSizeH, imageSizeV);
   }
-
   if( ! pltAppPtr->PaletteDrawn()) {
     pltAppPtr->PaletteDrawn(true);
     palptr->Draw(minUsing, maxUsing, pltAppPtr->GetFormatString());
   }
-
-  Draw(minDrawnLevel, maxDrawnLevel);
+ Draw(minDrawnLevel, maxDrawnLevel);
   if(printDone) {
      sprintf(buffer, "done.\n");
      PrintMessage(buffer);

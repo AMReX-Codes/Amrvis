@@ -707,9 +707,8 @@ void Dataset::DoExpose(int fromExpose) {
     
     XClearWindow(GAptr->PDisplay(), XtWindow(wPixArea));
 
-    // XClearArea(GAptr->PDisplay(), XtWindow(wPixArea), 0, 0, 
-    //            dataItemWidth*datasetRegion[0].length(hDIR), 
-    //            dataItemHeight*datasetRegion[0].length(vDIR), false);
+//Draw Indices first time
+     DrawIndices(bTemp);
 
      // draw grid structure for entire region 
     for(lev = 0; lev <= maxAllowableLevel; ++lev) {
@@ -721,11 +720,13 @@ void Dataset::DoExpose(int fromExpose) {
 	  temp.refine(CRRBetweenLevels(lev,
 				 maxAllowableLevel, amrData.RefRatio()));
 	  temp.shift(hDIR, -datasetRegion[maxAllowableLevel].smallEnd(hDIR)); 
-	  temp.shift(vDIR, -datasetRegion[maxAllowableLevel].smallEnd(vDIR)); 
-	  DrawGrid(temp.smallEnd(hDIR) * dataItemWidth,
-                   pixSizeY-1 - (temp.bigEnd(vDIR)+1) * CHARACTERHEIGHT,
+	  temp.shift(vDIR, -datasetRegion[maxAllowableLevel].smallEnd(vDIR));
+          DrawGrid(temp.smallEnd(hDIR) * dataItemWidth,
+                   (pixSizeY-1 - (temp.bigEnd(vDIR)+1) * CHARACTERHEIGHT)
+                   -((maxAllowableLevel+1)*hIndexAreaHeight),
                    (temp.bigEnd(hDIR)+1) * dataItemWidth,
-                   pixSizeY-1 - temp.smallEnd(vDIR) * CHARACTERHEIGHT,
+                   (pixSizeY-1 - temp.smallEnd(vDIR) * CHARACTERHEIGHT)
+                   -((maxAllowableLevel+1)*hIndexAreaHeight),
                    CRRBetweenLevels(lev, maxAllowableLevel, amrData.RefRatio()),
                    whiteIndex, blackIndex);
         }
@@ -744,7 +745,7 @@ void Dataset::DoExpose(int fromExpose) {
   if(XmToggleButtonGetState(wColorButton)) {
     for(stringCount=0; stringCount<numStrings; stringCount++) {
       xloc = dataStringArray[stringCount].xloc;
-      yloc = dataStringArray[stringCount].yloc;
+      yloc = dataStringArray[stringCount].yloc-((maxAllowableLevel+1)*hIndexAreaHeight);
 #ifndef SCROLLBARERROR
       if(dataStringArray[stringCount].olflag == false  &&
 	xloc > xh && yloc > yv &&
@@ -754,7 +755,7 @@ void Dataset::DoExpose(int fromExpose) {
 #endif
       {
   	XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), 
-       		        whiteIndex/*dataStringArray[stringCount].color*/); 
+                       dataStringArray[stringCount].color); 
          XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea),
 			GAptr->PGC(), xloc, yloc,
 			dataStringArray[stringCount].ds,
@@ -766,7 +767,7 @@ void Dataset::DoExpose(int fromExpose) {
     XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), whiteIndex);
     for(stringCount=0; stringCount<numStrings; stringCount++) {
       xloc = dataStringArray[stringCount].xloc;
-      yloc = dataStringArray[stringCount].yloc;
+      yloc = dataStringArray[stringCount].yloc-((maxAllowableLevel+1)*hIndexAreaHeight);
 #ifndef SCROLLBARERROR
       if(dataStringArray[stringCount].olflag == false  &&
 	xloc > xh && yloc > yv &&
