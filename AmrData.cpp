@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.50 2001-07-27 01:47:13 vince Exp $
+// $Id: AmrData.cpp,v 1.51 2001-07-31 00:25:59 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -140,6 +140,7 @@ AmrData::~AmrData() {
 bool AmrData::ReadData(const aString &filename, FileType filetype) {
    fileType = filetype;
    bCartGrid = false;
+   bTerrain = false;
    if(filetype == FAB || filetype == MULTIFAB) {
      return ReadNonPlotfileData(filename, filetype);
    }

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.65 2001-06-11 20:09:41 vince Exp $
+// $Id: AmrPicture.cpp,v 1.66 2001-07-31 00:25:58 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -483,6 +483,11 @@ void AmrPicture::DrawBoxes(Array< Array<GridPicture> > &gp, Drawable &drawable) 
 
 // ---------------------------------------------------------------------
 void AmrPicture::DrawTerrBoxes(int level, bool bIsWindow, bool bIsPixmap) {
+  cerr << endl;
+  cerr << "***** Error:  should not be in AmrPicture::DrawTerrBoxes." << endl;
+  cerr << "Continuing..." << endl;
+  cerr << endl;
+
 /*
   int i, lev, ix;
   short xbox, ybox;
