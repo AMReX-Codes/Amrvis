@@ -181,15 +181,9 @@ void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
 	(XtPointer) this);
   projPicturePtr->SetDrawingArea(wTransDA);
 #ifdef BL_VOLUMERENDER
-  if(autorender) {
     XmString sAutoDraw = XmStringCreateSimple("Autodraw");
     XtVaSetValues(wAutoDraw, XmNlabelString, sAutoDraw, NULL);
     XmStringFree(sAutoDraw);
-  } else {
-    XmString sAutoDraw = XmStringCreateSimple("No Autodraw");
-    XtVaSetValues(wAutoDraw, XmNlabelString, sAutoDraw, NULL);
-    XmStringFree(sAutoDraw);
-  }
 #endif
   DoTransResize(wTransDA, NULL, NULL);
 }
@@ -289,11 +283,7 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
 
   i=0;
   XmString sAutoDraw;
-  if(autorender) {
-    sAutoDraw = XmStringCreateSimple("AutoDraw");
-  } else {
-    sAutoDraw = XmStringCreateSimple("No AutoDraw");
-  }
+  sAutoDraw = XmStringCreateSimple("AutoDraw");
   XtSetArg(args[i], XmNlabelString, sAutoDraw); i++;
   XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET); i++;
   XtSetArg(args[i], XmNleftWidget, wDRender); i++;
@@ -409,13 +399,12 @@ void PltApp::Clear() {
 void PltApp::DoAutoDraw(Widget w, XtPointer, XtPointer) {
 #ifdef BL_VOLUMERENDER
   XmString sAutoDraw;
+  sAutoDraw = XmStringCreateSimple("Autodraw");
   if(autorender) {
     autorender = false;
-    sAutoDraw = XmStringCreateSimple("No Autodraw");
     projPicturePtr->MakeBoxes();
   } else {
     autorender = true;
-    sAutoDraw = XmStringCreateSimple("Autodraw");
     DoRender(w, NULL, NULL);
   }
   if(transDetached) {

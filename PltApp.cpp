@@ -500,10 +500,11 @@ void PltApp::PltAppInit() {
   XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
   XmString sBoxes = XmStringCreateSimple("Boxes");
   XtSetArg(args[i], XmNlabelString, sBoxes);      i++;
-  wBoxesButton = XmCreatePushButton(wAmrVisMenu, "boxes", args, i);
+  wBoxesButton = XmCreateToggleButton(wAmrVisMenu, "boxes", args, i);
   XmStringFree(sBoxes);
 
-  AddStaticCallback(wBoxesButton, XmNactivateCallback, &PltApp::DoBoxesButton);
+  AddStaticCallback(wBoxesButton, XmNvalueChangedCallback, &PltApp::DoBoxesButton);
+  XmToggleButtonSetState(wBoxesButton, true, false);
 
 // ****************************************** Output Menu 
   i=0;
@@ -778,20 +779,16 @@ void PltApp::PltAppInit() {
 
     i=0;
     XmString sAutoDraw;
-    if(autorender) {
-      sAutoDraw = XmStringCreateSimple("Autodraw");
-    } else {
-      sAutoDraw = XmStringCreateSimple("No Autodraw");
-    }
+    sAutoDraw = XmStringCreateSimple("Autodraw");
     XtSetArg(args[i], XmNlabelString, sAutoDraw); i++;
     XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET); i++;
     XtSetArg(args[i], XmNleftWidget, wRender); i++;
     XtSetArg(args[i], XmNleftOffset, WOFFSET); i++;
     XtSetArg(args[i], XmNtopAttachment, XmATTACH_POSITION); i++;
     XtSetArg(args[i], XmNtopPosition, 50); i++;
-    wAutoDraw = XmCreatePushButton(wPlotArea, "autodraw", args, i);
+    wAutoDraw = XmCreateToggleButton(wPlotArea, "autodraw", args, i);
     XmStringFree(sAutoDraw);
-    AddStaticCallback(wAutoDraw, XmNactivateCallback, &PltApp::DoAutoDraw);
+    AddStaticCallback(wAutoDraw, XmNvalueChangedCallback, &PltApp::DoAutoDraw);
     XtManageChild(wAutoDraw);
 
     i=0;
@@ -1327,7 +1324,7 @@ void PltApp::CBChangeDerived(Widget w, XtPointer client_data,
   obj->projPicturePtr->GetVolRenderPtr()->InvalidateSWFData();
   obj->projPicturePtr->GetVolRenderPtr()->InvalidateVPData();
 #ifdef BL_VOLUMERENDER
-  XmString sAutoDraw = XmStringCreateSimple("No Autodraw");
+  XmString sAutoDraw = XmStringCreateSimple("Autodraw");
   if(obj->transDetached) {
     XtVaSetValues(obj->wDAutoDraw, XmNlabelString, sAutoDraw, NULL);
   } else {

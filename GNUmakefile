@@ -11,7 +11,7 @@ DIM       = 3
 
 include ../mk/Make.defs
 
-USE_ARRAYVIEW = FALSE
+USE_ARRAYVIEW = TRUE
 ifeq ($(PROFILE), FALSE)
 ifeq ($(DEBUG), TRUE)
 USE_ARRAYVIEW = TRUE
