@@ -1,6 +1,9 @@
-//------------------------------------------------------------------
-// ProjectionPicture.C
-// -------------------------------------------------------------------
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: ProjectionPicture.cpp,v 1.26 1998-10-27 18:16:37 lijewski Exp $
+//
+
 #include "ProjectionPicture.H"
 #include "PltApp.H"
 #include "DataServices.H"

@@ -1,6 +1,9 @@
-// -------------------------------------------------------------------
-// ProjectionPicture.H
-// -------------------------------------------------------------------
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: ProjectionPicture.H,v 1.13 1998-10-27 18:16:37 lijewski Exp $
+//
+
 #ifndef _PROJECTIONPICTURE_H_
 #define _PROJECTIONPICTURE_H_
 

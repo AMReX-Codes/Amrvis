@@ -1,3 +1,9 @@
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: Quaternion.cpp,v 1.8 1998-10-27 18:16:37 lijewski Exp $
+//
+
 #ifdef BL_USE_NEW_HFILES
 #include <cmath>
 #else

@@ -1,3 +1,9 @@
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: Point.H,v 1.3 1998-10-27 18:16:37 lijewski Exp $
+//
+
 #ifndef _AMR_POINT_H_		//  a kludgy way not to include twice
 #define _AMR_POINT_H_
 

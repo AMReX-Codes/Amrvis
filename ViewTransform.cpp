@@ -1,6 +1,9 @@
-// -------------------------------------------------------------------
-// ViewTransform.cpp
-// -------------------------------------------------------------------
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: ViewTransform.cpp,v 1.14 1998-10-27 18:16:38 lijewski Exp $
+//
+
 #include "ViewTransform.H"
 #include "Trackball.H"
 

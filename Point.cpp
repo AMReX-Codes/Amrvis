@@ -1,3 +1,9 @@
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: Point.cpp,v 1.5 1998-10-27 18:16:37 lijewski Exp $
+//
+
 #ifdef BL_USE_NEW_HFILES
 #include <cmath>
 #else

@@ -1,6 +1,9 @@
-// -------------------------------------------------------------------
-// DataServices.H
-// -------------------------------------------------------------------
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: DataServices.H,v 1.8 1998-10-27 18:16:34 lijewski Exp $
+//
+
 #ifndef _DATASERVICES_H_
 #define _DATASERVICES_H_
 

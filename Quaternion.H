@@ -1,3 +1,9 @@
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: Quaternion.H,v 1.4 1998-10-27 18:16:37 lijewski Exp $
+//
+
 #ifndef _AMR_QUATERNION_H_
 #define _AMR_QUATERNION_H_
 

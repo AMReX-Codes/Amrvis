@@ -1,6 +1,9 @@
-// -------------------------------------------------------------------
-// ViewTransform.H
-// -------------------------------------------------------------------
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: ViewTransform.H,v 1.10 1998-10-27 18:16:38 lijewski Exp $
+//
+
 #ifndef _VIEWTRANSFORM_H_
 #define _VIEWTRANSFORM_H_
 

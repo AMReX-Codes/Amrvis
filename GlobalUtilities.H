@@ -1,6 +1,9 @@
-// -------------------------------------------------------------------
-// GlobalUtilites.H
-// -------------------------------------------------------------------
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: GlobalUtilities.H,v 1.9 1998-10-27 18:16:35 lijewski Exp $
+//
+
 #ifndef _GLOBALUTILITIES_H_
 #define _GLOBALUTILITIES_H_
 

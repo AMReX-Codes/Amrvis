@@ -1,6 +1,9 @@
-//--------------------------------------------------------------
-// AmrVisTool.cpp
-//--------------------------------------------------------------
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: AmrVisTool.cpp,v 1.30 1998-10-27 18:16:34 lijewski Exp $
+//
+
 #ifdef BL_USE_NEW_HFILES
 #include <iostream>
 #include <cstdlib>

@@ -1,6 +1,9 @@
-// -------------------------------------------------------------------
-// GlobalUtilities.cpp
-// -------------------------------------------------------------------
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: GlobalUtilities.cpp,v 1.23 1998-10-27 18:16:35 lijewski Exp $
+//
+
 #include "GlobalUtilities.H"
 #include "FArrayBox.H"
 #ifdef BL_USE_NEW_HFILES

@@ -1,6 +1,9 @@
-// -------------------------------------------------------------------
-// MessageArea.H
-// -------------------------------------------------------------------
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: MessageArea.H,v 1.3 1998-10-27 18:16:36 lijewski Exp $
+//
+
 #ifndef _MESSAGEAREA_H
 #define _MESSAGEAREA_H
 

@@ -1,6 +1,9 @@
-// -------------------------------------------------------------------
-// VolRender.cpp
-// -------------------------------------------------------------------
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: VolRender.cpp,v 1.25 1998-10-27 18:16:38 lijewski Exp $
+//
+
 #include "VolRender.H"
 #include "DataServices.H"
 #include "GlobalUtilities.H"

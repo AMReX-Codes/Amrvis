@@ -1,6 +1,9 @@
-// -------------------------------------------------------------------
-// GridPicture.H
-// -------------------------------------------------------------------
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: GridPicture.H,v 1.6 1998-10-27 18:16:35 lijewski Exp $
+//
+
 #ifndef _GRIDPICTURE_H
 #define _GRIDPICTURE_H
 

@@ -1,6 +1,8 @@
-// -------------------------------------------------------------------
-//  Dataset.cpp
-// -------------------------------------------------------------------
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: Dataset.cpp,v 1.26 1998-10-27 18:16:35 lijewski Exp $
+//
 
 const int CHARACTERWIDTH  = 13;
 const int CHARACTERHEIGHT = 22;

@@ -1,6 +1,9 @@
-// -------------------------------------------------------------------
-// PltApp3D.cpp
-// -------------------------------------------------------------------
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: PltApp3D.cpp,v 1.28 1998-10-27 18:16:36 lijewski Exp $
+//
+
 #include "PltApp.H"
 #include "Quaternion.H"
 #include <LabelG.h>

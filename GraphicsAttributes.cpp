@@ -1,6 +1,9 @@
-// -------------------------------------------------------------------
-// GraphicsAttributes.cpp
-// -------------------------------------------------------------------
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: GraphicsAttributes.cpp,v 1.7 1998-10-27 18:16:35 lijewski Exp $
+//
+
 #ifdef BL_USE_NEW_HFILES
 #include <iostream>
 using std::cerr;

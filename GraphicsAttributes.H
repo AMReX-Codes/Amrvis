@@ -1,6 +1,9 @@
-// -------------------------------------------------------------------
-// GraphicsAttributes.H
-// -------------------------------------------------------------------
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: GraphicsAttributes.H,v 1.7 1998-10-27 18:16:35 lijewski Exp $
+//
+
 #ifndef _GRAPHICSATTRIBUTES_H
 #define _GRAPHICSATTRIBUTES_H
 

@@ -1,6 +1,9 @@
-// -------------------------------------------------------------------
-// AmrvisConstants.H
-// -------------------------------------------------------------------
+//BL_COPYRIGHT_NOTICE
+
+//
+// $Id: AmrvisConstants.H,v 1.3 1998-10-27 18:16:34 lijewski Exp $
+//
+
 #ifndef _AMRVISCONSTANTS_H
 #define _AMRVISCONSTANTS_H
 
