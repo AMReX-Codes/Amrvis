@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Volume.H,v 1.14 2000-06-14 20:28:27 car Exp $
+// $Id: Volume.H,v 1.15 2000-06-14 21:43:44 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -33,8 +33,6 @@
 #define OCTREE_GRADIENT_THRESH	4
 #define OCTREE_BASE_NODE_SIZE	4
 
-
-static RawVoxel *dummy_voxel;
 
 #define BYTES_PER_VOXEL	sizeof(RawVoxel)	// voxel size in bytes
 

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.H,v 1.28 2000-06-14 20:08:25 car Exp $
+// $Id: AmrPicture.H,v 1.29 2000-06-14 21:43:44 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,6 +9,12 @@
 // ---------------------------------------------------------------
 #ifndef _AMRPICTURE_H
 #define _AMRPICTURE_H
+
+#ifdef BL_USE_NEW_HFILES
+#include <cstdio>
+#else
+#include <stdio.h>
+#endif
 
 #include "REAL.H"
 #include "Box.H"

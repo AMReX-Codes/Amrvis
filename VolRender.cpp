@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: VolRender.cpp,v 1.31 2000-06-14 20:28:27 car Exp $
+// $Id: VolRender.cpp,v 1.32 2000-06-14 21:43:44 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -69,6 +69,7 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
   voxelFields = 3;
 
   //voxel field variables:
+  static RawVoxel* dummy_voxel;
   normalField = 0;
   normalOffset = vpFieldOffset(dummy_voxel, normal);
   normalSize = 2;		// sizeof(short); on a t3e this will want to be 2
