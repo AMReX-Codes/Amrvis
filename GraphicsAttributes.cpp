@@ -1,6 +1,6 @@
 
 //
-// $Id: GraphicsAttributes.cpp,v 1.13 2001-02-20 21:47:23 vince Exp $
+// $Id: GraphicsAttributes.cpp,v 1.14 2001-10-05 21:57:11 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -20,21 +20,19 @@ using std::endl;
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Intrinsic.h>
-//  #include <X11/StringDefs.h>
-//  #include <X11/Xlibint.h>
 #undef index
 
-unsigned long
-buildShift(unsigned long mask)
-{
-  unsigned long shift = 0;
-  while (!(mask & 1))
-    {
-      mask >>= 1;
-      shift++;
-    }
+
+// -------------------------------------------------------------------
+unsigned long buildShift(unsigned long mask) {
+  unsigned long shift(0);
+  while( ! (mask & 1)) {
+    mask >>= 1;
+    ++shift;
+  }
   return shift;
 }
+
 
 // -------------------------------------------------------------------
 GraphicsAttributes::GraphicsAttributes(Widget topLevel)
@@ -45,38 +43,35 @@ GraphicsAttributes::GraphicsAttributes(Widget topLevel)
   screennumber = DefaultScreen(display);
   int status = XMatchVisualInfo(display, DefaultScreen(display),
 				8, PseudoColor, &visual_info);
-  if ( status != 0 )
-    {
+  if(status != 0) {
+    visual = visual_info.visual;
+    depth = 8;
+    red_shift = blue_shift = green_shift = 0;
+  } else {
+    int status = XMatchVisualInfo(display, DefaultScreen(display),
+				  DefaultDepth(display, screennumber),
+				  TrueColor, &visual_info);
+    if(status != 0) {
       visual = visual_info.visual;
-      depth = 8;
-      red_shift = blue_shift = green_shift = 0;
+      depth = DefaultDepth(display, screennumber);
+      red_shift = buildShift(visual_info.red_mask);
+      green_shift = buildShift(visual_info.green_mask);
+      blue_shift = buildShift(visual_info.blue_mask);
+    } else if( status == 0 ) {
+      BoxLib::Abort("Error: bad XMatchVisualInfo: no PseudoColor Visual.");
     }
-  else
-    {
-      int status = XMatchVisualInfo(display, DefaultScreen(display),
-				    DefaultDepth(display, screennumber), TrueColor, &visual_info);
-      if ( status != 0 )
-	{
-	  visual = visual_info.visual;
-	  depth = DefaultDepth(display, screennumber);
-	  red_shift = buildShift(visual_info.red_mask);
-	  green_shift = buildShift(visual_info.green_mask);
-	  blue_shift = buildShift(visual_info.blue_mask);
-	}
-      else if( status == 0 ) {
-	BoxLib::Abort("Error: bad XMatchVisualInfo: no PseudoColor Visual.");
-      }
-    }
+  }
   gc = screen->default_gc;
   root = RootWindow(display, DefaultScreen(display));
   bytesPerPixel = CalculateNBP();
 }
 
-int
-GraphicsAttributes::PBitmapPaddedWidth(int width) const
-{
+
+// -------------------------------------------------------------------
+int GraphicsAttributes::PBitmapPaddedWidth(int width) const {
   return (1+(width-1)/(BitmapPad(display)/8))*BitmapPad(display)/8;
 }
+
 
 // -------------------------------------------------------------------
 // return number of bytes per pixel this display uses
@@ -95,12 +90,10 @@ int GraphicsAttributes::CalculateNBP() {
   return(1);
 
 } /* CalculateNBP() */
-// -------------------------------------------------------------------
-// -------------------------------------------------------------------
 
-ostream&
-operator<<(ostream& os, const GraphicsAttributes& ga)
-{
+
+// -------------------------------------------------------------------
+ostream& operator<<(ostream &os, const GraphicsAttributes &ga) {
   return os << "("
 	    << "red_shift = " << ga.PRedShift() << ", "
 	    << "green_shift = " << ga.PGreenShift() << ", "
@@ -111,3 +104,5 @@ operator<<(ostream& os, const GraphicsAttributes& ga)
 	    << "bits_per_rgb = " << ga.PBitsPerRGB()
 	    << ")";
 }
+// -------------------------------------------------------------------
+// -------------------------------------------------------------------

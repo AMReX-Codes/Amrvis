@@ -1,6 +1,6 @@
 
 //
-// $Id: GraphicsAttributes.H,v 1.15 2000-10-02 20:53:08 lijewski Exp $
+// $Id: GraphicsAttributes.H,v 1.16 2001-10-05 21:57:11 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -23,7 +23,7 @@ using std::ostream;
 #undef index
 
 class GraphicsAttributes {
-    friend ostream& operator<<(ostream& os, const GraphicsAttributes& ga);
+    friend ostream& operator<<(ostream &os, const GraphicsAttributes &ga);
   protected:
 
     Widget	appTopLevel;
@@ -39,8 +39,8 @@ class GraphicsAttributes {
     unsigned long red_shift;
     unsigned long green_shift;
     unsigned long blue_shift;
-  public:
 
+  public:
     explicit GraphicsAttributes(Widget);
 
     Widget   PTopLevel()      const { return appTopLevel; }
