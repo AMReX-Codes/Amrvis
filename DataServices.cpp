@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.29 2001-09-28 23:57:20 vince Exp $
+// $Id: DataServices.cpp,v 1.30 2001-10-09 17:45:41 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -35,6 +35,44 @@ Array<DataServices *> DataServices::dsArray;
 int DataServices::dsArrayIndexCounter = 0;
 int DataServices::dsFabOutSize = 0;
 bool DataServices::dsBatchMode = false;
+
+template <> void ParallelDescriptor::Bcast (Box* b, size_t n, int root)
+{
+    const int N = n * 3 * BL_SPACEDIM;
+
+    Array<int> tmp(N);
+
+    int cnt = 0;
+
+    for (int j = 0; j < n; j++)
+    {
+        for (int i = 0; i < BL_SPACEDIM; i++)
+            tmp[cnt++] = b[j].smallEnd(i);
+
+        for (int i = 0; i < BL_SPACEDIM; i++)
+            tmp[cnt++] = b[j].bigEnd(i);
+
+        IntVect indx = b[j].type();
+
+        for (int i = 0; i < BL_SPACEDIM; i++)
+            tmp[cnt++] = indx[i];
+    }
+
+    BL_ASSERT(N == cnt);
+
+    ParallelDescriptor::Bcast(&tmp[0],N,root);
+
+    cnt = 0;
+
+    for (int j = 0; j < n; j++)
+    {
+        IntVect sm(&tmp[cnt]); cnt += BL_SPACEDIM;
+        IntVect bg(&tmp[cnt]); cnt += BL_SPACEDIM;
+        IntVect id(&tmp[cnt]); cnt += BL_SPACEDIM;
+
+        b[j] = Box(sm,bg,id);
+    }
+}
 
 // ---------------------------------------------------------------
 DataServices::DataServices(const string &filename, const FileType &filetype)
@@ -94,7 +132,11 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 
   //ParallelDescriptor::Broadcast(ioProcNumber, &requestType, &requestType,
 				//sizeof(DSRequestType));
-  ParallelDescriptor::Bcast(&requestType, 1);
+  {
+      int tmp = requestType;
+      ParallelDescriptor::Bcast(&tmp, 1);
+      requestType = static_cast<DataServices::DSRequestType>(tmp);
+  }
 
   // handle new request
   if(requestType == NewRequest) {
@@ -114,7 +156,11 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     ParallelDescriptor::Bcast(&fileNameLength, 1);
     //ParallelDescriptor::Broadcast(ioProcNumber, &newFileType,     &newFileType,
 				  //sizeof(FileType));
-    ParallelDescriptor::Bcast(&newFileType, 1);
+    {
+        int tmp = newFileType;
+        ParallelDescriptor::Bcast(&tmp, 1);
+        newFileType = static_cast<FileType>(tmp);
+    }
     //ParallelDescriptor::Broadcast(ioProcNumber, &checkArrayIndex,&checkArrayIndex,
 				  //sizeof(int));
     ParallelDescriptor::Bcast(&checkArrayIndex, 1);
@@ -180,7 +226,11 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       }
       //ParallelDescriptor::Broadcast(ioProcNumber, &bDeleteDS, &bDeleteDS,
 				    //sizeof(bool));
-      ParallelDescriptor::Bcast(&bDeleteDS, 1);
+      {
+          int tmp = bDeleteDS;
+          ParallelDescriptor::Bcast(&tmp, 1);
+          bDeleteDS = tmp;
+      }
       if(bDeleteDS) {
         delete DataServices::dsArray[whichDSIndex];
       }
