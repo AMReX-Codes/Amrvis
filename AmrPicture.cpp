@@ -19,8 +19,11 @@
 AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
 		       PltApp *pltappptr, DataServices *dataservicesptr)
 {
-  contours = false; raster = true; colContour = false; vectorField = false;
   int i, ilev;
+  contours = false;
+  raster = true;
+  colContour = false;
+  vectorField = false;
   minDrawnLevel = mindrawnlevel;
   GAptr = gaptr;
   pltAppPtr = pltappptr;
@@ -108,10 +111,14 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
     colContour = parentPltAppPtr->GetAmrPicturePtr(0)->ColorContour();
     vectorField = parentPltAppPtr->GetAmrPicturePtr(0)->VectorField();
   } else {
-    if (parentPltAppPtr == NULL)
-      {  contours = false; raster = true; 
-      colContour = false; vectorField = false; }
-    else cerr << "error:  can't access the parent pictures"<<endl;
+    if(parentPltAppPtr == NULL) {
+      contours = false;
+      raster = true;
+      colContour = false;
+      vectorField = false;
+    } else {
+      cerr << "error:  can't access the parent pictures" << endl;
+    }
   }
   int ilev;
   myView = view;
@@ -287,22 +294,32 @@ void AmrPicture::AmrPictureInit() {
   SetSlice(myView, slice);
 }  // end AmrPictureInit()
 
+
+
+// ---------------------------------------------------------------------
 void AmrPicture::SetHVLine() {
-  int first = 0;
-  for(int i = 0; i<=YZ ;i++) {
-    if ( i == myView ) ;
-    else if (first == 0) {
-      hLine = imageSizeV-1 
-        - ((pltAppPtr->GetAmrPicturePtr(i)->GetSlice()
-            - pltAppPtr->GetAmrPicturePtr(YZ - i)->GetSubDomain()[maxDrawnLevel].smallEnd(YZ - i))
-           * pltAppPtr->CurrentScale());
-      first = 1;
-    } else 
-      vLine = ( pltAppPtr->GetAmrPicturePtr(i)->GetSlice()
-                - pltAppPtr->GetAmrPicturePtr(YZ - i)->GetSubDomain()[maxDrawnLevel].smallEnd(YZ - i))
-        * pltAppPtr->CurrentScale();
+  int first(0);
+  for(int i = 0; i <= YZ; ++i) {
+    if(i == myView) {
+      // do nothing
+    } else {
+      if (first == 0) {
+        hLine = imageSizeV-1 -
+		((pltAppPtr->GetAmrPicturePtr(i)->GetSlice() -
+		pltAppPtr->GetAmrPicturePtr(YZ - i)->
+		   GetSubDomain()[maxDrawnLevel].smallEnd(YZ - i)) *
+		pltAppPtr->CurrentScale());
+        first = 1;
+      } else {
+        vLine = ( pltAppPtr->GetAmrPicturePtr(i)->GetSlice() -
+		pltAppPtr->GetAmrPicturePtr(YZ - i)->
+		  GetSubDomain()[maxDrawnLevel].smallEnd(YZ - i)) *
+		pltAppPtr->CurrentScale();
+      }
+    }
   }
 }
+
 
 // ---------------------------------------------------------------------
 AmrPicture::~AmrPicture() {
@@ -421,41 +438,50 @@ void AmrPicture::SetSlice(int view, int here) {
 }  // end SetSlice(...)
 
 
-void AmrPicture::ChangeContour(int array_val)
-{
+// ---------------------------------------------------------------------
+void AmrPicture::ChangeContour(int array_val) {
   //  bool tmp_contours = contours;
-  bool tmp_raster = raster;
+  bool tmp_raster(raster);
   //bool tmp_colContour = colContour;
-  if (array_val == 0) {
+  if(array_val == 0) {
     SetRasterOnly();
-  } else if (array_val == 1) {
+  } else if(array_val == 1) {
     SetRasterContour();
-  } else if (array_val == 2) {
+  } else if(array_val == 2) {
     SetColorContour();
-  } else if (array_val == 3) {
+  } else if(array_val == 3) {
     SetBWContour();
   } else if (array_val == 4) {
     SetVectorField();
   }
-  if (raster == tmp_raster) // raster hasn't changed the image so all we
-    { Draw(minDrawnLevel, maxDrawnLevel); } // have to do is redraw the contours
-  else {
-    ChangeRasterImage(); // instead we want to recreate the image -- though we shouldn't have to reread the data, as we do now
+  // raster hasn't changed the image so all we
+  // have to do is redraw the contours
+  if(raster == tmp_raster) {
+    Draw(minDrawnLevel, maxDrawnLevel);
+  } else {
+    ChangeRasterImage();  // instead we want to recreate the image
+			  // -- though we shouldn't have to reread
+			  // the data, as we do now
   }
 }
 
+
+// ---------------------------------------------------------------------
 void AmrPicture::SetRasterOnly() {
   contours = false; raster = true; colContour = false; vectorField = false;
 }
  
+// ---------------------------------------------------------------------
 void AmrPicture::SetRasterContour() {
   contours = true; raster = true; colContour = false; vectorField = false;
 }
 
+// ---------------------------------------------------------------------
 void AmrPicture::SetColorContour() {
   contours = true; raster = false; colContour = true; vectorField = false;
 }
 
+// ---------------------------------------------------------------------
 void AmrPicture::SetBWContour() {
   contours = true; raster = false; colContour = false; vectorField = false;
 }
@@ -860,7 +886,7 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
       dIndex = i + jtmp1;
       dPoint = dataPoint[dIndex];
       iIndex = i + jdsh;
-      if (raster) {
+      if(raster) {
         if(dPoint > globalMax) {  // clip
           imagedata[iIndex] = paletteEnd;
         } else if(dPoint < globalMin) {  // clip
@@ -1421,26 +1447,29 @@ void AmrPicture::SetContourNumber(int newContours)
 
 
 // ---------------------------------------------------------------------
-
 void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
                              Display *passed_display, 
                              Drawable &passed_PixMap, 
                              GC passed_gc)
 {
-  Real v_min = GetWhichMin();
-  Real v_max = GetWhichMax();
+  Real v_min(GetWhichMin());
+  Real v_max(GetWhichMax());
   Real v_off;
-  if (numberOfContours != 0.)
-    v_off = v_min + 0.5*(v_max - v_min)/numberOfContours;
-  else 
-    v_off = 1.;
-  int hDir, vDir;
-  if(myView==XZ) {
-    hDir = XDIR; vDir = ZDIR;
-  } else if(myView==YZ) {
-    hDir = YDIR; vDir = ZDIR;
+  if(numberOfContours != 0.0) {
+    v_off = v_min + 0.5 * (v_max - v_min) / numberOfContours;
   } else {
-    hDir = XDIR; vDir = YDIR;
+    v_off = 1.0;
+  }
+  int hDir, vDir;
+  if(myView == XZ) {
+    hDir = XDIR;
+    vDir = ZDIR;
+  } else if(myView == YZ) {
+    hDir = YDIR;
+    vDir = ZDIR;
+  } else {
+    hDir = XDIR;
+    vDir = YDIR;
   }
   
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
@@ -1452,24 +1481,24 @@ void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
   amrData.HiNodeLoc(maxDrawnLevel, passedSliceFab[maxDrawnLevel]->bigEnd(), 
                     pos_high);
   
-  Real xlft = pos_low[hDir];
-  Real ybot = pos_low[vDir];
-  Real xrgt = pos_high[hDir];
-  Real ytop = pos_high[vDir];
+  Real xlft(pos_low[hDir]);
+  Real ybot(pos_low[vDir]);
+  Real xrgt(pos_high[hDir]);
+  Real ytop(pos_high[vDir]);
 
-  for (int lev = minDrawnLevel; lev <= maxDrawnLevel; lev++) {
-    const bool *mask_array = NULL;
-    bool mask_bool = false;
+  for(int lev = minDrawnLevel; lev <= maxDrawnLevel; ++lev) {
+    const bool *mask_array(NULL);
+    bool mask_bool(false);
     BaseFab<bool> mask(passedSliceFab[lev]->box());
     mask.setVal(false);
     
-    if (lev != maxDrawnLevel) {
-      int lratio = CRRBetweenLevels(lev, lev+1, amrData.RefRatio());
+    if(lev != maxDrawnLevel) {
+      int lratio(CRRBetweenLevels(lev, lev+1, amrData.RefRatio()));
       // construct mask array.  must be size FAB.
       const BoxArray &nextFinest = amrData.boxArray(lev+1);
-      for (int j = 0; j < nextFinest.length(); j++) {
+      for(int j = 0; j < nextFinest.length(); ++j) {
         Box coarseBox(coarsen(nextFinest[j],lratio));
-        if (coarseBox.intersects(passedSliceFab[lev]->box())) {
+        if(coarseBox.intersects(passedSliceFab[lev]->box())) {
           coarseBox &= passedSliceFab[lev]->box();
           mask.setVal(true,coarseBox,0);
         }
@@ -1480,16 +1509,16 @@ void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
     const BoxArray &levelBoxArray = amrData.boxArray(lev);
     BoxArray complement = complementIn(passedSliceFab[lev]->box(), 
                                        levelBoxArray);
-    for(int i = 0; i < complement.length(); i++) {
+    for(int i = 0; i < complement.length(); ++i) {
       mask.setVal(true, complement[i], 0);
     }
     
     mask_array = mask.dataPtr();
     mask_bool = true;
     
-    int paletteEnd = palPtr->PaletteEnd();
-    int paletteStart = palPtr->PaletteStart();
-    int csm1 = palPtr->ColorSlots() - 1;
+    int paletteEnd(palPtr->PaletteEnd());
+    int paletteStart(palPtr->PaletteStart());
+    int csm1(palPtr->ColorSlots() - 1);
     Real oneOverGDiff;
     if((maxUsing - minUsing) < FLT_MIN) {
       oneOverGDiff = 0.0;
@@ -1497,19 +1526,18 @@ void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
       oneOverGDiff = 1.0 / (maxUsing - minUsing);
     }
 
-    int drawColor = palPtr->BlackIndex();
-    for (int icont = 0; icont < (int)numberOfContours; icont++) {
-      Real frac = (Real) icont / numberOfContours;
-      Real value = v_off + frac*(v_max - v_min);
+    int drawColor(palPtr->BlackIndex());
+    for(int icont = 0; icont < (int)numberOfContours; ++icont) {
+      Real frac((Real) icont / numberOfContours);
+      Real value(v_off + frac*(v_max - v_min));
       if (colContour) {
         if(value > maxUsing) {  // clip
           drawColor = paletteEnd;
         } else if(value < minUsing) {  // clip
           drawColor = paletteStart;
         } else {
-          drawColor = (int)
-            ((((value - minUsing) * oneOverGDiff) * csm1) );
-          //    ^^^^^^^^^^^^^^^^^ Real data
+          drawColor = (int) ((((value - minUsing) * oneOverGDiff) * csm1) );
+                       //    ^^^^^^^^^^^^^^^^^ Real data
           drawColor += paletteStart;
         }
       }
@@ -1529,7 +1557,7 @@ void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
 
 
 // contour plotting
-//int AmrPicture::contour(const Real *data, Real value,
+// ---------------------------------------------------------------------
 int AmrPicture::contour(const FArrayBox &fab, Real value,
                         bool has_mask, const bool *mask,
                         Display *display, Drawable &dPixMap, GC gc, int FGColor,
