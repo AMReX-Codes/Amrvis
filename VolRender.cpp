@@ -48,13 +48,13 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
   densityField = 1;
   densityOffset = vpFieldOffset(dummy_voxel, density);
   densitySize = sizeof(unsigned char);
-  densityMax = 255;
+  densityMax = MaxPaletteIndex();
 
 
   gradientField = 2;
   gradientOffset = vpFieldOffset(dummy_voxel, gradient);
   gradientSize = sizeof(unsigned char);
-  gradientMax = 255;
+  gradientMax = MaxPaletteIndex();
 
   lightingModel = true;
 
@@ -680,7 +680,8 @@ void VolRender::MakeVPData() {
             //shade_table[sn] = (float)(sn*((float)DENSITY_MAX/(float)NORMAL_MAX));
             //shade_table[sn] = 140.0;
         }
-        shade_table[0] = 255.0;
+        //shade_table[0] = 255.0;
+        shade_table[0] = (Real) MaxPaletteIndex();
         float maxf = 0.0;
         float minf = 1000000.0;
         for(int ijk = 0; ijk < maxShadeRampPts; ijk++) {
@@ -733,10 +734,10 @@ void VolRender::ReadTransferFile(const aString &rampFileName) {
     nGradRampPts = 2;
     gradientRampX = new int[nDenRampPts];
     gradientRampY = new float[nDenRampPts];
-    densityRampX[0] = 0;    densityRampX[1] = 255;
+    densityRampX[0] = 0;    densityRampX[1] = MaxPaletteIndex();;
     densityRampY[0] = 0.0;  densityRampY[1] = 1.0;
 
-    gradientRampX[0] = 0;    gradientRampX[1] = 255;
+    gradientRampX[0] = 0;    gradientRampX[1] = MaxPaletteIndex();;
     gradientRampY[0] = 0.0;  gradientRampY[1] = 1.0;
 
     minRayOpacity = 0.05;

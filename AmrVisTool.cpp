@@ -78,6 +78,12 @@ void main(int argc, char *argv[]) {
   Box		comlineBox;
   aString	comlineFileName;
 
+#ifdef BL_USE_MPI
+    int nprocs = 1;
+    ParallelDescriptor::StartParallel(nprocs,&argc,&argv);
+    SetNProcs(ParallelDescriptor::NProcs());
+#endif
+
   ParmParse pp(0, argv, NULL, NULL);
 
   GetDefaults("amrvis.defaults");
@@ -90,7 +96,9 @@ void main(int argc, char *argv[]) {
   AmrData::SetSkipPltLines(GetSkipPltLines());
   AmrData::SetStaticBoundaryWidth(GetBoundaryWidth());
 
+#ifndef BL_USE_MPI
   ParallelDescriptor::StartParallel(NProcs(), &argc, &argv);
+#endif
 
   if(SleepTime() > 0) {
     sleep(SleepTime());
@@ -404,10 +412,10 @@ void BatchFunctions() {
       }
 
       int iPaletteStart = 2;
-      int iPaletteEnd = 255;
+      int iPaletteEnd = MaxPaletteIndex();
       int iBlackIndex = 1;
       int iWhiteIndex = 0;
-      int iColorSlots = 254;
+      int iColorSlots = MaxPaletteIndex() + 1 - iPaletteStart;
       volRender.MakeSWFData(&dataServices, dataMin, dataMax, GetInitialDerived(),
                             iPaletteStart, iPaletteEnd,
                             iBlackIndex, iWhiteIndex, iColorSlots);

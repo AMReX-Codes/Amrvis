@@ -259,10 +259,10 @@ void AmrPicture::AmrPictureInit() {
   framesMade = false;
   maxsFound = false;
   if(myView == XZ) {
-    hColor = 255;
+    hColor = MaxPaletteIndex();
     vColor = 65;
   } else if(myView == YZ) {
-    hColor = 255;
+    hColor = MaxPaletteIndex();
     vColor = 220;
   } else {
     hColor = 220;
@@ -407,7 +407,7 @@ void AmrPicture::DrawBoxes(Array< Array<GridPicture> > &gp,
       if(level == minDrawnLevel) {
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->WhiteIndex());
       } else {
-        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), 255-80*(level-1));
+        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), MaxPaletteIndex()-80*(level-1));
       }
       for(int i = 0; i < gp[level].length(); ++i) {
 	xbox = gp[level][i].HPositionInPicture();
@@ -892,7 +892,7 @@ XImage *AmrPicture::GetPictureXImage() {
       if(level == minDrawnLevel) {
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->WhiteIndex());
       } else {
-        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), 255-80*level);
+        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), MaxPaletteIndex()-80*level);
       }
       for(int i = 0; i < gpArray[level].length(); ++i) {
 	xbox = gpArray[level][i].HPositionInPicture();
@@ -905,7 +905,7 @@ XImage *AmrPicture::GetPictureXImage() {
       }
     }
   }
-  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), 255);
+  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), MaxPaletteIndex());
   XDrawRectangle(GAptr->PDisplay(), pixMap, GAptr->PGC(), 0, 0,
 			imageSizeH-1, imageSizeV-1);
 

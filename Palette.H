@@ -7,8 +7,10 @@
 #include "REAL.H"
 #include "aString.H"
 
-const int COLORSLOTS      = 256;
-const int PALHEIGHT       = 254;
+//const int COLORSLOTS      = 256;
+//const int PALHEIGHT       = 254;
+const int COLORSLOTS      = 255;
+const int PALHEIGHT       = 253;
 const int PALLISTLENGTH   = 8;
 const int PALWIDTH        = 24;
 const int TEXTCOLOR       = 224;

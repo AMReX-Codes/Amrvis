@@ -3391,6 +3391,7 @@ void PltApp::SetInitialWindowWidth(int initWindowWidth) {
 }
 
 void PltApp::SetReserveSystemColors(int reservesystemcolors) {
+  reservesystemcolors = Max(0, Min(128, reservesystemcolors));  // arbitrarily
   PltApp::reserveSystemColors = reservesystemcolors;
 }
 

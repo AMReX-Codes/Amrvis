@@ -189,6 +189,9 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
   dragging = false;
   drags = 0;
 
+  myDataStringArray = NULL;
+  bDataStringArrayAllocated = false;
+
   Render(alignedRegion, amrPicturePtr, pltAppPtr, hdir, vdir, sdir);
 }  // end Dataset::Dataset
 
@@ -198,9 +201,12 @@ Dataset::~Dataset() {
   delete GAptr;
   delete [] datasetRegion;
   delete [] dataStringArray;
-  for(int j = 0; j<=maxAllowableLevel; j++)
+  if(bDataStringArrayAllocated) {
+    for(int j = 0; j<=maxAllowableLevel; ++j) {
       delete [] myDataStringArray[j];
-  delete [] myDataStringArray;
+    }
+    delete [] myDataStringArray;
+  }
   XtDestroyWidget(wDatasetTopLevel);
 }
 
@@ -213,9 +219,15 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
     Box temp, dataBox;
     Real *dataPoint; 
     
+    if(bDataStringArrayAllocated) {
+      for(int j = 0; j<=maxAllowableLevel; ++j) {
+        delete [] myDataStringArray[j];
+      }
+      delete [] myDataStringArray;
+    }
 
-  maxDrawnLevel = pltAppPtr->MaxDrawnLevel(); 
-  minDrawnLevel = pltAppPtr->MinDrawnLevel();
+    maxDrawnLevel = pltAppPtr->MaxDrawnLevel(); 
+    minDrawnLevel = pltAppPtr->MinDrawnLevel();
   
     hDIR = hdir;
     vDIR = vdir;
@@ -320,10 +332,16 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
         cout << "Error in Dataset::Render:  out of memory" << endl;
         return;
     }
-    myDataStringArray = new StringLoc * [maxDrawnLevel+1];
-    for(int level = 0; level <= maxDrawnLevel; level++) {
-        myDataStringArray[level] = new StringLoc [myStringCount[level] ];
+    myDataStringArray = new StringLoc * [maxAllowableLevel+1];
+    int level;
+    for(level = 0; level <= maxDrawnLevel; ++level) {
+      myDataStringArray[level] = new StringLoc [myStringCount[level] ];
     }
+    for(level = maxDrawnLevel + 1; level <= maxAllowableLevel; ++level) {
+      myDataStringArray[level] = NULL;
+    }
+    bDataStringArrayAllocated = true;
+
     // determine size of data area
     dataItemWidth = largestWidth * CHARACTERWIDTH;
     pixSizeX = datasetRegion[maxDrawnLevel].length(hDIR) * dataItemWidth
@@ -433,7 +451,7 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
 
     //now load into **StringLoc
 
-    int SC = 0;
+    int SC(0);
     for(lev = minDrawnLevel;lev<=maxDrawnLevel;lev++) {
         for(stringCount = 0; stringCount<myStringCount[lev]; stringCount++) {
             myDataStringArray[lev][stringCount] = dataStringArray[SC++];
@@ -843,7 +861,8 @@ void Dataset::DoExpose(int fromExpose) {
             for(int lvl = minDrawnLevel; lvl<=maxDrawnLevel; lvl++) {
                 for(stringCount=0; stringCount<myStringCount[lvl]; stringCount++) {
                     xloc = myDataStringArray[lvl][stringCount].xloc;
-                    yloc = myDataStringArray[lvl][stringCount].yloc-((maxDrawnLevel-minDrawnLevel+1)*hIndexAreaHeight);
+                    yloc = myDataStringArray[lvl][stringCount].yloc -
+			  ((maxDrawnLevel-minDrawnLevel+1)*hIndexAreaHeight);
 #ifndef SCROLLBARERROR
                     if(myDataStringArray[lvl][stringCount].olflag >= maxDrawnLevel  &&
                        xloc > xh && yloc > yv &&
@@ -866,7 +885,8 @@ void Dataset::DoExpose(int fromExpose) {
             for(int lvl = minDrawnLevel; lvl<=maxDrawnLevel; lvl++) {
                 for(stringCount=0; stringCount<myStringCount[lvl]; stringCount++) {
                     xloc = myDataStringArray[lvl][stringCount].xloc;
-                    yloc = myDataStringArray[lvl][stringCount].yloc-((max_level-min_level+1)*hIndexAreaHeight);
+                    yloc = myDataStringArray[lvl][stringCount].yloc -
+			   ((max_level-min_level+1)*hIndexAreaHeight);
 #ifndef SCROLLBARERROR
                     if(myDataStringArray[lvl][stringCount].olflag >= maxDrawnLevel &&
                        xloc > xh && yloc > yv &&

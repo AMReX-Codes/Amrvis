@@ -6,14 +6,17 @@ PROFILE   = FALSE
 COMP      = KCC
 DEBUG     = FALSE
 DEBUG     = TRUE
-DIM       = 2
 DIM       = 3
+DIM       = 2
 
 USE_ARRAYVIEW = TRUE
 USE_ARRAYVIEW = FALSE
 
-USE_BSP=FALSE
 USE_BSP=TRUE
+USE_BSP=FALSE
+
+USE_MPI=FALSE
+USE_MPI=TRUE
 
 USE_VOLRENDER = FALSE
 USE_VOLRENDER = TRUE
@@ -73,6 +76,32 @@ endif
 
 endif
 # end if(USE_BSP == TRUE)
+
+
+############################################### mpi definitions
+MPI_HOME =
+
+ifeq ($(USE_MPI), TRUE)
+DEFINES += -DBL_USE_MPI
+ifeq ($(BSP_MACHINE), OSF1)
+MPI_HOME = /usr/local/mpi
+endif
+endif
+
+ifeq ($(USE_MPI), TRUE)
+ifeq ($(MACHINE), OSF1)
+INCLUDE_LOCATIONS += $(MPI_HOME)/include
+LIBRARY_LOCATIONS += $(MPI_HOME)/lib/alpha/ch_p4
+endif
+endif
+
+ifeq ($(USE_MPI), TRUE)
+ifeq ($(USE_UPSHOT), TRUE)
+LIBRARIES += -llmpi -lpmpi
+endif
+LIBRARIES += -lmpi
+endif
+
 
 
 DEFINES += -DBL_PARALLEL_IO

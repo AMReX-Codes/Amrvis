@@ -75,6 +75,7 @@ private:
     char		buffer[BUFSIZ], dataString[MAXSTRINGWIDTH];
     aString		formatString;
     StringLoc	*dataStringArray, **myDataStringArray;
+    bool        bDataStringArrayAllocated;
     AmrPicture	*amrPicturePtr;
     DataServices	*dataServicesPtr;
     PltApp		*pltAppPtr;

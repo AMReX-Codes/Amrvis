@@ -36,6 +36,7 @@ Real specifiedMin;
 Real specifiedMax;
 bool useMaxLevel;
 int  maxLevel;
+int  maxPaletteIndex;
 
 
 // -------------------------------------------------------------------
@@ -123,7 +124,8 @@ void GetDefaults(const aString &defaultsFile) {
   maxPictureSize = DEFAULTMAXPICTURESIZE;
   boundaryWidth = 0;
   skipPltLines = 0;
-  boxColor = 255;
+  maxPaletteIndex = 254;  // dont uset the top value (255)
+  boxColor = maxPaletteIndex;
   fileType = NEWPLT;  // default
 
 
@@ -646,11 +648,14 @@ Box GetBoxFromCommandLine() { return comlinebox; }
 void SetMaxPictureSize(int maxpicsize) { maxPictureSize = maxpicsize; }
 int MaxPictureSize() { return maxPictureSize; }
 
+int MaxPaletteIndex() { return maxPaletteIndex; }
+
 void SetVerbose() { verbose = true; }
 bool Verbose()    { return verbose; }
 
 int GetFileCount() { return fileCount; }
 int NProcs() { return nProcs; }
+void SetNProcs(int nprocs) { nProcs = nprocs; }
 int SleepTime() { return sleepTime; }
 
 int  GetMaxLevel() { return maxLevel; }

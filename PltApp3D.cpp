@@ -187,6 +187,7 @@ void PltApp::CBTransResize(Widget w, XtPointer client_data, XtPointer call_data)
 void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
   transDetached = false;
 
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   //Query wDLight for its state:
   Widget getHistory;
   XtVaGetValues(wDLight, XmNmenuHistory, &getHistory, NULL);
@@ -195,6 +196,7 @@ void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
   //Query wDClassify for its state:
   XtVaGetValues(wDClassify, XmNmenuHistory, &getHistory, NULL);
   int classMode = ( getHistory == wDClassifyItems[0] ? 0 : 1 );
+#endif
 
   XtRemoveCallback(wTransDA, XmNinputCallback, &PltApp::CBTransInput, NULL);
   XtRemoveCallback(wTransDA, XmNresizeCallback, &PltApp::CBTransResize, NULL);
@@ -259,6 +261,7 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   Position xpos, ypos;
   Dimension wdth, hght;
 
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   //Query wLight here for its state:
   Widget getHistory;
   XtVaGetValues(wLight, XmNmenuHistory, &getHistory, NULL);
@@ -267,6 +270,7 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   //Query wClassify here for its state:
   XtVaGetValues(wClassify, XmNmenuHistory, &getHistory, NULL);
   int classMode = ( getHistory == wClassifyItems[0] ? 0 : 1 );
+#endif
   
   transDetached = true;
   XtUnmanageChild(wTransDA);
@@ -635,13 +639,17 @@ void PltApp::SetValueModel() {
 }
 
 void PltApp::SetOctreeAlgorithm() {
+#if defined(BL_VOLUMERENDER)
     preClassify = false;
     projPicturePtr->GetVolRenderPtr()->SetPreClassifyAlgorithm(false);
+#endif
 }
 
 void PltApp::SetPreClassifyAlgorithm() {
+#if defined(BL_VOLUMERENDER)
     preClassify = true;
     projPicturePtr->GetVolRenderPtr()->SetPreClassifyAlgorithm(true);
+#endif
 }
 
 void PltApp::CBTransInput(Widget w, XtPointer client_data, XtPointer call_data) {
@@ -657,6 +665,7 @@ void PltApp::CBRenderModeMenu(Widget w, XtPointer item_no, XtPointer client_data
 }
 
 void PltApp::DoRenderModeMenu(Widget w, XtPointer item_no, XtPointer client_data) {
+#if defined(BL_VOLUMERENDER)
     if(item_no == (XtPointer)0) { //Use Lighting model
         if (lightingModel)
             return;
@@ -670,19 +679,23 @@ void PltApp::DoRenderModeMenu(Widget w, XtPointer item_no, XtPointer client_data
     if (XmToggleButtonGetState(wAutoDraw)||showing3dRender) {
         DoRender(w, NULL, NULL);
     }
+#endif
 }
 
 
 void PltApp::CBClassifyMenu(Widget w, XtPointer item_no, XtPointer client_data) 
 {
+#if defined(BL_VOLUMERENDER)
     unsigned long getobj;
     XtVaGetValues(XtParent(w), XmNuserData, &getobj, NULL);
     PltApp *obj = (PltApp *) getobj;
     obj->DoClassifyMenu(w, item_no, client_data);
+#endif
 }
 
 void PltApp::DoClassifyMenu(Widget w, XtPointer item_no, XtPointer client_data) 
 {
+#if defined(BL_VOLUMERENDER)
     if(item_no == (XtPointer)0) { //Use Octree Mode
         if ( ! preClassify )
             return;
@@ -697,6 +710,7 @@ void PltApp::DoClassifyMenu(Widget w, XtPointer item_no, XtPointer client_data)
     if (XmToggleButtonGetState(wAutoDraw)||showing3dRender) {
         DoRender(w, NULL, NULL);
     }
+#endif
 }
 
 

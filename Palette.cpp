@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------
-// Palette.C
+// Palette.cpp
 // -------------------------------------------------------------------
 #include "Palette.H"
 #include <stdlib.h>
@@ -112,7 +112,7 @@ void Palette::Draw(Real palMin, Real palMax, const aString &numberFormat) {
   pmin = palMin;
   pmax = palMax;
   defaultFormat = numberFormat;
- XClearWindow(display, palWindow);
+  XClearWindow(display, palWindow);
   //if(palPixmap == NULL) {
 
   if(palPixmap == 0) {

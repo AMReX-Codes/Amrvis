@@ -40,7 +40,8 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
   daHeight = h;
 
   volumeBoxColor = (unsigned char) GetBoxColor();
-  volumeBoxColor = Max((unsigned char) 0, Min((unsigned char) 255, volumeBoxColor));
+  volumeBoxColor = Max((unsigned char) 0, Min((unsigned char) MaxPaletteIndex(),
+			volumeBoxColor));
 
   showSubCut = false;
   pixCreated = false;
@@ -74,9 +75,9 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
     if(lev == minDrawnLevel) {
       boxColors[lev] = pltAppPtr->GetPalettePtr()->WhiteIndex();
     } else {
-      boxColors[lev] = 255 - 80 * (lev - 1);
+      boxColors[lev] = MaxPaletteIndex() - 80 * (lev - 1);
     }
-    boxColors[lev] = Max(0, Min(255, boxColors[lev]));
+    boxColors[lev] = Max(0, Min(MaxPaletteIndex(), boxColors[lev]));
     for(int iBox = 0; iBox < amrData.boxArray(lev).length(); ++iBox) {
       Box temp(amrData.boxArray(lev)[iBox]);
       if(temp.intersects(theDomain[lev])) {
@@ -517,7 +518,9 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
 
   longestWindowLength  = (Real) Max(daWidth, daHeight);
   shortestWindowLength = (Real) Min(daWidth, daHeight);
+#ifdef BL_VOLUMERENDER
   volRender->SetAspect(shortestWindowLength/longestWindowLength);
+#endif
   viewTransformPtr->SetAspect(shortestWindowLength/longestWindowLength);
 
   Box alignedBox(theDomain[minDrawnLevel]);

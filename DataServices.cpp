@@ -51,7 +51,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     bContinueLooping = false;
   }
 
-  ParallelDescriptor::Synchronize();  // procs 1 - N wait here
+  ParallelDescriptor::Barrier();  // procs 1 - N wait here
 
   ParallelDescriptor::ShareVar(&requestType, sizeof(DSRequestType));
   ParallelDescriptor::Synchronize();  // for ShareVar
@@ -429,7 +429,6 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 
     case MinMaxRequest:
     {
-
       Box box;
       aString derivedTemp;
       char *derivedCharPtr;
@@ -456,6 +455,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       ParallelDescriptor::UnshareVar(&level);
       ParallelDescriptor::UnshareVar(&derivedLength);
       ParallelDescriptor::UnshareVar(&box);
+
 
       derivedLengthPadded = derivedLength + 1;
       derivedLengthPadded += derivedLengthPadded % 8;
