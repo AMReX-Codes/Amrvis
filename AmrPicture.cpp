@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.cpp,v 1.44 2000-06-13 23:19:07 car Exp $
+// $Id: AmrPicture.cpp,v 1.45 2000-06-14 00:53:20 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -512,9 +512,8 @@ void AmrPicture::DrawBoxes(Array< Array<GridPicture> > &gp,
       if(level == minDrawnLevel) {
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->WhiteIndex());
       } else {
-	// FIXME:
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(),
-		       MaxPaletteIndex()-80*(level-1));
+		       palPtr->pixelate(MaxPaletteIndex()-80*(level-1)));
       }
       if(amrData.Terrain()) {
 	DrawTerrBoxes(level, bIsWindow, bIsPixmap);
@@ -775,8 +774,7 @@ void AmrPicture::DoExposePicture() {
       DrawBoxes(gpArray, pictureWindow);
 
       if( ! subCutShowing) {   // draw selected region
-	// FIXME:
-        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), 60);
+        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->pixelate(60));
         XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
 		  regionX+1, regionY+1, region2ndX+1, regionY+1); 
         XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
@@ -786,8 +784,7 @@ void AmrPicture::DoExposePicture() {
         XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
 		  region2ndX+1, regionY+1, region2ndX+1, region2ndY+1);
 
-	// FIXME:
-        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), 175);
+        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->pixelate(175));
         XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
 		  regionX, regionY, region2ndX, regionY); 
         XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
@@ -800,28 +797,23 @@ void AmrPicture::DoExposePicture() {
 
 #if (BL_SPACEDIM == 3)
       // draw plane "cutting" lines
-      // FIXME:
-      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), hColor);
+      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->pixelate(hColor));
       XDrawLine(GAptr->PDisplay(), pictureWindow,
                 GAptr->PGC(), 0, hLine, imageSizeH, hLine); 
-      // FIXME:
-      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), vColor);
+      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->pixelate(vColor));
       XDrawLine(GAptr->PDisplay(), pictureWindow,
                 GAptr->PGC(), vLine, 0, vLine, imageSizeV); 
       
-      // FIXME:
-      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), hColor-30);
+      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->pixelate(hColor-30));
       XDrawLine(GAptr->PDisplay(), pictureWindow,
                 GAptr->PGC(), 0, hLine+1, imageSizeH, hLine+1); 
-      // FIXME:
-      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), vColor-30);
+      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->pixelate(vColor-30));
       XDrawLine(GAptr->PDisplay(), pictureWindow,
                 GAptr->PGC(), vLine+1, 0, vLine+1, imageSizeV); 
       
       if(subCutShowing) {
         // draw subvolume cutting border 
-      // FIXME:
-        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), 90);
+        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->pixelate(90));
         XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
 		  subcutX+1, subcutY+1, subcut2ndX+1, subcutY+1); 
         XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
@@ -831,8 +823,7 @@ void AmrPicture::DoExposePicture() {
         XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
 		  subcut2ndX+1, subcutY+1, subcut2ndX+1, subcut2ndY+1);
           
-      // FIXME:
-        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), 155);
+        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->pixelate(155));
         XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
 		  subcutX, subcutY, subcut2ndX, subcutY); 
         XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
@@ -1616,8 +1607,8 @@ XImage *AmrPicture::GetPictureXImage() {
       if(level == minDrawnLevel) {
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->WhiteIndex());
       } else {
-      // FIXME:
-        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), MaxPaletteIndex()-80*level);
+        XSetForeground(GAptr->PDisplay(), GAptr->PGC(),
+		       palPtr->pixelate(MaxPaletteIndex()-80*level));
       }
       for(int i = 0; i < gpArray[level].length(); ++i) {
 	xbox = gpArray[level][i].HPositionInPicture();
@@ -1951,20 +1942,17 @@ void AmrPicture::ShowFrameImage(int iSlice) {
 
 
   // draw plane "cutting" lines
-      // FIXME:
-  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), hColor);
+  XSetForeground(GAptr->PDisplay(), GAptr->PGC(),
+		 palPtr->pixelate(hColor));
   XDrawLine(GAptr->PDisplay(), pictureWindow,
 		GAptr->PGC(), 0, hLine, imageSizeH, hLine); 
-      // FIXME:
-  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), vColor);
+  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->pixelate(vColor));
   XDrawLine(GAptr->PDisplay(), pictureWindow,
 		GAptr->PGC(), vLine, 0, vLine, imageSizeV); 
-      // FIXME:
-  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), hColor-30);
+  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->pixelate(hColor-30));
   XDrawLine(GAptr->PDisplay(), pictureWindow,
   	GAptr->PGC(), 0, hLine+1, imageSizeH, hLine+1); 
-      // FIXME:
-  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), vColor-30);
+  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->pixelate(vColor-30));
   XDrawLine(GAptr->PDisplay(), pictureWindow,
   	GAptr->PGC(), vLine+1, 0, vLine+1, imageSizeV); 
   
@@ -2254,8 +2242,7 @@ bool AmrPicture::DrawContour(const FArrayBox &fab, Real value,
         }
       }
       
-      // FIXME:
-      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), FGColor);
+      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->pixelate(FGColor));
       
       Real hReal2X = (Real) imageSizeH / (rightEdge - leftEdge);
       Real vReal2X = (Real) imageSizeV / (topEdge - bottomEdge);

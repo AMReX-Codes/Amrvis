@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.H,v 1.13 2000-06-13 23:18:20 car Exp $
+// $Id: Palette.H,v 1.14 2000-06-14 00:53:20 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -58,6 +58,7 @@ protected:
   static Colormap systemColmap;
   PaletteType paletteType;
   bool visTrueColor;
+  int bits_per_rgb;
   int palDepth;
   Array<unsigned char> abuff;
   Array<unsigned char> rbuff;
@@ -106,6 +107,7 @@ public:
   unsigned char theRBuff(int i) const { return rbuff[i]; }
   unsigned char theGBuff(int i) const { return gbuff[i]; }
   unsigned char theBBuff(int i) const { return bbuff[i]; }
+  unsigned long pixelate(int i) const;
 private:
   void ReadPalette(const aString &palNam);
   Palette(Widget &w);

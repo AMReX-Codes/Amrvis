@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.cpp,v 1.61 2000-06-13 23:19:08 car Exp $
+// $Id: PltApp.cpp,v 1.62 2000-06-14 00:53:20 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1251,8 +1251,7 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   //                (amrPicturePtrArray[YPLANE]->
   //		ImageSizeV()-1 - amrPicturePtrArray[YPLANE]->GetHLine())/
   //		currentScale + ivLowOffsetMAL[ZDIR]);
-  // FIXME:
-  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), zpColor);
+  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), pltPaletteptr->pixelate(zpColor));
   XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
 	      centerX-xyzAxisLength+12,
 	      centerY+xyzAxisLength+4,
@@ -1261,8 +1260,7 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   sprintf(temp, "Y=%i", amrPicturePtrArray[YPLANE]->GetSlice());
   //amrPicturePtrArray[XPLANE]->GetVLine()/
   //		currentScale + ivLowOffsetMAL[YDIR]);
-  // FIXME:
-  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), ypColor);
+  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), pltPaletteptr->pixelate(ypColor));
   XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
 	      centerX+stringOffsetX,
 	      centerY-xyzAxisLength+4,
@@ -1271,15 +1269,13 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   sprintf(temp, "X=%i", amrPicturePtrArray[XPLANE]->GetSlice());
   //amrPicturePtrArray[ZPLANE]->GetVLine()/
   //currentScale + ivLowOffsetMAL[XDIR]);
-  // FIXME:
-  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), xpColor);
+  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), pltPaletteptr->pixelate(xpColor));
   XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
 	      centerX+4*stringOffsetX,
 	      centerY+stringOffsetY+2,
 	      temp, strlen(temp));
   
-  // FIXME:
-  XSetForeground(XtDisplay(wControlForm), GAptr->PGC(), ypColor);
+  XSetForeground(XtDisplay(wControlForm), GAptr->PGC(), pltPaletteptr->pixelate(ypColor));
   XDrawLine(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
 	    centerX, centerY, centerX, centerY-xyzAxisLength);
   XDrawLine(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
@@ -1300,8 +1296,7 @@ void PltApp::DrawAxes(Widget wArea, int xpos, int ypos, int /* orientation */ ,
   char hLabel[LINELENGTH], vLabel[LINELENGTH];
   strcpy(hLabel, hlabel);
   strcpy(vLabel, vlabel);
-  // FIXME:
-  XSetForeground(XtDisplay(wArea), GAptr->PGC(), color);
+  XSetForeground(XtDisplay(wArea), GAptr->PGC(), pltPaletteptr->pixelate(color));
   XDrawLine(XtDisplay(wArea), XtWindow(wArea), GAptr->PGC(),
 	    xpos+5, ypos, xpos+5, ypos+axisLength);
   XDrawLine(XtDisplay(wArea), XtWindow(wArea), GAptr->PGC(),

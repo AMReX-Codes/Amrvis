@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.cpp,v 1.23 2000-06-13 23:19:08 car Exp $
+// $Id: Palette.cpp,v 1.24 2000-06-14 00:53:20 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -45,6 +45,7 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
   if ( status != 0 )
     {
       visual = visualInfo.visual;
+      bits_per_rgb = visualInfo.bits_per_rgb;
       palDepth = 8;
     }
   else
@@ -55,6 +56,7 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
 	{
 	  visTrueColor=true;
 	  visual = visualInfo.visual;
+	  bits_per_rgb = visualInfo.bits_per_rgb;
 	  palDepth = DefaultDepth(display, screenNumber);
 	}
       else
@@ -299,13 +301,16 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
   Array<int> indexArray(iSeqPalSize);
   int	i, fd;		/* file descriptor */
 
+  const unsigned long bprgb = bits_per_rgb;
   if((fd = open(fileName.c_str(), O_RDONLY, NULL)) < 0) {
     cout << "Can't open colormap file:  " << fileName << endl;
     for(i = 0; i < totalColorSlots; i++) {    // make a default grayscale colormap.
       if ( visTrueColor )
 	{
 	  // FIXME: not 24 bit!
-	  ccells[i].pixel = (rbuff[i]<<16) | (gbuff[i]<< 8) | (bbuff[i] );
+	  ccells[i].pixel = (((rbuff[i]>>(8-bprgb)) <<2*bprgb)
+			     |((gbuff[i]>>(8-bprgb))<< bprgb)
+			     |((bbuff[i]>>(8-bprgb))<< 0));
 	}
       else
 	{
@@ -385,7 +390,9 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
     if ( visTrueColor )
       {
 	// FIXME: not 24 bit!
-	ccells[i].pixel = (rbuff[i]<<16) | (gbuff[i]<< 8) | (bbuff[i] );
+	ccells[i].pixel = (((rbuff[i]>>(8-bprgb)) <<2*bprgb)
+			   |((gbuff[i]>>(8-bprgb))<< bprgb)
+			   |((bbuff[i]>>(8-bprgb))<< 0));
       }
     else
       {
@@ -448,4 +455,11 @@ Palette::WhiteIndex()    const
     return WhitePixel(display, screenNumber);
   else
     return whiteIndex;
+}
+
+unsigned long
+Palette::pixelate(int i) const
+{
+  if ( i < 0 || i > 255 ) return WhitePixel(display, screenNumber);
+  return ccells[i].pixel;
 }
