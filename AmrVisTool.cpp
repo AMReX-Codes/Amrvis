@@ -134,11 +134,11 @@ void main(int argc, char *argv[]) {
 
 
       if(ParallelDescriptor::IOProcessor()) {
-        PltApp *temp = new PltApp(app, wTopLevel, comlineFileName,
-			          dataServices, IsAnimation());
-	if(temp == NULL) {
-	  cerr << "Error:  could not make a new PltApp." << endl;
-	}
+          PltApp *temp = new PltApp(app, wTopLevel, comlineFileName,
+                                    dataServices, IsAnimation());
+          if(temp == NULL) {
+              cerr << "Error:  could not make a new PltApp." << endl;
+          }
         //pltAppList.append(temp);
         //cout << ">>>> pltAppList appending " << temp << endl;
       }
@@ -451,8 +451,8 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
 
 // ---------------------------------------------------------------
 void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
-  char *filename = NULL;
 
+  char *filename = NULL;
   if( ! XmStringGetLtoR(
 	((XmFileSelectionBoxCallbackStruct*) call_data)->value,
 	XmSTRING_DEFAULT_CHARSET,
@@ -461,6 +461,7 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
     cerr << "CBOpenPltFile : system error" << endl;
     return;
   }
+  cout<<filename<<endl;
   char path[BUFSIZ];
   //cout << "_in CBOpenPltFile:  filename = " << filename << endl;
   strcpy(path, filename);
@@ -477,10 +478,9 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
 
   DataServices *dataServices = new DataServices(filename, GetDefaultFileType());
   DataServices::Dispatch(DataServices::NewRequest, dataServices, NULL);
-
   PltApp *temp = new PltApp(app, wTopLevel, filename, dataServices, false);
   if(temp == NULL) {
-    cerr << "Error:  could not make a new PltApp." << endl;
+      cerr << "Error:  could not make a new PltApp." << endl;
   }
   //pltAppList.append(temp);
   //cout << ">>>> pltAppList appending " << temp << endl;

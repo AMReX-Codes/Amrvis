@@ -68,8 +68,9 @@ PltApp::~PltApp() {
 PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
 	       DataServices *dataservicesptr, bool isAnim)
 {
+    if (! dataservicesptr->AmrDataOk() )
+        return;
   int i;
-
   anim = isAnim;
   paletteDrawn = false;
   appContext = app;
@@ -105,22 +106,21 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
   assert(fileType != INVALIDTYPE);
   dataServicesPtr = dataservicesptr;
   dataServicesPtr->IncrementNumberOfUsers();
-
   if( ! (dataServicesPtr->CanDerive(PltApp::initialDerived)) &&
       ! (fileType == FAB)  && ! (fileType == MULTIFAB))
   {
     cerr << "Bad initial derived:  cannot derive "
-	 << PltApp::initialDerived << endl;
-    cerr << "defaulting to " << dataServicesPtr->PlotVarNames()[0] << endl;
+	 << PltApp::initialDerived <<endl;
+    cerr << "defaulting to "
+         << dataServicesPtr->PlotVarNames()[0] << endl;
     SetInitialDerived(dataServicesPtr->PlotVarNames()[0]);
   }
-
   currentDerived = PltApp::initialDerived;
 
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
   int finestLevel(amrData.FinestLevel());
   int maxlev = DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
-		       finestLevel, MaxPictureSize(), amrData.RefRatio());
+                            finestLevel, MaxPictureSize(), amrData.RefRatio());
   minAllowableLevel = 0;
   Box maxDomain(amrData.ProbDomain()[maxlev]);
   unsigned long dataSize = maxDomain.length(XDIR) * maxDomain.length(YDIR);
@@ -132,8 +132,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
   currentScale = Max(1, Min(GetInitialScale(), maxAllowableScale));
 
   amrPicturePtrArray[ZPLANE] = new AmrPicture(minAllowableLevel, GAptr,
-					      this, dataServicesPtr);
-
+                                              this, dataServicesPtr);
 #if (BL_SPACEDIM == 3)
     amrPicturePtrArray[YPLANE] = new AmrPicture(YPLANE, minAllowableLevel, GAptr,
     			amrData.ProbDomain()[finestLevel],
@@ -142,11 +141,9 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     			amrData.ProbDomain()[finestLevel],
 			amrPicturePtrArray[ZPLANE], this);
 #endif
-
-  for(i = 0; i < BL_SPACEDIM; i++) {
+    for(i = 0; i < BL_SPACEDIM; i++) {
     ivLowOffsetMAL.setVal(i, amrData.ProbDomain()[maxlev].smallEnd(i));
   }
-
   palFilename = PltApp::defaultPaletteString;
   PltAppInit();
 }
