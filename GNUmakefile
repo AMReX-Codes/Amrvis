@@ -69,9 +69,9 @@ endif
 
 ifeq ($(MACHINE), Linux)
   INCLUDE_LOCATIONS += /usr/X11R6/include/X11
-  INCLUDE_LOCATIONS += /usr/local/include
-  INCLUDE_LOCATIONS += /usr/local/include/Xm
-  LIBRARY_LOCATIONS += /usr/local/lib
+  INCLUDE_LOCATIONS += /usr/X11R6/include
+  INCLUDE_LOCATIONS += /usr/X11R6/include/Xm
+  LIBRARY_LOCATIONS += /usr/X11R6/lib
   LIBRARY_LOCATIONS += /usr/X11R6/lib
   LIBRARIES += -lXm -lXt -lX11
 endif
