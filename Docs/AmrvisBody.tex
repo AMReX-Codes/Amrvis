@@ -96,6 +96,12 @@ the name can be specified with or without the "\_H" in the name.
 -multifab           A MultiFab written with VisMF (multiple files).
 \end{verbatim}
 
+If the useminmax option is specified, the USERMINMAX range type is
+set and the min amd max values are set to the user specified values
+for the initialderived name (if set), or the first quantity in the
+plot file if no initial derived value is used or if the initial derived
+name is invalid.
+
 {\em Amrvis} looks for a default definition file named  {\bf amrvis.defaults}
 and if it exists, uses its options as defaults.
 If the file does not exist, {\em amrvis} uses standard defaults.
@@ -146,6 +152,10 @@ through data files and through planes in 3D.  It is in the lower right
 part of the Data View Window below the Palette Area.  It also shows
 plane axes.  The animation controls will only be visible in 3D or
 if the Data View Window is used for 2D animation.
+
+\item[Number Format Window]  This window is used to set the
+format of displayed numbers and affects the palette, dataset,
+point values, and the range window.
 
 \item[Lights Window] This window allows the user to set the following
 lighting parameters.
