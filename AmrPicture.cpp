@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.60 2001-04-26 00:41:13 vince Exp $
+// $Id: AmrPicture.cpp,v 1.61 2001-05-01 22:09:24 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -43,10 +43,8 @@ AmrPicture::AmrPicture(GraphicsAttributes *gaptr,
              pltAppStatePtr(pltappstateptr),
              dataServicesPtr(dataservicesptr),
              myView(XY),
-             //minDrawnLevel(mindrawnlevel),
              bCartGridSmoothing(bcartgridsmoothing),
              isSubDomain(false)
-             //findSubRange(false)
 {
   int i, ilev;
 
@@ -828,6 +826,7 @@ void AmrPicture::APMakeImages(Palette *palptr) {
                 dataSizeH[iLevel], dataSizeV[iLevel],
                 imageSizeH, imageSizeV);
   }
+  cout << "***** _in APMakeImages:  PaletteDrawn = " << pltAppPtr->PaletteDrawn() << endl;
   if( ! pltAppPtr->PaletteDrawn()) {
     pltAppPtr->PaletteDrawn(true);
     palptr->Draw(minUsing, maxUsing, pltAppPtr->GetFormatString());

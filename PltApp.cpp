@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.84 2001-04-26 00:41:13 vince Exp $
+// $Id: PltApp.cpp,v 1.85 2001-05-01 22:09:25 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1755,7 +1755,17 @@ void PltApp::ToggleRange(Widget w, XtPointer client_data, XtPointer call_data) {
   XmToggleButtonCallbackStruct *state = (XmToggleButtonCallbackStruct *) call_data;
   if(state->set == true) {
     currentRangeType = (MinMaxRangeType) r;
+    if(bFileRangeButtonSet) {
+      if(currentRangeType == GLOBALMINMAX) {
+        currentRangeType = FILEGLOBALMINMAX;
+      } else if(currentRangeType == SUBREGIONMINMAX) {
+        currentRangeType = FILESUBREGIONMINMAX;
+      } else if(currentRangeType == USERMINMAX) {
+        currentRangeType = FILEUSERMINMAX;
+      }
+    }
   }
+  cout << "_here 1:  currentRangeType = " << currentRangeType << endl;
 }
 
 
@@ -2203,6 +2213,24 @@ void PltApp::DoToggleFileRangeButton(Widget w, XtPointer client_data,
 				     XtPointer call_data)
 {
   bFileRangeButtonSet = XmToggleButtonGetState(wFileRangeCheckBox);
+  if(bFileRangeButtonSet) {
+    if(currentRangeType == GLOBALMINMAX) {
+      currentRangeType = FILEGLOBALMINMAX;
+    } else if(currentRangeType == SUBREGIONMINMAX) {
+      currentRangeType = FILESUBREGIONMINMAX;
+    } else if(currentRangeType == USERMINMAX) {
+      currentRangeType = FILEUSERMINMAX;
+    }
+  } else {
+    if(currentRangeType == FILEGLOBALMINMAX) {
+      currentRangeType = GLOBALMINMAX;
+    } else if(currentRangeType == FILESUBREGIONMINMAX) {
+      currentRangeType = SUBREGIONMINMAX;
+    } else if(currentRangeType == FILEUSERMINMAX) {
+      currentRangeType = USERMINMAX;
+    }
+  }
+  cout << "_here 2:  currentRangeType = " << currentRangeType << endl;
 }
 
 
@@ -2438,7 +2466,7 @@ void PltApp::DoDoneSetRange(Widget, XtPointer client_data, XtPointer) {
   }
 
   if(currentRangeType != pltAppState->GetMinMaxRangeType() ||
-     currentRangeType == USERMINMAX)
+     currentRangeType == USERMINMAX || currentRangeType == FILEUSERMINMAX)
   {
     pltAppState->SetMinMaxRangeType(currentRangeType);	
     for(np = 0; np < NPLANES; ++np) {
@@ -2515,7 +2543,7 @@ void PltApp::DoUserMin(Widget, XtPointer, XtPointer) {
     XtVaSetValues(wRangeRadioButton[BSUBREGIONMINMAX], XmNset, false, NULL);
   }
   XtVaSetValues(wRangeRadioButton[BUSERMINMAX], XmNset, true, NULL);
-  if(UsingFileRange(currentRangeType)) {
+  if(bFileRangeButtonSet) {
     currentRangeType = FILEUSERMINMAX;
   } else {
     currentRangeType = USERMINMAX;
@@ -2536,7 +2564,7 @@ void PltApp::DoUserMax(Widget, XtPointer, XtPointer) {
     XtVaSetValues(wRangeRadioButton[BSUBREGIONMINMAX], XmNset, false, NULL);
   }
   XtVaSetValues(wRangeRadioButton[BUSERMINMAX], XmNset, true, NULL);
-  if(UsingFileRange(currentRangeType)) {
+  if(bFileRangeButtonSet) {
     currentRangeType = FILEUSERMINMAX;
   } else {
     currentRangeType = USERMINMAX;
