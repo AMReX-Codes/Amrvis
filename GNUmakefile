@@ -89,6 +89,7 @@ ifeq ($(MACHINE), AIX)
   #INCLUDE_LOCATIONS += /usr/include/X11/Xaw
   LIBRARIES += -lXm -lXt -lX11
   DEFINES += -D_ALL_SOURCE
+  DEFINES += -DBL_USE_NEW_HFILES
 endif
 
 ifeq ($(MACHINE), T3E)
