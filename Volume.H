@@ -8,8 +8,8 @@
 
 #define SWF_HEADER	62			/* bytes of header in file */
 
-#define LIGHTING 0
-//#define LIGHTING 1
+//#define LIGHTING 0
+#define LIGHTING 1
 
 #if LIGHTING
 
