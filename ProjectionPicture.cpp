@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.cpp,v 1.44 2002-02-19 20:39:41 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.45 2002-04-18 20:34:53 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -16,6 +16,11 @@
 
 #include <cmath>
 #include <ctime>
+
+using std::cout;
+using std::endl;
+using std::min;
+using std::max;
 
 // -------------------------------------------------------------------
 ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
