@@ -36,17 +36,8 @@ For 2D animations, there is a button ("rgb >") which will write an rgb
 There is now a separate program for deriving quantities from plotfiles.
   The program is named AmrDerive (see its documentation).
 
-There is also a separate program for converting from old plot files to
-  new ones.  The program is named PlotConvert (see its documentation).
-
-
----------------------------------------------------------------------------
------------------------------ Features not in this version but coming soon.
-
-This version does not support the following plot file types:
-  Cartesian grid (-cgmf -cgsf in old amrvis).
-  Terrain.
-  R Theta.
+There is also a separate program for converting old plot files to the
+  new plot file format.  The program is named PlotConvert (see its documentation).
 
 
 ---------------------------------------------------------------------------
@@ -85,6 +76,16 @@ For postscript output of the palette, numbers are written as postscript
 
 Fab byte ordering is no longer a user settable parameter.  New plot
   files and fabs know their byte ordering.
+
+
+---------------------------------------------------------------------------
+----------------------------- Features not in this version but coming soon.
+
+This version does not support the following plot file types:
+  Cartesian grid (-cgmf -cgsf in old amrvis).
+  Terrain.
+  R Theta.
+
 
 ---------------------------------------------------------------------------
 ----------------------------------------------------------------- Bug Fixes

@@ -40,10 +40,10 @@ is currently
 amrvis3d
        [-help]
        [-maxpixmapsize <max picture size in # of pixels>]
-       [<file type flag>] [-v] [-bw n] 
+       [<file type flag>] [-v]
        [-xslice n] [-yslice n] [-zslice n] [-sliceallvars]
        [-boxslice xlo ylo zlo xhi yhi zhi]
-       [-nprocs n] [-sleep n] [-maxlev n]
+       [-nprocs n] [-maxlev n]
        [-palette palname] [-initialderived dername]
        [-initialscale n] [-showboxes tf] [-numberformat fmt]
        [-makeswf_light]
@@ -81,7 +81,7 @@ File type flags are as defined as follows.  Once a file type is specified,
 it cannot be changed for that {\em amrvis} process.
 
 \begin{verbatim}
--newplt             The new directory based plotfile format.
+-newplt             The new directory based plotfile format (the default).
 -fab                An FArrayBox.
 \end{verbatim}
 
@@ -143,7 +143,7 @@ if the Data View Window is used for 2D animation.
 \begin{description}
 \item[Scale Menu]  This menu controls the current image scale.  At
 scale 1, a datapoint at the finest displayed level is mapped to a pixel.
-The {\em maxpixmapsize} largely determines the maximum scale available
+The {\em maxpixmapsize} variable largely determines the maximum scale available
 in this menu.
 
 \item[Level Menu] This menu allows viewing data on coarser levels.
@@ -194,7 +194,7 @@ of the isometric image in 3D (boxes or volumetric rendering).
     \item[Light/Value]     This menu shows the volume rendering
                            model currently in effect.
     \item[OT/PC]           This menu affect how the volume rendering
-                           stores data internally (OcTree/PreClassified).
+                           stores data internally (OctTree/PreClassified).
     \item [Detach]         Detach the isometric view into its own window.
     \item [Attach]         Attach the isometric view.
 \end{description}
@@ -253,8 +253,8 @@ the same values in both images to get the same picture.
 This feature operates in batch mode.
 {\em amrvis} will write out all requested slices for all files then exit.
 
-\item [Making Volumetric Data Files]  Use the {\bf -makeswf_light}
-and {\bf -makeswf_value} options to write a data file for fast volume
+\item [Making Volumetric Data Files]  Use the {\bf -makeswf\_light}
+and {\bf -makeswf\_value} options to write a data file for fast volume
 rendering.  This option uses the current transfer function and either the
 value model or lighting model.  The files are postprocessed with
 {\em AmrMovie}.
