@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.110 2002-09-25 23:19:51 vince Exp $
+// $Id: PltApp.cpp,v 1.111 2002-09-26 18:13:29 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -4069,25 +4069,15 @@ void PltApp::ShowFrame() {
 			 (XtPointer) tempapSF);
     delete tempapSF;
     
-    int finestLevel(amrData.FinestLevel());
-    int maxlev(AVGlobals::DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
-					  finestLevel, AVGlobals::MaxPictureSize(),
-					  amrData.RefRatio()));
-    
-    pltAppState->SetMaxAllowableLevel(maxlev);
     Box fineDomain(domain[pltAppState->MaxAllowableLevel()]);
     fineDomain.refine(AVGlobals::CRRBetweenLevels(pltAppState->MaxAllowableLevel(),
-				       finestLevel, amrData.RefRatio()));
+				                  amrData.FinestLevel(),
+						  amrData.RefRatio()));
     amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, gaPtr, fineDomain, 
 						NULL, this,
 						pltAppState,
 						bCartGridSmoothing);
     amrPicturePtrArray[ZPLANE]->SetRegion(startX, startY, endX, endY);
-    //XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
-			 //(XtEventHandler) &PltApp::StaticEvent,
-			 //(XtPointer) tempapSF);
-    //SetNumContours(false);
-    //delete tempapSF;
     
     amrPicturePtrArray[ZPLANE]->CreatePicture(XtWindow(wPlotPlane[ZPLANE]),
 					      pltPaletteptr);
