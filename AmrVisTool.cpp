@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.56 2002-08-16 00:22:33 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.57 2002-08-23 23:42:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -425,7 +425,6 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
   unsigned long item = (unsigned long) client_data;
 
   if(item == QUITITEM) {
-    //for(ListIterator<PltApp *> li(pltAppList); li; ++li) {
     for(list<PltApp *>::iterator li = pltAppList.begin();
         li != pltAppList.end(); ++li) {
       PltApp *obj = *li;

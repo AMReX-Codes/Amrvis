@@ -1,3 +1,6 @@
+// -------------------------------------------------------------------
+// XYPlotDataList.H
+// -------------------------------------------------------------------
 #ifndef XYPLOTDATALIST_H
 #define XYPLOTDATALIST_H
 
@@ -11,92 +14,90 @@
 #include <string>
 using std::string;
 
+
 class XYPlotDataListLink {
   friend class XYPlotDataListIterator;
   friend class XYPlotDataList;
-public:
 
-  XYPlotDataListLink(Real *d, int sX, int l)
-    : data(d), length(l), startXi(sX)
-  { 
-    BL_ASSERT(l != 0);
-  };
+  public:
 
-protected:
-  Real *data;
-  int length, startXi, endXi;
-  XYPlotDataListLink *down;
-  int Ndown;
+    XYPlotDataListLink(Real *d, int sX, int len)
+      : data(d), length(len), startXi(sX)
+    { 
+      BL_ASSERT(len != 0);
+    };
+
+  protected:
+    Real *data;
+    int length, startXi, endXi;
+    XYPlotDataListLink *down;
+    int nDown;
 };
 
 
-class XYPlotDataList
-{
+class XYPlotDataList {
   friend class XYPlotWin;
   friend class XYPlotDataListLink;
   friend class XYPlotDataListIterator;
-public:
-  XYPlotDataList(const string &_derived, int max_level,
-		 int _gridline,
-		 const Array<int> &ratio_list,
-		 const Array<Real> &d_x,
-		 const Array<char *> &intersect_point,
-		 Real start_x = 0.0);
-  XYPlotDataList(XYPlotDataList *src);
 
-  ~XYPlotDataList();
+  public:
+    XYPlotDataList(const string &_derived, int max_level,
+		   int _gridline,
+		   const Array<int> &ratio_list,
+		   const Array<Real> &d_x,
+		   const Array<char *> &intersect_point,
+		   Real start_x = 0.0);
+    XYPlotDataList(XYPlotDataList *src);
 
-  char IsEmpty(void) { return emptyQ; }
-  void AddFArrayBox(FArrayBox &fab, int direction, int level);
+    ~XYPlotDataList();
 
-  void UpdateStats(void);
-  void SetLevel(int new_level) {
-    curLevel = (new_level < maxLevel) ? new_level : maxLevel;
-  }
+    char IsEmpty(void) { return emptyQ; }
+    void AddFArrayBox(FArrayBox &fab, int direction, int level);
 
-protected:
-  Array <List <XYPlotDataListLink *> *> dataSets; 
-  Array <List <int> *> upXi;      // Used for data set iteration [level]
-  Array <int> ratios;             // Used for insertion of data sets beginning
-                                  // in the middle of a single cell [level]
-  Array <Real> dX;                // dX in the proper direction [level]
-  Array <char *> intersectPoint;  // Intersected value (in problem space)
-                                  // for labelling plots [level]
-  Array <double> lloY;            // min Y [level]
-  Array <double> hhiY;            // max Y [level]
+    void UpdateStats(void);
+    void SetLevel(int new_level) {
+      curLevel = (new_level < maxLevel) ? new_level : maxLevel;
+    }
 
-  int numPoints, maxLevel, curLevel, gridline;
-  char updatedQ, emptyQ;
-  double startX, endX, offsetX;
-  string derived;
-  XYPlotDataList *copied_from;
+  protected:
+    Array <List <XYPlotDataListLink *> *> dataSets; 
+    Array <List <int> *> upXi;      // Used for data set iteration [level]
+    Array <int> ratios;             // Used for insertion of data sets beginning
+                                    // in the middle of a single cell [level]
+    Array <Real> dX;                // dX in the proper direction [level]
+    Array <char *> intersectPoint;  // Intersected value (in problem space)
+                                    // for labelling plots [level]
+    Array <double> lloY;            // min Y [level]
+    Array <double> hhiY;            // max Y [level]
 
-private:
-  void addLink(XYPlotDataListLink *l, int level);
+    int numPoints, maxLevel, curLevel, gridline;
+    char updatedQ, emptyQ;
+    double startX, endX, offsetX;
+    string derived;
+    XYPlotDataList *copied_from;
 
+  private:
+    void addLink(XYPlotDataListLink *l, int level);
 };
 
 
 class XYPlotDataListIterator {
-public:
+  public:
+    explicit XYPlotDataListIterator (XYPlotDataList *aList);
+    ~XYPlotDataListIterator();
+    XYPlotDataListIterator& operator++ ();
+    bool operator! () const { return (curLink == NULL) ? true : false; }
+    operator void* () { return (curLink != NULL) ? this : NULL; }
 
-  explicit XYPlotDataListIterator (XYPlotDataList *aList);
-  ~XYPlotDataListIterator();
-  XYPlotDataListIterator& operator++ ();
-  bool operator! () const { return (curLink == NULL) ? true : false; }
-  operator void* () { return (curLink != NULL) ? this : NULL; }
-
-  double xval, yval;
+    double xval, yval;
   
-private:
-
-  XYPlotDataList *list;
-  Array <ListIterator <int> *> XiLI;
-  Array <ListIterator <XYPlotDataListLink *> *> linkLI;
-  XYPlotDataListLink *curLink, *nextLink;
-  int curXi, nextXi, curLevel, maxLevel;
-  Real *data;
-  
+  private:
+    XYPlotDataList *list;
+    Array <ListIterator <int> *> XiLI;
+    Array <ListIterator <XYPlotDataListLink *> *> linkLI;
+    XYPlotDataListLink *curLink, *nextLink;
+    int curXi, nextXi, curLevel, maxLevel;
+    Real *data;
 };
  
 #endif

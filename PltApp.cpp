@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.105 2002-08-23 00:19:36 vince Exp $
+// $Id: PltApp.cpp,v 1.106 2002-08-23 23:42:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -179,7 +179,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   pltAppState->SetShowingBoxes(GetDefaultShowBoxes());
   int finestLevel(amrData.FinestLevel());
   pltAppState->SetFinestLevel(finestLevel);
-  int maxlev = AVGlobals::DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
+  int maxlev =
+        AVGlobals::DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
 			       finestLevel, AVGlobals::MaxPictureSize(),
 			       amrData.RefRatio());
   int minAllowableLevel(0);
@@ -329,7 +330,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   pltAppState->SetMinAllowableLevel(minAllowableLevel);
   pltAppState->SetMaxAllowableLevel(maxlev);
   pltAppState->SetMinDrawnLevel(minAllowableLevel);
-  pltAppState->SetMaxDrawnLevel(max(minAllowableLevel, pltAppState->MaxDrawnLevel()));
+  pltAppState->SetMaxDrawnLevel(maxlev);
 
   Box maxDomain(region);
   if(maxlev < finestLevel) {
@@ -423,8 +424,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   if(gaPtr->PVisual() != XDefaultVisual(display, gaPtr->PScreenNumber())) {
     XtVaSetValues(wAmrVisTopLevel, XmNvisual, gaPtr->PVisual(), XmNdepth, 8, NULL);
   }
-  //pltAppState->SetMinDrawnLevel(minAllowableLevel);
-  //pltAppState->SetMaxDrawnLevel(max(minAllowableLevel, pltAppState->MaxDrawnLevel()));
   for(int np(0); np < NPLANES; ++np) {
     amrPicturePtrArray[np] = new AmrPicture(np, gaPtr, region,
 					    pltParent, this,
@@ -1497,15 +1496,14 @@ void PltApp::ChangeLevel(Widget w, XtPointer client_data, XtPointer) {
 
   unsigned long newLevel = (unsigned long) client_data;
   int minDrawnLevel(pltAppState->MinAllowableLevel());
-  //int maxDrawnLevel(newLevel + pltAppState->MinAllowableLevel());
   int maxDrawnLevel(newLevel);
 
+  if(wCurrLevel != NULL) {
+    XtVaSetValues(wCurrLevel, XmNset, false, NULL);
+  }
   if(w == wCurrLevel) {
     XtVaSetValues(w, XmNset, true, NULL);
     //return;
-  }
-  if(wCurrLevel != NULL) {
-    XtVaSetValues(wCurrLevel, XmNset, false, NULL);
   }
   wCurrLevel = w;
 
@@ -1688,7 +1686,6 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   XtVaSetValues(wPlotLabel, XmNlabelString, label_str, NULL);
   XmStringFree(label_str);
 
-  pltAppState->SetMaxDrawnLevel(maxDrawnLevel);
   for(int iv(0); iv < NPLANES; ++iv) {
     amrPicturePtrArray[iv]->APMakeImages(pltPaletteptr);
   }
@@ -1841,9 +1838,8 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
   tempRefinedBox.refine(AVGlobals::CRRBetweenLevels(maxAllowableLevel, finestLevel,
 					            amrData.RefRatio()));
   // this puts tempRefinedBox in terms of the finest level
-  newMinAllowableLevel = 0;//amrData.FinestContainingLevel(
-                           // tempRefinedBox, finestLevel);
-  newMinAllowableLevel = min(newMinAllowableLevel, maxAllowableLevel);
+  newMinAllowableLevel = pltAppState->MinAllowableLevel();
+  //newMinAllowableLevel = min(newMinAllowableLevel, maxAllowableLevel);
   
   // coarsen to the newMinAllowableLevel to align grids
   subregionBox.coarsen(AVGlobals::CRRBetweenLevels(newMinAllowableLevel,
@@ -1869,7 +1865,6 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
   
   // then pass the slices to the subregion constructor below...
   SubregionPltApp(wTopLevel, subregionBox, ivOffset,
-		  //amrPicturePtrArray[ZPLANE],
 		  this, palFilename, animating2d, pltAppState->CurrentDerived(),
 		  fileName);
   
@@ -4079,7 +4074,6 @@ void PltApp::ShowFrame() {
     //SetNumContours(false);
     //delete tempapSF;
     
-    //pltAppState->SetMaxDrawnLevel(maxDrawnLevel);
     amrPicturePtrArray[ZPLANE]->CreatePicture(XtWindow(wPlotPlane[ZPLANE]),
 					      pltPaletteptr);
     AddStaticEventHandler(wPlotPlane[ZPLANE], ExposureMask,

@@ -1,8 +1,12 @@
+// -------------------------------------------------------------------
+// XYPlotDataList.cpp 
+// -------------------------------------------------------------------
 #include "XYPlotDataList.H"
 #include <cfloat>
 
 #define STRDUP(xx) (strcpy(new char[strlen(xx)+1], (xx)))
 
+// -------------------------------------------------------------------
 XYPlotDataList::XYPlotDataList(const string &_derived, int max_level,
 			       int _gridline,
 			       const Array<int> &ratio_list,
@@ -40,6 +44,7 @@ XYPlotDataList::XYPlotDataList(const string &_derived, int max_level,
 }
 
 
+// -------------------------------------------------------------------
 XYPlotDataList::XYPlotDataList(XYPlotDataList *src)
   : dataSets(src->dataSets),
     upXi(src->upXi),
@@ -67,6 +72,7 @@ XYPlotDataList::XYPlotDataList(XYPlotDataList *src)
 }
 
 
+// -------------------------------------------------------------------
 XYPlotDataList::~XYPlotDataList() {
   if(copied_from == NULL) {
     int idx;
@@ -85,35 +91,38 @@ XYPlotDataList::~XYPlotDataList() {
 }
 
 
+// -------------------------------------------------------------------
 void XYPlotDataList::AddFArrayBox(FArrayBox &fab, int which_dir, int level) {
   int length = fab.length()[which_dir];
   int startXi = fab.smallEnd()[which_dir];
   Real *data = new Real[length];
   Real *FABdata = fab.dataPtr();
-  for(int ii = 0; ii != length; ++ii) {
+  for(int ii(0); ii != length; ++ii) {
     data[ii] = FABdata[ii];
   }
   addLink(new XYPlotDataListLink(data, startXi, length), level);
 }
 
 
-void XYPlotDataList::addLink(XYPlotDataListLink *l, int level) {
+// -------------------------------------------------------------------
+void XYPlotDataList::addLink(XYPlotDataListLink *linky, int level) {
   BL_ASSERT(level <= maxLevel);
-  emptyQ = updatedQ = 0;
-  l->endXi = l->startXi + l->length;
+  emptyQ = 0;
+  updatedQ = 0;
+  linky->endXi = linky->startXi + linky->length;
 
   ListIterator<XYPlotDataListLink *> curLevLI(*dataSets[level]);
 
   if(level == 0) {
-    l->down = NULL;
+    linky->down = NULL;
 
-    while(1) {
-      if(!curLevLI) {
-	dataSets[0]->append(l);
+    while(true) {
+      if( ! curLevLI) {
+	dataSets[0]->append(linky);
 	break;
       }
-      if((*curLevLI)->startXi > l->startXi) {
-	dataSets[0]->addBefore(curLevLI, l);
+      if((*curLevLI)->startXi > linky->startXi) {
+	dataSets[0]->addBefore(curLevLI, linky);
 	break;
       }
       ++curLevLI;
@@ -126,24 +135,23 @@ void XYPlotDataList::addLink(XYPlotDataListLink *l, int level) {
   // ASSUMPTION: DATA IS CELL CENTERED.  If the box we are adding begins
   // more than halfway through the cell on the level below, then we will
   // consider the cell below to be "visible".
-  temp = l->startXi / ratios[level-1] +
-    (((l->startXi % ratios[level-1]) * 2 > ratios[level-1]) ? 1 : 0);
+  temp = linky->startXi / ratios[level-1] +
+    (((linky->startXi % ratios[level-1]) * 2 > ratios[level-1]) ? 1 : 0);
   
   // Insertion into sorted location.
-  ListIterator<int>                      XiLI(*upXi[level-1]);
-  while(1) {
-
+  ListIterator<int> XiLI(*upXi[level-1]);
+  while(true) {
     // If we have reached the end of the list, append to the end.
-    if(!curLevLI) {
-      dataSets[level]->append(l);
+    if( ! curLevLI) {
+      dataSets[level]->append(linky);
       upXi[level-1]->append(temp);
       break;
     }
 
     // If the current box in the list begins after the box we are adding,
     // we have found the position in the list, so stop.
-    if((*curLevLI)->startXi > l->startXi) {
-      dataSets[level]->addBefore(curLevLI, l);
+    if((*curLevLI)->startXi > linky->startXi) {
+      dataSets[level]->addBefore(curLevLI, linky);
       upXi[level-1]->addBefore(XiLI, temp);
       break;
     }
@@ -152,18 +160,22 @@ void XYPlotDataList::addLink(XYPlotDataListLink *l, int level) {
     ++XiLI;
   }
 
-  temp = l->endXi / ratios[level-1];
+  temp = linky->endXi / ratios[level-1];
 
-  l->Ndown = temp + 
-    (((l->endXi % ratios[level-1]) * 2 > ratios[level-1])  ? 1 : 0);
+  linky->nDown = temp + 
+    (((linky->endXi % ratios[level-1]) * 2 > ratios[level-1])  ? 1 : 0);
 
   ListIterator<XYPlotDataListLink *> preLevLI(*dataSets[level-1]);
   BL_ASSERT(preLevLI);
   XYPlotDataListLink *down = *preLevLI;
-  while(down->endXi < temp && ++preLevLI) down = *preLevLI;
-  l->down = down;
+  while(down->endXi < temp && ++preLevLI) {
+    down = *preLevLI;
+  }
+  linky->down = down;
 }
 
+
+// -------------------------------------------------------------------
 void XYPlotDataList::UpdateStats(void) {
 
   // Find the number of points, and the extremes for each level.
@@ -186,18 +198,20 @@ void XYPlotDataList::UpdateStats(void) {
     endX = offsetX + dX[0] * endXi;
   }
 
-  lloY[0] = DBL_MAX;
+  lloY[0] =  DBL_MAX;
   hhiY[0] = -DBL_MAX;
 
-  int idx, idx2;
-
-  for(idx = 0; idx <= maxLevel; ++idx) {
+  for(int idx(0); idx <= maxLevel; ++idx) {
     for(ListIterator<XYPlotDataListLink *> li(*dataSets[idx]); li; ++li) {
       Real *ptr = (*li)->data;
       numPoints += (*li)->length;
-      for(idx2 = (*li)->length; idx2 != 0; --idx2) {
-	if(*ptr < lloY[idx]) lloY[idx] = *ptr;
-	if(*ptr > hhiY[idx]) hhiY[idx] = *ptr;
+      for(int idx2((*li)->length); idx2 != 0; --idx2) {
+	if(*ptr < lloY[idx]) {
+	  lloY[idx] = *ptr;
+	}
+	if(*ptr > hhiY[idx]) {
+	  hhiY[idx] = *ptr;
+	}
 	++ptr;
       }
     }
@@ -209,6 +223,8 @@ void XYPlotDataList::UpdateStats(void) {
   updatedQ = 1;
 }
 
+
+// -------------------------------------------------------------------
 XYPlotDataListIterator::XYPlotDataListIterator (XYPlotDataList *alist)
   : list(alist),
     XiLI(alist->curLevel),
@@ -259,6 +275,7 @@ XYPlotDataListIterator::XYPlotDataListIterator (XYPlotDataList *alist)
 }
 
 
+// -------------------------------------------------------------------
 XYPlotDataListIterator::~XYPlotDataListIterator(){
   int idx;
   for(idx = 0; idx <= maxLevel; ++idx) {
@@ -270,6 +287,7 @@ XYPlotDataListIterator::~XYPlotDataListIterator(){
 }
 
 
+// -------------------------------------------------------------------
 XYPlotDataListIterator &XYPlotDataListIterator::operator++() {
   if(++curXi < nextXi) {
     ++data;
@@ -287,12 +305,14 @@ XYPlotDataListIterator &XYPlotDataListIterator::operator++() {
     } else {
       if(curLevel != 0) {
 	--curLevel;
-	curXi = curLink->Ndown;
+	curXi = curLink->nDown;
 	curLink = curLink->down;
       } else {
-	while(curLink != **linkLI[0]) ++(*linkLI[0]);
+	while(curLink != **linkLI[0]) {
+	  ++(*linkLI[0]);
+	}
 	++(*linkLI[0]);
-	if(!*linkLI[0]) {
+	if( ! *linkLI[0]) {
 	  curLink = NULL;
 	  return *this;
 	}
@@ -318,3 +338,5 @@ XYPlotDataListIterator &XYPlotDataListIterator::operator++() {
   yval = *data;
   return *this;
 }
+// -------------------------------------------------------------------
+// -------------------------------------------------------------------
