@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.43 2002-08-14 18:29:20 vince Exp $
+// $Id: Dataset.cpp,v 1.44 2002-08-16 00:22:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -321,7 +321,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   for(i = maxAllowableLevel - 1; i >= 0; --i) {
     datasetRegion[i] = datasetRegion[maxAllowableLevel];
     datasetRegion[i].coarsen(
-         CRRBetweenLevels(i, maxAllowableLevel, amrData.RefRatio()));
+         AVGlobals::CRRBetweenLevels(i, maxAllowableLevel, amrData.RefRatio()));
   }
   
   // datasetRegion is now an array of Boxes that encloses the selected region
@@ -360,9 +360,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   for(lev = 0; lev <= maxAllowableLevel; ++lev) {
     myStringCount[lev] = 0;
     DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
-                           //(void *) &dataFab[lev],
                            (void *) dataFab[lev],
-			   //(void *) &(dataFab[lev].box()),
 			   (void *) &(dataFab[lev]->box()),
                            lev,
 			   (void *) &(pltAppStatePtr->CurrentDerived()));
@@ -412,7 +410,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   XmStringFree(sNewMax);
 
   
-  if(Verbose()) {
+  if(AVGlobals::Verbose()) {
     cout << stringCount << " data points" << endl;
   }
   numStrings = stringCount;
@@ -488,14 +486,16 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
         if(datasetRegion[lev].intersects(temp)) {
           temp &= datasetRegion[lev];
           dataBox = temp;
-          temp.refine(CRRBetweenLevels(lev, maxDrawnLevel, amrData.RefRatio()));
+          temp.refine(AVGlobals::CRRBetweenLevels(lev, maxDrawnLevel,
+	              amrData.RefRatio()));
           temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
           temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
           FArrayBox dataFabTemp(dataBox, 1);
           dataFabTemp.copy(*(dataFab[lev]));
           dataPoint = dataFabTemp.dataPtr();
           int ddl;
-          int crr = CRRBetweenLevels(lev, maxDrawnLevel, amrData.RefRatio());
+          int crr = AVGlobals::CRRBetweenLevels(lev, maxDrawnLevel,
+	                                        amrData.RefRatio());
 	  Real amrmin(datamin), amrmax(datamax);
           
           for(d = 0; d < dataBox.length(vDIR); ++d) {
@@ -572,12 +572,13 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   for(int level(minDrawnLevel); level <= maxDrawnLevel; ++level) {
       Box temp(datasetRegion[level]);
       
-      temp.refine(CRRBetweenLevels(level, maxDrawnLevel, amrData.RefRatio()));
+      temp.refine(AVGlobals::CRRBetweenLevels(level, maxDrawnLevel,
+                  amrData.RefRatio()));
       temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
       temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
       
-      double dBoxSize((double) CRRBetweenLevels(level, maxDrawnLevel,
-						amrData.RefRatio()));
+      double dBoxSize((double) AVGlobals::CRRBetweenLevels(level, maxDrawnLevel,
+						           amrData.RefRatio()));
       int boxSize(((int) (ceil(dBoxSize)-dBoxSize >= 0.5 ?
                      floor(dBoxSize): ceil(dBoxSize))));
       int vStartPos((int) (fmod(datasetRegion[maxDrawnLevel].bigEnd(vDIR) + 1,
@@ -748,8 +749,8 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
       vplot = regionBox.smallEnd(vDir) + regionBox.length(vDir)-1 - ycell;
 
       const AmrData &amrData = dataServicesPtr->AmrDataRef();
-      int baseRatio = CRRBetweenLevels(maxDrawnLevel, maxAllowableLevel, 
-                                       amrData.RefRatio());
+      int baseRatio = AVGlobals::CRRBetweenLevels(maxDrawnLevel, maxAllowableLevel, 
+                                                  amrData.RefRatio());
 
       int boxCoor[BL_SPACEDIM];
       boxCoor[hDir] = hplot;
@@ -767,9 +768,10 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
       int finestCLevel(amrData.FinestContainingLevel(chosenBox, maxDrawnLevel));
       finestCLevel = 
         ( finestCLevel >= minDrawnLevel ? finestCLevel : minDrawnLevel );
-      int boxSize(CRRBetweenLevels(finestCLevel, maxAllowableLevel, 
-                  amrData.RefRatio()));
-      int modBy(CRRBetweenLevels(finestCLevel, maxDrawnLevel, amrData.RefRatio()));
+      int boxSize(AVGlobals::CRRBetweenLevels(finestCLevel, maxAllowableLevel, 
+                                              amrData.RefRatio()));
+      int modBy(AVGlobals::CRRBetweenLevels(finestCLevel, maxDrawnLevel,
+                                            amrData.RefRatio()));
       hplot -= pictureBox.smallEnd(hDir);
       hplot -= (int) fmod(hplot, modBy);
       vplot -= pictureBox.smallEnd(vDir);
@@ -898,7 +900,7 @@ void Dataset::DoExpose(int fromExpose) {
                 if(datasetRegion[lev].intersects(temp)) {
                     temp &= datasetRegion[lev];
                     dataBox = temp;
-                    temp.refine(CRRBetweenLevels(lev,
+                    temp.refine(AVGlobals::CRRBetweenLevels(lev,
                                             maxDrawnLevel, amrData.RefRatio()));
                     temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
                     temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR));
@@ -908,7 +910,8 @@ void Dataset::DoExpose(int fromExpose) {
                            (temp.bigEnd(hDIR)+1) * dataItemWidth,
                            (pixSizeY-1 - temp.smallEnd(vDIR) * CHARACTERHEIGHT)
                            -((level_diff+1)*hIndexAreaHeight),
-                           CRRBetweenLevels(lev, maxDrawnLevel, amrData.RefRatio()),
+                           AVGlobals::CRRBetweenLevels(lev, maxDrawnLevel,
+			                               amrData.RefRatio()),
                            whiteIndex, blackIndex);
                                         
                 }
@@ -1004,12 +1007,13 @@ void Dataset::DrawIndices() {
        Box temp(datasetRegion[level]);
        int count(level - minDrawnLevel);
 
-       temp.refine(CRRBetweenLevels(level, maxDrawnLevel, amrData.RefRatio()));
+       temp.refine(AVGlobals::CRRBetweenLevels(level, maxDrawnLevel,
+                   amrData.RefRatio()));
        temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
        temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR));
 
-       double dBoxSize((double) CRRBetweenLevels(level, maxDrawnLevel,
-						 amrData.RefRatio()));
+       double dBoxSize((double) AVGlobals::CRRBetweenLevels(level, maxDrawnLevel,
+						            amrData.RefRatio()));
        int boxSize((ceil(dBoxSize)-dBoxSize >= 0.5 ?
                       (int) floor(dBoxSize): (int) ceil(dBoxSize)));
 

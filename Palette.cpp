@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.42 2002-02-26 01:00:02 vince Exp $
+// $Id: Palette.cpp,v 1.43 2002-08-16 00:22:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -28,7 +28,7 @@ Colormap Palette::systemColmap;
 Palette::Palette(Widget &w,  int datalistlength, int width,
 		 int totalwidth, int totalheight, int reservesystemcolors)
 {
-  totalColorSlots = MaxPaletteIndex() + 1;
+  totalColorSlots = AVGlobals::MaxPaletteIndex() + 1;
   sysccells.resize(totalColorSlots);
   transferArray.resize(totalColorSlots);
   ccells.resize(totalColorSlots);
@@ -125,7 +125,7 @@ Palette::Palette(int datalistlength, int width, int totalwidth,
 {
   gaPtr = 0;
   //  bool visTrueColor = false;
-  totalColorSlots = MaxPaletteIndex() + 1;
+  totalColorSlots = AVGlobals::MaxPaletteIndex() + 1;
   sysccells.resize(totalColorSlots);
   transferArray.resize(totalColorSlots);
   ccells.resize(totalColorSlots);
@@ -398,7 +398,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
   gbuff[whiteIndex] = 255;
   bbuff[whiteIndex] = 255;
 
-  if(LowBlack()) {   // set low value to black
+  if(AVGlobals::LowBlack()) {   // set low value to black
     rbuff[paletteStart] = 0;
     gbuff[paletteStart] = 0;
     bbuff[paletteStart] = 0;

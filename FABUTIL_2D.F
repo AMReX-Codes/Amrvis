@@ -249,3 +249,35 @@ c ::: local var
 
       return
       end
+
+
+
+
+
+
+      subroutine cartgridminmax2d (data, lo1, lo2, hi1, hi2,
+     $                         vfracdata, vfeps, dmin, dmax)
+      implicit none
+
+      integer lo1, lo2, hi1, hi2
+      REAL_T data(lo1:hi1 ,lo2:hi2)
+      REAL_T vfracdata(lo1:hi1 ,lo2:hi2)
+      REAL_T vfeps, dmin, dmax
+
+      integer i, j
+
+      dmax = -bigreal
+      dmin = bigreal
+      do 420 j = lo2, hi2
+          do 430 i = lo1, hi1
+c      print *, "i j vfracdata(i,j) = ",i,j,vfracdata(i,j)
+              if ( .not. (vfracdata(i,j).lt.vfeps)) then
+                dmax = max(dmax,data(i,j))
+                dmin = min(dmin,data(i,j))
+              endif
+430       continue
+420   continue
+
+      return
+      end
+

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.61 2002-08-06 17:27:37 car Exp $
+// $Id: AmrData.cpp,v 1.62 2002-08-16 00:22:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1598,24 +1598,20 @@ bool AmrData::MinMax(const Box &onBox, const string &derived, int level,
   int compIndex(StateNumber(derived));
 
   if(fileType == FAB || (fileType == MULTIFAB && level == 0)) {
-    for(MFIter gpli(*dataGrids[level][compIndex]); gpli.isValid(); ++gpli)
-    {
+    for(MFIter gpli(*dataGrids[level][compIndex]); gpli.isValid(); ++gpli) {
       if(onBox.intersects(dataGrids[level][compIndex]->boxArray()[gpli.index()])) {
           valid = true;
           overlap = onBox;
           overlap &= gpli.validbox();
           minVal = (*dataGrids[level][compIndex])[gpli].min(overlap, 0);
           maxVal = (*dataGrids[level][compIndex])[gpli].max(overlap, 0);
-          //minVal = gpli().min(overlap, 0);
-          //maxVal = gpli().max(overlap, 0);
 
           dataMin = min(dataMin, minVal);
           dataMax = max(dataMax, maxVal);
       }
     }
   } else if(bCartGrid && (compIndex != StateNumber("vol_frac"))) {
-    for(MFIter gpli(*dataGrids[level][compIndex]); gpli.isValid(); ++gpli)
-    {
+    for(MFIter gpli(*dataGrids[level][compIndex]); gpli.isValid(); ++gpli) {
       int whichVisMF(compIndexToVisMFMap[compIndex]);
       int whichVisMFComponent(compIndexToVisMFComponentMap[compIndex]);
       Real visMFMin(visMF[level][whichVisMF]->min(gpli.index(),
@@ -1643,8 +1639,7 @@ bool AmrData::MinMax(const Box &onBox, const string &derived, int level,
       }
     }
   } else {
-    for(MFIter gpli(*dataGrids[level][compIndex]); gpli.isValid(); ++gpli)
-    {
+    for(MFIter gpli(*dataGrids[level][compIndex]); gpli.isValid(); ++gpli) {
       int whichVisMF(compIndexToVisMFMap[compIndex]);
       int whichVisMFComponent(compIndexToVisMFComponentMap[compIndex]);
       Real visMFMin(visMF[level][whichVisMF]->min(gpli.index(),

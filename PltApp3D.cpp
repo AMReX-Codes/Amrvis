@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.48 2002-05-23 18:24:15 vince Exp $
+// $Id: PltApp3D.cpp,v 1.49 2002-08-16 00:22:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -466,8 +466,8 @@ void PltApp::DoOpenLightingFile(Widget w, XtPointer oos, XtPointer call_data)
   maxray = atof(XmTextFieldGetString(wLWmaxOpacity));
   if(ioos == openingLW) {
     cout << "_in DoOpenLightingFile:  openingLW." << endl;
-    bFileOk = ReadLightingFile(asLFile, ambient, diffuse, specular,
-			       shiny, minray, maxray);
+    bFileOk = AVGlobals::ReadLightingFile(asLFile, ambient, diffuse, specular,
+			                  shiny, minray, maxray);
     if(bFileOk) {
       char cTempReal[32];
       sprintf(cTempReal, "%3.2f", ambient);
@@ -498,8 +498,8 @@ void PltApp::DoOpenLightingFile(Widget w, XtPointer oos, XtPointer call_data)
   } else {
     BL_ASSERT(ioos == savingLW);
     cout << "_in DoOpenLightingFile:  savingLW." << endl;
-    bFileOk = WriteLightingFile(asLFile, ambient, diffuse, specular,
-                                shiny, minray, maxray);
+    bFileOk = AVGlobals::WriteLightingFile(asLFile, ambient, diffuse, specular,
+                                           shiny, minray, maxray);
     if(bFileOk) {
       char tempfilename[BUFSIZ], ctemp[BUFSIZ];
       strcpy(tempfilename, asLFile.c_str());

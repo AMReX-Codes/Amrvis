@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.59 2002-08-14 18:29:20 vince Exp $
+// $Id: PltApp.H,v 1.60 2002-08-16 00:22:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -84,9 +84,6 @@ public:
   static void SetDefaultPalette(const string &palString);
   static void SetDefaultLightingFile(const string &lightFileString);
   static void SetInitialDerived(const string &initialderived);
-  static string &GetInitialDerived();
-  static string &GetDefaultPalette();
-  static string &GetDefaultLightingFile();
   static void SetInitialScale(int initScale);
   static int  GetInitialScale();
   static void SetInitialFormatString(const string &formatString);

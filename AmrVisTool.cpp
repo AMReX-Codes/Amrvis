@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.55 2002-02-07 23:59:02 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.56 2002-08-16 00:22:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -80,40 +80,42 @@ int main(int argc, char *argv[]) {
   int argcNoPP(1);
   BoxLib::Initialize(argcNoPP, argv);
 
-  GetDefaults("amrvis.defaults");
+  AVGlobals::GetDefaults("amrvis.defaults");
   //GetLightingDefaults("amrvis.lighting");
 
-  ParseCommandLine(argc, argv);
+  AVGlobals::ParseCommandLine(argc, argv);
 
-  if(Verbose()) {
+  if(AVGlobals::Verbose()) {
     AmrData::SetVerbose(true);
   }
-  AmrData::SetSkipPltLines(GetSkipPltLines());
-  AmrData::SetStaticBoundaryWidth(GetBoundaryWidth());
+  AmrData::SetSkipPltLines(AVGlobals::GetSkipPltLines());
+  AmrData::SetStaticBoundaryWidth(AVGlobals::GetBoundaryWidth());
 
-  if(SleepTime() > 0) {
-    sleep(SleepTime());
+  if(AVGlobals::SleepTime() > 0) {
+    sleep(AVGlobals::SleepTime());
   }
 
-  if(GivenBox()) {
-    comlineBox = GetBoxFromCommandLine();
+  if(AVGlobals::GivenBox()) {
+    comlineBox = AVGlobals::GetBoxFromCommandLine();
   }
 
-  if(GetFabOutFormat() == 8) {
+  if(AVGlobals::GetFabOutFormat() == 8) {
     DataServices::SetFabOutSize(8);
   }
-  if(GetFabOutFormat() == 32) {
+  if(AVGlobals::GetFabOutFormat() == 32) {
     DataServices::SetFabOutSize(32);
   }
 
   bool bBatchMode(false);
-  if(MakeSWFData() || DumpSlices() || GivenBoxSlice()) {
+  if(AVGlobals::MakeSWFData() || AVGlobals::DumpSlices() ||
+     AVGlobals::GivenBoxSlice())
+  {
     bBatchMode = true;
   }
-  if(bBatchMode && IsAnimation()) {
+  if(bBatchMode && AVGlobals::IsAnimation()) {
     BoxLib::Abort("Batch mode and animation mode are incompatible.");
   }
-  if(GivenBox()) {
+  if(AVGlobals::GivenBox()) {
     BoxLib::Abort("Command line subbox not supported yet.");
   }
 
@@ -128,14 +130,14 @@ int main(int argc, char *argv[]) {
       CreateMainWindow(argc, argv);
     }
 
-    if(IsAnimation()) {
-      BL_ASSERT(GetFileCount() > 0);
+    if(AVGlobals::IsAnimation()) {
+      BL_ASSERT(AVGlobals::GetFileCount() > 0);
       bool bAmrDataOk(true);
-      FileType fileType = GetDefaultFileType();
+      FileType fileType = AVGlobals::GetDefaultFileType();
       BL_ASSERT(fileType != INVALIDTYPE);
-      Array<DataServices *> dspArray(GetFileCount());
-      for(int nPlots = 0; nPlots < GetFileCount(); ++nPlots) {
-        comlineFileName = GetComlineFilename(nPlots);
+      Array<DataServices *> dspArray(AVGlobals::GetFileCount());
+      for(int nPlots = 0; nPlots < AVGlobals::GetFileCount(); ++nPlots) {
+        comlineFileName = AVGlobals::GetComlineFilename(nPlots);
         dspArray[nPlots] = new DataServices(comlineFileName, fileType);
         if(ParallelDescriptor::IOProcessor()) {
           dspArray[nPlots]->IncrementNumberOfUsers();
@@ -147,11 +149,12 @@ int main(int argc, char *argv[]) {
 
       if(ParallelDescriptor::IOProcessor()) {
 	if(bAmrDataOk) {
-          PltApp *temp = new PltApp(app, wTopLevel, GetComlineFilename(0),
-			            dspArray, IsAnimation());
+          PltApp *temp = new PltApp(app, wTopLevel,
+	                            AVGlobals::GetComlineFilename(0),
+			            dspArray, AVGlobals::IsAnimation());
 	  if(temp == NULL) {
 	    cerr << "Error:  could not make a new PltApp." << endl;
-            for(int nPlots = 0; nPlots < GetFileCount(); ++nPlots) {
+            for(int nPlots = 0; nPlots < AVGlobals::GetFileCount(); ++nPlots) {
               dspArray[nPlots]->DecrementNumberOfUsers();
 	    }
 	  } else {
@@ -159,7 +162,7 @@ int main(int argc, char *argv[]) {
 	  }
 	} else {
           if(ParallelDescriptor::IOProcessor()) {
-            for(int nPlots = 0; nPlots < GetFileCount(); ++nPlots) {
+            for(int nPlots = 0; nPlots < AVGlobals::GetFileCount(); ++nPlots) {
               dspArray[nPlots]->DecrementNumberOfUsers();
 	    }
 	  }
@@ -167,10 +170,10 @@ int main(int argc, char *argv[]) {
       }
     } else {
       // loop through the command line list of plot files
-      FileType fileType = GetDefaultFileType();
+      FileType fileType = AVGlobals::GetDefaultFileType();
       BL_ASSERT(fileType != INVALIDTYPE);
-      for(int nPlots(0); nPlots < GetFileCount(); ++nPlots) {
-        comlineFileName = GetComlineFilename(nPlots);
+      for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {
+        comlineFileName = AVGlobals::GetComlineFilename(nPlots);
         if(ParallelDescriptor::IOProcessor()) {
           cout << endl << "FileName = " << comlineFileName << endl;
         }
@@ -180,7 +183,7 @@ int main(int argc, char *argv[]) {
         if(ParallelDescriptor::IOProcessor()) {
 	  if(dspArray[0]->AmrDataOk()) {
             PltApp *temp = new PltApp(app, wTopLevel, comlineFileName,
-			              dspArray, IsAnimation());
+			              dspArray, AVGlobals::IsAnimation());
 	    if(temp == NULL) {
 	      cerr << "Error:  could not make a new PltApp." << endl;
 	    } else {
@@ -190,7 +193,7 @@ int main(int argc, char *argv[]) {
 	  }
         }
       }  // end for(nPlots...)
-    }  // end if(IsAnimation())
+    }  // end if(AVGlobals::IsAnimation())
 
     if(ParallelDescriptor::IOProcessor()) {
       XtAppMainLoop(app);
@@ -299,14 +302,14 @@ void BatchFunctions() {
   string	comlineFileName;
 
   // loop through the command line list of plot files
-  for(int nPlots = 0; nPlots < GetFileCount(); ++nPlots) {
-    comlineFileName = GetComlineFilename(nPlots);
+  for(int nPlots = 0; nPlots < AVGlobals::GetFileCount(); ++nPlots) {
+    comlineFileName = AVGlobals::GetComlineFilename(nPlots);
     cout << "FileName = " << comlineFileName << endl;
-    FileType fileType = GetDefaultFileType();
+    FileType fileType = AVGlobals::GetDefaultFileType();
     BL_ASSERT(fileType != INVALIDTYPE);
     DataServices dataServices(comlineFileName, fileType);
 
-    string derived(GetInitialDerived());
+    string derived(AVGlobals::GetInitialDerived());
     if( ! dataServices.CanDerive(derived)) {
       if(ParallelDescriptor::IOProcessor()) {
         cerr << "Bad initial derived:  cannot derive " << derived << endl;
@@ -315,66 +318,62 @@ void BatchFunctions() {
       if(ParallelDescriptor::IOProcessor()) {
         cerr << "Defaulting to " << derived << endl;
       }
-      SetInitialDerived(derived);
+      AVGlobals::SetInitialDerived(derived);
     }
 
 
 #if (BL_SPACEDIM == 3)
 #ifdef BL_VOLUMERENDER
-    if(MakeSWFData()) {
+    if(AVGlobals::MakeSWFData()) {
       AmrData &amrData = dataServices.AmrDataRef();
-      BL_ASSERT(dataServices.CanDerive(GetInitialDerived()));
+      BL_ASSERT(dataServices.CanDerive(AVGlobals::GetInitialDerived()));
       int minDrawnLevel = 0;
       int maxDrawnLevel;
-      if(UseMaxLevel()) {
-        maxDrawnLevel = max(0, min(GetMaxLevel(), amrData.FinestLevel()));
+      if(AVGlobals::UseMaxLevel()) {
+        maxDrawnLevel = max(0, min(AVGlobals::GetMaxLevel(), amrData.FinestLevel()));
       } else {
         maxDrawnLevel = amrData.FinestLevel();
       }
       Array<Box> drawDomain = amrData.ProbDomain();
 
       int iPaletteStart = 2;
-      int iPaletteEnd = MaxPaletteIndex();
+      int iPaletteEnd = AVGlobals::MaxPaletteIndex();
       int iBlackIndex = 1;
       int iWhiteIndex = 0;
-      int iColorSlots = MaxPaletteIndex() + 1 - iPaletteStart;
+      int iColorSlots = AVGlobals::MaxPaletteIndex() + 1 - iPaletteStart;
       Palette volPal(PALLISTLENGTH, PALWIDTH, TOTALPALWIDTH, TOTALPALHEIGHT, 0);
-      cout << "_in BatchFunctions:  palette name = " << GetPaletteName() << endl;
-      volPal.ReadSeqPalette(GetPaletteName(), false);
+      cout << "_in BatchFunctions:  palette name = "
+           << AVGlobals::GetPaletteName() << endl;
+      volPal.ReadSeqPalette(AVGlobals::GetPaletteName(), false);
       VolRender volRender(drawDomain, minDrawnLevel, maxDrawnLevel, &volPal,
-			  GetLightingFileName());
+			  AVGlobals::GetLightingFileName());
       Real dataMin, dataMax;
-      if(UseSpecifiedMinMax()) {
-        GetSpecifiedMinMax(dataMin, dataMax);
+      if(AVGlobals::UseSpecifiedMinMax()) {
+        AVGlobals::GetSpecifiedMinMax(dataMin, dataMax);
       } else {
-        amrData.MinMax(drawDomain[maxDrawnLevel], GetInitialDerived(),
+        amrData.MinMax(drawDomain[maxDrawnLevel], AVGlobals::GetInitialDerived(),
                        maxDrawnLevel, dataMin, dataMax);
       }
 
-      volRender.MakeSWFData(&dataServices, dataMin, dataMax, GetInitialDerived(),
+      volRender.MakeSWFData(&dataServices, dataMin, dataMax,
+                            AVGlobals::GetInitialDerived(),
                             iPaletteStart, iPaletteEnd,
                             iBlackIndex, iWhiteIndex, iColorSlots);
-      volRender.WriteSWFData(comlineFileName, MakeSWFLight());
+      volRender.WriteSWFData(comlineFileName, AVGlobals::MakeSWFLight());
 
     } 
 #endif
 #endif
 
-    if(DumpSlices()) {
-        if(SliceAllVars()) {
-          for(int slicedir(0); slicedir < GetDumpSlices().size(); ++slicedir) {
-	  /*
-            ListIterator<int> li(GetDumpSlices()[slicedir]);
-            while(li) {
-              int slicenum = li();
-              DataServices::Dispatch(DataServices::DumpSlicePlaneAllVars,
-				     &dataServices,
-                                     slicedir, slicenum);
-              ++li;
-            }
-	  */
-	    for(list<int>::iterator li = GetDumpSlices()[slicedir].begin();
-	        li != GetDumpSlices()[slicedir].end(); ++li)
+    if(AVGlobals::DumpSlices()) {
+        if(AVGlobals::SliceAllVars()) {
+          for(int slicedir(0); slicedir < AVGlobals::GetDumpSlices().size();
+	      ++slicedir)
+          {
+	    for(list<int>::iterator li =
+	                   AVGlobals::GetDumpSlices()[slicedir].begin();
+	        li != AVGlobals::GetDumpSlices()[slicedir].end();
+		++li)
 	    {
               int slicenum = *li;
               DataServices::Dispatch(DataServices::DumpSlicePlaneAllVars,
@@ -382,20 +381,13 @@ void BatchFunctions() {
 	    }
           }
         } else {
-            for(int slicedir(0); slicedir < GetDumpSlices().size(); ++slicedir) {
-	      /*
-              ListIterator<int> li(GetDumpSlices()[slicedir]);
-              while(li) {
-                int slicenum = li();
-                DataServices::Dispatch(DataServices::DumpSlicePlaneOneVar,
-				       &dataServices,
-                                       slicedir, slicenum,
-				       (void *) &derived);
-                ++li;
-              }
-	      */
-	      for(list<int>::iterator li = GetDumpSlices()[slicedir].begin();
-	          li != GetDumpSlices()[slicedir].end(); ++li)
+            for(int slicedir(0); slicedir < AVGlobals::GetDumpSlices().size();
+	        ++slicedir)
+            {
+	      for(list<int>::iterator li =
+	               AVGlobals::GetDumpSlices()[slicedir].begin();
+	          li != AVGlobals::GetDumpSlices()[slicedir].end();
+		  ++li)
 	      {
                 int slicenum = *li;
                 DataServices::Dispatch(DataServices::DumpSlicePlaneOneVar,
@@ -404,12 +396,12 @@ void BatchFunctions() {
 	      }
             }
         }
-    }   // end if(DumpSlices())
+    }   // end if(AVGlobals::DumpSlices())
 
-    if(GivenBoxSlice()) {
-        Box comLineBox(GetBoxFromCommandLine());
+    if(AVGlobals::GivenBoxSlice()) {
+        Box comLineBox(AVGlobals::GetBoxFromCommandLine());
 	BL_ASSERT(comLineBox.ok());
-        if(SliceAllVars()) {
+        if(AVGlobals::SliceAllVars()) {
           DataServices::Dispatch(DataServices::DumpSliceBoxAllVars,
 				 &dataServices,
 				 (void *) &comLineBox);
@@ -419,7 +411,7 @@ void BatchFunctions() {
                                    (void *) &comLineBox,
 				   (void *) &derived);
         }
-    }  // end if(GivenBoxSlice())
+    }  // end if(AVGlobals::GivenBoxSlice())
 
   }  // end for(nPlots...)
 
@@ -436,7 +428,6 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
     //for(ListIterator<PltApp *> li(pltAppList); li; ++li) {
     for(list<PltApp *>::iterator li = pltAppList.begin();
         li != pltAppList.end(); ++li) {
-      //PltApp *obj = pltAppList[li];
       PltApp *obj = *li;
       Array<DataServices *> dataServicesPtr = obj->GetDataServicesPtrArray();
       for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
@@ -449,7 +440,7 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
   }
   if(item == OPENITEM) {
     i = 0;
-    FileType fileType(GetDefaultFileType());
+    FileType fileType(AVGlobals::GetDefaultFileType());
     XmString sMask;
     if(fileType == FAB) {
       sMask = XmStringCreateSimple("*.fab");
@@ -490,7 +481,7 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
     cerr << "CBOpenPltFile : system error" << endl;
     return;
   }
-  FileType fileType(GetDefaultFileType());
+  FileType fileType(AVGlobals::GetDefaultFileType());
   if(fileType == MULTIFAB) {
     // delete the _H from the filename if it is there
     const char *uH = "_H";
@@ -511,7 +502,8 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
   sprintf(buffer, "Selected file = %s\n", filename);
   messageText.PrintText(buffer);
 
-  DataServices *dataServicesPtr = new DataServices(filename, GetDefaultFileType());
+  DataServices *dataServicesPtr = new DataServices(filename,
+                                          AVGlobals::GetDefaultFileType());
   DataServices::Dispatch(DataServices::NewRequest, dataServicesPtr, NULL);
 
   Array<DataServices *> dspArray(1);

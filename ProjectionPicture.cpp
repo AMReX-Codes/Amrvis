@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.cpp,v 1.46 2002-05-23 18:24:15 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.47 2002-08-16 00:22:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -42,9 +42,10 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
   daHeight = h;
   palettePtr = PalettePtr;
 
-  volumeBoxColor = (unsigned char) GetBoxColor();
+  volumeBoxColor = (unsigned char) AVGlobals::GetBoxColor();
   volumeBoxColor = max((unsigned char) palettePtr->PaletteStart(),
-                        min((unsigned char) MaxPaletteIndex(), volumeBoxColor));
+                       min((unsigned char) AVGlobals::MaxPaletteIndex(),
+		       volumeBoxColor));
 
   showSubCut = false;
   pixCreated = false;
@@ -77,21 +78,21 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
     if(lev == minDrawnLevel) {
       boxColors[lev] = pltAppPtr->GetPalettePtr()->WhiteIndex();
     } else {
-      boxColors[lev] = MaxPaletteIndex() - 80 * (lev - 1);
+      boxColors[lev] = AVGlobals::MaxPaletteIndex() - 80 * (lev - 1);
     }
-    boxColors[lev] = max(0, min(MaxPaletteIndex(), boxColors[lev]));
+    boxColors[lev] = max(0, min(AVGlobals::MaxPaletteIndex(), boxColors[lev]));
     for(int iBox(0); iBox < amrData.boxArray(lev).size(); ++iBox) {
       Box temp(amrData.boxArray(lev)[iBox]);
       if(temp.intersects(theDomain[lev])) {
         temp &= theDomain[lev];
-        AddBox(temp.refine(CRRBetweenLevels(lev, maxDataLevel,
+        AddBox(temp.refine(AVGlobals::CRRBetweenLevels(lev, maxDataLevel,
 		amrData.RefRatio())), iBoxIndex, lev);
 	++iBoxIndex;
       }
     }
   }
   Box alignedBox(theDomain[minDrawnLevel]);
-  alignedBox.refine(CRRBetweenLevels(minDrawnLevel, maxDataLevel,
+  alignedBox.refine(AVGlobals::CRRBetweenLevels(minDrawnLevel, maxDataLevel,
 		     amrData.RefRatio()));
   realBoundingBox = RealBox(alignedBox);
 
@@ -470,7 +471,7 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
 
   Box alignedBox(theDomain[minDrawnLevel]);
   const AmrData &amrData = pltAppPtr->GetDataServicesPtr()->AmrDataRef();
-  alignedBox.refine(CRRBetweenLevels(minDrawnLevel, maxDataLevel,
+  alignedBox.refine(AVGlobals::CRRBetweenLevels(minDrawnLevel, maxDataLevel,
 		     amrData.RefRatio()));
   longestBoxSide = (Real) alignedBox.longside(longestBoxSideDir);
 }

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.103 2002-08-14 18:29:20 vince Exp $
+// $Id: PltApp.cpp,v 1.104 2002-08-16 00:22:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -131,11 +131,11 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   }
 
   if(animating2d) {
-    animFrames = GetFileCount(); 
+    animFrames = AVGlobals::GetFileCount(); 
     BL_ASSERT(dataServicesPtr.size() == animFrames);
     fileNames.resize(animFrames);
     for(i = 0; i < animFrames; ++i) {
-      fileNames[i] = GetComlineFilename(i); 
+      fileNames[i] = AVGlobals::GetComlineFilename(i); 
     }
 
     // If this is an animation, putting the time in the title bar wouldn't
@@ -187,8 +187,9 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   pltAppState->SetShowingBoxes(GetDefaultShowBoxes());
   int finestLevel(amrData.FinestLevel());
   pltAppState->SetFinestLevel(finestLevel);
-  int maxlev = DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
-			       finestLevel, MaxPictureSize(), amrData.RefRatio());
+  int maxlev = AVGlobals::DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
+			       finestLevel, AVGlobals::MaxPictureSize(),
+			       amrData.RefRatio());
   int minAllowableLevel(0);
   pltAppState->SetMinAllowableLevel(minAllowableLevel);
   pltAppState->SetMaxAllowableLevel(maxlev);
@@ -196,10 +197,10 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   pltAppState->SetMaxDrawnLevel(maxlev);
   Box maxDomain(amrData.ProbDomain()[maxlev]);
   unsigned long dataSize(maxDomain.length(XDIR) * maxDomain.length(YDIR));
-  if(MaxPictureSize() == 0) {
+  if(AVGlobals::MaxPictureSize() == 0) {
     maxAllowableScale = 1;
   } else  {
-    maxAllowableScale = (int) sqrt((Real) (MaxPictureSize() / dataSize));
+    maxAllowableScale = (int) sqrt((Real) (AVGlobals::MaxPictureSize() / dataSize));
   }
 
   int currentScale(max(1, min(GetInitialScale(), maxAllowableScale)));
@@ -250,10 +251,10 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 			   rGlobalMin, rGlobalMax);
   }  // end for(iFrame...)
 
-  if(UseSpecifiedMinMax()) {
+  if(AVGlobals::UseSpecifiedMinMax()) {
     pltAppState->SetMinMaxRangeType(USERMINMAX);
     Real specifiedMin, specifiedMax;
-    GetSpecifiedMinMax(specifiedMin, specifiedMax);
+    AVGlobals::GetSpecifiedMinMax(specifiedMin, specifiedMax);
     for(int iFrame(0); iFrame < animFrames; ++iFrame) {
       pltAppState->SetMinMax(USERMINMAX, iFrame,
 			     pltAppState->CurrentDerivedNumber(),
@@ -328,8 +329,9 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   bCartGridSmoothing = pltParent->bCartGridSmoothing;
   int finestLevel(amrData.FinestLevel());
   pltAppState->SetFinestLevel(finestLevel);
-  int maxlev = DetermineMaxAllowableLevel(region, finestLevel,
-					  MaxPictureSize(), amrData.RefRatio());
+  int maxlev = AVGlobals::DetermineMaxAllowableLevel(region, finestLevel,
+					             AVGlobals::MaxPictureSize(),
+					             amrData.RefRatio());
   int minAllowableLevel = amrData.FinestContainingLevel(region, finestLevel);
 
   pltAppState->SetMinAllowableLevel(minAllowableLevel);
@@ -339,14 +341,15 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 
   Box maxDomain(region);
   if(maxlev < finestLevel) {
-    maxDomain.coarsen(CRRBetweenLevels(maxlev, finestLevel, amrData.RefRatio()));
+    maxDomain.coarsen(AVGlobals::CRRBetweenLevels(maxlev, finestLevel,
+                      amrData.RefRatio()));
   }
 
   unsigned long dataSize(maxDomain.length(XDIR) * maxDomain.length(YDIR));
-  if(MaxPictureSize() / dataSize == 0) {
+  if(AVGlobals::MaxPictureSize() / dataSize == 0) {
     maxAllowableScale = 1;
   } else {
-    maxAllowableScale = (int) sqrt((Real) (MaxPictureSize()/dataSize));
+    maxAllowableScale = (int) sqrt((Real) (AVGlobals::MaxPictureSize() / dataSize));
   }
 
   int currentScale = min(maxAllowableScale,
@@ -358,7 +361,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   onBox[pltAppState->MaxAllowableLevel()] = maxDomain;
   for(int ilev(pltAppState->MaxAllowableLevel() - 1); ilev >= 0; --ilev) {
     Box tempbox(maxDomain);
-    tempbox.coarsen(CRRBetweenLevels(ilev, finestLevel, amrData.RefRatio()));
+    tempbox.coarsen(AVGlobals::CRRBetweenLevels(ilev, finestLevel,
+                    amrData.RefRatio()));
     onBox[ilev] = tempbox;
   }
   int iCDerNum(pltAppState->CurrentDerivedNumber());
@@ -420,7 +424,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 					 XmNdeleteResponse, XmDO_NOTHING,			 
 					 NULL);
 
-  if(Verbose()) {
+  if(AVGlobals::Verbose()) {
     cout << "_in PltApp::PltApp:  subregion" << endl;
     pltAppState->PrintSetMap();  cout << endl;
   }
@@ -1564,7 +1568,7 @@ void PltApp::ChangeLevel(Widget w, XtPointer client_data, XtPointer) {
 void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   if(w == wCurrDerived) {
     XtVaSetValues(w, XmNset, true, NULL);
-    if(Verbose()) {
+    if(AVGlobals::Verbose()) {
       cout << "--------------------- unchanged derived." << endl;
     }
     return;
@@ -1634,7 +1638,7 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
 			     rSubregionMin, rSubregionMax);
     }
   }
-  if(Verbose()) {
+  if(AVGlobals::Verbose()) {
     cout << "_in PltApp::ChangeDerived" << endl;
     pltAppState->PrintSetMap();  cout << endl;
   }
@@ -1715,17 +1719,6 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
     datasetPtr->DoExpose(false);
   }
 
-/*
-  if(UseSpecifiedMinMax()) {
-    Real specifiedMin, specifiedMax;
-    GetSpecifiedMinMax(specifiedMin, specifiedMax);
-    for(int iFrame(0); iFrame < animFrames; ++iFrame) {
-      pltAppState->SetMinMax(USERMINMAX, iFrame,
-			     pltAppState->CurrentDerivedNumber(),
-			     specifiedMin, specifiedMax);
-    }
-  }
-*/
 }  // end ChangeDerived(...)
 
 
@@ -1861,26 +1854,28 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
 #endif
   
   Box tempRefinedBox(subregionBox);
-  tempRefinedBox.refine(CRRBetweenLevels(maxAllowableLevel, finestLevel,
-					 amrData.RefRatio()));
+  tempRefinedBox.refine(AVGlobals::CRRBetweenLevels(maxAllowableLevel, finestLevel,
+					            amrData.RefRatio()));
   // this puts tempRefinedBox in terms of the finest level
   newMinAllowableLevel = 0;//amrData.FinestContainingLevel(
                            // tempRefinedBox, finestLevel);
   newMinAllowableLevel = min(newMinAllowableLevel, maxAllowableLevel);
   
   // coarsen to the newMinAllowableLevel to align grids
-  subregionBox.coarsen(CRRBetweenLevels(newMinAllowableLevel,
+  subregionBox.coarsen(AVGlobals::CRRBetweenLevels(newMinAllowableLevel,
 					maxAllowableLevel, amrData.RefRatio()));
   
   Box subregionBoxMAL(subregionBox);
   
   // refine to the finestLevel
-  subregionBox.refine(CRRBetweenLevels(newMinAllowableLevel, finestLevel,
+  subregionBox.refine(AVGlobals::CRRBetweenLevels(newMinAllowableLevel, finestLevel,
 				       amrData.RefRatio()));
   
-  maxAllowableLevel = DetermineMaxAllowableLevel(subregionBox, finestLevel,
-						 MaxPictureSize(), amrData.RefRatio());
-  subregionBoxMAL.refine(CRRBetweenLevels(newMinAllowableLevel,
+  maxAllowableLevel = AVGlobals::DetermineMaxAllowableLevel(subregionBox,
+                                                 finestLevel,
+						 AVGlobals::MaxPictureSize(),
+						 amrData.RefRatio());
+  subregionBoxMAL.refine(AVGlobals::CRRBetweenLevels(newMinAllowableLevel,
 					  maxAllowableLevel, amrData.RefRatio()));
   
   IntVect ivOffset(subregionBoxMAL.smallEnd());
@@ -2923,7 +2918,8 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
   int lev;
   for(lev = mal - 1; lev >= 0; --lev) {
     trueRegion[lev] = trueRegion[mal];
-    trueRegion[lev].coarsen(CRRBetweenLevels(lev, mal, amrData.RefRatio()));
+    trueRegion[lev].coarsen(AVGlobals::CRRBetweenLevels(lev, mal,
+                            amrData.RefRatio()));
   }
   // Create an array of titles corresponding to the intersected line.
   Array<Real> XdX(mal+1);
@@ -3229,7 +3225,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  
 	  for(y = mal - 1; y >= 0; --y) {
 	    trueRegion[y] = trueRegion[mal];
-	    trueRegion[y].coarsen(CRRBetweenLevels(y, mal, amrData.RefRatio()));
+	    trueRegion[y].coarsen(AVGlobals::CRRBetweenLevels(y, mal,
+	                          amrData.RefRatio()));
 	    trueRegion[y].setBig(XDIR, trueRegion[y].smallEnd(XDIR));
 	    trueRegion[y].setBig(YDIR, trueRegion[y].smallEnd(YDIR));
 	  }
@@ -3980,8 +3977,8 @@ void PltApp::ResetAnimation() {
     //amrPicturePtrArray[ZPLANE]->SetDataServicesPtr(dataServicesPtr[currentFrame]); 
     
     const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
-    fineDomain.refine(CRRBetweenLevels(maLev, amrData.FinestLevel(),
-                                       amrData.RefRatio()));
+    fineDomain.refine(AVGlobals::CRRBetweenLevels(maLev, amrData.FinestLevel(),
+                                                  amrData.RefRatio()));
     amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, gaPtr, fineDomain, 
 						NULL, this,
 						pltAppState,
@@ -4085,13 +4082,13 @@ void PltApp::ShowFrame() {
     delete tempapSF;
     
     int finestLevel(amrData.FinestLevel());
-    int maxlev(DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
-					  finestLevel, MaxPictureSize(),
+    int maxlev(AVGlobals::DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
+					  finestLevel, AVGlobals::MaxPictureSize(),
 					  amrData.RefRatio()));
     
     pltAppState->SetMaxAllowableLevel(maxlev);
     Box fineDomain(domain[pltAppState->MaxAllowableLevel()]);
-    fineDomain.refine(CRRBetweenLevels(pltAppState->MaxAllowableLevel(),
+    fineDomain.refine(AVGlobals::CRRBetweenLevels(pltAppState->MaxAllowableLevel(),
 				       finestLevel, amrData.RefRatio()));
     amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, gaPtr, fineDomain, 
 						NULL, this,
@@ -4242,9 +4239,6 @@ string PltApp::initialFormatString;
 bool  PltApp::PaletteDrawn()          { return PltApp::paletteDrawn;     }
 int   PltApp::GetInitialScale()       { return PltApp::initialScale;     }
 int   PltApp::GetDefaultShowBoxes()   { return PltApp::defaultShowBoxes; }
-string &PltApp::GetInitialDerived()  { return PltApp::initialDerived;   }
-string &PltApp::GetDefaultPalette()  { return PltApp::defaultPaletteString; }
-string &PltApp::GetDefaultLightingFile() { return PltApp::defaultLightingFilename; }
 const string &PltApp::GetFileName()  { return (fileNames[currentFrame]); }
 void  PltApp::PaletteDrawn(bool tOrF) { paletteDrawn = tOrF; }
 

@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.44 2002-02-26 01:00:02 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.45 2002-08-16 00:22:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -61,37 +61,25 @@ char *FileTypeString[] = {
 };
 
 // -------------------------------------------------------------------
-const string &GetInitialDerived() {
+const string &AVGlobals::GetInitialDerived() {
   return initialDerived;
 }
 
 
 // -------------------------------------------------------------------
-void SetInitialDerived(const string &initialderived) {
+void AVGlobals::SetInitialDerived(const string &initialderived) {
   initialDerived = initialderived;
 }
 
 
 // -------------------------------------------------------------------
-const string &GetFormatString(const string &formatString) {
-  return initialFormat;
-}
-
-
-// -------------------------------------------------------------------
-void SetFormatString(const string &formatString) {
-  initialFormat = formatString;
-}
-
-
-// -------------------------------------------------------------------
-const string &GetPaletteName() {
+const string &AVGlobals::GetPaletteName() {
   return initialPalette;
 }
 
 
 // -------------------------------------------------------------------
-const string &GetLightingFileName() {
+const string &AVGlobals::GetLightingFileName() {
   return initialLightingFile;
 }
 
@@ -142,7 +130,7 @@ void AddSlices(int dir, char *sliceset) {
 
 
 // -------------------------------------------------------------------
-bool ReadLightingFile(const string &lightdefaultsFile,
+bool AVGlobals::ReadLightingFile(const string &lightdefaultsFile,
                       Real &ambientDef, Real &diffuseDef, Real &specularDef,
                       Real &shinyDef,
                       Real &minRayOpacityDef, Real &maxRayOpacityDef)
@@ -194,7 +182,7 @@ bool ReadLightingFile(const string &lightdefaultsFile,
 
 
 // -------------------------------------------------------------------
-bool WriteLightingFile(const string &lightdefaultsFile,
+bool AVGlobals::WriteLightingFile(const string &lightdefaultsFile,
                        const Real &ambientDef, const Real &diffuseDef,
 		       const Real &specularDef, const Real &shinyDef,
                        const Real &minRayOpacityDef, const Real &maxRayOpacityDef)
@@ -229,7 +217,7 @@ bool WriteLightingFile(const string &lightdefaultsFile,
 
 
 // -------------------------------------------------------------------
-void GetDefaults(const string &defaultsFile) {
+void AVGlobals::GetDefaults(const string &defaultsFile) {
   char buffer[BUFSIZ];
   char defaultString[LINELENGTH];
   char tempString[LINELENGTH];
@@ -489,7 +477,7 @@ void PrintUsage(char *exname) {
 
 
 // -------------------------------------------------------------------
-void ParseCommandLine(int argc, char *argv[]) {
+void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
   char clsx[10];
   char clsy[10];
   char clbx[10];
@@ -809,65 +797,67 @@ void ParseCommandLine(int argc, char *argv[]) {
 
 
 // -------------------------------------------------------------------
-void SetAnimation() { animation = true; }
-bool IsAnimation()  { return animation; }
+void AVGlobals::SetAnimation() { animation = true; }
+bool AVGlobals::IsAnimation()  { return animation; }
 
-Box GetBoxFromCommandLine() { return comlinebox; }
+Box AVGlobals::GetBoxFromCommandLine() { return comlinebox; }
 
-void SetMaxPictureSize(int maxpicsize) { maxPictureSize = maxpicsize; }
-int MaxPictureSize() { return maxPictureSize; }
+void AVGlobals::SetMaxPictureSize(int maxpicsize) { maxPictureSize = maxpicsize; }
+int AVGlobals::MaxPictureSize() { return maxPictureSize; }
 
-int MaxPaletteIndex() { return maxPaletteIndex; }
+int AVGlobals::MaxPaletteIndex() { return maxPaletteIndex; }
 
-void SetVerbose() { verbose = true; }
-bool Verbose()    { return verbose; }
+void AVGlobals::SetVerbose() { verbose = true; }
+bool AVGlobals::Verbose()    { return verbose; }
 
-int GetFileCount() { return fileCount; }
-int SleepTime() { return sleepTime; }
+int AVGlobals::GetFileCount() { return fileCount; }
+int AVGlobals::SleepTime() { return sleepTime; }
 
-int  GetMaxLevel() { return maxLevel; }
-bool UseMaxLevel() { return useMaxLevel; }
+int  AVGlobals::GetMaxLevel() { return maxLevel; }
+bool AVGlobals::UseMaxLevel() { return useMaxLevel; }
 
-const string &GetComlineFilename(int i) { return comlinefilename[i]; }
-FileType GetDefaultFileType()   { return fileType;    }
+const string &AVGlobals::GetComlineFilename(int i) { return comlinefilename[i]; }
+FileType AVGlobals::GetDefaultFileType()   { return fileType;    }
 
-bool GivenBox()    { return givenBox;     }
-bool GivenBoxSlice() { return givenBoxSlice;     }
-bool MakeSWFData() { return makeSWFData;  }
-bool MakeSWFLight() { return makeSWFLight; }
-bool LowBlack() { return lowBlack; }
-bool DumpSlices() { return dumpSlices;   }
-bool SliceAllVars() { return sliceAllVars; }
+bool AVGlobals::GivenBox()    { return givenBox;     }
+bool AVGlobals::GivenBoxSlice() { return givenBoxSlice;     }
+bool AVGlobals::MakeSWFData() { return makeSWFData;  }
+bool AVGlobals::MakeSWFLight() { return makeSWFLight; }
+bool AVGlobals::LowBlack() { return lowBlack; }
+bool AVGlobals::DumpSlices() { return dumpSlices;   }
+bool AVGlobals::SliceAllVars() { return sliceAllVars; }
 
-bool GivenFilename() { return givenFilename; }
+bool AVGlobals::GivenFilename() { return givenFilename; }
 
-void SetBoundaryWidth(int width) { boundaryWidth = width; }
-int GetBoundaryWidth() { return boundaryWidth;  }
+void AVGlobals::SetBoundaryWidth(int width) { boundaryWidth = width; }
+int AVGlobals::GetBoundaryWidth() { return boundaryWidth;  }
 
-void SetSkipPltLines(int nlines) { skipPltLines = nlines; }
-int GetSkipPltLines() { return skipPltLines; }
+void AVGlobals::SetSkipPltLines(int nlines) { skipPltLines = nlines; }
+int AVGlobals::GetSkipPltLines() { return skipPltLines; }
 
-void SetBoxColor(int boxcolor) { boxColor = boxcolor; }
-int GetBoxColor() { return boxColor; }
+void AVGlobals::SetBoxColor(int boxcolor) { boxColor = boxcolor; }
+int AVGlobals::GetBoxColor() { return boxColor; }
 
-Array< list<int> > &GetDumpSlices() { return dumpSliceList; }
+Array< list<int> > &AVGlobals::GetDumpSlices() { return dumpSliceList; }
 
-int  GetFabOutFormat() { return fabIOSize;  }
+int  AVGlobals::GetFabOutFormat() { return fabIOSize;  }
 
-bool UseSpecifiedMinMax() { return specifiedMinMax; }
-void SetSpecifiedMinMax(Real  specifiedmin, Real  specifiedmax) {
+bool AVGlobals::UseSpecifiedMinMax() { return specifiedMinMax; }
+void AVGlobals::SetSpecifiedMinMax(Real  specifiedmin, Real  specifiedmax) {
   specifiedMin = specifiedmin;
   specifiedMax = specifiedmax;
 }
 
-void GetSpecifiedMinMax(Real &specifiedmin, Real &specifiedmax) {
+void AVGlobals::GetSpecifiedMinMax(Real &specifiedmin, Real &specifiedmax) {
   specifiedmin = specifiedMin;
   specifiedmax = specifiedMax;
 }
 
 
 // -------------------------------------------------------------------
-int CRRBetweenLevels(int fromlevel, int tolevel, const Array<int> &refratios) {
+int AVGlobals::CRRBetweenLevels(int fromlevel, int tolevel,
+                                const Array<int> &refratios)
+{
   BL_ASSERT(fromlevel >= 0);
   BL_ASSERT(tolevel >= fromlevel);
   BL_ASSERT(tolevel <= refratios.size());
@@ -880,8 +870,10 @@ int CRRBetweenLevels(int fromlevel, int tolevel, const Array<int> &refratios) {
 
 
 // -------------------------------------------------------------------
-int DetermineMaxAllowableLevel(const Box &finestbox, int finestlevel,
-                               int maxpoints, const Array<int> &refratios)
+int AVGlobals::DetermineMaxAllowableLevel(const Box &finestbox,
+                                          int finestlevel,
+                                          int maxpoints,
+					  const Array<int> &refratios)
 {
   BL_ASSERT(finestlevel >= 0);
   BL_ASSERT(maxpoints >= 0);

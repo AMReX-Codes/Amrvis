@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.43 2002-05-23 18:24:15 vince Exp $
+// $Id: VolRender.cpp,v 1.44 2002-08-16 00:22:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -58,8 +58,8 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
   maxRayOpacity = 0.95;
 
   Real ambient, diffuse, specular, shiny, minray, maxray;
-  bool bFileOk = ReadLightingFile(asLightFileName, ambient, diffuse,
-                                  specular, shiny, minray, maxray);
+  bool bFileOk = AVGlobals::ReadLightingFile(asLightFileName, ambient, diffuse,
+                                             specular, shiny, minray, maxray);
   
   if(bFileOk) {
     if(0.0 > ambient || ambient > 1.0) {
@@ -297,16 +297,18 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
     }  // end for(gp...)
 
                                                 // ---------------- VolumeBoxes
-    bool bDrawVolumeBoxes(GetBoxColor() > -1);  // need to limit to palmaxindex
+    bool bDrawVolumeBoxes(AVGlobals::GetBoxColor() > -1);  // need to limit
+                                                           // to palmaxindex
     if(bDrawVolumeBoxes) {
       int edger, edgec, edgep;
-      int volumeBoxColor(GetBoxColor());
+      int volumeBoxColor(AVGlobals::GetBoxColor());
       int gr, gc, gp, sr, sc, sp, sindex;
       AmrData &amrData = dataServicesPtr->AmrDataRef();
 
      if(bDrawAllBoxes) {
       for(int lev(minDrawnLevel); lev <= maxDrawnLevel; ++lev) {
-        int crr(CRRBetweenLevels(lev, maxDrawnLevel, amrData.RefRatio()));
+        int crr(AVGlobals::CRRBetweenLevels(lev, maxDrawnLevel,
+	        amrData.RefRatio()));
 	const BoxArray &gridBoxes = amrData.boxArray(lev);
 	for(int iGrid(0); iGrid < gridBoxes.size(); ++iGrid) {
           gbox = gridBoxes[iGrid];
@@ -437,7 +439,8 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
 //==============================================
       //for(int lev = minDrawnLevel; lev <= maxDrawnLevel; ++lev) {
 int lev = minDrawnLevel;
-        int crr(CRRBetweenLevels(lev, maxDrawnLevel, amrData.RefRatio()));
+        int crr(AVGlobals::CRRBetweenLevels(lev, maxDrawnLevel,
+	        amrData.RefRatio()));
 cout << "+++++ _here 0:  crr = " << crr << endl;
 //        const BoxArray &gridBoxes = amrData.boxArray(lev);
 //        for(int iGrid(0); iGrid < gridBoxes.size(); ++iGrid) {
@@ -821,7 +824,7 @@ void VolRender::MakeVPData() {
       for(int sn(0); sn < paletteSize; ++sn) {
         value_shade_table[sn] = (float) sn;
       }
-      value_shade_table[0] = (float) MaxPaletteIndex();
+      value_shade_table[0] = (float) AVGlobals::MaxPaletteIndex();
      
       float maxf(0.0);
       float minf(1000000.0);

@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.H,v 1.16 2001-11-16 01:48:08 vince Exp $
+// $Id: GlobalUtilities.H,v 1.17 2002-08-16 00:22:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -19,65 +19,67 @@ using std::list;
 using std::string;
 
 
-Box GetBoxFromCommandLine();
-void SetMaxPictureSize(int size);
-int  MaxPictureSize();
-int  MaxPaletteIndex();
-void SetVerbose();
-bool Verbose();
-void ParseCommandLine(int, char **);
-void GetDefaults(const string &defaultsfilename);
-bool ReadLightingFile(const string &lightdefaultsfilename,
-		      Real &ambientDef, Real &diffuseDef, Real &specularDef,
-		      Real &shinyDef,
-		      Real &minRayOpacityDef, Real &maxRayOpacityDef);
-bool WriteLightingFile(const string &lightdefaultsfilename,
-		       const Real &ambientDef, const Real &diffuseDef,
-		       const Real &specularDef, const Real &shinyDef,
-		       const Real &minRayOpacityDef, const Real &maxRayOpacityDef);
-void SetAnimation();
-bool IsAnimation();
-int GetFileCount();
-int SleepTime();
-const string &GetComlineFilename(int index);
-FileType GetDefaultFileType();
-bool GivenBox();
-bool GivenBoxSlice();
-bool GivenFilename();
-int GetFileCount();
-bool MakeSWFData();
-bool MakeSWFLight();
-bool LowBlack();
-bool UseSpecifiedMinMax();
-void SetSpecifiedMinMax(Real  specifiedmin, Real  specifiedmax);
-void GetSpecifiedMinMax(Real &specifiedmin, Real &specifiedmax);
-int CRRBetweenLevels(int fromlevel, int tolevel, const Array<int> &refratios);
-int DetermineMaxAllowableLevel(const Box &finebox, int finestlevel,
-			       int maxpoints, const Array<int> &refratios);
+namespace AVGlobals {
 
-void SetBoundaryWidth(int width);
-int  GetBoundaryWidth();
-void SetSkipPltLines(int nlines);
-int  GetSkipPltLines();
-bool UseMaxLevel();
-int  GetMaxLevel();
-void SetBoxColor(int boxcolor);
-int  GetBoxColor();
+  Box GetBoxFromCommandLine();
+  void SetMaxPictureSize(int size);
+  int  MaxPictureSize();
+  int  MaxPaletteIndex();
+  void SetVerbose();
+  bool Verbose();
+  void ParseCommandLine(int, char **);
+  void GetDefaults(const string &defaultsfilename);
+  bool ReadLightingFile(const string &lightdefaultsfilename,
+		        Real &ambientDef, Real &diffuseDef, Real &specularDef,
+		        Real &shinyDef,
+		        Real &minRayOpacityDef, Real &maxRayOpacityDef);
+  bool WriteLightingFile(const string &lightdefaultsfilename,
+		         const Real &ambientDef, const Real &diffuseDef,
+		         const Real &specularDef, const Real &shinyDef,
+		         const Real &minRayOpacityDef,
+			 const Real &maxRayOpacityDef);
+  void SetAnimation();
+  bool IsAnimation();
+  int GetFileCount();
+  int SleepTime();
+  const string &GetComlineFilename(int index);
+  FileType GetDefaultFileType();
+  bool GivenBox();
+  bool GivenBoxSlice();
+  bool GivenFilename();
+  int GetFileCount();
+  bool MakeSWFData();
+  bool MakeSWFLight();
+  bool LowBlack();
+  bool UseSpecifiedMinMax();
+  void SetSpecifiedMinMax(Real  specifiedmin, Real  specifiedmax);
+  void GetSpecifiedMinMax(Real &specifiedmin, Real &specifiedmax);
+  int CRRBetweenLevels(int fromlevel, int tolevel, const Array<int> &refratios);
+  int DetermineMaxAllowableLevel(const Box &finebox, int finestlevel,
+			         int maxpoints, const Array<int> &refratios);
 
-void SetInitialDerived(const string &formatString);
-const string &GetInitialDerived();
-void SetFormatString(const string &formatString);
-const string &GetFormatString();
-const string &GetPaletteName();
-const string &GetLightingFileName();
+  void SetBoundaryWidth(int width);
+  int  GetBoundaryWidth();
+  void SetSkipPltLines(int nlines);
+  int  GetSkipPltLines();
+  bool UseMaxLevel();
+  int  GetMaxLevel();
+  void SetBoxColor(int boxcolor);
+  int  GetBoxColor();
 
-bool DumpSlices();
-bool SliceAllVars();
-Array< list<int> > &GetDumpSlices();
-int  GetFabOutFormat();
+  void SetInitialDerived(const string &formatString);
+  const string &GetInitialDerived();
+  const string &GetPaletteName();
+  const string &GetLightingFileName();
 
-#define SHOWVAL(val) { cout << #val << " = " << val << endl; }  // Jensens device
-#define VSHOWVAL(verbose, val) { if(verbose) { \
-		 cout << #val << " = " << val << endl; } }
+  bool DumpSlices();
+  bool SliceAllVars();
+  Array< list<int> > &GetDumpSlices();
+  int  GetFabOutFormat();
 
+  #define SHOWVAL(val) { cout << #val << " = " << val << endl; }  // Jensens device
+  #define VSHOWVAL(verbose, val) { if(verbose) { \
+		   cout << #val << " = " << val << endl; } }
+
+}  // end namespace AVGlobals
 #endif

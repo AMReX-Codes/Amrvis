@@ -704,3 +704,35 @@ c                                 --- break ---
 
       return
       end
+
+
+
+
+
+      subroutine cartgridminmax3d (data, lo1, lo2, lo3, hi1, hi2, hi3,
+     $                         vfracdata, vfeps, dmin, dmax)
+      implicit none
+
+      integer lo1, lo2, lo3, hi1, hi2, hi3
+      REAL_T data(lo1:hi1 ,lo2:hi2, lo3:hi3)
+      REAL_T vfracdata(lo1:hi1 ,lo2:hi2, lo3:hi3)
+      REAL_T vfeps, dmin, dmax
+
+      integer i, j, k
+
+      dmax = -bigreal
+      dmin = bigreal
+      do 410 k = lo3, hi3
+        do 420 j = lo2, hi2
+          do 430 i = lo1, hi1
+              if ( .not. (vfracdata(i,j,k).lt.vfeps)) then
+                dmax = max(dmax,data(i,j,k))
+                dmin = min(dmin,data(i,j,k))
+              endif
+430       continue
+420     continue
+410   continue
+
+      return
+      end
+
