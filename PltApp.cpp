@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.112 2002-09-26 23:20:06 vince Exp $
+// $Id: PltApp.cpp,v 1.113 2002-09-30 22:12:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -715,7 +715,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			  NULL);
 
   // Toggle viewing the boxes
-  label_str = XmStringCreateSimple("B");
+  label_str = XmStringCreateSimple("b");
   wid = XtVaCreateManagedWidget("Boxes",
 				xmToggleButtonGadgetClass, wMenuPulldown,
 				XmNmnemonic, 'B',
