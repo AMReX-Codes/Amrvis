@@ -6,6 +6,7 @@ initialscale          4
 initialscale          1
 numberformat          %8.5f
 numberformat          %8.5e
+numberformat          %10.2e
 maxpixmapsize         100000
 maxpixmapsize         20000000
 maxpixmapsize         1000000
