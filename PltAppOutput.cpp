@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltAppOutput.cpp,v 1.15 1999-05-10 17:18:43 car Exp $
+// $Id: PltAppOutput.cpp,v 1.16 1999-05-10 18:54:18 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -55,7 +55,7 @@ void PltApp::DoOutput(Widget w, XtPointer, XtPointer) {
   ++i;  // skip first (bogus) character
 
   FileType fileType = dataServicesPtr[currentFrame]->GetFileType();
-  BLassert(fileType != INVALIDTYPE);
+  BL_ASSERT(fileType != INVALIDTYPE);
   if(fileType == FAB || fileType == MULTIFAB) {
     strcpy(timestep, &tempfilename[i]);
   } else {  // plt file
@@ -253,7 +253,7 @@ void PltApp::DoCreateAnimRGBFile() {
   ++i;  // skip first (bogus) character
 
   FileType fileType = dataServicesPtr[currentFrame]->GetFileType();
-  BLassert(fileType != INVALIDTYPE);
+  BL_ASSERT(fileType != INVALIDTYPE);
   if(fileType == FAB || fileType == MULTIFAB) {
     strcpy(timestep, &tempfilename[i]);
   } else {  // plt file

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrVisTool.cpp,v 1.38 1999-05-10 17:18:41 car Exp $
+// $Id: AmrVisTool.cpp,v 1.39 1999-05-10 18:54:17 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -140,10 +140,10 @@ void main(int argc, char *argv[]) {
     }
 
     if(IsAnimation()) {
-      BLassert(GetFileCount() > 0);
+      BL_ASSERT(GetFileCount() > 0);
       bool bAmrDataOk(true);
       FileType fileType = GetDefaultFileType();
-      BLassert(fileType != INVALIDTYPE);
+      BL_ASSERT(fileType != INVALIDTYPE);
       Array<DataServices *> dspArray(GetFileCount());
       for(int nPlots = 0; nPlots < GetFileCount(); ++nPlots) {
         comlineFileName = GetComlineFilename(nPlots);
@@ -179,7 +179,7 @@ void main(int argc, char *argv[]) {
     } else {
       // loop through the command line list of plot files
       FileType fileType = GetDefaultFileType();
-      BLassert(fileType != INVALIDTYPE);
+      BL_ASSERT(fileType != INVALIDTYPE);
       for(int nPlots = 0; nPlots < GetFileCount(); ++nPlots) {
         comlineFileName = GetComlineFilename(nPlots);
         if(ParallelDescriptor::IOProcessor()) {
@@ -349,7 +349,7 @@ void BatchFunctions() {
     comlineFileName = GetComlineFilename(nPlots);
     cout << "FileName = " << comlineFileName << endl;
     FileType fileType = GetDefaultFileType();
-    BLassert(fileType != INVALIDTYPE);
+    BL_ASSERT(fileType != INVALIDTYPE);
     DataServices dataServices(comlineFileName, fileType);
 
     aString derived(GetInitialDerived());
@@ -369,7 +369,7 @@ void BatchFunctions() {
 #ifdef BL_VOLUMERENDER
     if(MakeSWFData()) {
       AmrData &amrData = dataServices.AmrDataRef();
-      BLassert(dataServices.CanDerive(GetInitialDerived()));
+      BL_ASSERT(dataServices.CanDerive(GetInitialDerived()));
       int minDrawnLevel = 0;
       int maxDrawnLevel;
       if(UseMaxLevel()) {
@@ -434,7 +434,7 @@ void BatchFunctions() {
 
     if(GivenBoxSlice()) {
         Box comLineBox(GetBoxFromCommandLine());
-	BLassert(comLineBox.ok());
+	BL_ASSERT(comLineBox.ok());
         if(SliceAllVars()) {
           DataServices::Dispatch(DataServices::DumpSliceBoxAllVars,
 				 &dataServices,

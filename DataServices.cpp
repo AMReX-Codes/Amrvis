@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: DataServices.cpp,v 1.20 1999-05-10 17:18:42 car Exp $
+// $Id: DataServices.cpp,v 1.21 1999-05-10 18:54:17 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -44,7 +44,7 @@ DataServices::DataServices(const aString &filename, const FileType &filetype)
 
 // ---------------------------------------------------------------
 DataServices::~DataServices() {
-  BLassert(numberOfUsers == 0);
+  BL_ASSERT(numberOfUsers == 0);
   DataServices::dsArray[dsArrayIndex] = NULL;
 }
 
@@ -123,7 +123,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     }
 
     // verify dsArrayIndex is correct
-    BLassert(ds->dsArrayIndex == checkArrayIndex);
+    BL_ASSERT(ds->dsArrayIndex == checkArrayIndex);
 
     continue;  // go to the top of the while loop
   }  // end NewRequest
@@ -133,7 +133,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
   if(requestType == ExitRequest) {                // cleanup memory
     for(int i = 0; i < dsArray.length(); ++i) {
       if(DataServices::dsArray[i] != NULL) {
-	BLassert(DataServices::dsArray[i]->numberOfUsers == 0);
+	BL_ASSERT(DataServices::dsArray[i]->numberOfUsers == 0);
 	delete DataServices::dsArray[i];
       }
     }
@@ -151,13 +151,13 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
   if( ! ParallelDescriptor::IOProcessor()) {
     ds = DataServices::dsArray[whichDSIndex];
   }
-  BLassert(ds != NULL);
+  BL_ASSERT(ds != NULL);
 
   switch(requestType) {
     case DeleteRequest:
     {
       bool bDeleteDS(false);
-      BLassert(DataServices::dsArray[whichDSIndex]->numberOfUsers >= 0);
+      BL_ASSERT(DataServices::dsArray[whichDSIndex]->numberOfUsers >= 0);
       if(ParallelDescriptor::IOProcessor()) {
 	bDeleteDS = (DataServices::dsArray[whichDSIndex]->numberOfUsers == 0);
       }
@@ -902,7 +902,7 @@ void DataServices::PointValue(int pointBoxArraySize, Box *pointBoxArray,
   }
 
   Box destBox(pointBoxArray[intersectedLevel]);
-  BLassert(destBox.volume() == 1);
+  BL_ASSERT(destBox.volume() == 1);
 
   const BoxArray &intersectedBA = amrData.boxArray(intersectedLevel);
   for(int iGrid = 0; iGrid < intersectedBA.length(); ++iGrid) {

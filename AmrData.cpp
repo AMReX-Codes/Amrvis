@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.cpp,v 1.33 1999-05-10 17:18:41 car Exp $
+// $Id: AmrData.cpp,v 1.34 1999-05-10 18:54:17 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -838,7 +838,7 @@ bool AmrData::ReadNonPlotfileData(const aString &filename, FileType filetype) {
 
 // ---------------------------------------------------------------
 void AmrData::CellLoc(int lev, IntVect ix, Array<Real> &pos) const {
-   BLassert(pos.length() == dxLevel[lev].length());
+   BL_ASSERT(pos.length() == dxLevel[lev].length());
    for(int i = 0; i < BL_SPACEDIM; i++) {
       pos[i] = probLo[i] + (dxLevel[lev][i])*(0.5 + Real(ix[i]));
    }
@@ -847,7 +847,7 @@ void AmrData::CellLoc(int lev, IntVect ix, Array<Real> &pos) const {
 
 // ---------------------------------------------------------------
 void AmrData::LoNodeLoc(int lev, IntVect ix, Array<Real> &pos) const {
-   BLassert(pos.length() == dxLevel[lev].length());
+   BL_ASSERT(pos.length() == dxLevel[lev].length());
    for(int i = 0; i < BL_SPACEDIM; i++) {
       pos[i] = probLo[i] + (dxLevel[lev][i])*Real(ix[i]);
    }
@@ -856,7 +856,7 @@ void AmrData::LoNodeLoc(int lev, IntVect ix, Array<Real> &pos) const {
 
 // ---------------------------------------------------------------
 void AmrData::HiNodeLoc(int lev, IntVect ix, Array<Real> &pos) const {
-   BLassert(pos.length() == dxLevel[lev].length());
+   BL_ASSERT(pos.length() == dxLevel[lev].length());
    for(int i = 0; i < BL_SPACEDIM; i++) {
       pos[i] = probLo[i] + (dxLevel[lev][i])*Real(ix[i]+1);
    }
@@ -897,10 +897,10 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
 // This function fills the destMultiFab which is defined on
 // the finestFillLevel.
 
-   BLassert(finestFillLevel >= 0 && finestFillLevel <= finestLevel);
+   BL_ASSERT(finestFillLevel >= 0 && finestFillLevel <= finestLevel);
    BoxArray destBoxes(destMultiFab.boxArray());
    for(int iIndex = 0; iIndex < destBoxes.length(); ++iIndex) {
-     BLassert(probDomain[finestFillLevel].contains(destBoxes[iIndex]));
+     BL_ASSERT(probDomain[finestFillLevel].contains(destBoxes[iIndex]));
    }
 
     int myProc(ParallelDescriptor::MyProc());
@@ -916,7 +916,7 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
                                           refRatio[currentLevel];
     }
 
-    BLassert(varNames.length() == destFillComps.length());
+    BL_ASSERT(varNames.length() == destFillComps.length());
     int nFillVars(varNames.length());
 
   for(int currentFillIndex(0); currentFillIndex < nFillVars; ++currentFillIndex) {
@@ -966,8 +966,8 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
 	continue;
       }
         unfilledBoxesOnThisLevel.clear();
-        BLassert(unfilledBoxesOnThisLevel.ixType() == boxType);
-        BLassert(unfilledBoxesOnThisLevel.ixType() == localMFBoxes[ibox].ixType());
+        BL_ASSERT(unfilledBoxesOnThisLevel.ixType() == boxType);
+        BL_ASSERT(unfilledBoxesOnThisLevel.ixType() == localMFBoxes[ibox].ixType());
         unfilledBoxesOnThisLevel.add(localMFBoxes[ibox]);
         // Find the boxes that can be filled on each level--these are all
         // defined at their level of refinement.
@@ -984,7 +984,7 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
 
             int currentBLI = 0;
             for(BoxListIterator bli(unfilledBoxesOnThisLevel); bli; ++bli) {
-                BLassert(bli().ok());
+                BL_ASSERT(bli().ok());
                 Box coarseDestBox(bli());
                 Box fineTruncDestBox(coarseDestBox & currentPDomain);
                 if(fineTruncDestBox.ok()) {
@@ -999,7 +999,7 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
                   }
 
                   savedFineBox[ibox][currentLevel][currentBLI] = fineTruncDestBox;
-                  BLassert(localMFBoxes[ibox].intersects(fineTruncDestBox));
+                  BL_ASSERT(localMFBoxes[ibox].intersects(fineTruncDestBox));
 
                   BoxList tempUnfillableBoxes(boxType);
                   fillBoxId[ibox][currentLevel][currentBLI].resize(1);
@@ -1033,7 +1033,7 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
                         unfilledBoxesOnThisLevel.intersect(currentPDomain);
                 if( ! unfilledInside.isEmpty()) {
                   unfilledInside.intersect(coarseLocalMFBox);
-                  BLassert(unfilledInside.isEmpty());
+                  BL_ASSERT(unfilledInside.isEmpty());
                 }
               }
             }
@@ -1078,8 +1078,8 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
                     // Interpolate up to fine patch.
                     tempCurrentFillPatchedFab.resize(intersectDestBox, nFillComps);
                     tempCurrentFillPatchedFab.setVal(1.e30);
-		    BLassert(intersectDestBox.ok());
-		    BLassert( tempCoarseDestFab.box().ok());
+		    BL_ASSERT(intersectDestBox.ok());
+		    BL_ASSERT( tempCoarseDestFab.box().ok());
 		    PcInterp(tempCurrentFillPatchedFab,
 			     tempCoarseDestFab,
 			     intersectDestBox,
@@ -1125,9 +1125,9 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
 // on all processors must be defined.
 //
 
-   BLassert(finestFillLevel >= 0 && finestFillLevel <= finestLevel);
+   BL_ASSERT(finestFillLevel >= 0 && finestFillLevel <= finestLevel);
    for(int iIndex = 0; iIndex < destBoxes.length(); ++iIndex) {
-     BLassert(probDomain[finestFillLevel].contains(destBoxes[iIndex]));
+     BL_ASSERT(probDomain[finestFillLevel].contains(destBoxes[iIndex]));
    }
 
     int myproc(ParallelDescriptor::MyProc());
@@ -1184,8 +1184,8 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
     // Do this for all local fab boxes.
     for(int ibox = 0; ibox < localMFBoxes.length(); ++ibox) {
         unfilledBoxesOnThisLevel.clear();
-        BLassert(unfilledBoxesOnThisLevel.ixType() == boxType);
-        BLassert(unfilledBoxesOnThisLevel.ixType() == localMFBoxes[ibox].ixType());
+        BL_ASSERT(unfilledBoxesOnThisLevel.ixType() == boxType);
+        BL_ASSERT(unfilledBoxesOnThisLevel.ixType() == localMFBoxes[ibox].ixType());
         unfilledBoxesOnThisLevel.add(localMFBoxes[ibox]);
         // Find the boxes that can be filled on each level--these are all
         // defined at their level of refinement.
@@ -1202,7 +1202,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
 
             int currentBLI = 0;
             for(BoxListIterator bli(unfilledBoxesOnThisLevel); bli; ++bli) {
-                BLassert(bli().ok());
+                BL_ASSERT(bli().ok());
                 Box coarseDestBox(bli());
                 Box fineTruncDestBox(coarseDestBox & currentPDomain);
                 if(fineTruncDestBox.ok()) {
@@ -1217,7 +1217,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
                   }
 
                   savedFineBox[ibox][currentLevel][currentBLI] = fineTruncDestBox;
-                  BLassert(localMFBoxes[ibox].intersects(fineTruncDestBox));
+                  BL_ASSERT(localMFBoxes[ibox].intersects(fineTruncDestBox));
 
                   BoxList tempUnfillableBoxes(boxType);
                   fillBoxId[ibox][currentLevel][currentBLI].resize(1);
@@ -1251,7 +1251,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
                         unfilledBoxesOnThisLevel.intersect(currentPDomain);
                 if( ! unfilledInside.isEmpty()) {
                   unfilledInside.intersect(coarseLocalMFBox);
-                  BLassert(unfilledInside.isEmpty());
+                  BL_ASSERT(unfilledInside.isEmpty());
                 }
               }
             }
@@ -1296,8 +1296,8 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
                     // Interpolate up to fine patch.
                     tempCurrentFillPatchedFab.resize(intersectDestBox, numFillComps);
                     tempCurrentFillPatchedFab.setVal(1.e30);
-		    BLassert(intersectDestBox.ok());
-		    BLassert( tempCoarseDestFab.box().ok());
+		    BL_ASSERT(intersectDestBox.ok());
+		    BL_ASSERT( tempCoarseDestFab.box().ok());
 		    PcInterp(tempCurrentFillPatchedFab,
 			     tempCoarseDestFab,
 			     intersectDestBox,
@@ -1363,8 +1363,8 @@ void AmrData::ListDeriveFunc(ostream &os) const {
 
 // ---------------------------------------------------------------
 int AmrData::NIntersectingGrids(int level, const Box &b) const {
-  BLassert(level >=0 && level <= finestLevel);
-  BLassert(b.ok());
+  BL_ASSERT(level >=0 && level <= finestLevel);
+  BL_ASSERT(b.ok());
 
   int nGrids(0);
   if(fileType == FAB || (fileType == MULTIFAB && level == 0)) {
@@ -1383,8 +1383,8 @@ int AmrData::NIntersectingGrids(int level, const Box &b) const {
 
 // ---------------------------------------------------------------
 int AmrData::FinestContainingLevel(const Box &b, int startLevel) const {
-  BLassert(startLevel >= 0 && startLevel <= finestLevel);
-  BLassert(b.ok());
+  BL_ASSERT(startLevel >= 0 && startLevel <= finestLevel);
+  BL_ASSERT(b.ok());
 
   if(fileType == FAB) {
     return 0;
@@ -1404,8 +1404,8 @@ int AmrData::FinestContainingLevel(const Box &b, int startLevel) const {
 
 // ---------------------------------------------------------------
 int AmrData::FinestIntersectingLevel(const Box &b, int startLevel) const {
-  BLassert(startLevel >= 0 && startLevel <= finestLevel);
-  BLassert(b.ok());
+  BL_ASSERT(startLevel >= 0 && startLevel <= finestLevel);
+  BL_ASSERT(b.ok());
 
   if(fileType == FAB) {
     return 0;
@@ -1474,8 +1474,8 @@ bool AmrData::DefineFab(int level, int componentIndex, int fabIndex) {
 bool AmrData::MinMax(const Box &onBox, const aString &derived, int level,
 		     Real &dataMin, Real &dataMax)
 {
-  BLassert(level >= 0 && level <= finestLevel);
-  BLassert(onBox.ok());
+  BL_ASSERT(level >= 0 && level <= finestLevel);
+  BL_ASSERT(onBox.ok());
 
   bool valid(false);  // does onBox intersect any grids (are minmax valid)
   //FArrayBox *fabPtr;
@@ -1563,12 +1563,12 @@ int AmrData::StateNumber(const aString &statename) const {
 void AmrData::Interp(FArrayBox &fine, FArrayBox &crse,
                      const Box &fine_box, int lrat)
 {
-   BLassert(fine.box().contains(fine_box));
+   BL_ASSERT(fine.box().contains(fine_box));
    Box crse_bx(coarsen(fine_box,lrat));
    Box fslope_bx(refine(crse_bx,lrat));
    Box cslope_bx(crse_bx);
    cslope_bx.grow(1);
-   BLassert(crse.box() == cslope_bx);
+   BL_ASSERT(crse.box() == cslope_bx);
 
    // alloc temp space for coarse grid slopes
    long cLen = cslope_bx.numPts();
@@ -1610,8 +1610,8 @@ void AmrData::Interp(FArrayBox &fine, FArrayBox &crse,
 void AmrData::PcInterp(FArrayBox &fine, const FArrayBox &crse,
                        const Box &subbox, int lrat)
 {
-   BLassert(fine.box().contains(subbox));
-   BLassert(fine.nComp() == crse.nComp());
+   BL_ASSERT(fine.box().contains(subbox));
+   BL_ASSERT(fine.nComp() == crse.nComp());
    Box cfine(crse.box());
    cfine.refine(lrat);
    Box fine_ovlp(subbox);

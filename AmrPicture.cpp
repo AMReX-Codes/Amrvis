@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.cpp,v 1.37 1999-05-10 17:18:41 car Exp $
+// $Id: AmrPicture.cpp,v 1.38 1999-05-10 18:54:17 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -121,8 +121,8 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
              isSubDomain(true),
              bCartGridSmoothing(bcartgridsmoothing)
 {
-  BLassert(parentPicturePtr != NULL);
-  BLassert(pltappptr != NULL);
+  BL_ASSERT(parentPicturePtr != NULL);
+  BL_ASSERT(pltappptr != NULL);
   int ilev;
 
   contours = parentPicturePtr->Contours();
@@ -351,7 +351,7 @@ void AmrPicture::SetSlice(int view, int here) {
   int lev;
   sliceDir = YZ - view;
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
-  BLassert(amrData.RefRatio().length() > 0);
+  BL_ASSERT(amrData.RefRatio().length() > 0);
 
 # if (BL_SPACEDIM == 3)
     slice = here;
@@ -707,7 +707,7 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
   int lev;
   Real dataMin, dataMax;
   int printDone = false;
-  BLassert(palptr != NULL);
+  BL_ASSERT(palptr != NULL);
   palPtr = palptr;
   AmrData &amrData = dataServicesPtr->AmrDataRef();
   if(currentDerived != derived || whichRange == USEFILE) {
@@ -1673,7 +1673,7 @@ void AmrPicture::DoFrameUpdate() {
       slice = subDomain[maxAllowableLevel].bigEnd(sliceDir);
     }
   } 
-  BLassert( ! contours);
+  BL_ASSERT( ! contours);
   int iRelSlice(slice - subDomain[maxAllowableLevel].smallEnd(sliceDir));
   ShowFrameImage(iRelSlice);
   XSync(GAptr->PDisplay(), false);
@@ -2264,7 +2264,7 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
     hDir = 1;
     vDir = 2;
   } else {
-    BLassert(0);
+    BL_ASSERT(0);
   }
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
   int DVFscale(pltAppPtr->CurrentScale());
@@ -2304,7 +2304,7 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
 			   (void *) &vVel);
 
   } else {  // using momentums
-    BLassert(whichVectorDerived == enMomentum);
+    BL_ASSERT(whichVectorDerived == enMomentum);
     // fill the density and momentum:
     aString sDensity("density");
     if( ! dataServicesPtr->CanDerive(sDensity)) {
@@ -2364,7 +2364,7 @@ void AmrPicture::draw_vector_field(Display *pDisplay, Drawable &pDrawable,
                                    Real velocityMax, Box dvfSliceBox,
                                    int dvfFactor){
   int maxpoints(numberOfContours);  // partition longest side into 20 parts
-  BLassert(maxpoints > 0);
+  BL_ASSERT(maxpoints > 0);
   Real sight_h(maxLength / maxpoints);
   int stride((int) sight_h);
   if(stride < 1) {

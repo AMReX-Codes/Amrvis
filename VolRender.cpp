@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: VolRender.cpp,v 1.28 1999-05-10 17:18:43 car Exp $
+// $Id: VolRender.cpp,v 1.29 1999-05-10 18:54:19 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -105,7 +105,7 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
 
 // -------------------------------------------------------------------
 VolRender::~VolRender() {
-  BLassert(bVolRenderDefined);
+  BL_ASSERT(bVolRenderDefined);
   if(ParallelDescriptor::IOProcessor()) {
     //cout << "_in VolRender::~VolRender():  volData = " << volData << endl;
     vpDestroyContext(vpc);
@@ -121,7 +121,7 @@ VolRender::~VolRender() {
 
 // -------------------------------------------------------------------
 bool VolRender::AllocateSWFData() {
-  BLassert(bVolRenderDefined);
+  BL_ASSERT(bVolRenderDefined);
 
   // --- create the big array
   swfDataSize = drawnDomain[maxDataLevel].numPts();
@@ -162,7 +162,7 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
 			    int iBlackIndex, int iWhiteIndex,
 			    int iColorSlots)
 {
-  BLassert(bVolRenderDefined);
+  BL_ASSERT(bVolRenderDefined);
   
   if(swfDataValid) {
     return;
@@ -408,7 +408,7 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
 // -------------------------------------------------------------------
 void VolRender::WriteSWFData(const aString &filenamebase, bool SWFLight) {
     cout << "VolRender::WriteSWFData" << endl;
-    BLassert(bVolRenderDefined);
+    BL_ASSERT(bVolRenderDefined);
     if(ParallelDescriptor::IOProcessor()) {
         cout << "vpClassify Scalars..." << endl;           // --- classify
         clock_t time0 = clock();
@@ -540,7 +540,7 @@ void VolRender::MakePicture(Real mvmat[4][4], Real Length,
 
 // -------------------------------------------------------------------
 void VolRender::MakeVPData() {
-  BLassert(bVolRenderDefined);
+  BL_ASSERT(bVolRenderDefined);
   if(ParallelDescriptor::IOProcessor()) {
     clock_t time0 = clock();
     
@@ -649,7 +649,7 @@ void VolRender::MakeVPData() {
       CheckVP(vpret, 8);
 
     } else {
-      BLassert(palettePtr != NULL);
+      BL_ASSERT(palettePtr != NULL);
       for(int sn = 0; sn < paletteSize; ++sn) {
         value_shade_table[sn] = (float) sn;
       }
@@ -711,7 +711,7 @@ void VolRender::MakeDefaultTransProperties() {
 
 // -------------------------------------------------------------------
 void VolRender::SetTransferProperties() {
-  BLassert(palettePtr != NULL);
+  BL_ASSERT(palettePtr != NULL);
   density_ramp = palettePtr->GetTransferArray();
   vpSetClassifierTable(vpc, DENSITY_PARAM, densityField,
                        density_ramp.dataPtr(),
