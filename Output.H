@@ -9,6 +9,7 @@
 #include <Intrinsic.h>
 
 #include "REAL.H"
+#include "aString.H"
 
 // the following is support for writing rgb files.
 #define IMAGIC  0732
@@ -62,7 +63,8 @@ void WritePSFile(char *filename, XImage *image,
 void WritePSPaletteFile(char *filename, XImage *image,
                         int imagesizehoriz, int imagesizevert,
                         XColor *colorcells, int colorcellsize,
-                        Real palMin, Real palMax, int palDataLength);
+                        Real *palValuesList, const aString &palNumFormat,
+                        int palDataLength);
 
 void WriteRGBFile(char *filename, XImage *image,
 		   int imagesizehoriz, int imagesizevert,

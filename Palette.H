@@ -80,6 +80,8 @@ class Palette {
     Real PaletteMin()             { return pmin; }
     Real PaletteMax()             { return pmax; }
     int  PaletteDataListLength()  { return dataListLength; }
+    Real *PaletteDataList() { return dataList; }
+    aString PaletteNumberFormat() { return defaultFormat; }
     XImage *GetPictureXImage();
     unsigned char *RemapTable()   { return remapTable;     }
 

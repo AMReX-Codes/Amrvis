@@ -6,6 +6,7 @@
 #include "PltApp.H"
 #include "DataServices.H"
 #include <time.h>
+#include "ArrayView.H"
 
 // ---------------------------------------------------------------------
 AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
@@ -923,6 +924,7 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
 
     // get the data for this slice
     FArrayBox imageFab(interBox[maxAllowableLevel], 1);
+    ArrayView(&imageFab);
     DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
 			   &imageFab, imageFab.box(), maxAllowableLevel,
                            currentDerived);
@@ -1157,7 +1159,6 @@ void AmrPicture::ShowFrameImage() {
                                 pltAppPtr->CurrentScale());
     apXZ->DoExposePicture();
   }
-  cout<<"changed slice to"<<GetSlice()<<" and sliceDir is "<<sliceDir<<endl;
   pltAppPtr->DoExposeRef();
 }  // end ShowFrameImage()
 

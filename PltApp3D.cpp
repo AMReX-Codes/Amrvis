@@ -5,13 +5,14 @@
 
 // -------------------------------------------------------------------
 void PltApp::DoExposeTransDA() {
-  if(XmToggleButtonGetState(wAutoDraw)) {
+    Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
+  if(XmToggleButtonGetState(currentAutoDraw)) {
       projPicturePtr->DrawPicture();
   } else {
       projPicturePtr->DrawBoxes();
   }
   if(labelAxes) {
-    if(XmToggleButtonGetState(wAutoDraw)) {
+    if(XmToggleButtonGetState(currentAutoDraw)) {
       projPicturePtr->MakeBoxes();
     }
     projPicturePtr->LabelAxes();
@@ -22,6 +23,7 @@ void PltApp::DoExposeTransDA() {
 // -------------------------------------------------------------------
 void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
   Real temp;
+    Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
   XmDrawingAreaCallbackStruct* cbs =
         (XmDrawingAreaCallbackStruct*) call_data;
   if(cbs->event->xany.type == ButtonPress) {
@@ -52,7 +54,7 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
     viewTrans.SetTheta(temp);
     viewTrans.MakeTransform();
 
-    if(XmToggleButtonGetState(wAutoDraw)) {
+    if(XmToggleButtonGetState(currentAutoDraw)) {
       DoRender(w, NULL, NULL);
     } else {
       projPicturePtr->MakeBoxes();
@@ -82,7 +84,7 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
 
     viewTrans.MakeTransform();
 
-    if(XmToggleButtonGetState(wAutoDraw)) {
+    if(XmToggleButtonGetState(currentAutoDraw)) {
       DoRender(w, NULL, NULL);
     } else {
       projPicturePtr->MakeBoxes();
@@ -109,7 +111,7 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
     viewTrans.SetScale(temp, temp, temp);
     viewTrans.MakeTransform();
 
-    if(XmToggleButtonGetState(wAutoDraw)) {
+    if(XmToggleButtonGetState(currentAutoDraw)) {
       DoRender(w, NULL, NULL);
     } else {
       projPicturePtr->MakeBoxes();
@@ -184,6 +186,9 @@ void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
     XmString sAutoDraw = XmStringCreateSimple("Autodraw");
     XtVaSetValues(wAutoDraw, XmNlabelString, sAutoDraw, NULL);
     XmStringFree(sAutoDraw);
+    XmToggleButtonSetState(wAutoDraw, 
+                           XmToggleButtonGetState(wDAutoDraw),
+                           false);
 #endif
   DoTransResize(wTransDA, NULL, NULL);
 }
@@ -290,9 +295,11 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   XtSetArg(args[i], XmNleftOffset, WOFFSET); i++;
   XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM); i++;
   XtSetArg(args[i], XmNtopOffset, WOFFSET); i++;
-  wDAutoDraw = XmCreatePushButton(wDetachForm, "dautodraw", args, i);
+  wDAutoDraw = XmCreateToggleButton(wDetachForm, "dautodraw", args, i);
   XmStringFree(sAutoDraw);
-  AddStaticCallback(wDAutoDraw, XmNactivateCallback, &PltApp::DoAutoDraw);
+  AddStaticCallback(wDAutoDraw, XmNvalueChangedCallback, &PltApp::DoAutoDraw);
+  XmToggleButtonSetState(wDAutoDraw, XmToggleButtonGetState(wAutoDraw),
+                         false);
   XtManageChild(wDAutoDraw);
 
   i=0;
@@ -345,6 +352,7 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
 // -------------------------------------------------------------------
 void PltApp::DoTransResize(Widget w, XtPointer, XtPointer) {
   Dimension wdth, hght;
+    Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
 
   XSetWindowColormap(GAptr->PDisplay(), XtWindow(wTransDA),
                      pltPaletteptr->GetColormap());
@@ -354,7 +362,7 @@ void PltApp::DoTransResize(Widget w, XtPointer, XtPointer) {
   daWidth = wdth;
   daHeight = hght;
   projPicturePtr->SetDrawingAreaDimensions(daWidth, daHeight);
-  if(XmToggleButtonGetState(wAutoDraw)) {
+  if(XmToggleButtonGetState(currentAutoDraw)) {
     DoRender(w, NULL, NULL);
   } else {
     projPicturePtr->MakeBoxes();
@@ -385,8 +393,9 @@ void PltApp::DoReadTransferFile(Widget, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void PltApp::Clear() {
+  Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
   XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
-  XmToggleButtonSetState(wAutoDraw, false, false);
+  XmToggleButtonSetState(currentAutoDraw, false, false);
   viewTrans.SetRho(0.0);
   viewTrans.SetTheta(0.0);
   viewTrans.SetPhi(0.0);
@@ -398,33 +407,33 @@ void PltApp::Clear() {
 // -------------------------------------------------------------------
 void PltApp::DoAutoDraw(Widget w, XtPointer, XtPointer) {
 #ifdef BL_VOLUMERENDER
-  XmString sAutoDraw;
-  sAutoDraw = XmStringCreateSimple("Autodraw");
-  if(XmToggleButtonGetState(wAutoDraw)) {
-      DoRender(w, NULL, NULL);
-  } else {
-      projPicturePtr->MakeBoxes();
-  }
-  if(transDetached) {
-      XtVaSetValues(wDAutoDraw, XmNlabelString, sAutoDraw, NULL);
-  } else {
-      XtVaSetValues(wAutoDraw, XmNlabelString, sAutoDraw, NULL);
-  }
-  XmStringFree(sAutoDraw);
-
-  XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
-  DoExposeTransDA();
+    Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
+  /*  if (transDetached) 
+        XmToggleButtonSetState(wAutoDraw,
+                               XmToggleButtonGetState(wDAutoDraw),
+                               false);
+    else
+        XmToggleButtonSetState(wDAutoDraw,
+                               XmToggleButtonGetState(wAutoDraw),
+                               false);                               */
+    if(XmToggleButtonGetState(currentAutoDraw)) {
+        DoRender(w, NULL, NULL);
+    } else {
+        projPicturePtr->MakeBoxes();
+    }
+    XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
+    DoExposeTransDA();
 #endif
 }
 
-
 // -------------------------------------------------------------------
 void PltApp::DoOrient(Widget w, XtPointer, XtPointer) {
-  viewTrans.SetRho(0.0);
+     Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
+ viewTrans.SetRho(0.0);
   viewTrans.SetTheta(0.0);
   viewTrans.SetPhi(0.0);
   viewTrans.MakeTransform();
-  if(XmToggleButtonGetState(wAutoDraw)) {
+  if(XmToggleButtonGetState(currentAutoDraw)) {
     DoRender(w, NULL, NULL);
   } else {
     projPicturePtr->MakeBoxes();
@@ -472,11 +481,12 @@ void PltApp::WriteSWFData(const aString &filenamebase) {
 
 
 // -------------------------------------------------------------------
-void PltApp::DoRender(Widget, XtPointer, XtPointer) {
+void PltApp::DoRender(Widget w, XtPointer, XtPointer) {
   //XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
   //if( ! projPicturePtr->SWFDataAllocated()) {
     //projPicturePtr->AllocateSWFData();
   //}
+    Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
   VolRender *volRender = projPicturePtr->GetVolRenderPtr();
   if( ! volRender->SWFDataValid()) {
     int iPaletteStart = pltPaletteptr->PaletteStart();
@@ -496,7 +506,7 @@ void PltApp::DoRender(Widget, XtPointer, XtPointer) {
   if( ! volRender->VPDataValid()) {
     volRender->MakeVPData();
   }
-  if( ! XmToggleButtonGetState(wAutoDraw)) {
+  if( ! XmToggleButtonGetState(currentAutoDraw)) {
     projPicturePtr->MakeBoxes();
   }
   projPicturePtr->MakePicture();

@@ -124,11 +124,11 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   image = pltPaletteptr->GetPictureXImage();
   imageSizeX = pltPaletteptr->PaletteWidth();
   imageSizeY = pltPaletteptr->PaletteHeight();
-  Real pMin = pltPaletteptr->PaletteMin();
-  Real pMax = pltPaletteptr->PaletteMax();
+  Real *pValueList = pltPaletteptr->PaletteDataList();
+  aString pNumFormat = pltPaletteptr->PaletteNumberFormat();
   int pDataLength = pltPaletteptr->PaletteDataListLength();
   WritePSPaletteFile(psfilename, image, imageSizeX, imageSizeY, colors, 
-                     palSize, pMin, pMax, pDataLength);
+                     palSize, pValueList, pNumFormat, pDataLength);
 
   XtDestroyWidget(w);
 
