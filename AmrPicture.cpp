@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.cpp,v 1.33 1998-12-02 00:38:23 vince Exp $
+// $Id: AmrPicture.cpp,v 1.34 1998-12-02 23:24:14 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1937,7 +1937,7 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
   const Real *vdat = vVelocity.dataPtr();
 
   for(int k = 0; k < npts; ++k) {
-    Real s = sqrt(hdat[k] * hdat[k] + vdat[k] * hdat[k]);
+    Real s = sqrt(hdat[k] * hdat[k] + vdat[k] * vdat[k]);
     smax = Max(smax,s);
   }
   
@@ -1990,8 +1990,8 @@ void AmrPicture::draw_vector_field(Display *pDisplay, Drawable &pDrawable,
       }
       Real a(Amax * (x1 / velocityMax));
       Real b(Amax * (y1 / velocityMax));
-      int x2((int) (x + a));
-      int y2((int) (y + b)); 
+      Real x2(x + a);
+      Real y2(y + b); 
       XDrawLine(pDisplay, pDrawable, pGC, 
                 (int) ((x - leftEdge) * dvfFactor),
                 (int) (imageSizeV - ((y - bottomEdge) * dvfFactor)),
