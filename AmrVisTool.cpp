@@ -174,7 +174,7 @@ void main(int argc, char *argv[]) {
       for(int nPlots = 0; nPlots < GetFileCount(); ++nPlots) {
         comlineFileName = GetComlineFilename(nPlots);
         if(ParallelDescriptor::IOProcessor()) {
-          cout << "FileName = " << comlineFileName << endl;
+          cout << endl << "FileName = " << comlineFileName << endl;
         }
 	Array<DataServices *> dspArray(1);
 	dspArray[0] = new DataServices(comlineFileName, fileType);

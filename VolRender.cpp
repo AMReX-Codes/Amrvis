@@ -100,7 +100,11 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
 VolRender::~VolRender() {
   assert(bVolRenderDefined);
   if(ParallelDescriptor::IOProcessor()) {
+    //cout << "_in VolRender::~VolRender():  volData = " << volData << endl;
     vpDestroyContext(vpc);
+    //cout << "_after vpDestroyContext:  volData = " << volData << endl;
+    delete [] volData;
+    //cout << "_after delete [] volData:  volData = " << volData << endl;
     if(swfDataAllocated) {
       delete [] swfData;
     }
