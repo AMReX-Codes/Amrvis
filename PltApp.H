@@ -193,6 +193,9 @@ public:
   
   void  SetGlobalMinMax(Real specifiedMin, Real specifiedMax);
   GC GetRbgc() { return rbgc; }
+
+  void DoBackStep(int);
+  void DoForwardStep(int);
   
 private:
   Widget 		wTopLevel, wAmrVisTopLevel, wAmrVisMenu;
@@ -309,8 +312,6 @@ private:
   void DoCGSmooth(Widget, XtPointer, XtPointer);
   void DoRubberBanding(Widget, XtPointer, XtPointer);
   void DoBoxesButton(Widget, XtPointer, XtPointer);
-  void DoBackStep(int);
-  void DoForwardStep(int);
   void DoAnimBackStep();
   void DoAnimForwardStep();
   void DoAnimFileScale(Widget, XtPointer, XtPointer);

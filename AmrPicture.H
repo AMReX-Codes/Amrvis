@@ -39,7 +39,9 @@ public:
   
   ~AmrPicture();
   static void CBFrameTimeOut(XtPointer, XtIntervalId *);
+  static void CBContourSweep(XtPointer, XtIntervalId *);
   void	DoFrameUpdate();
+  void  DoContourSweep();
   void	DoStop();   // removes TimeOutCallback, updates GridPictures 
   void	SetRegion(int, int, int, int);
   void	CreatePicture(Window drawPictureHere, Palette *palptr,

@@ -1082,10 +1082,10 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
     // this cannot be deleted because it belongs to the XImage
     unsigned char *frameScaledImageData = new unsigned char[imageSize];
     CreateScaledImage(&(frameBuffer[islice]), pltAppPtr->CurrentScale() *
-             CRRBetweenLevels(maxDrawnLevel, maxAllowableLevel, amrData.RefRatio()),
-             frameImageData, frameScaledImageData,
-             dataSizeH[maxDrawnLevel], dataSizeV[maxDrawnLevel],
-             imageSizeH, imageSizeV);
+           CRRBetweenLevels(maxDrawnLevel, maxAllowableLevel, amrData.RefRatio()),
+           frameImageData, frameScaledImageData,
+           dataSizeH[maxDrawnLevel], dataSizeV[maxDrawnLevel],
+           imageSizeH, imageSizeV);
 
     ShowFrameImage(islice);
 #   if (BL_SPACEDIM == 3)
@@ -1185,6 +1185,10 @@ void AmrPicture::CBFrameTimeOut(XtPointer client_data, XtIntervalId *) {
   ((AmrPicture *) client_data)->DoFrameUpdate();
 }
 
+void AmrPicture::CBContourSweep(XtPointer client_data, XtIntervalId *) {
+  ((AmrPicture *) client_data)->DoContourSweep();
+}
+
 
 // ---------------------------------------------------------------------
 void AmrPicture::DoFrameUpdate() {
@@ -1202,14 +1206,26 @@ void AmrPicture::DoFrameUpdate() {
     
     }
   } 
+  assert( ! contours);
   int iRelSlice(slice - subDomain[maxAllowableLevel].smallEnd(sliceDir));
   ShowFrameImage(iRelSlice);
   XSync(GAptr->PDisplay(), false);
   pendingTimeOut = XtAppAddTimeOut(pltAppPtr->GetAppContext(),
-  				frameSpeed, &AmrPicture::CBFrameTimeOut,
-				(XtPointer) this);
+                                   frameSpeed, &AmrPicture::CBFrameTimeOut,
+                                   (XtPointer) this);
 }  // end DoFrameUpdate()
 
+
+void AmrPicture::DoContourSweep() {
+  if(sweepDirection == ANIMPOSDIR) {
+    pltAppPtr->DoForwardStep(myView);
+  } else {
+    pltAppPtr->DoBackStep(myView);
+  } 
+  pendingTimeOut = XtAppAddTimeOut(pltAppPtr->GetAppContext(),
+                                   frameSpeed, &AmrPicture::CBContourSweep,
+                                   (XtPointer) this);
+}
 
 // ---------------------------------------------------------------------
 void AmrPicture::DoStop() {
@@ -1226,6 +1242,13 @@ void AmrPicture::DoStop() {
 void AmrPicture::Sweep(AnimDirection direction) {
   if(pendingTimeOut != 0) {
     DoStop();
+  }
+  if (contours) {
+    pendingTimeOut = XtAppAddTimeOut(pltAppPtr->GetAppContext(),
+                                     frameSpeed, &AmrPicture::CBContourSweep,
+                                     (XtPointer) this);
+    sweepDirection = direction;
+    return; 
   }
   if( ! framesMade) {
       CreateFrames(direction);
