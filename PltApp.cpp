@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.114 2002-10-02 16:51:36 car Exp $
+// $Id: PltApp.cpp,v 1.115 2002-10-02 18:16:58 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -984,16 +984,32 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			(XtPointer) wc);
     }
 
-    wControls[WCARGB] =
-      XtVaCreateManagedWidget("rgb >", xmPushButtonWidgetClass, wControlForm,
-			      XmCMarginBottom, 2,
-			      XmNwidth,  3*controlSize,
-			      XmNheight, controlSize,
-			      XmNborderWidth, 0,
-			      XmNhighlightThickness, 0,
-			      XmNx, centerX-3*halfbutton,
-			      XmNy, wcfHeight+3*halfbutton-adjustHeight2D,
-			      NULL);
+    if ( AVGlobals::IsSGIrgbFile() )
+    {
+	wControls[WCARGB] =
+	    XtVaCreateManagedWidget("rgb >", xmPushButtonWidgetClass, wControlForm,
+				    XmCMarginBottom, 2,
+				    XmNwidth,  3*controlSize,
+				    XmNheight, controlSize,
+				    XmNborderWidth, 0,
+				    XmNhighlightThickness, 0,
+				    XmNx, centerX-3*halfbutton,
+				    XmNy, wcfHeight+3*halfbutton-adjustHeight2D,
+				    NULL);
+    }
+    else
+    {
+	wControls[WCARGB] =
+	    XtVaCreateManagedWidget("ppm >", xmPushButtonWidgetClass, wControlForm,
+				    XmCMarginBottom, 2,
+				    XmNwidth,  3*controlSize,
+				    XmNheight, controlSize,
+				    XmNborderWidth, 0,
+				    XmNhighlightThickness, 0,
+				    XmNx, centerX-3*halfbutton,
+				    XmNy, wcfHeight+3*halfbutton-adjustHeight2D,
+				    NULL);
+    }
     AddStaticCallback(wControls[WCARGB], XmNactivateCallback, &PltApp::ChangePlane,
 		      (XtPointer) WCARGB);
     //XtManageChild(wControls[WCARGB]);
