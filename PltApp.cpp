@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.cpp,v 1.64 2000-06-17 16:31:11 car Exp $
+// $Id: PltApp.cpp,v 1.65 2000-08-28 21:49:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -126,8 +126,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     // animation, and indicate the time underneath the file label in the
     // controls window.
     headerout << &fileName[fnl+1] << ", 2D Animation" << ends;
-  }
-  else {
+  } else {
     animFrames = 1;
     fileNames.resize(animFrames);
     fileNames[currentFrame] = fileName;
@@ -247,12 +246,16 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   //minAllowableLevel = 0; //amrData.FinestContainingLevel(region, finestLevel);
   minAllowableLevel = amrData.FinestContainingLevel(region, finestLevel);
   Box maxDomain(region);
-  if(maxlev < finestLevel)
+  if(maxlev < finestLevel) {
     maxDomain.coarsen(CRRBetweenLevels(maxlev, finestLevel,amrData.RefRatio()));
+  }
 
-  unsigned long dataSize = maxDomain.length(XDIR) * maxDomain.length(YDIR);
-  if(MaxPictureSize() / dataSize == 0) maxAllowableScale = 1;
-  else maxAllowableScale = (int) sqrt((Real) (MaxPictureSize()/dataSize));
+  unsigned long dataSize(maxDomain.length(XDIR) * maxDomain.length(YDIR));
+  if(MaxPictureSize() / dataSize == 0) {
+    maxAllowableScale = 1;
+  } else {
+    maxAllowableScale = (int) sqrt((Real) (MaxPictureSize()/dataSize));
+  }
 
   currentScale = Min(maxAllowableScale, pltParent->CurrentScale());
   currentContour = pltParent->CurrentContour();
@@ -1061,6 +1064,9 @@ void PltApp::PltAppInit() {
   AddStaticCallback(wOrient, XmNactivateCallback, &PltApp::DoOrient);
   XtManageChild(wOrient);
   
+  int whiteColor = pltPaletteptr->WhiteIndex();
+  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), pltPaletteptr->pixelate(whiteColor));
+  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), pltPaletteptr->pixelate(100));
   wLabelAxes = XtVaCreateManagedWidget("XYZ",
 				       xmPushButtonGadgetClass, wPlotArea,
 				       XmNleftAttachment, XmATTACH_WIDGET,
@@ -1068,6 +1074,8 @@ void PltApp::PltAppInit() {
 				       XmNleftOffset, WOFFSET,
 				       XmNtopAttachment, XmATTACH_POSITION,
 				       XmNtopPosition, 50,
+				       //XmNforeground, 42,
+				       //XmNbackground, 100,
 				       NULL);
   AddStaticCallback(wLabelAxes, XmNactivateCallback, &PltApp::DoLabelAxes);
   XtManageChild(wLabelAxes);

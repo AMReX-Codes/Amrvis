@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.cpp,v 1.29 2000-06-19 16:44:35 car Exp $
+// $Id: Palette.cpp,v 1.30 2000-08-28 21:49:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -82,45 +82,40 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
   palWidth  = width;
   totalPalHeight = totalheight;
   dataList.resize(datalistlength);
-  if ( GAptr->isTrueColor() )
-    {
-      colmap = DefaultColormap(GAptr->PDisplay(), GAptr->PScreenNumber());
-    }
-  else
-    {
-      colmap = XCreateColormap(GAptr->PDisplay(), GAptr->PRoot(), GAptr->PVisual(), AllocAll);
-    }
+  if(GAptr->IsTrueColor()) {
+    colmap = DefaultColormap(GAptr->PDisplay(), GAptr->PScreenNumber());
+  } else {
+    colmap = XCreateColormap(GAptr->PDisplay(), GAptr->PRoot(),
+			     GAptr->PVisual(), AllocAll);
+  }
   transSet = false;
   systemColmap = DefaultColormap(GAptr->PDisplay(), GAptr->PScreenNumber());
-  for(int ii = 0; ii < totalColorSlots; ++ii) {
+  for(int ii(0); ii < totalColorSlots; ++ii) {
     sysccells[ii].pixel = ii;
   }
   XQueryColors(GAptr->PDisplay(), systemColmap, sysccells.dataPtr(), totalColorSlots);
-  if ( GAptr->isTrueColor() )
-    {
-      reserveSystemColors = 0;
-      colorOffset = 0;
-      colorSlots = 253;
-      blackIndex = 1;
-      whiteIndex = 0;
-      paletteStart = 2;
-    }
-  else
-    {
-      reserveSystemColors = reservesystemcolors;
-      colorOffset = reserveSystemColors;  // start our allocated palette here
+  if(GAptr->IsTrueColor()) {
+    reserveSystemColors = 0;
+    colorOffset = 0;
+    colorSlots = 253;
+    blackIndex = 1;
+    whiteIndex = 0;
+    paletteStart = 2;
+  } else {
+    reserveSystemColors = reservesystemcolors;
+    colorOffset = reserveSystemColors;  // start our allocated palette here
 
-      colorSlots   = totalColorSlots - reserveSystemColors - 2;
-      blackIndex   = colorOffset + 1;
-      whiteIndex   = colorOffset;
-      paletteStart = colorOffset + 2;  // skip 2 for black and white
-      // the data colors start here
-    }
+    colorSlots   = totalColorSlots - reserveSystemColors - 2;
+    blackIndex   = colorOffset + 1;
+    whiteIndex   = colorOffset;
+    paletteStart = colorOffset + 2;  // skip 2 for black and white
+                                     // the data colors start here
+  }
   
   remapTable = new unsigned char[totalColorSlots];  // this is faster than Array<uc>
   float sizeRatio(((float) colorSlots) / ((float) totalColorSlots));
   float mapLow(((float) paletteStart) + 0.5);
-  for(int itab = 0; itab < totalColorSlots; ++itab) {
+  for(int itab(0); itab < totalColorSlots; ++itab) {
     remapTable[itab] = (int) ((((float) itab) * sizeRatio) + mapLow);
   }
 }  // end constructor
@@ -289,7 +284,9 @@ void Palette::ChangeWindowPalette(const aString &palName, Window newPalWindow) {
 // -------------------------------------------------------------------
 void Palette::ReadPalette(const aString &palName) {
   ReadSeqPalette(palName);
-  if ( GAptr->isTrueColor() ) return;
+  if(GAptr->IsTrueColor()) {
+    return;
+  }
   XStoreColors(GAptr->PDisplay(), colmap, ccells.dataPtr(), totalColorSlots);
   XStoreColors(GAptr->PDisplay(), colmap, sysccells.dataPtr(), reserveSystemColors);
 }
@@ -309,17 +306,14 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
   if((fd = open(fileName.c_str(), O_RDONLY, NULL)) < 0) {
     cout << "Can't open colormap file:  " << fileName << endl;
     for(i = 0; i < totalColorSlots; i++) {    // make a default grayscale colormap.
-      if ( GAptr->isTrueColor() )
-	{
-	  // FIXME: not 24 bit!
-	  ccells[i].pixel = (((rbuff[i]>>(8-bprgb)) <<2*bprgb)
-			     |((gbuff[i]>>(8-bprgb))<< bprgb)
-			     |((bbuff[i]>>(8-bprgb))<< 0));
-	}
-      else
-	{
-	  ccells[i].pixel = i;
-	}
+      if(GAptr->IsTrueColor()) {
+	// FIXME: not 24 bit!
+	ccells[i].pixel = ( ((rbuff[i]>>(8-bprgb)) <<2*bprgb)
+			     | ((gbuff[i]>>(8-bprgb))<< bprgb)
+			     | ((bbuff[i]>>(8-bprgb))<< 0) );
+      } else {
+	ccells[i].pixel = i;
+      }
       mcells[ccells[i].pixel] = ccells[i];
       ccells[i].red   = (unsigned short) i*256;
       ccells[i].green = (unsigned short) i*256;
@@ -392,17 +386,14 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
   }
 
   for(i = 0; i < totalColorSlots; ++i) {
-    if ( GAptr->isTrueColor() )
-      {
-	// FIXME: not 24 bit!
-	ccells[i].pixel = (((rbuff[i]>>(8-bprgb)) <<2*bprgb)
+    if(GAptr->IsTrueColor()) {
+      // FIXME: not 24 bit!
+      ccells[i].pixel = (((rbuff[i]>>(8-bprgb)) <<2*bprgb)
 			   |((gbuff[i]>>(8-bprgb))<< bprgb)
 			   |((bbuff[i]>>(8-bprgb))<< 0));
-      }
-    else
-      {
-	ccells[i].pixel = i;
-      }
+    } else {
+      ccells[i].pixel = i;
+    }
     mcells[ccells[i].pixel] = ccells[i];
     ccells[i].red   = (unsigned short) rbuff[i] * 256;
     ccells[i].green = (unsigned short) gbuff[i] * 256;
@@ -413,15 +404,15 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
   // set Transfer function here  NOTE:  doesn't call
   transferArray.resize(iSeqPalSize);
   if(paletteType == NON_ALPHA) {
-    for(int j = 0; j<iSeqPalSize; j++) {
+    for(int j(0); j < iSeqPalSize; ++j) {
       indexArray[j] = j; 
       transferArray[j] = (float) j / (float)(iSeqPalSize-1);
     }
   } else if(paletteType == ALPHA) {
-    for(int j = 0; j<iSeqPalSize; j++) {
+    for(int j(0); j < iSeqPalSize; ++j) {
       indexArray[j] = j; 
       int tmp = (unsigned short) abuff[j];
-      transferArray[j] = (float) tmp/100.0;
+      transferArray[j] = (float) tmp / 100.0;
     }
   }
   if(BL_SPACEDIM == 3) {
@@ -442,79 +433,77 @@ XImage *Palette::GetPictureXImage() {
   return (XGetImage(GAptr->PDisplay(), palPixmap, 0, 0,
                 totalPalWidth, totalPalHeight, AllPlanes, ZPixmap));
 }
-// -------------------------------------------------------------------
-// -------------------------------------------------------------------
 
-Pixel
-Palette::BlackIndex()    const
-{
-  if ( GAptr->isTrueColor() )
+
+// -------------------------------------------------------------------
+Pixel Palette::BlackIndex() const {
+  if(GAptr->IsTrueColor()) {
     return BlackPixel(GAptr->PDisplay(), GAptr->PScreenNumber());
-  else
+  } else {
     return blackIndex;
+  }
 }
 
-Pixel
-Palette::WhiteIndex()    const
-{
-  if ( GAptr->isTrueColor() )
+
+// -------------------------------------------------------------------
+Pixel Palette::WhiteIndex() const {
+  if(GAptr->IsTrueColor()) {
     return WhitePixel(GAptr->PDisplay(), GAptr->PScreenNumber());
-  else
+  } else {
     return whiteIndex;
+  }
 }
 
-Pixel
-Palette::pixelate(int i) const
-{
-  if ( i < 0 )
+
+// -------------------------------------------------------------------
+Pixel Palette::pixelate(int i) const {
+  if(i < 0) {
     return BlackIndex();
-  else if ( i > 255 )
+  } else if ( i > 255 ) {
     return WhiteIndex();
-  else
+  } else {
     return ccells[i].pixel;
+  }
 }
 
-Pixel
-Palette::makePixel(unsigned char ind) const
-{
-  if ( GAptr->isTrueColor() )
-    {
-      assert( GAptr->PBitsPerRGB() <= 8 );
-      Pixel r = rbuff[ind] >> (8-GAptr->PBitsPerRGB());
-      Pixel g = gbuff[ind] >> (8-GAptr->PBitsPerRGB());
-      Pixel b = bbuff[ind] >> (8-GAptr->PBitsPerRGB());
-      return ((  r << GAptr->PRedShift()   )
+
+// -------------------------------------------------------------------
+Pixel Palette::makePixel(unsigned char ind) const {
+  if(GAptr->IsTrueColor()) {
+    assert( GAptr->PBitsPerRGB() <= 8 );
+    Pixel r = rbuff[ind] >> (8-GAptr->PBitsPerRGB());
+    Pixel g = gbuff[ind] >> (8-GAptr->PBitsPerRGB());
+    Pixel b = bbuff[ind] >> (8-GAptr->PBitsPerRGB());
+    return((  r << GAptr->PRedShift()   )
 	      | (g << GAptr->PGreenShift() )
 	      | (b << GAptr->PBlueShift()  ));
-    }
-  else
-    {
-      return Pixel(ind);
-    }
+  } else {
+    return Pixel(ind);
+  }
 }
 
-void
-Palette::unpixelate(Pixel index, unsigned char& r, unsigned char& g, unsigned char& b) const
+
+// -------------------------------------------------------------------
+void Palette::unpixelate(Pixel index, unsigned char& r,
+			 unsigned char& g, unsigned char& b) const
 {
-  if ( GAptr->isTrueColor() )
-    {
-      map<Pixel, XColor>::const_iterator mi = mcells.find(index);
-      if ( mi != mcells.end() )
-	{
-	  r = mi->second.red   >> 8;
-	  g = mi->second.green >> 8;
-	  b = mi->second.blue  >> 8;
-	  return;
-	}
-      cout << "Hmm, not found index = " << index << endl;
-      r = (index&GAptr->PRedMask()) >> GAptr->PRedShift();
-      g = (index&GAptr->PGreenMask()) >> GAptr->PGreenShift();
-      b = (index&GAptr->PBlueMask()) >> GAptr->PBlueShift();
+  if(GAptr->IsTrueColor()) {
+    map<Pixel, XColor>::const_iterator mi = mcells.find(index);
+    if(mi != mcells.end()) {
+      r = mi->second.red   >> 8;
+      g = mi->second.green >> 8;
+      b = mi->second.blue  >> 8;
+      return;
     }
-  else
-    {
-      r = ccells[index].red   >> 8;
-      g = ccells[index].green >> 8;
-      b = ccells[index].blue  >> 8;
-    }
+    cout << "Hmm, not found index = " << index << endl;
+    r = (index&GAptr->PRedMask()) >> GAptr->PRedShift();
+    g = (index&GAptr->PGreenMask()) >> GAptr->PGreenShift();
+    b = (index&GAptr->PBlueMask()) >> GAptr->PBlueShift();
+  } else {
+    r = ccells[index].red   >> 8;
+    g = ccells[index].green >> 8;
+    b = ccells[index].blue  >> 8;
+  }
 }
+// -------------------------------------------------------------------
+// -------------------------------------------------------------------
