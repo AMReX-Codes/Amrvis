@@ -31,8 +31,8 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
   dataServicesPtr = pltAppPtr->GetDataServicesPtr();
   finestLevel = amrPicturePtr->FinestLevel();
   maxAllowableLevel = amrPicturePtr->MaxAllowableLevel();
-  maxDrawnLevel = pltAppPtr->MaxDrawnLevel(); 
-  minDrawnLevel = pltAppPtr->MinDrawnLevel();
+  //maxDrawnLevel = pltAppPtr->MaxDrawnLevel(); 
+  //minDrawnLevel = pltAppPtr->MinDrawnLevel();
   char tempFormat[32];
   strcpy(tempFormat, pltAppPtr->GetFormatString().c_str());
   XmString sFormatString = XmStringCreateSimple(tempFormat);
@@ -209,6 +209,10 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
     Box temp, dataBox;
     Real *dataPoint; 
     
+
+  maxDrawnLevel = pltAppPtr->MaxDrawnLevel(); 
+  minDrawnLevel = pltAppPtr->MinDrawnLevel();
+  
     hDIR = hdir;
     vDIR = vdir;
     sDIR = sdir;

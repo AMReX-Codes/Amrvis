@@ -1297,8 +1297,31 @@ void PltApp::CBChangeLevel(Widget w, XtPointer client_data,
   unsigned long getobj;
   XtVaGetValues(XtParent(w), XmNuserData, &getobj, NULL);
   PltApp *obj = (PltApp *) getobj;
+  
   for(int np = 0; np < NPLANES; ++np) {
     obj->DoChangeLevel(np, w, client_data, call_data);
+  }
+  if(obj->datasetShowing) {
+    int hdir, vdir, sdir;
+    if(obj->activeView==ZPLANE) {
+      hdir = XDIR;
+      vdir = YDIR;
+      sdir = ZDIR;
+    }
+    if(obj->activeView==YPLANE) {
+      hdir = XDIR;
+      vdir = ZDIR;
+      sdir = YDIR;
+    }
+    if(obj->activeView==XPLANE) {
+      hdir = YDIR;
+      vdir = ZDIR;
+      sdir = XDIR;
+    }
+    obj->datasetPtr->Render(obj->trueRegion, 
+                            obj->amrPicturePtrArray[NPLANES-1], 
+                            obj, hdir, vdir, sdir);
+    obj->datasetPtr->DoExpose(false);
   }
 }
 
