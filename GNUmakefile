@@ -1,5 +1,5 @@
-PRECISION = DOUBLE
 PRECISION = FLOAT
+PRECISION = DOUBLE
 PROFILE   = TRUE
 PROFILE   = FALSE
 
@@ -9,12 +9,13 @@ COMP      = mpKCC
 COMP      = KCC
 COMP      = Intel
 COMP      = g++
-FCOMP	  = Intel
-FCOMP     =
+COMP      = Intel
+FCOMP     = f77
+FCOMP     = Intel
 DEBUG     = FALSE
 DEBUG     = TRUE
-DIM       = 2
 DIM       = 3
+DIM       = 2
 NAMESPACE = FALSE
 NAMESPACE = TRUE
 

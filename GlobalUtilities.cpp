@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.55 2004-05-04 20:45:42 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.56 2004-05-27 15:34:05 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -459,7 +459,7 @@ void PrintUsage(char *exname) {
 
 
 
-  cout << "  file type flags:   -fab, -multifab, -newplt (-newplt is the default)" << endl;
+  cout << "  file type flags:   -fab [-fb], -multifab [-mf], -newplt (-newplt is the default)" << endl;
   cout << "  -v                 verbose." << endl; 
   //cout << "  -bw n              specify maximum boundary width." << endl; 
   cout << "  -maxpixmapsize n   specify maximum allowed picture size in pixels."
@@ -607,7 +607,11 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
 #   endif
     } else if(strcmp(argv[i],"-fab") == 0) {
       fileType = FAB;
+    } else if(strcmp(argv[i],"-fb") == 0) {
+      fileType = FAB;
     } else if(strcmp(argv[i],"-multifab") == 0) {
+      fileType = MULTIFAB;
+    } else if(strcmp(argv[i],"-mf") == 0) {
       fileType = MULTIFAB;
     } else if(strcmp(argv[i],"-newplt") == 0) {
       fileType = NEWPLT;
