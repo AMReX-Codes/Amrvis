@@ -49,26 +49,6 @@ ifeq ($(MACHINE), T3E)
   endif
 endif
 
-############################################### mpi definitions
-
-ifeq ($(USE_MPI), TRUE)
-  ifeq ($(MACHINE), OSF1)
-    MPI_HOME = /usr/local/mpi
-    INCLUDE_LOCATIONS += $(MPI_HOME)/include
-    LIBRARY_LOCATIONS += $(MPI_HOME)/lib/alpha/ch_p4
-  endif
-  ifeq ($(MACHINE), AIX)
-    MPI_HOME = /usr/lpp/ppe.poe
-    INCLUDE_LOCATIONS += $(MPI_HOME)/include
-    LIBRARY_LOCATIONS += $(MPI_HOME)/lib
-  endif
-  ifeq ($(MACHINE), Linux)
-    LIBRARIES += -lmpich
-  else
-    LIBRARIES += -lmpi
-  endif
-endif
-
 
 DEFINES += -DBL_PARALLEL_IO
 
