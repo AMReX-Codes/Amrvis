@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.53 2004-04-30 23:00:56 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.54 2004-05-04 20:26:35 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -464,7 +464,8 @@ void PrintUsage(char *exname) {
   //cout << "  -bw n              specify maximum boundary width." << endl; 
   cout << "  -maxpixmapsize n   specify maximum allowed picture size in pixels."
        << endl;
-  //cout << "  -b                 specify subdomain box (on finest level)." << endl;
+  cout << "  -subdomain _box_   specify subdomain box (on finest level)." << endl;
+  cout << "                     _box_ format:  lox loy loz hix hiy hiz." << endl;
   cout << "  -skippltlines n    skip n lines at head of the plt file." << endl; 
   cout << "  -boxcolor n        set volumetric box color value [0,255]." << endl; 
   cout << "  -xslice n          write a fab slice at x = n (n at the finest level)."
@@ -477,7 +478,7 @@ void PrintUsage(char *exname) {
        << endl; 
   cout << "  -boxslice _box_    write a fab on the box (box at the finest level)."
        << endl; 
-  cout << "                     box format:  lox loy loz hix hiy hiz." << endl;
+  cout << "                     _box_ format:  lox loy loz hix hiy hiz." << endl;
   cout << "                     example:  -boxslice 0 0 0 120 42 200." << endl;
   cout << "                     Note:  slices are written in batch mode." << endl;
 #if(BL_SPACEDIM == 2)
@@ -612,7 +613,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       fileType = NEWPLT;
     } else if(strcmp(argv[i],"-v") == 0) {
       verbose = true;
-    } else if(strcmp(argv[i], "-b") == 0) {
+    } else if(strcmp(argv[i], "-b") == 0 || strcmp(argv[i], "-subdomain")) {
 #    if (BL_SPACEDIM == 2)
       if(argc-1<i+1 || ! strcpy(clsx, argv[i+1])) {
         PrintUsage(argv[0]);
