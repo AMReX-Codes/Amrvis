@@ -77,6 +77,9 @@ class Palette {
     int  PaletteSize()            { return COLORSLOTS;     }
     int  PaletteWidth()           { return totalPalWidth;  }
     int  PaletteHeight()          { return totalPalHeight; }
+    Real PaletteMin()             { return pmin; }
+    Real PaletteMax()             { return pmax; }
+    int  PaletteDataListLength()  { return dataListLength; }
     XImage *GetPictureXImage();
     unsigned char *RemapTable()   { return remapTable;     }
 
@@ -85,3 +88,6 @@ class Palette {
 };
 
 #endif
+
+
+

@@ -8,6 +8,8 @@
 #include <iostream.h>
 #include <Intrinsic.h>
 
+#include "REAL.H"
+
 // the following is support for writing rgb files.
 #define IMAGIC  0732
 
@@ -53,12 +55,19 @@ typedef struct {
 } IMAGE;
 
 
-  void WritePSFile(char *filename, XImage *image,
-		   int imagesizehoriz, int imagesizevert,
-		   XColor *colorcells, int colorcellsize);
+void WritePSFile(char *filename, XImage *image,
+                 int imagesizehoriz, int imagesizevert,
+                 XColor *colorcells, int colorcellsize);
 
-  void WriteRGBFile(char *filename, XImage *image,
+void WritePSPaletteFile(char *filename, XImage *image,
+                        int imagesizehoriz, int imagesizevert,
+                        XColor *colorcells, int colorcellsize,
+                        Real palMin, Real palMax, int palDataLength);
+
+void WriteRGBFile(char *filename, XImage *image,
 		   int imagesizehoriz, int imagesizevert,
-		   XColor *colorcells, int colorcellsize);
+                  XColor *colorcells, int colorcellsize);
 
 #endif
+
+

@@ -166,7 +166,7 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
       Box swfDataBox(drawnDomain[maxDrawnLevel]);
       FArrayBox swfFabData;
       if(ParallelDescriptor::IOProcessor()) {
-        swfFabData.resize(swfDataBox, 1);
+          swfFabData.resize(swfDataBox, 1);
       }
 
       //Array<FArrayBox *> destFabs(1);

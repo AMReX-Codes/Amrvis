@@ -1130,7 +1130,7 @@ void PltApp::PltAppInit() {
 #if (BL_SPACEDIM == 3)
     viewTrans.MakeTransform();
 
-    autorender = false;
+    XmToggleButtonSetState(wAutoDraw, false, false);
     labelAxes = false;
     transDetached = false;
 
@@ -1982,7 +1982,7 @@ void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
   amrPicturePtrArray[ZPLANE]->ToggleBoxes();
 # if (BL_SPACEDIM == 3)
     projPicturePtr->MakeBoxes(); 
-    if( ! autorender) {
+    if(! XmToggleButtonGetState(wAutoDraw)) {
       XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
       DoExposeTransDA();
     }
@@ -2195,7 +2195,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 			     abs(finishcutX[YPLANE]-startcutX[YPLANE]), rHeight);
 	        }
 
-                if( ! autorender) {
+                if( ! XmToggleButtonGetState(wAutoDraw)) {
 	          x1 = startcutX[ZPLANE]/scale + ivLowOffsetMAL[XDIR];
 	          y1 = startcutX[XPLANE]/scale + ivLowOffsetMAL[YDIR];
 	          z1 = (amrPicturePtrArray[YPLANE]->ImageSizeV()-1 -

@@ -8,7 +8,6 @@
 #include "Boolean.H"
 #include "VisMF.H"
 
-#include "kutils.H"
 
 #ifdef CRAY
 #     if (BL_SPACEDIM == 2)
@@ -147,7 +146,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
       VSHOWVAL(Verbose(), nComp);
 
       plotVars.resize(nComp);
-      eatws(is); // eat white space left by << operator
+      plotName.getline(is); // eat white space left by << operator
       for(i = 0; i < nComp; ++i) {
           plotName.getline(is);
           plotVars[i] = plotName;

@@ -7,6 +7,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 
+
 IMAGE *iopen(char *file, unsigned int type, unsigned int dim,
              unsigned int xsize, unsigned int ysize, unsigned int zsize);
 int putrow(IMAGE *image, unsigned short *buffer, unsigned int y, unsigned int z);
@@ -17,6 +18,7 @@ int img_optseek(IMAGE *image, unsigned long offset);
 int iclose(IMAGE *image);
 void cvtlongs(long buffer[], long n);
 void cvtimage(long *buffer);
+
 
 
 // -------------------------------------------------------------------
@@ -63,6 +65,72 @@ void WritePSFile(char *filename, XImage *image,
   fout << "grestore" << '\n';
   fout << "showpage" << '\n';
   fout.close();
+}
+
+
+// -------------------------------------------------------------------
+void WritePSPaletteFile(char *filename, XImage *image,
+                        int imagesizehoriz, int imagesizevert,
+                        XColor *colorcells, int colorcellsize, 
+                        Real palMin, Real palMax, int palDataLength)
+{
+    int i, j, index;
+    XColor color;
+    
+    ofstream fout(filename);
+    fout << "%!PS-Adobe-2.0" << '\n';
+    fout <<  "%%BoundingBox: 0 0 " << imagesizehoriz-1 << " "
+         << imagesizevert-1 << '\n';
+    fout << "gsave" << '\n';
+    fout <<  "/picstr " << (imagesizehoriz * 3) << " string def" << '\n';
+    fout << imagesizehoriz << " " << imagesizevert << " scale" << '\n';
+    fout << imagesizehoriz << " " << imagesizevert << " 8" << '\n';
+    fout << "[" << imagesizehoriz << " 0 0 -" << imagesizevert << " 0 "
+         << imagesizevert << "]" << '\n';
+    fout << "{ currentfile picstr readhexstring pop }" << '\n';
+    fout << "false 3" << '\n';
+    fout << "colorimage";   // no << '\n';
+    
+    fout << hex;
+    char buf[256];
+    for(j = 0; j < imagesizevert; j++) {
+        for(i = 0; i < imagesizehoriz; i++) {
+            index = (int) XGetPixel(image, i, j);
+            color = colorcells[index];
+            if(i % 10 == 0) {
+                fout << '\n';
+            }
+            //fout << setw(2) << setfill('0') << (color.red >> 8);
+            //fout << setw(2) << setfill('0') << (color.green >> 8);
+            //fout << setw(2) << setfill('0') << (color.blue >> 8) << ' ';
+            sprintf(buf, "%02x%02x%02x ",
+                    (color.red   >> 8),
+                    (color.green >> 8),
+                    (color.blue  >> 8));
+            fout << buf;
+        }
+    }
+    fout<<dec;
+    fout << "grestore" << '\n';
+    fout<<"0 setgray"<<'\n';
+    fout<<"30 0"<<'\n';
+    fout<<"120 280"<<'\n';
+    fout<<"rectfill"<<'\n';
+    int paletteHeight = 216;
+    int baseOfPalette = 42;
+    double pSpacing = (double)paletteHeight/(double)(palDataLength-1);
+    int palSpacing = ( (pSpacing-floor(pSpacing)) >= .5 ? 
+                       ceil(pSpacing) : floor(pSpacing));
+    Real dataSpacing = (palMax - palMin)/(palDataLength-1);
+    fout<<"/Palatino-Roman findfont"<<'\n'<<"20 scalefont"
+        <<'\n'<<"setfont\n1 setgray"<<'\n';
+    for (int j = 0; j<palDataLength ; j++) {
+        fout<<"40 "<<baseOfPalette + ( j * palSpacing)<<" moveto"<<'\n';
+        fout<<"("<<palMin + (j*dataSpacing)<<") show"<<'\n';
+    }
+
+    fout << "showpage" << '\n';
+    fout.close();
 }
 
 

@@ -136,6 +136,7 @@ void Palette::Draw(Real palMin, Real palMax, const aString &numberFormat) {
       XSetForeground(display, gc, ccells[i].pixel);
       XDrawLine(display, palPixmap, gc, transpnt, cy, palWidth, cy);
     }
+    
     // draw black line represening zero opacity
     XSetForeground(display, gc, ccells[blackIndex].pixel);
     XDrawLine(display, palPixmap, gc, zerolinex, 14, zerolinex, colorSlots + 14);

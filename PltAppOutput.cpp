@@ -109,7 +109,7 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   WritePSFile(psfilename, image, imageSizeX, imageSizeY, colors, palSize);
 
   // write the iso picture
-  if( ! autorender) {
+  if( ! XmToggleButtonGetState(wAutoDraw)) {
     projPicturePtr->DrawBoxesIntoPixmap();
   }
   sprintf(psfilename, "%s.XYZ.ps", fileNameBase);
@@ -124,7 +124,11 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   image = pltPaletteptr->GetPictureXImage();
   imageSizeX = pltPaletteptr->PaletteWidth();
   imageSizeY = pltPaletteptr->PaletteHeight();
-  WritePSFile(psfilename, image, imageSizeX, imageSizeY, colors, palSize);
+  Real pMin = pltPaletteptr->PaletteMin();
+  Real pMax = pltPaletteptr->PaletteMax();
+  int pDataLength = pltPaletteptr->PaletteDataListLength();
+  WritePSPaletteFile(psfilename, image, imageSizeX, imageSizeY, colors, 
+                     palSize, pMin, pMax, pDataLength);
 
   XtDestroyWidget(w);
 
@@ -170,7 +174,7 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
   WriteRGBFile(rgbfilename, image, imageSizeX, imageSizeY, colors, palSize);
 
   // write the iso picture
-  if( ! autorender) {
+  if( ! XmToggleButtonGetState(wAutoDraw)) {
     projPicturePtr->DrawBoxesIntoPixmap();
   }
   sprintf(rgbfilename, "%s.XYZ.rgb", fileNameBase);

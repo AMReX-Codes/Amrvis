@@ -38,30 +38,32 @@ class DataServices;
 class StringLoc;	
 
 class Dataset {
-  public:
-	Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
-		PltApp *pltappptr, int hdir, int vdir, int sdir);
-
-	~Dataset();
-
-	void Render(const Box &alignedRegion, AmrPicture *apptr, PltApp *pltappptr,
-		    int hdir, int vdir, int sdir);
-	void DoRaise();
-	void DoExpose(int fromExpose);
-	static void CBColorButton(Widget, XtPointer, XtPointer);
-	static void CBQuitButton(Widget, XtPointer, XtPointer);
-	static void CBReadString(Widget, XtPointer, XtPointer);
-	static void CBPixInput(Widget, XtPointer, XtPointer);
-	static void CBEndScrolling(Widget, XtPointer, XtPointer);
-	static void CBScrolling(Widget, XtPointer, XtPointer);
-        static void CBDoExposeDataset(Widget, XtPointer, XEvent *, Boolean *);
-
-	void DoColorButton();
-	void DoQuitButton();
-	void DoReadString(Widget, XmSelectionBoxCallbackStruct *);
-	void DoPixInput(XmDrawingAreaCallbackStruct *);
-
-  private:
+public:
+    Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
+            PltApp *pltappptr, int hdir, int vdir, int sdir);
+    
+    ~Dataset();
+    
+    void Render(const Box &alignedRegion, AmrPicture *apptr, PltApp *pltappptr,
+                int hdir, int vdir, int sdir);
+    void DrawIndices(const Box &tempBox);
+    void DoRaise();
+    void DoExpose(int fromExpose);
+    static void CBColorButton(Widget, XtPointer, XtPointer);
+    static void CBQuitButton(Widget, XtPointer, XtPointer);
+    static void CBReadString(Widget, XtPointer, XtPointer);
+    static void CBPixInput(Widget, XtPointer, XtPointer);
+    static void CBEndScrolling(Widget, XtPointer, XtPointer);
+    static void CBScrolling(Widget, XtPointer, XtPointer);
+    static void CBDoExposeDataset(Widget, XtPointer, XEvent *, Boolean *);
+    
+    
+    void DoColorButton();
+    void DoQuitButton();
+    void DoReadString(Widget, XmSelectionBoxCallbackStruct *);
+    void DoPixInput(XmDrawingAreaCallbackStruct *);
+    
+private:
 	Widget		wAmrVisTopLevel, wDatasetTopLevel, wDatasetForm;
 	Widget		wDatasetTools, wScrollArea, wPixArea;
 	Widget		wFormat, wColorButton, wQuitButton;
@@ -70,7 +72,7 @@ class Dataset {
 	unsigned int	pixSizeX, pixSizeY;
 	int		finestLevel, dataItemWidth;
 	int		maxAllowableLevel, stringOk;
-	int		noData, showColor, hDIR, vDIR, sDIR, numStrings;
+	int		noData, hDIR, vDIR, sDIR, numStrings;
 	char		buffer[BUFSIZ], dataString[MAXSTRINGWIDTH];
 	aString		formatString;
 	StringLoc	*dataStringArray;

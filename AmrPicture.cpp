@@ -454,21 +454,21 @@ void AmrPicture::DoExposePicture() {
 
 #     if (BL_SPACEDIM == 3)
         // draw plane "cutting" lines
-        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), hColor);
-        XDrawLine(GAptr->PDisplay(), pictureWindow,
+      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), hColor);
+      XDrawLine(GAptr->PDisplay(), pictureWindow,
 		GAptr->PGC(), 0, hLine, imageSizeH, hLine); 
-        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), vColor);
-        XDrawLine(GAptr->PDisplay(), pictureWindow,
+      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), vColor);
+      XDrawLine(GAptr->PDisplay(), pictureWindow,
 		GAptr->PGC(), vLine, 0, vLine, imageSizeV); 
-
-        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), hColor-30);
-        XDrawLine(GAptr->PDisplay(), pictureWindow,
+      
+      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), hColor-30);
+      XDrawLine(GAptr->PDisplay(), pictureWindow,
 		GAptr->PGC(), 0, hLine+1, imageSizeH, hLine+1); 
-        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), vColor-30);
-        XDrawLine(GAptr->PDisplay(), pictureWindow,
+      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), vColor-30);
+      XDrawLine(GAptr->PDisplay(), pictureWindow,
 		GAptr->PGC(), vLine+1, 0, vLine+1, imageSizeV); 
-
-        if(subCutShowing) {
+      
+      if(subCutShowing) {
           // draw subvolume cutting border 
           XSetForeground(GAptr->PDisplay(), GAptr->PGC(), 90);
           XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
@@ -479,7 +479,7 @@ void AmrPicture::DoExposePicture() {
 		    subcutX+1, subcut2ndY+1, subcut2ndX+1, subcut2ndY+1); 
           XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
 		    subcut2ndX+1, subcutY+1, subcut2ndX+1, subcut2ndY+1);
-
+          
           XSetForeground(GAptr->PDisplay(), GAptr->PGC(), 155);
           XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
 		    subcutX, subcutY, subcut2ndX, subcutY); 
@@ -1129,7 +1129,7 @@ void AmrPicture::ShowFrameImage() {
   XSetForeground(GAptr->PDisplay(), GAptr->PGC(), vColor-30);
   XDrawLine(GAptr->PDisplay(), pictureWindow,
 		GAptr->PGC(), vLine+1, 0, vLine+1, imageSizeV); 
-
+  
   if(sliceDir == XDIR) {
     apXY->SetVLine((slice - subDomain[maxAllowableLevel].smallEnd(XDIR)) *
                                pltAppPtr->CurrentScale());
@@ -1157,6 +1157,7 @@ void AmrPicture::ShowFrameImage() {
                                 pltAppPtr->CurrentScale());
     apXZ->DoExposePicture();
   }
+  cout<<"changed slice to"<<GetSlice()<<" and sliceDir is "<<sliceDir<<endl;
   pltAppPtr->DoExposeRef();
 }  // end ShowFrameImage()
 

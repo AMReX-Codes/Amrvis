@@ -261,7 +261,7 @@ private:
 	Widget		wAutoDraw, wDAutoDraw;
 	Widget		wReadTransfer, wDReadTransfer;
 	int		daWidth, daHeight;
-	int		acc, autorender, labelAxes, transDetached;
+	int		acc, labelAxes, transDetached;
 	XtAppContext	appContext;
 
 

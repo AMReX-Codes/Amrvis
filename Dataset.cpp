@@ -24,7 +24,6 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
   hDIR = hdir;
   vDIR = vdir;
   sDIR = sdir;
-  showColor = true;
   wAmrVisTopLevel = top; 
   pltAppPtr = pltappptr;
   amrPicturePtr = apptr;
@@ -547,7 +546,6 @@ void Dataset::DoQuitButton() {
 
 // -------------------------------------------------------------------
 void Dataset::DoColorButton() {
-  showColor = (showColor ? false : true);
   DoExpose(false);
 }
 
@@ -624,7 +622,7 @@ void Dataset::DoExpose(int fromExpose) {
     int yv = (int) vScrollBarPos - dataItemWidth;
 
   // draw data strings
-  if(showColor) {
+  if(XmToggleButtonGetState(wColorButton)) {
     for(stringCount=0; stringCount<numStrings; stringCount++) {
       xloc = dataStringArray[stringCount].xloc;
       yloc = dataStringArray[stringCount].yloc;
