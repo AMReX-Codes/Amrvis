@@ -53,8 +53,6 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
       endY = cbs->event->xbutton.y;
      if (cbs->event->xbutton.state & ShiftMask)
       {
-          //Real x = 0; Real y = 0;
-          //viewTrans.GetTranslation(x, y);
           viewTrans.MakeTranslation(startX, startY, endX, endY, 
                                     projPicturePtr->longestBoxSide/64.);
       } else {
@@ -76,21 +74,21 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
           quatRotation2 = newRotation2 * quatRotation2;
           viewTrans.SetRenderRotation(quatRotation2);
       }
-      viewTrans.MakeTransform();
       
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
       if(XmToggleButtonGetState(currentAutoDraw)) {
           DoRender(w, NULL, NULL);
       } else {
+          viewTrans.MakeTransform();
           if (showing3dRender) showing3dRender = false;
           projPicturePtr->MakeBoxes();
           XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
       }
 #else
+      viewTrans.MakeTransform();
       projPicturePtr->MakeBoxes();
       XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
 #endif
-      
       DoExposeTransDA();
       acc += 1;
       if(acc==10) {
@@ -114,17 +112,18 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
       viewTrans.SetRotation(quatRotation);
       quatRotation2 = newRotation2 * quatRotation2;
       viewTrans.SetRenderRotation(quatRotation2);
-      viewTrans.MakeTransform();
       
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
       if(XmToggleButtonGetState(currentAutoDraw)) {
           DoRender(w, NULL, NULL);
       } else {
+          viewTrans.MakeTransform();
           if (showing3dRender) showing3dRender = false;
           projPicturePtr->MakeBoxes();
           XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
       }
 #else
+      viewTrans.MakeTransform();
       projPicturePtr->MakeBoxes();
       XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
 #endif
@@ -146,17 +145,18 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
           temp = 0.1;
       }
       viewTrans.SetScale(temp);
-      viewTrans.MakeTransform();
       
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
       if(XmToggleButtonGetState(currentAutoDraw)) {
           DoRender(w, NULL, NULL);
       } else {
+          viewTrans.MakeTransform();
           if (showing3dRender) showing3dRender = false;
           projPicturePtr->MakeBoxes();
           XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
       }
 #else
+      viewTrans.MakeTransform();
       projPicturePtr->MakeBoxes();
       XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
 #endif
@@ -528,10 +528,12 @@ void PltApp::DoTransResize(Widget w, XtPointer, XtPointer) {
   if(XmToggleButtonGetState(currentAutoDraw)) {
     DoRender(w, NULL, NULL);
   } else {
+      viewTrans.MakeTransform();
         if (showing3dRender) showing3dRender = false;
     projPicturePtr->MakeBoxes();
   }
 #else
+  viewTrans.MakeTransform();
     projPicturePtr->MakeBoxes();
 #endif
   DoExposeTransDA();

@@ -526,9 +526,8 @@ void VolRender::SetImage(unsigned char *image_data, int width, int height,
     vpSetImage(vpc, image_data, width, height, width, pixel_type);
 }
 
-Real VolRender::MakePicture(Real mvmat[4][4], Real longWinLen,
-                            Real *scalePtr, int longBoxSideDir, 
-                            Real longBoxSide, int width, int height)
+void VolRender::MakePicture(Real mvmat[4][4], Real Length,
+                            int width, int height)
 {
     vpCurrentMatrix(vpc, VP_MODEL);
     vpIdentityMatrix(vpc);
@@ -536,36 +535,33 @@ Real VolRender::MakePicture(Real mvmat[4][4], Real longWinLen,
     vpCurrentMatrix(vpc, VP_PROJECT);
     vpIdentityMatrix(vpc);
 
-    Real lenRatio = longWinLen/(scalePtr[longBoxSideDir]*longBoxSide);
-    Real Len = 0.5*lenRatio;
-    vpLen = Len;
-  if(width < height) {    // undoes volpacks aspect ratio scaling
-    vpWindow(vpc, VP_PARALLEL, -Len*vpAspect, Len*vpAspect,
-			       -Len, Len,
-			       -Len, Len);
-  } else {
-    vpWindow(vpc, VP_PARALLEL, -Len, Len,
-			       -Len*vpAspect, Len*vpAspect,
-			       -Len, Len);
-  }
-
-  vpResult vpret;
-
-  if(lightingModel) {
-      vpret = vpShadeTable(vpc);
-      CheckVP(vpret, 12);
-  }
-  
-  if (preClassify) {
-      vpret = vpRenderClassifiedVolume(vpc);   // --- render
-      CheckVP(vpret, 11);
-  } else {
-      vpret = vpClassifyVolume(vpc);  // --- classify and then render
-      CheckVP(vpret, 11.1);
-      vpret = vpRenderRawVolume(vpc);
-      CheckVP(vpret, 11.2);
-  }
-  return Len;
+    vpLen = Length;
+    if(width < height) {    // undoes volpacks aspect ratio scaling
+        vpWindow(vpc, VP_PARALLEL, -Length*vpAspect, Length*vpAspect,
+                 -Length, Length,
+                 -Length, Length);
+    } else {
+        vpWindow(vpc, VP_PARALLEL, -Length, Length,
+                 -Length*vpAspect, Length*vpAspect,
+                 -Length, Length);
+    }
+    
+    vpResult vpret;
+    
+    if(lightingModel) {
+        vpret = vpShadeTable(vpc);
+        CheckVP(vpret, 12);
+    }
+    
+    if (preClassify) {
+        vpret = vpRenderClassifiedVolume(vpc);   // --- render
+        CheckVP(vpret, 11);
+    } else {
+        vpret = vpClassifyVolume(vpc);  // - classify and then render
+        CheckVP(vpret, 11.1);
+        vpret = vpRenderRawVolume(vpc);
+        CheckVP(vpret, 11.2);
+    }
 }
 
 // -------------------------------------------------------------------

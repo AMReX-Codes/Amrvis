@@ -67,9 +67,8 @@ public:
                                 int iBlackIndex, int iWhiteIndex,
                                 int iColorSlots);
     
-    Real MakePicture(Real mvmat[4][4], Real longWinLen,
-                     Real *scalePtr, int longBoxSideDir, 
-                     Real longBoxSide, int width, int height);
+    void MakePicture(Real mvmat[4][4], Real Length,
+                     int width, int height);
     
     void SetImage(unsigned char *image_data, int width, int height,
                          int pixel_type);

@@ -233,14 +233,17 @@ void ProjectionPicture::MakePicture() {
   scale[XDIR] = scale[YDIR] = scale[ZDIR] = viewTransformPtr->GetScale();
 
   Real mvmat[4][4];
-  viewTransformPtr->GetRenderRotationMat(mvmat);
-  Real tempLen =   volRender->MakePicture(mvmat, longestWindowLength,
-                                          scale, longestBoxSideDir, 
-                                          longestBoxSide,
-                                          daWidth, daHeight);
-  cout<<"Setting Adjustments"<<endl;
+
+  Real tempLenRatio = longestWindowLength/
+      (scale[longestBoxSideDir]*longestBoxSide);
+  Real tempLen = 0.5*tempLenRatio;
   viewTransformPtr->SetAdjustments(tempLen, daWidth, daHeight);
-  
+  viewTransformPtr->MakeTransform();
+
+  viewTransformPtr->GetRenderRotationMat(mvmat);
+  volRender->MakePicture(mvmat, tempLen,
+                         daWidth, daHeight);
+
   // map imageData colors to colormap range
   Palette *palPtr = pltAppPtr->GetPalettePtr();
   if(palPtr->ColorSlots() != palPtr->PaletteSize()) {

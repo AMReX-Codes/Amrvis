@@ -88,18 +88,16 @@ void ViewTransform::Print()const {
 
 
 // -------------------------------------------------------------------
-void ViewTransform::MakeTransform() {//ugh  full of hacks, the constants
+void ViewTransform::MakeTransform() {//ugh -- why this constant?
   rotation.tomatrix(mRotation);
   mRotation[0][3] = boxTransX*0.185;
   mRotation[1][3] = boxTransY*0.185;
   renderRotation.tomatrix(mRenderRotation);
-  mRenderRotation[0][3] = (renTransX)*txAdjust*0.2;
-  mRenderRotation[1][3] = (renTransY)*tyAdjust*0.2;
-  ViewRotationMat();
+  mRenderRotation[0][3] = (renTransX)*txAdjust*0.185;
+  mRenderRotation[1][3] = (renTransY)*tyAdjust*0.185;
 }
 
 void ViewTransform::SetAdjustments(Real len, int width, int height) {
-    cout<<"len and aspect:  "<<len<<" "<<vtAspect<<endl;
     if (width < height) {
         txAdjust = len*vtAspect;
         tyAdjust = len;
