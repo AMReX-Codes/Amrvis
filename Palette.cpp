@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.43 2002-08-16 00:22:33 vince Exp $
+// $Id: Palette.cpp,v 1.44 2002-09-20 20:01:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -28,6 +28,7 @@ Colormap Palette::systemColmap;
 Palette::Palette(Widget &w,  int datalistlength, int width,
 		 int totalwidth, int totalheight, int reservesystemcolors)
 {
+  bReadPalette = true;
   totalColorSlots = AVGlobals::MaxPaletteIndex() + 1;
   sysccells.resize(totalColorSlots);
   transferArray.resize(totalColorSlots);
@@ -39,42 +40,6 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
 
   gaPtr = new GraphicsAttributes(w);
 
-/*
-  display = XtDisplay(w);
-  root = RootWindow(display, DefaultScreen(display));
-  screen = XtScreen(w);
-  screenNumber = DefaultScreen(display);
-  int status = XMatchVisualInfo(display, DefaultScreen(display),
-                                8, PseudoColor, &visualInfo);
-                               // fills visualInfo
-  if( status != 0 ) {
-      visual = visualInfo.visual;
-      bits_per_rgb = visualInfo.bits_per_rgb;
-      palDepth = 8;
-  } else {
-      int status = XMatchVisualInfo(display, DefaultScreen(display),
-				    DefaultDepth(display, screenNumber),
-                                    TrueColor, &visualInfo);
-      if( status != 0 ) {
-	  isTrueColor=true;
-	  visual = visualInfo.visual;
-	  bits_per_rgb = visualInfo.bits_per_rgb;
-	  palDepth = DefaultDepth(display, screenNumber);
-      } else {
-	cerr << "Error: bad XMatchVisualInfo: no PseudoColor Visual"
-             << endl;
-	exit(1);
-      }
-    }
-  //cout << endl;
-  //cout << "_in Palette: screen DefScreen(display) visualInfo.screen = "
-       //<< screen << "  " << DefaultScreen(display)
-       //<< "  " << visualInfo.screen
-       //<< endl;
-  //cout << endl;
-  gc = screen->default_gc;
-*/
-
   totalPalWidth = totalwidth;
   palWidth  = width;
   totalPalHeight = totalheight;
@@ -85,7 +50,6 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
     colmap = XCreateColormap(gaPtr->PDisplay(), gaPtr->PRoot(),
 			     gaPtr->PVisual(), AllocAll);
   }
-  transSet = false;
   systemColmap = DefaultColormap(gaPtr->PDisplay(), gaPtr->PScreenNumber());
   for(int ii(0); ii < totalColorSlots; ++ii) {
     sysccells[ii].pixel = ii;
@@ -124,6 +88,7 @@ Palette::Palette(int datalistlength, int width, int totalwidth,
                  int totalheight, int reservesystemcolors)
 {
   gaPtr = 0;
+  bReadPalette = true;
   //  bool visTrueColor = false;
   totalColorSlots = AVGlobals::MaxPaletteIndex() + 1;
   sysccells.resize(totalColorSlots);
@@ -138,8 +103,6 @@ Palette::Palette(int datalistlength, int width, int totalwidth,
   palWidth  = width;
   totalPalHeight = totalheight;
   dataList.resize(datalistlength);
-
-  transSet = false;
 
   for(int ii(0); ii < totalColorSlots; ++ii) {
     sysccells[ii].pixel = ii;
@@ -171,6 +134,7 @@ Palette::~Palette() {
 
 // -------------------------------------------------------------------
 void Palette::ExposePalette() {
+  //cout << " ]]]]]]]]]]]]]]]]]]] _in Palette::ExposePalette" << endl;
     XCopyArea(gaPtr->PDisplay(), palPixmap, palWindow, gaPtr->PGC(),
 	    0, 0, totalPalWidth, totalPalHeight + 50, 0, 0);
 }
@@ -191,6 +155,7 @@ void Palette::SetReserveSystemColors(int reservesystemcolors) {
 
 // -------------------------------------------------------------------
 void Palette::Redraw() {
+  //cout << " ]]]]]]]]]]]]]]]]]]] _in Palette::Redraw" << endl;
   Draw(pmin, pmax, defaultFormat);  // use defaults
 }
 
@@ -215,14 +180,15 @@ void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
   XFillRectangle(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), 0, 0,
                  totalPalWidth, totalPalHeight + 50);
 
-  if(transSet) {    // show transfers in palette
+# if (BL_SPACEDIM == 3)
+  // show transfers in palette
     int transpnt, zerolinex = palWidth - 5;
     for(i = paletteStart; i < totalColorSlots; ++i) {
       cy = ((totalColorSlots - 1) - i) + 14;
       // draw transparency as black
       // FIXME:
       XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), ccells[blackIndex].pixel);
-      transpnt = (int) (zerolinex*(1.0-transferArray[i]));
+      transpnt = (int) (zerolinex * (1.0 - transferArray[i]));
       XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), 0, cy, transpnt, cy);
 
       // draw color part of line
@@ -238,13 +204,13 @@ void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
     XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), zerolinex, 14,
               zerolinex, colorSlots + 14);
 
-  } else {
+#else
     for(i = paletteStart; i < totalColorSlots; ++i) {
       XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), ccells[i].pixel);
       cy = ((totalColorSlots - 1) - i) + 14;
       XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), 0, cy, palWidth, cy);
     }
-  }
+#endif
 
   char palString[64];
   for(i = 0; i < dataList.size(); ++i) {
@@ -273,6 +239,7 @@ void Palette::SetWindow(Window drawPaletteHere) {
 void Palette::SetWindowPalette(const string &palName, Window newPalWindow,
 			       bool bRedraw)
 {
+  //cout << " ]]]]]]]]]]]]]]]]]]] _in Palette::SetWindowPalette" << endl;
   ReadPalette(palName, bRedraw);
   XSetWindowColormap(gaPtr->PDisplay(), newPalWindow, colmap);
 }
@@ -282,29 +249,30 @@ void Palette::SetWindowPalette(const string &palName, Window newPalWindow,
 void Palette::ChangeWindowPalette(const string &palName,
                                   Window newPalWindow)
 {
+  //cout << " ]]]]]]]]]]]]]]]]]]] _in Palette::ChangeWindowPalette" << endl;
+  bReadPalette = true;
   ReadPalette(palName);
 }
 
 
 // -------------------------------------------------------------------
 void Palette::ReadPalette(const string &palName, bool bRedraw) {
+  //cout << " ]]]]]]]]]]]]]]]]]]] _in Palette::ReadPalette" << endl;
   BL_ASSERT(gaPtr != 0);
   ReadSeqPalette(palName, bRedraw);
   if(gaPtr->IsTrueColor()) {
     return;
   }
   XStoreColors(gaPtr->PDisplay(), colmap, ccells.dataPtr(), totalColorSlots);
-  XStoreColors(gaPtr->PDisplay(), colmap, sysccells.dataPtr(), reserveSystemColors);
+  XStoreColors(gaPtr->PDisplay(), colmap, sysccells.dataPtr(),
+               reserveSystemColors);
 }
 
 
 // -------------------------------------------------------------------
 int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
-  int iSeqPalSize(256);  // this must be 256 (size of sequential palettes).
-  rbuff.resize(iSeqPalSize);
-  gbuff.resize(iSeqPalSize);
-  bbuff.resize(iSeqPalSize);
-  abuff.resize(iSeqPalSize);
+  //cout << " ]]]]]]]]]]]]]]]]]]] _in Palette::ReadSeqPalette" << endl;
+  const int iSeqPalSize(256);  // this must be 256 (size of sequential palettes).
   Array<int> indexArray(iSeqPalSize);
   int i, fd;
 
@@ -319,77 +287,90 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
   } 
  
 
-  if((fd = open(fileName.c_str(), O_RDONLY, NULL)) < 0) {
-    cout << "Can't open colormap file:  " << fileName << endl;
-    for(i = 0; i < totalColorSlots; ++i) {    // make a default grayscale colormap.
-      if(bTrueColor) {
-	// FIXME: not 24 bit!
-	ccells[i].pixel = (((rbuff[i] >> (8 - bprgb)) << 2 * bprgb)
-			 | ((gbuff[i] >> (8 - bprgb)) << bprgb)
-			 | ((bbuff[i] >> (8 - bprgb)) << 0) );
-      } else {
-	ccells[i].pixel = i;
+  if(bReadPalette) {
+    bReadPalette = false;
+    rbuff.resize(iSeqPalSize);
+    gbuff.resize(iSeqPalSize);
+    bbuff.resize(iSeqPalSize);
+    abuff.resize(iSeqPalSize);
+
+    if((fd = open(fileName.c_str(), O_RDONLY, NULL)) < 0) {
+      cout << "Can't open colormap file:  " << fileName << endl;
+      for(i = 0; i < totalColorSlots; ++i) {  // make a default grayscale colormap.
+        if(bTrueColor) {
+	  // FIXME: not 24 bit!
+	  ccells[i].pixel = (((rbuff[i] >> (8 - bprgb)) << 2 * bprgb)
+			   | ((gbuff[i] >> (8 - bprgb)) << bprgb)
+			   | ((bbuff[i] >> (8 - bprgb)) << 0) );
+        } else {
+	  ccells[i].pixel = i;
+        }
+        mcells[ccells[i].pixel] = ccells[i];
+        ccells[i].red   = (unsigned short) i * 256;
+        ccells[i].green = (unsigned short) i * 256;
+        ccells[i].blue  = (unsigned short) i * 256;
+        ccells[i].flags = DoRed | DoGreen | DoBlue;
       }
-      mcells[ccells[i].pixel] = ccells[i];
-      ccells[i].red   = (unsigned short) i * 256;
-      ccells[i].green = (unsigned short) i * 256;
-      ccells[i].blue  = (unsigned short) i * 256;
-      ccells[i].flags = DoRed|DoGreen|DoBlue;
+      // set low value to black
+      ccells[paletteStart].red   = 0;
+      ccells[paletteStart].green = 0;
+      ccells[paletteStart].blue  = 0;
+
+      ccells[blackIndex].red   = (unsigned short) 0;
+      ccells[blackIndex].green = (unsigned short) 0;
+      ccells[blackIndex].blue  = (unsigned short) 0;
+      ccells[whiteIndex].red   = (unsigned short) 65535;
+      ccells[whiteIndex].green = (unsigned short) 65535;
+      ccells[whiteIndex].blue  = (unsigned short) 65535;
+
+      paletteType = ALPHA;
+
+      transferArray.resize(iSeqPalSize);
+      for(int j(0); j < iSeqPalSize; ++j) {
+        indexArray[j] = j; 
+        transferArray[j] = (float) j / (float) (iSeqPalSize - 1);
+        rbuff[j] = j;
+        gbuff[j] = j;
+        bbuff[j] = j;
+        abuff[j] = j;
+        abuff[j] = 128;
+      }
+      rbuff[blackIndex] = 0;
+      gbuff[blackIndex] = 0;
+      bbuff[blackIndex] = 0;
+      rbuff[whiteIndex] = 255;
+      gbuff[whiteIndex] = 255;
+      bbuff[whiteIndex] = 255;
+
+    } else {
+
+      if(read(fd, rbuff.dataPtr(), iSeqPalSize) != iSeqPalSize) {
+        cout << "palette is not a seq colormap." << endl;
+        return(0);
+      }
+      if(read(fd, gbuff.dataPtr(), iSeqPalSize) != iSeqPalSize) {
+        cout << "file is not a seq colormap." << endl;
+        return(0);
+      }
+      if(read(fd, bbuff.dataPtr(), iSeqPalSize) != iSeqPalSize) {
+        cout << "palette is not a seq colormap." << endl;
+        return(0);
+      }
+      if(read(fd, abuff.dataPtr(), iSeqPalSize) != iSeqPalSize) {
+        if(BL_SPACEDIM == 3) {
+          cout << "Palette does not have an alpha component:  using the default." 
+               << endl;
+        }
+        paletteType = NON_ALPHA;
+      } else {
+        paletteType = ALPHA;
+      }
+
+      (void) close(fd);
+
     }
-    // set low value to black
-    ccells[paletteStart].red   = 0;
-    ccells[paletteStart].green = 0;
-    ccells[paletteStart].blue  = 0;
 
-    ccells[blackIndex].red   = (unsigned short) 0;
-    ccells[blackIndex].green = (unsigned short) 0;
-    ccells[blackIndex].blue  = (unsigned short) 0;
-    ccells[whiteIndex].red   = (unsigned short) 65535;
-    ccells[whiteIndex].green = (unsigned short) 65535;
-    ccells[whiteIndex].blue  = (unsigned short) 65535;
-
-    paletteType = NON_ALPHA;
-    transferArray.resize(iSeqPalSize);
-    for(int j(0); j < iSeqPalSize; ++j) {
-      indexArray[j] = j; 
-      transferArray[j] = (float) j / (float)(iSeqPalSize - 1);
-      rbuff[j] = j;
-      gbuff[j] = j;
-      bbuff[j] = j;
-      abuff[j] = 128;
-    }
-    rbuff[blackIndex] = 0;
-    gbuff[blackIndex] = 0;
-    bbuff[blackIndex] = 0;
-    rbuff[whiteIndex] = 255;
-    gbuff[whiteIndex] = 255;
-    bbuff[whiteIndex] = 255;
-    return(1);
-  }
-
-  if(read(fd, rbuff.dataPtr(), iSeqPalSize) != iSeqPalSize) {
-    cout << "palette is not a seq colormap." << endl;
-    return(0);
-  }
-  if(read(fd, gbuff.dataPtr(), iSeqPalSize) != iSeqPalSize) {
-    cout << "file is not a seq colormap." << endl;
-    return(0);
-  }
-  if(read(fd, bbuff.dataPtr(), iSeqPalSize) != iSeqPalSize) {
-    cout << "palette is not a seq colormap." << endl;
-    return(0);
-  }
-  if(read(fd, abuff.dataPtr(), iSeqPalSize) != iSeqPalSize) {
-    if(BL_SPACEDIM == 3) {
-      cout << "Palette does not have an alpha component:  using the default." 
-           << endl;
-    }
-    paletteType = NON_ALPHA;
-  } else {
-    paletteType = ALPHA;
-  }
-
-  (void) close(fd);
+  }  // end if(bReadPalette)
 
   rbuff[blackIndex] = 0;
   gbuff[blackIndex] = 0;
@@ -402,7 +383,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
     rbuff[paletteStart] = 0;
     gbuff[paletteStart] = 0;
     bbuff[paletteStart] = 0;
-    abuff[paletteStart] = 0;
+    //abuff[paletteStart] = 0;
   }
 
   for(i = 0; i < totalColorSlots; ++i) {
@@ -434,9 +415,6 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
       int tmp = (unsigned short) abuff[j];
       transferArray[j] = (float) tmp / 100.0;
     }
-  }
-  if(BL_SPACEDIM == 3) {
-    transSet = true;
   }
 
   if(bRedraw) {
@@ -515,7 +493,7 @@ void Palette::unpixelate(Pixel index, unsigned char &r,
       b = mi->second.blue  >> 8;
       return;
     }
-    cout << "Hmm, not found index = " << index << endl;
+    cout << "bad index = " << index << endl;
     r = (index&gaPtr->PRedMask()) >> gaPtr->PRedShift();
     g = (index&gaPtr->PGreenMask()) >> gaPtr->PGreenShift();
     b = (index&gaPtr->PBlueMask()) >> gaPtr->PBlueShift();

@@ -191,8 +191,12 @@ void XYPlotDataList::UpdateStats(void) {
     int startXi = (*li)->startXi;
     int endXi = (*li)->endXi;
     while(++li) {
-      if((*li)->startXi < startXi) startXi = (*li)->startXi;
-      if((*li)->endXi > endXi) endXi = (*li)->endXi;
+      if((*li)->startXi < startXi) {
+        startXi = (*li)->startXi;
+      }
+      if((*li)->endXi > endXi) {
+        endXi = (*li)->endXi;
+      }
     }
     startX = offsetX + dX[0] * startXi;
     endX = offsetX + dX[0] * endXi;
@@ -233,13 +237,13 @@ XYPlotDataListIterator::XYPlotDataListIterator (XYPlotDataList *alist)
 {
   curLevel = 0;
 
-  for(int idx = 0; idx <= maxLevel; ++idx)
-    linkLI[idx] =
-      new ListIterator<XYPlotDataListLink *> (*list->dataSets[idx]);
+  for(int idx = 0; idx <= maxLevel; ++idx) {
+    linkLI[idx] = new ListIterator<XYPlotDataListLink *> (*list->dataSets[idx]);
+  }
 
-  for(int idx = 0; idx != maxLevel; ++idx)
-    XiLI[idx] =
-      new ListIterator<int> (*list->upXi[idx]);
+  for(int idx = 0; idx != maxLevel; ++idx) {
+    XiLI[idx] = new ListIterator<int> (*list->upXi[idx]);
+  }
 
   if( ! *linkLI[0]) {
     curLink = NULL;

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.108 2002-09-13 18:01:33 vince Exp $
+// $Id: PltApp.cpp,v 1.109 2002-09-20 20:01:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -2894,7 +2894,7 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 #endif
   }
   Array<Box> trueRegion(mal + 1);
-  trueRegion[mal] = amrPicturePtrArray[V]->GetSliceBox(pltAppState->FinestLevel());
+  trueRegion[mal] = amrPicturePtrArray[V]->GetSliceBox(mal);
   trueRegion[mal].setSmall(tdir, ivLowOffsetMAL[tdir] + ix);
   trueRegion[mal].setBig(tdir, trueRegion[mal].smallEnd(tdir));
   int lev;
@@ -2904,7 +2904,7 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
                             amrData.RefRatio()));
   }
   // Create an array of titles corresponding to the intersected line.
-  Array<Real> XdX(mal+1);
+  Array<Real> XdX(mal + 1);
   Array<char *> intersectStr(mal + 1);
   
 #if (BL_SPACEDIM == 3)
@@ -3619,7 +3619,6 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	}
 	
 	return;
-	//break;
 	
       default:
 	;  // do nothing

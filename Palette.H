@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.H,v 1.26 2002-09-13 18:01:33 vince Exp $
+// $Id: Palette.H,v 1.27 2002-09-20 20:01:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -38,19 +38,19 @@ class Palette {
     map<Pixel, XColor> mcells;
     Pixmap 	palPixmap;
     int	  	totalPalWidth, palWidth, totalPalHeight;
-    Array<Real>   dataList;
+    Array<Real> dataList;
     Window 	palWindow;
-    Colormap      colmap;
-    int           totalColorSlots, colorSlots;
-    int           reserveSystemColors, colorOffset, paletteStart;
+    Colormap    colmap;
+    int         totalColorSlots, colorSlots;
+    int         reserveSystemColors, colorOffset, paletteStart;
     Pixel 	blackIndex, whiteIndex;
-    Real	        pmin, pmax;
+    Real	pmin, pmax;
     string	defaultFormat;
-    int		transSet;
     Array<float>  transferArray;
     unsigned char *remapTable; // for remapping to a smaller color index set
     GraphicsAttributes *gaPtr;
     Array<XColor> sysccells;
+    bool bReadPalette;
   
     static Colormap systemColmap;
     PaletteType paletteType;

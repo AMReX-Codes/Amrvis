@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.76 2002-08-30 22:46:22 vince Exp $
+// $Id: AmrPicture.cpp,v 1.77 2002-09-20 20:01:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -925,13 +925,17 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 	}
     }
   } else {  // bCartGridSmoothing
+
 /*
-    int ii, jj, rrcs, iis;
+
+    int i, j, ii, jj, rrcs, iis;
     int blackIndex, whiteIndex, bodyColor;
+    int iMDL(pltAppStatePtr->MaxDrawnLevel());
+    AmrData &amrData = dataServicesPtr->AmrDataRef();
     blackIndex = palPtr->BlackIndex();
     whiteIndex = palPtr->WhiteIndex();
     bodyColor = blackIndex;
-    Real vfeps = gridptr->AmrPlotPtr()->VfEps(myLevel);
+    Real vfeps = amrData.VfEps(iMDL);
     Real *vfracPoint = vfracData->dataPtr();
     Real vfp, omvfe = 1.0 - vfeps;
     int vidx, svidx;
@@ -954,9 +958,10 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 
     Array<int> imageStencil(nScaledImageCells);
 
-    for(j = 0; j < dataSizeV; ++j) {
-      for(i = 0; i < dataSizeH; ++i) {
-        vidx = i + (dataSizeV-1-j)*dataSizeH;  // get the volfrac for cell(i,j)
+    int dataSizeHMDL(dataSizeH[iMDL]), dataSizeVMDL(dataSizeV[iMDL]);
+    for(j = 0; j < dataSizeVMDL; ++j) {
+      for(i = 0; i < dataSizeHMDL; ++i) {
+        vidx = i + (dataSizeVMDL-1-j)*dataSizeHMDL;  // get volfrac for cell(i,j)
         vfp = vfracPoint[vidx];
 
         if(vfp > vfeps && vfp < omvfe) {  // a mixed cell
@@ -966,63 +971,63 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
           }
 
           // fill the stencil with volume fractions
-          svidx = (i-1) + (dataSizeV-1-(j-1))*dataSizeH;  // up left
-          if((i-1) >= 0 && (dataSizeV-1-(j-1)) < dataSizeV) {
+          svidx = (i-1) + (dataSizeVMDL-1-(j-1))*dataSizeHMDL;  // up left
+          if((i-1) >= 0 && (dataSizeVMDL-1-(j-1)) < dataSizeVMDL) {
             stencil[0] = vfracPoint[svidx];
           }
-          svidx = (i  ) + (dataSizeV-1-(j-1))*dataSizeH;  // up
-          if((dataSizeV-1-(j-1)) < dataSizeV) {
+          svidx = (i  ) + (dataSizeVMDL-1-(j-1))*dataSizeHMDL;  // up
+          if((dataSizeVMDL-1-(j-1)) < dataSizeVMDL) {
             stencil[1] = vfracPoint[svidx];
           }
-          svidx = (i+1) + (dataSizeV-1-(j-1))*dataSizeH;  // up right
-          if((i+1) < dataSizeH && (dataSizeV-1-(j-1)) < dataSizeV) {
+          svidx = (i+1) + (dataSizeVMDL-1-(j-1))*dataSizeHMDL;  // up right
+          if((i+1) < dataSizeHMDL && (dataSizeVMDL-1-(j-1)) < dataSizeVMDL) {
             stencil[2] = vfracPoint[svidx];
           }
-          svidx = (i-1) + (dataSizeV-1-(j  ))*dataSizeH;  // left
+          svidx = (i-1) + (dataSizeVMDL-1-(j  ))*dataSizeHMDL;  // left
           if((i-1) >= 0) {
             stencil[3] = vfracPoint[svidx];
           }
           stencil[4] = vfp;  // the center
-          svidx = (i+1) + (dataSizeV-1-(j  ))*dataSizeH;  // right
-          if((i+1) < dataSizeH) {
+          svidx = (i+1) + (dataSizeVMDL-1-(j  ))*dataSizeHMDL;  // right
+          if((i+1) < dataSizeHMDL) {
             stencil[5] = vfracPoint[svidx];
           }
-          svidx = (i-1) + (dataSizeV-1-(j+1))*dataSizeH;  // down left
-          if((i-1) >= 0 && ((int)(dataSizeV-1-(j+1))) >= 0) {
+          svidx = (i-1) + (dataSizeVMDL-1-(j+1))*dataSizeHMDL;  // down left
+          if((i-1) >= 0 && ((int)(dataSizeVMDL-1-(j+1))) >= 0) {
             stencil[6] = vfracPoint[svidx];
           }
-          svidx = (i  ) + (dataSizeV-1-(j+1))*dataSizeH;  // down
-          if(((int)(dataSizeV-1-(j+1))) >= 0) {
+          svidx = (i  ) + (dataSizeVMDL-1-(j+1))*dataSizeHMDL;  // down
+          if(((int)(dataSizeVMDL-1-(j+1))) >= 0) {
             stencil[7] = vfracPoint[svidx];
           }
-          svidx = (i+1) + (dataSizeV-1-(j+1))*dataSizeH;  // down right
-          if((i+1) < dataSizeH && ((int)(dataSizeV-1-(j+1))) >= 0) {
+          svidx = (i+1) + (dataSizeVMDL-1-(j+1))*dataSizeHMDL;  // down right
+          if((i+1) < dataSizeHMDL && ((int)(dataSizeVMDL-1-(j+1))) >= 0) {
             stencil[8] = vfracPoint[svidx];
           }
 
 #if (BL_SPACEDIM==2)
           // fix for straight lines near corners
           Real smallval = 0.0001;
-          if(Abs(stencil[4] - stencil[3]) < smallval &&
-             Abs(stencil[4] - stencil[5]) > smallval) {
+          if(abs(stencil[4] - stencil[3]) < smallval &&
+             abs(stencil[4] - stencil[5]) > smallval) {
             stencil[2] = -2.0*vfeps;  // flag value
             stencil[5] = -2.0*vfeps;  // flag value
             stencil[8] = -2.0*vfeps;  // flag value
           }
-          if(Abs(stencil[4] - stencil[5]) < smallval &&
-             Abs(stencil[4] - stencil[3]) > smallval) {
+          if(abs(stencil[4] - stencil[5]) < smallval &&
+             abs(stencil[4] - stencil[3]) > smallval) {
             stencil[0] = -2.0*vfeps;  // flag value
             stencil[3] = -2.0*vfeps;  // flag value
             stencil[6] = -2.0*vfeps;  // flag value
           }
-          if(Abs(stencil[4] - stencil[1]) < smallval &&
-             Abs(stencil[4] - stencil[7]) > smallval) {
+          if(abs(stencil[4] - stencil[1]) < smallval &&
+             abs(stencil[4] - stencil[7]) > smallval) {
             stencil[6] = -2.0*vfeps;  // flag value
             stencil[7] = -2.0*vfeps;  // flag value
             stencil[8] = -2.0*vfeps;  // flag value
           }
-          if(Abs(stencil[4] - stencil[7]) < smallval &&
-             Abs(stencil[4] - stencil[1]) > smallval) {
+          if(abs(stencil[4] - stencil[7]) < smallval &&
+             abs(stencil[4] - stencil[1]) > smallval) {
             stencil[0] = -2.0*vfeps;  // flag value
             stencil[1] = -2.0*vfeps;  // flag value
             stencil[2] = -2.0*vfeps;  // flag value
@@ -1099,7 +1104,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
           for(ii = 0; ii < rrcs * rrcs; ++ii) {
             imageStencil[ii] = fluidCell;
           }
-          if(Abs(normV) > 0.000001) {
+          if(abs(normV) > 0.000001) {
             slope = normH/normV;  // perpendicular to normal
           } else {
             slope = normH;  // avoid divide by zero
@@ -1241,7 +1246,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 
           }  // end while(...)
 
-          } else if(Abs(normV) < 0.000001) {  // vertical face
+          } else if(abs(normV) < 0.000001) {  // vertical face
 
             if(normH > 0.0) {  // body is on the left edge of the cell
               for(jj = 0; jj < rrcs; ++jj) {
@@ -1259,7 +1264,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
               }
             }
 
-          } else if(Abs(normH) < 0.000001) {  // horizontal face
+          } else if(abs(normH) < 0.000001) {  // horizontal face
 
             if(normV > 0.0) {  // body is on the bottom edge of the cell
               for(jj = 0; jj < (nBodyCells / rrcs); ++jj) {
@@ -1288,13 +1293,13 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
             for(ii = 0; ii < rrcs; ++ii) {
               if(imageStencil[ii + (jj * rrcs)] == fluidCell) {  // in fluid
                 scaledImageData[((i * rrcs) + ii)+(((j * rrcs)+jj)*imageSizeH)] =
-                                                imageData[i + j*dataSizeH];
+                                                imageData[i + j*dataSizeHMDL];
               } else if(imageStencil[ii + (jj*rrcs)] == markedCell) {
-                scaledImageData[((i*rrcs)+ii)+(((j*rrcs)+jj)*imageSizeH)] =
-                                                                whiteIndex;
+                scaledimagedata[((i*rrcs)+ii)+(((j*rrcs)+jj)*imageSizeH)] =
+                                                    (unsigned char) whiteIndex;
               } else {  // in body
-                scaledImageData[((i*rrcs)+ii)+(((j*rrcs)+jj)*imageSizeH)] =
-                                                                 bodyColor;
+                scaledimagedata[((i*rrcs)+ii)+(((j*rrcs)+jj)*imageSizeH)] =
+                                                    (unsigned char) bodyColor;
               }
             }  // end for(ii...)
           }  // end for(jj...)
@@ -1303,15 +1308,15 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
           for(jj = 0; jj < rrcs; ++jj) {
             for(ii = 0; ii < rrcs; ++ii) {
               scaledImageData[((i*rrcs)+ii) + (((j*rrcs)+jj) * imageSizeH)] =
-                       imageData[i + j*dataSizeH];
+                       imageData[i + j*dataSizeHMDL];
             }
           }
         }
 
       }  // end for(i...)
     }  // end for(j...)
-*/
 
+*/
 
   }  // end if(bCartGridSmoothing)
 

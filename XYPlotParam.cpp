@@ -65,12 +65,16 @@ void XYPlotParameters::ResetPalette(Palette *newPalPtr) {
     if((entry = st_lookup("TextColor")) != NULL && entry->real_form) {
       free_resource(entry->real_form);
     }
-    unsigned int colorindex = param_palette->PaletteSize() / 8;
+    unsigned int colorindex = param_palette->ColorSlots() / 8;
     char colorstr[10];
     char buf[20];
+    int ici;
     for(unsigned int idx(0); idx < 8; ++idx) {
       sprintf(buf, "%d.Color", idx);
-      sprintf(colorstr, "%u", idx * colorindex);
+      ici = (idx * colorindex) + param_palette->PaletteStart();
+      ici = min(ici, param_palette->PaletteEnd());
+      ici = max(ici, param_palette->PaletteStart() + 1);  // for lowblack
+      sprintf(colorstr, "%u", ici);
       Set_Parameter(buf, INT, colorstr);
     }
   }
@@ -146,13 +150,17 @@ void XYPlotParameters::GetHardWiredDefaults(void) {
   DEF("InitialZWindowOffsetY", INT, DEF_INIT_WIN_OFFSET_Y);
 
   // Initalize attribute colors defaults
-  unsigned int colorindex = param_palette->PaletteSize() / 8;
+  unsigned int colorindex = param_palette->ColorSlots() / 8;
   char colorstr[10];
+  int ici;
   for(unsigned int idx(0); idx < 8; ++idx) {
     sprintf(buf, "%d.Style", idx);
     Set_Parameter(buf, STYLE, defStyle[idx]);
     sprintf(buf, "%d.Color", idx);
-    sprintf(colorstr, "%u", idx * colorindex);
+    ici = (idx * colorindex) + param_palette->PaletteStart();
+    ici = min(ici, param_palette->PaletteEnd());
+    ici = max(ici, param_palette->PaletteStart() + 1);  // for lowblack
+    sprintf(colorstr, "%u", ici);
     Set_Parameter(buf, INT, colorstr);
   }
 }
@@ -239,25 +247,25 @@ params * XYPlotParameters::resolve_entry(char *name, param_types type,
     result->strv.value = form;
     break;
   case PIXEL:
-    if(!do_color(form, &result->pixv.value)) {
+    if( ! do_color(form, &result->pixv.value)) {
       fprintf(stderr, paramstr, name, form, "color", DEF_PIXEL);
       do_color(DEF_PIXEL, &result->pixv.value);
     }
     break;
   case FONT:
-    if(!do_font(form, &result->fontv.value)) {
+    if( ! do_font(form, &result->fontv.value)) {
       fprintf(stderr, paramstr, name, form, "font", DEF_FONT);
       do_font(DEF_FONT, &result->fontv.value);
     }
     break;
   case STYLE:
-    if(!do_style(form, &result->stylev)) {
+    if( ! do_style(form, &result->stylev)) {
       fprintf(stderr, paramstr, name, form, "line style", DEF_STYLE);
       do_style(DEF_STYLE, &result->stylev);
     }
     break;
   case BOOL:
-    if(!do_bool(form, &result->boolv.value)) {
+    if( ! do_bool(form, &result->boolv.value)) {
       fprintf(stderr, paramstr, name, form, "boolean flag", DEF_BOOL);
       do_bool(DEF_BOOL, &result->boolv.value);
     }
@@ -315,7 +323,6 @@ int XYPlotParameters::do_color(char *name, XColor *color) {
   XQueryColor(gaPtr->PDisplay(), cmap, color);
   
   return 1;
-
 }  
 
 
@@ -404,12 +411,17 @@ int XYPlotParameters::do_bool(char *name, int *val) {
   char **term;
   
   for(term = positive; *term; ++term) {
-    if(string_compare(name, *term) == 0) { *val = 1; return 1; }
+    if(string_compare(name, *term) == 0) {
+      *val = 1;
+      return 1;
+    }
   }
   for(term = negative; *term; ++term) {
-    if(string_compare(name, *term) == 0) { *val = 0; return 1; }
+    if(string_compare(name, *term) == 0) {
+      *val = 0;
+      return 1;
+    }
   }
-
   return 0;
 }
 
@@ -516,11 +528,8 @@ int XYPlotParameters::st_insert(char *key, param_full *value) {
   }
   
   if(ptr == NULL) {
-
     // add directly.
-    if(param_table.num_entries/param_table.num_bins >=
-	param_table.max_density)
-    {
+    if(param_table.num_entries/param_table.num_bins >= param_table.max_density) {
 	rehash();
 	hash_val = strihash(key);
     }
@@ -542,7 +551,7 @@ int XYPlotParameters::st_insert(char *key, param_full *value) {
 void XYPlotParameters::rehash(void) {
   st_table_entry *ptr, *next, **old_bins = param_table.bins;
   int i, hash_val, old_num_bins = param_table.num_bins;
-  Real new_num_bins = param_table.grow_factor * old_num_bins;
+  Real new_num_bins(param_table.grow_factor * old_num_bins);
   
   param_table.num_bins = (int) new_num_bins;
   
