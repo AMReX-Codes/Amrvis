@@ -74,6 +74,9 @@ ifeq ($(MACHINE), Linux)
   INCLUDE_LOCATIONS += /usr/X11R6/include
   LIBRARY_LOCATIONS += /usr/X11R6/lib
   LIBRARIES += -lXm -lXp -lXt -lXext -lSM -lICE -lXpm -lX11
+  # Joe Grcar 1/9/03: per Vince, the following line is needed on battra
+  # so I have left it here in commented-out form.
+  # LIBRARIES += -LlibXm.so.2.1
 endif
 
 ifeq ($(MACHINE), AIX)
