@@ -1987,7 +1987,10 @@ void XYPlotWin::SetPalette(void) {
   params param_temp;   // temporary parameter grabbing slot
   for(int idx(0); idx < 8; ++idx) {
     sprintf(buffer, "%d.Color", idx);
-    AllAttrs[idx].pixelValue = pal->GetColorCells()[PM_INT(buffer)].pixel;
+    int icTemp(PM_INT(buffer));
+    const Array<XColor> &cCells = pal->GetColorCells();
+    icTemp = max(0, min(icTemp, cCells.size() - 1));
+    AllAttrs[idx].pixelValue = cCells[icTemp].pixel;
   }
 
   for(XYPlotLegendItem *item = legendHead; item; item = item->next) {
