@@ -291,9 +291,11 @@ void PrintUsage(char *exname) {
   cout << "       [-initialscale n] [-showboxes tf] [-numberformat fmt]" << endl;
   cout << "       [-lowblack]"<< endl;
   cout << "       [-cliptoppalette]"<< endl;
-# if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
+#ifdef BL_VOLUMERENDER
     cout << "       [-makeswf_light]" << endl;
     cout << "       [-makeswf_value]" << endl;
+#endif
     cout << "       [-useminmax min max]" << endl;
 #endif
   cout << "       [<filename(s)>]" << endl;
@@ -319,8 +321,10 @@ void PrintUsage(char *exname) {
        << endl; 
   cout << "  -boxslice _box_    write a fab on the box (box at the finest level)."
        << endl; 
+  cout << "                     box fomat:  lox loy loz hix hiy hiz." << endl;
+  cout << "                     example:  -boxslice 0 0 0 120 42 200." << endl;
   cout << "                     Note:  slices are written in batch mode." << endl;
-# if(BL_SPACEDIM == 2)
+#if(BL_SPACEDIM == 2)
   cout << "  -a                 load files as an animation." << endl; 
 #endif
   cout << "  -nprocs n          specify number of processors." << endl;
@@ -333,12 +337,14 @@ void PrintUsage(char *exname) {
   cout << "  -numberformat fmt  set the initial format to fmt (ex:  %4.2f)." << endl; 
   cout << "  -lowblack          sets the lowest color in the palette to black."<<endl;
   cout << "  -cliptoppalette    dont use the top palette index (for exceed)."<<endl;
-# if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
+#ifdef BL_VOLUMERENDER
   cout << "  -makeswf_light     make volume rendering data using the" << endl;
   cout << "                     current transfer function and write data" << endl;
   cout << "                     to a file, using the lighting model."<<endl
        << "                     note:  works in batch mode." << endl;
   cout << "  -makeswf_value     same as above, with value model rendering."<<endl;
+#endif
   cout << "  -useminmax min max use min and max as the global min max values" << endl;
 #endif
   cout << "  <filename(s)>      must be included if box is specified." << endl;
