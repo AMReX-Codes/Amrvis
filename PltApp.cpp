@@ -237,7 +237,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 					    parentPtr, pltParent,
                                             this);
   }
-# if (BL_SPACE_DIM == 3)
+
+# if (BL_SPACEDIM == 3)
   SetHVLine(amrPicturePtrArray);
 # endif
   ivLowOffsetMAL = offset;
@@ -1453,8 +1454,8 @@ void PltApp::CBChangeLevel(Widget w, XtPointer client_data,
       sdir = XDIR;
     }
     obj->datasetPtr->Render(obj->trueRegion, 
-                            obj->datasetPtr->GetAmrPicturePtr(),
-                            //amrPicturePtrArray[NPLANES-1], 
+                            obj->amrPicturePtrArray[obj->activeView],
+                            //obj->datasetPtr->GetAmrPicturePtr(),
                             obj, hdir, vdir, sdir);
     obj->datasetPtr->DoExpose(false);
   }

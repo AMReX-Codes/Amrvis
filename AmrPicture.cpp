@@ -124,7 +124,7 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
   numberOfLevels = maxAllowableLevel + 1;
   maxDrawnLevel     = maxAllowableLevel;
   maxLevelWithGrids = maxAllowableLevel;
-
+ 
   subDomain.resize(numberOfLevels);
   // region is at the finestLevel
   subDomain[maxAllowableLevel] = region.coarsen(CRRBetweenLevels(maxAllowableLevel,
@@ -172,44 +172,25 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
 		pltAppPtr->CurrentScale();
       vLine = 0;
     }
-    
+
+
     if (parentPltAppPtr != NULL) {
-        slice = Max( 
-            Min(parentPltAppPtr->GetAmrPicturePtr(myView)->GetSlice(),
-                subDomain[maxAllowableLevel].bigEnd(YZ-myView)), 
-            subDomain[maxAllowableLevel].smallEnd(YZ-myView));
-/*        cout<<"have capped the slice within the limits"<<endl;
-          cout<<slice<<" should be between "
-              <<subDomain[maxAllowableLevel].bigEnd(YZ-myView)<<" and "
-              <<subDomain[maxAllowableLevel].smallEnd(YZ-myView)<<endl;
-*/   
+      int tempSlice = parentPltAppPtr->GetAmrPicturePtr(myView)->GetSlice();
+      tempSlice *= CRRBetweenLevels(parentPltAppPtr->MaxDrawnLevel(), 
+                                    maxDrawnLevel, amrData.RefRatio());
+      slice = Max(Min(tempSlice,
+                      subDomain[maxAllowableLevel].bigEnd(YZ-myView)), 
+                  subDomain[maxAllowableLevel].smallEnd(YZ-myView));
     }
     else
-        slice = subDomain[maxAllowableLevel].smallEnd(YZ-myView);
-
-// now must implement this in the drawing
-
-//KM_START_HERE
-/*    int first = 0;
-    for(int i = 0; i<=YZ && parentPltAppPtr != NULL;i++) {
-        if ( i == myView ) break;
-        if (first == 0) {
-            hLine = 0;//parentPltAppPtr->GetAmrPicturePtr(i)->GetSlice()
-//                * pltAppPtr->CurrentScale();
-            first = 1;
-        }
-        else
-            vLine = 0;//parentPltAppPtr->GetAmrPicturePtr(i)->GetSlice()
-//                     * pltAppPtr->CurrentScale();
-    }*/
+      slice = subDomain[maxAllowableLevel].smallEnd(YZ-myView);
+    
 # else
     vLine = 0;
     hLine = 0;
     slice = 0;
 # endif
-//    cout<<"AmrPicture2(): slice = "<<slice<<endl;
-    //
-
+    
   subcutY = hLine;
   subcut2ndY = hLine;
 
@@ -292,17 +273,20 @@ void AmrPicture::AmrPictureInit() {
 }  // end AmrPictureInit()
 
 void AmrPicture::SetHVLine() {
-    int first = 0;
-    for(int i = 0; i<=YZ ;i++) {
-        if ( i == myView ) ;
-        else if (first == 0) {
-            hLine = imageSizeV-1 - (pltAppPtr->GetAmrPicturePtr(i)->GetSlice()
-                * pltAppPtr->CurrentScale());
-            first = 1;
-        } else
-            vLine = ( pltAppPtr->GetAmrPicturePtr(i)->GetSlice()
-                * pltAppPtr->CurrentScale() );
-    }
+  int first = 0;
+  for(int i = 0; i<=YZ ;i++) {
+    if ( i == myView ) ;
+    else if (first == 0) {
+      hLine = imageSizeV-1 
+        - ((pltAppPtr->GetAmrPicturePtr(i)->GetSlice()
+            - pltAppPtr->GetAmrPicturePtr(YZ - i)->GetSubDomain()[maxDrawnLevel].smallEnd(YZ - i))
+           * pltAppPtr->CurrentScale());
+      first = 1;
+    } else 
+      vLine = ( pltAppPtr->GetAmrPicturePtr(i)->GetSlice()
+                - pltAppPtr->GetAmrPicturePtr(YZ - i)->GetSubDomain()[maxDrawnLevel].smallEnd(YZ - i))
+        * pltAppPtr->CurrentScale();
+  }
 }
 
 // ---------------------------------------------------------------------
