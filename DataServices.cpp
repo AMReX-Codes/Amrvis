@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.23 2000-10-02 20:53:07 lijewski Exp $
+// $Id: DataServices.cpp,v 1.24 2001-01-04 00:03:07 marc Exp $
 //
 
 // ---------------------------------------------------------------
@@ -996,7 +996,7 @@ void DataServices::PointValue(int pointBoxArraySize, Box *pointBoxArray,
     }
   }
 
-  FArrayBox *destFab(NULL);
+  FArrayBox *destFab = NULL;
   if(ParallelDescriptor::IOProcessor()) {
     destFab = new FArrayBox(destBox, 1);
   }
@@ -1028,7 +1028,7 @@ void DataServices::LineValues(int lineBoxArraySize, Box *lineBoxArray, int which
     for(int iGrid = 0; iGrid != numGrids; ++iGrid) {
       if(lineBoxArray[lev].intersects(intersectedBA[iGrid])) {
         bLineIsValid = true;
-        FArrayBox *destFab(NULL);
+        FArrayBox *destFab = NULL;
         if(ParallelDescriptor::IOProcessor()) {
           destFab = new FArrayBox(lineBoxArray[lev] & intersectedBA[iGrid], 1);
         }

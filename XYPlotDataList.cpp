@@ -1,4 +1,9 @@
 #include "XYPlotDataList.H"
+#ifdef BL_USE_NEW_HFILES
+#include <cfloat>
+#else
+#include <float.h>
+#endif
 
 #define STRDUP(xx) (strcpy(new char[strlen(xx)+1], (xx)))
 

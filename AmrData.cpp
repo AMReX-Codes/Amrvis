@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.44 2000-10-02 20:53:06 lijewski Exp $
+// $Id: AmrData.cpp,v 1.45 2001-01-04 00:03:07 marc Exp $
 //
 
 // ---------------------------------------------------------------
@@ -12,7 +12,7 @@
 #include "Misc.H"
 #include "VisMF.H"
 
-#if ! (defined(BL_Linux) || defined(BL_AIX))
+#if ! (defined(BL_Linux) || defined(BL_AIX) || defined(WIN32))
 #define BL_ALWAYS_FIX_DENORMALS
 #endif
 
