@@ -220,7 +220,7 @@ void CreateMainWindow(int argc, char *argv[]) {
      //String fallbacks[6];
      String fallbacks[4];
      fallbacks[0] = "*fontList:7x13=charset";
-     fallbacks[1] = "*bottomShadowColor:gray";
+     fallbacks[1] = "*bottomShadowColor:yellow";
      fallbacks[2] = "*topShadowColor:gray";
      fallbacks[3] = NULL;
      //fallbacks[3] = "*background:black";
@@ -241,14 +241,14 @@ void CreateMainWindow(int argc, char *argv[]) {
 			//"*topShadowColor:gray12", NULL };
 #if (BL_SPACEDIM == 2)
   String fallbacks[] = {"*fontList:7x13=charset", "*background:black",
-			"*foreground:white", "*bottomShadowColor:gray",
+			"*foreground:white", "*bottomShadowColor:yellow",
 			"*topShadowColor:gray", NULL };
 #endif
 #if (BL_SPACEDIM == 3)
   String fallbacks[] = {"*fontList:7x13=charset",
 			//"*background:black",
 			//"*foreground:white",
-			"*bottomShadowColor:gray",
+			"*bottomShadowColor:yellow",
 			"*topShadowColor:gray",
 			NULL };
 #endif

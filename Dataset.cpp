@@ -469,13 +469,13 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
         temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
         temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
 
-        double dBoxSize = //pow(2., maxDrawnLevel-level);
+        double dBoxSize = 
             CRRBetweenLevels(level, maxDrawnLevel, amrData.RefRatio());
         int boxSize = (ceil(dBoxSize)-dBoxSize >= 0.5? 
                        floor(dBoxSize): ceil(dBoxSize));
         int vStartPos=fmod(datasetRegion[maxDrawnLevel].bigEnd(vDIR)+1, boxSize);
         vStartPos = (vStartPos != 0? vStartPos - boxSize:vStartPos);
-        // fill the box index arrays  ~**~
+        // fill the box index arrays 
         Box iABox = datasetRegion[level];
 
         hIndexArray[level] = new StringLoc[iABox.length(hDIR)];
@@ -626,14 +626,23 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
       hplot = regionBox.smallEnd(HDIR) - pictureBox.smallEnd(HDIR) + xcell;
       vplot = regionBox.smallEnd(VDIR) - pictureBox.smallEnd(VDIR) +
           regionBox.length(VDIR)-1 - ycell;
+// needs adjusting for 2d...
+# if (BL_SPACEDIM == 3)
       int boxCoor[3];
       boxCoor[HDIR] = hplot; boxCoor[VDIR] = vplot; 
       boxCoor[DEPTHDIR] = pltAppPtr->GetAmrPicturePtr(2-DEPTHDIR)->GetSlice();
-      
       IntVect boxLocation(boxCoor[0], boxCoor[1], boxCoor[2]);
+# endif
+# if (BL_SPACEDIM == 2)
+      int boxCoor[2];
+      boxCoor[HDIR] = hplot; boxCoor[VDIR] = vplot; 
+      IntVect boxLocation(boxCoor[0], boxCoor[1]);
+# endif
       Box ourBox(boxLocation, boxLocation);
       const AmrData &amrData = dataServicesPtr->AmrDataRef();
       int finestLevel = amrData.FinestContainingLevel(ourBox, maxDrawnLevel);
+      finestLevel = 
+          ( finestLevel >= minDrawnLevel ? finestLevel : minDrawnLevel );
       int boxSize = CRRBetweenLevels(finestLevel, 
                                      maxAllowableLevel, 
                                      amrData.RefRatio());
@@ -664,7 +673,7 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
       amrPicturePtr->DoExposePicture();// redraw this once to 
       // protect from incorrect bit manipulation (didn't grab the server)
   }
-}
+} // end DoPixInput
 
 
 // -------------------------------------------------------------------

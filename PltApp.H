@@ -109,6 +109,7 @@ public:
     void DoAttach(Widget, XtPointer, XtPointer);
     void DoDetach(Widget, XtPointer, XtPointer);
     void Clear();
+    ProjectionPicture *GetProjPicturePtr() { return projPicturePtr; }
 #endif
     
     
@@ -183,7 +184,6 @@ public:
     
     void  SetGlobalMinMax(Real specifiedMin, Real specifiedMax);
     GC GetRbgc() { return rbgc; }
-    ProjectionPicture *GetProjPicturePtr() { return projPicturePtr; }
     
 private:
     Widget 		wTopLevel, wAmrVisTopLevel, wAmrVisMenu;

@@ -1021,20 +1021,23 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
     ShowFrameImage(islice);
     //RubberBandSlice(islice);
 #   if (BL_SPACEDIM == 3)
-    pltAppPtr->GetProjPicturePtr()->ChangeSlice(YZ-sliceDir, islice);
-    pltAppPtr->GetProjPicturePtr()->MakeSlices();
-    XClearWindow(XtDisplay(pltAppPtr->GetWTransDA()),
-                 XtWindow(pltAppPtr->GetWTransDA()));
-    pltAppPtr->DoExposeTransDA();
     
-      XEvent event;
-      if(XCheckMaskEvent(GAptr->PDisplay(), ButtonPressMask, &event)) {
+    if( ! framesMade) {
+        cout<<"islice: "<<islice<<" + "<<start<<endl;
+        pltAppPtr->GetProjPicturePtr()->ChangeSlice(YZ-sliceDir, start+islice);
+        pltAppPtr->GetProjPicturePtr()->MakeSlices();
+        XClearWindow(XtDisplay(pltAppPtr->GetWTransDA()),
+                     XtWindow(pltAppPtr->GetWTransDA()));
+        pltAppPtr->DoExposeTransDA();
+    }
+    XEvent event;
+    if(XCheckMaskEvent(GAptr->PDisplay(), ButtonPressMask, &event)) {
         if(event.xany.window == XtWindow(pltAppPtr->GetStopButtonWidget())) {
-	  XPutBackEvent(GAptr->PDisplay(), &event);
-          cancelled = true;
-          break;
+            XPutBackEvent(GAptr->PDisplay(), &event);
+            cancelled = true;
+            break;
 	}
-      }
+    }
 #   endif
   }  // end for(i=0; ...)
 
@@ -1288,8 +1291,11 @@ void AmrPicture::ShowFrameImage(int iSlice) {
                    XtWindow(pltAppPtr->GetWTransDA()));
       pltAppPtr->DoExposeTransDA();
   } else {
+  // pltAppPtr->GetProjPicturePtr()->
+  //        ChangeSlice(nP, iRelSlice);
+
       //do some rubberbanding
-  }
+   }
 # endif
 
   pltAppPtr->DoExposeRef();

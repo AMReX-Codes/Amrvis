@@ -10,5 +10,3 @@ showboxes             TRUE
 windowheight          650
 windowwidth           700
 filetype              newplt
-fabordering           alpha
-fabordering           sgi
