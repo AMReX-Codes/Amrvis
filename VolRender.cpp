@@ -18,12 +18,6 @@ extern Real DegToRad(Real angle);
 
 
 // -------------------------------------------------------------------
-//void ShadeFunc(void *voxel, float *intensity, void *clientData) {
-//  *intensity = ((RawVoxel *)voxel)->density;
-//}
-
-
-// -------------------------------------------------------------------
 VolRender::VolRender()
           : bVolRenderDefined(false)
 {
@@ -71,14 +65,10 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
     density_ramp    = new float[maxDenRampPts];
     shade_table     = new float[maxShadeRampPts];
 
-//#if LIGHTING
-//    if (lightingModel) {
     maxGradRampPts = gradientMax + 1;
     gradient_ramp  = new float[maxGradRampPts];
     gradientRampX  = NULL;
     gradientRampY  = NULL;
-//    }
-//#endif
 
     densityRampX  = NULL;
     densityRampY  = NULL;
@@ -570,18 +560,15 @@ void VolRender::MakePicture(Real mvmat[4][4], Real Aspect, Real longWinLen,
   
 
   vpResult vpret;
-//# if LIGHTING
   if(lightingModel) {
        vpret = vpShadeTable(vpc);
        CheckVP(vpret, 12);
        vpret = vpRenderClassifiedVolume(vpc);   // --- render
        CheckVP(vpret, 13);
    } else {
-//#else
        vpret = vpRenderRawVolume(vpc);    // --- render
        CheckVP(vpret, 11);
    }
-//#endif
 
 
 }
@@ -604,14 +591,6 @@ void VolRender::MakeVPData() {
         CheckVP(vpret, 6);
     } 
 
-//else {
-//    cout<<normalField<<'\t'<<gradientField<<'\t'<<densityField<<endl;
-//    vpret = vpClassifyScalars(vpc, swfData, swfDataSize,
-//                              normalField, gradientField, densityField);
-        
-//        CheckVP(vpret, 6.01);
-//    }  
-    
     // --- set the shading parameters
     
     if (lightingModel) {
@@ -651,8 +630,6 @@ void VolRender::MakeVPData() {
         vpret = vpSetLookupShader(vpc, 1, 1, normalField, shade_table,
                                   maxShadeRampPts * sizeof(float), 0, NULL, 0);
         CheckVP(vpret, 9);
-        //vpret = vpSetCallback(vpc, VP_GRAY_SHADE_FUNC, ShadeFunc);
-        //CheckVP(vpret, 9);
         
         //RawVoxel *volData = new RawVoxel[swfDataSize]; // volpack will delete this
         volData = new RawVoxel[swfDataSize]; // volpack will delete this
@@ -670,6 +647,20 @@ void VolRender::MakeVPData() {
             volData[vindex].normal  = swfData[vindex];
             volData[vindex].density = swfData[vindex];
         }
+
+        vpret = vpMinMaxOctreeThreshold(vpc, DENSITY_PARAM, 
+                                        OCTREE_DENSITY_THRESH);
+        CheckVP(vpret, 9.41);
+
+        if (classifyFields == 2) {
+            vpret = vpMinMaxOctreeThreshold(vpc, GRADIENT_PARAM, 
+                                            OCTREE_GRADIENT_THRESH);
+            CheckVP(vpret, 9.42);
+        }
+
+        vpret = vpCreateMinMaxOctree(vpc, 1, OCTREE_BASE_NODE_SIZE);
+        CheckVP(vpret, 9.43);
+
         vpret = vpClassifyVolume(vpc);
         CheckVP(vpret, 9.5);
         
@@ -683,7 +674,6 @@ void VolRender::MakeVPData() {
         
         vpSeti(vpc, VP_CONCAT_MODE, VP_CONCAT_LEFT);
 
-//#endif
     }
     cout << "----- make vp data time = " << ((clock()-time0)/1000000.0) << endl;
   }
@@ -694,9 +684,6 @@ void VolRender::MakeVPData() {
 // -------------------------------------------------------------------
 void VolRender::ReadTransferFile(const aString &rampFileName) {
   int n;
-  //bool savedLightModel = lightingModel;
-  //if ( ! savedLightModel)
-  //    SetLightingModel(true);
   if(densityRampX  != NULL) { delete [] densityRampX;  }
   if(densityRampY  != NULL) { delete [] densityRampY;  }
   if(gradientRampX != NULL) { delete [] gradientRampX; }
@@ -786,9 +773,14 @@ void VolRender::ReadTransferFile(const aString &rampFileName) {
   vpSetd(vpc, VP_MIN_VOXEL_OPACITY, minRayOpacity);
   vpSetd(vpc, VP_MAX_RAY_OPACITY,   maxRayOpacity);
 
-//  if ( ! savedLightModel)
-//      SetLightingModel(false);
 }  // end ReadTransferFile
+
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
+
+
+
+
+
+
 

@@ -39,11 +39,6 @@ static RawVoxel *dummy_voxel;
 
 
 
-//#define LIGHTING 0
-//#define LIGHTING 1
-
-//#if LIGHTING
-
 
 // # define VOXEL_FIELDS	3	/* number of fields in voxel */
 
