@@ -155,7 +155,9 @@ void GetDefaults(const aString &defaultsFile) {
       }
     }
   }
-  cout << "Reading defaults from:  " << fullDefaultsFile << endl;
+  if(ParallelDescriptor::IOProcessor()) {
+    cout << "Reading defaults from:  " << fullDefaultsFile << endl;
+  }
 
   ws(defs);
   defs.getline(buffer, BUFSIZ, '\n');
@@ -634,27 +636,28 @@ void ParseCommandLine(int argc, char *argv[]) {
   }
 
 
-  // print the values of fabordering and filetype so the user can see them
-  if(FArrayBox::getOrdering() == FABio::FAB_NORMAL_ORDER) {
+  if(ParallelDescriptor::IOProcessor()) {
+    // print the values of fabordering and filetype so the user can see them
+    if(FArrayBox::getOrdering() == FABio::FAB_NORMAL_ORDER) {
       cout << endl
 	   << ">>>>>>> Setting fab ordering to sgi (FABio::FAB_NORMAL_ORDER)."
 	   << endl;
-  } else if(FArrayBox::getOrdering() == FABio::FAB_REVERSE_ORDER) {
+    } else if(FArrayBox::getOrdering() == FABio::FAB_REVERSE_ORDER) {
       cout << endl
 	   << ">>>>>>> Setting fab ordering to alpha (FABio::FAB_REVERSE_ORDER)."
 	   << endl;
-  } else if(FArrayBox::getOrdering() == FABio::FAB_REVERSE_ORDER_2) {
+    } else if(FArrayBox::getOrdering() == FABio::FAB_REVERSE_ORDER_2) {
       cout << endl
        << ">>>>>>> Setting fab ordering to reverse2 (FABio::FAB_REVERSE_ORDER_2)."
        << endl;
-  }
+    }
 
-  if(fileType == INVALIDTYPE) {
-    cerr << "Error:  invalid file type.  Exiting." << endl;
-    exit(-1);
-  } else {
-    cout << ">>>>>>> Setting file type to "
-	 << FileTypeString[fileType] << "." << endl << endl;
+    if(fileType == INVALIDTYPE) {
+      ParallelDescriptor::Abort("Error:  invalid file type.  Exiting.");
+    } else {
+      cout << ">>>>>>> Setting file type to "
+           << FileTypeString[fileType] << "." << endl << endl;
+    }
   }
 
 }  // end ParseCommandLine

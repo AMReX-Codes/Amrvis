@@ -104,6 +104,7 @@ void main(int argc, char *argv[]) {
 
 
   if(bBatchMode) {
+    DataServices::SetBatchMode();
     BatchFunctions();
     EndParallel();
   } else {
@@ -310,9 +311,14 @@ void BatchFunctions() {
 
     aString derived(GetInitialDerived());
     if( ! dataServices.CanDerive(derived)) {
-      cerr << "Bad initial derived:  cannot derive " << derived << endl;
+      if(ParallelDescriptor::IOProcessor()) {
+        cerr << "Bad initial derived:  cannot derive " << derived << endl;
+      }
       derived = dataServices.PlotVarNames()[0];
-      cerr << "Defaulting to " << derived << endl;
+      if(ParallelDescriptor::IOProcessor()) {
+        cerr << "Defaulting to " << derived << endl;
+      }
+      SetInitialDerived(derived);
     }
 
 
@@ -320,7 +326,6 @@ void BatchFunctions() {
 
     if(MakeSWFData()) {
       AmrData &amrData = dataServices.AmrDataRef();
-      //amrData.ReadData(comlineFileName, fileType);
       assert(dataServices.CanDerive(GetInitialDerived()));
       int minDrawnLevel = 0;
       int maxDrawnLevel;

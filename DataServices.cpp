@@ -8,6 +8,7 @@
 
 Array<DataServices *> DataServices::dsArray;
 int DataServices::dsArrayIndexCounter = 0;
+bool DataServices::dsBatchMode = false;
 
 // ---------------------------------------------------------------
 DataServices::DataServices(const aString &filename, const FileType &filetype)
@@ -31,6 +32,12 @@ DataServices::~DataServices() {
 
 
 // ---------------------------------------------------------------
+void DataServices::SetBatchMode() {
+  dsBatchMode = true;
+}
+
+
+// ---------------------------------------------------------------
 void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
   bool bContinueLooping(true);
   va_list ap;
@@ -38,7 +45,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
   int ioProcNumber(ParallelDescriptor::IOProcessorNumber());
 
  while(bContinueLooping) {
-  if(ParallelDescriptor::IOProcessor()) {
+  if(ParallelDescriptor::IOProcessor() || dsBatchMode) {
     bContinueLooping = false;
   }
 
@@ -54,7 +61,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
   if(requestType == NewRequest) {
     // broadcast the fileName and fileType to procs 1 - N
     char *fileNameCharPtr;
-    int   fileNameLength, checkArrayIndex;
+    int   fileNameLength, fileNameLengthPadded, checkArrayIndex;
     FileType newFileType;
 
     if(ParallelDescriptor::IOProcessor()) {
@@ -73,14 +80,16 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     ParallelDescriptor::UnshareVar(&newFileType);
     ParallelDescriptor::UnshareVar(&fileNameLength);
 
-    fileNameCharPtr = new char[fileNameLength + 1];  // for the null
+    fileNameLengthPadded = fileNameLength + 1;    // for the null
+    fileNameLengthPadded += fileNameLengthPadded % 8;  // for alignment on the t3e
+    fileNameCharPtr = new char[fileNameLengthPadded];
     if(ParallelDescriptor::IOProcessor()) {
       strcpy(fileNameCharPtr, ds->fileName.c_str());
     }
-    ParallelDescriptor::ShareVar(fileNameCharPtr, fileNameLength + 1);
+    ParallelDescriptor::ShareVar(fileNameCharPtr, fileNameLengthPadded);
     ParallelDescriptor::Synchronize();  // for ShareVar
     ParallelDescriptor::Broadcast(ioProcNumber, fileNameCharPtr, fileNameCharPtr,
-                                  fileNameLength + 1);
+                                  fileNameLengthPadded);
     ParallelDescriptor::UnshareVar(fileNameCharPtr);
 
     aString newFileName(fileNameCharPtr);
@@ -134,7 +143,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       int fineFillLevel;
       aString derivedTemp;
       char *derivedCharPtr;
-      int derivedLength;
+      int derivedLength, derivedLengthPadded;
 
       if(ParallelDescriptor::IOProcessor()) {
 	destFab = va_arg(ap, FArrayBox *);
@@ -156,14 +165,16 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       ParallelDescriptor::UnshareVar(&fineFillLevel);
       ParallelDescriptor::UnshareVar(&destBox);
 
-      derivedCharPtr = new char[derivedLength + 1];  // for the null
+      derivedLengthPadded = derivedLength + 1;
+      derivedLengthPadded += derivedLengthPadded % 8;
+      derivedCharPtr = new char[derivedLengthPadded];
       if(ParallelDescriptor::IOProcessor()) {
         strcpy(derivedCharPtr, derivedTemp.c_str());
       }
-      ParallelDescriptor::ShareVar(derivedCharPtr, derivedLength + 1);
+      ParallelDescriptor::ShareVar(derivedCharPtr, derivedLengthPadded);
       ParallelDescriptor::Synchronize();  // for ShareVar
       ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
-				    derivedLength + 1);
+				    derivedLengthPadded);
       ParallelDescriptor::UnshareVar(derivedCharPtr);
 
       aString derived(derivedCharPtr);
@@ -182,13 +193,79 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 
     case WriteFabOneVar:
     {
-      ParallelDescriptor::Abort("WriteFabOneVar not implemented yet.");
+      // interface: (requestType, dsPtr, fabFileName, box, maxLevel, derivedName)
+      Box destBox;
+      int fineFillLevel;
+      aString fabFileName;
+      aString derivedTemp;
+      char *derivedCharPtr;
+      int derivedLength, derivedLengthPadded;
+
+      if(ParallelDescriptor::IOProcessor()) {
+        const aString &fabFileNameRef = va_arg(ap, const aString);
+	fabFileName = fabFileNameRef;
+        const Box &boxRef = va_arg(ap, const Box);
+	destBox = boxRef;
+        fineFillLevel = va_arg(ap, int);
+        const aString &derivedRef = va_arg(ap, const aString);
+        derivedTemp = derivedRef;
+	derivedLength = derivedTemp.length();
+      }
+      ParallelDescriptor::ShareVar(&destBox, sizeof(Box));
+      ParallelDescriptor::ShareVar(&fineFillLevel, sizeof(int));
+      ParallelDescriptor::ShareVar(&derivedLength, sizeof(int));
+      ParallelDescriptor::Synchronize();  // for ShareVar
+      ParallelDescriptor::Broadcast(ioProcNumber, &destBox, &destBox);
+      ParallelDescriptor::Broadcast(ioProcNumber, &fineFillLevel, &fineFillLevel);
+      ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength);
+      ParallelDescriptor::UnshareVar(&derivedLength);
+      ParallelDescriptor::UnshareVar(&fineFillLevel);
+      ParallelDescriptor::UnshareVar(&destBox);
+
+      derivedLengthPadded = derivedLength + 1;
+      derivedLengthPadded += derivedLengthPadded % 8;
+      derivedCharPtr = new char[derivedLengthPadded];
+      if(ParallelDescriptor::IOProcessor()) {
+        strcpy(derivedCharPtr, derivedTemp.c_str());
+      }
+      ParallelDescriptor::ShareVar(derivedCharPtr, derivedLengthPadded);
+      ParallelDescriptor::Synchronize();  // for ShareVar
+      ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
+				    derivedLengthPadded);
+      ParallelDescriptor::UnshareVar(derivedCharPtr);
+
+      aString derived(derivedCharPtr);
+      delete [] derivedCharPtr;
+
+      ds->WriteFab(fabFileName, destBox, fineFillLevel, derived);
+
     }
     break;
 
     case WriteFabAllVars:
     {
-      ParallelDescriptor::Abort("WriteFabAllVars not implemented yet.");
+      // interface: (requestType, dsPtr, fabFileName, box, maxLevel)
+      Box destBox;
+      int fineFillLevel;
+      aString fabFileName;
+
+      if(ParallelDescriptor::IOProcessor()) {
+        const aString &fabFileNameRef = va_arg(ap, const aString);
+	fabFileName = fabFileNameRef;
+        const Box &boxRef = va_arg(ap, const Box);
+	destBox = boxRef;
+        fineFillLevel = va_arg(ap, int);
+      }
+      ParallelDescriptor::ShareVar(&destBox, sizeof(Box));
+      ParallelDescriptor::ShareVar(&fineFillLevel, sizeof(int));
+      ParallelDescriptor::Synchronize();  // for ShareVar
+      ParallelDescriptor::Broadcast(ioProcNumber, &destBox, &destBox);
+      ParallelDescriptor::Broadcast(ioProcNumber, &fineFillLevel, &fineFillLevel);
+      ParallelDescriptor::UnshareVar(&fineFillLevel);
+      ParallelDescriptor::UnshareVar(&destBox);
+
+      ds->WriteFab(fabFileName, destBox, fineFillLevel);
+
     }
     break;
 
@@ -198,7 +275,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       int slicenum;
       aString derivedTemp;
       char *derivedCharPtr;
-      int derivedLength;
+      int derivedLength, derivedLengthPadded;
       if(ParallelDescriptor::IOProcessor()) {
         slicedir = va_arg(ap, int);
         slicenum = va_arg(ap, int);
@@ -217,14 +294,16 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       ParallelDescriptor::UnshareVar(&slicenum);
       ParallelDescriptor::UnshareVar(&slicedir);
 
-      derivedCharPtr = new char[derivedLength + 1];  // for the null
+      derivedLengthPadded = derivedLength + 1;
+      derivedLengthPadded += derivedLengthPadded % 8;
+      derivedCharPtr = new char[derivedLengthPadded];
       if(ParallelDescriptor::IOProcessor()) {
         strcpy(derivedCharPtr, derivedTemp.c_str());
       }
-      ParallelDescriptor::ShareVar(derivedCharPtr, derivedLength + 1);
+      ParallelDescriptor::ShareVar(derivedCharPtr, derivedLengthPadded);
       ParallelDescriptor::Synchronize();  // for ShareVar
       ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
-				    derivedLength + 1);
+				    derivedLengthPadded);
       ParallelDescriptor::UnshareVar(derivedCharPtr);
 
       aString derived(derivedCharPtr);
@@ -261,7 +340,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       Box box;
       aString derivedTemp;
       char *derivedCharPtr;
-      int derivedLength;
+      int derivedLength, derivedLengthPadded;
       if(ParallelDescriptor::IOProcessor()) {
         const Box &boxRef = va_arg(ap, const Box);
         const aString &derivedRef = va_arg(ap, const aString);
@@ -277,14 +356,16 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       ParallelDescriptor::UnshareVar(&derivedLength);
       ParallelDescriptor::UnshareVar(&box);
 
-      derivedCharPtr = new char[derivedLength + 1];  // for the null
+      derivedLengthPadded = derivedLength + 1;
+      derivedLengthPadded += derivedLengthPadded % 8;
+      derivedCharPtr = new char[derivedLengthPadded];
       if(ParallelDescriptor::IOProcessor()) {
         strcpy(derivedCharPtr, derivedTemp.c_str());
       }
-      ParallelDescriptor::ShareVar(derivedCharPtr, derivedLength + 1);
+      ParallelDescriptor::ShareVar(derivedCharPtr, derivedLengthPadded);
       ParallelDescriptor::Synchronize();  // for ShareVar
       ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
-				    derivedLength + 1);
+				    derivedLengthPadded);
       ParallelDescriptor::UnshareVar(derivedCharPtr);
 
       aString derived(derivedCharPtr);
@@ -317,7 +398,8 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       Box box;
       aString derivedTemp;
       char *derivedCharPtr;
-      int derivedLength, level;
+      int level;
+      int derivedLength, derivedLengthPadded;
       Real dataMin, dataMax;
       bool minMaxValid;
       if(ParallelDescriptor::IOProcessor()) {
@@ -339,14 +421,16 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       ParallelDescriptor::UnshareVar(&derivedLength);
       ParallelDescriptor::UnshareVar(&box);
 
-      derivedCharPtr = new char[derivedLength + 1];  // for the null
+      derivedLengthPadded = derivedLength + 1;
+      derivedLengthPadded += derivedLengthPadded % 8;
+      derivedCharPtr = new char[derivedLengthPadded];
       if(ParallelDescriptor::IOProcessor()) {
         strcpy(derivedCharPtr, derivedTemp.c_str());
       }
-      ParallelDescriptor::ShareVar(derivedCharPtr, derivedLength + 1);
+      ParallelDescriptor::ShareVar(derivedCharPtr, derivedLengthPadded);
       ParallelDescriptor::Synchronize();  // for ShareVar
       ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
-				    derivedLength + 1);
+				    derivedLengthPadded);
       ParallelDescriptor::UnshareVar(derivedCharPtr);
 
       aString derived(derivedCharPtr);

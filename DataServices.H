@@ -8,8 +8,11 @@
 #include "aString.H"
 #include "AmrData.H"
 
-//#include <cstdarg>
+#ifdef BL_USE_NEW_HFILES
+#include <cstdarg>
+#else
 #include <stdarg.h>
+#endif
 
 
 
@@ -36,6 +39,7 @@ class DataServices {
     DataServices(const aString &filename, const FileType &filetype);
     ~DataServices();
 
+    static void SetBatchMode();
     static void Dispatch(DSRequestType requestType, DataServices *ds, ...);
 
 
@@ -115,6 +119,7 @@ class DataServices {
 
     static Array<DataServices *> dsArray;
     static int dsArrayIndexCounter;
+    static bool dsBatchMode;
 };
 
 #endif

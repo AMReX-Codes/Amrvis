@@ -69,8 +69,8 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
     vpret = vpSetVolumeSize(vpc, rows, cols, planes);
     CheckVP(vpret, 1);
 
-    bVolRenderDefined = true;
   }
+  bVolRenderDefined = true;
 }  // end VolRender()
 
 
@@ -151,7 +151,11 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
   }
 
   if( ! swfDataAllocated) {
-    AllocateSWFData();
+    if(ParallelDescriptor::IOProcessor()) {
+      swfDataAllocated = AllocateSWFData();
+    } else {
+      swfDataAllocated = true;
+    }
   }
 
       swfDataValid = true;
@@ -206,7 +210,7 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
         int sendc   = swfDataBox.bigEnd(YDIR);
         int sendp   = swfDataBox.bigEnd(ZDIR);
 
-          Box gbox = swfDataBox;
+          Box gbox(swfDataBox);
           Box goverlap = gbox & drawnDomain[maxDrawnLevel];
           //grefbox = goverlap;
           //grefbox.refine(crr);
@@ -447,29 +451,37 @@ void VolRender::MakeSWFDataOneProc(DataServices *dataServicesPtr,
 void VolRender::WriteSWFData(const aString &filenamebase) {
   assert(bVolRenderDefined);
   if(ParallelDescriptor::IOProcessor()) {
-#if LIGHTING
     cout << "vpClassifyScalars..." << endl;           // --- classify
     clock_t time0 = clock();
+#if LIGHTING
     vpret = vpClassifyScalars(vpc, swfData, swfDataSize,
                       DENSITY_FIELD, GRADIENT_FIELD, NORMAL_FIELD);
     CheckVP(vpret, 3);
+#else
+    MakeVPData();
+    vpret = vpClassifyVolume(vpc);
+    CheckVP(vpret, 9.501);
+#endif
 
     cout << "----- make vp data time = " << ((clock()-time0)/1000000.0) << endl;
     aString filename = "swf.";
     filename += filenamebase;
     filename += ".vpdat";
     cout << "----- storing classified volume into file:  " << filename << endl;
-#ifndef S_IRWXU  /* the T3E does not define this */
-#define S_IRWXU 0000700
+#ifndef S_IRUSR  /* the T3E does not define this */
+#define S_IRUSR 0000400
 #endif
-    int fp = open(filename.c_str(), O_CREAT | O_WRONLY, S_IRWXU);
+#ifndef S_IWUSR  /* the T3E does not define this */
+#define S_IWUSR 0000200
+#endif
+#ifndef S_IRGRP  /* the T3E does not define this */
+#define S_IRGRP 0000040
+#endif
+    int fp = open(filename.c_str(), O_CREAT | O_WRONLY,
+		  S_IRUSR | S_IWUSR | S_IRGRP);
     vpret = vpStoreClassifiedVolume(vpc, fp);
     CheckVP(vpret, 4);
     close(fp);
-#else
-    cerr << "fix WriteSWFData" << endl;
-    exit(-4);
-#endif
   }
 }
 

@@ -541,7 +541,6 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 
 // ---------------------------------------------------------------
 bool AmrData::ReadNonPlotfileData(const aString &filename, FileType filetype) {
-/*
   int i;
   if(Verbose()) {
      cout << "AmrPlot::opening file = " << filename << endl;
@@ -575,43 +574,51 @@ bool AmrData::ReadNonPlotfileData(const aString &filename, FileType filetype) {
   refRatio[0] = 1;
   for(i = 0; i < BL_SPACEDIM; i++) {
     probLo[i] = 0.0;
-    probHi[i] = 1.0;  // ??  normalized
+    probHi[i] = 1.0;  // arbitrarily
     probSize[i] = probHi[i] - probLo[i];
     dxLevel[0][i] = 0.0;
   }
 
   dataGrids.resize(finestLevel + 1);
-  dataGrids[0] = new MultiFab;
-  //probDomain[0] = g->box();
+  dataGridsDefined.resize(finestLevel + 1);
 
   if(fileType == FAB) {
     FArrayBox *newfab = new FArrayBox;
-    newfab->readFrom(is);
+    nComp = newfab->readFrom(is, 0);  // read the first component
     Box fabbox(newfab->box());
-    BoxArray fabboxarray(&fabbox, 1);
-    dataGrids[0]->define(fabboxarray, 0, Fab_noallocate);
-    dataGrids[0]->setFab(0, newfab);
-    nComp = newfab->nComp();
-    char fabname[20];
+    fabBoxArray.resize(1);
+    fabBoxArray.set(0, fabbox);
+    dataGrids[0].resize(nComp);
+    dataGridsDefined[0].resize(nComp);
+    dataGridsDefined[0][0].resize(1);
+    dataGrids[0][0] = new MultiFab;
+    int nGrow(0);
+    dataGrids[0][0]->define(fabBoxArray, nGrow, Fab_noallocate);
+    dataGrids[0][0]->setFab(0, newfab);
+    dataGridsDefined[0][0][0] = true;
+    // read subsequent components
+    // need to optimize this for lazy i/o
+    for(int iComp = 1; iComp < nComp; ++iComp) {
+      dataGrids[0][iComp] = new MultiFab;
+      dataGrids[0][iComp]->define(fabBoxArray, nGrow, Fab_noallocate);
+      dataGrids[0][iComp]->setFab(0, newfab);
+      dataGridsDefined[0][iComp].resize(1);
+      dataGridsDefined[0][iComp][0] = true;
+    }
+    char fabname[32];  // arbitrarily
     plotVars.resize(nComp);
     for(i = 0; i < nComp; i++) {
       sprintf(fabname, "%s%d", "Fab_", i);
       plotVars[i] = fabname;
     }
     probDomain[0] = newfab->box();
-  //} else if(fileType == BOXDATA) {
-  //  nComp = 1;
-  //  plotVars.resize(nComp);
-  //  plotVars[0] = "boxdata";
-  //} else if(fileType == BOXCHAR) {
-  //  nComp = 1;
-  //  plotVars.resize(nComp);
-  //  plotVars[0] = "boxchar";
+  } else if(fileType == MULTIFAB) {
+    cerr << "MULTIFAB file type not yet supported." << endl;
+    return false;
   }
 
   is.close();
 
-*/
   return true;
 }
 
@@ -1218,11 +1225,15 @@ int AmrData::NIntersectingGrids(int level, const Box &b) const {
   assert(level >=0 && level <= finestLevel);
   assert(b.ok());
 
-  int nGrids = 0;
-  const BoxArray &visMFBA = visMF[level]->boxArray();
-  for(int boxIndex = 0; boxIndex < visMFBA.length(); ++boxIndex) {
-    if(b.intersects(visMFBA[boxIndex])) {
-      ++nGrids;
+  int nGrids(0);
+  if(fileType == FAB) {
+    nGrids = 1;
+  } else {
+    const BoxArray &visMFBA = visMF[level]->boxArray();
+    for(int boxIndex = 0; boxIndex < visMFBA.length(); ++boxIndex) {
+      if(b.intersects(visMFBA[boxIndex])) {
+        ++nGrids;
+      }
     }
   }
   return nGrids;
@@ -1233,13 +1244,17 @@ int AmrData::FinestContainingLevel(const Box &b, int startLevel) const {
   assert(startLevel >= 0 && startLevel <= finestLevel);
   assert(b.ok());
 
-  Box levelBox(b);
-  for(int level = startLevel; level > 0; level--) {
-    const BoxArray &visMFBA = visMF[level]->boxArray();
-    if(visMFBA.contains(levelBox)) {
-      return level;
+  if(fileType == FAB) {
+    return 0;
+  } else {
+    Box levelBox(b);
+    for(int level = startLevel; level > 0; --level) {
+      const BoxArray &visMFBA = visMF[level]->boxArray();
+      if(visMFBA.contains(levelBox)) {
+        return level;
+      }
+      levelBox.coarsen(refRatio[level - 1]);
     }
-    levelBox.coarsen(refRatio[level - 1]);
   }
   return 0;
 }
@@ -1261,11 +1276,14 @@ MultiFab &AmrData::GetGrids(int level, int componentIndex) {
 // ---------------------------------------------------------------
 MultiFab &AmrData::GetGrids(int level, int componentIndex, const Box &onBox) {
 
-  for(MultiFabIterator mfi(*dataGrids[level][componentIndex]);
-      mfi.isValid(); ++mfi)
-  {
-    if(onBox.intersects(visMF[level]->boxArray()[mfi.index()])) {
-      DefineFab(level, componentIndex, mfi.index());
+  if(fileType == FAB) {
+  } else {
+    for(MultiFabIterator mfi(*dataGrids[level][componentIndex]);
+        mfi.isValid(); ++mfi)
+    {
+      if(onBox.intersects(visMF[level]->boxArray()[mfi.index()])) {
+        DefineFab(level, componentIndex, mfi.index());
+      }
     }
   }
 
@@ -1293,7 +1311,7 @@ bool AmrData::MinMax(const Box &onBox, const aString &derived, int level,
   assert(onBox.ok());
 
   bool valid(false);  // does onBox intersect any grids (are minmax valid)
-  FArrayBox *fabPtr;
+  //FArrayBox *fabPtr;
   Real min, max;
   dataMin =  AV_BIG_REAL;
   dataMax = -AV_BIG_REAL;
@@ -1309,32 +1327,52 @@ bool AmrData::MinMax(const Box &onBox, const aString &derived, int level,
 
   int compIndex(StateNumber(derived));
 
-  for(MultiFabIterator gpli(*dataGrids[level][compIndex]); gpli.isValid(); ++gpli) {
-    Real visMFMin(visMF[level]->min(gpli.index(), compIndex));
-    Real visMFMax(visMF[level]->max(gpli.index(), compIndex));
-    if(onBox.contains(gpli.validbox())) {
-      dataMin = Min(dataMin, visMFMin);
-      dataMax = Max(dataMax, visMFMax);
-      valid = true;
-    } else if(onBox.intersects(visMF[level]->boxArray()[gpli.index()])) {
-      if(visMFMin < dataMin || visMFMax > dataMax) {  // do it the hard way
-	DefineFab(level, compIndex, gpli.index());
-        valid = true;
-        overlap = onBox;
-        overlap &= gpli.validbox();
-        //fabPtr = new FArrayBox(overlap, 1);
-        //fabPtr->copy(gpli(), 0, 0, 1);
-        //min = fabPtr->min(0);
-        //max = fabPtr->max(0);
-        min = gpli().min(overlap, 0);
-        max = gpli().max(overlap, 0);
+  if(fileType == FAB) {
+    for(MultiFabIterator gpli(*dataGrids[level][compIndex]);
+	gpli.isValid(); ++gpli)
+    {
+      if(onBox.intersects(dataGrids[level][compIndex]->boxArray()[gpli.index()])) {
+          valid = true;
+          overlap = onBox;
+          overlap &= gpli.validbox();
+          min = gpli().min(overlap, 0);
+          max = gpli().max(overlap, 0);
 
-        //delete fabPtr;
-        dataMin = Min(dataMin, min);
-        dataMax = Max(dataMax, max);
-      }  // end if(visMFMin...)
+          dataMin = Min(dataMin, min);
+          dataMax = Max(dataMax, max);
+      }
+    }
+  } else {
+    for(MultiFabIterator gpli(*dataGrids[level][compIndex]);
+	gpli.isValid(); ++gpli)
+    {
+      Real visMFMin(visMF[level]->min(gpli.index(), compIndex));
+      Real visMFMax(visMF[level]->max(gpli.index(), compIndex));
+      if(onBox.contains(gpli.validbox())) {
+        dataMin = Min(dataMin, visMFMin);
+        dataMax = Max(dataMax, visMFMax);
+        valid = true;
+      } else if(onBox.intersects(visMF[level]->boxArray()[gpli.index()])) {
+        if(visMFMin < dataMin || visMFMax > dataMax) {  // do it the hard way
+	  DefineFab(level, compIndex, gpli.index());
+          valid = true;
+          overlap = onBox;
+          overlap &= gpli.validbox();
+          //fabPtr = new FArrayBox(overlap, 1);
+          //fabPtr->copy(gpli(), 0, 0, 1);
+          //min = fabPtr->min(0);
+          //max = fabPtr->max(0);
+          min = gpli().min(overlap, 0);
+          max = gpli().max(overlap, 0);
+
+          //delete fabPtr;
+          dataMin = Min(dataMin, min);
+          dataMax = Max(dataMax, max);
+        }  // end if(visMFMin...)
+      }
     }
   }
+
   ParallelDescriptor::ReduceRealMin(dataMin);
   ParallelDescriptor::ReduceRealMax(dataMax);
 

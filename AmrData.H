@@ -36,6 +36,7 @@ class AmrData {
 	int nRegions;         // number of boundary regions
 	int boundaryWidth;    // number of zones in the boundary regions
 	Array< Array< FArrayBox *> > regions; // [lev][nReg]  ptrs to bndry data
+	BoxArray fabBoxArray;  // used only for fileType == FAB
 	
 	FileType fileType;
 
@@ -55,7 +56,13 @@ class AmrData {
         int FinestLevel() const		{ return finestLevel; }
         const Array<int> &RefRatio() const      { return refRatio; }
         const BoxArray &boxArray(int level) const
-				   { return visMF[level]->boxArray(); }
+				   {
+				     if(fileType == FAB) {
+				       return fabBoxArray;
+				     } else {
+				     return visMF[level]->boxArray();
+				     }
+				   }
 
 	// limits of interior region of computational domain at each level
         const Array<Box> &ProbDomain() const { return probDomain; }

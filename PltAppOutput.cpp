@@ -200,11 +200,12 @@ void PltApp::DoCreateFABFile(Widget w, XtPointer, XtPointer call_data) {
   char *fileNameBase;
   XmStringGetLtoR(cbs->value, XmSTRING_DEFAULT_CHARSET, &fileNameBase);
   sprintf(fabfilename, "%s.fab", fileNameBase);
+  aString fabFileName(fabfilename);
         
-  const char *derivedQuantity = amrPicturePtrArray[0]->CurrentDerived().c_str();
+  aString derivedQuantity(amrPicturePtrArray[0]->CurrentDerived());
   Array<Box> bx = amrPicturePtrArray[0]->GetSubDomain();
   DataServices::Dispatch(DataServices::WriteFabOneVar, dataServicesPtr,
-                         fabfilename, bx[maxDrawnLevel], maxDrawnLevel,
+                         fabFileName, bx[maxDrawnLevel], maxDrawnLevel,
 			 derivedQuantity);
   XtDestroyWidget(w);
 }  // end DoCreateFABFile
