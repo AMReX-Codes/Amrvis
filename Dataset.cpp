@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Dataset.cpp,v 1.28 1998-11-26 00:15:33 vince Exp $
+// $Id: Dataset.cpp,v 1.29 1999-10-05 18:49:12 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -293,18 +293,20 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
   hDIR = hdir;
   vDIR = vdir;
   sDIR = sdir;
-  if (hDIR == 0)
+  if(hDIR == 0) {
     hAxisString = "x";
-  else if (hDIR == 1)     
+  } else if(hDIR == 1) {
     hAxisString = "y";
-  else 
+  } else {
     hAxisString = "error";
-  if (vDIR == 1)
+  }
+  if(vDIR == 1) {
     vAxisString = "y";
-  else if (vDIR == 2)
+  } else if(vDIR == 2) {
     vAxisString = "z";
-  else
+  } else {
     vAxisString = "error";
+  }
 
   if( ! stringOk) {
     return;
@@ -381,7 +383,7 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
           ddl = d*dataBox.length(hDIR);
           for(c = 0; c < dataBox.length(hDIR); ++c) {
             sprintf(dataString, formatString.c_str(), dataPoint[c+ddl]);
-            largestWidth = Max((int)strlen(dataString), largestWidth);
+            largestWidth = Max((int) strlen(dataString), largestWidth);
           }
         }
       }

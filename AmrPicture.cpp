@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.cpp,v 1.38 1999-05-10 18:54:17 car Exp $
+// $Id: AmrPicture.cpp,v 1.39 1999-10-05 18:49:12 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -504,6 +504,9 @@ void AmrPicture::DrawBoxes(Array< Array<GridPicture> > &gp,
 {
   short xbox, ybox;
   unsigned short wbox, hbox;
+  bool bIsWindow(true);
+  bool bIsPixmap(false);
+  const AmrData &amrData = dataServicesPtr->AmrDataRef();
 
   if(showBoxes) {
     for(int level = minDrawnLevel; level <= maxDrawnLevel; ++level) {
@@ -513,14 +516,18 @@ void AmrPicture::DrawBoxes(Array< Array<GridPicture> > &gp,
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(),
 		       MaxPaletteIndex()-80*(level-1));
       }
-      for(int i = 0; i < gp[level].length(); ++i) {
-	xbox = gp[level][i].HPositionInPicture();
-	ybox = gp[level][i].VPositionInPicture();
-	wbox = gp[level][i].ImageSizeH(); 
-	hbox = gp[level][i].ImageSizeV(); 
+      if(amrData.Terrain()) {
+	DrawTerrBoxes(level, bIsWindow, bIsPixmap);
+      } else {
+        for(int i = 0; i < gp[level].length(); ++i) {
+	  xbox = gp[level][i].HPositionInPicture();
+	  ybox = gp[level][i].VPositionInPicture();
+	  wbox = gp[level][i].ImageSizeH(); 
+	  hbox = gp[level][i].ImageSizeV(); 
 
-        XDrawRectangle(GAptr->PDisplay(), drawable,  GAptr->PGC(),
-			xbox, ybox, wbox, hbox);
+          XDrawRectangle(GAptr->PDisplay(), drawable,  GAptr->PGC(),
+			  xbox, ybox, wbox, hbox);
+        }
       }
     }
   }
@@ -528,6 +535,142 @@ void AmrPicture::DrawBoxes(Array< Array<GridPicture> > &gp,
   XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->WhiteIndex());
   XDrawRectangle(GAptr->PDisplay(), drawable, GAptr->PGC(), 0, 0,
 			imageSizeH-1, imageSizeV-1);
+}
+
+
+// ---------------------------------------------------------------------
+void AmrPicture::DrawTerrBoxes(int level, bool bIsWindow, bool bIsPixmap) {
+/*
+  int i, lev, ix;
+  short xbox, ybox;
+  unsigned short wbox, hbox;
+
+  BL_ASSERT((bIsWindow ^ bIsPixmap) == true);
+
+  const AmrData &amrData = dataServicesPtr->AmrDataRef();
+  int expansion(pltAppPtr->GetExpansion());
+  int hScale(pltAppPtr->CurrentScale() * expansion);
+
+  if(finestLevel+1 != numberOfLevels) {
+    for(lev = numberOfLevels-1; lev < finestLevel; lev++) {
+       //IntVect ref_ratio = amrData.RefRatio(lev);
+       hScale = hScale / amrData.RefRatio()[lev];
+    }
+  }
+
+  int vScale(hScale * pltAppPtr->GetZStretch());
+
+  const Array<Real> &dx  = amrData.DxLevel()[finestLevel];
+  const Array<Real> &dx0 = amrData.DxLevel()[0];
+
+  //  Note : this is based on DrawRTBoxes but hasnt been tested
+  Real index_zhi = vScale * dx0[0] / (expansion * dx[0]) *
+                   (subDomain[0].bigEnd()[BL_SPACEDIM-1] + 1);
+
+#if 0
+  if(level > 0) {
+    Real zhi(-1000000.0);
+    for(i = 0; i < gpArray[0].length(); ++i) {
+      GridPlot *gridptr_crse = gpArray[0][i].GetGridPtr();
+      DataBoxPlot *meshdb_crse = gridptr_crse->Mesh();
+      zhi = Max(zhi, meshdb_crse->max(0));
+    }
+    index_zhi = vScale * zhi / dx[0];
+  }
+#endif
+
+      for(i = 0; i < gpArray[level].length(); ++i) {
+        xbox = gpArray[level][i].HPositionInPicture();
+        ybox = gpArray[level][i].VPositionInPicture();
+        wbox = gpArray[level][i].ImageSizeH();
+        hbox = gpArray[level][i].ImageSizeV();
+
+        if(level == 0) {
+          if(bIsWindow) {
+            XDrawRectangle(GAptr->PDisplay(), pictureWindow,  GAptr->PGC(),
+                           xbox, ybox, wbox, hbox);
+          } else if(bIsPixmap) {
+            XDrawRectangle(GAptr->PDisplay(), pixMap,  GAptr->PGC(),
+                           xbox, ybox, wbox, hbox);
+          }
+
+        } else {
+
+          GridPlot *gridptr = gpArray[level][i].GetGridPtr();
+          DataBoxPlot *meshdb = gridptr->Mesh();
+          const Real *meshdat = meshdb->dataPtr();
+          const int *mlo  = meshdb->loVect();
+          const int *mhi  = meshdb->hiVect();
+          const int *mlen = meshdb->length();
+
+#if (BL_SPACEDIM == 2)
+#define M_L(i,j) i-mlo[0]+mlen[0]*(j-mlo[1])
+#elif (BL_SPACEDIM == 3)
+#define M_L(i,j,k) i-mlo[0]+mlen[0]*( (j-mlo[1]) + mlen[1]*(k-mlo[2]) )
+#endif
+
+#if (BL_SPACEDIM == 2)
+          Real xlo, xhi, ylo, yhi;
+
+          // Draw left boundary
+          ylo = index_zhi - vScale * meshdat[M_L(mlo[0], mlo[1])] / dx[0];
+          yhi = index_zhi - vScale * meshdat[M_L(mlo[0], mhi[1])] / dx[0];
+          xlo = hScale * mlo[0];
+          xhi = hScale * mlo[0];
+          if(bIsWindow) {
+            XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
+                      xlo, ylo, xhi, yhi);
+          } else if(bIsPixmap) {
+            XDrawLine(GAptr->PDisplay(), pixMap, GAptr->PGC(),
+                      xlo, ylo, xhi, yhi);
+          }
+
+          // Draw right boundary
+          ylo = index_zhi - vScale * meshdat[M_L(mhi[0], mlo[1])] / dx[0];
+          yhi = index_zhi - vScale * meshdat[M_L(mhi[0], mhi[1])] / dx[0];
+          xlo = hScale * mhi[0];
+          xhi = hScale * mhi[0];
+          if(bIsWindow) {
+            XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
+                      xlo, ylo, xhi, yhi);
+          } else if(bIsPixmap) {
+            XDrawLine(GAptr->PDisplay(), pixMap, GAptr->PGC(),
+                      xlo, ylo, xhi, yhi);
+          }
+
+          // Draw bottom boundary
+          for(ix = mlo[0]; ix < mhi[0]; ++ix) {
+            ylo = index_zhi-vScale*meshdat[M_L(ix,mlo[1])] / dx[0];
+            yhi = index_zhi-vScale*meshdat[M_L(ix+1,mlo[1])] / dx[0];
+            xlo = hScale * ix;
+            xhi = hScale * (ix + 1);
+            if(bIsWindow) {
+              XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
+                        xlo, ylo, xhi, yhi);
+            } else if(bIsPixmap) {
+              XDrawLine(GAptr->PDisplay(), pixMap, GAptr->PGC(),
+                        xlo, ylo, xhi, yhi);
+            }
+          }
+
+          // Draw top boundary
+          for(ix = mlo[0]; ix < mhi[0]; ++ix) {
+            ylo = index_zhi - vScale * meshdat[M_L(ix, mhi[1])] / dx[0];
+            yhi = index_zhi - vScale * meshdat[M_L(ix + 1, mhi[1])] / dx[0];
+            xlo = hScale * ix;
+            xhi = hScale * (ix + 1);
+            if(bIsWindow) {
+              XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
+                        xlo, ylo, xhi, yhi);
+            } else if(bIsPixmap) {
+              XDrawLine(GAptr->PDisplay(), pixMap, GAptr->PGC(),
+                        xlo, ylo, xhi, yhi);
+            }
+          }
+#endif
+        }
+      }
+*/
 }
 
 
@@ -1859,8 +2002,8 @@ void AmrPicture::SetContourNumber(int newContours) {
 // ---------------------------------------------------------------------
 void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
                              Display *passed_display, 
-                             Drawable &passed_PixMap, 
-                             GC passed_gc)
+                             Drawable &passedPixMap, 
+                             const GC &passedGC)
 {
   Real v_min(GetWhichMin());
   Real v_max(GetWhichMax());
@@ -1956,8 +2099,8 @@ void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
           drawColor += paletteStart;
         }
       }
-      contour(*(passedSliceFab[lev]), value, mask_bool, mask_array,
-              passed_display, passed_PixMap, passed_gc, drawColor,
+      DrawContour(*(passedSliceFab[lev]), value, mask_bool, mask_array,
+              passed_display, passedPixMap, passedGC, drawColor,
               passedSliceFab[lev]->box().length(hDir), 
               passedSliceFab[lev]->box().length(vDir),
               xlft, ybot, xrgt, ytop);
@@ -1968,10 +2111,10 @@ void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
 
 // contour plotting
 // ---------------------------------------------------------------------
-int AmrPicture::contour(const FArrayBox &fab, Real value,
+bool AmrPicture::DrawContour(const FArrayBox &fab, Real value,
                         bool has_mask, const bool *mask,
-                        Display *display, Drawable &dPixMap, GC gc, int FGColor,
-                        int xLength, int yLength,
+                        Display *display, Drawable &dPixMap, const GC &gc,
+			int FGColor, int xLength, int yLength,
                         Real leftEdge, Real bottomEdge, 
                         Real rightEdge, Real topEdge)
 {
@@ -1994,7 +2137,7 @@ int AmrPicture::contour(const FArrayBox &fab, Real value,
   Real xRight, yRight;            // where contour line intersects right side
   Real xBottom, yBottom;          // where contour line intersects bottom side
   Real xTop, yTop;                // where contour line intersects top side
-  bool failure_status = false;
+  bool bFailureStatus(false);
   for(int j = 0; j < yLength - 1; ++j) {
     for(int i = 0; i < xLength - 1; ++i) {
       if(has_mask) {
@@ -2026,7 +2169,7 @@ int AmrPicture::contour(const FArrayBox &fab, Real value,
           yLeft = yBottom + yDiff * (value - left_bottom) / (left_top-left_bottom);
         } else {
           yLeft = yBottom;
-          failure_status = true;
+          bFailureStatus = true;
         }
       }
       if(right) {
@@ -2034,7 +2177,7 @@ int AmrPicture::contour(const FArrayBox &fab, Real value,
           yRight = yBottom + yDiff*(value-right_bottom)/(right_top-right_bottom);
         } else {
           yRight = yBottom;
-          failure_status = true;
+          bFailureStatus = true;
         }
       }
       if(bottom) {
@@ -2042,7 +2185,7 @@ int AmrPicture::contour(const FArrayBox &fab, Real value,
           xBottom = xLeft + xDiff*(value-left_bottom)/(right_bottom-left_bottom);
         } else {
           xBottom = xRight;
-          failure_status = true;
+          bFailureStatus = true;
         }
       }
       if(top) {
@@ -2050,7 +2193,7 @@ int AmrPicture::contour(const FArrayBox &fab, Real value,
           xTop = xLeft + xDiff*(value-left_top)/(right_top-left_top);
         } else {
           xTop = xRight;
-          failure_status = true;
+          bFailureStatus = true;
         }
       }
       
@@ -2141,7 +2284,7 @@ int AmrPicture::contour(const FArrayBox &fab, Real value,
       
     }  // end for(i...)
   }  // end for(j...)
-  return failure_status;
+  return bFailureStatus;
 }
 
 
@@ -2251,26 +2394,25 @@ VectorDerived AmrPicture::FindVectorDerived(Array<aString> &aVectorDeriveNames) 
 
 // ---------------------------------------------------------------------
 void AmrPicture::DrawVectorField(Display *pDisplay, 
-                                 Drawable &pDrawable, GC pGC)
+                                 Drawable &pDrawable, const GC &pGC)
 {
   int hDir, vDir;
   if(myView == XY) {
-    hDir = 0;
-    vDir = 1;
+    hDir = XDIR;
+    vDir = YDIR;
   } else if(myView == XZ) {
-    hDir = 0;
-    vDir = 2;
+    hDir = XDIR;
+    vDir = ZDIR;
   } else if(myView == YZ) {
-    hDir = 1;
-    vDir = 2;
+    hDir = YDIR;
+    vDir = ZDIR;
   } else {
-    BL_ASSERT(0);
+    BL_ASSERT(false);
   }
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
   int DVFscale(pltAppPtr->CurrentScale());
   int DVFRatio(CRRBetweenLevels(maxDrawnLevel, 
-                                  maxAllowableLevel, 
-                                  amrData.RefRatio()));
+                                maxAllowableLevel, amrData.RefRatio()));
   // get velocity field
   Box DVFSliceBox(sliceFab[maxDrawnLevel]->box());
   int maxLength(DVFSliceBox.longside());
@@ -2351,17 +2493,17 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
   if(smax < 1.0e-8) {
     cout << "CONTOUR: zero velocity field" << endl;
   } else {
-    draw_vector_field(pDisplay, pDrawable, pGC, hDir, vDir, maxLength,
+    DrawVectorField(pDisplay, pDrawable, pGC, hDir, vDir, maxLength,
                       hdat, vdat, smax, DVFSliceBox, DVFscale*DVFRatio);
   }
 }
 
 
 // ---------------------------------------------------------------------
-void AmrPicture::draw_vector_field(Display *pDisplay, Drawable &pDrawable, 
-                                   GC pGC, int hDir, int vDir, int maxLength,
+void AmrPicture::DrawVectorField(Display *pDisplay, Drawable &pDrawable, 
+                                   const GC &pGC, int hDir, int vDir, int maxLength,
                                    const Real *hdat, const Real *vdat, 
-                                   Real velocityMax, Box dvfSliceBox,
+                                   const Real velocityMax, const Box &dvfSliceBox,
                                    int dvfFactor){
   int maxpoints(numberOfContours);  // partition longest side into 20 parts
   BL_ASSERT(maxpoints > 0);
@@ -2374,14 +2516,13 @@ void AmrPicture::draw_vector_field(Display *pDisplay, Drawable &pDrawable,
   Real eps(1.0e-3);
   Real arrowLength(0.25);
   XSetForeground(pDisplay, pGC, palPtr->WhiteIndex());
-  Box theBox(dvfSliceBox);
-  int ilo(theBox.smallEnd(hDir));
+  int ilo(dvfSliceBox.smallEnd(hDir));
   int leftEdge(ilo);
-  int ihi(theBox.bigEnd(hDir));
+  int ihi(dvfSliceBox.bigEnd(hDir));
   int nx(ihi - ilo + 1);
-  int jlo(theBox.smallEnd(vDir));
+  int jlo(dvfSliceBox.smallEnd(vDir));
   int bottomEdge(jlo);
-  int jhi(theBox.bigEnd(vDir));
+  int jhi(dvfSliceBox.bigEnd(vDir));
   Real xlft(ilo + 0.5);
   Real ybot(jlo + 0.5);
   for(int jj = jlo; jj <= jhi; jj += stride) {

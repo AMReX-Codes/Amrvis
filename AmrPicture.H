@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.H,v 1.25 1999-06-08 20:46:28 vince Exp $
+// $Id: AmrPicture.H,v 1.26 1999-10-05 18:49:12 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -64,7 +64,7 @@ class AmrPicture {
   void  ChangeRasterImage();
   void	ChangeScale(int newScale);
   void	ChangeLevel(int lowLevel, int hiLevel);
-  XImage	*GetPictureXImage();
+  XImage *GetPictureXImage();
   void	ChangeSlice(int here);
   
   void	SyncPicture();
@@ -76,56 +76,56 @@ class AmrPicture {
   void  SetHVLine();
   void	SetHLine(int hl)    { hLine = hl; }
   void	SetVLine(int vl)    { vLine = vl; }
-  int	GetHLine()          { return hLine; }
-  int	GetVLine()          { return vLine; }
-  int	GetSlice()          { return slice; }
-  aString	&CurrentDerived()   { return currentDerived; }
-  int	NumberOfLevels()    { return numberOfLevels; }
-  int	FinestLevel()       { return numberOfLevels - 1; }
-  int	MaxAllowableLevel() { return maxAllowableLevel; }
-  bool	ShowingBoxes()      { return showBoxes; }
-  void    SetShowBoxes(bool b) { showBoxes = b; }
-  unsigned int ImageSizeH()   { return imageSizeH; }
-  unsigned int ImageSizeV()   { return imageSizeV; }
-  DataServices *GetDataServicesPtr()    { return dataServicesPtr; } 
+  int	GetHLine() const    { return hLine; }
+  int	GetVLine() const    { return vLine; }
+  int	GetSlice() const    { return slice; }
+  const aString &CurrentDerived() const { return currentDerived; }
+  int	NumberOfLevels()    const { return numberOfLevels; }
+  int	FinestLevel()       const { return numberOfLevels - 1; }
+  int	MaxAllowableLevel() const { return maxAllowableLevel; }
+  bool	ShowingBoxes()      const { return showBoxes; }
+  void  SetShowBoxes(bool b) { showBoxes = b; }
+  unsigned int ImageSizeH() const { return imageSizeH; }
+  unsigned int ImageSizeV() const { return imageSizeV; }
+  DataServices *GetDataServicesPtr() const { return dataServicesPtr; } 
   void	SetDataServicesPtr(DataServices *tothis) { dataServicesPtr = tothis; } 
   void	SetDataMin(Real min) { dataMinSpecified = min; }
   void	SetDataMax(Real max) { dataMaxSpecified = max; }
-  Real	GetSpecifiedMin()    { return dataMinSpecified; }
-  Real	GetSpecifiedMax()    { return dataMaxSpecified; }
-  Real	GetMin()             { return dataMinAllGrids; }
-  Real	GetMax()             { return dataMaxAllGrids; }
-  Real	GetRegionMin()       { return dataMinRegion; }
-  Real	GetRegionMax()       { return dataMaxRegion; }
+  Real	GetSpecifiedMin() const { return dataMinSpecified; }
+  Real	GetSpecifiedMax() const { return dataMaxSpecified; }
+  Real	GetMin() const       { return dataMinAllGrids; }
+  Real	GetMax() const       { return dataMaxAllGrids; }
+  Real	GetRegionMin() const { return dataMinRegion; }
+  Real	GetRegionMax() const { return dataMaxRegion; }
   void	SetWhichRange(Range which);
   void  SetContourNumber(int);
-  int   GetContourNumber() { return numberOfContours; }
-  int   MinDrawnLevel() { return minDrawnLevel; }
-  int   MaxDrawnLevel() { return maxDrawnLevel; }
-  Range	GetWhichRange()         { return whichRange; }
+  int   GetContourNumber() const { return numberOfContours; }
+  int   MinDrawnLevel() const { return minDrawnLevel; }
+  int   MaxDrawnLevel() const { return maxDrawnLevel; }
+  Range	GetWhichRange() const   { return whichRange; }
   Real	GetWhichMin();
   Real	GetWhichMax();
   void	SetHColor(int c)          { hColor = c; }
   void	SetVColor(int c)          { vColor = c; }
-  Box	&GetSliceBox()            { return sliceBox[finestLevel]; }
-  int	GetMyView()               { return myView; }
-  Array<Box> &GetSubDomain()      { return subDomain; }
-  bool	FramesMade()              { return framesMade; }
+  const Box &GetSliceBox() const  { return sliceBox[finestLevel]; }
+  int	GetMyView() const         { return myView; }
+  const Array<Box> &GetSubDomain() const { return subDomain; }
+  bool	FramesMade() const        { return framesMade; }
   void	SetFrameSpeed(int toThis) { frameSpeed = toThis; }
-  int	GetFrameSpeed()           { return frameSpeed; }
+  int	GetFrameSpeed() const     { return frameSpeed; }
   GraphicsAttributes *GetGAPtr()  { return GAptr; }
   Palette *GetPalPtr()            { return palPtr; }
-  Real	MinUsing()                { return minUsing; }
-  Real	MaxUsing()                { return maxUsing; }
+  Real	MinUsing() const          { return minUsing; }
+  Real	MaxUsing() const          { return maxUsing; }
   Window	PictureWindow()   { return pictureWindow; }
   void	SetMaxDrawnLevel(int lev) { maxDrawnLevel = lev; }
   void  SetCartGridSmoothing(bool tf);
   PltApp *GetPltAppPtr()          { return pltAppPtr; }
   void ChangeContour(int);
-  bool Contours()     { return contours; }
-  bool Raster()       { return raster; }
-  bool ColorContour() { return colContour; }
-  bool VectorField()  { return vectorField; }
+  bool Contours() const     { return contours; }
+  bool Raster()   const     { return raster; }
+  bool ColorContour() const { return colContour; }
+  bool VectorField()  const { return vectorField; }
   VectorDerived FindVectorDerived(Array<aString> &aVectorDeriveNames);
 
  private:
@@ -184,6 +184,7 @@ class AmrPicture {
   void CreateFrames(AnimDirection direction);
   void AmrPictureInit();
   void DrawBoxes(Array< Array<GridPicture> > &gp, Drawable &drawable);
+  void DrawTerrBoxes(int level, bool bIsWindow, bool bIsPixmap);
   void CreateImage(const FArrayBox &fab, unsigned char *imagedata,
                    int datasizeh, int datasizev,
                    Real globalMin, Real globalMax, Palette *palptr);
@@ -192,19 +193,23 @@ class AmrPicture {
                          unsigned char *scaledimagedata,
                          int datasizeh, int datasizev,
                          int imagesizeh, int imagesizev);
-  void DrawContour(Array<FArrayBox *>, Display *, Drawable &, GC);
-  int contour(const FArrayBox &fab, Real value,
-              bool has_mask, const bool *mask,
-              Display *,Drawable &,GC, int FGColor,
-              int xLength, int yLength,
-              Real leftEdge, Real bottomEdge, Real rightEdge, Real topEdge);
+  void DrawContour(Array<FArrayBox *> slicefab, Display *display,
+		   Drawable &drawable, const GC &gc);
+  bool DrawContour(const FArrayBox &fab, Real value,
+                   bool has_mask, const bool *mask,
+                   Display *display, Drawable &drawable, const GC &gc, int FGColor,
+                   int xLength, int yLength,
+                   Real leftEdge, Real bottomEdge, Real rightEdge, Real topEdge);
   inline bool Between(Real a, Real b, Real c) {
-    return ( (a<=b)&&(b<=c) || (a>=b)&&(b>=c) );
+    return ( (a <= b) && (b <= c) || (a >= b) && (b >= c) );
   }
 
-  void DrawVectorField(Display *, Drawable &, GC);
-  void draw_vector_field(Display *, Drawable &, GC, int, int, int,
-                         const Real *, const Real *, Real, Box, int);
+  void DrawVectorField(Display *display, Drawable &drawable, const GC &gc);
+  void DrawVectorField(Display *display, Drawable &drawable, const GC &gc,
+		       int hDir, int vDir, int maxLength,
+                       const Real *hdat, const Real *vdat,
+		       const Real velocityMax,
+		       const Box &dvfSliceBox, int dvfFactor);
 };
 
 #endif
