@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.48 2003-02-12 23:02:23 vince Exp $
+// $Id: VolRender.cpp,v 1.49 2003-12-11 01:48:51 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -228,14 +228,14 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
   if(ParallelDescriptor::IOProcessor()) {
     Real gmin(rDataMin);
     Real gmax(rDataMax);
-    Real globalDiff = gmax - gmin;
+    Real globalDiff(gmax - gmin);
     Real oneOverGDiff;
     if(globalDiff < FLT_MIN) {
       oneOverGDiff = 0.0;  // so we dont divide by zero
     } else {
       oneOverGDiff = 1.0 / globalDiff;
     }
-    int cSlotsAvail = iColorSlots - 1;
+    int cSlotsAvail(iColorSlots - 1);
     
     cout << "Filling swfFabData..." << endl;
     
@@ -278,28 +278,33 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
     int gpgcgrtmp, gcgrowstmp;
     int gprev;
     for(int gp(gostartp); gp <= goendp; ++gp) {
-      gpgcgrtmp = gp*gcolsgrowstmp;
+      gpgcgrtmp = gp * gcolsgrowstmp;
       for(int gc(gostartc); gc <= goendc; ++gc) {
-        gcgrowstmp = gpgcgrtmp + gc*grows;
+        gcgrowstmp = gpgcgrtmp + gc * grows;
         for(int gr(gostartr); gr <= goendr; ++gr) {
-          //dat = dataPoint[(gp*gcols*grows)+(gc*grows)+gr];  // works
+          //dat = dataPoint[(gp * gcols * grows) + (gc * grows) + gr];  // works
           dat = dataPoint[gcgrowstmp + gr];
           dat = max(dat,gmin); // clip data if out of range
           dat = min(dat,gmax);
-          chardat = (char) (((dat-gmin)*oneOverGDiff)*cSlotsAvail);
+          chardat = (char) (((dat - gmin) * oneOverGDiff) * cSlotsAvail);
           chardat += (char) iPaletteStart;
 	  gprev = gostartp + goendp - gp;
           sindexbase =
-            //(((gp+gstartp)-sstartp) * scolssrowstmp) +
-            (((gprev+gstartp)-sstartp) * scolssrowstmp) +
-            ((sendc-((gc+gstartc))) * srows) +  // check this
-            ((gr+gstartr)-sstartr);
+            //(((gp + gstartp) - sstartp) * scolssrowstmp) +
+            (((gprev + gstartp) - sstartp) * scolssrowstmp) +
+            ((sendc - ((gc + gstartc))) * srows) +  // check this
+            ((gr + gstartr) - sstartr);
           
           swfData[sindexbase] = chardat;
         }
       }
     }  // end for(gp...)
 
+cout << "******************************(((((((((" << endl;
+SHOWVAL(cSlotsAvail);
+SHOWVAL(oneOverGDiff);
+SHOWVAL(iPaletteStart);
+cout << "******************************)))))))))" << endl;
                                                 // ---------------- VolumeBoxes
     bool bDrawVolumeBoxes(AVGlobals::GetBoxColor() > -1);  // need to limit
                                                            // to palmaxindex
@@ -655,7 +660,7 @@ void VolRender::WriteSWFData(const string &filenamebase, bool SWFLight) {
         vpResult vpret;
         bool PCtemp(preClassify);
         preClassify = true;
-        //here set lighting or value model
+        // here set lighting or value model
         bool bLMtemp(lightingModel);
         lightingModel = SWFLight;
  

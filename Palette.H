@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.H,v 1.29 2003-02-28 02:01:37 vince Exp $
+// $Id: Palette.H,v 1.30 2003-12-11 01:48:51 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -43,7 +43,7 @@ class Palette {
     Colormap    colmap;
     int         totalColorSlots, colorSlots;
     int         reserveSystemColors, colorOffset, paletteStart;
-    Pixel 	blackIndex, whiteIndex, bodyIndex;
+    int 	blackIndex, whiteIndex, bodyIndex;
     Real	pmin, pmax;
     string	defaultFormat;
     Array<float>  transferArray;
@@ -80,16 +80,19 @@ class Palette {
     Colormap GetColormap() const  { return colmap; }
     const Array<XColor> &GetColorCells() const { return ccells; }
     const map<Pixel, XColor> &GetColorCellsMap() const { return mcells; }
-    Pixel BlackIndex()   const;
-    Pixel WhiteIndex()   const;
-    Pixel BodyIndex()   const;
+    int   BlackIndex()   const    { return blackIndex; }
+    int   WhiteIndex()   const    { return whiteIndex; }
+    int   BodyIndex()   const;
+    Pixel AVBlackPixel()   const;
+    Pixel AVWhitePixel()   const;
+    //Pixel AVBodyPixel()   const;
     int  ColorSlots()    const    { return colorSlots;     }
     int  PaletteStart()  const    { return paletteStart;   }
     int  PaletteEnd()    const    { return totalColorSlots - 1; }
     int  PaletteSize()   const    { return totalColorSlots;     }
     int  PaletteWidth()  const    { return totalPalWidth;  }
     int  PaletteHeight() const    { return totalPalHeight; }
-    unsigned int SafePaletteIndex(unsigned int atlevel = 0) const;
+    unsigned int SafePaletteIndex(unsigned int atlevel = 0, int mlev = 8) const;
     Real PaletteMin()    const    { return pmin; }
     Real PaletteMax()    const    { return pmax; }
     const Array<Real> &PaletteDataList() const { return dataList; }

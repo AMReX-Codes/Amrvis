@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.50 2003-05-21 23:02:25 vince Exp $
+// $Id: Dataset.cpp,v 1.51 2003-12-11 01:48:51 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -63,8 +63,10 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
   hStringOffset = 12;
   vStringOffset = -4;
 
-  whiteIndex = int(pltAppPtr->GetPalettePtr()->WhiteIndex());
-  blackIndex = int(pltAppPtr->GetPalettePtr()->BlackIndex());
+  //whiteIndex = int(pltAppPtr->GetPalettePtr()->WhiteIndex());
+  //blackIndex = int(pltAppPtr->GetPalettePtr()->BlackIndex());
+  whiteIndex = int(pltAppPtr->GetPalettePtr()->AVWhitePixel());
+  blackIndex = int(pltAppPtr->GetPalettePtr()->AVBlackPixel());
 
   indexWidth  = MAXINDEXCHARS * CHARACTERWIDTH;
   indexHeight = CHARACTERHEIGHT + 7;

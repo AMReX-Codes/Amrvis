@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.cpp,v 1.51 2003-02-28 02:01:38 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.52 2003-12-11 01:48:51 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -70,23 +70,25 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
     boxReal[lev].resize(nBoxes);
     boxTrans[lev].resize(nBoxes);
   }
-  subCutColor = 160;
-  sliceColor = 100;
+  subCutColor = palettePtr->makePixel(palettePtr->SafePaletteIndex(maxDataLevel + 1,
+                                                                  maxDataLevel));
+  sliceColor  = palettePtr->makePixel(palettePtr->SafePaletteIndex(maxDataLevel + 2,
+                                                                  maxDataLevel));
   boxColors.resize(maxDataLevel + 1);
   for(lev = minDrawnLevel; lev <= maxDataLevel; ++lev) {
     int iBoxIndex(0);
     if(lev == minDrawnLevel) {
-      boxColors[lev] = pltAppPtr->GetPalettePtr()->WhiteIndex();
+      boxColors[lev] = palettePtr->AVWhitePixel();
     } else {
-      boxColors[lev] = palettePtr->SafePaletteIndex(lev);
+      boxColors[lev] = palettePtr->makePixel(
+                                 palettePtr->SafePaletteIndex(lev, maxDataLevel));
     }
-    boxColors[lev] = max(0, min(AVGlobals::MaxPaletteIndex(), boxColors[lev]));
     for(int iBox(0); iBox < amrData.boxArray(lev).size(); ++iBox) {
       Box temp(amrData.boxArray(lev)[iBox]);
       if(temp.intersects(theDomain[lev])) {
         temp &= theDomain[lev];
         AddBox(temp.refine(AVGlobals::CRRBetweenLevels(lev, maxDataLevel,
-		amrData.RefRatio())), iBoxIndex, lev);
+               amrData.RefRatio())), iBoxIndex, lev);
 	++iBoxIndex;
       }
     }
@@ -127,8 +129,28 @@ ProjectionPicture::~ProjectionPicture() {
 
 
 // -------------------------------------------------------------------
+void ProjectionPicture::ResetPalette(Palette *newpally) {
+  palettePtr = newpally;
+  int minDrawnLevel = pltAppPtr->GetPltAppState()->MinDrawnLevel();
+  int maxDataLevel = pltAppPtr->GetPltAppState()->MaxAllowableLevel();
+  subCutColor = palettePtr->makePixel(palettePtr->SafePaletteIndex(maxDataLevel + 1,
+                                                                  maxDataLevel));
+  sliceColor  = palettePtr->makePixel(palettePtr->SafePaletteIndex(maxDataLevel + 2,
+                                                                  maxDataLevel));
+  for(int lev(minDrawnLevel); lev <= maxDataLevel; ++lev) {
+    if(lev == minDrawnLevel) {
+      boxColors[lev] = palettePtr->AVWhitePixel();
+    } else {
+      boxColors[lev] = palettePtr->makePixel(
+                                 palettePtr->SafePaletteIndex(lev, maxDataLevel));
+    }
+  }
+}
+
+
+// -------------------------------------------------------------------
 void ProjectionPicture::AddBox(const Box &theBox, int index, int level) {
-    boxReal[level][index] = RealBox(theBox);
+  boxReal[level][index] = RealBox(theBox);
 }
 
 
@@ -285,7 +307,6 @@ void ProjectionPicture::DrawBoxesIntoDrawable(const Drawable &drawable,
   
   if(pltAppPtr->GetPltAppState()->GetShowingBoxes()) {
     for(int iLevel(iFromLevel); iLevel <= iToLevel; ++iLevel) {
-      // FIXME:
       XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
                      boxColors[iLevel]);
       int nBoxes(boxTrans[iLevel].size());
@@ -297,26 +318,20 @@ void ProjectionPicture::DrawBoxesIntoDrawable(const Drawable &drawable,
     }
   }
   DrawAuxiliaries(drawable);
-  // FIXME:
   XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
                  boxColors[minDrawnLevel]);
-
-//viewTransformPtr->ViewRotationMat();
-
 }
 
 
 // -------------------------------------------------------------------
 void ProjectionPicture::DrawAuxiliaries(const Drawable &drawable) {
   if(showSubCut) {
-    // FIXME:
     XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
                    subCutColor);
     transSubCutBox.Draw(XtDisplay(drawingArea),drawable,
                         XtScreen(drawingArea)->default_gc);
   }    
-  //bounding box
-  // FIXME:
+  // bounding box
   XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
                  boxColors[minDrawnLevel]);
   transBoundingBox.Draw(XtDisplay(drawingArea), drawable,
@@ -327,9 +342,8 @@ void ProjectionPicture::DrawAuxiliaries(const Drawable &drawable) {
 
 // -------------------------------------------------------------------
 void ProjectionPicture::DrawSlices(const Drawable &drawable) {
-  Palette* palPtr = pltAppPtr->GetPalettePtr();
   XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
-                 palPtr->pixelate(sliceColor));
+                 sliceColor);
   for(int k = 0; k < 3; ++k) {
     transSlice[k].Draw(XtDisplay(drawingArea), drawable,
                        XtScreen(drawingArea)->default_gc);

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.81 2003-02-28 02:01:37 vince Exp $
+// $Id: AmrPicture.cpp,v 1.82 2003-12-11 01:48:51 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -489,10 +489,10 @@ void AmrPicture::DrawBoxes(Array< Array<GridPicture> > &gp, Drawable &drawable) 
   if(pltAppStatePtr->GetShowingBoxes()) {
     for(int level(minDrawnLevel); level <= maxDrawnLevel; ++level) {
       if(level == minDrawnLevel) {
-        XSetForeground(display, xgc, palPtr->WhiteIndex());
+        XSetForeground(display, xgc, palPtr->AVWhitePixel());
       } else {
         XSetForeground(display, xgc,
-	               palPtr->pixelate(palPtr->SafePaletteIndex(level)));
+	        palPtr->makePixel(palPtr->SafePaletteIndex(level, maxDrawnLevel)));
       }
       if(amrData.Terrain()) {
 	DrawTerrBoxes(level, bIsWindow, bIsPixmap);
@@ -920,7 +920,7 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
         }
       }
     } else {  // mask the body
-      Pixel bodyColor(palptr->BlackIndex());
+      int bodyColor(palptr->BlackIndex());
       Real dVFPoint;
       for(int j(0); j < datasizev; ++j) {
         jdsh = j * datasizeh;
@@ -950,12 +950,12 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
   } else {
 
     if(AVGlobals::LowBlack()) {
-      Pixel blackIndex(palptr->BlackIndex());
+      int blackIndex(palptr->BlackIndex());
       for(int i(0); i < (datasizeh * datasizev); ++i) {
         imagedata[i] = blackIndex;
       }
     } else {
-      Pixel whiteIndex(palptr->WhiteIndex());
+      int whiteIndex(palptr->WhiteIndex());
       for(int i(0); i < (datasizeh * datasizev); ++i) {
         imagedata[i] = whiteIndex;
       }
@@ -1003,12 +1003,11 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 /*
 
     int i, j, ii, jj, rrcs, iis;
-    int blackIndex, whiteIndex, bodyColor;
     int iMDL(pltAppStatePtr->MaxDrawnLevel());
     AmrData &amrData = dataServicesPtr->AmrDataRef();
-    blackIndex = palPtr->BlackIndex();
-    whiteIndex = palPtr->WhiteIndex();
-    bodyColor = blackIndex;
+    int blackIndex = palPtr->BlackIndex();
+    int whiteIndex = palPtr->WhiteIndex();
+    int bodyColor = blackIndex;
     Real vfeps = amrData.VfEps(iMDL);
     Real *vfracPoint = vfracData->dataPtr();
     Real vfp, omvfe = 1.0 - vfeps;
@@ -1476,13 +1475,14 @@ XImage *AmrPicture::GetPictureXImage(const bool bdrawboxesintoimage) {
 
   int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
   int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
+  int maxDataLevel(pltAppStatePtr->MaxAllowableLevel());
   if(pltAppStatePtr->GetShowingBoxes() && bdrawboxesintoimage) {
     for(int level(minDrawnLevel); level <= maxDrawnLevel; ++level) {
       if(level == minDrawnLevel) {
         XSetForeground(display, xgc, palPtr->WhiteIndex());
       } else {
         XSetForeground(display, xgc,
-		       palPtr->pixelate(palPtr->SafePaletteIndex(level)));
+		palPtr->makePixel(palPtr->SafePaletteIndex(level, maxDataLevel)));
       }
       for(int i(0); i < gpArray[level].size(); ++i) {
 	xbox = gpArray[level][i].HPositionInPicture();
@@ -1494,10 +1494,8 @@ XImage *AmrPicture::GetPictureXImage(const bool bdrawboxesintoimage) {
       }
     }
   }
-  /*
-  XSetForeground(display, xgc, palPtr->pixelate(AVGlobals::MaxPaletteIndex()));
-  XDrawRectangle(display, pixMap, xgc, 0, 0, imageSizeH-1, imageSizeV-1);
-  */
+  //XSetForeground(display, xgc, palPtr->makePixel(AVGlobals::MaxPaletteIndex()));
+  //XDrawRectangle(display, pixMap, xgc, 0, 0, imageSizeH-1, imageSizeV-1);
 
   ximage = XGetImage(display, pixMap, 0, 0,
 		imageSizeH, imageSizeV, AllPlanes, ZPixmap);

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.61 2002-12-10 20:12:23 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.62 2003-12-11 01:48:51 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -8,6 +8,7 @@
 // ---------------------------------------------------------------
 
 #include <stdio.h>
+#include <endian.h>
 
 // X/Motif headers
 #include <Xm/Xm.h>
@@ -337,10 +338,10 @@ void BatchFunctions() {
       cout << "_in BatchFunctions:  using max level = " << maxDrawnLevel << endl;
       Array<Box> drawDomain = amrData.ProbDomain();
 
-      int iPaletteStart(2);
+      int iPaletteStart(3);
       int iPaletteEnd(AVGlobals::MaxPaletteIndex());
-      int iBlackIndex(1);
-      int iWhiteIndex(0);
+      int iBlackIndex(0);
+      int iWhiteIndex(1);
       int iColorSlots(AVGlobals::MaxPaletteIndex() + 1 - iPaletteStart);
       Palette volPal(PALLISTLENGTH, PALWIDTH, TOTALPALWIDTH, TOTALPALHEIGHT, 0);
       cout << "_in BatchFunctions:  palette name = "

@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.H,v 1.22 2002-12-10 20:12:23 vince Exp $
+// $Id: ProjectionPicture.H,v 1.23 2003-12-11 01:48:51 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -108,6 +108,7 @@ public:
   int ImageSizeV() const { return daHeight; }
   void ChangeSlice(int Dir, int newSlice);
   Real LongestBoxSide() const { return longestBoxSide; }
+  void ResetPalette(Palette *newpally);
   
   
 private:
@@ -130,8 +131,9 @@ private:
   TransSlice transSlice[3];
   
   Array<int> boxPoints;
-  Array<int> boxColors;
-  int subCutColor, sliceColor, daWidth, daHeight;
+  Array<Pixel> boxColors;
+  int daWidth, daHeight;
+  Pixel subCutColor, sliceColor;
   bool showSubCut, pixCreated;
   int  minDrawnLevel, maxDrawnLevel, maxDataLevel;
   Real xcenter, ycenter, zcenter;

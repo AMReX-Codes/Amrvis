@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.49 2003-07-11 22:37:55 vince Exp $
+// $Id: Palette.cpp,v 1.50 2003-12-11 01:48:51 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -59,7 +59,7 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
   if(gaPtr->IsTrueColor()) {
     reserveSystemColors = 0;
     colorOffset = 0;
-    colorSlots = 253;
+    colorSlots   = totalColorSlots - reserveSystemColors - 3;
     bodyIndex  = 2;
     blackIndex = 1;
     whiteIndex = 0;
@@ -76,19 +76,11 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
                                      // the data colors start here
   }
   
-//colorSlots += 1;
-//paletteStart -= 1;
   remapTable = new unsigned char[totalColorSlots];  // this is faster than Array<uc>
   float sizeRatio(((float) colorSlots) / ((float) totalColorSlots));
   float mapLow(((float) paletteStart) + 0.5);
-//cout << "))))))))))))) totalColorSlots = " << totalColorSlots << endl;
-//cout << "))))))))))))) colorSlots      = " << colorSlots << endl;
-//cout << "))))))))))))) sizeRatio       = " << sizeRatio       << endl;
-//cout << "))))))))))))) mapLow          = " << mapLow          << endl;
   for(int itab(0); itab < totalColorSlots; ++itab) {
     remapTable[itab] = (int) ((((float) itab) * sizeRatio) + mapLow);
-//cout << "))))))))))))) remapTable[" << itab << "]  = "
-//     << (unsigned int) remapTable[itab]          << endl;
   }
 }  // end constructor
 
@@ -127,8 +119,6 @@ Palette::Palette(int datalistlength, int width, int totalwidth,
   paletteStart = colorOffset + 3;  // skip 3 for black, white, and body
 				   // the data colors start here
 
-//colorSlots += 1;
-//paletteStart -= 1;
   remapTable = new unsigned char[totalColorSlots];  // this is faster than Array<uc>
   float sizeRatio(((float) colorSlots) / ((float) totalColorSlots));
   float mapLow(((float) paletteStart) + 0.5);
@@ -147,7 +137,6 @@ Palette::~Palette() {
 
 // -------------------------------------------------------------------
 void Palette::ExposePalette() {
-  //cout << " ]]]]]]]]]]]]]]]]]]] _in Palette::ExposePalette" << endl;
     XCopyArea(gaPtr->PDisplay(), palPixmap, palWindow, gaPtr->PGC(),
 	    0, 0, totalPalWidth, totalPalHeight + 50, 0, 0);
 }
@@ -168,7 +157,6 @@ void Palette::SetReserveSystemColors(int reservesystemcolors) {
 
 // -------------------------------------------------------------------
 void Palette::Redraw() {
-  //cout << " ]]]]]]]]]]]]]]]]]]] _in Palette::Redraw" << endl;
   Draw(pmin, pmax, defaultFormat);  // use defaults
 }
 
@@ -188,8 +176,7 @@ void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
 			      totalPalHeight + 50, gaPtr->PDepth());
   }
   XGetWindowAttributes(gaPtr->PDisplay(), palWindow, &winAttribs);
-  XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), BlackIndex());
-// ERROR here for 24 bit color pc
+  XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), AVBlackPixel());
   XFillRectangle(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), 0, 0,
                  totalPalWidth, totalPalHeight + 50);
 
@@ -199,39 +186,34 @@ void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
     for(i = paletteStart; i < totalColorSlots; ++i) {
       cy = ((totalColorSlots - 1) - i) + 14;
       // draw transparency as black
-      // FIXME:
-      XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), ccells[blackIndex].pixel);
+      XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), AVBlackPixel());
       transpnt = (int) (zerolinex * (1.0 - transferArray[i]));
       XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), 0, cy, transpnt, cy);
 
       // draw color part of line
-      // FIXME:
-      //XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), ccells[i].pixel);
       XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), makePixel(i));
       XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), transpnt,
                 cy, palWidth, cy);
     }
     
     // draw black line represening zero opacity
-      // FIXME:
-    XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), ccells[blackIndex].pixel);
+    XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), AVBlackPixel());
     XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), zerolinex, 14,
               zerolinex, colorSlots + 14);
 
 #else
     for(i = paletteStart; i < totalColorSlots; ++i) {
-      //XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), ccells[i].pixel);
       XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), makePixel(i));
       cy = ((totalColorSlots - 1) - i) + 14;
       XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), 0, cy, palWidth, cy);
     }
 #endif
 
-  char palString[64];
+  char palString[128];
   for(i = 0; i < dataList.size(); ++i) {
-    XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), WhiteIndex());
-    dataList[i] = palMin + (dataList.size()-1-i) *
-			   (palMax - palMin)/(dataList.size() - 1);
+    XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), AVWhitePixel());
+    dataList[i] = palMin + (dataList.size() - 1 - i) *
+			   (palMax - palMin) / (dataList.size() - 1);
     if(i == 0) {
       dataList[i] = palMax;  // to avoid roundoff
     }
@@ -254,17 +236,14 @@ void Palette::SetWindow(Window drawPaletteHere) {
 void Palette::SetWindowPalette(const string &palName, Window newPalWindow,
 			       bool bRedraw)
 {
-  //cout << " ]]]]]]]]]]]]]]]]]]] _in Palette::SetWindowPalette" << endl;
   ReadPalette(palName, bRedraw);
   XSetWindowColormap(gaPtr->PDisplay(), newPalWindow, colmap);
 }
 
 
 // -------------------------------------------------------------------
-void Palette::ChangeWindowPalette(const string &palName,
-                                  Window newPalWindow)
+void Palette::ChangeWindowPalette(const string &palName, Window newPalWindow)
 {
-  //cout << " ]]]]]]]]]]]]]]]]]]] _in Palette::ChangeWindowPalette" << endl;
   bReadPalette = true;
   ReadPalette(palName);
 }
@@ -272,7 +251,6 @@ void Palette::ChangeWindowPalette(const string &palName,
 
 // -------------------------------------------------------------------
 void Palette::ReadPalette(const string &palName, bool bRedraw) {
-  //cout << " ]]]]]]]]]]]]]]]]]]] _in Palette::ReadPalette" << endl;
   BL_ASSERT(gaPtr != 0);
   ReadSeqPalette(palName, bRedraw);
   if(gaPtr->IsTrueColor()) {
@@ -286,7 +264,6 @@ void Palette::ReadPalette(const string &palName, bool bRedraw) {
 
 // -------------------------------------------------------------------
 int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
-  //cout << " ]]]]]]]]]]]]]]]]]]] _in Palette::ReadSeqPalette" << endl;
   const int iSeqPalSize(256);  // this must be 256 (size of sequential palettes).
   Array<int> indexArray(iSeqPalSize);
   int i, fd;
@@ -301,7 +278,6 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
     bprgb = gaPtr->PBitsPerRGB();
   } 
  
-
   if(bReadPalette) {
     bReadPalette = false;
     rbuff.resize(iSeqPalSize);
@@ -464,13 +440,13 @@ XImage *Palette::GetPictureXImage() {
 
 
 // -------------------------------------------------------------------
-Pixel Palette::BodyIndex() const {
+int Palette::BodyIndex() const {
   return bodyIndex;
 }
 
 
 // -------------------------------------------------------------------
-Pixel Palette::BlackIndex() const {
+Pixel Palette::AVBlackPixel() const {
   if(gaPtr->IsTrueColor()) {
     return BlackPixel(gaPtr->PDisplay(), gaPtr->PScreenNumber());
   } else {
@@ -480,7 +456,7 @@ Pixel Palette::BlackIndex() const {
 
 
 // -------------------------------------------------------------------
-Pixel Palette::WhiteIndex() const {
+Pixel Palette::AVWhitePixel() const {
   if(gaPtr->IsTrueColor()) {
     return WhitePixel(gaPtr->PDisplay(), gaPtr->PScreenNumber());
   } else {
@@ -490,10 +466,15 @@ Pixel Palette::WhiteIndex() const {
 
 
 // -------------------------------------------------------------------
-unsigned int Palette::SafePaletteIndex(unsigned int atlevel) const {
+unsigned int Palette::SafePaletteIndex(unsigned int atlevel, int mlev) const
+{
   // return a number in [PaletteStart(), PaletteEnd()]
-  unsigned int cslots((atlevel * ((colorSlots / 8) )) % colorSlots);
+  float flev(atlevel), fmlev(mlev), fcs(colorSlots - 10);
+  fcs = fcs * ((fmlev - flev) / fmlev);
+
+  unsigned int cslots((int)(fcs));
   cslots = colorSlots - cslots - 1;
+
   unsigned int indexRet(paletteStart + cslots);
   unsigned int pSt(PaletteStart()), pEnd(PaletteEnd());
   indexRet = std::max(pSt, std::min(indexRet, pEnd));
@@ -504,9 +485,9 @@ unsigned int Palette::SafePaletteIndex(unsigned int atlevel) const {
 // -------------------------------------------------------------------
 Pixel Palette::pixelate(int i) const {
   if(i < 0) {
-    return BlackIndex();
+    return AVBlackPixel();
   } else if( i > (totalColorSlots - 1) ) {
-    return WhiteIndex();
+    return AVWhitePixel();
   } else {
     return ccells[i].pixel;
   }

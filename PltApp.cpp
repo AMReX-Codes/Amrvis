@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.119 2003-09-25 22:34:50 vince Exp $
+// $Id: PltApp.cpp,v 1.120 2003-12-11 01:48:51 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -857,7 +857,8 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			    XmNleftOffset,       0,
 			    XmNrightOffset,      0,
 			    XmNbottomOffset,     0,
-			    XmNbackground,       pltPaletteptr->BlackIndex(),
+			    //XmNbackground,       pltPaletteptr->BlackIndex(),
+			    XmNbackground,       pltPaletteptr->AVBlackPixel(),
 			    XmNlabelString,      label_str,
 			    NULL);
   XmStringFree(label_str);
@@ -2871,6 +2872,10 @@ void PltApp::DoOpenPalFile(Widget w, XtPointer, XtPointer call_data) {
   palFilename = palfile;
   XtFree(palfile);
   
+#if (BL_SPACEDIM == 3)
+  projPicturePtr->ResetPalette(pltPaletteptr);
+# endif
+
   XYplotparameters->ResetPalette(pltPaletteptr);
   for(int np(0); np != BL_SPACEDIM; ++np) {
     if(XYplotwin[np]) {
