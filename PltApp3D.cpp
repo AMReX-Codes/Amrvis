@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.39 2001-05-10 23:38:01 vince Exp $
+// $Id: PltApp3D.cpp,v 1.40 2001-06-13 00:40:38 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -29,6 +29,9 @@ const unsigned long savingLW(101);
 #define MARK fprintf(stderr, "Mark: file %s, line %d.\n", __FILE__, __LINE__)
 // -------------------------------------------------------------------
 void PltApp::DoExposeTransDA(Widget, XtPointer, XtPointer) {
+  int minDrawnLevel(pltAppState->MinDrawnLevel());
+  int maxDrawnLevel(pltAppState->MaxDrawnLevel());
+
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   if(XmToggleButtonGetState(wAutoDraw)) {
     projPicturePtr->DrawPicture();

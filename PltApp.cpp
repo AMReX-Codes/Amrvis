@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.92 2001-05-25 00:39:58 vince Exp $
+// $Id: PltApp.cpp,v 1.93 2001-06-13 00:40:38 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -477,10 +477,11 @@ void PltApp::PltAppInit() {
   
   servingButton = 0;
   activeView = ZPLANE;
-  minDrawnLevel = minAllowableLevel;
-  maxDrawnLevel = maxAllowableLevel;
-  maxDataLevel = amrData.FinestLevel();
-  startX = startY = endX = endY = 0;
+  int maxDrawnLevel = maxAllowableLevel;
+  startX = 0;
+  startY = 0;
+  endX = 0;
+  endY = 0;
 
   //currentFrame = 0;
   animationIId = 0;
@@ -1557,7 +1558,7 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   pltAppState->SetCurrentDerived(dataServicesPtr[currentFrame]->
 				   PlotVarNames()[derivedNumber], derivedNumber);
 
-  maxDrawnLevel = pltAppState->MaxDrawnLevel();
+  int maxDrawnLevel = pltAppState->MaxDrawnLevel();
 
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
 
@@ -2965,6 +2966,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
   int oldX(Max(0, Min(imageWidth,  cbs->event->xbutton.x)));
   int oldY(Max(0, Min(imageHeight, cbs->event->xbutton.y)));
   int mal(pltAppState->MaxAllowableLevel());
+  int minDrawnLevel(pltAppState->MinDrawnLevel());
+  int maxDrawnLevel(pltAppState->MaxDrawnLevel());
   const AmrData &amrData(dataServicesPtr[currentFrame]->AmrDataRef());
   int rootX, rootY;
   unsigned int inputMask;
@@ -3962,7 +3965,7 @@ void PltApp::ResetAnimation() {
 						pltAppState,
 						bCartGridSmoothing);
     amrPicturePtrArray[ZPLANE]->SetRegion(startX, startY, endX, endY);
-    pltAppState->SetMaxDrawnLevel(maxDrawnLevel);
+    //pltAppState->SetMaxDrawnLevel(maxDrawnLevel);
     //SetNumContours(false);
     //XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
 			 //(XtEventHandler) &PltApp::StaticEvent,
@@ -4080,7 +4083,7 @@ void PltApp::ShowFrame() {
     //SetNumContours(false);
     //delete tempapSF;
     
-    pltAppState->SetMaxDrawnLevel(maxDrawnLevel);
+    //pltAppState->SetMaxDrawnLevel(maxDrawnLevel);
     amrPicturePtrArray[ZPLANE]->CreatePicture(XtWindow(wPlotPlane[ZPLANE]),
 					      pltPaletteptr);
     AddStaticEventHandler(wPlotPlane[ZPLANE], ExposureMask,

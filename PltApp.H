@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.51 2001-05-25 00:39:58 vince Exp $
+// $Id: PltApp.H,v 1.52 2001-06-13 00:40:38 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -190,7 +190,7 @@ private:
   bool datasetShowing, paletteDrawn, writingRGB, interfaceReady;
   bool paletteCBQ;
   int servingButton;
-  int minDrawnLevel, maxDrawnLevel, maxDataLevel;
+  //int minDrawnLevel, maxDrawnLevel, maxDataLevel;
   int currentFrame, animFrames, frameSpeed;
   int activeView;
   int startX, startY, endX, endY;

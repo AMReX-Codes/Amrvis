@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.cpp,v 1.21 2001-06-11 20:09:44 vince Exp $
+// $Id: Output.cpp,v 1.22 2001-06-13 00:40:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -149,14 +149,14 @@ void WritePSFile(const char *filename, XImage *image,
 
   fout << hex;
   char *buf = new char[8 * imagesizehoriz + 1];
+  unsigned char r, g, b;
+  int charindex;
   for(int j(0); j < imagesizevert; ++j) {
-    int charindex(0);
+    charindex = 0;
     for(int i(0); i < imagesizehoriz; ++i) {
       //BL_ASSERT(charindex>8*imagesizehoriz+1);
       //FIXME
-      unsigned char r, g, b;
-      Pixel index = XGetPixel(image, i, j);
-      palette.unpixelate(index, r, g, b);
+      palette.unpixelate(XGetPixel(image, i, j), r, g, b);
       if(i % 10 == 0) {
         sprintf(buf+charindex, "\n");
         ++charindex;

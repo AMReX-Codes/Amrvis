@@ -1,6 +1,6 @@
 
 //
-// $Id: PltAppOutput.cpp,v 1.24 2001-06-11 20:09:46 vince Exp $
+// $Id: PltAppOutput.cpp,v 1.25 2001-06-13 00:40:38 vince Exp $
 //
 
 #include <Xm/Xm.h>
@@ -94,6 +94,8 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   char *fileNameBase;
   int imageSizeX, imageSizeY;
   XImage *printImage;
+  int minDrawnLevel(pltAppState->MinDrawnLevel());
+  int maxDrawnLevel(pltAppState->MaxDrawnLevel());
 
   if(animating2d) {
     ResetAnimation();
@@ -170,6 +172,8 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
   char *fileNameBase;
   int imageSizeX, imageSizeY;
   XImage *printImage;
+  int minDrawnLevel(pltAppState->MinDrawnLevel());
+  int maxDrawnLevel(pltAppState->MaxDrawnLevel());
 
   if(animating2d) {
     ResetAnimation();
@@ -237,6 +241,8 @@ void PltApp::DoCreateFABFile(Widget w, XtPointer, XtPointer call_data) {
   XmStringGetLtoR(cbs->value, XmSTRING_DEFAULT_CHARSET, &fileNameBase);
   sprintf(fabfilename, "%s.fab", fileNameBase);
   aString fabFileName(fabfilename);
+  //int minDrawnLevel(pltAppState->MinDrawnLevel());
+  int maxDrawnLevel(pltAppState->MaxDrawnLevel());
         
   aString derivedQuantity(pltAppState->CurrentDerived());
   Array<Box> bx = amrPicturePtrArray[0]->GetSubDomain();
