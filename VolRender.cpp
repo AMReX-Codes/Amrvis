@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.46 2003-01-15 00:56:43 vince Exp $
+// $Id: VolRender.cpp,v 1.47 2003-01-15 01:17:39 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -600,12 +600,60 @@ cout << "+++++ _here 0:  crr = " << crr << endl;
       char bodyColor = (char) iBlackIndex;
       Real *dataPoint = swfFabData.dataPtr();
       Real vfeps = amrData.VfEps(maxDrawnLevel);
-      for(int i(0); i < swfFabData.box().numPts(); ++i) {
-        if(dataPoint[i] < vfeps) {
-          swfData[i] = bodyColor;
-	}
-      }
-    }
+      //for(int i(0); i < swfFabData.box().numPts(); ++i) {
+        //if(dataPoint[i] < vfeps) {
+          //swfData[i] = bodyColor;
+	//}
+      //}
+    
+      int sindexbase;
+      int srows   = swfDataBox.length(XDIR);
+      int scols   = swfDataBox.length(YDIR);
+      int scolssrowstmp = scols*srows;
+      int sstartr = swfDataBox.smallEnd(XDIR);
+      int sstartp = swfDataBox.smallEnd(ZDIR);
+      int sendc   = swfDataBox.bigEnd(YDIR);
+    
+      Box gbox(swfDataBox);
+      Box goverlap(gbox & drawnDomain[maxDrawnLevel]);
+    
+      int gstartr = gbox.smallEnd(XDIR);
+      int gstartc = gbox.smallEnd(YDIR);
+      int gstartp = gbox.smallEnd(ZDIR);
+    
+      int gostartr = goverlap.smallEnd(XDIR) - gstartr;
+      int gostartc = goverlap.smallEnd(YDIR) - gstartc;
+      int gostartp = goverlap.smallEnd(ZDIR) - gstartp;
+      int goendr   = goverlap.bigEnd(XDIR)   - gstartr;
+      int goendc   = goverlap.bigEnd(YDIR)   - gstartc;
+      int goendp   = goverlap.bigEnd(ZDIR)   - gstartp;
+    
+      int grows   = gbox.length(XDIR);
+      int gcols   = gbox.length(YDIR);
+    
+      int gcolsgrowstmp(gcols * grows);
+      int gpgcgrtmp, gcgrowstmp;
+      int gprev;
+      for(int gp(gostartp); gp <= goendp; ++gp) {
+        gpgcgrtmp = gp*gcolsgrowstmp;
+        for(int gc(gostartc); gc <= goendc; ++gc) {
+          gcgrowstmp = gpgcgrtmp + gc*grows;
+          for(int gr(gostartr); gr <= goendr; ++gr) {
+            //dat = dataPoint[(gp*gcols*grows)+(gc*grows)+gr];  // works
+            if(dataPoint[gcgrowstmp + gr] < vfeps) {
+	      gprev = gostartp + goendp - gp;
+              sindexbase =
+                (((gprev+gstartp)-sstartp) * scolssrowstmp) +
+                ((sendc-((gc+gstartc))) * srows) +  // check this
+                ((gr+gstartr)-sstartr);
+          
+              swfData[sindexbase] = bodyColor;
+	    }
+          }
+        }
+      }  // end for(gp...)
+
+    }  // end if(ioproc)
   
   }
 
