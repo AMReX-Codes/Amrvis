@@ -237,6 +237,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 					    parentPtr, pltParent,
                                             this);
   }
+  SetHVLine(amrPicturePtrArray);
 
   ivLowOffsetMAL = offset;
   currentDerived = newderived;
@@ -1341,7 +1342,6 @@ void PltApp::DoExposeRef() {
 	DrawAxes(wControlForm, xPlanePosX, xPlanePosY, 0, sY, sZ, xpColor);
 
 	sprintf(temp, "Z=%i", amrPicturePtrArray[ZPLANE]->GetSlice());
-                
 //                (amrPicturePtrArray[YPLANE]->
 //		ImageSizeV()-1 - amrPicturePtrArray[YPLANE]->GetHLine())/
 //		currentScale + ivLowOffsetMAL[ZDIR]);
@@ -1580,6 +1580,11 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
 			   maxAllowableLevel, amrData.RefRatio()));
 
     IntVect ivOffset = subregionBoxMAL.smallEnd();
+
+    // get the old slices and check if they will be within the new subregion.
+    // if not -- choose the limit
+
+    // then pass the slices to the subregion constructor below...
 
     SubregionPltApp(wTopLevel, subregionBox, ivOffset, amrPicturePtrArray[ZPLANE],
 		    this, palFilename, animating2d, currentDerived, fileName);
@@ -3341,6 +3346,10 @@ void PltApp::SetGlobalMinMax(Real specifiedMin, Real specifiedMax) {
   }
 }
 
+void PltApp::SetHVLine(AmrPicture **apArray) {
+    for (int i = 0; i<3 ; i++)
+        apArray[i]->SetHVLine();
+}
 
 // -------------------------------------------------------------------
 int  PltApp::initialScale;

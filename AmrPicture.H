@@ -61,6 +61,7 @@ class AmrPicture {
 	void	DrawDatasetPoint(int hplot, int vplot, int size);
 	void	UnDrawDatasetPoint();
 	void	Sweep(AnimDirection direction);
+    void SetHVLine();
 	void	SetHLine(int hl)    { hLine = hl; }
 	void	SetVLine(int vl)    { vLine = vl; }
 	int	GetHLine()          { return hLine; }

@@ -5,7 +5,6 @@ initialscale          1
 numberformat          %8.5f
 maxpixmapsize         10000
 maxpixmapsize         200000
-reservesystemcolors   0
 reservesystemcolors   24
 showboxes             TRUE
 windowheight          650

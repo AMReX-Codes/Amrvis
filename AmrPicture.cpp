@@ -79,6 +79,7 @@ AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
 #else
   slice = subDomain[maxAllowableLevel].smallEnd(YZ-myView);
 #endif
+//  cout<<"AmrPicture(): slice = "<<slice<<endl;
   sliceBox.resize(numberOfLevels);
 
   for(ilev = minDrawnLevel; ilev <= maxAllowableLevel; ilev++) {  // set type
@@ -153,7 +154,9 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
   }
 
 # if (BL_SPACEDIM == 3)
-    if(myView==XY) {
+    
+// initialization?
+  if(myView==XY) {
       hLine = (subDomain[maxAllowableLevel].bigEnd(YDIR) -
       		subDomain[maxAllowableLevel].smallEnd(YDIR)) *
 		pltAppPtr->CurrentScale();
@@ -170,28 +173,43 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
       vLine = 0;
     }
     
-    slice = subDomain[maxAllowableLevel].smallEnd(YZ - myView);
-    //  + (parentPltAppPtr != NULL ?
-    //      parentPltAppPtr->GetAmrPicturePtr(YZ-myView)->GetSlice():
-    //       0);
-    
-    int first = 0;
+    if (parentPltAppPtr != NULL) {
+        slice = Max( 
+            Min(parentPltAppPtr->GetAmrPicturePtr(myView)->GetSlice(),
+                subDomain[maxAllowableLevel].bigEnd(YZ-myView)), 
+            subDomain[maxAllowableLevel].smallEnd(YZ-myView));
+/*        cout<<"have capped the slice within the limits"<<endl;
+          cout<<slice<<" should be between "
+              <<subDomain[maxAllowableLevel].bigEnd(YZ-myView)<<" and "
+              <<subDomain[maxAllowableLevel].smallEnd(YZ-myView)<<endl;
+*/   
+    }
+    else
+        slice = subDomain[maxAllowableLevel].smallEnd(YZ-myView);
+
+// now must implement this in the drawing
+
+//KM_START_HERE
+/*    int first = 0;
     for(int i = 0; i<=YZ && parentPltAppPtr != NULL;i++) {
         if ( i == myView ) break;
         if (first == 0) {
-            hLine = 0;//parentPltAppPtr->GetAmrPicturePtr(YZ-i)->GetSlice()
-            //      * pltAppPtr->CurrentScale();
+            hLine = 0;//parentPltAppPtr->GetAmrPicturePtr(i)->GetSlice()
+//                * pltAppPtr->CurrentScale();
             first = 1;
         }
         else
-            vLine = 0;//parentPltAppPtr->GetAmrPicturePtr(YZ-i)->GetSlice()
-        //             * pltAppPtr->CurrentScale();
-    }
+            vLine = 0;//parentPltAppPtr->GetAmrPicturePtr(i)->GetSlice()
+//                     * pltAppPtr->CurrentScale();
+    }*/
 # else
     vLine = 0;
     hLine = 0;
     slice = 0;
 # endif
+//    cout<<"AmrPicture2(): slice = "<<slice<<endl;
+    //
+
   subcutY = hLine;
   subcut2ndY = hLine;
 
@@ -273,6 +291,19 @@ void AmrPicture::AmrPictureInit() {
   SetSlice(myView, slice);
 }  // end AmrPictureInit()
 
+void AmrPicture::SetHVLine() {
+    int first = 0;
+    for(int i = 0; i<=YZ ;i++) {
+        if ( i == myView ) ;
+        else if (first == 0) {
+            hLine = imageSizeV-1 - (pltAppPtr->GetAmrPicturePtr(i)->GetSlice()
+                * pltAppPtr->CurrentScale());
+            first = 1;
+        } else
+            vLine = ( pltAppPtr->GetAmrPicturePtr(i)->GetSlice()
+                * pltAppPtr->CurrentScale() );
+    }
+}
 
 // ---------------------------------------------------------------------
 AmrPicture::~AmrPicture() {
@@ -302,6 +333,7 @@ AmrPicture::~AmrPicture() {
 
 // ---------------------------------------------------------------------
 void AmrPicture::SetSlice(int view, int here) {
+//    cout<<"setting the slice "<<view<<" to "<<here<<endl;
   int lev;
   sliceDir = YZ - view;
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
@@ -309,6 +341,7 @@ void AmrPicture::SetSlice(int view, int here) {
 
 # if (BL_SPACEDIM == 3)
     slice = here;
+//    cout<<"SetSlice(): slice ="<<here<<endl;
     sliceBox[maxAllowableLevel].setSmall(sliceDir, slice);
     sliceBox[maxAllowableLevel].setBig(sliceDir, slice);
     CoarsenSliceBox();
@@ -1023,7 +1056,7 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
 #   if (BL_SPACEDIM == 3)
     
     if( ! framesMade) {
-        cout<<"islice: "<<islice<<" + "<<start<<endl;
+//        cout<<"islice: "<<islice<<" + "<<start<<endl;
         pltAppPtr->GetProjPicturePtr()->ChangeSlice(YZ-sliceDir, start+islice);
         pltAppPtr->GetProjPicturePtr()->MakeSlices();
         XClearWindow(XtDisplay(pltAppPtr->GetWTransDA()),
@@ -1126,8 +1159,6 @@ void AmrPicture::DoFrameUpdate() {
         ++slice;
     } else {
         slice = subDomain[maxAllowableLevel].smallEnd(sliceDir);
-    
-
     }
   } else {
     if(slice > subDomain[maxAllowableLevel].smallEnd(sliceDir)) {
@@ -1136,6 +1167,7 @@ void AmrPicture::DoFrameUpdate() {
         slice = subDomain[maxAllowableLevel].bigEnd(sliceDir);
     
     }
+//    cout<<"DoFrameUpdate(): slice = "<<slice<<endl;
   } 
   int iRelSlice(slice - subDomain[maxAllowableLevel].smallEnd(sliceDir));
   ShowFrameImage(iRelSlice);

@@ -304,7 +304,7 @@ private:
     void DoAnimForwardStep();
     void DoAnimFileScale(Widget, XtPointer, XtPointer);
     
-    
+    void SetHVLine(AmrPicture **);
     // these replace inidvidual static indirection callbacks
     void AddStaticCallback(Widget w, String whichcb, memberCB whichf);
     static void StaticCallback(Widget, XtPointer, XtPointer);
