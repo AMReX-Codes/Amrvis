@@ -277,8 +277,6 @@ int Palette::ReadSeqPalette(const aString &fileName) {
   rbuff[blackIndex] = 0;   gbuff[blackIndex] = 0;   bbuff[blackIndex] = 0;
   rbuff[whiteIndex] = 255; gbuff[whiteIndex] = 255; bbuff[whiteIndex] = 255;
 
-  //bool PallowBlack = false;
-  //bool PallowBlack = true;
   if(LowBlack()) {   // set low value to black
     rbuff[paletteStart] = 0;
     gbuff[paletteStart] = 0;
