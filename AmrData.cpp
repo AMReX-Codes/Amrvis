@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.72 2005-01-12 22:04:38 vince Exp $
+// $Id: AmrData.cpp,v 1.73 2005-02-04 00:53:39 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -256,6 +256,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
 
       plotVars.resize(nComp);
       char plotVarName[LINELENGTH];
+      bool bVFracFound(false);
       isPltIn.getline(plotVarName, LINELENGTH); // eat white space left by op<<
       for(i = 0; i < nComp; ++i) {
         isPltIn.getline(plotVarName, LINELENGTH);
@@ -271,11 +272,19 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
 	    strcpy(plotVarName, "vfrac");
 	    cout << "+++++++++++++                  now:  " << plotVarName << endl;
 	  }
+	  if(strcmp(plotVarName, "vfrac") == 0) {
+            bVFracFound = true;
+	  }
 	}
         plotVars[i] = plotVarName;
         if(ParallelDescriptor::IOProcessor()) {
           VSHOWVAL(verbose, plotVarName);
 	}
+      }
+      if(bCartGrid && bVFracFound == false) {
+	cerr << endl << " ~~~~ Error:  no vfrac found for a " << plotFileVersion
+	     << " file."  << endl << endl;
+	return false;
       }
 
       int spacedim;
