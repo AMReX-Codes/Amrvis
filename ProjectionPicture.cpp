@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.cpp,v 1.37 2000-10-02 20:53:10 lijewski Exp $
+// $Id: ProjectionPicture.cpp,v 1.38 2001-02-22 22:17:16 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -246,27 +246,13 @@ void ProjectionPicture::MakePicture() {
     }
   }
 
-unsigned char iMin, iMax;
-iMin = 255;
-iMax = 0;
-
   for(int j(0); j < daHeight; ++j ) {
     for(int i(0); i < daWidth; ++i ) {
       unsigned char imm1 = volpackImageData[i+j*daWidth];
-iMin = Min(iMin, imm1);
-iMax = Max(iMax, imm1);
       XPutPixel(PPXImage, i, j, palPtr->makePixel(imm1));
       // imageData[i+j*daWidth] = imm1;
     }
   }
-
-/*
-for(int ii = 0; ii < daWidth * daHeight; ++ii) {
-iMin = Min(iMin, imageData[ii]);
-iMax = Max(iMax, imageData[ii]);
-}
-*/
-cout << "**** _in ProjPic::MakePicture():  iMin iMax = " << (unsigned int) iMin << "  " << (unsigned int) iMax << endl;
 
   XPutImage(XtDisplay(drawingArea), pixMap, XtScreen(drawingArea)->
             default_gc, PPXImage, 0, 0, 0, 0, daWidth, daHeight);
