@@ -1,16 +1,16 @@
 
 //
-// $Id: PltAppOutput.cpp,v 1.29 2002-02-07 23:59:02 vince Exp $
+// $Id: PltAppOutput.cpp,v 1.30 2002-02-19 20:39:41 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// PltAppOutput.cpp
+// ---------------------------------------------------------------
 #include <Xm/Xm.h>
 #include <Xm/SelectioB.h>
 #include <Xm/ToggleB.h>
 #include <Xm/Text.h>
 
-// ---------------------------------------------------------------
-// PltAppOutput.cpp
-// ---------------------------------------------------------------
 #include "PltApp.H"
 #include "PltAppState.H"
 #include "DataServices.H"

@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.41 2002-02-07 23:59:02 vince Exp $
+// $Id: Dataset.cpp,v 1.42 2002-02-19 20:39:41 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -37,6 +37,7 @@ using std::cerr;
 using std::endl;
 using std::min;
 using std::max;
+
 
 // -------------------------------------------------------------------
 Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,

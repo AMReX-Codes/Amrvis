@@ -1,6 +1,6 @@
 
 //
-// $Id: Quaternion.cpp,v 1.11 2001-10-17 17:53:33 lijewski Exp $
+// $Id: Quaternion.cpp,v 1.12 2002-02-19 20:39:41 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -10,12 +10,14 @@
 
 #include "Quaternion.H"
 
-/*
- *  These constructors reduce smoothly to the identity when the input
- *  points are the same, but will generate Realing-point errors if
- *  they are diametrically opposite and the rotation axis is ill-defined.
- */
+// ---------------------------------------------------------------
+//  These constructors reduce smoothly to the identity when the input
+//  points are the same, but will generate Realing-point errors if
+//  they are diametrically opposite and the rotation axis is ill-defined.
+// ---------------------------------------------------------------
 
+
+// ---------------------------------------------------------------
 AmrQuaternion::AmrQuaternion(const AmrSpherePoint &s1, 
                              const AmrSpherePoint &s2)
 {
@@ -33,7 +35,9 @@ AmrQuaternion::AmrQuaternion(const AmrSpherePoint &s1,
 }
 
 
+// ---------------------------------------------------------------
 // defines the quaternion that rotates (x1,y1,z1) to (x2,y2,z2)
+// ---------------------------------------------------------------
 AmrQuaternion::AmrQuaternion(Real x1,Real y1,Real z1,Real x2,Real y2,Real z2) {
   Real c(x1 * x2 + y1 * y2 + z1 * z2);			//  cosine of rotation angle
   Real xn(y1 * z2 - z1 * y2);   //  unnormalized axis of rotation
@@ -49,6 +53,7 @@ AmrQuaternion::AmrQuaternion(Real x1,Real y1,Real z1,Real x2,Real y2,Real z2) {
 }
 
 
+// ---------------------------------------------------------------
 void AmrQuaternion::tomatrix( Real m[4][4] ) const {
   Real wx(w * x);
   Real wy(w * y);
@@ -70,6 +75,7 @@ void AmrQuaternion::tomatrix( Real m[4][4] ) const {
 }
 
 
+// ---------------------------------------------------------------
 Real AmrQuaternion::InfNorm() const {
   Real mat[4][4];
   this->tomatrix(mat);
@@ -81,3 +87,5 @@ Real AmrQuaternion::InfNorm() const {
   }
   return max;
 }
+// ---------------------------------------------------------------
+// ---------------------------------------------------------------

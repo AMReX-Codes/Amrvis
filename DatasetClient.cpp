@@ -1,6 +1,6 @@
 
 //
-// $Id: DatasetClient.cpp,v 1.6 2001-10-17 17:53:33 lijewski Exp $
+// $Id: DatasetClient.cpp,v 1.7 2002-02-19 20:39:41 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -33,6 +33,7 @@ const int MAXBUFSIZE  = 1024;
 const int PORTOFFSET  = 5000;
 const char *defaultFormat = "%7.5e";
 const char *defaultLabel = " ";
+
 
 // -------------------------------------------------------------------
 bool CreateSocket(int &newsocket) {

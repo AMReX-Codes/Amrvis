@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.44 2002-02-07 23:59:02 vince Exp $
+// $Id: PltApp3D.cpp,v 1.45 2002-02-19 20:39:41 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -60,8 +60,7 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
   AmrQuaternion quatRotation, quatRotation2;
   AmrQuaternion newRotation, newRotation2;
 
-  XmDrawingAreaCallbackStruct* cbs =
-    (XmDrawingAreaCallbackStruct*) call_data;
+  XmDrawingAreaCallbackStruct* cbs = (XmDrawingAreaCallbackStruct *) call_data;
   if(cbs->event->xany.type == ButtonPress) {
     servingButton = cbs->event->xbutton.button;
     startX = endX = cbs->event->xbutton.x;
@@ -73,7 +72,7 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
     endY = cbs->event->xbutton.y;
     if(cbs->event->xbutton.state & ShiftMask) {
       viewTrans.MakeTranslation(startX, startY, endX, endY, 
-				projPicturePtr->longestBoxSide/64.);
+				projPicturePtr->longestBoxSide / 64.0);
     } else {
       quatRotation = viewTrans.GetRotation();
       quatRotation2 = viewTrans.GetRenderRotation();
@@ -81,13 +80,13 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
 					  startY,
 					  projPicturePtr->ImageSizeH()-endX,
 					  endY,
-					  projPicturePtr->longestBoxSide/64.);
+					  projPicturePtr->longestBoxSide / 64.0);
       // this last number scales the rotations correctly
       newRotation2 = viewTrans.Screen2Quat(projPicturePtr->ImageSizeH()-startX,
 					   projPicturePtr->ImageSizeV()-startY,
 					   projPicturePtr->ImageSizeH()-endX,
 					   projPicturePtr->ImageSizeV()-endY,
-					   projPicturePtr->longestBoxSide/64.);
+					   projPicturePtr->longestBoxSide / 64.0);
       quatRotation = newRotation * quatRotation;
       viewTrans.SetRotation(quatRotation);
       quatRotation2 = newRotation2 * quatRotation2;

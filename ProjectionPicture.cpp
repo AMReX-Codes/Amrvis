@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.cpp,v 1.43 2001-10-17 17:53:33 lijewski Exp $
+// $Id: ProjectionPicture.cpp,v 1.44 2002-02-19 20:39:41 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -154,67 +154,65 @@ void ProjectionPicture::MakeBoxes() {
   }
 
   MakeAuxiliaries(); // make subcut, boundingbox, slices
-
 }
 
 
 // -------------------------------------------------------------------
 void ProjectionPicture::MakeAuxiliaries() {
-    if(showSubCut) {
-        MakeSubCutBox();
-    }
-    MakeBoundingBox();
-    MakeSlices();
+  if(showSubCut) {
+    MakeSubCutBox();
+  }
+  MakeBoundingBox();
+  MakeSlices();
 }
 
 // -------------------------------------------------------------------
 void ProjectionPicture::MakeBoundingBox() {
-    Real px, py, pz;
-    for(int i(0); i < NVERTICIES; ++i) {
-        viewTransformPtr->
-            TransformPoint(realBoundingBox.vertices[i].component[0],
-                           realBoundingBox.vertices[i].component[1],
-                           realBoundingBox.vertices[i].component[2],
-                           px, py, pz);
-        transBoundingBox.vertices[i] = TransPoint((int)(px+.5), 
-                                                  daHeight-(int)(py+.5));
-    }
+  Real px, py, pz;
+  for(int i(0); i < NVERTICIES; ++i) {
+    viewTransformPtr->
+          TransformPoint(realBoundingBox.vertices[i].component[0],
+                         realBoundingBox.vertices[i].component[1],
+                         realBoundingBox.vertices[i].component[2],
+                         px, py, pz);
+    transBoundingBox.vertices[i] = TransPoint((int)(px + 0.5), 
+                                              daHeight - (int)(py + 0.5));
+  }
 } 
 
 
 // -------------------------------------------------------------------
 void ProjectionPicture::MakeSubCutBox() {
-    Real px, py, pz;
-    minDrawnLevel = pltAppPtr->GetPltAppState()->MinDrawnLevel();
-    maxDrawnLevel = pltAppPtr->GetPltAppState()->MaxDrawnLevel();
-    
-    for(int i(0); i < NVERTICIES; ++i) {
-        viewTransformPtr->
-            TransformPoint(realSubCutBox.vertices[i].component[0],
-                           realSubCutBox.vertices[i].component[1],
-                           realSubCutBox.vertices[i].component[2],
-                           px, py, pz);
-        transSubCutBox.vertices[i] = TransPoint((int)(px+.5), 
-                                                daHeight-(int)(py+.5));
-   
-    }
+  Real px, py, pz;
+  minDrawnLevel = pltAppPtr->GetPltAppState()->MinDrawnLevel();
+  maxDrawnLevel = pltAppPtr->GetPltAppState()->MaxDrawnLevel();
+
+  for(int i(0); i < NVERTICIES; ++i) {
+    viewTransformPtr->
+          TransformPoint(realSubCutBox.vertices[i].component[0],
+                         realSubCutBox.vertices[i].component[1],
+                         realSubCutBox.vertices[i].component[2],
+                         px, py, pz);
+    transSubCutBox.vertices[i] = TransPoint((int)(px + 0.5), 
+                                            daHeight - (int)(py + 0.5));
+  }
 }   
 
 
 // -------------------------------------------------------------------
 void ProjectionPicture::MakeSlices() {
-    Real px, py, pz;
-    for(int j(0); j < 3 ; ++j) {
-        for(int i(0); i < 4; ++i) {
-            viewTransformPtr->
-                TransformPoint(realSlice[j].edges[i].component[0],
-                               realSlice[j].edges[i].component[1],
-                               realSlice[j].edges[i].component[2],
-                               px, py, pz);
-            transSlice[j].edges[i] = TransPoint((int)(px+.5), 
-                                                daHeight-(int)(py+.5));
-        }
+  Real px, py, pz;
+  for(int j(0); j < 3 ; ++j) {
+    for(int i(0); i < 4; ++i) {
+          viewTransformPtr->
+              TransformPoint(realSlice[j].edges[i].component[0],
+                             realSlice[j].edges[i].component[1],
+                             realSlice[j].edges[i].component[2],
+                             px, py, pz);
+          transSlice[j].edges[i] = TransPoint((int)(px + 0.5), 
+                                              daHeight - (int)(py + 0.5));
     }
+  }
 }
 
 // -------------------------------------------------------------------

@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.33 2001-11-16 20:41:53 marc Exp $
+// $Id: DataServices.cpp,v 1.34 2002-02-19 20:39:41 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -32,46 +32,49 @@ int DataServices::dsArrayIndexCounter = 0;
 int DataServices::dsFabOutSize = 0;
 bool DataServices::dsBatchMode = false;
 
-namespace ParallelDescriptor
-{
-    template <> void Bcast (Box* b, size_t n, int root)
-    {
-        const int N = n * 3 * BL_SPACEDIM;
+namespace ParallelDescriptor {
+  template <> void Bcast (Box *b, size_t n, int root) {
+    const int n3SDim(n * 3 * BL_SPACEDIM);
 
-        Array<int> tmp(N);
+    Array<int> tmp(n3SDim);
 
-        int cnt = 0;
+    int cnt(0);
 
-        for (int j = 0; j < n; j++)
-        {
-            for (int i = 0; i < BL_SPACEDIM; i++)
-                tmp[cnt++] = b[j].smallEnd(i);
+    for(int j(0); j < n; ++j) {
+      for(int i(0); i < BL_SPACEDIM; ++i) {
+        tmp[cnt++] = b[j].smallEnd(i);
+      }
 
-            for (int i = 0; i < BL_SPACEDIM; i++)
-                tmp[cnt++] = b[j].bigEnd(i);
+      for(int i(0); i < BL_SPACEDIM; ++i) {
+        tmp[cnt++] = b[j].bigEnd(i);
+      }
 
-            IntVect indx = b[j].type();
+      IntVect indx = b[j].type();
 
-            for (int i = 0; i < BL_SPACEDIM; i++)
-                tmp[cnt++] = indx[i];
-        }
-
-        BL_ASSERT(N == cnt);
-
-        ParallelDescriptor::Bcast(&tmp[0],N,root);
-
-        cnt = 0;
-
-        for (int j = 0; j < n; j++)
-        {
-            IntVect sm(&tmp[cnt]); cnt += BL_SPACEDIM;
-            IntVect bg(&tmp[cnt]); cnt += BL_SPACEDIM;
-            IntVect id(&tmp[cnt]); cnt += BL_SPACEDIM;
-
-            b[j] = Box(sm,bg,id);
-        }
+      for(int i(0); i < BL_SPACEDIM; ++i) {
+        tmp[cnt++] = indx[i];
+      }
     }
-}
+
+    BL_ASSERT(n3SDim == cnt);
+
+    ParallelDescriptor::Bcast(&tmp[0], n3SDim, root);
+
+    cnt = 0;
+
+    for(int j(0); j < n; ++j) {
+      IntVect sm(&tmp[cnt]);
+      cnt += BL_SPACEDIM;
+      IntVect bg(&tmp[cnt]);
+      cnt += BL_SPACEDIM;
+      IntVect id(&tmp[cnt]);
+      cnt += BL_SPACEDIM;
+
+      b[j] = Box(sm, bg, id);
+    }
+  }
+}  // end namespace
+
 
 // ---------------------------------------------------------------
 DataServices::DataServices(const string &filename, const FileType &filetype)

@@ -1,6 +1,6 @@
 
 //
-// $Id: Point.cpp,v 1.8 2001-10-17 17:53:33 lijewski Exp $
+// $Id: Point.cpp,v 1.9 2002-02-19 20:39:41 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -10,20 +10,24 @@
 
 #include "Point.H"
 
-Real scale = 1.;
+Real scale = 1.0;
 
+
+// ---------------------------------------------------------------
 AmrVector::AmrVector(Real X, Real Y, Real Z)
           : x(X), y(Y), z(Z)
 {
 }
 
 
+// ---------------------------------------------------------------
 AmrVector::AmrVector(const AmrSpherePoint &S)
           : x(S.x), y(S.y), z(S.z)
 {
 }
 
 
+// ---------------------------------------------------------------
 AmrSpherePoint::AmrSpherePoint(Real X, Real Y, Real Z) {
     Real m(X * X + Y * Y + Z * Z);
     if(m == 0.0) {
@@ -37,6 +41,7 @@ AmrSpherePoint::AmrSpherePoint(Real X, Real Y, Real Z) {
 }
 
 
+// ---------------------------------------------------------------
 AmrSpherePoint::AmrSpherePoint(const AmrVector &v) {
     Real m(v.x * v.x + v.y * v.y + v.z * v.z);
     if(m == 0.0) {
@@ -49,6 +54,8 @@ AmrSpherePoint::AmrSpherePoint(const AmrVector &v) {
     z = v.z * oneOverSqrtM;
 }
 
+
+// ---------------------------------------------------------------
 AmrVector AmrVector::applyMatrix(Real m[4][4]) {
   Real X(x * m[0][0] + m[1][0] * y + z * m[2][0]);
   Real Y(x * m[0][1] + m[1][1] * y + z * m[2][1]);
@@ -57,6 +64,8 @@ AmrVector AmrVector::applyMatrix(Real m[4][4]) {
   return AmrVector(X, Y, Z);
 }
 
+
+// ---------------------------------------------------------------
 AmrSpherePoint AmrSpherePoint::applyMatrix(Real m[4][4]) {
   Real X(x * m[0][0] + m[1][0] * y + z * m[2][0]);
   Real Y(x * m[0][1] + m[1][1] * y + z * m[2][1]);
@@ -64,3 +73,5 @@ AmrSpherePoint AmrSpherePoint::applyMatrix(Real m[4][4]) {
 
   return AmrSpherePoint(X, Y, Z);
 }
+// ---------------------------------------------------------------
+// ---------------------------------------------------------------

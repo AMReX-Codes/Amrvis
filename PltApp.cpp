@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.100 2002-02-07 23:59:02 vince Exp $
+// $Id: PltApp.cpp,v 1.101 2002-02-19 20:39:41 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -193,7 +193,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   if(MaxPictureSize() == 0) {
     maxAllowableScale = 1;
   } else  {
-    maxAllowableScale = (int) sqrt((Real) (MaxPictureSize()/dataSize));
+    maxAllowableScale = (int) sqrt((Real) (MaxPictureSize() / dataSize));
   }
 
   int currentScale(max(1, min(GetInitialScale(), maxAllowableScale)));
@@ -266,13 +266,11 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 #if (BL_SPACEDIM == 3)
   amrPicturePtrArray[YPLANE] = new AmrPicture(YPLANE, gaPtr,
 					amrData.ProbDomain()[finestLevel],
-		                        //amrPicturePtrArray[ZPLANE],
 					NULL, this,
 					pltAppState,
 					bCartGridSmoothing);
   amrPicturePtrArray[XPLANE] = new AmrPicture(XPLANE, gaPtr,
 					amrData.ProbDomain()[finestLevel],
-		                        //amrPicturePtrArray[ZPLANE],
 					NULL, this,
 					pltAppState,
 					bCartGridSmoothing);
@@ -431,7 +429,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   pltAppState->SetMinDrawnLevel(minAllowableLevel);
   for(int np(0); np < NPLANES; ++np) {
     amrPicturePtrArray[np] = new AmrPicture(np, gaPtr, region,
-					    //parentPtr,
 					    pltParent, this,
 					    pltAppState,
 					    bCartGridSmoothing);
