@@ -3,6 +3,8 @@
 // -------------------------------------------------------------------
 #include "PltApp.H"
 #include "Quaternion.H"
+#include <LabelG.h>
+//#include <X11/Xmu/Converters.h>
 
 // -------------------------------------------------------------------
 void PltApp::DoExposeTransDA() {
@@ -205,6 +207,7 @@ void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   XtManageChild(wRender);
   XtManageChild(wAutoDraw);
+  XtManageChild(wLightButton);
 
   XtVaSetValues(wLight, XmNmenuHistory, wLightItems[renderMode], NULL);
   XtVaSetValues(wClassify, XmNmenuHistory, wClassifyItems[classMode], NULL);
@@ -248,6 +251,288 @@ void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
   DoTransResize(wTransDA, NULL, NULL);
 }
 
+void PltApp::DoApplyLightingWindow(Widget, XtPointer, XtPointer) {
+  //read new input
+  Real ambient = atof(XmTextFieldGetString(wLWNumber1));
+  Real diffuse = atof(XmTextFieldGetString(wLWNumber2));
+  Real specular = atof(XmTextFieldGetString(wLWNumber3));
+  Real shiny = atof(XmTextFieldGetString(wLWNumber4));
+  
+  if (0.0 > ambient || ambient > 1.0 ||
+      0.0 > diffuse || diffuse > 1.0 ||
+      0.0 > specular || specular > 1.0 ) {
+    //rewrite old values...
+  } else {
+    VolRender *volRenderPtr = projPicturePtr->GetVolRenderPtr();
+    
+    if (ambient != volRenderPtr->GetAmbient() ||
+        diffuse != volRenderPtr->GetDiffuse() ||
+        specular != volRenderPtr->GetSpecular() ||
+        shiny != volRenderPtr->GetShiny() ) { 
+      volRenderPtr->SetLighting(ambient, diffuse, specular, shiny);
+      //load VolRender::classifyFields, VolRender::shadeFields?
+      //update render image if necessary
+      projPicturePtr->GetVolRenderPtr()->InvalidateVPData();
+      if (XmToggleButtonGetState(wAutoDraw)) {
+        DoRender(wAutoDraw, NULL, NULL);
+      }
+    }
+  }
+}
+
+void PltApp::DoDoneLightingWindow(Widget w, XtPointer xp1, XtPointer xp2) {
+  DoApplyLightingWindow(w, xp1, xp2);
+  XtDestroyWidget(wLWTopLevel);
+  lightingWindowExists = false;
+}
+
+void PltApp::DoCancelLightingWindow(Widget, XtPointer, XtPointer) {
+  XtDestroyWidget(wLWTopLevel);
+  lightingWindowExists = false;
+}
+
+void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
+  Position xpos, ypos;
+  Dimension wdth, hght;
+  if ( ! lightingWindowExists ) {
+    lightingWindowExists = true;
+    //create lighting window
+    XtVaGetValues(wAmrVisTopLevel, XmNx, &xpos, XmNy, &ypos,
+                  XmNwidth, &wdth, XmNheight, &hght, NULL);
+    
+    aString LWtitlebar = "Lighting";
+    strcpy(buffer, LWtitlebar.c_str());
+    
+    //XtAddConverter(XtRCallProc, XtRCallback, XmuCvtFunctionToCallback, 
+    //               NULL, 0);
+    
+    wLWTopLevel = 
+      XtVaCreatePopupShell(buffer,
+                           topLevelShellWidgetClass, 
+                           wAmrVisTopLevel,
+                           //XtNdestroyCallback, DoCloseLightingWindow,
+                           XmNwidth, 200,
+                           XmNheight, 200,
+                           XmNx, xpos+wdth-20,
+                           XmNy, ypos+20,
+                           NULL);
+    if(GAptr->PVisual() 
+       != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber())) {
+      XtVaSetValues(wLWTopLevel, XmNvisual, GAptr->PVisual(),
+                    XmNdepth, 8, NULL);
+    }
+    wLWForm = XtVaCreateManagedWidget("detachform",
+                                      xmFormWidgetClass, wLWTopLevel,
+                                      NULL);
+
+	// make the buttons
+    int i=0;
+    XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);   i++;
+    XtSetArg(args[i], XmNbottomOffset, WOFFSET);    i++;
+    XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      i++;
+    XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
+    XmString sLWDoneSet = XmStringCreateSimple(" Ok ");
+    XtSetArg(args[i], XmNlabelString, sLWDoneSet);    i++;
+    wLWDoneButton = XmCreatePushButton(wLWForm, "lwdoneset", args, i);
+    XmStringFree(sLWDoneSet);
+    AddStaticCallback(wLWDoneButton, XmNactivateCallback,
+                      &PltApp::DoDoneLightingWindow);
+    
+    i=0;
+    XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);   i++;
+    XtSetArg(args[i], XmNbottomOffset, WOFFSET);    i++;
+    XtSetArg(args[i], XmNleftAttachment, XmATTACH_POSITION);      i++;
+    XtSetArg(args[i], XmNleftPosition, 35);     i++;
+    //XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
+    //XtSetArg(args[i], XmNleftWidget, wLWDoneButton);    i++;
+    XmString sLWApplySet = XmStringCreateSimple("Apply");
+    XtSetArg(args[i], XmNlabelString, sLWApplySet);    i++;
+    wLWApplyButton = XmCreatePushButton(wLWForm, "applyset", args, i);
+    XmStringFree(sLWApplySet);
+
+    AddStaticCallback(wLWApplyButton, XmNactivateCallback,
+                      &PltApp::DoApplyLightingWindow);
+
+
+    i=0;
+    XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);   i++;
+    XtSetArg(args[i], XmNbottomOffset, WOFFSET);    i++;
+    XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      i++;
+    XtSetArg(args[i], XmNrightOffset, WOFFSET);      i++;
+    XmString sLWCancelSet = XmStringCreateSimple("Cancel");
+    XtSetArg(args[i], XmNlabelString, sLWCancelSet);    i++;
+    wLWCancelButton = XmCreatePushButton(wLWForm, "cancelset", args, i);
+    XmStringFree(sLWCancelSet);
+
+    AddStaticCallback(wLWCancelButton, XmNactivateCallback,
+                      &PltApp::DoCancelLightingWindow);
+
+    VolRender *volRenderPtr = projPicturePtr->GetVolRenderPtr();
+    //make the input forms
+    i=0;
+    XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
+    XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
+    XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      i++;
+    XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
+    wLWNumberLabel1 = XtCreateManagedWidget("ambient: ",
+                                           xmLabelGadgetClass, wLWForm,
+                                           args, i);
+    
+    i=0;
+    XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
+    XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
+    XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      i++;
+    XtSetArg(args[i], XmNrightOffset, WOFFSET);      i++;
+    char cNbuff[64];
+    sprintf(cNbuff, "%3.2f", volRenderPtr->GetAmbient());
+    XtSetArg(args[i], XmNvalue, cNbuff);      i++;
+    XmString sLWVariableSet1 = XmStringCreateSimple("Variable");
+    XtSetArg(args[i], XmNlabelString, sLWVariableSet1);    i++;
+    XtSetArg(args[i], XmNcolumns, 6);      i++;
+    wLWNumber1 = XtCreateManagedWidget("variable", xmTextFieldWidgetClass,
+                                            wLWForm, args, i);
+
+    XmStringFree(sLWVariableSet1);
+
+    i=0;
+    XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET);      i++;
+    XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
+    XtSetArg(args[i], XmNtopWidget, wLWNumber1);      i++;
+    XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      i++;
+    XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
+    wLWNumberLabel2 = XtCreateManagedWidget("diffuse: ",
+                                           xmLabelGadgetClass, wLWForm,
+                                           args, i);
+    
+    i=0;
+    XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET);      i++;
+    XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
+    XtSetArg(args[i], XmNtopWidget, wLWNumber1);      i++;
+    XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      i++;
+    XtSetArg(args[i], XmNrightOffset, WOFFSET);      i++;
+    sprintf(cNbuff, "%3.2f", volRenderPtr->GetDiffuse());
+    XtSetArg(args[i], XmNvalue, cNbuff);      i++;
+    XmString sLWVariableSet2 = XmStringCreateSimple("Variable");
+    XtSetArg(args[i], XmNlabelString, sLWVariableSet2);    i++;
+    XtSetArg(args[i], XmNcolumns, 6);      i++;
+    wLWNumber2 = XtCreateManagedWidget("variable", xmTextFieldWidgetClass,
+                                            wLWForm, args, i);
+
+    XmStringFree(sLWVariableSet2);
+
+    i=0;
+    XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET);      i++;
+    XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
+    XtSetArg(args[i], XmNtopWidget, wLWNumber2);      i++;
+    XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      i++;
+    XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
+    wLWNumberLabel3 = XtCreateManagedWidget("specular: ",
+                                           xmLabelGadgetClass, wLWForm,
+                                           args, i);
+    
+    i=0;
+    XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET);      i++;
+    XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
+    XtSetArg(args[i], XmNtopWidget, wLWNumber2);      i++;
+    XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      i++;
+    XtSetArg(args[i], XmNrightOffset, WOFFSET);      i++;
+    sprintf(cNbuff, "%3.2f", volRenderPtr->GetSpecular());
+    XtSetArg(args[i], XmNvalue, cNbuff);      i++;
+    XmString sLWVariableSet3 = XmStringCreateSimple("Variable");
+    XtSetArg(args[i], XmNlabelString, sLWVariableSet3);    i++;
+    XtSetArg(args[i], XmNcolumns, 6);      i++;
+    wLWNumber3 = XtCreateManagedWidget("variable", xmTextFieldWidgetClass,
+                                            wLWForm, args, i);
+
+    XmStringFree(sLWVariableSet3);
+
+    i=0;
+    XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET);      i++;
+    XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
+    XtSetArg(args[i], XmNtopWidget, wLWNumber3);      i++;
+    XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      i++;
+    XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
+    wLWNumberLabel4 = XtCreateManagedWidget("shiny: ",
+                                           xmLabelGadgetClass, wLWForm,
+                                           args, i);
+    
+    i=0;
+    XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET);      i++;
+    XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
+    XtSetArg(args[i], XmNtopWidget, wLWNumber3);      i++;
+    XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      i++;
+    XtSetArg(args[i], XmNrightOffset, WOFFSET);      i++;
+    sprintf(cNbuff, "%3.2f", volRenderPtr->GetShiny());
+    XtSetArg(args[i], XmNvalue, cNbuff);      i++;
+    XmString sLWVariableSet4 = XmStringCreateSimple("Variable");
+    XtSetArg(args[i], XmNlabelString, sLWVariableSet4);    i++;
+    XtSetArg(args[i], XmNcolumns, 6);      i++;
+    wLWNumber4 = XtCreateManagedWidget("variable", xmTextFieldWidgetClass,
+                                            wLWForm, args, i);
+
+    XmStringFree(sLWVariableSet4);
+
+    //    XtAddCallback(wNumberContours, XmNactivateCallback, 
+    //              &PltApp::CBReadContourString,
+    //              (XtPointer) this);
+    //Dimension bHeight;
+    //XtVaGetValues(wNumberContours, XmNheight, &bHeight, NULL);
+
+
+    /*wUserMin = 
+      XtVaCreateManagedWidget("local range",
+                              xmTextFieldWidgetClass, wSetRangeForm,
+                              XmNvalue,		range,
+                              XmNtopWidget,		wLocalRange,
+                              XmNtopAttachment,	XmATTACH_WIDGET,
+                              XmNtopOffset,		3,
+                              XmNleftWidget,		wMin,
+                              XmNleftAttachment,	XmATTACH_WIDGET,
+                              XmNleftOffset,		WOFFSET,
+                              XmNeditable,		true,
+                              XmNcolumns,		strlen(range)+2,
+                              NULL);
+    AddStaticCallback(wUserMin, XmNactivateCallback, &PltApp::DoUserMin);
+    
+    sprintf(range, "Max:");
+    wMax = 
+      XtVaCreateManagedWidget(range, xmLabelGadgetClass, wSetRangeForm,
+                              XmNtopWidget,		wLocalRange,
+                              XmNtopAttachment,	XmATTACH_WIDGET,
+                              XmNtopOffset,		10,
+                              XmNleftWidget,		wUserMin,
+                              XmNleftAttachment,	XmATTACH_WIDGET,
+                              XmNleftOffset,		WOFFSET,
+                              NULL);
+    sprintf(range, format, amrPicturePtrArray[ZPLANE]->GetSpecifiedMax());
+    wUserMax = XtVaCreateManagedWidget("local range",
+                                       xmTextFieldWidgetClass, wSetRangeForm,
+                                       XmNvalue,		range,
+                                       XmNtopWidget,		wLocalRange,
+                                       XmNtopAttachment,	XmATTACH_WIDGET,
+                                       XmNtopOffset,		3,
+                                       XmNleftWidget,		wMax,
+                                       XmNleftAttachment,	XmATTACH_WIDGET,
+                                       XmNleftOffset,		WOFFSET,
+                                       XmNeditable,		true,
+                                       XmNcolumns,		strlen(range)+2,
+                                       NULL);
+    
+    AddStaticCallback(wUserMax, XmNactivateCallback, &PltApp::DoUserMax);
+    
+    XtManageChild(wSetRangeRadioBox);
+    
+    XtPopup(wSetRangeTopLevel, XtGrabNone);*/
+    XtManageChild(wLWCancelButton);
+    XtManageChild(wLWDoneButton);
+    XtManageChild(wLWApplyButton);
+    XtPopup(wLWTopLevel, XtGrabNone);
+    XSetWindowColormap(GAptr->PDisplay(), XtWindow(wLWTopLevel),
+                       pltPaletteptr->GetColormap());
+  } else {
+    XRaiseWindow(GAptr->PDisplay(), XtWindow(wLWTopLevel));
+  }
+}
 
 // -------------------------------------------------------------------
 void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
@@ -273,6 +558,7 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   XtUnmanageChild(wRender);
   XtUnmanageChild(wAutoDraw);
+  XtUnmanageChild(wLightButton);
   XtUnmanageChild(wLight);
   XtUnmanageChild(wClassify);
 #endif
@@ -292,7 +578,7 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
 
   wDetachTopLevel = XtVaCreatePopupShell(buffer,
 	topLevelShellWidgetClass, wAmrVisTopLevel,
-	XmNwidth,		500,
+        XmNwidth,		500,
 	XmNheight,		500,
 	XmNx,			xpos+wdth/2,
 	XmNy,			ypos+hght/2,
@@ -375,6 +661,21 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
                          false);
   XtManageChild(wDAutoDraw);
 
+  i=0;
+  XmString sLightButton;
+  sLightButton = XmStringCreateSimple("Lights");
+  XtSetArg(args[i], XmNlabelString, sLightButton); i++;
+  XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET); i++;
+  XtSetArg(args[i], XmNleftWidget, wDAutoDraw); i++;
+  XtSetArg(args[i], XmNleftOffset, WOFFSET); i++;
+  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM); i++;
+  XtSetArg(args[i], XmNtopOffset, WOFFSET); i++;
+  wDLightButton = XmCreatePushButton(wDetachForm, "dlightbutton", args, i);
+  XmStringFree(sLightButton);
+  AddStaticCallback(wDLightButton, XmNactivateCallback, 
+                    &PltApp::DoCreateLightingWindow);
+  XtManageChild(wDLightButton);
+
 // Render Mode Menu
   i=0;
   wDLightOptions = XmCreatePulldownMenu(wDetachForm,"lightingoptions", args, i);
@@ -399,7 +700,7 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   i=0;
   XtSetArg(args[i], XmNsubMenuId, wDLightOptions); i++;
   XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET); i++;
-  XtSetArg(args[i], XmNleftWidget, wDAutoDraw); i++;
+  XtSetArg(args[i], XmNleftWidget, wDLightButton); i++;
   XtSetArg(args[i], XmNleftOffset, WOFFSET); i++;
   XtSetArg(args[i], XmNtopAttachment, XmATTACH_POSITION); i++;
   XtSetArg(args[i], XmNtopPosition, 0); i++;
@@ -625,21 +926,21 @@ void PltApp::CBRenderModeMenu(Widget w, XtPointer item_no, XtPointer client_data
 // -------------------------------------------------------------------
 void PltApp::DoRenderModeMenu(Widget w, XtPointer item_no, XtPointer client_data) {
 #if defined(BL_VOLUMERENDER)
-    if(item_no == (XtPointer) 0) {  // Use Lighting model
-      if(lightingModel) {
-        return;
-      }
-      SetLightingModel();
-    } else if(item_no == (XtPointer) 1) {  // Use Value model
-      if( ! lightingModel) {
-        return;
-      }
-      SetValueModel();
+  if(item_no == (XtPointer) 0) {  // Use Lighting model
+    if(lightingModel) {
+      return;
     }
-    projPicturePtr->GetVolRenderPtr()->InvalidateVPData();
-    if(XmToggleButtonGetState(wAutoDraw) || showing3dRender) {
-      DoRender(w, NULL, NULL);
+    SetLightingModel();
+  } else if(item_no == (XtPointer) 1) {  // Use Value model
+    if( ! lightingModel) {
+      return;
     }
+    SetValueModel();
+  }
+  projPicturePtr->GetVolRenderPtr()->InvalidateVPData();
+  if(XmToggleButtonGetState(wAutoDraw) || showing3dRender) {
+    DoRender(w, NULL, NULL);
+  } 
 #endif
 }
 

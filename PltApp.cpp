@@ -90,7 +90,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     dataServicesPtr(dataservicesptr),
     animating2d(isAnim),
     currentFrame(0),
-    currentContour(0)
+    currentContour(0),
+    lightingWindowExists(false)
 {
   if( ! dataservicesptr[0]->AmrDataOk()) {
     return;
@@ -198,7 +199,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 	dataServicesPtr(pltParent->dataServicesPtr),
 	animating2d(isAnim),
 	currentFrame(pltParent->currentFrame),
-        palFilename(palfile)
+        palFilename(palfile),
+        lightingWindowExists(false)
 {
   char header[BUFSIZ];
 
@@ -912,6 +914,21 @@ void PltApp::PltAppInit() {
     AddStaticCallback(wAutoDraw, XmNvalueChangedCallback, &PltApp::DoAutoDraw);
     XtManageChild(wAutoDraw);
 
+    i=0;
+    XmString sLightButton;
+    sLightButton = XmStringCreateSimple("Lights");
+    XtSetArg(args[i], XmNlabelString, sLightButton); i++;
+    XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET); i++;
+    XtSetArg(args[i], XmNleftWidget, wAutoDraw); i++;
+    XtSetArg(args[i], XmNleftOffset, WOFFSET); i++;
+    XtSetArg(args[i], XmNtopAttachment, XmATTACH_POSITION); i++;
+    XtSetArg(args[i], XmNtopPosition, 50); i++;
+    wLightButton = XmCreatePushButton(wPlotArea, "lightbutton", args, i);
+    XmStringFree(sLightButton);
+    AddStaticCallback(wLightButton, XmNactivateCallback, 
+                      &PltApp::DoCreateLightingWindow);
+    XtManageChild(wLightButton);
+
 // ****************************************** Render Menu
 
 
@@ -944,7 +961,7 @@ void PltApp::PltAppInit() {
     i=0;
     XtSetArg(args[i], XmNsubMenuId, wLightOptions); i++;
     XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET); i++;
-    XtSetArg(args[i], XmNleftWidget, wAutoDraw); i++;
+    XtSetArg(args[i], XmNleftWidget, wLightButton); i++;
     XtSetArg(args[i], XmNleftOffset, WOFFSET); i++;
     XtSetArg(args[i], XmNtopAttachment, XmATTACH_POSITION); i++;
     XtSetArg(args[i], XmNtopPosition, 50); i++;

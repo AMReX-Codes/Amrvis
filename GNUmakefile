@@ -151,7 +151,9 @@ FDEBF += -C -fpe0
 
 CFLAGS += -g
 
-XTRALIBS +=
+XTRALIBS += 
+
+#LIBRARIES += -lXmu
 
 include $(HERE)/Make.package
 

@@ -104,6 +104,10 @@ public:
   void DoTransResize(Widget, XtPointer, XtPointer);
   void DoAttach(Widget, XtPointer, XtPointer);
   void DoDetach(Widget, XtPointer, XtPointer);
+  void DoCreateLightingWindow(Widget, XtPointer, XtPointer);
+  void DoDoneLightingWindow(Widget, XtPointer, XtPointer);
+  void DoApplyLightingWindow(Widget, XtPointer, XtPointer);
+  void DoCancelLightingWindow(Widget, XtPointer, XtPointer);
   void Clear();
   ProjectionPicture *GetProjPicturePtr() { return projPicturePtr; }
 #endif
@@ -276,13 +280,19 @@ private:
   static int	reserveSystemColors;
   
 #if (BL_SPACEDIM==3)
+  bool lightingWindowExists;
   ProjectionPicture	*projPicturePtr;
   ViewTransform	viewTrans;
 #endif
   Widget wTransDA, wRender, wLabelAxes, wOrient;
-  Widget wDetachTopLevel, wDetachForm, wDetachWindowForm;
+  Widget wLWTopLevel, wLWForm;
+  Widget wDetachTopLevel, wDetachForm;
   Widget wAttach, wDRender, wDLabelAxes, wDOrient;
   Widget wAutoDraw, wDAutoDraw;
+  Widget wLightButton, wDLightButton;
+  Widget wLWCancelButton, wLWDoneButton, wLWApplyButton;
+  Widget wLWNumber1, wLWNumber2, wLWNumber3, wLWNumber4; 
+  Widget wLWNumberLabel1, wLWNumberLabel2, wLWNumberLabel3, wLWNumberLabel4;
   Widget wLight, wLightItems[2], wLightOptions;
   Widget wDLight, wDLightItems[2], wDLightOptions;
   Widget wClassify, wClassifyItems[2], wClassifyOptions;

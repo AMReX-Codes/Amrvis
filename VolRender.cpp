@@ -778,5 +778,14 @@ void VolRender::SetProperties() {
                   gradientMax);
   SetTransferProperties();
 }
+
+void VolRender::SetLighting(Real ambient, Real diffuse, 
+                            Real specular, Real shiny) {
+  ambientMat = ambient;
+  diffuseMat = diffuse;
+  specularMat = specular;
+  shinyMat = shiny;
+}
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
+
