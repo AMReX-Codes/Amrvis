@@ -1,0 +1,8 @@
+Amrvis version 1.1a release notes.
+
+This is a minor bug fix update.
+
+Bug fixes:
+
+  The problem with picking a very small subregion for a deep dataset
+  and the subregion showing only level zero values is fixed.

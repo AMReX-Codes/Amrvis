@@ -1,0 +1,50 @@
+Amrvis version 1.1 release notes.
+
+The major changes for this release are better support for deep (many
+level) data sets and level menu functionality that comes closer
+to how I feel it should work.  Other changes include consolidation
+of some defaults and command line settings and a few bug fixes.
+Details follow.
+
+In amrvis 1.0, subregions were restricted to a multiple of a coarse
+level cell.  This became a problem in 3D because even a single coarse
+cell expanded to the finest level was very large for deep data
+sets.  In amrvis 1.1, subregions are restricted to what I term
+the finestContainingLevel, which is the finest level that has
+grids which completely contain the subregion (the complement is null).
+The level menu for a subregion will show only levels in the range
+[finestContainingLevel, maxAllowableLevel].  The maxAllowableLevel
+is the maximum level which can be displayed based on the
+maxpixmap size.  Volume rendering is done on maxAllowableLevel.
+FArrayBox output is done on the current displayed level (the value
+in the level menu).  Animations work on the currenly displayed level.
+The dataset also works at maxAllowableLevel, where the smallest boxes
+containing data are at maxAllowableLevel.
+
+The file type (cgmf, sf, etc.) can now be set in amrvis.defaults
+with the keyword filetype (for example,  filetype sf).  Valid
+values are the same as the command line values without the dash
+(cgmf, cgsf, mf, sf, old2, iamr, cgiamr, boxdata, boxchar, fab).
+
+Byte ordering can be specified on the command line with one of
+the following:  -sgi, -alpha, or -reverse2  (same values as in
+amrvis.defaults, but with dashes).
+
+Command line settings override amrvis.defaults settings.
+
+A more visible message is printed out by amrvis to show which
+byte ordering and filetype are used.
+
+I have versions of amrvis 1.1 on the C90 (a.nersc) and the J90 (k.nersc).
+See me if you need them.  Also, I can compile special versions for
+HDF support, volume rendering using a value model instead of a lighting
+model, and volume rendering with grids in the flow.
+
+Bug fixes:
+  The problem with a constant field in the dataset is fixed.
+
+  The problem of the highest data value in the palette window
+  sometimes not matching the highest data value in the dataset
+  is fixed.  This was a roundoff issue in the Palette display.
+
+  The problem of occasional misaligned grids for 2d datasets is fixed.
