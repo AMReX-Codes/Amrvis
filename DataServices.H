@@ -43,6 +43,7 @@ class DataServices {
     static void SetBatchMode();
     static void Dispatch(DSRequestType requestType, DataServices *ds, ...);
 
+    static void SetFabOutSize(int iSize);
 
   private:
 
@@ -117,6 +118,7 @@ class DataServices {
 
     static Array<DataServices *> dsArray;
     static int dsArrayIndexCounter;
+    static int dsFabOutSize;
     static bool dsBatchMode;
 };
 

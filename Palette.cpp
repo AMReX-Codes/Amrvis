@@ -332,8 +332,10 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
     return(NULL);
   }
   if(read(fd, abuff.dataPtr(), iSeqPalSize) != iSeqPalSize) {
-    cout << "Palette does not have alpha component: will construct a default" 
-         << endl;
+    if(BL_SPACEDIM == 3) {
+      cout << "Palette does not have an alpha component:  using the default." 
+           << endl;
+    }
     paletteType = NON_ALPHA;
   } else {
     paletteType = ALPHA;

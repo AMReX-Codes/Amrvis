@@ -540,7 +540,17 @@ void VolRender::MakePicture(Real mvmat[4][4], Real Length,
 {
     vpCurrentMatrix(vpc, VP_MODEL);
     vpIdentityMatrix(vpc);
+#ifdef BL_USE_FLOAT
+    double dmvmat[4][4];
+    for(int i(0); i < 4; ++i) {
+      for(int j(0); j < 4; ++j) {
+	dmvmat[i][j] = (double) mvmat[i][j];
+      }
+    }
+    vpSetMatrix(vpc, dmvmat);
+#else
     vpSetMatrix(vpc, mvmat);
+#endif
     vpCurrentMatrix(vpc, VP_PROJECT);
     vpIdentityMatrix(vpc);
     vpLen = Length;

@@ -9,8 +9,8 @@ COMP      = mpKCC
 COMP      = KCC
 DEBUG     = TRUE
 DEBUG     = FALSE
-DIM       = 2
 DIM       = 3
+DIM       = 2
 
 USE_ARRAYVIEW = TRUE
 USE_ARRAYVIEW = FALSE

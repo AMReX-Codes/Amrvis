@@ -43,6 +43,7 @@ Real specifiedMax;
 bool useMaxLevel;
 int  maxLevel;
 int  maxPaletteIndex;
+int  fabIOSize;
 
 
 // -------------------------------------------------------------------
@@ -140,6 +141,7 @@ void GetDefaults(const aString &defaultsFile) {
   maxPaletteIndex = 255;  // dont clip the top palette index (default)
   boxColor = maxPaletteIndex;
   fileType = NEWPLT;  // default
+  fabIOSize = 0;
 
 
   // try to find the defaultsFile
@@ -297,6 +299,7 @@ void PrintUsage(char *exname) {
 # else
   cout << "       [-boxslice xlo ylo zlo xhi yhi zhi]" << endl;
 #endif
+  cout << "       [-fabiosize nbits]" << endl;
   cout << "       [-maxlev n]" << endl;
   cout << "       [-palette palname] [-initialderived dername]" << endl;
   cout << "       [-initialscale n] [-showboxes tf] [-numberformat fmt]" << endl;
@@ -339,6 +342,8 @@ void PrintUsage(char *exname) {
   cout << "  -a                 load files as an animation." << endl; 
 #endif
   //cout << "  -sleep  n          specify sleep time (for attaching parallel debuggers)." << endl;
+  cout << "  -fabiosize nbits   write fabs with nbits (valid values are 8 and 32." << endl;
+  cout << "                     the default is native (usually 64)." << endl;
   cout << "  -maxlev n          specify the maximum drawn level." << endl;
   cout << "  -palette palname   set the initial palette." << endl; 
   cout << "  -initialderived dername   set the initial derived to dername." << endl; 
@@ -423,6 +428,16 @@ void ParseCommandLine(int argc, char *argv[]) {
     } else if(strcmp(argv[i], "-sleep") == 0) {
       sleepTime = atoi(argv[i+1]);
       i++;
+    } else if(strcmp(argv[i], "-fabiosize") == 0) {
+      int iSize = atoi(argv[i+1]);
+      if(iSize == 8 || iSize == 32) {
+        fabIOSize = iSize;
+      } else {
+	cerr << "Warning:  -fabiosize must be 8 or 32.  Defaulting to native."
+	     << endl;
+        fabIOSize = 0;
+      }
+      i++;
     } else if(strcmp(argv[i], "-skippltlines") == 0) {
       if(argc-1<i+1 || atoi(argv[i+1]) < 0) {
         PrintUsage(argv[0]);
@@ -489,9 +504,11 @@ void ParseCommandLine(int argc, char *argv[]) {
 #   endif
 
     } else if(strcmp(argv[i], "-makeswf_light") == 0) {
-        makeSWFData = true; makeSWFLight = true;
+        makeSWFData = true;
+	makeSWFLight = true;
     } else if(strcmp(argv[i], "-makeswf_value") == 0) {
-        makeSWFData = true; makeSWFLight = false;
+        makeSWFData = true;
+	makeSWFLight = false;
     } else if(strcmp(argv[i], "-lowblack") == 0) {
         lowBlack = true;
     } else if(strcmp(argv[i], "-useminmax") == 0) {
@@ -700,6 +717,8 @@ void SetBoxColor(int boxcolor) { boxColor = boxcolor; }
 int GetBoxColor()  { return boxColor; }
 
 Array< List<int> > &GetDumpSlices() { return dumpSliceList; }
+
+int  GetFabOutFormat()           { return fabIOSize;  }
 
 bool UseSpecifiedMinMax() { return specifiedMinMax; }
 void SetSpecifiedMinMax(Real  specifiedmin, Real  specifiedmax) {

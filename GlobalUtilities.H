@@ -56,6 +56,7 @@ const aString &GetPaletteName();
 bool DumpSlices();
 bool SliceAllVars();
 Array< List<int> > &GetDumpSlices();
+int  GetFabOutFormat();
 
 #define SHOWVAL(val) { cout << #val << " = " << val << endl; }  // Jensens device
 #define VSHOWVAL(verbose, val) { if(verbose) { \

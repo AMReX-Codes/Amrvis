@@ -875,14 +875,14 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
   Real dPoint;
   
   // flips the image in Vert dir: j => datasizev-j-1
-  for(int j = 0; j < datasizev; ++j) {
-    jdsh = j * datasizeh;
-    jtmp1 = (datasizev-j-1) * datasizeh;
-    for(int i = 0; i < datasizeh; ++i) {
-      dIndex = i + jtmp1;
-      dPoint = dataPoint[dIndex];
-      iIndex = i + jdsh;
-      if(raster) {
+  if(raster) {
+    for(int j = 0; j < datasizev; ++j) {
+      jdsh = j * datasizeh;
+      jtmp1 = (datasizev-j-1) * datasizeh;
+      for(int i = 0; i < datasizeh; ++i) {
+        dIndex = i + jtmp1;
+        dPoint = dataPoint[dIndex];
+        iIndex = i + jdsh;
         if(dPoint > globalMax) {  // clip
           imagedata[iIndex] = paletteEnd;
         } else if(dPoint < globalMin) {  // clip
@@ -890,14 +890,24 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
         } else {
           imagedata[iIndex] = (unsigned char)
             ((((dPoint - globalMin) * oneOverGDiff) * csm1) );
-          //    ^^^^^^^^^^^^^^^^^ Real data
+            //  ^^^^^^^^^^^^^^^^^^ Real data
           imagedata[iIndex] += paletteStart;
         } 
-      }else {
-        imagedata[iIndex] = whiteIndex;
       }
     }
-  }
+
+  } else {
+
+    if(LowBlack()) {
+      for(int i = 0; i < (datasizeh * datasizev); ++i) {
+        imagedata[i] = blackIndex;
+      }
+    } else {
+      for(int i = 0; i < (datasizeh * datasizev); ++i) {
+        imagedata[i] = whiteIndex;
+      }
+    }
+  }  // end if(raster)
 }  // end CreateImage(...)
 
 
@@ -1512,7 +1522,12 @@ void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
       oneOverGDiff = 1.0 / (maxUsing - minUsing);
     }
 
-    int drawColor(palPtr->BlackIndex());
+    int drawColor;
+    if(LowBlack()) {
+      drawColor = palPtr->WhiteIndex();
+    } else {
+      drawColor = palPtr->BlackIndex();
+    }
     for(int icont = 0; icont < (int) numberOfContours; ++icont) {
       Real frac((Real) icont / numberOfContours);
       Real value(v_off + frac*(v_max - v_min));

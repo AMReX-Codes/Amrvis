@@ -16,6 +16,7 @@ using std::ios;
 
 Array<DataServices *> DataServices::dsArray;
 int DataServices::dsArrayIndexCounter = 0;
+int DataServices::dsFabOutSize = 0;
 bool DataServices::dsBatchMode = false;
 
 // ---------------------------------------------------------------
@@ -45,6 +46,18 @@ DataServices::~DataServices() {
 // ---------------------------------------------------------------
 void DataServices::SetBatchMode() {
   dsBatchMode = true;
+}
+
+
+// ---------------------------------------------------------------
+void DataServices::SetFabOutSize(int iSize) {
+  if(iSize == 8 || iSize == 32) {
+    dsFabOutSize = iSize;
+  } else {
+    cerr << "Warning:  DataServices::SetFabOutSize:  size must be 8 or 32 only."
+	 << "  Defaulting to native." << endl;
+    dsFabOutSize = 0;
+  }
 }
 
 
@@ -726,26 +739,36 @@ bool DataServices::WriteFab(const aString &fname, const Box &region, int lev,
   if( ! bAmrDataOk) {
     return false;
   }
-    FArrayBox data;
-    if(ParallelDescriptor::IOProcessor()) {
-      data.resize(region, 1);
+  FArrayBox data;
+  if(ParallelDescriptor::IOProcessor()) {
+    data.resize(region, 1);
+  }
+
+  Array<FArrayBox *> destFabs(1);
+  Array<Box> destBoxes(1);
+  destFabs[0]  = &data;
+  destBoxes[0] = region;
+  amrData.FillVar(destFabs, destBoxes, lev, varname,
+		  ParallelDescriptor::IOProcessorNumber());
+
+  if(ParallelDescriptor::IOProcessor()) {
+    FABio::Format oldFabFormat = FArrayBox::getFormat();
+    if(dsFabOutSize == 8) {
+      FArrayBox::setFormat(FABio::FAB_8BIT);
+    }
+    if(dsFabOutSize == 32) {
+      FArrayBox::setFormat(FABio::FAB_IEEE_32);
     }
 
-    Array<FArrayBox *> destFabs(1);
-    Array<Box> destBoxes(1);
-    destFabs[0]  = &data;
-    destBoxes[0] = region;
-    amrData.FillVar(destFabs, destBoxes, lev, varname,
-		    ParallelDescriptor::IOProcessorNumber());
+    ofstream os;
+    os.open(fname.c_str(), ios::out);
+    data.writeOn(os);
+    os.close();
 
-    if(ParallelDescriptor::IOProcessor()) {
-      ofstream os;
-      os.open(fname.c_str(), ios::out);
-      data.writeOn(os);
-      os.close();
-    }
+    FArrayBox::setFormat(oldFabFormat);
+  }
 
-    return true;
+  return true;
 }  // end WriteFab
 
 
@@ -762,36 +785,47 @@ bool DataServices::WriteFab(const aString &fname, const Box &region, int lev) {
     return false;
   }
 
-    // write all fab vars
-    FArrayBox tempdata;
-    FArrayBox data;
+  // write all fab vars
+  FArrayBox tempdata;
+  FArrayBox data;
+  if(ParallelDescriptor::IOProcessor()) {
+    tempdata.resize(region, 1);
+    data.resize(region, amrData.NComp());
+  }
+  for(int ivar = 0; ivar < amrData.NComp(); ivar++) {
+    //amrData.FillVar(tempdata, lev, amrData.PlotVarNames()[ivar]);
+    Array<FArrayBox *> destFabs(1);
+    Array<Box> destBoxes(1);
+    destFabs[0]  = &tempdata;
+    destBoxes[0] = region;
+    amrData.FillVar(destFabs, destBoxes, lev, amrData.PlotVarNames()[ivar],
+		    ParallelDescriptor::IOProcessorNumber());
+    int srccomp(0);
+    int destcomp(ivar);
+    int ncomp(1);
     if(ParallelDescriptor::IOProcessor()) {
-      tempdata.resize(region, 1);
-      data.resize(region, amrData.NComp());
+      data.copy(tempdata, srccomp, destcomp, ncomp);
     }
-    for(int ivar = 0; ivar < amrData.NComp(); ivar++) {
-      //amrData.FillVar(tempdata, lev, amrData.PlotVarNames()[ivar]);
-      Array<FArrayBox *> destFabs(1);
-      Array<Box> destBoxes(1);
-      destFabs[0]  = &tempdata;
-      destBoxes[0] = region;
-      amrData.FillVar(destFabs, destBoxes, lev, amrData.PlotVarNames()[ivar],
-		      ParallelDescriptor::IOProcessorNumber());
-      int srccomp = 0;
-      int destcomp = ivar;
-      int ncomp = 1;
-      if(ParallelDescriptor::IOProcessor()) {
-        data.copy(tempdata, srccomp, destcomp, ncomp);
-      }
+  }
+
+  if(ParallelDescriptor::IOProcessor()) {
+    FABio::Format oldFabFormat = FArrayBox::getFormat();
+    if(dsFabOutSize == 8) {
+      FArrayBox::setFormat(FABio::FAB_8BIT);
+    }
+    if(dsFabOutSize == 32) {
+      FArrayBox::setFormat(FABio::FAB_IEEE_32);
     }
 
-    if(ParallelDescriptor::IOProcessor()) {
-      ofstream os;
-      os.open(fname.c_str(), ios::out);
-      data.writeOn(os);
-      os.close();
-    }
-    return true;
+    ofstream os;
+    os.open(fname.c_str(), ios::out);
+    data.writeOn(os);
+    os.close();
+
+    FArrayBox::setFormat(oldFabFormat);
+  }
+
+  return true;
 }  // end WriteFab
 
 

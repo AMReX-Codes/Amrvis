@@ -635,7 +635,11 @@ void PltApp::PltAppInit() {
   ContourItems[3] = XmStringCreateSimple("b/w contours");
   ContourItems[4] = XmStringCreateSimple("velocity vectors");
   
-  for(int j = 0; j < 5; ++j) {
+  int nItems(5);
+  if(amrData.NComp() < (BL_SPACEDIM + 1)) {
+    nItems = 4;  // no velocity vectors
+  }
+  for(int j = 0; j < nItems; ++j) {
     XtSetArg(args[0], XmNlabelString, ContourItems[j]);
     wContourItems[j] = XmCreatePushButtonGadget(wContourOptions,
                                                 "contour", args, 3);
@@ -643,7 +647,7 @@ void PltApp::PltAppInit() {
                   &PltApp::CBChangeContour, (XtPointer)j);
     XmStringFree(ContourItems[j]);
   }
-  XtManageChildren(wContourItems, 5);
+  XtManageChildren(wContourItems, nItems);
   
   
   i=0;

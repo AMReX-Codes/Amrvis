@@ -42,6 +42,7 @@ amrvis3d
        [-maxpixmapsize <max picture size in # of pixels>]
        [-xslice n] [-yslice n] [-zslice n] [-sliceallvars]
        [-boxslice xlo ylo zlo xhi yhi zhi]
+       [-fabiosize nbits]
        [-maxlev n]
        [-palette palname] [-initialderived dername]
        [-initialscale n] [-showboxes tf] [-numberformat fmt]
@@ -65,6 +66,8 @@ amrvis3d
                      box format:  lox loy loz hix hiy hiz.
                      example:  -boxslice 0 0 0 120 42 200.
                      Note:  slices are written in batch mode.
+  -fabiosize nbits   write fabs with nbits (valid values are 8 and 32.
+		     the default is native (usually 64).
   -maxlev n          specify the maximum drawn level.
   -palette palname   set the initial palette.
   -initialderived dername   set the initial derived to dername.

@@ -734,6 +734,9 @@ bool AmrData::ReadNonPlotfileData(const aString &filename, FileType filetype) {
       plotVars[i] = fabname;
     }
     probDomain[0] = newfab->box();
+    for(i = 0; i < BL_SPACEDIM; i++) {
+      dxLevel[0][i] = 1.0 / probDomain[0].length(i);
+    }
   } else if(fileType == MULTIFAB) {
     cerr << "MULTIFAB file type not yet supported." << endl;
     return false;

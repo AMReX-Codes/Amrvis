@@ -101,6 +101,13 @@ void main(int argc, char *argv[]) {
     comlineBox = GetBoxFromCommandLine();
   }
 
+  if(GetFabOutFormat() == 8) {
+    DataServices::SetFabOutSize(8);
+  }
+  if(GetFabOutFormat() == 32) {
+    DataServices::SetFabOutSize(32);
+  }
+
   bool bBatchMode(false);
   if(MakeSWFData() || DumpSlices() || GivenBoxSlice()) {
     bBatchMode = true;
