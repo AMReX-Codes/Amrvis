@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.53 2001-08-21 20:37:55 vince Exp $
+// $Id: AmrData.cpp,v 1.54 2001-08-22 00:22:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,10 +9,10 @@
 #include "AmrData.H"
 #include "ArrayLim.H"
 #include "BoxDomain.H"
-#include "aString.H"
-//#include "Misc.H"
 #include "VisMF.H"
 
+#include <string>
+using std::string;
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -146,7 +146,7 @@ AmrData::~AmrData() {
 
 
 // ---------------------------------------------------------------
-bool AmrData::ReadData(const aString &filename, FileType filetype) {
+bool AmrData::ReadData(const string &filename, FileType filetype) {
    fileType = filetype;
    bCartGrid = false;
    bTerrain = false;
@@ -157,7 +157,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
    int i, j, k, width;
    fileName = filename;
 
-    aString File = filename;
+    string File = filename;
 
 #ifdef BL_PARALLEL_IO
     File += '/';
@@ -510,9 +510,9 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 
       while(currentIndexComp < nComp) {
 
-        aString mfNameRelative;
+        string mfNameRelative;
         is >> mfNameRelative;
-        aString mfName(fileName);
+        string mfName(fileName);
 #ifdef BL_PARALLEL_IO
         mfName += '/';
         mfName += mfNameRelative;
@@ -710,7 +710,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 
 
 // ---------------------------------------------------------------
-bool AmrData::ReadNonPlotfileData(const aString &filename, FileType filetype) {
+bool AmrData::ReadNonPlotfileData(const string &filename, FileType filetype) {
   int i;
   if(verbose) {
      cout << "AmrPlot::opening file = " << filename << endl;
@@ -933,7 +933,7 @@ void AmrData::IntVectFromLocation(const int finestFillLevel,
 
 // ---------------------------------------------------------------
 void AmrData::FillVar(FArrayBox *destFab, const Box &destBox,
-		      int finestFillLevel, const aString &varname, int procWithFabs)
+		      int finestFillLevel, const string &varname, int procWithFabs)
 {
   Array<FArrayBox *> destFabs(1);
   Array<Box> destBoxes(1);
@@ -946,10 +946,10 @@ void AmrData::FillVar(FArrayBox *destFab, const Box &destBox,
 
 // ---------------------------------------------------------------
 void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
-		      const aString &varname, int destcomp)
+		      const string &varname, int destcomp)
 {
   int numFillComps(1);
-  Array<aString> varNames(numFillComps);
+  Array<string> varNames(numFillComps);
   Array<int> destComps(numFillComps);
   varNames[0]  = varname;
   destComps[0] = destcomp;
@@ -959,7 +959,7 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
 
 // ---------------------------------------------------------------
 void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
-		      const Array<aString> &varNames,
+		      const Array<string> &varNames,
 		      const Array<int> &destFillComps)
 {
 // This function fills the destMultiFab which is defined on
@@ -1196,7 +1196,7 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
 
 // ---------------------------------------------------------------
 void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
-		      int finestFillLevel, const aString &varname, int procWithFabs)
+		      int finestFillLevel, const string &varname, int procWithFabs)
 {
 
 //
@@ -1434,7 +1434,7 @@ int AmrData::NumDeriveFunc() const {
 // ---------------------------------------------------------------
 // return true if the given name is the name of a plot variable
 // that can be derived from what is known.
-bool AmrData::CanDerive(const aString &name) const {
+bool AmrData::CanDerive(const string &name) const {
    for(int i(0); i < plotVars.size(); ++i) {
      if(plotVars[i] == name) {
        return true;
@@ -1577,7 +1577,7 @@ void AmrData::FlushGrids(int componentIndex) {
 
 
 // ---------------------------------------------------------------
-bool AmrData::MinMax(const Box &onBox, const aString &derived, int level,
+bool AmrData::MinMax(const Box &onBox, const string &derived, int level,
 		     Real &dataMin, Real &dataMax)
 {
   BL_ASSERT(level >= 0 && level <= finestLevel);
@@ -1710,7 +1710,7 @@ bool AmrData::MinMax(const Box &onBox, const aString &derived, int level,
 
 
 // ---------------------------------------------------------------
-int AmrData::StateNumber(const aString &statename) const {
+int AmrData::StateNumber(const string &statename) const {
   for(int ivar = 0; ivar < plotVars.size(); ivar++) {
     if(statename == plotVars[ivar]) {
       return ivar;

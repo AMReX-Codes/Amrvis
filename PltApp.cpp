@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.95 2001-08-21 20:37:55 vince Exp $
+// $Id: PltApp.cpp,v 1.96 2001-08-22 00:22:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -99,7 +99,7 @@ PltApp::~PltApp() {
 
 
 // -------------------------------------------------------------------
-PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
+PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 	       const Array<DataServices *> &dataservicesptr, bool isAnim)
   : paletteDrawn(false),
     appContext(app),
@@ -213,7 +213,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
   rGlobalMax = -AV_BIG_REAL;
   int coarseLevel(0);
   int iCDerNum(pltAppState->CurrentDerivedNumber());
-  aString asCDer(pltAppState->CurrentDerived());
+  string asCDer(pltAppState->CurrentDerived());
   int fineLevel(pltAppState->MaxAllowableLevel());
   const Array<Box> &onBox(amrData.ProbDomain());
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
@@ -288,7 +288,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     ivLowOffsetMAL.setVal(i, amrData.ProbDomain()[maxlev].smallEnd(i));
   }
 
-  contourNumString = aString("10");
+  contourNumString = string("10");
   pltAppState->SetNumContours(10);
 
   palFilename = PltApp::defaultPaletteString;
@@ -301,8 +301,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
 PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 	       const IntVect &offset,
 	       //AmrPicture *parentPtr,
-	       PltApp *pltParent, const aString &palfile,
-	       bool isAnim, const aString &newderived, const aString &filename)
+	       PltApp *pltParent, const string &palfile,
+	       bool isAnim, const string &newderived, const string &filename)
   : paletteDrawn(false),
     appContext(app),
     wTopLevel(w),
@@ -363,7 +363,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     onBox[ilev] = tempbox;
   }
   int iCDerNum(pltAppState->CurrentDerivedNumber());
-  const aString asCDer(pltAppState->CurrentDerived());
+  const string asCDer(pltAppState->CurrentDerived());
   int coarseLevel(0);
   int fineLevel(pltAppState->MaxAllowableLevel());
   Real rSMin, rSMax;
@@ -735,7 +735,7 @@ void PltApp::PltAppInit() {
   // ------------------------------- derived menu
   int maxMenuItems(20);  // arbitrarily
   int numberOfDerived(dataServicesPtr[currentFrame]->NumDeriveFunc());
-  const Array<aString> &derivedStrings =
+  const Array<string> &derivedStrings =
 	     dataServicesPtr[currentFrame]->PlotVarNames();
 
   wMenuPulldown = XmCreatePulldownMenu(wMenuBar, "DerivedPulldown", NULL, 0);
@@ -1330,7 +1330,7 @@ void PltApp::PltAppInit() {
 // -------------------------------------------------------------------
 void PltApp::FindAndSetMinMax(const MinMaxRangeType mmrangetype,
 			      const int framenumber,
-		              const aString &currentderived,
+		              const string &currentderived,
 			      const int derivednumber,
 		              const Array<Box> &onBox,
 		              const int coarselevel, const int finelevel,
@@ -1579,7 +1579,7 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   rGlobalMax    = -AV_BIG_REAL;
   rSubregionMin =  AV_BIG_REAL;
   rSubregionMax = -AV_BIG_REAL;
-  const aString asCDer(pltAppState->CurrentDerived());
+  const string asCDer(pltAppState->CurrentDerived());
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
     // set FILEGLOBALMINMAX  dont reset if already set
     FindAndSetMinMax(FILEGLOBALMINMAX, iFrame, asCDer, iCDerNum, onBox,
@@ -1658,7 +1658,7 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
       }
     } else if(strcmp(pltAppState->CurrentDerived().c_str(),"vol_frac") == 0) {
     } else {
-      aString outbuf("Finding global min & max values for ");
+      string outbuf("Finding global min & max values for ");
       outbuf += pltAppState->CurrentDerived();
       outbuf += "...\n";
       strcpy(buffer, outbuf.c_str());
@@ -1750,7 +1750,7 @@ void PltApp::ReadContourString(Widget w, XtPointer, XtPointer) {
 
   char temp[64];
   strcpy(temp, XmTextFieldGetString(w));
-  aString tmpContourNumString(temp);
+  string tmpContourNumString(temp);
 
   // unexhaustive string check to prevent errors 
   bool stringOk(true);
@@ -2493,7 +2493,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void PltApp::SetNewFormatString(const aString &newformatstring) {
+void PltApp::SetNewFormatString(const string &newformatstring) {
   pltAppState->SetFormatString(newformatstring);
   pltPaletteptr->SetFormat(newformatstring);
   pltPaletteptr->Redraw();
@@ -2631,7 +2631,7 @@ void PltApp::DoDoneNumberFormat(Widget, XtPointer client_data, XtPointer) {
   bool bKillNFWindow = (bool) client_data;
   paletteDrawn = false;
 
-  aString tempFormatString;
+  string tempFormatString;
 
   char temp[64];
   strcpy(temp, XmTextFieldGetString(wFormat));
@@ -2860,7 +2860,7 @@ void PltApp::DoOpenPalFile(Widget w, XtPointer, XtPointer call_data) {
 
 // -------------------------------------------------------------------
 XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
-				       const aString *derived)
+				       const string *derived)
 {
   const AmrData &amrData(dataServicesPtr[currentFrame]->AmrDataRef());
   
@@ -3229,7 +3229,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 				 &dataValue, &goodIntersect);
 	  char dataValueCharString[LINELENGTH];
 	  sprintf(dataValueCharString, pltAppState->GetFormatString().c_str(), dataValue);
-	  aString dataValueString(dataValueCharString);
+	  string dataValueString(dataValueCharString);
 	  ostrstream buffout(buffer, BUFSIZ);
 	  if(goodIntersect) {
 	    buffout << '\n';
@@ -4104,7 +4104,7 @@ void PltApp::ShowFrame() {
 	    amrPicturePtrArray[ZPLANE]->ImageSizeH(),
 	    amrPicturePtrArray[ZPLANE]->ImageSizeV());
   
-  aString fileName(fileNames[currentFrame]);
+  string fileName(fileNames[currentFrame]);
   int fnl(fileName.length() - 1);
   while(fnl > -1 && fileName[fnl] != '/') {
     --fnl;
@@ -4218,29 +4218,29 @@ int  PltApp::initialWindowWidth;
 int  PltApp::placementOffsetX    = 0;
 int  PltApp::placementOffsetY    = 0;
 int  PltApp::reserveSystemColors = 50;
-aString PltApp::defaultPaletteString;
-aString PltApp::defaultLightingFilename;
-aString PltApp::initialDerived;
-aString PltApp::initialFormatString;
+string PltApp::defaultPaletteString;
+string PltApp::defaultLightingFilename;
+string PltApp::initialDerived;
+string PltApp::initialFormatString;
 
 bool  PltApp::PaletteDrawn()          { return PltApp::paletteDrawn;     }
 int   PltApp::GetInitialScale()       { return PltApp::initialScale;     }
 int   PltApp::GetDefaultShowBoxes()   { return PltApp::defaultShowBoxes; }
-aString &PltApp::GetInitialDerived()  { return PltApp::initialDerived;   }
-aString &PltApp::GetDefaultPalette()  { return PltApp::defaultPaletteString; }
-aString &PltApp::GetDefaultLightingFile() { return PltApp::defaultLightingFilename; }
-const aString &PltApp::GetFileName()  { return (fileNames[currentFrame]); }
+string &PltApp::GetInitialDerived()  { return PltApp::initialDerived;   }
+string &PltApp::GetDefaultPalette()  { return PltApp::defaultPaletteString; }
+string &PltApp::GetDefaultLightingFile() { return PltApp::defaultLightingFilename; }
+const string &PltApp::GetFileName()  { return (fileNames[currentFrame]); }
 void  PltApp::PaletteDrawn(bool tOrF) { paletteDrawn = tOrF; }
 
-void PltApp::SetDefaultPalette(const aString &palString) {
+void PltApp::SetDefaultPalette(const string &palString) {
   PltApp::defaultPaletteString = palString;
 }
 
-void PltApp::SetDefaultLightingFile(const aString &lightFileString) {
+void PltApp::SetDefaultLightingFile(const string &lightFileString) {
   PltApp::defaultLightingFilename = lightFileString;
 }
 
-void PltApp::SetInitialDerived(const aString &initialderived) {
+void PltApp::SetInitialDerived(const string &initialderived) {
   PltApp::initialDerived = initialderived;
 }
 
@@ -4248,7 +4248,7 @@ void PltApp::SetInitialScale(int initScale) {
   PltApp::initialScale = initScale;
 }
 
-void PltApp::SetInitialFormatString(const aString &formatstring) {
+void PltApp::SetInitialFormatString(const string &formatstring) {
   PltApp::initialFormatString = formatstring;
 }
 

@@ -7,7 +7,9 @@
 #include <REAL.H>
 #include <IntVect.H>
 #include <FArrayBox.H>
-#include <aString.H>
+
+#include <string>
+using std::string;
 
 class XYPlotDataListLink {
   friend class XYPlotDataListIterator;
@@ -34,7 +36,7 @@ class XYPlotDataList
   friend class XYPlotDataListLink;
   friend class XYPlotDataListIterator;
 public:
-  XYPlotDataList(const aString &_derived, int max_level,
+  XYPlotDataList(const string &_derived, int max_level,
 		 int _gridline,
 		 const Array<int> &ratio_list,
 		 const Array<Real> &d_x,
@@ -66,7 +68,7 @@ protected:
   int numPoints, maxLevel, curLevel, gridline;
   char updatedQ, emptyQ;
   double startX, endX, offsetX;
-  aString derived;
+  string derived;
   XYPlotDataList *copied_from;
 
 private:

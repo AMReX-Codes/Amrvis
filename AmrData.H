@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.H,v 1.21 2001-08-21 20:37:55 vince Exp $
+// $Id: AmrData.H,v 1.22 2001-08-22 00:22:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -10,14 +10,16 @@
 #define _AMRDATA_H_
 
 #include "AmrvisConstants.H"
-#include "List.H"
 #include "Array.H"
 #include "MultiFab.H"
-#include "aString.H"
 #include "VisMF.H"
 
 #include <vector>
 #include <fstream>
+#include <list>
+#include <string>
+using std::list;
+using std::string;
 using std::vector;
 using std::istream;
 using std::ostream;
@@ -47,7 +49,7 @@ class AmrData {
   Array<Real> probLo;
   Array<Real> probHi;
   Real time;
-  Array<aString> plotVars;
+  Array<string> plotVars;
   Array<Real> vfEps, afEps;
   int nComp;
   int nGrow;
@@ -56,7 +58,7 @@ class AmrData {
   int coordSys;
   Array< Array< FArrayBox *> > regions; // [lev][nReg]  ptrs to bndry data
   BoxArray fabBoxArray;  // used only for fileType == FAB
-  aString plotFileVersion;
+  string plotFileVersion;
   
   FileType fileType;
   bool bCartGrid;
@@ -66,10 +68,10 @@ class AmrData {
   AmrData();
   ~AmrData();
   
-  bool ReadData(const aString &filename, FileType filetype);
-  bool ReadNonPlotfileData(const aString &filename, FileType filetype);
+  bool ReadData(const string &filename, FileType filetype);
+  bool ReadNonPlotfileData(const string &filename, FileType filetype);
   
-  const Array<aString> &PlotVarNames() const { return plotVars; }
+  const Array<string> &PlotVarNames() const { return plotVars; }
   
   int FinestLevel() const		{ return finestLevel; }
   const Array<int> &RefRatio() const      { return refRatio; }
@@ -113,19 +115,19 @@ class AmrData {
   int NGrow() const	        { return nGrow; }
   int CoordSys() const	        { return coordSys; }
   Real Time() const	        { return time; }
-  const aString &PlotFileVersion() { return plotFileVersion; }
+  const string &PlotFileVersion() { return plotFileVersion; }
   
   // fill a databox using conservative interpolation
   void FillVar(FArrayBox *destFab, const Box &destBox,
-               int finestFillLevel, const aString &varName, int procWithFabs);
+               int finestFillLevel, const string &varName, int procWithFabs);
   void FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
-               int finestFillLevel, const aString &varName, int procWithFabs);
+               int finestFillLevel, const string &varName, int procWithFabs);
   void FillVar(MultiFab &destMultiFab, int finestFillLevel,
-	       const Array<aString> &varNames, const Array<int> &destFillComps);
+	       const Array<string> &varNames, const Array<int> &destFillComps);
   void FillVar(MultiFab &destMultiFab, int finestFillLevel,
-	       const aString &varname, int destcomp = 0);
+	       const string &varname, int destcomp = 0);
   
-  const aString &GetFileName() const { return fileName; }
+  const string &GetFileName() const { return fileName; }
   
   void SetFileType(FileType type);
   FileType GetFileType() const     { return fileType;  }
@@ -136,10 +138,10 @@ class AmrData {
 
   void SetBoundaryWidth(int width) { boundaryWidth = width; }
   
-  bool CanDerive(const aString &name) const;
+  bool CanDerive(const string &name) const;
   int  NumDeriveFunc() const;
   void ListDeriveFunc(ostream &os) const;
-  int  StateNumber(const aString &statename) const;
+  int  StateNumber(const string &statename) const;
   
   // return the finest level <= startLevel that fully contains box b
   // b is defined on startLevel
@@ -157,7 +159,7 @@ class AmrData {
   
   // calculate the min and max values of derived on onBox at level
   // return false if onBox did not intersect any grids
-  bool MinMax(const Box &onBox, const aString &derived, int level,
+  bool MinMax(const Box &onBox, const string &derived, int level,
               Real &dataMin, Real &dataMax);
   
   static void SetVerbose(bool tf)       { verbose = tf; }
@@ -165,7 +167,7 @@ class AmrData {
   static void SetStaticBoundaryWidth(int bw)  { sBoundaryWidth = bw; }
   
  private:
-  aString fileName;
+  string fileName;
   static FileType defaultFileType;
   static bool verbose;
   static int  skipPltLines;

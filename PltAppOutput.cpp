@@ -1,6 +1,6 @@
 
 //
-// $Id: PltAppOutput.cpp,v 1.26 2001-08-21 20:37:55 vince Exp $
+// $Id: PltAppOutput.cpp,v 1.27 2001-08-22 00:22:32 vince Exp $
 //
 
 #include <Xm/Xm.h>
@@ -162,7 +162,7 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   imageSizeX = pltPaletteptr->PaletteWidth();
   imageSizeY = pltPaletteptr->PaletteHeight();
   const Array<Real> &pValueList = pltPaletteptr->PaletteDataList();
-  aString pNumFormat(pltPaletteptr->PaletteNumberFormat());
+  string pNumFormat(pltPaletteptr->PaletteNumberFormat());
   WritePSPaletteFile(psfilename, printImage, imageSizeX, imageSizeY, 
                      pValueList, pNumFormat, *pltPaletteptr);
 
@@ -247,11 +247,11 @@ void PltApp::DoCreateFABFile(Widget w, XtPointer, XtPointer call_data) {
   char *fileNameBase;
   XmStringGetLtoR(cbs->value, XmSTRING_DEFAULT_CHARSET, &fileNameBase);
   sprintf(fabfilename, "%s.fab", fileNameBase);
-  aString fabFileName(fabfilename);
+  string fabFileName(fabfilename);
   //int minDrawnLevel(pltAppState->MinDrawnLevel());
   int maxDrawnLevel(pltAppState->MaxDrawnLevel());
         
-  aString derivedQuantity(pltAppState->CurrentDerived());
+  string derivedQuantity(pltAppState->CurrentDerived());
   Array<Box> bx = amrPicturePtrArray[0]->GetSubDomain();
   DataServices::Dispatch(DataServices::WriteFabOneVar,
 			 dataServicesPtr[currentFrame],

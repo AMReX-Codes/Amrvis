@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.H,v 1.12 2001-07-31 19:45:09 vince Exp $
+// $Id: Output.H,v 1.13 2001-08-22 00:22:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -14,11 +14,13 @@
 
 #include "REAL.H"
 #include "Array.H"
-#include "aString.H"
-
 #include <Palette.H>
 #include <AmrData.H>
 #include <AmrPicture.H>
+
+#include <string>
+using std::string;
+
 
 // the following is support for writing rgb files.
 #define IMAGIC  0732
@@ -78,7 +80,7 @@ void WriteNewPSFile(const char *filename, XImage *image,
 void WritePSPaletteFile(const char *filename, XImage *image,
                         int imagesizehoriz, int imagesizevert,
                         const Array<Real> &palValuesList,
-			const aString &palNumFormat, const Palette& palette);
+			const string &palNumFormat, const Palette& palette);
 
 void WriteRGBFile(const char *filename, XImage *image,
 		  int imagesizehoriz, int imagesizevert,

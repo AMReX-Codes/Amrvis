@@ -14,9 +14,11 @@
 #define _PLTAPPSTATE_H_
 
 #include "AmrvisConstants.H"
-#include "aString.H"
 #include "Array.H"
 #include "Box.H"
+
+#include <string>
+using std::string;
 
 const int NOTSETYET(-42);
 static void Cnsy(int val) { BL_ASSERT(val != NOTSETYET); }
@@ -64,8 +66,8 @@ public:
   void SetCurrentFrame(int newFrame)  { currentFrame = newFrame; }
 
   // ------------------------ derived
-  void SetCurrentDerived(const aString &newDerived, int cdnumber);
-  const aString &CurrentDerived() const { return currentDerived; }
+  void SetCurrentDerived(const string &newDerived, int cdnumber);
+  const string &CurrentDerived() const { return currentDerived; }
   int CurrentDerivedNumber() const { Cnsy(currentDerivedNumber);
 				     return currentDerivedNumber; }
 
@@ -74,8 +76,8 @@ public:
   void SetShowingBoxes(bool showing)  { showBoxes = showing; }
 
   // ------------------------ number format
-  aString GetFormatString() const                 { return formatString;      }
-  void SetFormatString(const aString &newformat)  { formatString = newformat; }
+  string GetFormatString() const                 { return formatString;      }
+  void SetFormatString(const string &newformat)  { formatString = newformat; }
 
   // ------------------------ contours
   void SetContourType(ContourType newContourType)
@@ -127,13 +129,13 @@ private:
   int currentScale;
   int maxScale;
   int currentFrame;
-  aString currentDerived;
+  string currentDerived;
   int currentDerivedNumber;
   bool showBoxes;
   ContourType currentContourType;
   int nContours;
   MinMaxRangeType currentMinMaxType;
-  aString formatString;
+  string formatString;
 
   // mins and maxes
   Array<Array<Array<CMinMax> > > minMax;   // minMax [frame] [derived] [RangeType]
@@ -146,8 +148,8 @@ private:
   //bool datasetShowing, paletteDrawn, writingRGB, interfaceReady;
   //int minDrawnLevel, maxDrawnLevel, minDataLevel, maxDataLevel;
   //int activeView;
-  aString contourNumString, fileName, palFilename;
-  //Array<aString> fileNames, derivedStrings;
+  string contourNumString, fileName, palFilename;
+  //Array<string> fileNames, derivedStrings;
   //GraphicsAttributes	*GAptr;
 
 

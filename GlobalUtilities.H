@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.H,v 1.14 2001-08-14 00:57:54 vince Exp $
+// $Id: GlobalUtilities.H,v 1.15 2001-08-22 00:22:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -12,8 +12,12 @@
 #include "AmrvisConstants.H"
 #include "Box.H"
 #include "Array.H"
-#include "aString.H"
-#include "List.H"
+
+#include <list>
+#include <string>
+using std::list;
+using std::string;
+
 
 Box GetBoxFromCommandLine();
 void SetMaxPictureSize(int size);
@@ -22,12 +26,12 @@ int  MaxPaletteIndex();
 void SetVerbose();
 bool Verbose();
 void ParseCommandLine(int, char **);
-void GetDefaults(const aString &defaultsfilename);
-bool ReadLightingFile(const aString &lightdefaultsfilename,
+void GetDefaults(const string &defaultsfilename);
+bool ReadLightingFile(const string &lightdefaultsfilename,
 		      Real &ambientDef, Real &diffuseDef, Real &specularDef,
 		      Real &shinyDef,
 		      Real &minRayOpacityDef, Real &maxRayOpacityDef);
-bool WriteLightingFile(const aString &lightdefaultsfilename,
+bool WriteLightingFile(const string &lightdefaultsfilename,
 		       const Real &ambientDef, const Real &diffuseDef,
 		       const Real &specularDef, const Real &shinyDef,
 		       const Real &minRayOpacityDef, const Real &maxRayOpacityDef);
@@ -35,7 +39,7 @@ void SetAnimation();
 bool IsAnimation();
 int GetFileCount();
 int SleepTime();
-const aString &GetComlineFilename(int index);
+const string &GetComlineFilename(int index);
 FileType GetDefaultFileType();
 bool GivenBox();
 bool GivenBoxSlice();
@@ -60,12 +64,12 @@ int  GetMaxLevel();
 void SetBoxColor(int boxcolor);
 int  GetBoxColor();
 
-void SetInitialDerived(const aString &formatString);
-const aString &GetInitialDerived();
-void SetFormatString(const aString &formatString);
-const aString &GetFormatString();
-const aString &GetPaletteName();
-const aString &GetLightingFileName();
+void SetInitialDerived(const string &formatString);
+const string &GetInitialDerived();
+void SetFormatString(const string &formatString);
+const string &GetFormatString();
+const string &GetPaletteName();
+const string &GetLightingFileName();
 
 bool DumpSlices();
 bool SliceAllVars();

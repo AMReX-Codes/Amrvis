@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.42 2001-08-16 00:19:12 vince Exp $
+// $Id: PltApp3D.cpp,v 1.43 2001-08-22 00:22:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -220,7 +220,7 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
     --fnl;
   }
 
-  aString outbuf = "XYZ ";
+  string outbuf = "XYZ ";
   outbuf += &fileName[fnl+1];
   strcpy(buffer, outbuf.c_str());
 
@@ -450,7 +450,7 @@ void PltApp::DoOpenLightingFile(Widget w, XtPointer oos, XtPointer call_data)
   }
   XtPopdown(XtParent(w));
 
-  aString asLFile(lightingfile);
+  string asLFile(lightingfile);
   ambient = atof(XmTextFieldGetString(wLWambient));
   diffuse = atof(XmTextFieldGetString(wLWdiffuse));
   specular = atof(XmTextFieldGetString(wLWspecular));
@@ -521,7 +521,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   Dimension ww, wh;
   lightingWindowExists = true;
   
-  aString LWtitlebar = "Lighting";
+  string LWtitlebar = "Lighting";
   strcpy(buffer, LWtitlebar.c_str());
   
   wLWTopLevel = XtVaCreatePopupShell(buffer,

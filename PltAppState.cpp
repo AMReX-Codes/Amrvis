@@ -177,7 +177,7 @@ void PltAppState::PrintSetMap() {
 
 
 // -------------------------------------------------------------------
-void PltAppState::SetCurrentDerived(const aString &newDerived, int cdnumber) {
+void PltAppState::SetCurrentDerived(const string &newDerived, int cdnumber) {
   currentDerived = newDerived;
   currentDerivedNumber = cdnumber;
 }

@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.36 2001-08-21 20:37:55 vince Exp $
+// $Id: Palette.cpp,v 1.37 2001-08-22 00:22:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -184,7 +184,7 @@ void Palette::ExposePalette() {
 
 
 // -------------------------------------------------------------------
-void Palette::SetFormat(const aString &newFormat) {
+void Palette::SetFormat(const string &newFormat) {
   defaultFormat = newFormat;
 }
 
@@ -203,7 +203,7 @@ void Palette::Redraw() {
 
 
 // -------------------------------------------------------------------
-void Palette::Draw(Real palMin, Real palMax, const aString &numberFormat) {
+void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
   int i, cy;
   XWindowAttributes winAttribs;
 
@@ -274,7 +274,7 @@ void Palette::SetWindow(Window drawPaletteHere) {
 
 
 // -------------------------------------------------------------------
-void Palette::SetWindowPalette(const aString &palName, Window newPalWindow,
+void Palette::SetWindowPalette(const string &palName, Window newPalWindow,
 			       bool bRedraw)
 {
   ReadPalette(palName, bRedraw);
@@ -283,13 +283,13 @@ void Palette::SetWindowPalette(const aString &palName, Window newPalWindow,
 
 
 // -------------------------------------------------------------------
-void Palette::ChangeWindowPalette(const aString &palName, Window newPalWindow) {
+void Palette::ChangeWindowPalette(const string &palName, Window newPalWindow) {
   ReadPalette(palName);
 }
 
 
 // -------------------------------------------------------------------
-void Palette::ReadPalette(const aString &palName, bool bRedraw) {
+void Palette::ReadPalette(const string &palName, bool bRedraw) {
   ReadSeqPalette(palName, bRedraw);
   if(GAptr->IsTrueColor()) {
     return;
@@ -300,7 +300,7 @@ void Palette::ReadPalette(const aString &palName, bool bRedraw) {
 
 
 // -------------------------------------------------------------------
-int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
+int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
   int iSeqPalSize(256);  // this must be 256 (size of sequential palettes).
   rbuff.resize(iSeqPalSize);
   gbuff.resize(iSeqPalSize);

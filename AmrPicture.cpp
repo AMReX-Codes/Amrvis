@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.68 2001-08-21 20:37:55 vince Exp $
+// $Id: AmrPicture.cpp,v 1.69 2001-08-22 00:22:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -797,7 +797,7 @@ void AmrPicture::APMakeImages(Palette *palptr) {
   VSHOWVAL(Verbose(), minDrawnLevel)
   VSHOWVAL(Verbose(), maxAllowableLevel)
 
-  const aString currentDerived(pltAppStatePtr->CurrentDerived());
+  const string currentDerived(pltAppStatePtr->CurrentDerived());
   for(int iLevel(minDrawnLevel); iLevel <= maxAllowableLevel; ++iLevel) {
     DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
 		           (void *) (sliceFab[iLevel]),
@@ -1526,7 +1526,7 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
     }   // end for(lev...)
 
     // get the data for this slice
-    aString currentDerived(pltAppStatePtr->CurrentDerived());
+    string currentDerived(pltAppStatePtr->CurrentDerived());
     FArrayBox imageFab(interBox[maxDrawnLevel], 1);
     DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
 			   (void *) &imageFab,
@@ -2095,7 +2095,7 @@ bool AmrPicture::DrawContour(const FArrayBox &fab, Real value,
 
 
 // ---------------------------------------------------------------------
-VectorDerived AmrPicture::FindVectorDerived(Array<aString> &aVectorDeriveNames) {
+VectorDerived AmrPicture::FindVectorDerived(Array<string> &aVectorDeriveNames) {
   // figure out if we are using velocities, momentums, or if neither are available
   // first try velocities
 
@@ -2228,7 +2228,7 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
   FArrayBox hVelocity(DVFSliceBox);
   FArrayBox vVelocity(DVFSliceBox);
   VectorDerived whichVectorDerived;
-  Array<aString> choice(BL_SPACEDIM);
+  Array<string> choice(BL_SPACEDIM);
 
   whichVectorDerived = FindVectorDerived(choice);
 
@@ -2240,8 +2240,8 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
 
   if(whichVectorDerived == enVelocity) {
     // fill the velocities
-    aString hVel(choice[hDir]);
-    aString vVel(choice[vDir]);
+    string hVel(choice[hDir]);
+    string vVel(choice[vDir]);
     DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
                            (void *) &hVelocity,
 			   (void *) (&(hVelocity.box())),
@@ -2256,14 +2256,14 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
   } else {  // using momentums
     BL_ASSERT(whichVectorDerived == enMomentum);
     // fill the density and momentum:
-    aString sDensity("density");
+    string sDensity("density");
     if( ! dataServicesPtr->CanDerive(sDensity)) {
       cerr << "Found momentums in the plot file but not density." << endl;
       return;
     }
 
-    aString hMom(choice[hDir]);
-    aString vMom(choice[vDir]);
+    string hMom(choice[hDir]);
+    string vMom(choice[vDir]);
 
     DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
                            (void *) &density,

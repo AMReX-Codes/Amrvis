@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.H,v 1.21 2001-03-14 00:41:54 vince Exp $
+// $Id: Palette.H,v 1.22 2001-08-22 00:22:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -11,13 +11,14 @@
 
 #ifdef BL_USE_NEW_HFILES
 #include <map>
+#include <string>
 using std::map;
+using std::string;
 #else
 #include <map>
 #endif
 
 #include "REAL.H"
-#include "aString.H"
 #include "Array.H"
 
 const int PALLISTLENGTH   = 8;
@@ -47,24 +48,11 @@ protected:
   int           reserveSystemColors, colorOffset, paletteStart;
   Pixel 	blackIndex, whiteIndex;
   Real	        pmin, pmax;
-  aString	defaultFormat;
+  string	defaultFormat;
   int		transSet;
   Array<float>  transferArray;
   unsigned char *remapTable; // for remapping to a smaller color index set
-#if 0
-  Display       *display;
-  Visual        *visual;
-  Screen        *screen;
-  XVisualInfo   visualInfo;
-  GC            gc;
-  Window        root;
-  int           screenNumber;
-  int bits_per_rgb;
-  bool isTrueColor;
-  int palDepth;
-#else
   GraphicsAttributes *GAptr;
-#endif
   Array<XColor> sysccells;
   
   static Colormap systemColmap;
@@ -82,16 +70,16 @@ public:
   ~Palette();
   PaletteType GetPaletteType() { return paletteType; }
   Array<float> GetTransferArray() { return transferArray; }
-  int   ReadSeqPalette(const aString &fileName, bool bRedraw = true);
-  void  Draw(Real palMin, Real palMax, const aString &numberFormat);
+  int   ReadSeqPalette(const string &fileName, bool bRedraw = true);
+  void  Draw(Real palMin, Real palMax, const string &numberFormat);
   void  SetWindow(Window drawPaletteHere);
-  void  SetWindowPalette(const aString &palName, Window newPalWindow,
+  void  SetWindowPalette(const string &palName, Window newPalWindow,
 			 bool bRedraw = true);
-  void  ChangeWindowPalette(const aString &palName, Window newPalWindow);
+  void  ChangeWindowPalette(const string &palName, Window newPalWindow);
   void  ExposePalette();
   void  Redraw();
   void  SetReserveSystemColors(int reservesystemcolors);
-  void  SetFormat(const aString &newFormat);
+  void  SetFormat(const string &newFormat);
   Colormap GetColormap() const  { return colmap;         }
   const Array<XColor> &GetColorCells() const { return ccells; }
   const map<Pixel, XColor>& GetColorCellsMap() const { return mcells; }
@@ -106,7 +94,7 @@ public:
   Real PaletteMin()    const    { return pmin; }
   Real PaletteMax()    const    { return pmax; }
   const Array<Real> &PaletteDataList() const { return dataList; }
-  aString PaletteNumberFormat() { return defaultFormat; }
+  string PaletteNumberFormat() { return defaultFormat; }
   XImage *GetPictureXImage();
   unsigned char *RemapTable() const  { return remapTable;     }
 
@@ -125,7 +113,7 @@ public:
   Pixel makePixel(unsigned char index) const;
 
 private:
-  void ReadPalette(const aString &palNam, bool bRedraw = true);
+  void ReadPalette(const string &palNam, bool bRedraw = true);
   Palette(Widget &w);
 };
 

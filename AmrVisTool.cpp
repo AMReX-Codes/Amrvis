@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.53 2001-08-21 20:37:55 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.54 2001-08-22 00:22:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -72,13 +72,13 @@ void PrintMessage(char *message) {
 //--------------------------------------------------------------
 int main(int argc, char *argv[]) {
   Box		comlineBox;
-  aString	comlineFileName;
+  string	comlineFileName;
 
-  BoxLib::Initialize(argc,argv);
-  //ParallelDescriptor::StartParallel(&argc,&argv);
+  //BoxLib::Initialize(argc,argv);
 
-  //ParmParse pp(0, argv, NULL, NULL);
-
+  // here we trick boxlib
+  int argcNoPP(1);
+  BoxLib::Initialize(argcNoPP, argv);
 
   GetDefaults("amrvis.defaults");
   //GetLightingDefaults("amrvis.lighting");
@@ -201,8 +201,6 @@ int main(int argc, char *argv[]) {
 
   }  // end if(bBatchMode)
 
-  //ParallelDescriptor::EndParallel();
-
   return 0;
 
 }  // end main()
@@ -211,7 +209,7 @@ int main(int argc, char *argv[]) {
 // ---------------------------------------------------------------
 void CreateMainWindow(int argc, char *argv[]) {
   int i;
-  aString	comlineFileName;
+  string	comlineFileName;
 
   String fallbacks[] = {"*fontList:variable=charset",
 			NULL };
@@ -298,7 +296,7 @@ void CreateMainWindow(int argc, char *argv[]) {
  
 // ---------------------------------------------------------------
 void BatchFunctions() {
-  aString	comlineFileName;
+  string	comlineFileName;
 
   // loop through the command line list of plot files
   for(int nPlots = 0; nPlots < GetFileCount(); ++nPlots) {
@@ -308,7 +306,7 @@ void BatchFunctions() {
     BL_ASSERT(fileType != INVALIDTYPE);
     DataServices dataServices(comlineFileName, fileType);
 
-    aString derived(GetInitialDerived());
+    string derived(GetInitialDerived());
     if( ! dataServices.CanDerive(derived)) {
       if(ParallelDescriptor::IOProcessor()) {
         cerr << "Bad initial derived:  cannot derive " << derived << endl;
@@ -536,8 +534,8 @@ void SubregionPltApp(Widget wTopLevel, const Box &trueRegion,
 		     const IntVect &offset,
 		     //AmrPicture *parentPicturePtr,
 		     PltApp *pltparent,
-		     const aString &palfile, int isAnim,
-		     const aString &currentderived, const aString &file)
+		     const string &palfile, int isAnim,
+		     const string &currentderived, const string &file)
 {
   PltApp *temp = new PltApp(app, wTopLevel, trueRegion, offset,
 		    //parentPicturePtr,

@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.38 2001-08-14 00:57:54 vince Exp $
+// $Id: VolRender.cpp,v 1.39 2001-08-22 00:22:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -49,7 +49,7 @@ VolRender::VolRender()
 // -------------------------------------------------------------------
 VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
 		     int maxdrawnlevel, Palette *PalettePtr,
-                     const aString &asLightFileName)
+                     const string &asLightFileName)
 {
   minDrawnLevel = mindrawnlevel;
   maxDataLevel = maxdrawnlevel;
@@ -196,7 +196,7 @@ bool VolRender::AllocateSWFData() {
 // -------------------------------------------------------------------
 void VolRender::MakeSWFData(DataServices *dataServicesPtr,
 			    Real rDataMin, Real rDataMax,
-			    const aString &derivedName,
+			    const string &derivedName,
 			    int iPaletteStart, int iPaletteEnd,
 			    int iBlackIndex, int iWhiteIndex,
 			    int iColorSlots)
@@ -453,7 +453,7 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
 
 
 // -------------------------------------------------------------------
-void VolRender::WriteSWFData(const aString &filenamebase, bool SWFLight) {
+void VolRender::WriteSWFData(const string &filenamebase, bool SWFLight) {
     cout << "VolRender::WriteSWFData" << endl;
     BL_ASSERT(bVolRenderDefined);
     if(ParallelDescriptor::IOProcessor()) {
@@ -473,7 +473,7 @@ void VolRender::WriteSWFData(const aString &filenamebase, bool SWFLight) {
    
 
   cout << "----- make vp data time = " << ((clock()-time0)/1000000.0) << endl;
-  aString filename = "swf.";
+  string filename = "swf.";
   filename += filenamebase;
   filename += (SWFLight ? ".lt" : ".val" );
   filename += ".vpdat";

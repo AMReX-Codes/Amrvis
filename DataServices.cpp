@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.27 2001-08-21 20:37:55 vince Exp $
+// $Id: DataServices.cpp,v 1.28 2001-08-22 00:22:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -34,7 +34,7 @@ int DataServices::dsFabOutSize = 0;
 bool DataServices::dsBatchMode = false;
 
 // ---------------------------------------------------------------
-DataServices::DataServices(const aString &filename, const FileType &filetype)
+DataServices::DataServices(const string &filename, const FileType &filetype)
              : fileName(filename), fileType(filetype), bAmrDataOk(false)
 {
   numberOfUsers = 0;  // the user must do all incrementing and decrementing
@@ -122,7 +122,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     ParallelDescriptor::Broadcast(ioProcNumber, fileNameCharPtr, fileNameCharPtr,
                                   fileNameLengthPadded);
 
-    aString newFileName(fileNameCharPtr);
+    string newFileName(fileNameCharPtr);
     delete [] fileNameCharPtr;
 
     // make a new DataServices for procs 1 - N
@@ -182,7 +182,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       FArrayBox *destFab = NULL;
       Box destBox;
       int fineFillLevel;
-      aString derivedTemp;
+      string derivedTemp;
       char *derivedCharPtr;
       int derivedLength, derivedLengthPadded;
 
@@ -191,7 +191,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
         const Box *boxRef = (const Box *) va_arg(ap, void *);
 	destBox = *boxRef;
         fineFillLevel = va_arg(ap, int);
-        const aString *derivedRef = (const aString *) va_arg(ap, void *);
+        const string *derivedRef = (const string *) va_arg(ap, void *);
         derivedTemp = *derivedRef;
 	derivedLength = derivedTemp.length();
       }
@@ -212,7 +212,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
 				    derivedLengthPadded);
 
-      aString derived(derivedCharPtr);
+      string derived(derivedCharPtr);
       delete [] derivedCharPtr;
 
       ds->FillVar(destFab, destBox, fineFillLevel, derived, ioProcNumber);
@@ -237,18 +237,18 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       // interface: (requestType, dsPtr, fabFileName, box, maxLevel, derivedName)
       Box destBox;
       int fineFillLevel;
-      aString fabFileName;
-      aString derivedTemp;
+      string fabFileName;
+      string derivedTemp;
       char *derivedCharPtr;
       int derivedLength, derivedLengthPadded;
 
       if(ParallelDescriptor::IOProcessor()) {
-        const aString *fabFileNameRef = (const aString *) va_arg(ap, void *);
+        const string *fabFileNameRef = (const string *) va_arg(ap, void *);
 	fabFileName = *fabFileNameRef;
         const Box *boxRef = (const Box *) va_arg(ap, void *);
 	destBox = *boxRef;
         fineFillLevel = va_arg(ap, int);
-        const aString *derivedRef = (const aString *) va_arg(ap, void *);
+        const string *derivedRef = (const string *) va_arg(ap, void *);
         derivedTemp = *derivedRef;
 	derivedLength = derivedTemp.length();
       }
@@ -269,7 +269,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
 				    derivedLengthPadded);
 
-      aString derived(derivedCharPtr);
+      string derived(derivedCharPtr);
       delete [] derivedCharPtr;
 
       ds->WriteFab(fabFileName, destBox, fineFillLevel, derived);
@@ -282,10 +282,10 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       // interface: (requestType, dsPtr, fabFileName, box, maxLevel)
       Box destBox;
       int fineFillLevel;
-      aString fabFileName;
+      string fabFileName;
 
       if(ParallelDescriptor::IOProcessor()) {
-        const aString *fabFileNameRef = (const aString *) va_arg(ap, void *);
+        const string *fabFileNameRef = (const string *) va_arg(ap, void *);
 	fabFileName = *fabFileNameRef;
         const Box *boxRef = (const Box *) va_arg(ap, void *);
 	destBox = *boxRef;
@@ -304,13 +304,13 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     {
       int slicedir;
       int slicenum;
-      aString derivedTemp;
+      string derivedTemp;
       char *derivedCharPtr;
       int derivedLength, derivedLengthPadded;
       if(ParallelDescriptor::IOProcessor()) {
         slicedir = va_arg(ap, int);
         slicenum = va_arg(ap, int);
-        const aString *derivedRef = (const aString *) va_arg(ap, void *);
+        const string *derivedRef = (const string *) va_arg(ap, void *);
         derivedTemp = *derivedRef;
 	derivedLength = derivedTemp.length();
       }
@@ -331,7 +331,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
 				    derivedLengthPadded);
 
-      aString derived(derivedCharPtr);
+      string derived(derivedCharPtr);
       delete [] derivedCharPtr;
 
       ds->DumpSlice(slicedir, slicenum, derived);
@@ -359,13 +359,13 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     case DumpSliceBoxOneVar:
     {
       Box box;
-      aString derivedTemp;
+      string derivedTemp;
       char *derivedCharPtr;
       int derivedLength, derivedLengthPadded;
       if(ParallelDescriptor::IOProcessor()) {
         const Box *boxRef = (const Box *) va_arg(ap, void *);
 	box = *boxRef;
-        const aString *derivedRef = (const aString *) va_arg(ap, void *);
+        const string *derivedRef = (const string *) va_arg(ap, void *);
 	derivedTemp = *derivedRef;
 	derivedLength = derivedTemp.length();
       }
@@ -383,7 +383,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
 				    derivedLengthPadded);
 
-      aString derived(derivedCharPtr);
+      string derived(derivedCharPtr);
       delete [] derivedCharPtr;
 
       ds->DumpSlice(box, derived);
@@ -408,7 +408,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     case MinMaxRequest:
     {
       Box box;
-      aString derivedTemp;
+      string derivedTemp;
       char *derivedCharPtr;
       int level;
       int derivedLength, derivedLengthPadded;
@@ -416,7 +416,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       bool minMaxValid;
       if(ParallelDescriptor::IOProcessor()) {
         const Box *boxRef = (const Box *) va_arg(ap, void *);
-        const aString *derivedRef = (const aString *) va_arg(ap, void *);
+        const string *derivedRef = (const string *) va_arg(ap, void *);
         level = va_arg(ap, int);
 	box = *boxRef;
 	derivedTemp = *derivedRef;
@@ -437,7 +437,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
 				    derivedLengthPadded);
 
-      aString derived(derivedCharPtr);
+      string derived(derivedCharPtr);
       delete [] derivedCharPtr;
 
       ds->MinMax(box, derived, level, dataMin, dataMax, minMaxValid);
@@ -472,14 +472,14 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       Box *pointBoxArrayPtr, *pointBoxArrayTempPtr;
       int coarsestLevelToSearch, finestLevelToSearch;
 
-      aString derivedTemp;
+      string derivedTemp;
       char *derivedCharPtr;
       int derivedLength, derivedLengthPadded;
 
       if(ParallelDescriptor::IOProcessor()) {
         pointBoxArraySize = va_arg(ap, int);
         pointBoxArrayTempPtr = (Box *) va_arg(ap, void *);
-        const aString *derivedRef = (const aString *) va_arg(ap, void *);
+        const string *derivedRef = (const string *) va_arg(ap, void *);
         derivedTemp = *derivedRef;
 	derivedLength = derivedTemp.length();
         coarsestLevelToSearch = va_arg(ap, int);
@@ -514,7 +514,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 				    pointBoxArrayPtr, pointBoxArrayPtr,
 				    pointBoxArraySize * sizeof(Box));
 
-      aString derived(derivedCharPtr);
+      string derived(derivedCharPtr);
       delete [] derivedCharPtr;
 
       // return values
@@ -567,7 +567,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       int coarsestLevelToSearch, finestLevelToSearch, whichDir;
       XYPlotDataList *dataList;
 
-      aString derivedTemp;
+      string derivedTemp;
       char *derivedCharPtr;
       int derivedLength, derivedLengthPadded;
 
@@ -575,7 +575,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
         lineBoxArraySize = va_arg(ap, int);
         lineBoxArrayTempPtr = (Box *) va_arg(ap, void *);
         whichDir = va_arg(ap, int);
-        const aString *derivedRef = (const aString *) va_arg(ap, void *);
+        const string *derivedRef = (const string *) va_arg(ap, void *);
         derivedTemp = *derivedRef;
         derivedLength = derivedTemp.length();
         coarsestLevelToSearch = va_arg(ap, int);
@@ -608,7 +608,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
                                     lineBoxArrayPtr, lineBoxArrayPtr,
                                     lineBoxArraySize * sizeof(Box));
 
-      aString derived(derivedCharPtr);
+      string derived(derivedCharPtr);
       delete [] derivedCharPtr;
 
       // return values
@@ -644,12 +644,12 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 
 
 // ---------------------------------------------------------------
-bool DataServices::DumpSlice(int slicedir, int slicenum, const aString &varname)
+bool DataServices::DumpSlice(int slicedir, int slicenum, const string &varname)
 {
   if( ! bAmrDataOk) {
     return false;
   }
-  aString sliceFile = fileName;
+  string sliceFile = fileName;
   sliceFile += ".";
   sliceFile += varname;
   sliceFile += ".";
@@ -698,7 +698,7 @@ bool DataServices::DumpSlice(int slicedir, int slicenum) {  // dump all vars
   if( ! bAmrDataOk) {
     return false;
   }
-  aString sliceFile = fileName;
+  string sliceFile = fileName;
   sliceFile += ".";
   if(slicedir == XDIR) {
     sliceFile += "xslice";
@@ -741,11 +741,11 @@ bool DataServices::DumpSlice(int slicedir, int slicenum) {  // dump all vars
 
 
 // ---------------------------------------------------------------
-bool DataServices::DumpSlice(const Box &b, const aString &varname) {
+bool DataServices::DumpSlice(const Box &b, const string &varname) {
   if( ! bAmrDataOk) {
     return false;
   }
-  aString sliceFile = fileName;
+  string sliceFile = fileName;
   sliceFile += ".";
   sliceFile += varname;
   sliceFile += ".";
@@ -780,7 +780,7 @@ bool DataServices::DumpSlice(const Box &b) {  // dump all vars
   if( ! bAmrDataOk) {
     return false;
   }
-  aString sliceFile = fileName;
+  string sliceFile = fileName;
   sliceFile += ".";
   char slicechar[128];
 # if (BL_SPACEDIM == 2)
@@ -811,7 +811,7 @@ bool DataServices::DumpSlice(const Box &b) {  // dump all vars
 
 // ---------------------------------------------------------------
 bool DataServices::FillVar(FArrayBox *destFab, const Box &destBox,
-			   int finestFillLevel, const aString &varname,
+			   int finestFillLevel, const string &varname,
 			   int procWithFab)
 {
   if( ! bAmrDataOk) {
@@ -826,7 +826,7 @@ bool DataServices::FillVar(FArrayBox *destFab, const Box &destBox,
 
 // ---------------------------------------------------------------
 bool DataServices::FillVar(MultiFab &destMultiFab, int finestFillLevel,
-			   const aString &varname)
+			   const string &varname)
 {
   if( ! bAmrDataOk) {
     return false;
@@ -846,8 +846,8 @@ bool DataServices::FillVar(MultiFab &destMultiFab, int finestFillLevel,
 // to create the FillVared fabs on separate processors
 //
 //
-bool DataServices::WriteFab(const aString &fname, const Box &region, int lev,
-		            const aString &varname)
+bool DataServices::WriteFab(const string &fname, const Box &region, int lev,
+		            const string &varname)
 {
   if( ! bAmrDataOk) {
     return false;
@@ -893,7 +893,7 @@ bool DataServices::WriteFab(const aString &fname, const Box &region, int lev,
 // to create the FillVared fabs on separate processors
 //
 //
-bool DataServices::WriteFab(const aString &fname, const Box &region, int lev) {
+bool DataServices::WriteFab(const string &fname, const Box &region, int lev) {
   if( ! bAmrDataOk) {
     return false;
   }
@@ -943,7 +943,7 @@ bool DataServices::WriteFab(const aString &fname, const Box &region, int lev) {
 
 
 // ---------------------------------------------------------------
-bool DataServices::CanDerive(const aString &name) const {
+bool DataServices::CanDerive(const string &name) const {
   if( ! bAmrDataOk) {
     return false;
   }
@@ -969,7 +969,7 @@ int DataServices::NumDeriveFunc() const {
 
 // ---------------------------------------------------------------
 void DataServices::PointValue(int pointBoxArraySize, Box *pointBoxArray,
-		              const aString &currentDerived,
+		              const string &currentDerived,
 		              int coarsestLevelToSearch,
 			      int finestLevelToSearch,
 		              int &intersectedLevel,
@@ -1019,7 +1019,7 @@ void DataServices::PointValue(int pointBoxArraySize, Box *pointBoxArray,
 
 // ---------------------------------------------------------------
 void DataServices::LineValues(int lineBoxArraySize, Box *lineBoxArray, int whichDir,
-                              const aString &currentDerived,
+                              const string &currentDerived,
                               int coarsestLevelToSearch, int finestLevelToSearch,
                               XYPlotDataList *dataList, bool &bLineIsValid) {
   bLineIsValid = false;
@@ -1051,7 +1051,7 @@ void DataServices::LineValues(int lineBoxArraySize, Box *lineBoxArray, int which
 
 
 // ---------------------------------------------------------------
-bool DataServices::MinMax(const Box &onBox, const aString &derived, int level,
+bool DataServices::MinMax(const Box &onBox, const string &derived, int level,
 		          Real &dataMin, Real &dataMax, bool &minMaxValid)
 {
   minMaxValid =  amrData.MinMax(onBox, derived, level, dataMin, dataMax);

@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.40 2001-08-21 20:37:55 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.41 2001-08-22 00:22:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -34,11 +34,11 @@ int boxColor;
 int maxPictureSize;
 FileType fileType;
 bool animation;
-Array<aString> comlinefilename;
-aString initialDerived;
-aString initialFormat;
-aString initialPalette;
-aString initialLightingFile;
+Array<string> comlinefilename;
+string initialDerived;
+string initialFormat;
+string initialPalette;
+string initialLightingFile;
 int fileCount;
 int sleepTime;
 bool givenBox;
@@ -62,37 +62,37 @@ int  fabIOSize;
 
 
 // -------------------------------------------------------------------
-const aString &GetInitialDerived() {
+const string &GetInitialDerived() {
   return initialDerived;
 }
 
 
 // -------------------------------------------------------------------
-void SetInitialDerived(const aString &initialderived) {
+void SetInitialDerived(const string &initialderived) {
   initialDerived = initialderived;
 }
 
 
 // -------------------------------------------------------------------
-const aString &GetFormatString(const aString &formatString) {
+const string &GetFormatString(const string &formatString) {
   return initialFormat;
 }
 
 
 // -------------------------------------------------------------------
-void SetFormatString(const aString &formatString) {
+void SetFormatString(const string &formatString) {
   initialFormat = formatString;
 }
 
 
 // -------------------------------------------------------------------
-const aString &GetPaletteName() {
+const string &GetPaletteName() {
   return initialPalette;
 }
 
 
 // -------------------------------------------------------------------
-const aString &GetLightingFileName() {
+const string &GetLightingFileName() {
   return initialLightingFile;
 }
 
@@ -143,7 +143,7 @@ void AddSlices(int dir, char *sliceset) {
 
 
 // -------------------------------------------------------------------
-bool ReadLightingFile(const aString &lightdefaultsFile,
+bool ReadLightingFile(const string &lightdefaultsFile,
                       Real &ambientDef, Real &diffuseDef, Real &specularDef,
                       Real &shinyDef,
                       Real &minRayOpacityDef, Real &maxRayOpacityDef)
@@ -195,7 +195,7 @@ bool ReadLightingFile(const aString &lightdefaultsFile,
 
 
 // -------------------------------------------------------------------
-bool WriteLightingFile(const aString &lightdefaultsFile,
+bool WriteLightingFile(const string &lightdefaultsFile,
                        const Real &ambientDef, const Real &diffuseDef,
 		       const Real &specularDef, const Real &shinyDef,
                        const Real &minRayOpacityDef, const Real &maxRayOpacityDef)
@@ -230,7 +230,7 @@ bool WriteLightingFile(const aString &lightdefaultsFile,
 
 
 // -------------------------------------------------------------------
-void GetDefaults(const aString &defaultsFile) {
+void GetDefaults(const string &defaultsFile) {
   char buffer[BUFSIZ];
   char defaultString[LINELENGTH];
   char tempString[LINELENGTH];
@@ -256,7 +256,7 @@ void GetDefaults(const aString &defaultsFile) {
   fabIOSize = 0;
 
   // try to find the defaultsFile
-  aString fullDefaultsFile;
+  string fullDefaultsFile;
 
   fullDefaultsFile = "./" + defaultsFile;     // try dot first
   ifstream defs;
@@ -829,7 +829,7 @@ int SleepTime() { return sleepTime; }
 int  GetMaxLevel() { return maxLevel; }
 bool UseMaxLevel() { return useMaxLevel; }
 
-const aString &GetComlineFilename(int i) { return comlinefilename[i]; }
+const string &GetComlineFilename(int i) { return comlinefilename[i]; }
 FileType GetDefaultFileType()   { return fileType;    }
 
 bool GivenBox()    { return givenBox;     }

@@ -7,7 +7,7 @@
 
 #define STRDUP(xx) (strcpy(new char[strlen(xx)+1], (xx)))
 
-XYPlotDataList::XYPlotDataList(const aString &_derived, int max_level,
+XYPlotDataList::XYPlotDataList(const string &_derived, int max_level,
 			       int _gridline,
 			       const Array<int> &ratio_list,
 			       const Array<Real> &d_X,

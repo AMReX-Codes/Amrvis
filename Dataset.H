@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.H,v 1.27 2001-05-04 00:16:33 vince Exp $
+// $Id: Dataset.H,v 1.28 2001-08-22 00:22:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -74,7 +74,7 @@ class Dataset {
   GraphicsAttributes	*GAptr;
   int 		dragging, drags;
   int		hStringOffset, vStringOffset;
-  aString	hAxisString, vAxisString;
+  string 	hAxisString, vAxisString;
   int           indexWidth, indexHeight;
   int		hScrollBarPos, vScrollBarPos;
   int		hIndexAreaHeight, hIndexAreaStart, hIndexAreaEnd;

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.54 2001-08-21 20:37:55 vince Exp $
+// $Id: PltApp.H,v 1.55 2001-08-22 00:22:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -18,14 +18,15 @@
 #include "Dataset.H"
 #include "GlobalUtilities.H"
 #include "Palette.H"
-#include "aString.H"
 #if (BL_SPACEDIM==3)
 # include "ViewTransform.H"
 class ProjectionPicture;
 #endif
 
 #include <vector>
+#include <string>
 using std::vector;
+using std::string;
 
 class DataServices;
 class AmrPicture;
@@ -74,7 +75,7 @@ private:
   
 public:
   // created when opening a new file
-  PltApp(XtAppContext, Widget, const aString &filename, 
+  PltApp(XtAppContext, Widget, const string &filename, 
          const Array<DataServices *> &dataservicesptr, bool isAnim);
   
   // for subregion
@@ -82,20 +83,20 @@ public:
          const IntVect &offset,
          //AmrPicture *parentPtr,
 	 PltApp *pltparent,
-         const aString &palfile, bool isAnim,
-         const aString &newderived, const aString &file);
+         const string &palfile, bool isAnim,
+         const string &newderived, const string &file);
   
   ~PltApp();
   
-  static void SetDefaultPalette(const aString &palString);
-  static void SetDefaultLightingFile(const aString &lightFileString);
-  static void SetInitialDerived(const aString &initialderived);
-  static aString &GetInitialDerived();
-  static aString &GetDefaultPalette();
-  static aString &GetDefaultLightingFile();
+  static void SetDefaultPalette(const string &palString);
+  static void SetDefaultLightingFile(const string &lightFileString);
+  static void SetInitialDerived(const string &initialderived);
+  static string &GetInitialDerived();
+  static string &GetDefaultPalette();
+  static string &GetDefaultLightingFile();
   static void SetInitialScale(int initScale);
   static int  GetInitialScale();
-  static void SetInitialFormatString(const aString &formatString);
+  static void SetInitialFormatString(const string &formatString);
   static void SetDefaultShowBoxes(int showBoxes);
   static int  GetDefaultShowBoxes();
   static void SetInitialWindowHeight(int initWindowHeight);
@@ -103,12 +104,12 @@ public:
   static void SetReserveSystemColors(int reservesystemcolors);
   
   Widget WId()                     { return wAmrVisTopLevel; }
-  //aString GetFormatString() const  { return formatString; }
-  void SetNewFormatString(const aString &newformatstring);
+  //string GetFormatString() const  { return formatString; }
+  void SetNewFormatString(const string &newformatstring);
   AmrPicture *GetAmrPicturePtr(int plane) { return amrPicturePtrArray[plane]; }
   Palette *GetPalettePtr()         { return pltPaletteptr; }
-  aString GetPaletteName()         { return palFilename; }
-  aString GetLightingFileName()         { return lightingFilename; }
+  string GetPaletteName()         { return palFilename; }
+  string GetLightingFileName()         { return lightingFilename; }
   DataServices *GetDataServicesPtr() { return dataServicesPtr[currentFrame]; }
   Array<DataServices *> &GetDataServicesPtrArray() { return dataServicesPtr; }
   int GetActiveView() const        { return activeView;    }
@@ -121,7 +122,7 @@ public:
   GraphicsAttributes *GetGAptr() const  { return GAptr; }
   PltAppState *GetPltAppState() const { return pltAppState; }
 
-  const aString &GetFileName();
+  const string &GetFileName();
   bool  PaletteDrawn();
   bool  PaletteCBQ() const { return paletteCBQ; }
   void  SetPaletteCBQ() { paletteCBQ = true; }
@@ -130,7 +131,7 @@ public:
   void  PaletteDrawn(bool trueOrFalse);
   
   XYPlotDataList *CreateLinePlot(int V, int sdir, int mal, int ixY,
-				 const aString *derived);
+				 const string *derived);
   //void SetGlobalMinMax(Real specifiedMin, Real specifiedMax);
   GC GetRbgc() const { return rbgc; }
 
@@ -199,13 +200,13 @@ private:
   int startX, startY, endX, endY;
   int maxAllowableScale;
   bool bCartGridSmoothing;
-  aString contourNumString, fileName, palFilename, lightingFilename;
+  string contourNumString, fileName, palFilename, lightingFilename;
   char buffer[BUFSIZ];
   Box trueRegion, selectionBox;
   Dataset *datasetPtr;
   GraphicsAttributes	*GAptr;
   Array<DataServices *> dataServicesPtr;
-  Array<aString> fileNames;
+  Array<string> fileNames;
   Array<XImage *> frameBuffer;
   vector<bool>	readyFrames;
   AnimDirection	animDirection;
@@ -226,8 +227,8 @@ private:
   int 		rWidth, rHeight, rStartX, rStartY;
   Cursor	cursor;
     
-  static aString defaultPaletteString, initialDerived, initialFormatString;
-  static aString defaultLightingFilename;
+  static string defaultPaletteString, initialDerived, initialFormatString;
+  static string defaultLightingFilename;
   static int initialScale, initialWindowHeight, initialWindowWidth;
   static int defaultShowBoxes, placementOffsetX, placementOffsetY;
   static int reserveSystemColors;
@@ -324,7 +325,7 @@ private:
 #endif
 
   void FindAndSetMinMax(const MinMaxRangeType mmrangetype, const int framenumber,
-		        const aString &currentderived, const int derivednumber,
+		        const string &currentderived, const int derivednumber,
 		        const Array<Box> &onBox,
 		        const int coarselevel, const int finelevel,
 		        const bool resetIfSet);
@@ -350,9 +351,9 @@ private:
 
 void	SubregionPltApp(Widget toplevel, const Box &region, const IntVect &offset,
 			//AmrPicture *app,
-			PltApp *pltparent, const aString &palfile,
-			int isanim, const aString &derived,
-			const aString &filename);
+			PltApp *pltparent, const string &palfile,
+			int isanim, const string &derived,
+			const string &filename);
 void	CBQuitPltApp(Widget, XtPointer, XtPointer);
 void	PrintMessage(char *);
 

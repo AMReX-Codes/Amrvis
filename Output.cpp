@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.cpp,v 1.25 2001-08-21 20:37:55 vince Exp $
+// $Id: Output.cpp,v 1.26 2001-08-22 00:22:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -190,7 +190,7 @@ void WritePSFile(const char *filename, XImage *image,
 void WritePSPaletteFile(const char *filename, XImage *image,
                         int imagesizehoriz, int imagesizevert,
                         const Array<Real> &palValueList,
-			const aString &palNumFormat, const Palette& palette)
+			const string &palNumFormat, const Palette& palette)
 {
     ofstream fout(filename);
     fout << "%!PS-Adobe-2.0" << '\n';

@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.H,v 1.13 2000-10-02 20:53:07 lijewski Exp $
+// $Id: DataServices.H,v 1.14 2001-08-22 00:22:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -10,11 +10,12 @@
 #define _DATASERVICES_H_
 
 #include "Array.H"
-#include "aString.H"
 #include "AmrData.H"
 
 #ifdef BL_USE_NEW_HFILES
 #include <cstdarg>
+#include <string>
+using std::string;
 #else
 #include <stdarg.h>
 #endif
@@ -45,7 +46,7 @@ class DataServices {
       LineValuesRequest
     };
 
-    DataServices(const aString &filename, const FileType &filetype);
+    DataServices(const string &filename, const FileType &filetype);
     ~DataServices();
 
     static void SetBatchMode();
@@ -59,63 +60,63 @@ class DataServices {
 
       // FillVarOneFab
       bool FillVar(FArrayBox *destFab, const Box &destBox,
-                   int finestFillLevel, const aString &varname,
+                   int finestFillLevel, const string &varname,
                    int procWithFab);
 
       // FillVarArrayOfFabs
       //bool FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
-                   //int finestFillLevel, const aString &varname,
+                   //int finestFillLevel, const string &varname,
                    //int procWithFab);
 
       // FillVarMultiFab
       bool FillVar(MultiFab &destMultiFab, int finestFillLevel,
-                   const aString &varname);
+                   const string &varname);
 
       // WriteFabOneVar:  write a single variable to one fab
-      bool WriteFab(const aString &fabfilename, const Box &region, int lev,
-                    const aString &varname);
+      bool WriteFab(const string &fabfilename, const Box &region, int lev,
+                    const string &varname);
 
       // WriteFabAllVars:  write all vars in one fab
-      bool WriteFab(const aString &fabfilename, const Box &region, int lev);
+      bool WriteFab(const string &fabfilename, const Box &region, int lev);
 
       // DumpSlicePlaneOneVar
-      bool DumpSlice(int slicedir, int slicenum, const aString &varname);
+      bool DumpSlice(int slicedir, int slicenum, const string &varname);
 
       // DumpSlicePlaneAllVars
       bool DumpSlice(int slicedir, int slicenum);
 
       // DumpSliceBoxOneVar
-      bool DumpSlice(const Box &slicebox, const aString &varname);
+      bool DumpSlice(const Box &slicebox, const string &varname);
 
       // DumpSliceBoxAllVars
       bool DumpSlice(const Box &slicebox);
 
       // MinMaxRequest
-      bool MinMax(const Box &onBox, const aString &derived, int level,
+      bool MinMax(const Box &onBox, const string &derived, int level,
                   Real &dataMin, Real &dataMax, bool &minMaxValid);
 
       // PointValueRequest
       void PointValue(int pointBoxArraySize, Box *pointBoxArray,
-		      const aString &currentDerived,
+		      const string &currentDerived,
 		      int coarsestLevelToSearch, int finestLevelToSearch,
 		      int &intersectedLevel, Box &intersectedGrid,
 		      Real &dataPointValue, bool &bPointIsValid);
 
       // LineValuesRequest
       void LineValues(int lineBoxArraySize, Box *lineBoxArray, int whichDir,
-                      const aString &currentDerived,
+                      const string &currentDerived,
                       int coarsestLevelToSearch, int finestLevelToSearch,
                       XYPlotDataList *dataList, bool &lineIsValid);
 
   public:
 
     // information functions
-    const aString &GetFileName() const { return fileName; }
+    const string &GetFileName() const { return fileName; }
     FileType GetFileType()       const { return fileType; }
-    bool CanDerive(const aString &name) const;
+    bool CanDerive(const string &name) const;
     int  NumDeriveFunc() const;
     void ListDeriveFunc(ostream &os) const;
-    const Array<aString> &PlotVarNames() const { return amrData.PlotVarNames(); }
+    const Array<string> &PlotVarNames() const { return amrData.PlotVarNames(); }
     AmrData &AmrDataRef() { return amrData; }
     bool AmrDataOk() { return bAmrDataOk; }  
 
@@ -126,7 +127,7 @@ class DataServices {
 
 
   private:
-    const aString  fileName;
+    const string fileName;
     const FileType fileType;
     AmrData amrData;
     bool bAmrDataOk;

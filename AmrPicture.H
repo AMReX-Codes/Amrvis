@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.H,v 1.39 2001-06-11 20:09:41 vince Exp $
+// $Id: AmrPicture.H,v 1.40 2001-08-22 00:22:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -21,8 +21,10 @@
 #include "GlobalUtilities.H"
 #include "GridPicture.H"
 #include "Array.H"
-#include "aString.H"
 #include "FArrayBox.H"
+
+#include <string>
+using std::string;
 
 #include <X11/X.h>
 #include <X11/Intrinsic.h>
@@ -169,7 +171,7 @@ class AmrPicture {
                        const Real *hdat, const Real *vdat,
 		       const Real velocityMax,
 		       const Box &dvfSliceBox, int dvfFactor);
-  VectorDerived FindVectorDerived(Array<aString> &aVectorDeriveNames);
+  VectorDerived FindVectorDerived(Array<string> &aVectorDeriveNames);
 
   static void CBFrameTimeOut(XtPointer, XtIntervalId *);
   static void CBContourSweep(XtPointer, XtIntervalId *);

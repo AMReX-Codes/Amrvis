@@ -7,14 +7,14 @@
 #include <Xm/Xm.h>
 #undef index
 
-#include <List.H>
+#include <list>
+using std::list;
 
 #include "AmrvisConstants.H"
 #include "XYPlotDataList.H"
 #include "XYPlotParam.H"
-//#include "GraphicsAttributes.H"
 #include "xgout.H"
-//#include "PltApp.H"
+
 class PltApp;
 class GraphicsAttributes;
 class XYPlotParameters;

@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.H,v 1.25 2001-05-10 23:38:01 vince Exp $
+// $Id: VolRender.H,v 1.26 2001-08-22 00:22:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -11,11 +11,12 @@
 
 #ifdef BL_USE_NEW_HFILES
 #include <cstdio>
+#include <string>
+using std::string;
 #else
 #include <stdio.h>
 #endif
 
-#include "aString.H" 
 #include "Array.H" 
 #include "REAL.H" 
 #include "Box.H" 
@@ -34,7 +35,7 @@ class VolRender {
     VolRender();
   public:
     VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
-	      int maxdrawnlevel, Palette *, const aString &asLightFileName);
+	      int maxdrawnlevel, Palette *, const string &asLightFileName);
   
     ~VolRender();
   
@@ -71,14 +72,14 @@ class VolRender {
     vpContext *GetVPContext() { return vpc; }
     void MakeVPData();
     void MakeSWFData(DataServices *dataServicesPtr, Real rDataMin, Real rDataMax,
-                     const aString &derivedName,
+                     const string &derivedName,
                      int iPaletteStart, int iPaletteEnd,
                      int iBlackIndex, int iWhiteIndex, int iColorSlots);
   
     void MakePicture(Real mvmat[4][4], Real Length, int width, int height);
 
     void SetImage(unsigned char *image_data, int width, int height, int pixel_type);
-    void WriteSWFData(const aString &filenamebase, bool SWFLight);
+    void WriteSWFData(const string &filenamebase, bool SWFLight);
     unsigned char *GetSWFData()    { return swfData; }
     int  GetSWFDataSize()   const  { return swfDataSize; }
     bool VPDataValid()      const  { return vpDataValid; }
