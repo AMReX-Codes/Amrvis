@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.56 2001-08-23 20:10:47 vince Exp $
+// $Id: AmrData.cpp,v 1.57 2001-10-01 22:12:20 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -45,9 +45,9 @@ using std::max;
 //#ifdef BL_USE_NEW_HFILES
 #include <iostream>
 #include <fstream>
+#include <cstdio>
 using std::ios;
 using std::ifstream;
-#include <cstdio>
 //#else
 //#include <iostream.h>
 //#include <stdio.h>
@@ -168,10 +168,10 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
     VisMF::IO_Buffer io_buffer(VisMF::IO_Buffer_Size);
 #endif
 
-    ifstream is;
+    ifstream isPltIn;
 
 #ifdef BL_USE_SETBUF
-    is.rdbuf()->setbuf(io_buffer.dataPtr(), io_buffer.size());
+    isPltIn.rdbuf()->setbuf(io_buffer.dataPtr(), io_buffer.size());
 #endif
 
    if(verbose) {
@@ -180,8 +180,8 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
      }
    }
 
-   is.open(File.c_str(), ios::in);
-   if(is.fail()) {
+   isPltIn.open(File.c_str(), ios::in);
+   if(isPltIn.fail()) {
      if(ParallelDescriptor::IOProcessor()) {
       cerr << "Unable to open file: " << filename << endl;
      }
@@ -190,13 +190,13 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
 
    char skipBuff[LINELENGTH];
    for(i = 0; i < skipPltLines; ++i) {
-     is.getline(skipBuff, LINELENGTH);
+     isPltIn.getline(skipBuff, LINELENGTH);
      if(ParallelDescriptor::IOProcessor()) {
        cout << "Skipped line in pltfile = " << skipBuff << endl;
      }
    }
 
-     is >> plotFileVersion;
+     isPltIn >> plotFileVersion;
      if(strncmp(plotFileVersion.c_str(), "CartGrid", 8) == 0) {
        bCartGrid = true;
      }
@@ -216,7 +216,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
      }
 
      // read list of variables
-     is >> nComp;
+     isPltIn >> nComp;
       if(nComp < 1 || nComp > 1024) {  // arbitrarily limit to 1024
         if(ParallelDescriptor::IOProcessor()) {
           cerr << "Error in AmrData:  bad nComp = " << nComp << endl;
@@ -229,9 +229,9 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
 
       plotVars.resize(nComp);
       char plotVarName[LINELENGTH];
-      is.getline(plotVarName, LINELENGTH); // eat white space left by << operator
+      isPltIn.getline(plotVarName, LINELENGTH); // eat white space left by op<<
       for(i = 0; i < nComp; ++i) {
-        is.getline(plotVarName, LINELENGTH);
+        isPltIn.getline(plotVarName, LINELENGTH);
         plotVars[i] = plotVarName;
         if(ParallelDescriptor::IOProcessor()) {
           VSHOWVAL(verbose, plotVarName);
@@ -239,7 +239,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
       }
 
       int spacedim;
-      is >>  spacedim >> time >> finestLevel;
+      isPltIn >>  spacedim >> time >> finestLevel;
       if(ParallelDescriptor::IOProcessor()) {
         VSHOWVAL(verbose, spacedim);
         VSHOWVAL(verbose, time);
@@ -260,7 +260,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
         return false;
       }
       for(i = 0; i < BL_SPACEDIM; ++i) {
-        is >> probLo[i];
+        isPltIn >> probLo[i];
         if(verbose) {
           if(ParallelDescriptor::IOProcessor()) {
 	    cout << "probLo[" << i << "] = " << probLo[i] << endl;
@@ -268,7 +268,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
 	}
       }
       for(i = 0; i < BL_SPACEDIM; ++i) {
-        is >> probHi[i];
+        isPltIn >> probHi[i];
         if(verbose) {
           if(ParallelDescriptor::IOProcessor()) {
 	    cout << "probHi[" << i << "] = " << probHi[i] << endl;
@@ -287,16 +287,16 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
       } else {
         refRatio.resize(finestLevel, -1);
       }
-      while(is.get() != '\n');
+      while(isPltIn.get() != '\n');
       bool bIVRefRatio(false);
-      if(is.peek() == '(') {  // it is an IntVect
+      if(isPltIn.peek() == '(') {  // it is an IntVect
         bIVRefRatio = true;
       }
       for(i = 0; i < finestLevel; ++i) {
 	// try to guess if refRatio is an IntVect
 	if(bIVRefRatio) {  // it is an IntVect
 	  IntVect ivRefRatio;
-	  is >> ivRefRatio;
+	  isPltIn >> ivRefRatio;
           if(verbose) {
             if(ParallelDescriptor::IOProcessor()) {
 	      cout << "IntVect refRatio[" << i << "] = " << ivRefRatio << endl;
@@ -304,7 +304,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
 	  }
 	  refRatio[i] = ivRefRatio[0];  // non-uniform ref ratios not supported
 	} else {
-          is >> refRatio[i];
+          isPltIn >> refRatio[i];
 	}
         if(verbose) {
           if(ParallelDescriptor::IOProcessor()) {
@@ -321,11 +321,11 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
           return false;
         }
       }
-      while(is.get() != '\n');
+      while(isPltIn.get() != '\n');
       probDomain.resize(finestLevel + 1);
       maxDomain.resize(finestLevel + 1);
       for(i = 0; i <= finestLevel; ++i) {
-        is >> probDomain[i];
+        isPltIn >> probDomain[i];
 	if(verbose) {
           if(ParallelDescriptor::IOProcessor()) {
 	    cout << "probDomain[" << i << "] = " << probDomain[i] << endl;
@@ -341,10 +341,10 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
       }
 
       char lstepbuff[128];
-      while(is.get() != '\n') {
+      while(isPltIn.get() != '\n') {
         ;  // do nothing
       }
-      is.getline(lstepbuff, 128);  // ignore levelsteps--some files have
+      isPltIn.getline(lstepbuff, 128);  // ignore levelsteps--some files have
 				   // finestlevel of these, others have
 				   // finestlevel + 1
       if(verbose) {
@@ -357,7 +357,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
       for(i = 0; i <= finestLevel; ++i) {
         dxLevel[i].resize(BL_SPACEDIM);
         for(k = 0; k < BL_SPACEDIM; k++) {
-	  is >> dxLevel[i][k];
+	  isPltIn >> dxLevel[i][k];
 	  if(verbose) {
             if(ParallelDescriptor::IOProcessor()) {
 	      cout << "dxLevel[" << i << "][" << k << "] = "
@@ -371,7 +371,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
       afEps.resize(finestLevel + 1);
       if(bCartGrid) {
         for(i = 0; i <= finestLevel; ++i) {
-          is >> vfEps[i];
+          isPltIn >> vfEps[i];
           if(verbose) {
             cout << "vfEps[" << i << "] = " << vfEps[i] << endl;
           }
@@ -389,19 +389,19 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
 	}
       }
 
-      is >> coordSys;
+      isPltIn >> coordSys;
       if(ParallelDescriptor::IOProcessor()) {
         VSHOWVAL(verbose, coordSys);
       }
-      while(is.get() != '\n') {
+      while(isPltIn.get() != '\n') {
         ;  // do nothing
       }
 
-      is >> width;   // width of bndry regions
+      isPltIn >> width;   // width of bndry regions
       if(ParallelDescriptor::IOProcessor()) {
         VSHOWVAL(verbose, width);
       }
-      while(is.get() != '\n') {
+      while(isPltIn.get() != '\n') {
         ;  // do nothing
       }
 
@@ -466,7 +466,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
       int nGrids;
       Real gTime;
       int iLevelSteps;
-      is >> lev >> nGrids >> gTime >> iLevelSteps;
+      isPltIn >> lev >> nGrids >> gTime >> iLevelSteps;
       if(ParallelDescriptor::IOProcessor()) {
         VSHOWVAL(verbose, lev);
         VSHOWVAL(verbose, nGrids);
@@ -494,7 +494,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
         gridLocLo[i][iloc].resize(BL_SPACEDIM);
         gridLocHi[i][iloc].resize(BL_SPACEDIM);
 	for(int iDim = 0; iDim < BL_SPACEDIM; ++iDim) {
-	  is >> gridLocLo[i][iloc][iDim] >>  gridLocHi[i][iloc][iDim];
+	  isPltIn >> gridLocLo[i][iloc][iDim] >>  gridLocHi[i][iloc][iDim];
           if(ParallelDescriptor::IOProcessor()) {
             VSHOWVAL(verbose, gridLocLo[i][iloc][iDim]);
             VSHOWVAL(verbose, gridLocHi[i][iloc][iDim]);
@@ -511,7 +511,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
       while(currentIndexComp < nComp) {
 
         string mfNameRelative;
-        is >> mfNameRelative;
+        isPltIn >> mfNameRelative;
         string mfName(fileName);
 #ifdef BL_PARALLEL_IO
         mfName += '/';
