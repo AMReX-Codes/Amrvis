@@ -1243,7 +1243,7 @@ void PltApp::PltAppInit() {
     daWidth  = width;
     daHeight = height;
 
-    projPicturePtr = new ProjectionPicture(this, &viewTrans,
+    projPicturePtr = new ProjectionPicture(this, &viewTrans, pltPaletteptr,
 				   wTransDA, daWidth, daHeight);
 
 #endif

@@ -27,7 +27,8 @@
 
 // -------------------------------------------------------------------
 ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
-				Widget da, int w, int h)
+                                     Palette *PalettePtr,
+                                     Widget da, int w, int h)
 {
   int lev;
   pltAppPtr = pltappptr;
@@ -38,6 +39,7 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
   viewTransformPtr = vtptr;
   daWidth = w;
   daHeight = h;
+  palettePtr = PalettePtr;
 
   volumeBoxColor = (unsigned char) GetBoxColor();
   volumeBoxColor = Max((unsigned char) 0, Min((unsigned char) MaxPaletteIndex(),
@@ -256,7 +258,7 @@ void ProjectionPicture::MakePicture() {
   }
 
   XPutImage(XtDisplay(drawingArea), pixMap, XtScreen(drawingArea)->
-        default_gc, image, 0, 0, 0, 0, daWidth, daHeight);
+        default_gc, PPXImage, 0, 0, 0, 0, daWidth, daHeight);
 
   cout << "----- make picture time = " << ((clock()-time0)/1000000.0) << endl;
 
@@ -324,7 +326,7 @@ cout << endl;
   }
 
   XPutImage(XtDisplay(drawingArea), pixMap, XtScreen(drawingArea)->
-        default_gc, image, 0, 0, 0, 0, daWidth, daHeight);
+        default_gc, PPXImage, 0, 0, 0, 0, daWidth, daHeight);
 
   cout << "----- make picture time = " << ((clock()-time0)/1000000.0) << endl;
 
@@ -344,88 +346,90 @@ void ProjectionPicture::DrawBoxesIntoDrawable(const Drawable &drawable,
 {
   minDrawnLevel = pltAppPtr->MinDrawnLevel();
   maxDrawnLevel = pltAppPtr->MaxDrawnLevel();
-
-    if(amrPicturePtr->ShowingBoxes()) {
-      for(int iLevel = iFromLevel; iLevel <= iToLevel; ++iLevel) {
-        XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
-                       boxColors[iLevel]);
-        int nBoxes(boxTrans[iLevel].length());
-	for(int iBox = 0; iBox < nBoxes; ++iBox) {
-            boxTrans[iLevel][iBox].Draw(XtDisplay(drawingArea), drawable,
-                                        XtScreen(drawingArea)->default_gc);
-          
-	}
+  
+  if(amrPicturePtr->ShowingBoxes()) {
+    for(int iLevel = iFromLevel; iLevel <= iToLevel; ++iLevel) {
+      XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
+                     boxColors[iLevel]);
+      int nBoxes(boxTrans[iLevel].length());
+      for(int iBox = 0; iBox < nBoxes; ++iBox) {
+        boxTrans[iLevel][iBox].Draw(XtDisplay(drawingArea), drawable,
+                                    XtScreen(drawingArea)->default_gc);
+        
       }
     }
-    DrawAuxiliaries(drawable);
-    XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
-                   boxColors[minDrawnLevel]);
+  }
+  DrawAuxiliaries(drawable);
+  XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
+                 boxColors[minDrawnLevel]);
 }
 
 
 // -------------------------------------------------------------------
 void ProjectionPicture::DrawAuxiliaries(const Drawable &drawable)
 {
-    if (showSubCut) {
-        XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
-                       subCutColor);
-        transSubCutBox.Draw(XtDisplay(drawingArea),drawable,
-                            XtScreen(drawingArea)->default_gc);
-    }    
-    //bounding box
+  if (showSubCut) {
     XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
-                   boxColors[minDrawnLevel]);
-    transBoundingBox.Draw(XtDisplay(drawingArea), drawable,
-                          XtScreen(drawingArea)->default_gc);
-    DrawSlices(drawable);
+                   subCutColor);
+    transSubCutBox.Draw(XtDisplay(drawingArea),drawable,
+                        XtScreen(drawingArea)->default_gc);
+  }    
+  //bounding box
+  XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
+                 boxColors[minDrawnLevel]);
+  transBoundingBox.Draw(XtDisplay(drawingArea), drawable,
+                        XtScreen(drawingArea)->default_gc);
+  DrawSlices(drawable);
 }
 
 
 // -------------------------------------------------------------------
 void ProjectionPicture::DrawSlices(const Drawable &drawable)
 {
-    XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
-                   sliceColor);
-    for(int k = 0; k < 3; k++)
-        transSlice[k].Draw(XtDisplay(drawingArea), drawable,
-                              XtScreen(drawingArea)->default_gc);
+  XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
+                 sliceColor);
+  for(int k = 0; k < 3; k++)
+    transSlice[k].Draw(XtDisplay(drawingArea), drawable,
+                       XtScreen(drawingArea)->default_gc);
 }    
 
 
 // -------------------------------------------------------------------
 void ProjectionPicture::LoadSlices(const Box &surroundingBox) {
-    for(int j = 0; j<3 ; j++) {
-        int slice = pltAppPtr->GetAmrPicturePtr(j)->GetSlice();
-        realSlice[j] = RealSlice(j,slice,surroundingBox);
-    }
+  for(int j = 0; j<3 ; j++) {
+    int slice = pltAppPtr->GetAmrPicturePtr(j)->GetSlice();
+    realSlice[j] = RealSlice(j,slice,surroundingBox);
+  }
 }
 
 
 // -------------------------------------------------------------------
 void ProjectionPicture::ChangeSlice(int Dir, int newSlice) {
-    for(int j = 0; j<3;j++) {
-        if (Dir == j)
-            realSlice[j].ChangeSlice(newSlice);
-    }
+  for(int j = 0; j<3;j++) {
+    if (Dir == j)
+      realSlice[j].ChangeSlice(newSlice);
+  }
 }
 
-        
+
 // -------------------------------------------------------------------
-void ProjectionPicture::DrawBoxesIntoPixmap(int iFromLevel, int iToLevel) {
-  XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc, 0);
+XImage *ProjectionPicture::DrawBoxesIntoPixmap(int iFromLevel, int iToLevel) {
+  XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
+                 palettePtr->BlackIndex());
+
   XFillRectangle(XtDisplay(drawingArea),  pixMap,
 		 XtScreen(drawingArea)->default_gc, 0, 0, daWidth, daHeight);
   DrawBoxesIntoDrawable(pixMap, iFromLevel, iToLevel);
- 
-  image = XGetImage(XtDisplay(drawingArea), pixMap, 0, 0,
-		    daWidth, daHeight, AllPlanes, ZPixmap);
+  
+  return XGetImage(XtDisplay(drawingArea), pixMap, 0, 0,
+                   daWidth, daHeight, AllPlanes, ZPixmap);
 }
 
 
 // -------------------------------------------------------------------
 void ProjectionPicture::DrawPicture() {
   XCopyArea(XtDisplay(drawingArea), pixMap, XtWindow(drawingArea),
-     XtScreen(drawingArea)->default_gc, 0, 0, daWidth, daHeight, 0, 0);
+            XtScreen(drawingArea)->default_gc, 0, 0, daWidth, daHeight, 0, 0);
 }
 
 
@@ -451,7 +455,7 @@ void ProjectionPicture::LabelAxes() {
               transBoundingBox.vertices[zHere].x,
               transBoundingBox.vertices[zHere].y,
               "Z", 1);
-              
+  
 }
 
 
@@ -463,17 +467,17 @@ void ProjectionPicture::ToggleShowSubCut() {
 
 // -------------------------------------------------------------------
 void ProjectionPicture::SetSubCut(const Box &newbox) {
-    realSubCutBox = RealBox(newbox);
-    MakeSubCutBox();
+  realSubCutBox = RealBox(newbox);
+  MakeSubCutBox();
 }
 
 
 // -------------------------------------------------------------------
 void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
-
+  
   minDrawnLevel = pltAppPtr->MinDrawnLevel();
   maxDrawnLevel = pltAppPtr->MaxDrawnLevel();
-
+  
   daWidth = w;
   daHeight = h;
   if(imageData != NULL) {
@@ -484,16 +488,16 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
     cout << " SetDrawingAreaDimensions::imageData : new failed" << endl;
     ParallelDescriptor::Abort("Exiting.");
   }
-
+  
   viewTransformPtr->SetScreenPosition(daWidth/2, daHeight/2);
-
-  image = XCreateImage(XtDisplay(drawingArea),
-                XDefaultVisual(XtDisplay(drawingArea),
-                DefaultScreen(XtDisplay(drawingArea))),
-                DefaultDepthOfScreen(XtScreen(drawingArea)), ZPixmap, 0,
-                (char *) imageData, daWidth, daHeight,
+  
+  PPXImage = XCreateImage(XtDisplay(drawingArea),
+                       XDefaultVisual(XtDisplay(drawingArea),
+                                      DefaultScreen(XtDisplay(drawingArea))),
+                       DefaultDepthOfScreen(XtScreen(drawingArea)), ZPixmap, 0,
+                       (char *) imageData, daWidth, daHeight,
 		XBitmapPad(XtDisplay(drawingArea)), daWidth);
-
+  
   if(pixCreated) {
     XFreePixmap(XtDisplay(drawingArea), pixMap);
   }

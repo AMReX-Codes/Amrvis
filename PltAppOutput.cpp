@@ -76,7 +76,7 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   char psfilename[BUFSIZ];
   char *fileNameBase;
   int imageSizeX, imageSizeY;
-  XImage *image;
+  XImage *printImage;
   XColor *colors = pltPaletteptr->GetColorCells();
   int palSize = pltPaletteptr->PaletteSize();
 
@@ -88,50 +88,51 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
 
   // write the ZPLANE picture
   sprintf(psfilename, "%s.XY.ps", fileNameBase);
-  image = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
+  printImage = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[ZPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[ZPLANE]->ImageSizeV();
-  WritePSFile(psfilename, image, imageSizeX, imageSizeY, colors, palSize);
+  WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
 
 #if (BL_SPACEDIM==3)
   // write the YPLANE picture
   sprintf(psfilename, "%s.XZ.ps", fileNameBase);
-  image = amrPicturePtrArray[YPLANE]->GetPictureXImage();
+  printImage = amrPicturePtrArray[YPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[YPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[YPLANE]->ImageSizeV();
-  WritePSFile(psfilename, image, imageSizeX, imageSizeY, colors, palSize);
+  WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
 
   // write the XPLANE picture
   sprintf(psfilename, "%s.YZ.ps", fileNameBase);
-  image = amrPicturePtrArray[XPLANE]->GetPictureXImage();
+  printImage = amrPicturePtrArray[XPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[XPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[XPLANE]->ImageSizeV();
-  WritePSFile(psfilename, image, imageSizeX, imageSizeY, colors, palSize);
+  WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
 
   // write the iso picture
 #ifdef BL_VOLUMERENDER
   if( ! XmToggleButtonGetState(wAutoDraw)) {
-    projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
+    printImage = projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
+  } else {
+    printImage = projPicturePtr->GetPictureXImage();
   }
 #else
-    projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
+  printImage = projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
 #endif
   sprintf(psfilename, "%s.XYZ.ps", fileNameBase);
-  image = projPicturePtr->GetPictureXImage();  
   imageSizeX = projPicturePtr->ImageSizeH();
   imageSizeY = projPicturePtr->ImageSizeV();
-  WritePSFile(psfilename, image, imageSizeX, imageSizeY, colors, palSize);
+  WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
 # endif
 
   // write the palette
   sprintf(psfilename, "%s.pal.ps", fileNameBase);
-  image = pltPaletteptr->GetPictureXImage();
+  printImage = pltPaletteptr->GetPictureXImage();
   imageSizeX = pltPaletteptr->PaletteWidth();
   imageSizeY = pltPaletteptr->PaletteHeight();
   Real *pValueList = pltPaletteptr->PaletteDataList();
   aString pNumFormat = pltPaletteptr->PaletteNumberFormat();
   int pDataLength = pltPaletteptr->PaletteDataListLength();
-  WritePSPaletteFile(psfilename, image, imageSizeX, imageSizeY, colors, 
+  WritePSPaletteFile(psfilename, printImage, imageSizeX, imageSizeY, colors, 
                      palSize, pValueList, pNumFormat, pDataLength);
 
   XtDestroyWidget(w);
@@ -145,7 +146,7 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
   char rgbfilename[BUFSIZ];
   char *fileNameBase;
   int imageSizeX, imageSizeY;
-  XImage *image;
+  XImage *printImage;
   XColor *colors = pltPaletteptr->GetColorCells();
   int palSize = pltPaletteptr->PaletteSize();
 
@@ -157,47 +158,48 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
 
   // write the ZPLANE picture
   sprintf(rgbfilename, "%s.XY.rgb", fileNameBase);
-  image = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
+  printImage = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[ZPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[ZPLANE]->ImageSizeV();
-  WriteRGBFile(rgbfilename, image, imageSizeX, imageSizeY, colors, palSize);
+  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
 
 #if (BL_SPACEDIM==3)
   // write the YPLANE picture
   sprintf(rgbfilename, "%s.XZ.rgb", fileNameBase);
-  image = amrPicturePtrArray[YPLANE]->GetPictureXImage();
+  printImage = amrPicturePtrArray[YPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[YPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[YPLANE]->ImageSizeV();
-  WriteRGBFile(rgbfilename, image, imageSizeX, imageSizeY, colors, palSize);
+  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
 
   // write the XPLANE picture
   sprintf(rgbfilename, "%s.YZ.rgb", fileNameBase);
-  image = amrPicturePtrArray[XPLANE]->GetPictureXImage();
+  printImage = amrPicturePtrArray[XPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[XPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[XPLANE]->ImageSizeV();
-  WriteRGBFile(rgbfilename, image, imageSizeX, imageSizeY, colors, palSize);
+  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
 
   // write the iso picture
 #ifdef BL_VOLUMERENDER
   if( ! XmToggleButtonGetState(wAutoDraw)) {
-    projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
+    printImage = projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
+  } else {
+    printImage = projPicturePtr->GetPictureXImage();
   }
 #else
-    projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
+  printImage = projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
 #endif
   sprintf(rgbfilename, "%s.XYZ.rgb", fileNameBase);
-  image = projPicturePtr->GetPictureXImage();
   imageSizeX = projPicturePtr->ImageSizeH();
   imageSizeY = projPicturePtr->ImageSizeV();
-  WriteRGBFile(rgbfilename, image, imageSizeX, imageSizeY, colors, palSize);
+  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
 # endif
 
   // write the palette
   sprintf(rgbfilename, "%s.pal.rgb", fileNameBase);
-  image = pltPaletteptr->GetPictureXImage();
+  printImage = pltPaletteptr->GetPictureXImage();
   imageSizeX = pltPaletteptr->PaletteWidth();
   imageSizeY = pltPaletteptr->PaletteHeight();
-  WriteRGBFile(rgbfilename, image, imageSizeX, imageSizeY, colors, palSize);
+  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
 
   XtDestroyWidget(w);
 
@@ -229,7 +231,7 @@ void PltApp::DoCreateFABFile(Widget w, XtPointer, XtPointer call_data) {
 void PltApp::DoCreateAnimRGBFile() {
   char rgbfilename[BUFSIZ];
   int imageSizeX, imageSizeY;
-  XImage *image;
+  XImage *printImage;
   XColor *colors = pltPaletteptr->GetColorCells();
   int palSize(pltPaletteptr->PaletteSize());
   char tempstr[BUFSIZ], timestep[BUFSIZ];
@@ -264,10 +266,20 @@ void PltApp::DoCreateAnimRGBFile() {
 
   cout << "******* Creating file:  " << rgbfilename << endl;
   // write the picture
-  image = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
+  printImage = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[ZPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[ZPLANE]->ImageSizeV();
-  WriteRGBFile(rgbfilename, image, imageSizeX, imageSizeY, colors, palSize);
+  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
 }  // end DoCreateAnimRGBFile
+
+
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
+
+
+
+
+
+
+
+
