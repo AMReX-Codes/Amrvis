@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.30 2001-10-09 17:45:41 lijewski Exp $
+// $Id: DataServices.cpp,v 1.31 2001-10-09 20:19:41 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -36,41 +36,44 @@ int DataServices::dsArrayIndexCounter = 0;
 int DataServices::dsFabOutSize = 0;
 bool DataServices::dsBatchMode = false;
 
-template <> void ParallelDescriptor::Bcast (Box* b, size_t n, int root)
+namespace ParallelDescriptor
 {
-    const int N = n * 3 * BL_SPACEDIM;
-
-    Array<int> tmp(N);
-
-    int cnt = 0;
-
-    for (int j = 0; j < n; j++)
+    template <> void Bcast (Box* b, size_t n, int root)
     {
-        for (int i = 0; i < BL_SPACEDIM; i++)
-            tmp[cnt++] = b[j].smallEnd(i);
+        const int N = n * 3 * BL_SPACEDIM;
 
-        for (int i = 0; i < BL_SPACEDIM; i++)
-            tmp[cnt++] = b[j].bigEnd(i);
+        Array<int> tmp(N);
 
-        IntVect indx = b[j].type();
+        int cnt = 0;
 
-        for (int i = 0; i < BL_SPACEDIM; i++)
-            tmp[cnt++] = indx[i];
-    }
+        for (int j = 0; j < n; j++)
+        {
+            for (int i = 0; i < BL_SPACEDIM; i++)
+                tmp[cnt++] = b[j].smallEnd(i);
 
-    BL_ASSERT(N == cnt);
+            for (int i = 0; i < BL_SPACEDIM; i++)
+                tmp[cnt++] = b[j].bigEnd(i);
 
-    ParallelDescriptor::Bcast(&tmp[0],N,root);
+            IntVect indx = b[j].type();
 
-    cnt = 0;
+            for (int i = 0; i < BL_SPACEDIM; i++)
+                tmp[cnt++] = indx[i];
+        }
 
-    for (int j = 0; j < n; j++)
-    {
-        IntVect sm(&tmp[cnt]); cnt += BL_SPACEDIM;
-        IntVect bg(&tmp[cnt]); cnt += BL_SPACEDIM;
-        IntVect id(&tmp[cnt]); cnt += BL_SPACEDIM;
+        BL_ASSERT(N == cnt);
 
-        b[j] = Box(sm,bg,id);
+        ParallelDescriptor::Bcast(&tmp[0],N,root);
+
+        cnt = 0;
+
+        for (int j = 0; j < n; j++)
+        {
+            IntVect sm(&tmp[cnt]); cnt += BL_SPACEDIM;
+            IntVect bg(&tmp[cnt]); cnt += BL_SPACEDIM;
+            IntVect id(&tmp[cnt]); cnt += BL_SPACEDIM;
+
+            b[j] = Box(sm,bg,id);
+        }
     }
 }
 
@@ -257,7 +260,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       }
 
       //ParallelDescriptor::Broadcast(ioProcNumber, &destBox, &destBox,sizeof(Box));
-      ParallelDescriptor::Bcast(&destBox, 1);
+      ParallelDescriptor::Bcast(&destBox, 1, 0);
       //ParallelDescriptor::Broadcast(ioProcNumber, &fineFillLevel, &fineFillLevel,
 				    //sizeof(int));
       ParallelDescriptor::Bcast(&fineFillLevel, 1);
@@ -318,7 +321,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       }
 
       //ParallelDescriptor::Broadcast(ioProcNumber,&destBox, &destBox, sizeof(Box));
-      ParallelDescriptor::Bcast(&destBox, 1);
+      ParallelDescriptor::Bcast(&destBox, 1, 0);
       //ParallelDescriptor::Broadcast(ioProcNumber, &fineFillLevel, &fineFillLevel,
 				    //sizeof(int));
       ParallelDescriptor::Bcast(&fineFillLevel, 1);
@@ -361,7 +364,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       }
 
       //ParallelDescriptor::Broadcast(ioProcNumber,&destBox, &destBox, sizeof(Box));
-      ParallelDescriptor::Bcast(&destBox, 1);
+      ParallelDescriptor::Bcast(&destBox, 1, 0);
       //ParallelDescriptor::Broadcast(ioProcNumber, &fineFillLevel, &fineFillLevel,
 				    //sizeof(int));
       ParallelDescriptor::Bcast(&fineFillLevel, 1);
@@ -448,7 +451,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       }
 
       //ParallelDescriptor::Broadcast(ioProcNumber, &box, &box, sizeof(Box));
-      ParallelDescriptor::Bcast(&box, 1);
+      ParallelDescriptor::Bcast(&box, 1, 0);
       //ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength,
 				    //sizeof(int));
       ParallelDescriptor::Bcast(&derivedLength, 1);
@@ -479,7 +482,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       }
 
       //ParallelDescriptor::Broadcast(ioProcNumber, &box, &box, sizeof(Box));
-      ParallelDescriptor::Bcast(&box, 1);
+      ParallelDescriptor::Bcast(&box, 1, 0);
 
       ds->DumpSlice(box);
 
@@ -505,7 +508,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       }
 
       //ParallelDescriptor::Broadcast(ioProcNumber, &box, &box, sizeof(Box));
-      ParallelDescriptor::Bcast(&box, 1);
+      ParallelDescriptor::Bcast(&box, 1, 0);
       //ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength,
 				    //sizeof(int));
       ParallelDescriptor::Bcast(&derivedLength, 1);
@@ -604,7 +607,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       //ParallelDescriptor::Broadcast(ioProcNumber,
 				    //pointBoxArrayPtr, pointBoxArrayPtr,
 				    //pointBoxArraySize * sizeof(Box));
-      ParallelDescriptor::Bcast(pointBoxArrayPtr, pointBoxArraySize);
+      ParallelDescriptor::Bcast(pointBoxArrayPtr, pointBoxArraySize, 0);
 
       string derived(derivedCharPtr);
       delete [] derivedCharPtr;
@@ -706,7 +709,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       //ParallelDescriptor::Broadcast(ioProcNumber,
                                     //lineBoxArrayPtr, lineBoxArrayPtr,
                                     //lineBoxArraySize * sizeof(Box));
-      ParallelDescriptor::Bcast(lineBoxArrayPtr, lineBoxArraySize);
+      ParallelDescriptor::Bcast(lineBoxArrayPtr, lineBoxArraySize, 0);
 
       string derived(derivedCharPtr);
       delete [] derivedCharPtr;
