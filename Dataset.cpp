@@ -31,8 +31,6 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
   dataServicesPtr = pltAppPtr->GetDataServicesPtr();
   finestLevel = amrPicturePtr->FinestLevel();
   maxAllowableLevel = amrPicturePtr->MaxAllowableLevel();
-  //maxDrawnLevel = pltAppPtr->MaxDrawnLevel(); 
-  //minDrawnLevel = pltAppPtr->MinDrawnLevel();
   char tempFormat[32];
   strcpy(tempFormat, pltAppPtr->GetFormatString().c_str());
   XmString sFormatString = XmStringCreateSimple(tempFormat);
@@ -230,7 +228,7 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
     maxAllowableLevel = amrPicturePtr->MaxAllowableLevel();
     
     // set up datasetRegion
-    
+    //we shall waste some space to that datasetRegion[lev] corresponds to lev
     datasetRegion = new Box[maxAllowableLevel+1];
     datasetRegion[maxAllowableLevel] = alignedRegion;
     for(i = maxAllowableLevel - 1; i >= 0; --i) {
@@ -272,7 +270,7 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
     int largestWidth(0);
     stringCount = 0;
     myStringCount = new int[maxAllowableLevel];
-    for(lev = 0; lev <= maxAllowableLevel; ++lev) {
+    for(lev = 0; lev <= maxAllowableLevel; ++lev) {///////
         myStringCount[lev] = 0;
         DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
                                &dataFab[lev], dataFab[lev].box(),
@@ -316,8 +314,8 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
         cout << "Error in Dataset::Render:  out of memory" << endl;
         return;
     }
-    myDataStringArray = new StringLoc * [maxAllowableLevel+1];
-    for(int level = 0; level <= maxAllowableLevel; level++) {
+    myDataStringArray = new StringLoc * [maxDrawnLevel+1];
+    for(int level = 0; level <= maxDrawnLevel; level++) {
         myDataStringArray[level] = new StringLoc [myStringCount[level] ];
     }
     // determine size of data area
@@ -451,41 +449,54 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
     tempBox.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
     tempBox.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
 
-    hIndexArray = new StringLoc* [maxDrawnLevel-minDrawnLevel];
-    vIndexArray = new StringLoc* [maxDrawnLevel-minDrawnLevel];
-    for(int level  = minDrawnLevel; level <= maxDrawnLevel; level++)
+    hIndexArray = new StringLoc* [maxDrawnLevel+1];
+    vIndexArray = new StringLoc* [maxDrawnLevel+1];
+    for (int j = 0; j<=maxDrawnLevel;j++) {
+        hIndexArray[j] = NULL;
+        vIndexArray[j] = NULL;
+    }
+    for(int level = minDrawnLevel; level <= maxDrawnLevel; level++)
     {
-        int count = level - minDrawnLevel;
-        double boxSize = pow(2., maxDrawnLevel-level);
+        Box temp = datasetRegion[level];
+
+        temp.refine(CRRBetweenLevels(level, maxDrawnLevel, amrData.RefRatio()));
+        temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
+        temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
+
+        double dBoxSize = pow(2., maxDrawnLevel-level);
+        int boxSize = (ceil(dBoxSize)-dBoxSize >= 0.5? 
+                       floor(dBoxSize): ceil(dBoxSize));
+        int vStartPos=fmod(datasetRegion[maxDrawnLevel].bigEnd(vDIR)+1, boxSize);
+        vStartPos = (vStartPos != 0? vStartPos - boxSize:vStartPos);
         // fill the box index arrays  ~**~
         Box iABox = datasetRegion[level];
-        hIndexArray[count] = new StringLoc[iABox.length(hDIR)];
-        vIndexArray[count] = new StringLoc[iABox.length(vDIR)];
+
+        hIndexArray[level] = new StringLoc[iABox.length(hDIR)];
+        vIndexArray[level] = new StringLoc[iABox.length(vDIR)];
+
 // horizontal
         for(d = 0; d < iABox.length(hDIR); d++) {
             sprintf(dataString, "%d", d + iABox.smallEnd(hDIR));
-            hIndexArray[count][d].color = blackIndex;
-            hIndexArray[count][d].xloc = (boxSize*((tempBox.smallEnd(hDIR)+d) 
-                                                   * dataItemWidth))
+            hIndexArray[level][d].color = blackIndex;
+            hIndexArray[level][d].xloc =(temp.smallEnd(hDIR)+d*boxSize)*dataItemWidth
                 +hStringOffset;
-            hIndexArray[count][d].yloc = 0;  // find this dynamically when drawing
-            strcpy(hIndexArray[count][d].ds, dataString);
-            hIndexArray[count][d].dslen = strlen(dataString);
-            hIndexArray[count][d].olflag = false;
+            hIndexArray[level][d].yloc = 0;  // find this dynamically when drawing
+            strcpy(hIndexArray[level][d].ds, dataString);
+            hIndexArray[level][d].dslen = strlen(dataString);
+            hIndexArray[level][d].olflag = false;
         }  // end for(d...)
         
         // vertical
         for(d = 0; d < iABox.length(vDIR); d++) {
             sprintf(dataString, "%d", d + iABox.smallEnd(vDIR));
-            vIndexArray[count][d].color = blackIndex;
-            vIndexArray[count][d].xloc = 0;  // find this dynamically when drawing
-            vIndexArray[count][d].yloc =((boxSize-((boxSize*iABox.length(vDIR))-
-                              datasetRegion[maxDrawnLevel].length(vDIR))
-                                          +(boxSize*(iABox.length(vDIR)-1-d)))
-                                         * CHARACTERHEIGHT)+vStringOffset;
-            strcpy(vIndexArray[count][d].ds, dataString);
-            vIndexArray[count][d].dslen = strlen(dataString);
-            vIndexArray[count][d].olflag = false;
+            vIndexArray[level][d].color = blackIndex;
+            vIndexArray[level][d].xloc = 0;// find this dynamically when drawing
+            vIndexArray[level][d].yloc =
+                ((vStartPos+boxSize*(datasetRegion[level].length(vDIR)-d))
+                 * CHARACTERHEIGHT)+vStringOffset;
+            strcpy(vIndexArray[level][d].ds, dataString);
+            vIndexArray[level][d].dslen = strlen(dataString);
+            vIndexArray[level][d].olflag = false;
         }  // end for(d...)
     }//end for(int level = minDrawnLevel...
 
@@ -581,8 +592,8 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
   int hplot, vplot; 
   int xcell((int) (cbs->event->xbutton.x) / dataItemWidth);
   int ycell((int) (cbs->event->xbutton.y) / CHARACTERHEIGHT);
-  Box pictureBox(amrPicturePtr->GetSubDomain()[maxAllowableLevel]);
-  Box regionBox(datasetRegion[maxAllowableLevel]);
+  Box pictureBox(amrPicturePtr->GetSubDomain()[maxDrawnLevel]);
+  Box regionBox(datasetRegion[maxDrawnLevel]);
 
   if(xcell >= 0 && xcell < pixSizeX/dataItemWidth &&
      ycell >= 0 && ycell < pixSizeY/CHARACTERHEIGHT)
@@ -637,7 +648,7 @@ void Dataset::DoReadString(Widget w, XmSelectionBoxCallbackStruct *) {
   if(stringOk) {
     pltAppPtr->SetFormatString(formatString);
     XClearWindow(GAptr->PDisplay(), XtWindow(wPixArea));
-    Render(datasetRegion[maxAllowableLevel], amrPicturePtr, pltAppPtr,
+    Render(datasetRegion[maxDrawnLevel], amrPicturePtr, pltAppPtr,
 	   hDIR, vDIR, sDIR);
     pltAppPtr->GetPalettePtr()->SetFormat(formatString);
     pltAppPtr->GetPalettePtr()->Redraw();  // change palette numbers
@@ -731,11 +742,13 @@ void Dataset::DoExpose(int fromExpose) {
         XtVaGetValues(wScrollArea, XmNwidth, &wdth, XmNheight, &hght, NULL);
         
         
-        int level = 0;
-        Box bTemp = datasetRegion[level];
-        bTemp.shift(hDIR, -(datasetRegion[level].smallEnd(hDIR))); 
-        bTemp.shift(vDIR, -datasetRegion[level].smallEnd(vDIR)); 
-        
+//        int level = 0;
+//        int boxSize = pow(2., maxDrawnLevel);
+//        Box bTemp = datasetRegion[maxDrawnLevel];
+//        bTemp.shift(hDIR, 
+//            -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
+//        bTemp.shift(vDIR, -datasetRegion[minDrawnLevel].smallEnd(vDIR)); 
+       
         
         XClearWindow(GAptr->PDisplay(), XtWindow(wPixArea));
         
@@ -767,7 +780,7 @@ void Dataset::DoExpose(int fromExpose) {
         }
         
         if(dragging) {
-            DrawIndices(bTemp);
+            DrawIndices();
             return;
         }
         
@@ -780,7 +793,7 @@ void Dataset::DoExpose(int fromExpose) {
             for(int lvl = minDrawnLevel; lvl<=maxDrawnLevel; lvl++) {
                 for(stringCount=0; stringCount<myStringCount[lvl]; stringCount++) {
                     xloc = myDataStringArray[lvl][stringCount].xloc;
-                    yloc = myDataStringArray[lvl][stringCount].yloc-((max_level-min_level+1)*hIndexAreaHeight);
+                    yloc = myDataStringArray[lvl][stringCount].yloc-((maxDrawnLevel-minDrawnLevel+1)*hIndexAreaHeight);
 #ifndef SCROLLBARERROR
                     if(myDataStringArray[lvl][stringCount].olflag >= maxDrawnLevel  &&
                        xloc > xh && yloc > yv &&
@@ -821,13 +834,13 @@ void Dataset::DoExpose(int fromExpose) {
             }
         }
         
-        DrawIndices(bTemp);
+        DrawIndices();
     }
 }  // end DoExpose
 
 
 // -------------------------------------------------------------------
-void Dataset::DrawIndices(const Box &tempBox) {
+void Dataset::DrawIndices() {
     int xloc, yloc;
     unsigned int stringCount;
     GC gc = GAptr->PGC();
@@ -849,23 +862,35 @@ void Dataset::DrawIndices(const Box &tempBox) {
                        vScrollBarPos, vIndexAreaWidth,
                        Min((unsigned int) height, pixSizeY));
     }
+    const AmrData &amrData = dataServicesPtr->AmrDataRef();
+
     for(int level = minDrawnLevel; level<= maxDrawnLevel; level++)
    {
+
+       Box temp = datasetRegion[level];
        int count = level - minDrawnLevel;
 
-       double boxSize = pow(2., maxDrawnLevel-level);
+       temp.refine(CRRBetweenLevels(level,
+                                    maxDrawnLevel, amrData.RefRatio()));
+       temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
+       temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR));
+
+       double dBoxSize = pow(2., maxDrawnLevel-level);
+       int boxSize = (ceil(dBoxSize)-dBoxSize >= 0.5? 
+                      floor(dBoxSize): ceil(dBoxSize));
+
 // draw the horizontal box index grid -- on top of the white background.
-       DrawGrid(tempBox.smallEnd(hDIR) * dataItemWidth, 
+       DrawGrid(temp.smallEnd(hDIR) * dataItemWidth, 
                 hIndexAreaStart-(count*hIndexAreaHeight)-1,
                 vIndexAreaStart-(count*vIndexAreaWidth), 
                 hIndexAreaEnd-(count*hIndexAreaHeight),
                 (boxSize)*dataItemWidth, hIndexAreaHeight, 
                 blackIndex, whiteIndex);
        // draw the vertical box index grid
-       DrawGrid(vIndexAreaStart-(count*vIndexAreaWidth)-1, 
-                (boxSize-
-                 ((boxSize*datasetRegion[level].length(vDIR))
-                  -datasetRegion[maxDrawnLevel].length(vDIR)))*CHARACTERHEIGHT,
+       int vStart = fmod(datasetRegion[maxDrawnLevel].bigEnd(vDIR)+1, boxSize);
+       vStart = (vStart != 0? vStart - boxSize:vStart);
+       DrawGrid(vIndexAreaStart-(count*vIndexAreaWidth)-1,
+                vStart*CHARACTERHEIGHT,
                 vIndexAreaEnd-(count*vIndexAreaWidth), 
                 hIndexAreaStart-(count*hIndexAreaHeight), 
                 vIndexAreaWidth,boxSize*CHARACTERHEIGHT,
@@ -873,10 +898,6 @@ void Dataset::DrawIndices(const Box &tempBox) {
 
        
        XSetForeground(display, gc, blackIndex);
-       XDrawLine(display, dataWindow, gc, vIndexAreaStart-(count*vIndexAreaWidth), 0,
-                 vIndexAreaStart-(count*vIndexAreaWidth), 
-                 hIndexAreaEnd-(count*hIndexAreaHeight) - 1);
-
        // draw the corner axis labels
        XDrawLine(display, dataWindow, gc, vIndexAreaStart, hIndexAreaStart,
                  vIndexAreaEnd,   hIndexAreaEnd - 1);
@@ -898,21 +919,21 @@ void Dataset::DrawIndices(const Box &tempBox) {
        // horizontal
        yloc = hIndexAreaEnd + vStringOffset-(count*hIndexAreaHeight);
        for(stringCount = 0; stringCount < datasetRegion[level].length(hDIR); stringCount++) {
-           xloc = hIndexArray[count][stringCount].xloc;
+           xloc = hIndexArray[level][stringCount].xloc;
            if((xloc > xh) && (xloc < (vIndexAreaStart-(count*vIndexAreaWidth) - (indexWidth / 3)))) {
-                  XDrawString(display, dataWindow, gc, xloc, yloc,
-                         hIndexArray[count][stringCount].ds, 
-                         hIndexArray[count][stringCount].dslen); 
+               XDrawString(display, dataWindow, gc, xloc, yloc,
+                           hIndexArray[level][stringCount].ds, 
+                           hIndexArray[level][stringCount].dslen); 
            }
        } // end for(...)
        // vertical
        xloc = vIndexAreaStart + hStringOffset-(count*vIndexAreaWidth);
        for(stringCount = 0; stringCount < datasetRegion[level].length(vDIR); stringCount++) {
-           yloc = vIndexArray[count][stringCount].yloc;
+           yloc = vIndexArray[level][stringCount].yloc;
            if((yloc > yv) && (yloc < hIndexAreaStart-(count*hIndexAreaHeight))) {
                XDrawString(display, dataWindow, gc, xloc, yloc,
-                           vIndexArray[count][stringCount].ds, 
-                           vIndexArray[count][stringCount].dslen);
+                           vIndexArray[level][stringCount].ds, 
+                           vIndexArray[level][stringCount].dslen);
            }
        } 
    }    //end for( int level . . .

@@ -46,7 +46,7 @@ public:
     
     void Render(const Box &alignedRegion, AmrPicture *apptr, PltApp *pltappptr,
                 int hdir, int vdir, int sdir);
-    void DrawIndices(const Box &tempBox);
+    void DrawIndices();
     void DoRaise();
     void DoExpose(int fromExpose);
     static void CBColorButton(Widget, XtPointer, XtPointer);
