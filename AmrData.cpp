@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.cpp,v 1.25 1999-02-10 21:09:52 lijewski Exp $
+// $Id: AmrData.cpp,v 1.26 1999-03-10 00:57:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -39,11 +39,11 @@ using std::ios;
 
 #ifdef CRAY
 #     if (BL_SPACEDIM == 2)
-#	   define   FORT_CNTERP     CNTRP2D
-#	   define   FORT_PCINTERP    PCINTRP2D
+#	   define   FORT_CINTERP     CINTERP2D
+#	   define   FORT_PCINTERP    PCINTERP2D
 #     elif (BL_SPACEDIM == 3)
-#	   define   FORT_CINTERP     CINTRP3D
-#	   define   FORT_PCINTERP    PCINTRP3D
+#	   define   FORT_CINTERP     CINTERP3D
+#	   define   FORT_PCINTERP    PCINTERP3D
 #     endif
 #else
 #  ifdef BL_AIX
@@ -874,13 +874,10 @@ void AmrData::FillVar(FArrayBox *destFab, const Box &destBox,
 
 // ---------------------------------------------------------------
 void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
-		      const aString &varname, Interpolater *mapper)
+		      const aString &varname)
 {
-/*
-//
 // This function fills the destMultiFab which is defined on
 // the finestFillLevel.
-//
 
    assert(finestFillLevel >= 0 && finestFillLevel <= finestLevel);
    BoxArray destBoxes(destMultiFab.boxArray());
@@ -888,7 +885,7 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
      assert(probDomain[finestFillLevel].contains(destBoxes[iIndex]));
    }
 
-    int myproc(ParallelDescriptor::MyProc());
+    int myProc(ParallelDescriptor::MyProc());
     int stateIndex(StateNumber(varname));
     int srcComp(0);
     int destComp(0);
@@ -921,18 +918,20 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
            multiFabCopyDesc.RegisterFabArray(dataGrids[currentLevel][stateIndex]);
     }
 
-    Array<Box> localMFBoxes;      // These are the ones we want to fillpatch.
+    BoxArray localMFBoxes(destBoxes.length());  // These are the ones
+						  // we want to fillpatch.
     Array< Array< Array< Array<FillBoxId> > > > fillBoxId;
 			          // [grid][level][fillablesubbox][oldnew]
 			          // oldnew not used here
     Array< Array< Array<Box> > > savedFineBox;  // [grid][level][fillablesubbox]
-    if(myproc == procWithFabs) {
-      localMFBoxes = destBoxes;
-      fillBoxId.resize(destBoxes.length());
-      savedFineBox.resize(destBoxes.length());
-      for(int iLocal = 0; iLocal < localMFBoxes.length(); ++iLocal) {
-        fillBoxId[iLocal].resize(finestFillLevel + 1);
-        savedFineBox[iLocal].resize(finestFillLevel + 1);
+
+    fillBoxId.resize(destBoxes.length());
+    savedFineBox.resize(destBoxes.length());
+    for(int iBox = 0; iBox < destBoxes.length(); ++iBox) {
+      if(destMultiFab.DistributionMap()[iBox] == myProc) {
+	localMFBoxes.set(iBox, destBoxes[iBox]);
+        fillBoxId[iBox].resize(finestFillLevel + 1);
+        savedFineBox[iBox].resize(finestFillLevel + 1);
       }
     }
 
@@ -941,6 +940,9 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
     BoxList unfillableBoxesOnThisLevel(boxType);
     // Do this for all local fab boxes.
     for(int ibox = 0; ibox < localMFBoxes.length(); ++ibox) {
+      if(destMultiFab.DistributionMap()[ibox] != myProc) {
+	continue;
+      }
         unfilledBoxesOnThisLevel.clear();
         assert(unfilledBoxesOnThisLevel.ixType() == boxType);
         assert(unfilledBoxesOnThisLevel.ixType() == localMFBoxes[ibox].ixType());
@@ -1020,12 +1022,12 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
 
 
     for(int currentIndex = 0; currentIndex < destBoxes.length(); ++currentIndex) {
+      if(destMultiFab.DistributionMap()[currentIndex] != myProc) {
+	continue;
+      }
       for(int currentLevel = 0; currentLevel <= finestFillLevel; ++currentLevel) {
         const Box &currentPDomain = probDomain[currentLevel];
 
-	if(myproc != procWithFabs) {
-	  break;
-	}
         for(int currentBox = 0;
             currentBox < fillBoxId[currentIndex][currentLevel].length();
             ++currentBox)
@@ -1039,7 +1041,7 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
 			  tempCoarseDestFab);
 
             Box intersectDestBox(savedFineBox[currentIndex][currentLevel][currentBox]);
-            intersectDestBox &= destFabs[currentIndex]->box();
+            intersectDestBox &= destMultiFab[currentIndex].box();
 
             const BoxArray &filledBoxes =
                 fillBoxId[currentIndex][currentLevel][currentBox][0].FilledBoxes();
@@ -1070,19 +1072,18 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
                   ++iFillBox)
               {
                     Box srcdestBox((*copyFromTheseBoxes)[iFillBox]);
-                    srcdestBox &= destFabs[currentIndex]->box();
+                    srcdestBox &= destMultiFab[currentIndex].box();
                     srcdestBox &= intersectDestBox;
                     if(srcdestBox.ok()) {
-                        destFabs[currentIndex]->copy(*copyFromThisFab,
-                                                   srcdestBox, 0, srcdestBox,
-                                                   destComp, numComps);
+                        destMultiFab[currentIndex].copy(*copyFromThisFab,
+                                                        srcdestBox, 0, srcdestBox,
+                                                        destComp, numComps);
                     }
               }
             }
         }
       }  // end for(currentLevel...)
     }  // end for(currentIndex...)
-*/
 }
 
 
