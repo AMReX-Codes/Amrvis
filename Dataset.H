@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Dataset.H,v 1.18 1999-06-08 20:46:28 vince Exp $
+// $Id: Dataset.H,v 1.19 1999-10-05 21:53:10 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -68,7 +68,7 @@ class Dataset {
  private:
   Widget	wAmrVisTopLevel, wDatasetTopLevel, wDatasetForm;
   Widget	wDatasetTools, wScrollArea, wPixArea;
-  Widget wFormat, wColorButton, wQuitButton, wLevels, wMinValue, wMaxValue;
+  Widget        wFormat, wColorButton, wQuitButton, wLevels, wMinValue, wMaxValue;
   Arg		args[MAXARGS];
   Box		*datasetRegion;
   unsigned int	pixSizeX, pixSizeY;
@@ -84,14 +84,14 @@ class Dataset {
   PltApp	*pltAppPtr;
   GraphicsAttributes	*GAptr;
   int 		dragging, drags;
-  int		 hStringOffset, vStringOffset;
-  aString	 hAxisString, vAxisString;
-  int            indexWidth, indexHeight;
-  int		 hScrollBarPos, vScrollBarPos;
-  int		 hIndexAreaHeight, hIndexAreaStart, hIndexAreaEnd;
-  int		 vIndexAreaWidth,  vIndexAreaStart, vIndexAreaEnd;
-  int		 xh, yv;
-  Dimension	 width, height;
+  int		hStringOffset, vStringOffset;
+  aString	hAxisString, vAxisString;
+  int           indexWidth, indexHeight;
+  int		hScrollBarPos, vScrollBarPos;
+  int		hIndexAreaHeight, hIndexAreaStart, hIndexAreaEnd;
+  int		vIndexAreaWidth,  vIndexAreaStart, vIndexAreaEnd;
+  int		xh, yv;
+  Dimension	width, height;
   StringLoc    **hIndexArray, **vIndexArray;    
   bool datasetPoint;
   
@@ -103,7 +103,6 @@ class Dataset {
   void DrawGrid(int startX, int startY, int finishX, int finishY,
                 int refRatio,
                 int foregroundIndex, int backgroundIndex);
-  
 };
 
 

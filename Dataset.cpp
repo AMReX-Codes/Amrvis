@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Dataset.cpp,v 1.29 1999-10-05 18:49:12 vince Exp $
+// $Id: Dataset.cpp,v 1.30 1999-10-05 21:53:10 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -263,7 +263,7 @@ Dataset::~Dataset() {
   delete [] datasetRegion;
   delete [] dataStringArray;
   if(bDataStringArrayAllocated) {
-    for(int j = 0; j<=maxAllowableLevel; ++j) {
+    for(int j = 0; j <= maxAllowableLevel; ++j) {
       delete [] myDataStringArray[j];
     }
     delete [] myDataStringArray;
@@ -281,7 +281,7 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
   Real *dataPoint; 
   
   if(bDataStringArrayAllocated) {
-    for(int j = 0; j<=maxAllowableLevel; ++j) {
+    for(int j = 0; j <= maxAllowableLevel; ++j) {
       delete [] myDataStringArray[j];
     }
     delete [] myDataStringArray;
@@ -518,14 +518,12 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
                                                    + c * crr) * dataItemWidth + 5;
               dataStringArray[stringCount].yloc = pixSizeY-1 -
                 (temp.smallEnd(vDIR) + d * crr) * CHARACTERHEIGHT - 4;
-              
-              for(i = lastLevLow; i < lastLevHigh; i++) { // remove overlap
-                if(dataStringArray[i].xloc ==
-                   dataStringArray[stringCount].xloc
-                   && dataStringArray[i].yloc ==
-                   dataStringArray[stringCount].yloc)
+
+              for(i = lastLevLow; i < lastLevHigh; ++i) { // remove overlap
+                if(dataStringArray[i].xloc == dataStringArray[stringCount].xloc &&
+                   dataStringArray[i].yloc == dataStringArray[stringCount].yloc)
                   {
-                    dataStringArray[i].olflag = lev-1; 
+                    dataStringArray[i].olflag = lev - 1; 
                     // highest level at which visible
                   }
               }	
@@ -570,7 +568,7 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
   
   hIndexArray = new StringLoc* [maxDrawnLevel+1];
   vIndexArray = new StringLoc* [maxDrawnLevel+1];
-  for (int j = 0; j<=maxDrawnLevel;j++) {
+  for(int j = 0; j <= maxDrawnLevel; ++j) {
     hIndexArray[j] = NULL;
     vIndexArray[j] = NULL;
   }
@@ -607,7 +605,7 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
       }  // end for(d...)
       
       // vertical
-      for(d = 0; d < iABox.length(vDIR); d++) {
+      for(d = 0; d < iABox.length(vDIR); ++d) {
         sprintf(dataString, "%d", d + iABox.smallEnd(vDIR));
         vIndexArray[level][d].color = blackIndex;
         vIndexArray[level][d].xloc = 0;// find this dynamically when drawing
@@ -637,14 +635,14 @@ void Dataset::DrawGrid(int startX, int startY, int finishX, int finishY,
 
     XDrawLine(display, dataWindow, gc, startX+1, startY, startX+1, finishY);
     for(i = startX; i <= finishX; i += gridspacingX) {
-	XDrawLine(display, dataWindow, gc, i, startY, i, finishY);
+      XDrawLine(display, dataWindow, gc, i, startY, i, finishY);
     }
 
     XDrawLine(display, dataWindow, gc, finishX - 1, startY, finishX - 1, finishY);
     
     XDrawLine(display, dataWindow, gc, startX, startY + 1, finishX, startY + 1);
     for(i = startY; i <= finishY; i += gridspacingY) {
-	XDrawLine(display, dataWindow, gc, startX, i, finishX, i);
+      XDrawLine(display, dataWindow, gc, startX, i, finishX, i);
     }
     XDrawLine(display, dataWindow, gc, startX, finishY - 1, finishX, finishY - 1);
 } // end DrawGrid(...)
@@ -749,16 +747,17 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
 # endif
       }
       
-      if ( xcell > regionBox.bigEnd(hDir)-regionBox.smallEnd(hDir))  
+      if(xcell > regionBox.bigEnd(hDir)-regionBox.smallEnd(hDir)) {
         xcell = regionBox.bigEnd(hDir)-regionBox.smallEnd(hDir);
-      if ( ycell > regionBox.bigEnd(vDir)-regionBox.smallEnd(vDir))  
+      }
+      if(ycell > regionBox.bigEnd(vDir)-regionBox.smallEnd(vDir)) {
         ycell = regionBox.bigEnd(vDir)-regionBox.smallEnd(vDir);
+      }
       hplot = regionBox.smallEnd(hDir) + xcell;
       vplot = regionBox.smallEnd(vDir) + regionBox.length(vDir)-1 - ycell;
 
       const AmrData &amrData = dataServicesPtr->AmrDataRef();
-      int baseRatio = CRRBetweenLevels(maxDrawnLevel, 
-                                       maxAllowableLevel, 
+      int baseRatio = CRRBetweenLevels(maxDrawnLevel, maxAllowableLevel, 
                                        amrData.RefRatio());
 
       int boxCoor[BL_SPACEDIM];
@@ -788,7 +787,7 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
       vplot *= baseRatio;
       vplot += boxSize;
       if(datasetPoint == true) {
-        amrPicturePtr->UnDrawDatasetPoint();//box if already drawns...
+        amrPicturePtr->UnDrawDatasetPoint();  // box if already drawn
       } else {
         datasetPoint = true;  // if we just started...
       }
@@ -797,7 +796,7 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
   
   if(cbs->event->xany.type == ButtonRelease) {
     amrPicturePtr->UnDrawDatasetPoint();
-    serverControlOK--;
+    --serverControlOK;
     datasetPoint = false;
     if(serverControlOK != 0) {
       cerr << "incorrect server control balance -- serverControlOK: "
@@ -821,7 +820,7 @@ void Dataset::DoReadString(Widget w, XmSelectionBoxCallbackStruct *) {
   }
   // unexhaustive string check to prevent errors 
   stringOk = true;
-  for(int i=0; i < formatString.length(); i++) {
+  for(int i = 0; i < formatString.length(); ++i) {
     if(formatString[i] == 's' || formatString[i] == 'u'
         || formatString[i] == 'p')
     {
@@ -956,8 +955,8 @@ void Dataset::DoExpose(int fromExpose) {
             }
         }
         if(dragging) {
-            DrawIndices();
-            return;
+          DrawIndices();
+          return;
         }
         
         int xloc, yloc;
@@ -966,52 +965,51 @@ void Dataset::DoExpose(int fromExpose) {
         
         // draw data strings
         if(XmToggleButtonGetState(wColorButton)) {
-            for(int lvl = minDrawnLevel; lvl<=maxDrawnLevel; lvl++) {
-                for(stringCount=0; stringCount<myStringCount[lvl]; stringCount++) {
-                    xloc = myDataStringArray[lvl][stringCount].xloc;
-                    yloc = myDataStringArray[lvl][stringCount].yloc -
-			  ((maxDrawnLevel-minDrawnLevel+1)*hIndexAreaHeight);
+          for(int lvl = minDrawnLevel; lvl <= maxDrawnLevel; ++lvl) {
+            for(stringCount = 0; stringCount < myStringCount[lvl]; ++stringCount) {
+              xloc = myDataStringArray[lvl][stringCount].xloc;
+              yloc = myDataStringArray[lvl][stringCount].yloc -
+		     ((maxDrawnLevel-minDrawnLevel+1)*hIndexAreaHeight);
 #ifndef SCROLLBARERROR
-                    if(myDataStringArray[lvl][stringCount].olflag >= maxDrawnLevel  &&
-                       xloc > xh && yloc > yv &&
-                       xloc < hScrollBarPos+wdth && yloc < vScrollBarPos+hght)
+              if(myDataStringArray[lvl][stringCount].olflag >= maxDrawnLevel  &&
+                 xloc > xh && yloc > yv &&
+                 xloc < hScrollBarPos+wdth && yloc < vScrollBarPos+hght)
 #else
-                    if(myDataStringArray[lvl][stringCount].olflag >= maxDrawnLevel)
+              if(myDataStringArray[lvl][stringCount].olflag >= maxDrawnLevel)
 #endif
-                { 
-                    XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), 
-                                   myDataStringArray[lvl][stringCount].color); 
-                    XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea),
-                                GAptr->PGC(), xloc, yloc,
-                                myDataStringArray[lvl][stringCount].ds,
-                                myDataStringArray[lvl][stringCount].dslen);
-                }
-                }
-            }
+              { 
+                XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), 
+                               myDataStringArray[lvl][stringCount].color); 
+                XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea),
+                            GAptr->PGC(), xloc, yloc,
+                            myDataStringArray[lvl][stringCount].ds,
+                            myDataStringArray[lvl][stringCount].dslen);
+              }
+            }  // end for
+          }  // end for
         } else {
             XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), whiteIndex);
             for(int lvl = minDrawnLevel; lvl<=maxDrawnLevel; lvl++) {
-                for(stringCount=0; stringCount<myStringCount[lvl]; stringCount++) {
-                    xloc = myDataStringArray[lvl][stringCount].xloc;
-                    yloc = myDataStringArray[lvl][stringCount].yloc -
-			   ((max_level-min_level+1)*hIndexAreaHeight);
+              for(stringCount=0; stringCount<myStringCount[lvl]; stringCount++) {
+                xloc = myDataStringArray[lvl][stringCount].xloc;
+                yloc = myDataStringArray[lvl][stringCount].yloc -
+		       ((max_level-min_level+1)*hIndexAreaHeight);
 #ifndef SCROLLBARERROR
-                    if(myDataStringArray[lvl][stringCount].olflag >= maxDrawnLevel &&
-                       xloc > xh && yloc > yv &&
-                       xloc < hScrollBarPos+wdth && yloc < vScrollBarPos+hght)
+                if(myDataStringArray[lvl][stringCount].olflag >= maxDrawnLevel &&
+                   xloc > xh && yloc > yv &&
+                   xloc < hScrollBarPos+wdth && yloc < vScrollBarPos+hght)
 #else
-                    if(myDataStringArray[lvl][stringCount].olflag >= maxDrawnLevel)
+                if(myDataStringArray[lvl][stringCount].olflag >= maxDrawnLevel)
 #endif
-                    {
+                {
                         XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea),
                                     GAptr->PGC(), xloc, yloc,
                                     myDataStringArray[lvl][stringCount].ds,
                                     myDataStringArray[lvl][stringCount].dslen);
-                    }
                 }
+              }
             }
         }
-        
         DrawIndices();
     }
 }  // end DoExpose
@@ -1019,25 +1017,25 @@ void Dataset::DoExpose(int fromExpose) {
 
 // -------------------------------------------------------------------
 void Dataset::DrawIndices() {
-    int xloc, yloc;
-    unsigned int stringCount;
-    GC gc = GAptr->PGC();
-    Display *display = XtDisplay(wPixArea);
-    Window dataWindow = XtWindow(wPixArea);
-    int levelRange = maxDrawnLevel - minDrawnLevel;
+  int xloc, yloc;
+  unsigned int stringCount;
+  GC gc = GAptr->PGC();
+  Display *display = XtDisplay(wPixArea);
+  Window dataWindow = XtWindow(wPixArea);
+  int levelRange(maxDrawnLevel - minDrawnLevel);
     
-    XSetForeground(display, gc, whiteIndex);
-   for(int count = 0; count<= levelRange; ++count) {
+  XSetForeground(display, gc, whiteIndex);
+  for(int count = 0; count<= levelRange; ++count) {
     // horizontal
-        XFillRectangle(display, dataWindow, gc, hScrollBarPos,
-                       hIndexAreaStart-(hIndexAreaHeight*count), 
-                       Min((unsigned int) width,  pixSizeX),
-                       hIndexAreaHeight);
-        // vertical
-        XFillRectangle(display, dataWindow, gc, 
-                       vIndexAreaStart-(vIndexAreaWidth*count),
-                       vScrollBarPos, vIndexAreaWidth,
-                       Min((unsigned int) height, pixSizeY));
+    XFillRectangle(display, dataWindow, gc, hScrollBarPos,
+                   hIndexAreaStart-(hIndexAreaHeight*count), 
+                   Min((unsigned int) width,  pixSizeX),
+                   hIndexAreaHeight);
+    // vertical
+    XFillRectangle(display, dataWindow, gc, 
+                   vIndexAreaStart-(vIndexAreaWidth*count),
+                   vScrollBarPos, vIndexAreaWidth,
+                   Min((unsigned int) height, pixSizeY));
     }
     const AmrData &amrData = dataServicesPtr->AmrDataRef();
 
@@ -1125,14 +1123,14 @@ void Dataset::DrawIndices() {
 // -------------------------------------------------------------------
 void Dataset::CBDoExposeDataset(Widget, XtPointer client_data, XEvent *, Boolean *)
 {
-    XEvent nextEvent;
-    Dataset *dset = (Dataset *) client_data;
-    while(XCheckTypedWindowEvent(dset->GAptr->PDisplay(),
-                                 XtWindow(dset->wPixArea), Expose, &nextEvent))
-    {
-      if(dset->drags) {
-        dset->drags--;
-      }
+  XEvent nextEvent;
+  Dataset *dset = (Dataset *) client_data;
+  while(XCheckTypedWindowEvent(dset->GAptr->PDisplay(),
+                               XtWindow(dset->wPixArea), Expose, &nextEvent))
+  {
+    if(dset->drags) {
+      dset->drags--;
+    }
   }
   dset->DoExpose(true);
 }

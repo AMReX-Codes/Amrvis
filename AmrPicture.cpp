@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.cpp,v 1.39 1999-10-05 18:49:12 vince Exp $
+// $Id: AmrPicture.cpp,v 1.40 1999-10-05 21:53:10 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -24,8 +24,7 @@
 AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
 		       PltApp *pltappptr, DataServices *dataservicesptr,
 		       bool bcartgridsmoothing)
-           : 
-             contours(false),
+           : contours(false),
              raster(true),
              colContour(false),
              vectorField(false),
@@ -113,8 +112,7 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
                        AmrPicture *parentPicturePtr,
                        PltApp *parentPltAppPtr, PltApp *pltappptr,
 		       bool bcartgridsmoothing)
-	   :
-             myView(view),
+	   : myView(view),
              minDrawnLevel(mindrawnlevel),
              GAptr(gaptr),
              pltAppPtr(pltappptr),
@@ -310,15 +308,15 @@ void AmrPicture::SetHVLine() {
       if(first == 0) {
         hLine = imageSizeV-1 -
 		((pltAppPtr->GetAmrPicturePtr(i)->GetSlice() -
-		pltAppPtr->GetAmrPicturePtr(YZ - i)->
-		   GetSubDomain()[maxDrawnLevel].smallEnd(YZ - i)) *
-		pltAppPtr->CurrentScale());
+		  pltAppPtr->GetAmrPicturePtr(YZ - i)->
+		  GetSubDomain()[maxDrawnLevel].smallEnd(YZ - i)) *
+		  pltAppPtr->CurrentScale());
         first = 1;
       } else {
         vLine = ( pltAppPtr->GetAmrPicturePtr(i)->GetSlice() -
-		pltAppPtr->GetAmrPicturePtr(YZ - i)->
+		  pltAppPtr->GetAmrPicturePtr(YZ - i)->
 		  GetSubDomain()[maxDrawnLevel].smallEnd(YZ - i)) *
-		pltAppPtr->CurrentScale();
+		  pltAppPtr->CurrentScale();
       }
     }
   }
@@ -860,7 +858,7 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
 
   if( ! maxsFound) {
     if(framesMade) {
-      for(int i=0;i<subDomain[maxAllowableLevel].length(sliceDir);++i) {
+      for(int i = 0; i < subDomain[maxAllowableLevel].length(sliceDir); ++i) {
         XDestroyImage(frameBuffer[i]);
       }
       framesMade = false;
@@ -1023,12 +1021,12 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
     oneOverGDiff = 1.0 / (globalMax - globalMin);
   }
   const Real *dataPoint = fab.dataPtr();
-  int whiteIndex = palptr->WhiteIndex();
-  int blackIndex = palptr->BlackIndex();
-  int colorSlots = palptr->ColorSlots();
-  int paletteStart = palptr->PaletteStart();
-  int paletteEnd = palptr->PaletteEnd();
-  int csm1 = colorSlots - 1;
+  int whiteIndex(palptr->WhiteIndex());
+  int blackIndex(palptr->BlackIndex());
+  int colorSlots(palptr->ColorSlots());
+  int paletteStart(palptr->PaletteStart());
+  int paletteEnd(palptr->PaletteEnd());
+  int csm1(colorSlots - 1);
   
   Real dPoint;
   
@@ -1306,32 +1304,32 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
             iCurrent = rrcs;
             jCurrent = rrcs;
 
-          nCalcBodyCells = 0;
-          while(nCalcBodyCells < nBodyCells) {
-            iCurrent--;
-            if(iCurrent < 0) {
-              iCurrent = rrcs-1;
-              jCurrent--;
-            }
-            if(jCurrent < 1) {
-              break;
-            }
-
-            for(ii=rrcs; ii>iCurrent; ii--) {
-              yBody = (slope * ((ii-iCurrent)*cellDx)) +
-                      ((rrcs-jCurrent)*cellDy);
-              jBody = Max(0, (int) (rrcs-(yBody/cellDy)));
-              for(jj=jBody; jj<rrcs; jj++) {
-                isIndex = (ii-1) + ((rrcs-(jj+1))*rrcs);
-                imageStencil[isIndex] = bodyCell;  // yflip
-              }
-            }
-
-            // sum the body cells
             nCalcBodyCells = 0;
-            for(ii=0; ii<rrcs*rrcs; ii++) {
-              if(imageStencil[ii] == bodyCell) { nCalcBodyCells++; }
-            }
+            while(nCalcBodyCells < nBodyCells) {
+              --iCurrent;
+              if(iCurrent < 0) {
+                iCurrent = rrcs-1;
+                --jCurrent;
+              }
+              if(jCurrent < 1) {
+                break;
+              }
+
+              for(ii = rrcs; ii > iCurrent; --ii) {
+                yBody = (slope * ((ii - iCurrent) * cellDx)) +
+                        ((rrcs - jCurrent) * cellDy);
+                jBody = Max(0, (int) (rrcs - (yBody / cellDy)));
+                for(jj = jBody; jj < rrcs; ++jj) {
+                  isIndex = (ii - 1) + ((rrcs - (jj + 1)) * rrcs);
+                  imageStencil[isIndex] = bodyCell;  // yflip
+                }
+              }
+
+              // sum the body cells
+              nCalcBodyCells = 0;
+              for(ii = 0; ii < rrcs * rrcs; ++ii) {
+                if(imageStencil[ii] == bodyCell) { ++nCalcBodyCells; }
+              }
           }  // end while(...)
 
 
@@ -1343,10 +1341,10 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
           nCalcBodyCells = 0;
           while(nCalcBodyCells < nBodyCells) {
 
-            iCurrent--;
+            --iCurrent;
             if(iCurrent < 0) {
               iCurrent = rrcs-1;
-              jCurrent++;
+              ++jCurrent;
             }
             if(jCurrent > rrcs) {
               break;
@@ -1363,7 +1361,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 
             // sum the body cells
             nCalcBodyCells = 0;
-            for(ii=0; ii<rrcs*rrcs; ii++) {
+            for(ii = 0; ii < rrcs * rrcs; ++ii) {
               if(imageStencil[ii] == bodyCell) { nCalcBodyCells++; }
             }
 
@@ -1376,29 +1374,29 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
           nCalcBodyCells = 0;
           while(nCalcBodyCells < nBodyCells) {
 
-            iCurrent++;
+            ++iCurrent;
             if(iCurrent > rrcs) {
               iCurrent = 1;
-              jCurrent--;
+              --jCurrent;
             }
             if(jCurrent < 1) {
               break;
             }
 
-            for(ii=0; ii<iCurrent; ii++) {
-              yBody = (-slope * ((iCurrent-ii)*cellDx)) +
-                      ((rrcs-jCurrent)*cellDy);
-              jBody = Max(0, (int) (rrcs-(yBody/cellDy)));
-              for(jj=jBody; jj<rrcs; jj++) {
-                isIndex = ii + ((rrcs-(jj+1))*rrcs);  // yflip
+            for(ii = 0; ii < iCurrent; ++ii) {
+              yBody = (-slope * ((iCurrent - ii) * cellDx)) +
+                      ((rrcs - jCurrent) * cellDy);
+              jBody = Max(0, (int) (rrcs - (yBody / cellDy)));
+              for(jj = jBody; jj < rrcs; ++jj) {
+                isIndex = ii + ((rrcs - (jj + 1)) * rrcs);  // yflip
                 imageStencil[isIndex] = bodyCell;
               }
             }
 
             // sum the body cells
             nCalcBodyCells = 0;
-            for(ii=0; ii<rrcs*rrcs; ii++) {
-              if(imageStencil[ii] == bodyCell) { nCalcBodyCells++; }
+            for(ii = 0; ii < rrcs * rrcs; ++ii) {
+              if(imageStencil[ii] == bodyCell) { ++nCalcBodyCells; }
             }
 
           }  // end while(...)
@@ -1424,32 +1422,32 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
           } else if(Abs(normH) < 0.000001) {  // horizontal face
 
             if(normV > 0.0) {  // body is on the bottom edge of the cell
-              for(jj=0; jj<(nBodyCells/rrcs); jj++) {
-                for(ii=0; ii<rrcs; ii++) {
-                  isIndex = ii + ((rrcs-(jj+1))*rrcs);
+              for(jj = 0; jj < (nBodyCells / rrcs); ++jj) {
+                for(ii = 0; ii < rrcs; ++ii) {
+                  isIndex = ii + ((rrcs - (jj + 1)) * rrcs);
                   imageStencil[isIndex] = bodyCell;
                 }
               }
             } else {           // body is on the top edge of the cell
-              for(jj=rrcs-(nBodyCells/rrcs); jj<rrcs; jj++) {
-                for(ii=0; ii<rrcs; ii++) {
-                  isIndex = ii + ((rrcs-(jj+1))*rrcs);
+              for(jj = rrcs - (nBodyCells / rrcs); jj < rrcs; ++jj) {
+                for(ii = 0; ii < rrcs; ++ii) {
+                  isIndex = ii + ((rrcs - (jj + 1)) * rrcs);
                   imageStencil[isIndex] = bodyCell;
                 }
               }
             }
           } else {
 
-            for(ii=0; ii<rrcs*rrcs; ii++) {
+            for(ii = 0; ii < rrcs * rrcs; ++ii) {
               imageStencil[ii] = markedCell;
             }
           }  // end long if block
 
           // set cells to correct color
-          for(jj=0; jj<rrcs; jj++) {
-            for(ii=0; ii<rrcs; ii++) {
-              if(imageStencil[ii + (jj*rrcs)] == fluidCell) {  // in fluid
-                scaledImageData[((i*rrcs)+ii)+(((j*rrcs)+jj)*imageSizeH)] =
+          for(jj = 0; jj < rrcs; ++jj) {
+            for(ii = 0; ii < rrcs; ++ii) {
+              if(imageStencil[ii + (jj * rrcs)] == fluidCell) {  // in fluid
+                scaledImageData[((i * rrcs) + ii)+(((j * rrcs)+jj)*imageSizeH)] =
                                                 imageData[i + j*dataSizeH];
               } else if(imageStencil[ii + (jj*rrcs)] == markedCell) {
                 scaledImageData[((i*rrcs)+ii)+(((j*rrcs)+jj)*imageSizeH)] =
@@ -1462,8 +1460,8 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
           }  // end for(jj...)
 
         } else {  // non mixed cell
-          for(jj=0; jj<rrcs; jj++) {
-            for(ii=0; ii<rrcs; ii++) {
+          for(jj = 0; jj < rrcs; ++jj) {
+            for(ii = 0; ii < rrcs; ++ii) {
               scaledImageData[((i*rrcs)+ii) + (((j*rrcs)+jj) * imageSizeH)] =
                        imageData[i + j*dataSizeH];
             }

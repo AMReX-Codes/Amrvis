@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.H,v 1.31 1999-06-08 20:46:29 vince Exp $
+// $Id: PltApp.H,v 1.32 1999-10-05 21:53:10 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -130,30 +130,30 @@ public:
   int CurrentContour() { return currentContour; }
   void SetCurrentContour(int newContour) { currentContour = newContour; }
   
-  void		DoUpdateFrame();
-  void		DoSpeedScale(XmScaleCallbackStruct *);
-  void		DoQuitButton(Widget, XtPointer, XtPointer);
-  void		DoChangeScale(int view);
-  void		DoChangeLevel(int, Widget, XtPointer, XtPointer);
-  void		DoChangeDerived(int, Widget, XtPointer, XtPointer);
-  void		DoDatasetButton(Widget, XtPointer, XtPointer);
-  void		DoPaletteButton(Widget, XtPointer, XtPointer);
-  void		DoSetRangeButton(Widget, XtPointer, XtPointer);
-  void		DoDoneSetRange(Widget, XtPointer, XtPointer);
-  void		DoCancelSetRange(Widget, XtPointer, XtPointer);
-  void		DoUserMin(Widget, XtPointer, XtPointer);
-  void		DoUserMax(Widget, XtPointer, XtPointer);
-  void		DoToggleRange(Widget, Range, XmToggleButtonCallbackStruct *);
-  void		DoOpenPalFile(Widget, XtPointer, XtPointer);
-  void		DoSubregion(Widget, XtPointer, XtPointer);
-  void          DoInfoButton(Widget, XtPointer, XtPointer);
-  void		DoOutput(Widget, XtPointer, XtPointer);
-  void		DoCreatePSFile(Widget, XtPointer, XtPointer);
-  void		DoCreateRGBFile(Widget, XtPointer, XtPointer);
-  void		DoCreateFABFile(Widget, XtPointer, XtPointer);
-  void		DoCreateAnimRGBFile();
-  void		QuitDataset();
-  void		DoExposeRef(); // RefArea (axis pictures) 
+  void DoUpdateFrame();
+  void DoSpeedScale(XmScaleCallbackStruct *);
+  void DoQuitButton(Widget, XtPointer, XtPointer);
+  void DoChangeScale(int view);
+  void DoChangeLevel(int, Widget, XtPointer, XtPointer);
+  void DoChangeDerived(int, Widget, XtPointer, XtPointer);
+  void DoDatasetButton(Widget, XtPointer, XtPointer);
+  void DoPaletteButton(Widget, XtPointer, XtPointer);
+  void DoSetRangeButton(Widget, XtPointer, XtPointer);
+  void DoDoneSetRange(Widget, XtPointer, XtPointer);
+  void DoCancelSetRange(Widget, XtPointer, XtPointer);
+  void DoUserMin(Widget, XtPointer, XtPointer);
+  void DoUserMax(Widget, XtPointer, XtPointer);
+  void DoToggleRange(Widget, Range, XmToggleButtonCallbackStruct *);
+  void DoOpenPalFile(Widget, XtPointer, XtPointer);
+  void DoSubregion(Widget, XtPointer, XtPointer);
+  void DoInfoButton(Widget, XtPointer, XtPointer);
+  void DoOutput(Widget, XtPointer, XtPointer);
+  void DoCreatePSFile(Widget, XtPointer, XtPointer);
+  void DoCreateRGBFile(Widget, XtPointer, XtPointer);
+  void DoCreateFABFile(Widget, XtPointer, XtPointer);
+  void DoCreateAnimRGBFile();
+  void QuitDataset();
+  void DoExposeRef(); // RefArea (axis pictures) 
 
   static void DoChangePlane(XtPointer, XtIntervalId *);
   static void SetDefaultPalette(const aString &palString);
@@ -283,9 +283,9 @@ public:
   Cursor	cursor;
   
   
-  static aString	defaultPaletteString;
-  static aString	initialDerived;
-  static aString	initialFormatString;
+  static aString defaultPaletteString;
+  static aString initialDerived;
+  static aString initialFormatString;
   static int	initialScale;
   static int	initialWindowHeight;
   static int	initialWindowWidth;

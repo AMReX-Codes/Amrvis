@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.H,v 1.26 1999-10-05 18:49:12 vince Exp $
+// $Id: AmrPicture.H,v 1.27 1999-10-05 21:53:09 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -129,8 +129,9 @@ class AmrPicture {
   VectorDerived FindVectorDerived(Array<aString> &aVectorDeriveNames);
 
  private:
-  Window 			pictureWindow;
-  int	numberOfLevels, finestLevel, numberOfDerived, numberOfContours;
+  Window 		pictureWindow;
+  int			numberOfLevels, finestLevel;
+  int			numberOfDerived, numberOfContours;
   Real			dataMinAllGrids, dataMaxAllGrids;
   Real			dataMinRegion, dataMaxRegion;
   Real			dataMinSpecified, dataMaxSpecified;
@@ -201,7 +202,7 @@ class AmrPicture {
                    int xLength, int yLength,
                    Real leftEdge, Real bottomEdge, Real rightEdge, Real topEdge);
   inline bool Between(Real a, Real b, Real c) {
-    return ( (a <= b) && (b <= c) || (a >= b) && (b >= c) );
+      return ( (a <= b) && (b <= c) || (a >= b) && (b >= c) );
   }
 
   void DrawVectorField(Display *display, Drawable &drawable, const GC &gc);
