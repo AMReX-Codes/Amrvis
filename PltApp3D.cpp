@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.47 2002-04-18 20:34:53 vince Exp $
+// $Id: PltApp3D.cpp,v 1.48 2002-05-23 18:24:15 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -25,6 +25,12 @@
 
 const unsigned long openingLW(100);
 const unsigned long savingLW(101);
+
+using std::max;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::max;
 
 #define MARK fprintf(stderr, "Mark: file %s, line %d.\n", __FILE__, __LINE__)
 

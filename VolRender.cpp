@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.42 2002-02-26 01:00:02 vince Exp $
+// $Id: VolRender.cpp,v 1.43 2002-05-23 18:24:15 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -14,7 +14,10 @@
 #include <iostream>
 #include <cstdlib>
 using std::cerr;
+using std::cout;
 using std::endl;
+using std::max;
+using std::min;
 #include <ctime>
 
 #include <unistd.h>

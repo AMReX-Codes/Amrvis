@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.cpp,v 1.45 2002-04-18 20:34:53 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.46 2002-05-23 18:24:15 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -16,6 +16,10 @@
 
 #include <cmath>
 #include <ctime>
+using std::min;
+using std::max;
+using std::cout;
+using std::endl;
 
 using std::cout;
 using std::endl;
