@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.cpp,v 1.34 1999-05-10 18:54:17 car Exp $
+// $Id: AmrData.cpp,v 1.35 1999-05-11 16:13:22 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -943,16 +943,19 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
     BoxArray localMFBoxes(destBoxes.length());  // These are the ones
 						  // we want to fillpatch.
     Array< Array< Array< Array<FillBoxId> > > > fillBoxId;
+    Array< Array< Array< Array<BoxArray> > > >  fillBoxIdBAs;
 			          // [grid][level][fillablesubbox][oldnew]
 			          // oldnew not used here
     Array< Array< Array<Box> > > savedFineBox;  // [grid][level][fillablesubbox]
 
     fillBoxId.resize(destBoxes.length());
+    fillBoxIdBAs.resize(destBoxes.length());
     savedFineBox.resize(destBoxes.length());
     for(int iBox = 0; iBox < destBoxes.length(); ++iBox) {
       if(destMultiFab.DistributionMap()[iBox] == myProc) {
 	localMFBoxes.set(iBox, destBoxes[iBox]);
         fillBoxId[iBox].resize(finestFillLevel + 1);
+        fillBoxIdBAs[iBox].resize(finestFillLevel + 1);
         savedFineBox[iBox].resize(finestFillLevel + 1);
       }
     }
@@ -980,6 +983,7 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
 
 	    int ufbLength = unfilledBoxesOnThisLevel.length();
             fillBoxId[ibox][currentLevel].resize(ufbLength);
+            fillBoxIdBAs[ibox][currentLevel].resize(ufbLength);
             savedFineBox[ibox][currentLevel].resize(ufbLength);
 
             int currentBLI = 0;
@@ -1003,10 +1007,15 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
 
                   BoxList tempUnfillableBoxes(boxType);
                   fillBoxId[ibox][currentLevel][currentBLI].resize(1);
+                  fillBoxIdBAs[ibox][currentLevel][currentBLI].resize(1);
+
                   fillBoxId[ibox][currentLevel][currentBLI][0] = 
 		      multiFabCopyDesc.AddBox(stateDataMFId[currentLevel],
 					      tempCoarseBox, &tempUnfillableBoxes,
 					      srcComp, 0, 1);
+
+                  fillBoxIdBAs[ibox][currentLevel][currentBLI][0] =
+                      BoxArray(::complementIn(tempCoarseBox,tempUnfillableBoxes));
 
                   unfillableBoxesOnThisLevel.join(tempUnfillableBoxes);
                   ++currentBLI;
@@ -1066,7 +1075,7 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
             intersectDestBox &= destMultiFab[currentIndex].box();
 
             const BoxArray &filledBoxes =
-                fillBoxId[currentIndex][currentLevel][currentBox][0].FilledBoxes();
+                fillBoxIdBAs[currentIndex][currentLevel][currentBox][0];
             BoxArray fboxes(filledBoxes);
             FArrayBox *copyFromThisFab;
             const BoxArray *copyFromTheseBoxes;
@@ -1165,15 +1174,18 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
 
     Array<Box> localMFBoxes;      // These are the ones we want to fillpatch.
     Array< Array< Array< Array<FillBoxId> > > > fillBoxId;
+    Array< Array< Array< Array<BoxArray> > > >  fillBoxIdBAs;
 			          // [grid][level][fillablesubbox][oldnew]
 			          // oldnew not used here
     Array< Array< Array<Box> > > savedFineBox;  // [grid][level][fillablesubbox]
     if(myproc == procWithFabs) {
       localMFBoxes = destBoxes;
       fillBoxId.resize(destBoxes.length());
+      fillBoxIdBAs.resize(destBoxes.length());
       savedFineBox.resize(destBoxes.length());
       for(int iLocal = 0; iLocal < localMFBoxes.length(); ++iLocal) {
         fillBoxId[iLocal].resize(finestFillLevel + 1);
+        fillBoxIdBAs[iLocal].resize(finestFillLevel + 1);
         savedFineBox[iLocal].resize(finestFillLevel + 1);
       }
     }
@@ -1198,6 +1210,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
 
 	    int ufbLength = unfilledBoxesOnThisLevel.length();
             fillBoxId[ibox][currentLevel].resize(ufbLength);
+            fillBoxIdBAs[ibox][currentLevel].resize(ufbLength);
             savedFineBox[ibox][currentLevel].resize(ufbLength);
 
             int currentBLI = 0;
@@ -1221,10 +1234,15 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
 
                   BoxList tempUnfillableBoxes(boxType);
                   fillBoxId[ibox][currentLevel][currentBLI].resize(1);
+                  fillBoxIdBAs[ibox][currentLevel][currentBLI].resize(1);
+
                   fillBoxId[ibox][currentLevel][currentBLI][0] = 
 		      multiFabCopyDesc.AddBox(stateDataMFId[currentLevel],
 					      tempCoarseBox, &tempUnfillableBoxes,
 					      srcComp, destComp, numFillComps);
+
+                  fillBoxIdBAs[ibox][currentLevel][currentBLI][0] =
+                      BoxArray(::complementIn(tempCoarseBox,tempUnfillableBoxes));
 
                   unfillableBoxesOnThisLevel.join(tempUnfillableBoxes);
                   ++currentBLI;
@@ -1284,7 +1302,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
             intersectDestBox &= destFabs[currentIndex]->box();
 
             const BoxArray &filledBoxes =
-                fillBoxId[currentIndex][currentLevel][currentBox][0].FilledBoxes();
+                fillBoxIdBAs[currentIndex][currentLevel][currentBox][0];
             BoxArray fboxes(filledBoxes);
             FArrayBox *copyFromThisFab;
             const BoxArray *copyFromTheseBoxes;
