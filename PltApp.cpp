@@ -912,22 +912,6 @@ void PltApp::PltAppInit() {
     AddStaticCallback(wAutoDraw, XmNvalueChangedCallback, &PltApp::DoAutoDraw);
     XtManageChild(wAutoDraw);
 
-
-    i=0;
-    XmString sReadTrans = XmStringCreateSimple("Trans");
-    XtSetArg(args[i], XmNlabelString, sReadTrans); i++;
-    XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET); i++;
-    XtSetArg(args[i], XmNleftWidget, wAutoDraw); i++;
-    XtSetArg(args[i], XmNleftOffset, WOFFSET); i++;
-    XtSetArg(args[i], XmNtopAttachment, XmATTACH_POSITION); i++;
-    XtSetArg(args[i], XmNtopPosition, 50); i++;
-    wReadTransfer = XmCreatePushButton(wPlotArea, "readtrans", args, i);
-    XmStringFree(sReadTrans);
-    AddStaticCallback(wReadTransfer, XmNactivateCallback,
-		 &PltApp::DoReadTransferFile);
-    XtManageChild(wReadTransfer);
-
-    
 // ****************************************** Render Menu
 
 
@@ -960,7 +944,7 @@ void PltApp::PltAppInit() {
     i=0;
     XtSetArg(args[i], XmNsubMenuId, wLightOptions); i++;
     XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET); i++;
-    XtSetArg(args[i], XmNleftWidget, wReadTransfer); i++;
+    XtSetArg(args[i], XmNleftWidget, wAutoDraw); i++;
     XtSetArg(args[i], XmNleftOffset, WOFFSET); i++;
     XtSetArg(args[i], XmNtopAttachment, XmATTACH_POSITION); i++;
     XtSetArg(args[i], XmNtopPosition, 50); i++;
@@ -1298,14 +1282,14 @@ void PltApp::PltAppInit() {
   
   pltPaletteptr->SetWindow(XtWindow(wPalArea));
 
-  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotArea));
+  //  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotArea));
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wAmrVisTopLevel));
-  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPalArea));
-  for(np = 0; np < NPLANES; np++) {
-    pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotPlane[np]));
-  }
+  //pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPalArea));
+  //for(np = 0; np < NPLANES; np++) {
+  //  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotPlane[np]));
+  //}
 #if (BL_SPACEDIM == 3)
-    pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wTransDA));
+  //  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wTransDA));
 #endif
 #if (BL_SPACEDIM == 2)
   if(animating2d) {
@@ -2372,6 +2356,15 @@ void PltApp::DoOpenPalFile(Widget w, XtPointer, XtPointer call_data) {
   }
   XtPopdown(XtParent(w));
   pltPaletteptr->ChangeWindowPalette(palfile, XtWindow(wAmrVisTopLevel));
+# ifdef BL_VOLUMERENDER
+  projPicturePtr->GetVolRenderPtr()->SetTransferProperties();
+  projPicturePtr->GetVolRenderPtr()->InvalidateVPData();
+  showing3dRender = false;
+  if(XmToggleButtonGetState(wAutoDraw)) {
+    // If we could also clear the window...
+    DoRender(wAutoDraw, NULL, NULL);
+  }
+# endif
   palFilename = palfile;
 }
 

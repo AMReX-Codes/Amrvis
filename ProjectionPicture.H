@@ -86,7 +86,6 @@ public:
 #ifdef BL_VOLUMERENDER
   VolRender *GetVolRenderPtr() const { return volRender; }
 #endif
-  void    ReadTransferFile(const aString &rampFileName);
   void	MakeBoxes();
   void MakeSlices();
   void	MakePicture();

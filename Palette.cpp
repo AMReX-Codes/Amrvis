@@ -16,7 +16,8 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
 {
   totalColorSlots = MaxPaletteIndex() + 1;
   sysccells.resize(totalColorSlots);
-  transY.resize(totalColorSlots);
+  //  transY.resize(totalColorSlots);
+  transferArray.resize(totalColorSlots);
   ccells.resize(totalColorSlots);
   palPixmap = NULL;
   pmin = 0.0;
@@ -121,7 +122,7 @@ void Palette::Draw(Real palMin, Real palMax, const aString &numberFormat) {
       cy = ((totalColorSlots - 1) - i) + 14;
       // draw transparency as black
       XSetForeground(display, gc, ccells[blackIndex].pixel);
-      transpnt = (int) (zerolinex*(1.0-transY[i]));
+      transpnt = (int) (zerolinex*(1.0-transferArray[i]));
       XDrawLine(display, palPixmap, gc, 0, cy, transpnt, cy);
 
       // draw color part of line
@@ -161,37 +162,36 @@ void Palette::Draw(Real palMin, Real palMax, const aString &numberFormat) {
 // -------------------------------------------------------------------
 void Palette::SetTransfers(const Array<int> &transx, const Array<float> &transy) {
   // interpolate between points
-  assert(transx.length() == transy.length());
-  int ntranspts(transx.length());
-  int n, leftx, rightx;
-  float lefty, righty, m, x;
-  transSet = true;
-  int ntrans(0);  // where we are in transx
+//   assert(transx.length() == transy.length());
+//   int ntranspts(transx.length());
+//   int n, leftx, rightx;
+//   float lefty, righty, m, x;
+//   transSet = true;
+  /*  int ntrans(0);  // where we are in transx
 
   assert(transx[0] == 0);
 
-  for(n=0; n < totalColorSlots; ++n) {
+  for(int n=0; n < totalColorSlots; ++n) {
 
-    if((ntrans+1) > ntranspts) {
-	cerr << (ntrans+1) << " > " << ntranspts << endl;
-    }
+//     if((ntrans+1) > ntranspts) {
+// 	cerr << (ntrans+1) << " > " << ntranspts << endl;
+//     }
 
-    if(transx[ntrans] == n) {
-      if(n != (totalColorSlots - 1)) {
-        leftx = transx[ntrans];
-        lefty = transy[ntrans];
-        rightx = transx[ntrans+1];
-        righty = transy[ntrans+1];
-      }
-      transY[n] = transy[ntrans];
-      ++ntrans;
-    } else {
-      m = (righty - lefty) / (rightx - leftx);
-      x = (float) (n - leftx);
-      transY[n] = m*x + lefty;
-    }
-  }
-  Redraw();  
+//     if(transx[ntrans] == n) {
+//       if(n != (totalColorSlots - 1)) {
+//         leftx = transx[ntrans];
+//         lefty = transy[ntrans];
+//         rightx = transx[ntrans+1];
+//         righty = transy[ntrans+1];
+//       }
+    transY[n] = transy[ntrans];
+    ++ntrans;
+//     } else {
+//       m = (righty - lefty) / (rightx - leftx);
+//       x = (float) (n - leftx);
+//       transY[n] = m*x + lefty;
+//     }
+  }*/
 }
 
 
@@ -203,19 +203,24 @@ void Palette::SetWindow(Window drawPaletteHere) {
 
 // -------------------------------------------------------------------
 void Palette::SetWindowPalette(const aString &palName, Window newPalWindow) {
-  ReadSeqPalette(palName);
-  XStoreColors(display, colmap, ccells.dataPtr(), totalColorSlots);
-  XStoreColors(display, colmap, sysccells.dataPtr(), reserveSystemColors);
+  ReadPalette(palName);
   XSetWindowColormap(display, newPalWindow, colmap);
 }
 
 
 // -------------------------------------------------------------------
 void Palette::ChangeWindowPalette(const aString &palName, Window newPalWindow) {
+  ReadPalette(palName);
+  
+}
+
+void Palette::ReadPalette(const aString &palName)
+{
   ReadSeqPalette(palName);
   XStoreColors(display, colmap, ccells.dataPtr(), totalColorSlots);
   XStoreColors(display, colmap, sysccells.dataPtr(), reserveSystemColors);
 }
+
 
 
 // -------------------------------------------------------------------
@@ -224,6 +229,8 @@ int Palette::ReadSeqPalette(const aString &fileName) {
   Array<unsigned char> rbuff(iSeqPalSize);
   Array<unsigned char> gbuff(iSeqPalSize);
   Array<unsigned char> bbuff(iSeqPalSize);
+  Array<unsigned char> abuff(iSeqPalSize);
+  Array<int> indexArray(iSeqPalSize);
   int	i, fd;		/* file descriptor */
 
   if((fd = open(fileName.c_str(), O_RDONLY, NULL)) < 0) {
@@ -262,7 +269,17 @@ int Palette::ReadSeqPalette(const aString &fileName) {
     cout << "palette is not a seq colormap." << endl;
     return(NULL);
   }
+  if(read(fd, abuff.dataPtr(), iSeqPalSize) != iSeqPalSize) {
+    cout << "Palette does not have alpha component: will construct a default" 
+         << endl;
+    paletteType = NON_ALPHA;
+  } else {
+    paletteType = ALPHA;
+  }
+
   (void) close(fd);
+
+  
 
   rbuff[blackIndex] = 0;   gbuff[blackIndex] = 0;   bbuff[blackIndex] = 0;
   rbuff[whiteIndex] = 255; gbuff[whiteIndex] = 255; bbuff[whiteIndex] = 255;
@@ -271,6 +288,7 @@ int Palette::ReadSeqPalette(const aString &fileName) {
     rbuff[paletteStart] = 0;
     gbuff[paletteStart] = 0;
     bbuff[paletteStart] = 0;
+    abuff[paletteStart] = 0;
   }
 
   for(i = 0; i < totalColorSlots; ++i) {
@@ -280,6 +298,25 @@ int Palette::ReadSeqPalette(const aString &fileName) {
     ccells[i].blue  = (unsigned short) bbuff[i] * 256;
     ccells[i].flags = DoRed|DoGreen|DoBlue;
   }
+
+  // set Transfer function here  NOTE:  doesn't call
+  transferArray.resize(iSeqPalSize);
+  if (paletteType == NON_ALPHA) {
+    for(int j = 0; j<iSeqPalSize; j++) {
+      indexArray[j] = j; 
+      transferArray[j] = (float) j / (float)(iSeqPalSize-1);
+    }
+  } else if (paletteType == ALPHA) {
+    for(int j = 0; j<iSeqPalSize; j++) {
+      indexArray[j] = j; 
+      int tmp = (unsigned short) abuff[j];
+      transferArray[j] = (float) tmp/100.0;
+    }
+  }
+  transSet = true;
+
+  Redraw();
+
   return(1);
 
 }  // end ReadSeqPalette()

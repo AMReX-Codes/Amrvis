@@ -97,7 +97,6 @@ public:
   void SetPreClassifyAlgorithm();
   void DoAutoDraw(Widget, XtPointer, XtPointer);
   void DoExposeTransDA();
-  void DoReadTransferFile(Widget, XtPointer, XtPointer);
   void DoOrient(Widget, XtPointer, XtPointer);
   void DoRender(Widget, XtPointer, XtPointer);
   void DoLabelAxes(Widget, XtPointer, XtPointer);
@@ -288,7 +287,6 @@ private:
   Widget wDLight, wDLightItems[2], wDLightOptions;
   Widget wClassify, wClassifyItems[2], wClassifyOptions;
   Widget wDClassify, wDClassifyItems[2], wDClassifyOptions;
-  Widget wReadTransfer, wDReadTransfer;
   int daWidth, daHeight;
   int	acc, labelAxes, transDetached;
   XtAppContext appContext;

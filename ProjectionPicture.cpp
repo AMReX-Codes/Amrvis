@@ -98,7 +98,6 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
 
   viewTransformPtr->SetObjCenter(xcenter, ycenter, zcenter);
   viewTransformPtr->SetScreenPosition(daWidth/2, daHeight/2);
-  ReadTransferFile("vpramps.dat");
 }  // end ProjectionPicture()
 
 
@@ -453,18 +452,6 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
 		     amrData.RefRatio()));
   longestBoxSide = (Real) alignedBox.longside(longestBoxSideDir);
 }
-
-
-// -------------------------------------------------------------------
-void ProjectionPicture::ReadTransferFile(const aString &rampFileName) {
-#ifdef BL_VOLUMERENDER
-  volRender->ReadTransferFile(rampFileName);
-  pltAppPtr->GetPalettePtr()->SetTransfers(volRender->DensityRampX(),
-					   volRender->DensityRampY());
-#endif
-}  // end ReadTransferFile
-// -------------------------------------------------------------------
-// -------------------------------------------------------------------
 
 
 //--------------------------------------------------------------------

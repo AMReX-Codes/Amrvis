@@ -205,7 +205,6 @@ void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   XtManageChild(wRender);
   XtManageChild(wAutoDraw);
-  XtManageChild(wReadTransfer);
 
   XtVaSetValues(wLight, XmNmenuHistory, wLightItems[renderMode], NULL);
   XtVaSetValues(wClassify, XmNmenuHistory, wClassifyItems[classMode], NULL);
@@ -274,7 +273,6 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   XtUnmanageChild(wRender);
   XtUnmanageChild(wAutoDraw);
-  XtUnmanageChild(wReadTransfer);
   XtUnmanageChild(wLight);
   XtUnmanageChild(wClassify);
 #endif
@@ -377,20 +375,6 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
                          false);
   XtManageChild(wDAutoDraw);
 
-  i=0;
-  XmString sReadTrans = XmStringCreateSimple("Trans");
-  XtSetArg(args[i], XmNlabelString, sReadTrans); i++;
-  XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET); i++;
-  XtSetArg(args[i], XmNleftWidget, wDAutoDraw); i++;
-  XtSetArg(args[i], XmNleftOffset, WOFFSET); i++;
-  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM); i++;
-  XtSetArg(args[i], XmNtopOffset, WOFFSET); i++;
-  wDReadTransfer = XmCreatePushButton(wDetachForm, "dreadtrans", args, i);
-  XmStringFree(sReadTrans);
-  AddStaticCallback(wDReadTransfer, XmNactivateCallback,
-                    &PltApp::DoReadTransferFile);
-  XtManageChild(wDReadTransfer);
-
 // Render Mode Menu
   i=0;
   wDLightOptions = XmCreatePulldownMenu(wDetachForm,"lightingoptions", args, i);
@@ -415,7 +399,7 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   i=0;
   XtSetArg(args[i], XmNsubMenuId, wDLightOptions); i++;
   XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET); i++;
-  XtSetArg(args[i], XmNleftWidget, wDReadTransfer); i++;
+  XtSetArg(args[i], XmNleftWidget, wDAutoDraw); i++;
   XtSetArg(args[i], XmNleftOffset, WOFFSET); i++;
   XtSetArg(args[i], XmNtopAttachment, XmATTACH_POSITION); i++;
   XtSetArg(args[i], XmNtopPosition, 0); i++;
@@ -535,29 +519,6 @@ void PltApp::DoTransResize(Widget w, XtPointer, XtPointer) {
   DoExposeTransDA();
 }
 
-
-// -------------------------------------------------------------------
-void PltApp::DoReadTransferFile(Widget, XtPointer, XtPointer) {
-#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
-#if defined(BL_VOLUMERENDER)
-  VolRender *volRender = projPicturePtr->GetVolRenderPtr();
-#endif
-  projPicturePtr->ReadTransferFile("vpramps.dat");
-
-  if( ! volRender->SWFDataAllocated()) {
-    return;
-  }
-  if( ! volRender->SWFDataValid()) {
-    return;
-  }
-  if(volRender->VPDataValid()) {
-    volRender->MakeVPData();    // reclassify the data
-  }
-  projPicturePtr->MakePicture();
-
-  DoExposeTransDA();
-#endif
-}
 
 
 // -------------------------------------------------------------------
