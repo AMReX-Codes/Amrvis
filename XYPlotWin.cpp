@@ -916,9 +916,7 @@ void XYPlotWin::ReattachLegendFrames() {
   }
   list<XYPlotLegendItem *>::iterator liitem = legendList.begin();
   XtVaSetValues((*liitem)->frame,
-		XmNtopAttachment, XmATTACH_WIDGET,
-                //XmNtopWidget, wLegendMenu,
-                XmNtopWidget, wScrollArea,
+		XmNtopAttachment, XmATTACH_FORM,
 		NULL);
   list<XYPlotLegendItem *>::iterator liprevitem = liitem;
   ++liitem;
@@ -1979,7 +1977,6 @@ void XYPlotWin::CBdoRemoveDataList(Widget, XtPointer client_data,
     if(zoomedInQ == false) {
       SetBoundingBox();
     }
-    CBdoRedrawPlot(None, NULL, NULL);
   }
 
   XtDestroyWidget(item->frame);
@@ -1987,6 +1984,7 @@ void XYPlotWin::CBdoRemoveDataList(Widget, XtPointer client_data,
   delete item;
   legendList.erase(liitem);
   ReattachLegendFrames();
+  CBdoRedrawPlot(None, NULL, NULL);
 }
 
 
