@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.31 2000-10-02 20:53:09 lijewski Exp $
+// $Id: Palette.cpp,v 1.32 2000-11-22 00:25:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -268,8 +268,10 @@ void Palette::SetWindow(Window drawPaletteHere) {
 
 
 // -------------------------------------------------------------------
-void Palette::SetWindowPalette(const aString &palName, Window newPalWindow) {
-  ReadPalette(palName);
+void Palette::SetWindowPalette(const aString &palName, Window newPalWindow,
+			       bool bRedraw)
+{
+  ReadPalette(palName, bRedraw);
   XSetWindowColormap(GAptr->PDisplay(), newPalWindow, colmap);
 }
 
@@ -281,8 +283,8 @@ void Palette::ChangeWindowPalette(const aString &palName, Window newPalWindow) {
 
 
 // -------------------------------------------------------------------
-void Palette::ReadPalette(const aString &palName) {
-  ReadSeqPalette(palName);
+void Palette::ReadPalette(const aString &palName, bool bRedraw) {
+  ReadSeqPalette(palName, bRedraw);
   if(GAptr->IsTrueColor()) {
     return;
   }

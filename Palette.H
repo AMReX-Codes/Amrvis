@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.H,v 1.19 2000-10-02 20:53:09 lijewski Exp $
+// $Id: Palette.H,v 1.20 2000-11-22 00:25:15 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -28,7 +28,6 @@ const int TOTALPALWIDTH   = 150;
 
 #include <GraphicsAttributes.H>
 #include <X11/Intrinsic.h>
-//#include <StringDefs.h>
 
 enum PaletteType { ALPHA, NON_ALPHA };
 
@@ -62,7 +61,7 @@ protected:
   bool isTrueColor;
   int palDepth;
 #else
-  GraphicsAttributes* GAptr;
+  GraphicsAttributes *GAptr;
 #endif
   Array<XColor> sysccells;
   
@@ -72,6 +71,7 @@ protected:
   Array<unsigned char> rbuff;
   Array<unsigned char> gbuff;
   Array<unsigned char> bbuff;
+
 public:
   Palette(Widget &w, int datalistlength, int width,
           int totalwidth, int totalheight, int reservesystemcolors);
@@ -83,7 +83,8 @@ public:
   int   ReadSeqPalette(const aString &fileName, bool bRedraw = true);
   void  Draw(Real palMin, Real palMax, const aString &numberFormat);
   void  SetWindow(Window drawPaletteHere);
-  void  SetWindowPalette(const aString &palName, Window newPalWindow);
+  void  SetWindowPalette(const aString &palName, Window newPalWindow,
+			 bool bRedraw = true);
   void  ChangeWindowPalette(const aString &palName, Window newPalWindow);
   void  ExposePalette();
   void  Redraw();
@@ -107,22 +108,24 @@ public:
   XImage *GetPictureXImage();
   unsigned char *RemapTable() const  { return remapTable;     }
 
-  const GraphicsAttributes& theGAptr() const { return *GAptr; }
+  const GraphicsAttributes &theGAptr() const { return *GAptr; }
 
-  const Array<unsigned char>& theABuff() const { return abuff; }
-  const Array<unsigned char>& theRBuff() const { return rbuff; }
-  const Array<unsigned char>& theGBuff() const { return gbuff; }
-  const Array<unsigned char>& theBBuff() const { return bbuff; }
+  const Array<unsigned char> &theABuff() const { return abuff; }
+  const Array<unsigned char> &theRBuff() const { return rbuff; }
+  const Array<unsigned char> &theGBuff() const { return gbuff; }
+  const Array<unsigned char> &theBBuff() const { return bbuff; }
 
   unsigned char theABuff(int i) const { return abuff[i]; }
   unsigned char theRBuff(int i) const { return rbuff[i]; }
   unsigned char theGBuff(int i) const { return gbuff[i]; }
   unsigned char theBBuff(int i) const { return bbuff[i]; }
   Pixel pixelate(int i) const;
-  void unpixelate(Pixel p, unsigned char& r, unsigned char& g, unsigned char& b) const;
+  void unpixelate(Pixel p, unsigned char &r, unsigned char &g,
+		  unsigned char& b) const;
   Pixel makePixel(unsigned char index) const;
+
 private:
-  void ReadPalette(const aString &palNam);
+  void ReadPalette(const aString &palNam, bool bRedraw = true);
   Palette(Widget &w);
 };
 
