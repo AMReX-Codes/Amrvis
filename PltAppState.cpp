@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------
 #include "PltAppState.H"
 
+/*
 #ifdef BL_USE_NEW_HFILES
 #include <cctype>
 #include <strstream>
@@ -13,11 +14,13 @@ using std::endl;
 #include <ctype.h>
 #include <strstream.h>
 #endif
+*/
 
 
 // -------------------------------------------------------------------
 PltAppState::PltAppState()
-            : currentScale(-1)
+            : currentScale(-1),
+	      currentContourType(INVALIDCONTOURTYPE)
 {
 }
 

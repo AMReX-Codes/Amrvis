@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.74 2001-03-14 00:41:54 vince Exp $
+// $Id: PltApp.cpp,v 1.75 2001-03-15 19:32:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -96,10 +96,10 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     dataServicesPtr(dataservicesptr),
     animating2d(isAnim),
     currentFrame(0),
-    currentContour(0),
     bCartGridSmoothing(false)
 {
   pltAppState = new PltAppState();
+  pltAppState->SetContourType(RASTERONLY);
 
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   lightingWindowExists = false;
@@ -267,7 +267,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   int currentScale = Min(maxAllowableScale,
 			 pltParent->GetPltAppState()->CurrentScale());
   pltAppState->SetCurrentScale(currentScale);
-  currentContour = pltParent->CurrentContour();
+  pltAppState->SetContourType(pltParent->GetPltAppState()->GetContourType());
   
   int fnl(fileName.length() - 1);
   while (fnl>-1 && fileName[fnl] != '/') {
@@ -1432,10 +1432,9 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   }
   XtVaSetValues(wCurrDerived, XmNset, false, NULL);
   wCurrDerived = w;
-  const Array<aString> &derivedStrings =
-	     dataServicesPtr[currentFrame]->PlotVarNames();
   unsigned long derivedNumber = (unsigned long) client_data;
-  pltAppState->SetCurrentDerived(derivedStrings[derivedNumber]);
+  pltAppState->SetCurrentDerived(dataServicesPtr[currentFrame]->
+				   PlotVarNames()[derivedNumber]);
 
   maxDrawnLevel = amrPicturePtrArray[ZPLANE]->MaxAllowableLevel();
 
@@ -1547,21 +1546,25 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
 
 // -------------------------------------------------------------------
 void PltApp::ChangeContour(Widget w, XtPointer input_data, XtPointer) {
-  unsigned long newContour = (unsigned long) input_data;
-  if(newContour == currentContour) return;
+  ContourType prevCType(pltAppState->GetContourType());
+  ContourType newCType = ContourType((unsigned long) input_data);
+  if(newCType == prevCType) {
+    return;
+  }
+  pltAppState->SetContourType(newCType);
   XtVaSetValues(wContourLabel,
-		XmNsensitive, (newContour != 0 && newContour != 4),
+		XmNsensitive, (newCType != RASTERONLY),
 		NULL);
   XtVaSetValues(wNumberContours,
-		XmNsensitive, (newContour != 0 && newContour != 4),
+	        XmNsensitive, (newCType != RASTERONLY),
 		NULL);
   if(animating2d) {
     ResetAnimation();
     DirtyFrames(); 
   }
-  currentContour = newContour;
-  for(int np = 0; np < NPLANES; ++np) 
-    amrPicturePtrArray[np]->APChangeContour((int) newContour);
+  for(int np(0); np < NPLANES; ++np) {
+    amrPicturePtrArray[np]->APChangeContour(prevCType);
+  }
 }
 
 
@@ -1980,21 +1983,22 @@ void PltApp::DoContoursButton(Widget, XtPointer, XtPointer) {
 		XmNleftAttachment, XmATTACH_FORM,
 		XmNrightAttachment, XmATTACH_FORM, NULL);		
   
-  char *conItems[5] = {"Raster", "Raster & Contours", "Color Contours",
-		       "B/W Contours", "Velocity Vectors"};
+  char *conItems[NCONTOPTIONS] = {"Raster", "Raster & Contours", "Color Contours",
+		                  "B/W Contours", "Velocity Vectors"};
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
-  int nItems = (amrData.NComp() < (BL_SPACEDIM + 1)) ? 4 : 5;
-  for(int j(0); j != nItems; ++j) {
+  int nItems = (amrData.NComp() < (BL_SPACEDIM + 1)) ?
+				    (NCONTOPTIONS - 1) : NCONTOPTIONS;
+  for(int j(0); j < nItems; ++j) {
     wid = XtVaCreateManagedWidget(conItems[j], xmToggleButtonGadgetClass,
 				  wContourRadio, NULL);
-    if(j == currentContour) {
+    if(j == (int) pltAppState->GetContourType()) {
       XtVaSetValues(wid, XmNset, true, NULL);
     }
     AddStaticCallback(wid, XmNvalueChangedCallback, &PltApp::ChangeContour,
 		      (XtPointer) j);
   }
 
-  XmString label_str = XmStringCreateSimple("Num contours:");
+  XmString label_str = XmStringCreateSimple("Number of lines:");
   wContourLabel = XtVaCreateManagedWidget("numcontours",
 			    xmLabelWidgetClass, wContoursForm,
 			    XmNlabelString,     label_str, 
@@ -2003,8 +2007,8 @@ void PltApp::DoContoursButton(Widget, XtPointer, XtPointer) {
 			    XmNtopAttachment,   XmATTACH_WIDGET,
 			    XmNtopWidget,       wContourRadio,
 			    XmNtopOffset,       WOFFSET,
-			    XmNsensitive,       (currentContour != 0 &&
-						 currentContour != 4),
+			    XmNsensitive,
+				  pltAppState->GetContourType() != RASTERONLY,
 			    NULL);
   XmStringFree(label_str);
 
@@ -2018,8 +2022,8 @@ void PltApp::DoContoursButton(Widget, XtPointer, XtPointer) {
 			    XmNleftOffset,       WOFFSET,
 			    XmNvalue,            contourNumString.c_str(),
 			    XmNcolumns,          4,
-			    XmNsensitive,       (currentContour != 0 &&
-						 currentContour != 4),
+			    XmNsensitive,
+				  pltAppState->GetContourType() != RASTERONLY,
 			    NULL);
   AddStaticCallback(wNumberContours, XmNactivateCallback,
 		    &PltApp::ReadContourString);

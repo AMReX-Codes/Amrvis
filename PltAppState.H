@@ -31,6 +31,7 @@
 */
 
 #include "aString.H"
+#include "Array.H"
 
 class AmrPicture;
 
@@ -64,6 +65,10 @@ public:
   //bool GetShowingBoxes() const        { return showBoxes; }
   //void SetShowingBoxes(bool showing)  { showBoxes = showing; }
 
+  void SetContourType(ContourType newContourType) { currentContourType =
+						    newContourType; }
+  ContourType GetContourType() const { return currentContourType; }
+
 /*
   int MinAllowableLevel() const    { return minAllowableLevel; }
   int MinDrawnLevel() const        { return minDrawnLevel; }
@@ -79,10 +84,12 @@ private:
   // state variables
   int currentScale;
   aString currentDerived;
+  RangeType rangeType;
+  ContourType currentContourType;
+
   //int maxAllowableScale;
   //bool showBoxes;
 
-  //RangeType rangeType;
   //bool datasetShowing, paletteDrawn, writingRGB, interfaceReady;
   //int minDrawnLevel, maxDrawnLevel, minDataLevel, maxDataLevel;
   //int activeView;

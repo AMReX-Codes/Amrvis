@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.54 2001-03-14 00:41:53 vince Exp $
+// $Id: AmrPicture.cpp,v 1.55 2001-03-15 19:32:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -23,6 +23,16 @@
 #include "ArrayView.H"
 #endif
 
+bool DrawRaster(ContourType cType) {
+  return (cType == RASTERONLY || cType == RASTERCONTOURS || cType == VECTORS);
+}
+
+
+bool DrawContours(ContourType cType) {
+  return (cType == RASTERCONTOURS || cType == COLORCONTOURS || cType == BWCONTOURS);
+}
+
+
 // ---------------------------------------------------------------------
 AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
 		       PltApp *pltappptr, PltAppState *pltappstateptr,
@@ -34,10 +44,6 @@ AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
              dataServicesPtr(dataservicesptr),
              myView(XY),
              minDrawnLevel(mindrawnlevel),
-             contours(false),
-             raster(true),
-             colContour(false),
-             vectorField(false),
              bCartGridSmoothing(bcartgridsmoothing),
              isSubDomain(false),
              findSubRange(false)
@@ -51,9 +57,6 @@ AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
   dataMinSpecifiedSet.resize(amrData.NumDeriveFunc(), false);
   dataMaxSpecifiedSet.resize(amrData.NumDeriveFunc(), false);
   currDerivedNumber = amrData.StateNumber(pltAppStatePtr->CurrentDerived());
-  cout << "-------------- _in AmrPicture::constructor 1" << endl;
-  SHOWVAL(currDerivedNumber)
-  SHOWVAL(pltAppStatePtr->CurrentDerived())
   if(UseSpecifiedMinMax()) {
     whichRange = USESPECIFIED;
     //cout << "_here 1:  setting specifiedminmax to GetSpecMM" << endl;
@@ -140,12 +143,6 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
   BL_ASSERT(parentPicturePtr != NULL);
   BL_ASSERT(pltappptr != NULL);
   int ilev;
-
-  //contours = parentPicturePtr->Contours();
-  contours = parentPicturePtr->contours;
-  raster = parentPicturePtr->Raster();
-  colContour = parentPicturePtr->ColorContour();
-  vectorField = parentPicturePtr->VectorField();
 
   if(myView == XY) {
     findSubRange = true;
@@ -458,73 +455,27 @@ void AmrPicture::SetSlice(int view, int here) {
 
 
 // ---------------------------------------------------------------------
-void AmrPicture::APChangeContour(int array_val) {
-  bool tmp_raster(raster);
-  if(array_val == 0) {
-    SetRasterOnly();
-  } else if(array_val == 1) {
-    SetRasterContour();
-  } else if(array_val == 2) {
-    SetColorContour();
-  } else if(array_val == 3) {
-    SetBWContour();
-  } else if(array_val == 4) {
-    SetVectorField();
+void AmrPicture::APChangeContour(ContourType prevCType) {
+  ContourType cType(pltAppStatePtr->GetContourType());
+
+  if(DrawRaster(cType) != DrawRaster(prevCType)) {  // recreate the raster image
+    AmrData &amrData = dataServicesPtr->AmrDataRef();
+    for(int iLevel(minDrawnLevel); iLevel <= maxAllowableLevel; ++iLevel) {
+      CreateImage(*(sliceFab[iLevel]), imageData[iLevel],
+ 		  dataSizeH[iLevel], dataSizeV[iLevel],
+ 	          minUsing, maxUsing, palPtr);
+      CreateScaledImage(&(xImageArray[iLevel]), pltAppStatePtr->CurrentScale() *
+                 CRRBetweenLevels(iLevel, maxAllowableLevel, amrData.RefRatio()),
+                 imageData[iLevel], scaledImageData[iLevel],
+                 dataSizeH[iLevel], dataSizeV[iLevel],
+                 imageSizeH, imageSizeV);
+    }
+    if( ! pltAppPtr->PaletteDrawn()) {
+      pltAppPtr->PaletteDrawn(true);
+      palPtr->Draw(minUsing, maxUsing, pltAppPtr->GetFormatString());
+    }
   }
-  // raster hasn't changed the image so all we
-  // have to do is redraw the contours
-  if(raster == tmp_raster) {
-    APDraw(minDrawnLevel, maxDrawnLevel);
-  } else {
-    ChangeRasterImage();  // instead we want to recreate the image
-			  // -- though we shouldn't have to reread
-			  // the data, as we do now
-  }
-}
-
-
-// ---------------------------------------------------------------------
-void AmrPicture::SetRasterOnly() {
-  contours = false;
-  raster = true;
-  colContour = false;
-  vectorField = false;
-}
-
- 
-// ---------------------------------------------------------------------
-void AmrPicture::SetRasterContour() {
-  contours = true;
-  raster = true;
-  colContour = false;
-  vectorField = false;
-}
-
-
-// ---------------------------------------------------------------------
-void AmrPicture::SetColorContour() {
-  contours = true;
-  raster = false;
-  colContour = true;
-  vectorField = false;
-}
-
-
-// ---------------------------------------------------------------------
-void AmrPicture::SetBWContour() {
-  contours = true;
-  raster = false;
-  colContour = false;
-  vectorField = false;
-}
-
-
-// ---------------------------------------------------------------------
-void AmrPicture::SetVectorField() {
-  contours = false;
-  raster = true;
-  colContour = false;
-  vectorField = true;
+  APDraw(minDrawnLevel, maxDrawnLevel);
 }
 
 
@@ -703,9 +654,10 @@ void AmrPicture::APDraw(int fromLevel, int toLevel) {
   XPutImage(display, pixMap, xgc, xImageArray[toLevel], 0, 0, 0, 0,
 	    imageSizeH, imageSizeV);
            
-  if(contours) {
+  ContourType cType(pltAppStatePtr->GetContourType());
+  if(DrawContours(cType)) {
     DrawContour(sliceFab, display, pixMap, xgc);
-  } else if(vectorField) {
+  } else if(cType == VECTORS) {
     DrawVectorField(display, pixMap, xgc);
   }
 
@@ -1024,28 +976,6 @@ void AmrPicture::APChangeDerived(aString derived, Palette *palptr) {
 
 
 // -------------------------------------------------------------------
-void AmrPicture::ChangeRasterImage() {
-  AmrData &amrData = dataServicesPtr->AmrDataRef();
-  for(int iLevel(minDrawnLevel); iLevel <= maxAllowableLevel; ++iLevel) {
-    CreateImage(*(sliceFab[iLevel]), imageData[iLevel],
- 		dataSizeH[iLevel], dataSizeV[iLevel],
- 	        minUsing, maxUsing, palPtr);
-    CreateScaledImage(&(xImageArray[iLevel]), pltAppStatePtr->CurrentScale() *
-               CRRBetweenLevels(iLevel, maxAllowableLevel, amrData.RefRatio()),
-               imageData[iLevel], scaledImageData[iLevel],
-               dataSizeH[iLevel], dataSizeV[iLevel],
-               imageSizeH, imageSizeV);
-  }
-  if( ! pltAppPtr->PaletteDrawn()) {
-    pltAppPtr->PaletteDrawn(true);
-    palPtr->Draw(minUsing, maxUsing, pltAppPtr->GetFormatString());
-  }
-  APDraw(minDrawnLevel, maxDrawnLevel);
-  
-}  // end ChangeRasterImage
-
-
-// -------------------------------------------------------------------
 // convert Real to char in imagedata from fab
 void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
 			     int datasizeh, int datasizev,
@@ -1069,8 +999,9 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
   
   Real dPoint;
   
+  ContourType cType(pltAppStatePtr->GetContourType());
   // flips the image in Vert dir: j => datasizev-j-1
-  if(raster) {
+  if(DrawRaster(cType)) {
     for(int j(0); j < datasizev; ++j) {
       jdsh = j * datasizeh;
       jtmp1 = (datasizev-j-1) * datasizeh;
@@ -1102,7 +1033,7 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
         imagedata[i] = whiteIndex;
       }
     }
-  }  // end if(raster)
+  }
 }  // end CreateImage(...)
 
 
@@ -1864,7 +1795,7 @@ void AmrPicture::DoFrameUpdate() {
       slice = subDomain[maxAllowableLevel].bigEnd(sliceDir);
     }
   } 
-  BL_ASSERT( ! contours);
+  BL_ASSERT(DrawContours(pltAppStatePtr->GetContourType()) == false);
   int iRelSlice(slice - subDomain[maxAllowableLevel].smallEnd(sliceDir));
   ShowFrameImage(iRelSlice);
   XSync(display, false);
@@ -1902,7 +1833,7 @@ void AmrPicture::Sweep(AnimDirection direction) {
   if(pendingTimeOut != 0) {
     DoStop();
   }
-  if(contours) {
+  if(DrawContours(pltAppStatePtr->GetContourType()) == true) {
     pendingTimeOut = XtAppAddTimeOut(pltAppPtr->GetAppContext(), frameSpeed,
 				(XtTimerCallbackProc) &AmrPicture::CBContourSweep,
                                 (XtPointer) this);
@@ -1940,7 +1871,7 @@ void AmrPicture::ShowFrameImage(int iSlice) {
 
   DrawBoxes(frameGrids[iRelSlice], pictureWindow);
 
-  if(contours) {
+  if(DrawContours(pltAppStatePtr->GetContourType()) == true) {
     DrawContour(sliceFab, display, pictureWindow, xgc);
   }
 
@@ -2128,7 +2059,7 @@ void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
     for(int icont(0); icont < numberOfContours; ++icont) {
       Real frac((Real) icont / numberOfContours);
       Real value(v_off + frac * (v_max - v_min));
-      if(colContour) {
+      if(pltAppStatePtr->GetContourType() == COLORCONTOURS) {
         if(value > maxUsing) {  // clip
           drawColor = paletteEnd;
         } else if(value < minUsing) {  // clip

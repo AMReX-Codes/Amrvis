@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.H,v 1.34 2001-03-14 00:41:53 vince Exp $
+// $Id: AmrPicture.H,v 1.35 2001-03-15 19:32:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -112,10 +112,10 @@ class AmrPicture {
   void	SetFrameSpeed(int toThis) { frameSpeed = toThis; }
   Real	MinUsing() const          { return minUsing; }
   Real	MaxUsing() const          { return maxUsing; }
-  Window	PictureWindow()   { return pictureWindow; }
+  Window PictureWindow()          { return pictureWindow; }
   void	SetMaxDrawnLevel(int lev) { maxDrawnLevel = lev; }
   void  SetCartGridSmoothing(bool tf) { bCartGridSmoothing = tf; }
-  void APChangeContour(int);
+  void APChangeContour(ContourType prevCType);
 
  private:
   Window 		pictureWindow;
@@ -163,20 +163,11 @@ class AmrPicture {
   int			minDrawnLevel, maxDrawnLevel, maxAllowableLevel;
   int			maxLevelWithGrids, maxsFound;
   int			hColor, vColor, myColor, slice, sliceDir;
-  bool                  contours, raster, colContour, vectorField;
   bool                  bCartGridSmoothing;
   bool                  pixMapCreated, isSubDomain, findSubRange;
   
   
   // private functions
-  void SetRasterOnly();
-  void SetRasterContour();
-  void SetColorContour();
-  void ChangeRasterImage();
-  bool ColorContour() const { return colContour; }
-  void SetBWContour();
-  bool Raster()   const     { return raster; }
-  void SetVectorField();
   void SetSlice(int view, int here);
   void CoarsenSliceBox();
   void ShowFrameImage(int iSlice);
@@ -203,7 +194,6 @@ class AmrPicture {
       return ( (a <= b) && (b <= c) || (a >= b) && (b >= c) );
   }
 
-  bool VectorField()  const { return vectorField; }
   void DrawVectorField(Display *display, Drawable &drawable, const GC &gc);
   void DrawVectorField(Display *display, Drawable &drawable, const GC &gc,
 		       int hDir, int vDir, int maxLength,

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.41 2001-03-14 00:41:54 vince Exp $
+// $Id: PltApp.H,v 1.42 2001-03-15 19:32:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -194,7 +194,6 @@ private:
   int numContours;
   int minDrawnLevel, maxDrawnLevel, minDataLevel, maxDataLevel;
   int currentFrame, animFrames, frameSpeed;
-  int currentContour;
   int activeView;
   int startX, startY, endX, endY;
   //int currentScale;
@@ -268,8 +267,6 @@ private:
     
   void DoReadContourString(Widget, XmSelectionBoxCallbackStruct *unused,
 			   bool bRedrawAmrPicture = true);
-  int CurrentContour() { return currentContour; }
-  void SetCurrentContour(int newContour) { currentContour = newContour; }
   
   void DoUpdateFrame(Widget, XtPointer, XtPointer);
   void DoSpeedScale(Widget, XtPointer, XtPointer);

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrvisConstants.H,v 1.10 2001-03-14 00:41:53 vince Exp $
+// $Id: AmrvisConstants.H,v 1.11 2001-03-15 19:32:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -50,11 +50,22 @@ const int XPLANE = 2;
 const int ISOVIEW = 3;
 const int PALETTEVIEW = 4;
 
+
 const int WOFFSET = 4;
 
 enum AnimDirection { ANIMPOSDIR = 0, ANIMNEGDIR };
 enum RangeType {
     USEGLOBAL = 0, USELOCAL, USESPECIFIED, USEFILE, NRANGES, INVALIDRANGE
+};
+
+enum ContourType {
+  RASTERONLY     = 0,
+  RASTERCONTOURS = 1,
+  COLORCONTOURS  = 2,
+  BWCONTOURS     = 3,
+  VECTORS        = 4,
+  NCONTOPTIONS   = 5,
+  INVALIDCONTOURTYPE
 };
 
 static char *RangeTypeString[] = {
