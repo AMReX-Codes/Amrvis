@@ -1695,17 +1695,18 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
     assert(0);
   }
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
-  int maxLength = amrData.ProbDomain()[maxDrawnLevel].longside();
+  //int maxLength = amrData.ProbDomain()[maxDrawnLevel].longside();
   int DVFscale = pltAppPtr->CurrentScale();
   int DVFRatio = CRRBetweenLevels(maxDrawnLevel, 
                                   maxAllowableLevel, 
                                   amrData.RefRatio());
   // get velocity field
   Box DVFSliceBox(sliceFab[maxDrawnLevel]->box());
+  int maxLength = DVFSliceBox.longside();
   FArrayBox density(DVFSliceBox);
   FArrayBox hVelocity(DVFSliceBox);
   FArrayBox vVelocity(DVFSliceBox);
-  //  FArrayBox zVelocity(DVFSliceBox);
+
   // fill the density and momentum:
   aString Density("density");
   aString choice[3];
@@ -1714,7 +1715,7 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
   choice[2] = "zmom";
   aString hMom = choice[hDir];
   aString vMom = choice[vDir];
-  //  aString zMom("zmom");
+
   DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
                          &density, density.box(),
                          maxDrawnLevel, Density);
@@ -1724,23 +1725,19 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
   DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
                          &vVelocity, vVelocity.box(),
                          maxDrawnLevel, vMom);
-  //   DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
-  //                          &zVelocity, zVelocity.box(),
-  //                          maxDrawnLevel, zMom);
+
   // then divide to get velocity
   hVelocity /= density;
   vVelocity /= density;
-  //zVelocity /= density;
   
-  ////// zero out region covered by fine level
   // compute maximum speed
   Real smax = 0.0;
   int npts = hVelocity.box().numPts();
   const Real* hdat = hVelocity.dataPtr();
   const Real* vdat = vVelocity.dataPtr();
-  //  const Real* zdat = zVelocity.dataPtr();
+
   for (int k = 0; k < npts; k++) {
-    Real s = sqrt(hdat[k]*hdat[k]+vdat[k]*hdat[k]);//+zdat[k]*zdat[k]);
+    Real s = sqrt(hdat[k]*hdat[k]+vdat[k]*hdat[k]);
     smax = Max(smax,s);
   }
   
@@ -1762,7 +1759,7 @@ void AmrPicture::draw_vector_field(Display *pDisplay, Drawable &pDrawable,
                                    const Real *hdat, const Real *vdat, 
                                    Real velocityMax, Box dvfSliceBox,
                                    int dvfFactor){
-  int maxpoints= 20;  // partition longest side into 20 parts
+  int maxpoints= numberOfContours;  // partition longest side into 20 parts
   Real sight_h=maxLength/maxpoints;
   int stride = sight_h;
   if (stride<1) 
@@ -1771,10 +1768,6 @@ void AmrPicture::draw_vector_field(Display *pDisplay, Drawable &pDrawable,
   Real eps = 1.0e-3;
   Real arrowLength = 0.25;
   XSetForeground(pDisplay, pGC, palPtr->WhiteIndex());
-  // draw vectors
-  //  for (lev = maxDrawnLevel; lev <= maxDrawnLevel; lev++) {
-  //     stride[h] *= CRRBetween(minDrawnLevel, maxDrawnLevel, 
-  //                        amrData.RefRatio());
   Box theBox(dvfSliceBox);
   int ilo = theBox.smallEnd(hDir);
   int leftEdge = ilo;
