@@ -379,8 +379,10 @@ void ParseCommandLine(int argc, char *argv[]) {
 	maxPictureSize = atoi(argv[i+1]);
       }
       i++;
+ #ifdef BL_PARALLELVOLUMERENDER
     } else if(strcmp(argv[i],"-cluster") == 0) {
       DistributionMapping::strategy(DistributionMapping::CLUSTER);
+ #endif
     } else if(strcmp(argv[i], "-bw") == 0) {
       if(argc-1<i+1 || atoi(argv[i+1]) < 0) {
         PrintUsage(argv[0]);
