@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.49 2001-05-09 20:03:37 vince Exp $
+// $Id: PltApp.H,v 1.50 2001-05-10 23:38:00 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -85,9 +85,11 @@ public:
   ~PltApp();
   
   static void SetDefaultPalette(const aString &palString);
+  static void SetDefaultLightingFile(const aString &lightFileString);
   static void SetInitialDerived(const aString &initialderived);
   static aString &GetInitialDerived();
   static aString &GetDefaultPalette();
+  static aString &GetDefaultLightingFile();
   static void SetInitialScale(int initScale);
   static int  GetInitialScale();
   static void SetInitialFormatString(const aString &formatString);
@@ -103,6 +105,7 @@ public:
   AmrPicture *GetAmrPicturePtr(int plane) { return amrPicturePtrArray[plane]; }
   Palette *GetPalettePtr()         { return pltPaletteptr; }
   aString GetPaletteName()         { return palFilename; }
+  aString GetLightingFileName()         { return lightingFilename; }
   DataServices *GetDataServicesPtr() { return dataServicesPtr[currentFrame]; }
   Array<DataServices *> &GetDataServicesPtrArray() { return dataServicesPtr; }
   int GetActiveView() const        { return activeView;    }
@@ -221,6 +224,7 @@ private:
   Cursor	cursor;
     
   static aString defaultPaletteString, initialDerived, initialFormatString;
+  static aString defaultLightingFilename;
   static int initialScale, initialWindowHeight, initialWindowWidth;
   static int defaultShowBoxes, placementOffsetX, placementOffsetY;
   static int reserveSystemColors;
@@ -281,6 +285,7 @@ private:
   void DoCreateRGBFile(Widget, XtPointer, XtPointer);
   void DoCreateFABFile(Widget, XtPointer, XtPointer);
   void DoCreateAnimRGBFile();
+  void DoOpenFileLightingWindow(Widget w, XtPointer, XtPointer call_data);
   void DoOpenLightingFile(Widget w, XtPointer, XtPointer call_data);
 
   void ToggleRange(Widget, XtPointer, XtPointer);

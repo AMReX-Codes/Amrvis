@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.H,v 1.12 2001-05-09 20:03:37 vince Exp $
+// $Id: GlobalUtilities.H,v 1.13 2001-05-10 23:38:00 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -23,10 +23,14 @@ void SetVerbose();
 bool Verbose();
 void ParseCommandLine(int, char **);
 void GetDefaults(const aString &defaultsfilename);
-void ReadLightingFile(const aString &lightdefaultsfilename,
+bool ReadLightingFile(const aString &lightdefaultsfilename,
 		      Real &ambientDef, Real &diffuseDef, Real &specularDef,
 		      Real &shinyDef,
 		      Real &minRayOpacityDef, Real &maxRayOpacityDef);
+bool WriteLightingFile(const aString &lightdefaultsfilename,
+		       const Real &ambientDef, const Real &diffuseDef,
+		       const Real &specularDef, const Real &shinyDef,
+		       const Real &minRayOpacityDef, const Real &maxRayOpacityDef);
 void SetAnimation();
 bool IsAnimation();
 int GetFileCount();
@@ -61,6 +65,7 @@ const aString &GetInitialDerived();
 void SetFormatString(const aString &formatString);
 const aString &GetFormatString();
 const aString &GetPaletteName();
+const aString &GetLightingFileName();
 
 bool DumpSlices();
 bool SliceAllVars();

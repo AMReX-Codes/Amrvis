@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.38 2001-05-09 20:03:38 vince Exp $
+// $Id: PltApp3D.cpp,v 1.39 2001-05-10 23:38:01 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -21,7 +21,10 @@
 #include <Xm/DrawingA.h>
 #include <Xm/TextF.h>
 #include <Xm/ToggleB.h>
+#include <Xm/FileSB.h>
 
+const unsigned long openingLW(100);
+const unsigned long savingLW(101);
 
 #define MARK fprintf(stderr, "Mark: file %s, line %d.\n", __FILE__, __LINE__)
 // -------------------------------------------------------------------
@@ -415,8 +418,26 @@ void PltApp::DoCancelLightingWindow(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void PltApp::DoOpenLightingFile(Widget w, XtPointer, XtPointer call_data)
+void PltApp::DoOpenFileLightingWindow(Widget w, XtPointer oos, XtPointer call_data)
 {
+  static Widget wOpenLWDialog;
+  wOpenLWDialog = XmCreateFileSelectionDialog(wAmrVisTopLevel,
+                                "Lighting File", NULL, 0);
+
+  AddStaticCallback(wOpenLWDialog, XmNokCallback, &PltApp::DoOpenLightingFile, oos);
+  XtAddCallback(wOpenLWDialog, XmNcancelCallback,
+                (XtCallbackProc) XtUnmanageChild, (XtPointer) this);
+  XtManageChild(wOpenLWDialog);
+  XtPopup(XtParent(wOpenLWDialog), XtGrabExclusive);
+}
+
+
+// -------------------------------------------------------------------
+void PltApp::DoOpenLightingFile(Widget w, XtPointer oos, XtPointer call_data)
+{
+  unsigned long ioos((unsigned long) oos);
+  bool bFileOk;
+  Real ambient, diffuse, specular, shiny, minray, maxray;
   char *lightingfile;
   if( ! XmStringGetLtoR(((XmFileSelectionBoxCallbackStruct *) call_data)->value,
                         XmSTRING_DEFAULT_CHARSET, &lightingfile))
@@ -425,30 +446,77 @@ void PltApp::DoOpenLightingFile(Widget w, XtPointer, XtPointer call_data)
     return;
   }
   XtPopdown(XtParent(w));
-# ifdef BL_VOLUMERENDER
-  projPicturePtr->GetVolRenderPtr()->SetTransferProperties();
-  projPicturePtr->GetVolRenderPtr()->InvalidateVPData();
-  showing3dRender = false;
-  if(XmToggleButtonGetState(wAutoDraw)) {
-    DoRender(wAutoDraw, NULL, NULL);
+
+  aString asLFile(lightingfile);
+  ambient = atof(XmTextFieldGetString(wLWambient));
+  diffuse = atof(XmTextFieldGetString(wLWdiffuse));
+  specular = atof(XmTextFieldGetString(wLWspecular));
+  shiny = atof(XmTextFieldGetString(wLWshiny));
+  minray = atof(XmTextFieldGetString(wLWminOpacity));
+  maxray = atof(XmTextFieldGetString(wLWmaxOpacity));
+  if(ioos == openingLW) {
+    cout << "_in DoOpenLightingFile:  openingLW." << endl;
+    bFileOk = ReadLightingFile(asLFile, ambient, diffuse, specular,
+			       shiny, minray, maxray);
+    if(bFileOk) {
+      char cTempReal[32];
+      sprintf(cTempReal, "%3.2f", ambient);
+      XmTextFieldSetString(wLWambient, cTempReal);
+      sprintf(cTempReal, "%3.2f", diffuse);
+      XmTextFieldSetString(wLWdiffuse, cTempReal);
+      sprintf(cTempReal, "%3.2f", specular);
+      XmTextFieldSetString(wLWspecular, cTempReal);
+      sprintf(cTempReal, "%3.2f", shiny);
+      XmTextFieldSetString(wLWshiny, cTempReal);
+      sprintf(cTempReal, "%3.2f", minray);
+      XmTextFieldSetString(wLWminOpacity, cTempReal);
+      sprintf(cTempReal, "%3.2f", maxray);
+      XmTextFieldSetString(wLWmaxOpacity, cTempReal);
+
+      DoApplyLightingWindow(NULL, NULL, NULL);
+
+      char tempfilename[BUFSIZ], ctemp[BUFSIZ];
+      strcpy(tempfilename, asLFile.c_str());
+      int i(strlen(tempfilename) - 1);
+      while(i > -1 && tempfilename[i] != '/') {
+        --i;
+      }
+      ++i;  // skip first (bogus) character
+      strcpy(ctemp, &tempfilename[i]);
+      lightingFilename = ctemp;
+    }
+  } else {
+    BL_ASSERT(ioos == savingLW);
+    cout << "_in DoOpenLightingFile:  savingLW." << endl;
+    bFileOk = WriteLightingFile(asLFile, ambient, diffuse, specular,
+                                shiny, minray, maxray);
+    if(bFileOk) {
+      char tempfilename[BUFSIZ], ctemp[BUFSIZ];
+      strcpy(tempfilename, asLFile.c_str());
+      int i(strlen(tempfilename) - 1);
+      while(i > -1 && tempfilename[i] != '/') {
+        --i;
+      }
+      ++i;  // skip first (bogus) character
+      strcpy(ctemp, &tempfilename[i]);
+      lightingFilename = ctemp;
+    }
   }
-# endif
-  lightingFilename = lightingfile;
+  XtFree(lightingfile);
 }
 
 
 // -------------------------------------------------------------------
 void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
-  Position xpos, ypos;
-  Dimension wdth, hght;
+  //Position xpos, ypos;
   if(lightingWindowExists) {
     XRaiseWindow(display, XtWindow(wLWTopLevel));
     return;
   }
 
+  Dimension wWidth(0), wHeight(0);
+  Dimension ww, wh;
   lightingWindowExists = true;
-  XtVaGetValues(wAmrVisTopLevel, XmNx, &xpos, XmNy, &ypos,
-		XmNwidth, &wdth, XmNheight, &hght, NULL);
   
   aString LWtitlebar = "Lighting";
   strcpy(buffer, LWtitlebar.c_str());
@@ -456,10 +524,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   wLWTopLevel = XtVaCreatePopupShell(buffer,
 			 topLevelShellWidgetClass, 
 			 wAmrVisTopLevel,
-			 XmNwidth, 200,
-			 XmNheight, 300,
-			 XmNx, xpos+wdth-20,
-			 XmNy, ypos+20,
+			 XmNwidth,  100,
+			 XmNheight, 100,
 			 NULL);
   
   AddStaticCallback(wLWTopLevel, XmNdestroyCallback,
@@ -476,8 +542,6 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   // make the buttons
   Widget wLWDoneButton = XtVaCreateManagedWidget(" Ok ",
 			    xmPushButtonGadgetClass, wLWForm,
-			    XmNtopAttachment, XmATTACH_POSITION,
-			    XmNtopPosition, 87,
 			    XmNbottomAttachment, XmATTACH_FORM,
 			    XmNbottomOffset, WOFFSET,
 			    XmNleftAttachment, XmATTACH_FORM,
@@ -486,40 +550,41 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   AddStaticCallback(wLWDoneButton, XmNactivateCallback,
 		    &PltApp::DoDoneLightingWindow);
   
+
   Widget wLWApplyButton = XtVaCreateManagedWidget("Apply",
 			    xmPushButtonGadgetClass, wLWForm,
-			    XmNtopAttachment, XmATTACH_POSITION,
-			    XmNtopPosition, 87,
 			    XmNbottomAttachment, XmATTACH_FORM,
 			    XmNbottomOffset, WOFFSET,
 			    XmNleftAttachment, XmATTACH_WIDGET,
 			    XmNleftWidget,     wLWDoneButton,
-			    //XmNleftAttachment, XmATTACH_POSITION,
-			    //XmNleftPosition, 35,
-			    //XmNrightAttachment, XmATTACH_POSITION,
-			    //XmNrightPosition, 65,
 			    NULL);
   AddStaticCallback(wLWApplyButton, XmNactivateCallback,
 		    &PltApp::DoApplyLightingWindow);
   
   Widget wLWOpenButton = XtVaCreateManagedWidget("Open...",
 			    xmPushButtonGadgetClass, wLWForm,
-			    XmNtopAttachment, XmATTACH_POSITION,
-			    XmNtopPosition, 87,
 			    XmNbottomAttachment, XmATTACH_FORM,
 			    XmNbottomOffset, WOFFSET,
 			    XmNleftAttachment, XmATTACH_WIDGET,
 			    XmNleftWidget,     wLWApplyButton,
-			    //XmNrightAttachment, XmATTACH_POSITION,
-			    //XmNrightPosition, 65,
 			    NULL);
-  //AddStaticCallback(wLWApplyButton, XmNactivateCallback,
-		    //&PltApp::DoApplyLightingWindow);
+  AddStaticCallback(wLWOpenButton, XmNactivateCallback,
+		    &PltApp::DoOpenFileLightingWindow,
+		    (XtPointer) openingLW);
+  
+  Widget wLWSaveButton = XtVaCreateManagedWidget("Save...",
+			    xmPushButtonGadgetClass, wLWForm,
+			    XmNbottomAttachment, XmATTACH_FORM,
+			    XmNbottomOffset, WOFFSET,
+			    XmNleftAttachment, XmATTACH_WIDGET,
+			    XmNleftWidget,     wLWOpenButton,
+			    NULL);
+  AddStaticCallback(wLWSaveButton, XmNactivateCallback,
+		    &PltApp::DoOpenFileLightingWindow,
+		    (XtPointer) savingLW);
   
   Widget wLWCancelButton = XtVaCreateManagedWidget("Cancel",
 			    xmPushButtonGadgetClass, wLWForm,
-			    XmNtopAttachment, XmATTACH_POSITION,
-			    XmNtopPosition, 87,
 			    XmNbottomAttachment, XmATTACH_FORM,
 			    XmNbottomOffset, WOFFSET,
 			    XmNrightAttachment, XmATTACH_FORM,
@@ -528,7 +593,9 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   AddStaticCallback(wLWCancelButton, XmNactivateCallback,
 		    &PltApp::DoCancelLightingWindow);
   
+
   VolRender *volRenderPtr = projPicturePtr->GetVolRenderPtr();
+
   //make the input forms
   Widget wLWambientLabel = XtVaCreateManagedWidget("ambient: ",
 			    xmLabelGadgetClass, wLWForm,
@@ -682,9 +749,16 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    NULL);
   
   
-  XtManageChild(wLWCancelButton);
-  XtManageChild(wLWDoneButton);
-  XtManageChild(wLWApplyButton);
+  XtVaGetValues(wLWOpenButton, XmNwidth, &ww, XmNheight, &wh, NULL);
+  wWidth = 5 * ww;
+  wHeight = 12 * wh;
+
+  XtVaSetValues(wLWTopLevel, XmNwidth, wWidth, XmNheight, wHeight, NULL);
+
+  //XtManageChild(wLWCancelButton);
+  //XtManageChild(wLWDoneButton);
+  //XtManageChild(wLWApplyButton);
+
   XtPopup(wLWTopLevel, XtGrabNone);
   XSetWindowColormap(display, XtWindow(wLWTopLevel), pltPaletteptr->GetColormap());
 }

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltAppOutput.cpp,v 1.22 2001-04-16 16:41:22 vince Exp $
+// $Id: PltAppOutput.cpp,v 1.23 2001-05-10 23:38:01 vince Exp $
 //
 
 #include <Xm/Xm.h>
@@ -34,15 +34,18 @@ void PltApp::DoOutput(Widget w, XtPointer data, XtPointer) {
 
   unsigned long which = (unsigned long) data;
   switch(which) {
-  case 0:
-    AddStaticCallback(wGetFileName, XmNokCallback,&PltApp::DoCreatePSFile); break;
-  case 1:
-    AddStaticCallback(wGetFileName, XmNokCallback,&PltApp::DoCreateRGBFile); break;
-  case 2:
-    AddStaticCallback(wGetFileName, XmNokCallback,&PltApp::DoCreateFABFile); break;
-  default:
-    cerr << "Error in PltApp::DoOutput:  bad selection = " << data << endl;
-    return;
+    case 0:
+      AddStaticCallback(wGetFileName, XmNokCallback,&PltApp::DoCreatePSFile);
+    break;
+    case 1:
+      AddStaticCallback(wGetFileName, XmNokCallback,&PltApp::DoCreateRGBFile);
+    break;
+    case 2:
+      AddStaticCallback(wGetFileName, XmNokCallback,&PltApp::DoCreateFABFile);
+    break;
+    default:
+      cerr << "Error in PltApp::DoOutput:  bad selection = " << data << endl;
+      return;
   }
 
   XtAddCallback(wGetFileName, XmNcancelCallback,
@@ -146,6 +149,7 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   WritePSPaletteFile(psfilename, printImage, imageSizeX, imageSizeY, 
                      pValueList, pNumFormat, *pltPaletteptr);
 
+  XtFree(fileNameBase);
   XtDestroyWidget(w);
 
 }  // end DoCreatePSFile
@@ -210,6 +214,7 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
   imageSizeY = pltPaletteptr->PaletteHeight();
   WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
 
+  XtFree(fileNameBase);
   XtDestroyWidget(w);
 
 }  // end DoCreateRGBFile
@@ -233,6 +238,7 @@ void PltApp::DoCreateFABFile(Widget w, XtPointer, XtPointer call_data) {
 			 (void *) &(bx[maxDrawnLevel]),
 			 maxDrawnLevel,
 			 (void *) &derivedQuantity);
+  XtFree(fileNameBase);
   XtDestroyWidget(w);
 }  // end DoCreateFABFile
 

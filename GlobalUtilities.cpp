@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.36 2001-05-09 20:03:37 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.37 2001-05-10 23:38:00 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -12,6 +12,7 @@
 #ifdef BL_USE_NEW_HFILES
 #include <fstream>
 using std::ifstream;
+using std::ofstream;
 #else
 #include <fstream.h>
 #endif
@@ -31,6 +32,7 @@ Array<aString> comlinefilename;
 aString initialDerived;
 aString initialFormat;
 aString initialPalette;
+aString initialLightingFile;
 int fileCount;
 int sleepTime;
 bool givenBox;
@@ -84,6 +86,12 @@ const aString &GetPaletteName() {
 
 
 // -------------------------------------------------------------------
+const aString &GetLightingFileName() {
+  return initialLightingFile;
+}
+
+
+// -------------------------------------------------------------------
 void AddSlices(int dir, char *sliceset) {
   int rangeStart, rangeEnd, slice;
   bool rangeSpecified(false);
@@ -125,79 +133,89 @@ void AddSlices(int dir, char *sliceset) {
 
 
 // -------------------------------------------------------------------
-void ReadLightingFile(const aString &lightdefaultsFile,
+bool ReadLightingFile(const aString &lightdefaultsFile,
                       Real &ambientDef, Real &diffuseDef, Real &specularDef,
                       Real &shinyDef,
                       Real &minRayOpacityDef, Real &maxRayOpacityDef)
 {
-  char defaultString[LINELENGTH];
+  char defaultString[LINELENGTH], cRealIn[LINELENGTH];
   // try to find the defaultsFile
-  aString fullDefaultsFile;
   char buffer[BUFSIZ];
-  Real tempReal;
 
-  fullDefaultsFile = "./" + lightdefaultsFile;     // try dot first
-  ifstream defs;
-  defs.open(fullDefaultsFile.c_str());
+  ifstream defs(lightdefaultsFile.c_str());
 
-  if(defs.fail()) {  // try ~ (tilde)
-    cout << "Cannot find lighting defaults file:  " << fullDefaultsFile << endl;
-    fullDefaultsFile  = getenv("HOME");
-    fullDefaultsFile += "/";
-    fullDefaultsFile += lightdefaultsFile;
-    defs.clear();  // must do this to clear the fail bit
-    defs.open(fullDefaultsFile.c_str());
-    if(defs.fail()) {  // try ~/.  (hidden file)
-      cout << "Cannot find lighting defaults file:  " << fullDefaultsFile << endl;
-      fullDefaultsFile  = getenv("HOME");
-      fullDefaultsFile += "/.";
-      fullDefaultsFile += lightdefaultsFile;
-      defs.clear();  // must do this to clear the fail bit
-      defs.open(fullDefaultsFile.c_str());
-      if(defs.fail()) {  // punt
-        cout << "Cannot find lighting defaults file:  " << fullDefaultsFile << endl;
-        cout << "Using standard defaults." << endl;
-        return;
-      }
-    }
-  }
-  if(ParallelDescriptor::IOProcessor()) {
-    cout << "Reading lighting defaults from:  " << fullDefaultsFile << endl;
-  }
+  if(defs.fail()) {
+    cout << "Cannot find lighting defaults file:  " << lightdefaultsFile << endl;
+    return false;
+  } else {
+    cout << "Reading lighting defaults from:  " << lightdefaultsFile << endl;
 
-  ws(defs);
-  defs.getline(buffer, BUFSIZ, '\n');
+    ws(defs);
+    defs.getline(buffer, BUFSIZ, '\n');
   
-  while( ! defs.eof()) {
-    sscanf(buffer,"%s", defaultString);
+    while( ! defs.eof()) {
+      sscanf(buffer,"%s", defaultString);
     
-    if(defaultString[0] != '#') {  // a comment starts with #
-      if(strcmp(defaultString,"ambient") == 0) {
-        sscanf(buffer, "%s%f", defaultString, &tempReal);
-        ambientDef = tempReal;
+      if(defaultString[0] != '#') {  // a comment starts with #
+        if(strcmp(defaultString,"ambient") == 0) {
+          sscanf(buffer, "%s%s", defaultString, cRealIn);
+          ambientDef = atof(cRealIn);
+        } else if(strcmp(defaultString, "diffuse") == 0) {
+          sscanf(buffer, "%s%s", defaultString, cRealIn);
+          diffuseDef = atof(cRealIn);
+        } else if(strcmp(defaultString, "specular") == 0) {
+          sscanf(buffer, "%s%s", defaultString, cRealIn);
+          specularDef = atof(cRealIn);
+        } else if(strcmp(defaultString, "shiny") == 0) {
+          sscanf(buffer, "%s%s", defaultString, cRealIn);
+          shinyDef = atof(cRealIn);
+        } else if(strcmp(defaultString, "minRayOpacity") == 0) {
+          sscanf(buffer, "%s%s", defaultString, cRealIn);
+          minRayOpacityDef = atof(cRealIn);
+        } else if(strcmp(defaultString, "maxRayOpacity") == 0) {
+          sscanf(buffer, "%s%s", defaultString, cRealIn);
+          maxRayOpacityDef = atof(cRealIn);
+        }
       }
-      else if(strcmp(defaultString, "diffuse") == 0) {
-        sscanf(buffer, "%s%f", defaultString, &tempReal);
-        diffuseDef = tempReal;
-      }
-      else if(strcmp(defaultString, "specular") == 0) {
-        sscanf(buffer, "%s%f", defaultString, &tempReal);
-        specularDef = tempReal;
-      }
-      else if(strcmp(defaultString, "shiny") == 0) {
-        sscanf(buffer, "%s%f", defaultString, &tempReal);
-        shinyDef = tempReal;
-      }
-      else if(strcmp(defaultString, "minRayOpacity") == 0) {
-        sscanf(buffer, "%s%f", defaultString, &tempReal);
-        minRayOpacityDef = tempReal;
-      }
-      else if(strcmp(defaultString, "maxRayOpacity") == 0) {
-        sscanf(buffer, "%s%f", defaultString, &tempReal);
-        maxRayOpacityDef = tempReal;
-      }
+      defs.getline(buffer, BUFSIZ, '\n');
     }
   }
+  return true;
+}
+
+
+// -------------------------------------------------------------------
+bool WriteLightingFile(const aString &lightdefaultsFile,
+                       const Real &ambientDef, const Real &diffuseDef,
+		       const Real &specularDef, const Real &shinyDef,
+                       const Real &minRayOpacityDef, const Real &maxRayOpacityDef)
+{
+
+  // the format of this file is:
+  //ambient 0.42
+  //diffuse 0.41
+  //specular 0.40
+  //shiny 12.0
+  //minRayOpacity 0.04
+  //maxRayOpacity 0.96
+
+  if(ParallelDescriptor::IOProcessor()) {
+    ofstream defs(lightdefaultsFile.c_str());
+    if(defs.fail()) {
+      cerr << "***** Error writing lighting file:  filename = "
+	   << lightdefaultsFile << endl;
+      return false;
+    } else {
+      defs << "ambient " << ambientDef << endl;
+      defs << "diffuse " << diffuseDef << endl;
+      defs << "specular " << specularDef << endl;
+      defs << "shiny " << shinyDef << endl;
+      defs << "minRayOpacity " << minRayOpacityDef << endl;
+      defs << "maxRayOpacity " << maxRayOpacityDef << endl;
+      defs.close();
+    }
+  }
+  return true;
 }
 
 
@@ -210,6 +228,7 @@ void GetDefaults(const aString &defaultsFile) {
 
   // standard defaults
   PltApp::SetDefaultPalette("Palette");
+  PltApp::SetDefaultLightingFile("amrvis.lighting");
   initialPalette = "Palette";
   PltApp::SetInitialDerived("density");
   PltApp::SetInitialScale(1);
@@ -269,6 +288,11 @@ void GetDefaults(const aString &defaultsFile) {
         sscanf(buffer, "%s%s",defaultString, tempString);
         PltApp::SetDefaultPalette(tempString);
         initialPalette = tempString;
+      }
+      else if(strcmp(defaultString,"lightingfile") == 0) {
+        sscanf(buffer, "%s%s",defaultString, tempString);
+        PltApp::SetDefaultLightingFile(tempString);
+        initialLightingFile = tempString;
       }
       else if(strcmp(defaultString, "initialderived") == 0) {
         sscanf(buffer, "%s%s", defaultString, tempString);
@@ -383,6 +407,7 @@ void PrintUsage(char *exname) {
   cout << "       [-fabiosize nbits]" << endl;
   cout << "       [-maxlev n]" << endl;
   cout << "       [-palette palname] [-initialderived dername]" << endl;
+  cout << "       [-lightingfile name]" << endl;
   cout << "       [-initialscale n] [-showboxes tf] [-numberformat fmt]" << endl;
   cout << "       [-lowblack]"<< endl;
   cout << "       [-cliptoppalette]"<< endl;
@@ -429,6 +454,7 @@ void PrintUsage(char *exname) {
   cout << "                     the default is native (usually 64)." << endl;
   cout << "  -maxlev n          specify the maximum drawn level." << endl;
   cout << "  -palette palname   set the initial palette." << endl; 
+  cout << "  -lightingfile name set the initial lighting parameter file." << endl; 
   cout << "  -initialderived dername   set the initial derived to dername." << endl; 
   cout << "  -initialscale n    set the initial scale to n." << endl; 
   cout << "  -showboxes tf      show boxes (the value of tf is true or false)." << endl; 
@@ -670,6 +696,10 @@ void ParseCommandLine(int argc, char *argv[]) {
     } else if(strcmp(argv[i],"-palette") == 0) {
       PltApp::SetDefaultPalette(argv[i+1]);
       initialPalette = argv[i+1];
+      ++i;
+    } else if(strcmp(argv[i],"-lightingfile") == 0) {
+      PltApp::SetDefaultLightingFile(argv[i+1]);
+      initialLightingFile = argv[i+1];
       ++i;
     } else if(strcmp(argv[i], "-initialderived") == 0) {
       PltApp::SetInitialDerived(argv[i+1]);

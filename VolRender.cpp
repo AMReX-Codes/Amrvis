@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.36 2000-10-10 00:13:23 vince Exp $
+// $Id: VolRender.cpp,v 1.37 2001-05-10 23:38:01 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -38,15 +38,18 @@ extern Real DegToRad(Real angle);
 
 
 // -------------------------------------------------------------------
+/*
 VolRender::VolRender()
           : bVolRenderDefined(false)
 {
 }
+*/
 
 
 // -------------------------------------------------------------------
 VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
-		     int maxdrawnlevel, Palette *PalettePtr)
+		     int maxdrawnlevel, Palette *PalettePtr,
+                     const aString &asLightFileName)
 {
   minDrawnLevel = mindrawnlevel;
   maxDataLevel = maxdrawnlevel;
@@ -55,16 +58,53 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
   swfDataValid    = false;
   swfDataAllocated = false;
   palettePtr = PalettePtr;
+  preClassify = true;
+
+  // these are the defaults
   ambientMat = 0.28;
-  specularMat = 0.39;
   diffuseMat = 0.35;
+  specularMat = 0.39;
   shinyMat = 10.0;
   minRayOpacity = 0.05;
   maxRayOpacity = 0.95;
-  preClassify = true;
-  
-  volData = NULL;
 
+  Real ambient, diffuse, specular, shiny, minray, maxray;
+  bool bFileOk = ReadLightingFile(asLightFileName, ambient, diffuse,
+                                  specular, shiny, minray, maxray);
+  
+  if(bFileOk) {
+    if(0.0 > ambient || ambient > 1.0) {
+      cerr << "Error:  ambient value must be in the range (0.0, 1.0)." << endl;
+    } else {
+      ambientMat = ambient;
+    }
+    if(0.0 > diffuse || diffuse > 1.0) {
+      cerr << "Error:  diffuse value must be in the range (0.0, 1.0)." << endl;
+    } else {
+      diffuseMat = diffuse;
+    }
+    if(0.0 > specular || specular > 1.0) {
+      cerr << "Error:  specular value must be in the range (0.0, 1.0)." << endl;
+    } else {
+      specularMat = specular;
+    }
+
+    shinyMat = shiny;
+
+    if(0.0 > minray || minray > 1.0) {
+      cerr << "Error:  minray value must be in the range (0.0, 1.0)." << endl;
+    } else {
+      minRayOpacity = minray;
+    }
+    if(0.0 > maxray || maxray > 1.0) {
+      cerr << "Error:  maxray value must be in the range (0.0, 1.0)." << endl;
+    } else {
+      maxRayOpacity = maxray;
+    }
+  }
+
+
+  volData = NULL;
   voxelFields = 3;
 
   //voxel field variables:

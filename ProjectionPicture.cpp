@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.cpp,v 1.40 2001-04-16 16:41:22 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.41 2001-05-10 23:38:01 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -50,7 +50,8 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
   theDomain = amrPicturePtr->GetSubDomain();
 
 #ifdef BL_VOLUMERENDER
-  volRender = new VolRender(theDomain, minDrawnLevel, maxDrawnLevel, palettePtr);
+  volRender = new VolRender(theDomain, minDrawnLevel, maxDrawnLevel, palettePtr,
+			    pltAppPtr->GetLightingFileName());
 #endif
 
   SetDrawingAreaDimensions(daWidth, daHeight);

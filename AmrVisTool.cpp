@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.50 2001-05-09 20:03:36 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.51 2001-05-10 23:38:00 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -342,7 +342,8 @@ void BatchFunctions() {
       Palette volPal(PALLISTLENGTH, PALWIDTH, TOTALPALWIDTH, TOTALPALHEIGHT, 0);
       cout << "_in BatchFunctions:  palette name = " << GetPaletteName() << endl;
       volPal.ReadSeqPalette(GetPaletteName(), false);
-      VolRender volRender(drawDomain, minDrawnLevel, maxDrawnLevel, &volPal);
+      VolRender volRender(drawDomain, minDrawnLevel, maxDrawnLevel, &volPal,
+			  GetLightingFileName());
       Real dataMin, dataMax;
       if(UseSpecifiedMinMax()) {
         GetSpecifiedMinMax(dataMin, dataMax);

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.89 2001-05-09 20:03:37 vince Exp $
+// $Id: PltApp.cpp,v 1.90 2001-05-10 23:38:01 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -239,6 +239,20 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
 			   pltAppState->CurrentDerivedNumber(),
 			   rGlobalMin, rGlobalMax);
   }  // end for(iFrame...)
+
+  if(UseSpecifiedMinMax()) {
+    pltAppState->SetMinMaxRangeType(USERMINMAX);
+    Real specifiedMin, specifiedMax;
+    GetSpecifiedMinMax(specifiedMin, specifiedMax);
+    for(int iFrame(0); iFrame < animFrames; ++iFrame) {
+      pltAppState->SetMinMax(USERMINMAX, iFrame,
+			     pltAppState->CurrentDerivedNumber(),
+			     specifiedMin, specifiedMax);
+      pltAppState->SetMinMax(FILEUSERMINMAX, iFrame,
+			     pltAppState->CurrentDerivedNumber(),
+			     specifiedMin, specifiedMax);
+    }
+  }
 // ---------------
 
 
@@ -268,6 +282,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
   pltAppState->SetNumContours(10);
 
   palFilename = PltApp::defaultPaletteString;
+  lightingFilename = PltApp::defaultLightingFilename;
   PltAppInit();
 }
 
@@ -287,7 +302,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     dataServicesPtr(pltParent->dataServicesPtr),
     animating2d(isAnim),
     currentFrame(pltParent->currentFrame),
-    palFilename(palfile)
+    palFilename(palfile),
+    lightingFilename(pltParent->lightingFilename)
 {
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   bFileRangeButtonSet = pltParent->bFileRangeButtonSet;
@@ -1674,6 +1690,7 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
     datasetPtr->DoExpose(false);
   }
 
+/*
   if(UseSpecifiedMinMax()) {
     Real specifiedMin, specifiedMax;
     GetSpecifiedMinMax(specifiedMin, specifiedMax);
@@ -1683,6 +1700,7 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
 			     specifiedMin, specifiedMax);
     }
   }
+*/
 }  // end ChangeDerived(...)
 
 
@@ -2816,6 +2834,7 @@ void PltApp::DoOpenPalFile(Widget w, XtPointer, XtPointer call_data) {
   }
 # endif
   palFilename = palfile;
+  XtFree(palfile);
   
   XYplotparameters->ResetPalette(pltPaletteptr);
   for(int np(0); np != BL_SPACEDIM; ++np) {
@@ -4166,6 +4185,7 @@ int  PltApp::placementOffsetX    = 0;
 int  PltApp::placementOffsetY    = 0;
 int  PltApp::reserveSystemColors = 50;
 aString PltApp::defaultPaletteString;
+aString PltApp::defaultLightingFilename;
 aString PltApp::initialDerived;
 aString PltApp::initialFormatString;
 
@@ -4174,11 +4194,16 @@ int   PltApp::GetInitialScale()       { return PltApp::initialScale;     }
 int   PltApp::GetDefaultShowBoxes()   { return PltApp::defaultShowBoxes; }
 aString &PltApp::GetInitialDerived()  { return PltApp::initialDerived;   }
 aString &PltApp::GetDefaultPalette()  { return PltApp::defaultPaletteString; }
+aString &PltApp::GetDefaultLightingFile() { return PltApp::defaultLightingFilename; }
 const aString &PltApp::GetFileName()  { return (fileNames[currentFrame]); }
 void  PltApp::PaletteDrawn(bool tOrF) { paletteDrawn = tOrF; }
 
 void PltApp::SetDefaultPalette(const aString &palString) {
   PltApp::defaultPaletteString = palString;
+}
+
+void PltApp::SetDefaultLightingFile(const aString &lightFileString) {
+  PltApp::defaultLightingFilename = lightFileString;
 }
 
 void PltApp::SetInitialDerived(const aString &initialderived) {
