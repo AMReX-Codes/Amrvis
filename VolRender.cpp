@@ -447,7 +447,7 @@ void VolRender::MakeSWFDataOneProc(DataServices *dataServicesPtr,
 
 // -------------------------------------------------------------------
 void VolRender::WriteSWFData(const aString &filenamebase, bool SWFLight) {
-    cout<<"VolRender::WriteSWFData"<<endl;
+    cout << "VolRender::WriteSWFData" << endl;
     assert(bVolRenderDefined);
     if(ParallelDescriptor::IOProcessor()) {
         cout << "vpClassify Scalars..." << endl;           // --- classify
@@ -533,6 +533,7 @@ void VolRender::SetImage(unsigned char *image_data, int width, int height,
 void VolRender::MakePicture(Real mvmat[4][4], Real Length,
                             int width, int height)
 {
+cout << "_in VolRender::MakePicture" << endl;
     vpCurrentMatrix(vpc, VP_MODEL);
     vpIdentityMatrix(vpc);
     vpSetMatrix(vpc, mvmat);
@@ -739,7 +740,10 @@ void VolRender::MakeDefaultTransProperties() {
 }
 
 
+// -------------------------------------------------------------------
 void VolRender::SetTransferProperties() {
+  cout << "_in VolRender::SetTransferProperties()" << endl;
+  assert(palettePtr != NULL);
   density_ramp = palettePtr->GetTransferArray();
   vpSetClassifierTable(vpc, DENSITY_PARAM, densityField,
                        density_ramp.dataPtr(),
@@ -782,6 +786,7 @@ void VolRender::SetProperties() {
   SetTransferProperties();
 }
 
+// -------------------------------------------------------------------
 void VolRender::SetLighting(Real ambient, Real diffuse, 
                             Real specular, Real shiny,
                             Real minRay, Real maxRay) {

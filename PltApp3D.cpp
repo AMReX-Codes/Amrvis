@@ -249,6 +249,8 @@ void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
   DoTransResize(wTransDA, NULL, NULL);
 }
 
+
+// -------------------------------------------------------------------
 void PltApp::DoApplyLightingWindow(Widget, XtPointer, XtPointer) {
   //read new input
   Real ambient = atof(XmTextFieldGetString(wLWambient));
@@ -284,19 +286,27 @@ void PltApp::DoApplyLightingWindow(Widget, XtPointer, XtPointer) {
   }
 }
 
+
+// -------------------------------------------------------------------
 void PltApp::DoDoneLightingWindow(Widget w, XtPointer xp1, XtPointer xp2) {
   DoApplyLightingWindow(w, xp1, xp2);
   XtDestroyWidget(wLWTopLevel);
 }
 
+
+// -------------------------------------------------------------------
 void PltApp::DestroyLightingWindow(Widget w, XtPointer xp, XtPointer) {
   lightingWindowExists = false;
 }
 
+
+// -------------------------------------------------------------------
 void PltApp::DoCancelLightingWindow(Widget, XtPointer, XtPointer) {
   XtDestroyWidget(wLWTopLevel);
 }
 
+
+// -------------------------------------------------------------------
 void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   Position xpos, ypos;
   Dimension wdth, hght;
@@ -555,6 +565,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   }
 }
 
+
+// -------------------------------------------------------------------
 void PltApp::CBAttach(Widget w, XtPointer xp, XtPointer) {
   XtDestroyWidget(XtParent(XtParent(w)));
 }

@@ -1,14 +1,14 @@
 palette               grayscale
-palette               Palette
-initialderived        density
-initialderived        xmom
+palette               Pal8.new
+initialderived        tracer
+initialscale          4
 initialscale          1
 numberformat          %8.5f
-maxpixmapsize         10000
-maxpixmapsize         400000
 maxpixmapsize         200000
+reservesystemcolors   38
 reservesystemcolors   24
-showboxes             TRUE
-windowheight          650
-windowwidth           700
+showboxes             FALSE
+windowheight          850
+windowwidth           1000
 filetype              newplt
+cliptoppalette

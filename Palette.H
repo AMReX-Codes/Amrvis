@@ -55,10 +55,12 @@ protected:
 public:
   Palette(Widget &w, int datalistlength, int width,
           int totalwidth, int totalheight, int reservesystemcolors);
+  Palette(int datalistlength, int width,
+          int totalwidth, int totalheight, int reservesystemcolors);
   ~Palette();
   PaletteType GetPaletteType() { return paletteType; }
   Array<float> GetTransferArray() { return transferArray; }
-  int   ReadSeqPalette(const aString &fileName);
+  int   ReadSeqPalette(const aString &fileName, bool bRedraw = true);
   void  Draw(Real palMin, Real palMax, const aString &numberFormat);
   void  SetWindow(Window drawPaletteHere);
   void  SetWindowPalette(const aString &palName, Window newPalWindow);

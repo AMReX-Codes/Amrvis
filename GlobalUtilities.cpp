@@ -23,6 +23,7 @@ bool animation;
 Array<aString> comlinefilename;
 aString initialDerived;
 aString initialFormat;
+aString initialPalette;
 int fileCount;
 int nProcs;
 int sleepTime;
@@ -66,6 +67,12 @@ const aString &GetFormatString(const aString &formatString) {
 // -------------------------------------------------------------------
 void SetFormatString(const aString &formatString) {
   initialFormat = formatString;
+}
+
+
+// -------------------------------------------------------------------
+const aString &GetPaletteName() {
+  return initialPalette;
 }
 
 
@@ -120,6 +127,7 @@ void GetDefaults(const aString &defaultsFile) {
 
   // standard defaults
   PltApp::SetDefaultPalette("Palette");
+  initialPalette = "Palette";
   PltApp::SetInitialDerived("density");
   PltApp::SetInitialScale(1);
   PltApp::SetInitialFormatString("%7.5f");
@@ -181,10 +189,12 @@ void GetDefaults(const aString &defaultsFile) {
       if(strcmp(defaultString,"palette") == 0) {
         sscanf(buffer, "%s%s",defaultString, tempString);
         PltApp::SetDefaultPalette(tempString);
+        initialPalette = tempString;
       }
       else if(strcmp(defaultString, "initialderived") == 0) {
         sscanf(buffer, "%s%s", defaultString, tempString);
         PltApp::SetInitialDerived(tempString);
+	initialDerived = tempString;
       }
       else if(strcmp(defaultString, "initialscale") == 0) {
         sscanf(buffer, "%s%d", defaultString, &tempInt);
@@ -578,9 +588,11 @@ void ParseCommandLine(int argc, char *argv[]) {
 #   endif
     } else if(strcmp(argv[i],"-palette") == 0) {
       PltApp::SetDefaultPalette(argv[i+1]);
+      initialPalette = argv[i+1];
       i++;
     } else if(strcmp(argv[i], "-initialderived") == 0) {
       PltApp::SetInitialDerived(argv[i+1]);
+      initialDerived = argv[i+1];
       i++;
     } else if(strcmp(argv[i], "-initialscale") == 0) {
       int tempiscale = atoi(argv[i+1]);

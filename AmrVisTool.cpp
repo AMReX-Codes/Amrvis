@@ -371,7 +371,15 @@ void BatchFunctions() {
       }
       Array<Box> drawDomain = amrData.ProbDomain();
 
-      VolRender volRender(drawDomain, minDrawnLevel, maxDrawnLevel, NULL);
+      int iPaletteStart = 2;
+      int iPaletteEnd = MaxPaletteIndex();
+      int iBlackIndex = 1;
+      int iWhiteIndex = 0;
+      int iColorSlots = MaxPaletteIndex() + 1 - iPaletteStart;
+      Palette volPal(PALLISTLENGTH, PALWIDTH, TOTALPALWIDTH, TOTALPALHEIGHT, 0);
+      cout << "_in BatchFunctions:  palette name = " << GetPaletteName() << endl;
+      volPal.ReadSeqPalette(GetPaletteName(), false);
+      VolRender volRender(drawDomain, minDrawnLevel, maxDrawnLevel, &volPal);
       Real dataMin, dataMax;
       if(UseSpecifiedMinMax()) {
         GetSpecifiedMinMax(dataMin, dataMax);
@@ -385,11 +393,6 @@ void BatchFunctions() {
                        //maxDrawnLevel, dataMin, dataMax, minMaxValid);
       }
 
-      int iPaletteStart = 2;
-      int iPaletteEnd = MaxPaletteIndex();
-      int iBlackIndex = 1;
-      int iWhiteIndex = 0;
-      int iColorSlots = MaxPaletteIndex() + 1 - iPaletteStart;
       volRender.MakeSWFData(&dataServices, dataMin, dataMax, GetInitialDerived(),
                             iPaletteStart, iPaletteEnd,
                             iBlackIndex, iWhiteIndex, iColorSlots);

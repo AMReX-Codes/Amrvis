@@ -66,6 +66,61 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
 
 
 // -------------------------------------------------------------------
+Palette::Palette(int datalistlength, int width,
+		 int totalwidth, int totalheight, int reservesystemcolors)
+{
+  totalColorSlots = MaxPaletteIndex() + 1;
+  sysccells.resize(totalColorSlots);
+  //  transY.resize(totalColorSlots);
+  transferArray.resize(totalColorSlots);
+  ccells.resize(totalColorSlots);
+  palPixmap = NULL;
+  pmin = 0.0;
+  pmax = 1.0;
+  defaultFormat = "%6.4f";
+
+  //display = XtDisplay(w);
+  //root = RootWindow(display, DefaultScreen(display));
+  //screen = XtScreen(w);
+  //screenNumber = DefaultScreen(display);
+  //int status = XMatchVisualInfo(display, DefaultScreen(display),
+                                //8, PseudoColor, &visualInfo);  // fills visualInfo
+
+  //visual = visualInfo.visual;
+  //gc = screen->default_gc;
+
+  totalPalWidth = totalwidth;
+  palWidth  = width;
+  totalPalHeight = totalheight;
+  dataList.resize(datalistlength);
+  //colmap = XCreateColormap(display, root, visual, AllocAll);
+
+  transSet = false;
+
+  //systemColmap = DefaultColormap(display, screenNumber);
+  for(int ii = 0; ii < totalColorSlots; ++ii) {
+    sysccells[ii].pixel = ii;
+  }
+  //XQueryColors(display, systemColmap, sysccells.dataPtr(), totalColorSlots);
+  reserveSystemColors = reservesystemcolors;
+  colorOffset = reserveSystemColors;  // start our allocated palette here
+
+  colorSlots   = totalColorSlots - reserveSystemColors - 2;
+  blackIndex   = colorOffset + 1;
+  whiteIndex   = colorOffset;
+  paletteStart = colorOffset + 2;  // skip 2 for black and white
+				   // the data colors start here
+
+  remapTable = new unsigned char[totalColorSlots];  // this is faster than Array<uc>
+  float sizeRatio(((float) colorSlots) / ((float) totalColorSlots));
+  float mapLow(((float) paletteStart) + 0.5);
+  for(int itab = 0; itab < totalColorSlots; ++itab) {
+    remapTable[itab] = (int) ((((float) itab) * sizeRatio) + mapLow);
+  }
+}  // end constructor
+
+
+// -------------------------------------------------------------------
 Palette::~Palette() {
   delete [] remapTable;
 }
@@ -224,7 +279,7 @@ void Palette::ReadPalette(const aString &palName)
 
 
 // -------------------------------------------------------------------
-int Palette::ReadSeqPalette(const aString &fileName) {
+int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
   int iSeqPalSize(256);  // this must be 256 (size of sequential palettes).
   Array<unsigned char> rbuff(iSeqPalSize);
   Array<unsigned char> gbuff(iSeqPalSize);
@@ -253,6 +308,13 @@ int Palette::ReadSeqPalette(const aString &fileName) {
     ccells[whiteIndex].red   = (unsigned short) 65535;
     ccells[whiteIndex].green = (unsigned short) 65535;
     ccells[whiteIndex].blue  = (unsigned short) 65535;
+
+    paletteType = NON_ALPHA;
+    transferArray.resize(iSeqPalSize);
+    for(int j = 0; j<iSeqPalSize; j++) {
+      indexArray[j] = j; 
+      transferArray[j] = (float) j / (float)(iSeqPalSize-1);
+    }
 
     return(1);
   }
@@ -315,7 +377,9 @@ int Palette::ReadSeqPalette(const aString &fileName) {
   }
   transSet = true;
 
-  Redraw();
+  if(bRedraw) {
+    Redraw();
+  }
 
   return(1);
 

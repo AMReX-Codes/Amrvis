@@ -53,6 +53,7 @@ void SetInitialDerived(const aString &formatString);
 const aString &GetInitialDerived();
 void SetFormatString(const aString &formatString);
 const aString &GetFormatString();
+const aString &GetPaletteName();
 
 bool DumpSlices();
 bool SliceAllVars();
