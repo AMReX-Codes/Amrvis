@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.62 2002-12-10 20:12:23 vince Exp $
+// $Id: PltApp.H,v 1.63 2004-04-16 23:50:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -88,6 +88,7 @@ public:
   static void SetDefaultLightingFile(const string &lightFileString);
   static void SetInitialDerived(const string &initialderived);
   static void SetInitialScale(int initScale);
+  static void SetInitialMaxMenuItems(int initmaxitems);
   static int  GetInitialScale();
   static void SetInitialFormatString(const string &formatString);
   static void SetDefaultShowBoxes(int showBoxes);
@@ -209,7 +210,7 @@ private:
   PltAppState *pltAppState;
   Display *display;
   GC xgc;
-  bool bFileRangeButtonSet;
+  bool bFileRangeButtonSet, bSyncFrame;
   void DoToggleFileRangeButton(Widget, XtPointer, XtPointer);
   
   // baggage for fast rubber banding
@@ -220,6 +221,7 @@ private:
     
   static string defaultPaletteString, initialDerived, initialFormatString;
   static string defaultLightingFilename;
+  static int initialMaxMenuItems;
   static int initialScale, initialWindowHeight, initialWindowWidth;
   static int defaultShowBoxes, placementOffsetX, placementOffsetY;
   static int reserveSystemColors;
@@ -378,6 +380,7 @@ void	SubregionPltApp(Widget toplevel, const Box &region, const IntVect &offset,
 			int isanim, const string &derived,
 			const string &filename);
 void	CBQuitPltApp(Widget, XtPointer, XtPointer);
+void	CBQuitAll(Widget, XtPointer, XtPointer);
 void	PrintMessage(char *cpmsg);
 
 #endif

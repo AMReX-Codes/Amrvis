@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.H,v 1.20 2002-12-10 20:12:23 vince Exp $
+// $Id: GlobalUtilities.H,v 1.21 2004-04-16 23:50:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -80,6 +80,8 @@ namespace AVGlobals {
   bool SliceAllVars();
   Array< list<int> > &GetDumpSlices();
   int  GetFabOutFormat();
+  bool GivenInitialPlanes();
+  IntVect GetInitialPlanes();
 
   // -------------------- cartGrid functions
   void SetShowBody(const bool btf);

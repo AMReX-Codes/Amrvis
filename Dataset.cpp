@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.52 2003-12-18 23:32:53 vince Exp $
+// $Id: Dataset.cpp,v 1.53 2004-04-16 23:50:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -259,7 +259,7 @@ Dataset::~Dataset() {
   delete [] dataStringArray;
   if(bDataStringArrayAllocated) {
     BL_ASSERT(maxAllowableLevel == pltAppStatePtr->MaxAllowableLevel());
-    for(int j = 0; j <= maxAllowableLevel; ++j) {
+    for(int j(0); j <= maxAllowableLevel; ++j) {
       delete [] myDataStringArray[j];
     }
     delete [] myDataStringArray;
@@ -274,7 +274,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
 			    int hdir, int vdir, int sdir)
 {
   int lev, i, c, d, stringCount;
-  Box temp, dataBox;
+  Box boxTemp, dataBox;
   Real *dataPoint; 
   
   if(bDataStringArrayAllocated) {
@@ -320,7 +320,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   maxAllowableLevel = pltAppStatePtr->MaxAllowableLevel();
   
   // set up datasetRegion
-  //we shall waste some space to that datasetRegion[lev] corresponds to lev
+  // we shall waste some space so that datasetRegion[lev] corresponds to lev
   datasetRegion = new Box[maxAllowableLevel + 1];
   datasetRegion[maxAllowableLevel] = alignedRegion;
   for(i = maxAllowableLevel - 1; i >= 0; --i) {
@@ -343,7 +343,6 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   int paletteEnd(palptr->PaletteEnd());
   
   char header[BUFSIZ];
-  
   ostrstream outstr(header, sizeof(header));
   outstr << AVGlobals::StripSlashes(pltAppPtr->GetFileName())
          << "  " << pltAppStatePtr->CurrentDerived()
@@ -364,11 +363,11 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
 			   (void *) &(pltAppStatePtr->CurrentDerived()));
 
     for(int iBox(0); iBox < amrData.boxArray(lev).size(); ++iBox) {
-      temp = amrData.boxArray(lev)[iBox];
-      if(datasetRegion[lev].intersects(temp)) {
+      boxTemp = amrData.boxArray(lev)[iBox];
+      if(datasetRegion[lev].intersects(boxTemp)) {
         int ddl;
-        temp &= datasetRegion[lev];
-        dataBox = temp;
+        boxTemp &= datasetRegion[lev];
+        dataBox = boxTemp;
         FArrayBox dataFabTemp(dataBox, 1);
         dataFabTemp.copy(*(dataFab[lev]));
         dataPoint = dataFabTemp.dataPtr();
@@ -384,8 +383,21 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
       }
     }
   }
+
+  // fix for cart grid body
+  bool bCartGrid(dataServicesPtr->AmrDataRef().CartGrid());
+  bool bShowBody(AVGlobals::GetShowBody());
+  const string vfDerived("vfrac");
+  if(bCartGrid && pltAppStatePtr->CurrentDerived() != vfDerived && bShowBody) {
+    largestWidth = max(5, largestWidth);  // for body string
+  }
+
+  bool bIsMF(dataServicesPtr->GetFileType() == MULTIFAB);
+  if(bIsMF) {  // fix level zero data
+    largestWidth = max(8, largestWidth);  // for no data string
+  }
+
   char levelInfo[15], maxInfo[20], minInfo[20], maxInfoV[25], minInfoV[25];
-  
   sprintf(levelInfo, "Level: %i", maxDrawnLevel);
 
   XmString sNewLevel = XmStringCreateSimple(levelInfo);
@@ -413,8 +425,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   }
   numStrings = stringCount;
   dataStringArray = new StringLoc[numStrings];
-  int ns;
-  for(ns = 0; ns < numStrings; ns++) {
+  for(int ns(0); ns < numStrings; ++ns) {
     dataStringArray[ns].olflag = maxDrawnLevel;
   }
   if(dataStringArray == NULL) {
@@ -433,19 +444,19 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
 
   // determine the length of the character labels for the indices
   Real vItemCount((Real) (datasetRegion[maxDrawnLevel].bigEnd(vDIR)));
-  int vIndicesWidth((int) (ceil(log10(vItemCount+1))));
+  int vIndicesWidth((int) (ceil(log10(vItemCount + 1))));
   Real hItemCount((Real) (datasetRegion[maxDrawnLevel].bigEnd(hDIR)));
-  int hIndicesWidth((int) (ceil(log10(hItemCount+1))));
+  int hIndicesWidth((int) (ceil(log10(hItemCount + 1))));
 
   largestWidth = max(largestWidth, hIndicesWidth);  
-  indexWidth = max(MAXINDEXCHARS, vIndicesWidth+1) * CHARACTERWIDTH;
+  indexWidth = max(MAXINDEXCHARS, vIndicesWidth + 1) * CHARACTERWIDTH;
 
   // determine size of data area
   dataItemWidth = largestWidth * CHARACTERWIDTH;
-  pixSizeX = datasetRegion[maxDrawnLevel].length(hDIR) * dataItemWidth
-    + ((maxDrawnLevel-minDrawnLevel+1)*indexWidth);
-  pixSizeY = datasetRegion[maxDrawnLevel].length(vDIR) * CHARACTERHEIGHT
-    + ((maxDrawnLevel-minDrawnLevel+1)*indexHeight);
+  pixSizeX = datasetRegion[maxDrawnLevel].length(hDIR) * dataItemWidth +
+             ((maxDrawnLevel - minDrawnLevel + 1) * indexWidth);
+  pixSizeY = datasetRegion[maxDrawnLevel].length(vDIR) * CHARACTERHEIGHT +
+             ((maxDrawnLevel - minDrawnLevel + 1) * indexHeight);
   
   // create StringLoc array and define color scheme 
   if(pixSizeX == 0 || pixSizeY == 0) {
@@ -476,18 +487,17 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
     } else {
       oneOverGlobalDiff = 1.0 / globalDiff;
     }
-    
-    
+
     for(lev = minDrawnLevel; lev <= maxDrawnLevel; ++lev) {
-      for(int iBox = 0; iBox < amrData.boxArray(lev).size(); ++iBox) {
-        temp = amrData.boxArray(lev)[iBox];
-        if(datasetRegion[lev].intersects(temp)) {
-          temp &= datasetRegion[lev];
-          dataBox = temp;
-          temp.refine(AVGlobals::CRRBetweenLevels(lev, maxDrawnLevel,
+      for(int iBox(0); iBox < amrData.boxArray(lev).size(); ++iBox) {
+        boxTemp = amrData.boxArray(lev)[iBox];
+        if(datasetRegion[lev].intersects(boxTemp)) {
+          boxTemp &= datasetRegion[lev];
+          dataBox = boxTemp;
+          boxTemp.refine(AVGlobals::CRRBetweenLevels(lev, maxDrawnLevel,
 	              amrData.RefRatio()));
-          temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
-          temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
+          boxTemp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
+          boxTemp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
           FArrayBox dataFabTemp(dataBox, 1);
           dataFabTemp.copy(*(dataFab[lev]));
           dataPoint = dataFabTemp.dataPtr();
@@ -509,39 +519,88 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
                   (((dataPoint[c+ddl] - datamin) * oneOverGlobalDiff) * csm1 ); 
                 dataStringArray[stringCount].color += paletteStart;
               }	
-              dataStringArray[stringCount].xloc = (temp.smallEnd(hDIR)
+              dataStringArray[stringCount].xloc = (boxTemp.smallEnd(hDIR)
                                                    + c * crr) * dataItemWidth + 5;
               dataStringArray[stringCount].yloc = pixSizeY-1 -
-                (temp.smallEnd(vDIR) + d * crr) * CHARACTERHEIGHT - 4;
+                (boxTemp.smallEnd(vDIR) + d * crr) * CHARACTERHEIGHT - 4;
 
               for(i = lastLevLow; i < lastLevHigh; ++i) { // remove overlap
                 if(dataStringArray[i].xloc == dataStringArray[stringCount].xloc &&
                    dataStringArray[i].yloc == dataStringArray[stringCount].yloc)
-                  {
-                    dataStringArray[i].olflag = lev - 1; 
-                    // highest level at which visible
-                  }
+                {
+                  dataStringArray[i].olflag = lev - 1; 
+                  // highest level at which visible
+                }
               }	
               
               strcpy(dataStringArray[stringCount].ds, dataString);
               dataStringArray[stringCount].dslen = strlen(dataString);
               
+              if(bIsMF && lev == 0) {  // fix level zero data
+                strcpy(dataStringArray[stringCount].ds, "no data");
+                dataStringArray[stringCount].dslen = strlen("no data");
+                dataStringArray[stringCount].color = palptr->WhiteIndex();
+              }
+
               ++stringCount;
               
             }  // end for(c...)
           }  // end for(d...)
           
-        }  // end if(datasetRegion[lev].intersects(temp))
+        }  // end if(datasetRegion[lev].intersects(boxTemp))
       }
       lastLevLow = lastLevHigh;
       lastLevHigh = stringCount; 
     }
-    
-    
   }  // end if(pixSizeX...)
   
-  //now load into **StringLoc
-  
+
+  // fix for cart grid body
+  if(bCartGrid && pltAppStatePtr->CurrentDerived() != vfDerived && bShowBody) {
+    int stringCountCG(0);
+    for(int lev(minDrawnLevel); lev <= maxDrawnLevel; ++lev) {
+      FArrayBox cgDataFab(datasetRegion[lev], 1);
+      Real vfeps = dataServicesPtr->AmrDataRef().VfEps(lev);
+      DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
+                             (void *) &cgDataFab,
+			     (void *) &(cgDataFab.box()),
+                             lev,
+			     (void *) &vfDerived);
+
+      int crr = AVGlobals::CRRBetweenLevels(lev, maxDrawnLevel,
+	                                    amrData.RefRatio());
+      for(int iBox(0); iBox < amrData.boxArray(lev).size(); ++iBox) {
+        Box boxTemp = amrData.boxArray(lev)[iBox];
+        if(datasetRegion[lev].intersects(boxTemp)) {
+          boxTemp &= datasetRegion[lev];
+          Box dataBox(boxTemp);
+          boxTemp.refine(crr);
+          boxTemp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
+          boxTemp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
+          FArrayBox cgDataFabTemp(dataBox, 1);
+          cgDataFabTemp.copy(cgDataFab);
+          Real *dataPoint = cgDataFabTemp.dataPtr();
+          
+          for(int d(0); d < dataBox.length(vDIR); ++d) {
+            int ddl(d * dataBox.length(hDIR));
+            for(int c(0); c < dataBox.length(hDIR); ++c) {
+	      if(dataPoint[c+ddl] < vfeps) {
+                dataStringArray[stringCountCG].color = palptr->WhiteIndex();
+                strcpy(dataStringArray[stringCountCG].ds, "body");
+                dataStringArray[stringCountCG].dslen = strlen("body");
+	      }
+              
+              ++stringCountCG;
+              
+            }  // end for(c...)
+          }  // end for(d...)
+          
+        }  // end if(datasetRegion[lev].intersects(boxTemp))
+      }
+    }
+  }
+
+  // now load into **StringLoc
   int sCount(0);
   for(lev = minDrawnLevel; lev <= maxDrawnLevel; ++lev) {
     for(stringCount = 0; stringCount < myStringCount[lev]; ++stringCount) {
@@ -549,8 +608,8 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
       ++sCount;
     }
   }
-  
-  
+
+
   XSetWindowColormap(gaPtr->PDisplay(), XtWindow(wDatasetTopLevel),
                      pltAppPtr->GetPalettePtr()->GetColormap());
   XSetWindowColormap(gaPtr->PDisplay(), XtWindow(wPixArea),
@@ -579,7 +638,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
 						           amrData.RefRatio()));
       int boxSize(((int) (ceil(dBoxSize)-dBoxSize >= 0.5 ?
                      floor(dBoxSize): ceil(dBoxSize))));
-      int vStartPos((int) (fmod(double(datasetRegion[maxDrawnLevel].bigEnd(vDIR) + 1),
+      int vStartPos((int) (fmod(double(datasetRegion[maxDrawnLevel].bigEnd(vDIR)+1),
 				double(boxSize))));
       vStartPos = (vStartPos != 0 ? vStartPos - boxSize:vStartPos);
       // fill the box index arrays 
@@ -611,8 +670,8 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
         strcpy(vIndexArray[level][d].ds, dataString);
         vIndexArray[level][d].dslen = strlen(dataString);
         vIndexArray[level][d].olflag = false;
-      }  // end for(d...)
-  }  //end for(int level = minDrawnLevel...)
+      }
+  }
   
   for(i = 0; i < dataFab.size(); ++i) {
     delete dataFab[i];
@@ -1003,13 +1062,13 @@ void Dataset::DrawIndices() {
     const AmrData &amrData = dataServicesPtr->AmrDataRef();
 
     for(int level = minDrawnLevel; level<= maxDrawnLevel; ++level) {
-       Box temp(datasetRegion[level]);
+       Box boxTemp(datasetRegion[level]);
        int count(level - minDrawnLevel);
 
-       temp.refine(AVGlobals::CRRBetweenLevels(level, maxDrawnLevel,
+       boxTemp.refine(AVGlobals::CRRBetweenLevels(level, maxDrawnLevel,
                    amrData.RefRatio()));
-       temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
-       temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR));
+       boxTemp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
+       boxTemp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR));
 
        double dBoxSize((double) AVGlobals::CRRBetweenLevels(level, maxDrawnLevel,
 						            amrData.RefRatio()));
@@ -1017,7 +1076,7 @@ void Dataset::DrawIndices() {
                       (int) floor(dBoxSize): (int) ceil(dBoxSize)));
 
        // draw the horizontal box index grid -- on top of the white background.
-       DrawGrid(temp.smallEnd(hDIR) * dataItemWidth, 
+       DrawGrid(boxTemp.smallEnd(hDIR) * dataItemWidth, 
                 hIndexAreaStart-(count*hIndexAreaHeight)-1,
                 vIndexAreaStart-(count*vIndexAreaWidth), 
                 hIndexAreaEnd-(count*hIndexAreaHeight),

@@ -1,5 +1,5 @@
-PRECISION = FLOAT
 PRECISION = DOUBLE
+PRECISION = FLOAT
 PROFILE   = TRUE
 PROFILE   = FALSE
 
@@ -7,6 +7,7 @@ PROFILE   = FALSE
 COMP      = mpKCC
 
 COMP      = KCC
+COMP      = Intel
 COMP      = g++
 FCOMP	  = Intel
 FCOMP     =

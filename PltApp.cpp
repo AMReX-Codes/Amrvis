@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.121 2003-12-18 23:32:53 vince Exp $
+// $Id: PltApp.cpp,v 1.122 2004-04-16 23:50:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -203,7 +203,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   pltAppState->SetCurrentScale(currentScale);
   pltAppState->SetMaxScale(maxAllowableScale);
 
-// ---------------
   pltAppState->SetMinMaxRangeType(GLOBALMINMAX);
   Real rGlobalMin, rGlobalMax;
   rGlobalMin =  AV_BIG_REAL;
@@ -260,7 +259,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 			     specifiedMin, specifiedMax);
     }
   }
-// ---------------
 
 
   amrPicturePtrArray[ZPLANE] = new AmrPicture(gaPtr, this, pltAppState,
@@ -435,7 +433,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   }
   
 #if (BL_SPACEDIM == 3)
-  for(int i(0); i < 3; ++i) {
+  for(int i(0); i < BL_SPACEDIM; ++i) {
    amrPicturePtrArray[i]->SetHVLine(pltAppState->CurrentScale());
   }
 #endif
@@ -461,12 +459,13 @@ void PltApp::PltAppInit(bool bSubVolume) {
   for(np = 0; np != BL_SPACEDIM; ++np) {
     XYplotwin[np] = NULL; // No 1D plot windows initially.
 
-    // For speed (and clarity!) we store the values of the finest value of h of
+    // For speed (and clarity) we store the values of the finest value of h of
     // each dimension, as well as the low value of the problem domain in simple
     // arrays.  These are both in problem space.
     finestDx[np] = amrData.DxLevel()[maxAllowableLevel][np];
     gridOffset[np] = amrData.ProbLo()[np];
   }
+  bSyncFrame = false;
 
   placementOffsetX += 20;
   placementOffsetY += 20;
@@ -495,7 +494,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
     amrPicturePtrArray[np]->SetRegion(startX, startY, endX, endY);
   }
 
-  char tempFormat[32];
+  char tempFormat[128];
   strcpy(tempFormat, PltApp::initialFormatString.c_str());
   XmString sFormatString = XmStringCreateSimple(tempFormat);
   char *tempchar = new char[LINELENGTH];
@@ -582,6 +581,18 @@ void PltApp::PltAppInit(bool bSubVolume) {
 				wCascade, XmNmnemonic, 'F', NULL);
   AddStaticCallback(wid, XmNactivateCallback, &PltApp::DoOutput, (XtPointer) 2);
 
+  // Quit
+  XtVaCreateManagedWidget(NULL, xmSeparatorGadgetClass, wMenuPulldown, NULL);
+  label_str = XmStringCreateSimple("Ctrl+Q");
+  wid = XtVaCreateManagedWidget("Quit", xmPushButtonGadgetClass, wMenuPulldown,
+				XmNmnemonic,  'Q',
+				XmNaccelerator, "Ctrl<Key>Q",
+				XmNacceleratorText, label_str,
+				NULL);
+  XmStringFree(label_str);
+  XtAddCallback(wid, XmNactivateCallback, (XtCallbackProc) CBQuitAll,
+		(XtPointer) this);
+  
   // Close
   XtVaCreateManagedWidget(NULL, xmSeparatorGadgetClass, wMenuPulldown, NULL);
   label_str = XmStringCreateSimple("Ctrl+C");
@@ -732,7 +743,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   AddStaticCallback(wid, XmNvalueChangedCallback, &PltApp::DoBoxesButton);
 
   // ------------------------------- derived menu
-  int maxMenuItems(20);  // arbitrarily
+  int maxMenuItems(initialMaxMenuItems);  // arbitrarily
   int numberOfDerived(dataServicesPtr[currentFrame]->NumDeriveFunc());
   const Array<string> &derivedStrings =
 	     dataServicesPtr[currentFrame]->PlotVarNames();
@@ -744,7 +755,6 @@ void PltApp::PltAppInit(bool bSubVolume) {
 		((numberOfDerived % maxMenuItems == 0) ? 0 : 1), NULL);
   XtVaCreateManagedWidget("Variable", xmCascadeButtonWidgetClass, wMenuBar,
 			  XmNmnemonic, 'a', XmNsubMenuId,   wMenuPulldown, NULL);
-  //unsigned long cderived(0);
   wCurrDerived = XtVaCreateManagedWidget(derivedStrings[0].c_str(),
 					 xmToggleButtonGadgetClass, wMenuPulldown,
 					 XmNset, true, NULL);
@@ -758,7 +768,6 @@ void PltApp::PltAppInit(bool bSubVolume) {
       XtVaSetValues(wCurrDerived, XmNset, false, NULL);
       XtVaSetValues(wid, XmNset, true, NULL);
       wCurrDerived = wid;
-      //cderived = derived;
     }
     AddStaticCallback(wid, XmNvalueChangedCallback, &PltApp::ChangeDerived,
 		      (XtPointer) derived);
@@ -956,7 +965,6 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			      XmNx, centerX-halfbutton,
 			      XmCMarginBottom, 2,
 			      NULL);
-    //XtManageChild(wControls[WCASTOP]);
     
     wControls[WCATNEG] =
       XtVaCreateManagedWidget("wcatneg", xmArrowButtonWidgetClass, wControlForm,
@@ -1001,7 +1009,6 @@ void PltApp::PltAppInit(bool bSubVolume) {
     }
     AddStaticCallback(wControls[WCARGB], XmNactivateCallback, &PltApp::ChangePlane,
 		      (XtPointer) WCARGB);
-    //XtManageChild(wControls[WCARGB]);
 
     wWhichFileScale =
       XtVaCreateManagedWidget("whichFileScale", xmScaleWidgetClass, wControlForm,
@@ -1653,7 +1660,8 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   }
   if(AVGlobals::Verbose()) {
     cout << "_in PltApp::ChangeDerived" << endl;
-    pltAppState->PrintSetMap();  cout << endl;
+    pltAppState->PrintSetMap();
+    cout << endl;
   }
 
 
@@ -2507,9 +2515,6 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   int isrw, iwidw, itotalwidth, maxwidth(600);
   XtVaGetValues(wSetRangeRadioBox, XmNwidth, &isrw, NULL);
   XtVaGetValues(wid, XmNwidth, &iwidw, NULL);
-  //cout << "============ _here 00:" << endl;
-  //cout << "iw.. = " << isrw + (2 * iwidw) + 10 << endl;
-  //cout << "isrw = " << isrw << "  iwidw = " << iwidw << endl;
   itotalwidth = min(isrw + (2 * iwidw) + 10, maxwidth);
   XtVaSetValues(wSetRangeTopLevel, XmNwidth, itotalwidth, NULL);
 }
@@ -2969,8 +2974,9 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 	    gridOffset[dir2]);
 #endif	    
   }
-  XYPlotDataList *newlist = new XYPlotDataList(*derived, mal, ix,
-				     amrData.RefRatio(),
+  XYPlotDataList *newlist = new XYPlotDataList(*derived,
+                                     pltAppState->MinDrawnLevel(), mal,
+				     ix, amrData.RefRatio(),
 		                     XdX, intersectStr, gridOffset[sdir]);
   bool lineOK;
   DataServices::Dispatch(DataServices::LineValuesRequest,
@@ -3012,6 +3018,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
   int rootX, rootY;
   unsigned int inputMask;
   Window whichRoot, whichChild;
+  bool bShiftDown(cbs->event->xbutton.state & ShiftMask);
+  bool bControlDown(cbs->event->xbutton.state & ControlMask);
 #if (BL_SPACEDIM == 3)
   int x1, y1, z1, x2, y2, z2, rStartPlane;
   for(int np = 0; np != BL_SPACEDIM; ++np) {
@@ -3024,13 +3032,19 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
     ResetAnimation();
   }
 
-  XSetForeground(display, rbgc, 120);
+  XSetForeground(display, rbgc, pltPaletteptr->makePixel(120));
   XChangeActivePointerGrab(display, PointerMotionHintMask |
 			   ButtonMotionMask | ButtonReleaseMask |
 			   OwnerGrabButtonMask, cursor, CurrentTime);
   AVXGrab avxGrab(display);
 
   if(servingButton == 1) {
+    if(bShiftDown) {
+      oldX = 0;
+    }
+    if(bControlDown) {
+      oldY = 0;
+    }
     int rectDrawn(false);
     int anchorX(oldX);
     int anchorY(oldY);
@@ -3095,6 +3109,12 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 		      &whichRoot, &whichChild,
 		      &rootX, &rootY, &newX, &newY, &inputMask);
 	
+        if(bShiftDown) {
+	  newX = imageWidth;
+	}
+        if(bControlDown) {
+	  newY = imageHeight;
+	}
 	newX = max(0, min(imageWidth,  newX));
 	newY = max(0, min(imageHeight, newY));
 	rWidth  = abs(newX-anchorX);   // draw the new rectangle
@@ -3193,6 +3213,15 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	startY = (max(0, min(imageHeight, anchorY))) / scale;
 	endX   = (max(0, min(imageWidth,  nextEvent.xbutton.x))) / scale;
 	endY   = (max(0, min(imageHeight, nextEvent.xbutton.y))) / scale;
+
+	if(bShiftDown) {
+	  startX = 0;
+	  endX   = imageWidth  / scale;
+	}
+	if(bControlDown) {
+	  startY = 0;
+	  endY   = imageHeight / scale;
+	}
 	
 	// make "aligned" box with correct size, converted to AMR space.
 	selectionBox.setSmall(XDIR, min(startX, endX));
@@ -3268,7 +3297,10 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  string dataValueString(dataValueCharString);
 
 	  const string vfDerived("vfrac");
-	  if(amrData.CartGrid() && pltAppState->CurrentDerived() != vfDerived) {
+	  bool bShowBody(AVGlobals::GetShowBody());
+	  if(amrData.CartGrid() && pltAppState->CurrentDerived() != vfDerived &&
+	     bShowBody)
+	  {
 	    DataServices::Dispatch(DataServices::PointValueRequest,
 				   dataServicesPtr[currentFrame],
 				   trueRegion.size(),
@@ -3281,6 +3313,10 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	    if(dataValue < vfeps) {
 	      dataValueString = "body";
 	    }
+	  }
+	  bool bIsMF(dataServicesPtr[currentFrame]->GetFileType() == MULTIFAB);
+	  if(bIsMF && intersectedLevel == 0) {
+	    dataValueString = "no data";
 	  }
 
 	  ostrstream buffout(buffer, BUFSIZ);
@@ -3325,6 +3361,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	    startY = imageHeight - selectionBox.smallEnd(YDIR) * scale;
 	    endY   = imageHeight - selectionBox.bigEnd(YDIR)   * scale;
 	  }
+	
 	  int nodeAdjustment = (scale - 1) * selectionBox.type()[YDIR];
 	  startY -= nodeAdjustment;
 	  endY   -= nodeAdjustment;
@@ -3705,6 +3742,7 @@ void PltApp::DoExposePalette(Widget, XtPointer, XtPointer) {
 // -------------------------------------------------------------------
 void PltApp::PADoExposePicture(Widget w, XtPointer client_data, XtPointer) {
   unsigned long np = (unsigned long) client_data;
+//cout << "==%%%%%%%%%%%%=== _in PADoExposePicture:  currentFrame = " << currentFrame << endl;
   
   amrPicturePtrArray[np]->DoExposePicture();
   // draw bounding box
@@ -3938,39 +3976,42 @@ void PltApp::ChangePlane(Widget, XtPointer data, XtPointer cbs) {
 
   if(which == WCASTOP) {
     writingRGB = false;
+    bSyncFrame = true;
+    pltAppState->SetCurrentFrame(currentFrame);
     StopAnimation();
     return;
   }
   
   XmPushButtonCallbackStruct *cbstr = (XmPushButtonCallbackStruct *) cbs;
-  if(cbstr->click_count > 1) {
+  bool bShiftDown(cbstr->event->xbutton.state & ShiftMask);
+  if(cbstr->click_count > 1 || bShiftDown) {
     switch(which) {
 #if (BL_SPACEDIM == 3)
-    case WCXNEG: amrPicturePtrArray[XPLANE]->Sweep(ANIMNEGDIR); return;
-    case WCXPOS: amrPicturePtrArray[XPLANE]->Sweep(ANIMPOSDIR); return;
-    case WCYNEG: amrPicturePtrArray[YPLANE]->Sweep(ANIMNEGDIR); return;
-    case WCYPOS: amrPicturePtrArray[YPLANE]->Sweep(ANIMPOSDIR); return;
-    case WCZNEG: amrPicturePtrArray[ZPLANE]->Sweep(ANIMNEGDIR); return;
-    case WCZPOS: amrPicturePtrArray[ZPLANE]->Sweep(ANIMPOSDIR); return;
+      case WCXNEG: amrPicturePtrArray[XPLANE]->Sweep(ANIMNEGDIR); return;
+      case WCXPOS: amrPicturePtrArray[XPLANE]->Sweep(ANIMPOSDIR); return;
+      case WCYNEG: amrPicturePtrArray[YPLANE]->Sweep(ANIMNEGDIR); return;
+      case WCYPOS: amrPicturePtrArray[YPLANE]->Sweep(ANIMPOSDIR); return;
+      case WCZNEG: amrPicturePtrArray[ZPLANE]->Sweep(ANIMNEGDIR); return;
+      case WCZPOS: amrPicturePtrArray[ZPLANE]->Sweep(ANIMPOSDIR); return;
 #endif
-    case WCATNEG: Animate(ANIMNEGDIR); return;
-    case WCATPOS: Animate(ANIMPOSDIR); return;
-    case WCARGB: writingRGB = true; Animate(ANIMPOSDIR); return;
-    default: return;
+      case WCATNEG: Animate(ANIMNEGDIR); return;
+      case WCATPOS: Animate(ANIMPOSDIR); return;
+      case WCARGB: writingRGB = true; Animate(ANIMPOSDIR); return;
+      default: return;
     }
   }
-  switch (which) {
+  switch(which) {
 #if (BL_SPACEDIM == 3)
-  case WCXNEG: DoBackStep(XPLANE);    return;
-  case WCXPOS: DoForwardStep(XPLANE); return;
-  case WCYNEG: DoBackStep(YPLANE);    return;
-  case WCYPOS: DoForwardStep(YPLANE); return;
-  case WCZNEG: DoBackStep(ZPLANE);    return;
-  case WCZPOS: DoForwardStep(ZPLANE); return;
+    case WCXNEG: DoBackStep(XPLANE);    return;
+    case WCXPOS: DoForwardStep(XPLANE); return;
+    case WCYNEG: DoBackStep(YPLANE);    return;
+    case WCYPOS: DoForwardStep(YPLANE); return;
+    case WCZNEG: DoBackStep(ZPLANE);    return;
+    case WCZPOS: DoForwardStep(ZPLANE); return;
 #endif
-  case WCATNEG: DoAnimBackStep();     return;
-  case WCATPOS: DoAnimForwardStep();  return;
-  case WCARGB: writingRGB = true; DoAnimForwardStep(); return;
+    case WCATNEG: DoAnimBackStep();     return;
+    case WCATPOS: DoAnimForwardStep();  return;
+    case WCARGB: writingRGB = true; DoAnimForwardStep(); return;
   }
 }
 
@@ -4015,7 +4056,7 @@ void PltApp::DoAnimFileScale(Widget, XtPointer, XtPointer cbs) {
 void PltApp::ResetAnimation() {
   StopAnimation();
   if( ! interfaceReady) {
-#   if(BL_SPACEDIM == 2)
+#if(BL_SPACEDIM == 2)
     int maLev(pltAppState->MaxAllowableLevel());
     AmrPicture *Tempap = amrPicturePtrArray[ZPLANE];
     XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
@@ -4043,7 +4084,7 @@ void PltApp::ResetAnimation() {
     AddStaticEventHandler(wPlotPlane[ZPLANE], ExposureMask,
 			  &PltApp::PADoExposePicture, (XtPointer) ZPLANE);
     interfaceReady = true;
-#   endif
+#endif
   }
 }
 
@@ -4118,10 +4159,10 @@ void PltApp::DoUpdateFrame(Widget, XtPointer, XtPointer) {
 void PltApp::ShowFrame() {
   interfaceReady = false;
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
-  if( ! readyFrames[currentFrame] || datasetShowing ||
+  if( ! readyFrames[currentFrame] || datasetShowing || bSyncFrame ||
       UsingFileRange(currentRangeType))
   {
-#   if(BL_SPACEDIM == 2)
+#if (BL_SPACEDIM == 2)
     AmrPicture *tempapSF = amrPicturePtrArray[ZPLANE];
     Array<Box> domain = amrPicturePtrArray[ZPLANE]->GetSubDomain();
     XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
@@ -4144,9 +4185,10 @@ void PltApp::ShowFrame() {
     AddStaticEventHandler(wPlotPlane[ZPLANE], ExposureMask,
 			  &PltApp::PADoExposePicture, (XtPointer) ZPLANE);
     frameBuffer[currentFrame] = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
-#   endif
+#endif
     readyFrames[currentFrame] = true;
     paletteDrawn = ! UsingFileRange(currentRangeType);
+    bSyncFrame = false;
   }
   
   XPutImage(display, XtWindow(wPlotPlane[ZPLANE]), xgc,
@@ -4260,6 +4302,7 @@ void PltApp::StaticTimeOut(XtPointer client_data, XtIntervalId * call_data) {
 
 // -------------------------------------------------------------------
 int  PltApp::initialScale;
+int  PltApp::initialMaxMenuItems = 20;
 int  PltApp::defaultShowBoxes;
 int  PltApp::initialWindowHeight;
 int  PltApp::initialWindowWidth;
@@ -4287,6 +4330,10 @@ void PltApp::SetDefaultLightingFile(const string &lightFileString) {
 
 void PltApp::SetInitialDerived(const string &initialderived) {
   PltApp::initialDerived = initialderived;
+}
+
+void PltApp::SetInitialMaxMenuItems(int initMaxMenuItems) {
+  PltApp::initialMaxMenuItems = initMaxMenuItems;
 }
 
 void PltApp::SetInitialScale(int initScale) {

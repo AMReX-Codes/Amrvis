@@ -1,8 +1,10 @@
 palette               Pal8.new
 palette               Palette
-initialderived        tracer
 initialderived        temp
+initialderived        vfrac
+initialderived        density
 initialscale          4
+initialscale          2
 initialscale          1
 numberformat          %8.5f
 numberformat          %8.5e
@@ -13,10 +15,13 @@ maxpixmapsize         1000000
 reservesystemcolors   38
 reservesystemcolors   24
 reservesystemcolors   34
+reservesystemcolors   0
 showboxes             FALSE
 showboxes             TRUE
 windowheight          550
 windowwidth           800
+windowheight          750
+windowwidth           900
 filetype              newplt
 lowblack
 cliptoppalette

@@ -30,6 +30,8 @@
 #include "PltApp.H"
 #include "PltAppState.H"
 #include "GraphicsAttributes.H"
+#include "AmrData.H"
+#include "DataServices.H"
 
 #include <iostream>
 #include <iomanip>
@@ -41,6 +43,7 @@ using std::min;
 using std::max;
 
 #define MARK (fprintf(stderr, "Mark at file %s, line %d.\n", __FILE__, __LINE__))
+#define nlog10(x)      (x == 0.0 ? 0.0 : log10(x) + 1e-15)
 
 // Hack fix for compiler bug for window manager calls
 #ifndef FALSE
@@ -141,18 +144,17 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
   wOptionsDialog = None;
 
   // Standard flags.
-  zoomedInQ = 0;
+  zoomedInQ = false;
   saveDefaultQ = 0;
-  animatingQ = 0;
+  animatingQ = false;
 #if (BL_SPACEDIM == 2)
   currFrame = 0;
 #endif
 
   // Create empty dataset list.
-  legendHead = legendTail = NULL;
   numDrawnItems = 0;
   numItems = 0;
-  setBoundingBox();
+  SetBoundingBox();
 
   iCurrHint = 1;
   
@@ -349,7 +351,6 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
   XtPopup(wXYPlotTopLevel, XtGrabNone);
   pWindow = XtWindow(wPlotWin);
   SetPalette();
-  //cout << "_here 400" << endl;
   gaPtr = new GraphicsAttributes(wXYPlotTopLevel);
   disp = gaPtr->PDisplay();
   vis  = gaPtr->PVisual();
@@ -460,24 +461,42 @@ void XYPlotWin::InitializeAnimation(int curr_frame, int num_frames) {
   if(animatingQ) {
     return;
   }
+  PltAppState *pas = pltParent->GetPltAppState();
+  Real gmin(DBL_MAX), gmax(-DBL_MAX), fmin, fmax;
   animatingQ = true;
   currFrame = curr_frame;
   numFrames = num_frames;
-  for(XYPlotLegendItem *ptr = legendHead; ptr; ptr = ptr->next) {
-    if(ptr->XYPLIlist->copied_from != NULL) {
-      XYPlotDataList *tempList = ptr->XYPLIlist;
-      ptr->XYPLIlist = pltParent->CreateLinePlot(ZPLANE, whichType,
-					    ptr->XYPLIlist->maxLevel,
-					    ptr->XYPLIlist->gridline,
-					    &ptr->XYPLIlist->derived);
+  for(list<XYPlotLegendItem *>::iterator ptr = legendList.begin();
+      ptr != legendList.end(); ++ptr)
+  {
+    if((*ptr)->XYPLIlist->CopiedFrom() != NULL) {
+      XYPlotDataList *tempList = (*ptr)->XYPLIlist;
+      (*ptr)->XYPLIlist = pltParent->CreateLinePlot(ZPLANE, whichType,
+					    (*ptr)->XYPLIlist->MaxLevel(),
+					    (*ptr)->XYPLIlist->Gridline(),
+					    &((*ptr)->XYPLIlist->DerivedName()));
       delete tempList;
     }
-    ptr->anim_lists = new Array<XYPlotDataList *>(numFrames);
-    ptr->ready_list = new Array<char>(numFrames, 0);
+    (*ptr)->anim_lists = new Array<XYPlotDataList *>(numFrames);
+    (*ptr)->ready_list = new Array<char>(numFrames, 0);
+
+// =================
+    string sDerName = (*ptr)->XYPLIlist->DerivedName();
+    const AmrData &amrData = pltParent->GetDataServicesPtr()->AmrDataRef();
+    int snum = amrData.StateNumber(sDerName);
+    MinMaxRangeType mmrt = pas->GetMinMaxRangeType();
+    for(int iframe(0); iframe < numFrames; ++iframe) {
+      pas->GetMinMax(mmrt, iframe, snum, fmin, fmax);
+      gmin = min(gmin, fmin);
+      gmax = max(gmax, fmax);
+    }
+// =================
   }
-  pltParent->GetPltAppState()->GetMinMax((Real &) lloY, (Real &) hhiY);
-  if( ! zoomedInQ) {
-    setBoundingBox();
+
+  lloY = gmin;
+  hhiY = gmax;
+  if(zoomedInQ == false) {
+    SetBoundingBox();
     CBdoRedrawPlot(None, NULL, NULL);
   }
 }
@@ -487,34 +506,36 @@ void XYPlotWin::InitializeAnimation(int curr_frame, int num_frames) {
 void XYPlotWin::UpdateFrame(int frame) {
   XYPlotDataList *tempList;
   int num_lists_changed(0);
-  if( ! animatingQ && ! zoomedInQ) {
+  if( ! animatingQ && zoomedInQ == false) {
     lloY =  DBL_MAX;
     hhiY = -DBL_MAX;
   }
-  for(XYPlotLegendItem *ptr = legendHead; ptr; ptr = ptr->next) {
-    if(ptr->drawQ) {
+  for(list<XYPlotLegendItem *>::iterator ptr = legendList.begin();
+      ptr != legendList.end(); ++ptr)
+  {
+    if((*ptr)->drawQ == true) {
       ++num_lists_changed;
     }
     if(animatingQ) {
-      (*ptr->anim_lists)[currFrame] = ptr->XYPLIlist;
-      (*ptr->ready_list)[currFrame] = 1;
-      if((*ptr->ready_list)[frame]) {
-	ptr->XYPLIlist = (*ptr->anim_lists)[frame];
+      (*(*ptr)->anim_lists)[currFrame] = (*ptr)->XYPLIlist;
+      (*(*ptr)->ready_list)[currFrame] = 1;
+      if((*(*ptr)->ready_list)[frame]) {
+	(*ptr)->XYPLIlist = (*(*ptr)->anim_lists)[frame];
 	continue;
       }
     } else {
-      tempList = ptr->XYPLIlist;
+      tempList = (*ptr)->XYPLIlist;
     }
     
-    int level(ptr->XYPLIlist->curLevel);
-    ptr->XYPLIlist = pltParent->CreateLinePlot(ZPLANE, whichType,
-				          ptr->XYPLIlist->maxLevel,
-				          ptr->XYPLIlist->gridline,
-				          &ptr->XYPLIlist->derived);
-    ptr->XYPLIlist->SetLevel(level);
-    ptr->XYPLIlist->UpdateStats();
-    if(ptr->XYPLIlist->numPoints > numXsegs) {
-      numXsegs = ptr->XYPLIlist->numPoints + 5;
+    int level((*ptr)->XYPLIlist->CurLevel());
+    (*ptr)->XYPLIlist = pltParent->CreateLinePlot(ZPLANE, whichType,
+				          (*ptr)->XYPLIlist->MaxLevel(),
+				          (*ptr)->XYPLIlist->Gridline(),
+				          &(*ptr)->XYPLIlist->DerivedName());
+    (*ptr)->XYPLIlist->SetLevel(level);
+    (*ptr)->XYPLIlist->UpdateStats();
+    if((*ptr)->XYPLIlist->NumPoints() > numXsegs) {
+      numXsegs = (*ptr)->XYPLIlist->NumPoints() + 5;
       delete [] Xsegs[0];
       Xsegs[0] = new XSegment[numXsegs];
       delete [] Xsegs[1];
@@ -522,8 +543,8 @@ void XYPlotWin::UpdateFrame(int frame) {
     }
     if( ! animatingQ) {
       delete tempList;
-      if( ! zoomedInQ && ptr->drawQ) {
-        updateBoundingBox(ptr->XYPLIlist);
+      if(zoomedInQ == false && (*ptr)->drawQ == true) {
+        UpdateBoundingBox((*ptr)->XYPLIlist);
       }
     }
   }
@@ -533,10 +554,11 @@ void XYPlotWin::UpdateFrame(int frame) {
   }
   if(animatingQ) {
     clearData();
+    drawGridAndAxis();
     drawData();
   } else {
-    if( ! zoomedInQ) {
-      setBoundingBox();
+    if(zoomedInQ == false) {
+      SetBoundingBox();
     }
     CBdoRedrawPlot(None, NULL, NULL);
   }
@@ -545,26 +567,34 @@ void XYPlotWin::UpdateFrame(int frame) {
 
 // -------------------------------------------------------------------
 void XYPlotWin::StopAnimation(void) {
-  if(!animatingQ) return;
+  if( ! animatingQ) {
+    return;
+  }
   animatingQ = false;
-  for(XYPlotLegendItem *ptr = legendHead; ptr; ptr = ptr->next) {
-    for(int ii = 0; ii != numFrames; ++ii) {
-      if((*ptr->ready_list)[ii] && (*ptr->anim_lists)[ii] != ptr->XYPLIlist) {
-	delete (*ptr->anim_lists)[ii];
+  for(list<XYPlotLegendItem *>::iterator ptr = legendList.begin();
+      ptr != legendList.end(); ++ptr)
+  {
+    for(int ii(0); ii != numFrames; ++ii) {
+      if((*(*ptr)->ready_list)[ii] &&
+         (*(*ptr)->anim_lists)[ii] != (*ptr)->XYPLIlist)
+      {
+	delete (*(*ptr)->anim_lists)[ii];
       }
     }
-    delete ptr->ready_list;
-    delete ptr->anim_lists;
+    delete (*ptr)->ready_list;
+    delete (*ptr)->anim_lists;
   }
   lloY =  DBL_MAX;
   hhiY = -DBL_MAX;
-  for(XYPlotLegendItem *ptr = legendHead; ptr; ptr = ptr->next) {
-    if(ptr->drawQ) {
-      updateBoundingBox(ptr->XYPLIlist);
+  for(list<XYPlotLegendItem *>::iterator ptr = legendList.begin();
+      ptr != legendList.end(); ++ptr)
+  {
+    if((*ptr)->drawQ == true) {
+      UpdateBoundingBox((*ptr)->XYPLIlist);
     }
   }
-  if( ! zoomedInQ) {
-    setBoundingBox();
+  if(zoomedInQ == false) {
+    SetBoundingBox();
     CBdoRedrawPlot(None, NULL, NULL);
   }
 }
@@ -572,6 +602,7 @@ void XYPlotWin::StopAnimation(void) {
 
 
 
+// -------------------------------------------------------------------
 #define TRANX(xval) (((double) ((xval) - iXOrgX)) * dXUnitsPerPixel + dUsrOrgX)
 #define TRANY(yval) (dUsrOppY - (((double) ((yval) - iXOrgY)) * dYUnitsPerPixel))
 #define SCREENX(userX) \
@@ -581,13 +612,16 @@ void XYPlotWin::StopAnimation(void) {
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::setBoundingBox(double lowX,  double lowY,
-			       double highX, double highY)
+void XYPlotWin::SetBoundingBox(double lowXIn,  double lowYIn,
+			       double highXIn, double highYIn)
 {
+  //cout << "?????????????? >>>>>> _in XYPlotWin::SetBoundingBox" << endl;
+  //cout << "lowXIn lowYIn highXIn highYIn = " << lowXIn << "  " << lowYIn << "  " << highXIn << "  " << highYIn << endl;
+  //cout << "lloX lloY hhiX hhiY = " << lloX << "  " << lloY << "  " << hhiX << "  " << hhiY << endl;
   double pad;
-  if(highX > lowX) {
-    loX = lowX;
-    hiX = highX;
+  if(highXIn > lowXIn) {
+    loX = lowXIn;
+    hiX = highXIn;
   } else {
     if(numDrawnItems == 0) {
       loX = -1.0;
@@ -603,9 +637,9 @@ void XYPlotWin::setBoundingBox(double lowX,  double lowY,
     loX = lloX;
     hiX = hhiX;
   }
-  if(highY > lowY) {
-    loY = lowY;
-    hiY = highY;
+  if(highYIn > lowYIn) {
+    loY = lowYIn;
+    hiY = highYIn;
   } else {
     loY = lloY;
     hiY = hhiY;
@@ -623,7 +657,7 @@ void XYPlotWin::setBoundingBox(double lowX,  double lowY,
     loY -= pad;
   }
 
-  if( ! zoomedInQ) {
+  if(zoomedInQ == false) {
     // Add 10% padding to bounding box
     pad = (hiX - loX) * 0.05;
     loX -= pad;
@@ -632,6 +666,8 @@ void XYPlotWin::setBoundingBox(double lowX,  double lowY,
     loY -= pad;
     hiY += pad;
   }
+  //cout << "loX loY hiX hiY = " << loX << "  " << loY << "  " << hiX << "  " << hiY << endl;
+  //cout << "?????????????? <<<<<< _out XYPlotWin::SetBoundingBox" << endl;
 }
 
 
@@ -737,10 +773,6 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
     ;  // do nothing
   }
 
-//j = 254;
-//cout << "_here 00:  j = " << j << endl;
-//j = 4;
-
   XYPlotLegendItem *new_item = new XYPlotLegendItem;
 
   new_item->XYPLIlist = new_list;
@@ -771,9 +803,9 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
   pltParent->GetPalettePtr()->SetWindowPalette(pltParent->GetPaletteName(),
 					       XtWindow(new_item->wid));
   Widget wid, levelmenu;
-  char buffer[10];
+  char buffer[128];
   new_item->menu = XmCreatePopupMenu(new_item->wid, "popup", NULL, 0);
-  if(new_list->maxLevel != 0) {
+  if(new_list->MaxLevel() != 0) {
     XmString label_str = XmStringCreateSimple("Level");
     levelmenu = XmCreatePulldownMenu(new_item->menu, "pulldown", NULL, 0);
     XtVaCreateManagedWidget("Level", xmCascadeButtonGadgetClass,
@@ -784,15 +816,14 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
 			    NULL);
     XmStringFree(label_str);
     
-    for(int ii = 0; ii <= new_list->maxLevel; ++ii) {
-      sprintf(buffer, "%d/%d", ii, new_list->maxLevel);
+    for(int ii(0); ii <= new_list->MaxLevel(); ++ii) {
+      sprintf(buffer, "%d/%d", ii, new_list->MaxLevel());
       wid = XtVaCreateManagedWidget(buffer, xmPushButtonGadgetClass,
 				    levelmenu, NULL);
       if(ii < 10) {
         XtVaSetValues(wid, XmNmnemonic, ii + '0', NULL);
       }
       XYMenuCBData *xymenucb = new XYMenuCBData(new_item, ii);
-      // xymenucbdPtrs.push_back(xymenucb)
       int nSize(xymenucbdPtrs.size());
       xymenucbdPtrs.resize(nSize + 1);
       xymenucbdPtrs[nSize] = xymenucb;
@@ -821,38 +852,27 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
 				NULL);
   AddStaticCallback(wid, XmNactivateCallback,
 		    &XYPlotWin::CBdoInitializeListColorChange, new_item);
+
+
   if(insert_after == NULL) {
-    new_item->drawQ = 1;          // Default to draw.
+    new_item->drawQ = true;          // Default to draw.
     ++numDrawnItems;
     new_list->UpdateStats();      // Find extremes, number of points.
-    updateBoundingBox(new_list);
-    if( ! zoomedInQ) {
-      setBoundingBox();
+    UpdateBoundingBox(new_list);
+    if(zoomedInQ == false) {
+      SetBoundingBox();
     }
-    if(new_list->numPoints > numXsegs) {
-      numXsegs = new_list->numPoints + 5;
+    if(new_list->NumPoints() > numXsegs) {
+      numXsegs = new_list->NumPoints() + 5;
       delete [] Xsegs[0];
       Xsegs[0] = new XSegment[numXsegs];
       delete [] Xsegs[1];
       Xsegs[1] = new XSegment[numXsegs];
     }
-    new_item->next = NULL;
-    if((new_item->prev = legendTail) != NULL) {
-      legendTail = legendTail->next = new_item;
-      XtVaSetValues(new_item->frame,
-		    XmNtopAttachment, XmATTACH_WIDGET,
-                    XmNtopWidget, new_item->prev->frame,
-                    NULL);
-    } else {
-      legendTail = legendHead = new_item;
-      XtVaSetValues(new_item->frame,
-		    XmNtopAttachment, XmATTACH_WIDGET,
-                    XmNtopWidget, wLegendMenu,
-		    NULL);
-    }
+    legendList.push_back(new_item);
   } else {
     new_item->drawQ = insert_after->drawQ;
-    if(new_item->drawQ) {
+    if(new_item->drawQ == true) {
       ++numDrawnItems;
     } else {
       XtVaSetValues(new_item->frame,
@@ -860,24 +880,19 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
 		    XmNbottomShadowColor, backgroundPix,
 		    NULL);
     }
-
-    new_item->prev = insert_after;
-    XtVaSetValues(new_item->frame,
-		  XmNtopAttachment, XmATTACH_WIDGET,
-                  XmNtopWidget, insert_after->frame,
-		  NULL);
-
-    if((new_item->next = insert_after->next) != NULL) {
-      new_item->next->prev = new_item;
-      XtVaSetValues(new_item->next->frame,
-		    XmNtopAttachment, XmATTACH_WIDGET,
-                    XmNtopWidget, new_item->frame,
-		    NULL);
-    } else {
-      legendTail = new_item;
+    // find the item
+    for(list<XYPlotLegendItem *>::iterator ptr = legendList.begin();
+        ptr != legendList.end(); ++ptr)
+    {
+      if((*ptr) == insert_after) {
+        ++ptr;  // so we can insert before
+	legendList.insert(ptr, new_item);
+	break;
+      }
     }
-    insert_after->next = new_item;
+
   }
+  ReattachLegendFrames();
 
   AddStaticCallback(new_item->wid, XmNinputCallback,
 		    &XYPlotWin::CBdoSelectDataList, new_item);
@@ -885,41 +900,64 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
 		    &XYPlotWin::CBdoDrawLegendItem, new_item);
 
   XtManageChild(new_item->frame);
-  if(new_item->drawQ) {
+  if(new_item->drawQ == true) {
     CBdoRedrawPlot(None, NULL, NULL);
   }
 }
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::updateBoundingBox(XYPlotDataList *xypdl) {
-  if(xypdl->startX < lloX) {
-    lloX = xypdl->startX;
+void XYPlotWin::ReattachLegendFrames() {
+  if(legendList.empty()) {
+    return;
   }
-  if(xypdl->endX > hhiX) {
-    hhiX = xypdl->endX;
-  }
-  if(xypdl->lloY[xypdl->curLevel] < lloY) {
-    lloY = xypdl->lloY[xypdl->curLevel];
-  }
-  if(xypdl->hhiY[xypdl->curLevel] > hhiY) {
-    hhiY = xypdl->hhiY[xypdl->curLevel];
+  list<XYPlotLegendItem *>::iterator liitem = legendList.begin();
+  XtVaSetValues((*liitem)->frame,
+		XmNtopAttachment, XmATTACH_WIDGET,
+                XmNtopWidget, wLegendMenu,
+		NULL);
+  list<XYPlotLegendItem *>::iterator liprevitem = liitem;
+  ++liitem;
+  while(liitem != legendList.end()) {
+    XtVaSetValues((*liitem)->frame,
+		  XmNtopAttachment, XmATTACH_WIDGET,
+                  XmNtopWidget, (*liprevitem)->frame,
+                  NULL);
+    ++liprevitem;
+    ++liitem;
   }
 }
 
 
-
-#define nlog10(x)      (x == 0.0 ? 0.0 : log10(x) + 1e-15)
+// -------------------------------------------------------------------
+void XYPlotWin::UpdateBoundingBox(XYPlotDataList *xypdl) {
+  //cout << "???????????????????? _in XYPlotWin::UpdateBoundingBox" << endl;
+  if(xypdl->StartX() < lloX) {
+  cout << " old lloX = " << lloX << endl;
+    lloX = xypdl->StartX();
+  cout << " new lloX = " << lloX << endl;
+  }
+  if(xypdl->EndX() > hhiX) {
+    hhiX = xypdl->EndX();
+  }
+  if(xypdl->XYPDLLoY(xypdl->CurLevel()) < lloY) {
+    lloY = xypdl->XYPDLLoY(xypdl->CurLevel());
+  }
+  if(xypdl->XYPDLHiY(xypdl->CurLevel()) > hhiY) {
+    hhiY = xypdl->XYPDLHiY(xypdl->CurLevel());
+  }
+}
 
 
 // -------------------------------------------------------------------
-double XYPlotWin::initGrid(double low, double high, double step) {
+double XYPlotWin::InitGrid(double low, double high, double step) {
   
   // Hack fix for graphs of large constant graphs.  Sometimes the
   // step is too small in comparison to the size of the grid itself,
   // and rounding error takes its toll.  We "fix" this by multiplying
   // the step by an arbitrary number > 1 (1.2) when this happens.
   double gridHigh;
+  int iLoopCheck(0);
   while(true) {
     dGridStep = roundUp(step);
     gridHigh = (ceil(high / dGridStep) + 1.0) * dGridStep;
@@ -930,6 +968,10 @@ double XYPlotWin::initGrid(double low, double high, double step) {
       step = DBL_EPSILON;
     }
     step *= 1.2;
+    ++iLoopCheck;
+    if(iLoopCheck > 1000) {
+      break;
+    }
   }
   dGridBase = (floor(low / dGridStep) + 1.0) * dGridStep;
   return dGridBase;
@@ -1002,7 +1044,7 @@ void XYPlotWin::writeValue(char *str, char *fmt, double val, int expv) {
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::drawGridAndAxis(void) {
+void XYPlotWin::drawGridAndAxis() {
   int expX, expY; // Engineering powers
   int Yspot, Xspot;
   char value[10], final[BUFSIZE + 10];
@@ -1045,7 +1087,7 @@ void XYPlotWin::drawGridAndAxis(void) {
   
   // First,  the grid line labels
   dYIncr = (devInfo.axisPad + devInfo.axisH) * dYUnitsPerPixel;
-  dYStart = initGrid(dUsrOrgY, dUsrOppY, dYIncr);
+  dYStart = InitGrid(dUsrOrgY, dUsrOppY, dYIncr);
   int iLoopCheck(0);
   for(dYIndex = 0.0; dYIndex < (dUsrOppY - dYStart); dYIndex += dGridStep) {
     Yspot = SCREENY(dYIndex + dYStart);
@@ -1059,7 +1101,7 @@ void XYPlotWin::drawGridAndAxis(void) {
   }
   
   dXIncr = (devInfo.axisPad + (devInfo.axisW * 7)) * dXUnitsPerPixel;
-  dXStart = initGrid(dUsrOrgX, dUsrOppX, dXIncr);
+  dXStart = InitGrid(dUsrOrgX, dUsrOppX, dXIncr);
   iLoopCheck = 0;
   for(dXIndex = 0.0; dXIndex < (dUsrOppX - dXStart); dXIndex += dGridStep) {
     Xspot = SCREENX(dXIndex + dXStart);
@@ -1075,7 +1117,7 @@ void XYPlotWin::drawGridAndAxis(void) {
   
   // Now,  the grid lines or tick marks
   dYIncr = (devInfo.axisPad + devInfo.axisH) * dYUnitsPerPixel;
-  dYStart = initGrid(dUsrOrgY, dUsrOppY, dYIncr);
+  dYStart = InitGrid(dUsrOrgY, dUsrOppY, dYIncr);
   iLoopCheck = 0;
   for(dYIndex = 0.0; dYIndex < (dUsrOppY - dYStart); dYIndex += dGridStep) {
     Yspot = SCREENY(dYIndex + dYStart);
@@ -1100,7 +1142,7 @@ void XYPlotWin::drawGridAndAxis(void) {
   }
   
   dXIncr = (devInfo.axisPad + (devInfo.axisW * 7)) * dXUnitsPerPixel;
-  dXStart = initGrid(dUsrOrgX, dUsrOppX, dXIncr);
+  dXStart = InitGrid(dUsrOrgX, dUsrOppX, dXIncr);
   iLoopCheck = 0;
   for(dXIndex = 0.0; dXIndex < (dUsrOppX - dXStart); dXIndex += dGridStep) {
     Xspot = SCREENX(dXIndex + dXStart);
@@ -1138,15 +1180,14 @@ void XYPlotWin::drawGridAndAxis(void) {
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::clearData(void) {
+void XYPlotWin::clearData() {
   XClearArea(disp, pWindow, iXOrgX + 1, iXOrgY + 1,
 	     (iXOppX - iXOrgX - 2), (iXOppY - iXOrgY - 2), false);
 }
 
 
-
 // -------------------------------------------------------------------
-void XYPlotWin::drawData(void) {
+void XYPlotWin::drawData() {
   double sx1, sy1, sx2, sy2, ssx1, ssx2, ssy1, ssy2, tx(0.0), ty(0.0);
   int code1, code2, cd, mark_inside;
   unsigned int X_idx;
@@ -1154,80 +1195,64 @@ void XYPlotWin::drawData(void) {
   int style;
   Pixel color;
   XFlush(disp);
-  XYPlotLegendItem *item;
 
-  for(item = legendHead; item != NULL ; item = item->next) {
-    if( ! item->drawQ) {
+  for(list<XYPlotLegendItem *>::iterator item = legendList.begin();
+      item != legendList.end(); ++item)
+  {
+    if((*item)->drawQ == false) {
       continue;
     }
-    XYPlotDataListIterator li(item->XYPLIlist);
-    if( ! li) {
+    if((*item)->XYPLIlist->NumPoints() == 0) {
       continue;
     }
+    Array<double> &xvals = (*item)->XYPLIlist->XVal((*item)->XYPLIlist->CurLevel());
+    Array<double> &yvals = (*item)->XYPLIlist->YVal((*item)->XYPLIlist->CurLevel());
     X_idx = 0;
-    style = item->style;
-    color = item->pixel;
-    sx1 = li.xval;
-    sy1 = li.yval;
-//cout << endl << "_here 1:  about to draw segments." << endl;
-//cout << "  maxSegs = " << devInfo.maxSegs << endl;
-    while(++li) {
-      sx2 = li.xval;
-      sy2 = li.yval;
+    style = (*item)->style;
+    color = (*item)->pixel;
+    sx1 = xvals[0];
+    sy1 = yvals[0];
+    for(int ili(1); ili < (*item)->XYPLIlist->NumPoints(); ++ili) {
+      sx2 = xvals[ili];
+      sy2 = yvals[ili];
 
       ssx1 = sx1;
       ssx2 = sx2;
       ssy1 = sy1;
       ssy2 = sy2;
 
-//bool bDiag(X_idx >= 79 && X_idx <= 81);
-//bool bDiag(false);
-//bool bDiagLines(true);
-//if(bDiag) {
-//if(bDiagLines) {
-  //cout << "[" << X_idx << "]:  sx1 sx2 = " << sx1 << "  " << sx2 << endl;
-//}
       // Put segment in (ssx1,ssy1) (ssx2,ssy2), clip to window boundary
       C_CODE(ssx1, ssy1, code1);
       C_CODE(ssx2, ssy2, code2);
-//if(bDiag) { cout << "      code1 code2 = " << code1 << "  " << code2 << endl; }
       mark_inside = (code1 == 0);
-//if(bDiag) { cout << "      mark_inside = " << mark_inside << endl; }
       while(code1 || code2) {
 	if(code1 & code2) {
 	  break;
 	}
 	cd = (code1 ? code1 : code2);
 	if(cd & LEFT_CODE) {	     // Crosses left edge
-//if(bDiag) { cout << "      _here 2.LEFT" << endl; }
 	  ty = ssy1 + (ssy2 - ssy1) * (dUsrOrgX - ssx1) / (ssx2 - ssx1);
 	  tx = dUsrOrgX;
 	} else if(cd & RIGHT_CODE) {  // Crosses right edge
-//if(bDiag) { cout << "      _here 2.RIGHT" << endl; }
 	  ty = ssy1 + (ssy2 - ssy1) * (dUsrOppX - ssx1) / (ssx2 - ssx1);
 	  tx = dUsrOppX;
 	} else if(cd & BOTTOM_CODE) { // Crosses bottom edge
-//if(bDiag) { cout << "      _here 2.BOTTOM" << endl; }
 	  tx = ssx1 + (ssx2 - ssx1) * (dUsrOrgY - ssy1) / (ssy2 - ssy1);
 	  ty = dUsrOrgY;
 	} else if(cd & TOP_CODE) {    // Crosses top edge
-//if(bDiag) { cout << "      _here 2.TOP" << endl; }
 	  tx = ssx1 + (ssx2 - ssx1) * (dUsrOppY - ssy1) / (ssy2 - ssy1);
 	  ty = dUsrOppY;
 	}
 	if(cd == code1) {
-//if(bDiag) { cout << "      _here 2.code1" << endl; }
 	  ssx1 = tx;
 	  ssy1 = ty;
 	  C_CODE(ssx1, ssy1, code1);
 	} else {
-//if(bDiag) { cout << "      _here 2.code2" << endl; }
 	  ssx2 = tx;
 	  ssy2 = ty;
 	  C_CODE(ssx2, ssy2, code2);
 	}
       }
-//if(bDiag) { cout << "      code1 code2 = " << code1 << "  " << code2 << endl; }
       if( ! code1 && ! code2) {
 	// Add segment to list
 	Xsegs[0][X_idx].x1 = Xsegs[1][X_idx].x1;
@@ -1238,22 +1263,6 @@ void XYPlotWin::drawData(void) {
 	Xsegs[1][X_idx].y1 = SCREENY(ssy1);
 	Xsegs[1][X_idx].x2 = SCREENX(ssx2);
 	Xsegs[1][X_idx].y2 = SCREENY(ssy2);
-/*
-short xx1, xx2, yy1, yy2;
-xx1 =  Xsegs[1][X_idx].x1;
-xx2 =  Xsegs[1][X_idx].x2;
-yy1 =  Xsegs[1][X_idx].y1;
-yy2 =  Xsegs[1][X_idx].y2;
-if((Xsegs[0][X_idx].x1 + Xsegs[0][X_idx].y1 +
-    Xsegs[0][X_idx].x2 + Xsegs[0][X_idx].y2) != 0)
-{
-  if(xx1 > xx2) {
-    cout << "[" << setw(3) << X_idx << "]" << ":  x1 y1 x2 y2 = " << setw(3)
-         << xx1 << "  " << setw(3) << yy1 << "  " << setw(3) << xx2
-         << "  " << setw(3) << yy2 << endl;
-  }
-}
-*/
 	++X_idx;
       }
       sx1 = sx2;
@@ -1263,7 +1272,7 @@ if((Xsegs[0][X_idx].x1 + Xsegs[0][X_idx].y1 +
 	dotX(wPlotWin, Xsegs[1][X_idx - 1].x1, Xsegs[1][X_idx - 1].y1,
 	     style, color);
       }
-    }
+    }  // end while(...li)
 
     // Handle last marker
     if(markQ) {
@@ -1282,9 +1291,7 @@ if((Xsegs[0][X_idx].x1 + Xsegs[0][X_idx].y1 +
 	ptr += devInfo.maxSegs;
 	X_idx -= devInfo.maxSegs;
       }
-      //if(X_idx <= 91) {
       segX(wPlotWin, X_idx, ptr, lineW, L_VAR, style, color);
-      //}
     }
   }
 }
@@ -1385,24 +1392,23 @@ void XYPlotWin::CBdoClearData(Widget, XtPointer, XtPointer) {
     StopAnimation();
   }
 #endif
-  XYPlotLegendItem *next;
-  for(XYPlotLegendItem *ptr = legendHead; ptr != NULL; ptr = next) {
-    next = ptr->next;
-    XtDestroyWidget(ptr->frame);
-    delete ptr->XYPLIlist;
-    delete ptr;
+  for(list<XYPlotLegendItem *>::iterator item = legendList.begin();
+      item != legendList.end(); ++item)
+  {
+    XtDestroyWidget((*item)->frame);
+    delete (*item)->XYPLIlist;
+    delete (*item);
   }
+  legendList.clear();
 
   for(int idx(0); idx != 8; ++idx) {
     lineFormats[idx] = 0x0;
   }
-  legendHead = NULL;
-  legendTail = NULL;
   colorChangeItem = NULL;
   numItems = 0;
   numDrawnItems = 0;
-  zoomedInQ = 0;
-  setBoundingBox();
+  zoomedInQ = false;
+  SetBoundingBox();
 
   CBdoRedrawPlot(None, NULL, NULL);
 }
@@ -1432,8 +1438,7 @@ void XYPlotWin::CBdoExportFileDialog(Widget, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void XYPlotWin::CBdoExportFile(Widget, XtPointer client_data, XtPointer data) {
-  XmFileSelectionBoxCallbackStruct *cbs =
-    (XmFileSelectionBoxCallbackStruct *) data;
+  XmFileSelectionBoxCallbackStruct *cbs = (XmFileSelectionBoxCallbackStruct *) data;
   long which = (long) client_data;
   FILE *fs;
 
@@ -1518,17 +1523,21 @@ void XYPlotWin::CBdoASCIIDump(Widget, XtPointer client_data, XtPointer data) {
     fprintf(fs, "TickAxis: on\n");
   }
 
-  for(XYPlotLegendItem *item = legendHead; item; item = item->next) {
-    if( ! item->drawQ) {
+  for(list<XYPlotLegendItem *>::iterator item = legendList.begin();
+      item != legendList.end(); ++item)
+  {
+    if((*item)->drawQ == false) {
       continue;
     }
-    XYPlotDataList *list = item->XYPLIlist;
+    XYPlotDataList *xypdList = (*item)->XYPLIlist;
     fprintf(fs, "\"%s %s Level %d/%d\n",
-	    list->derived.c_str(),
-	    list->intersectPoint[list->curLevel],
-	    list->curLevel, list->maxLevel);
-    for(XYPlotDataListIterator li(list); li; ++li) {
-      fprintf(fs, "%lf %lf\n", li.xval, li.yval);
+	    xypdList->DerivedName().c_str(),
+	    xypdList->IntersectPoint(xypdList->CurLevel()),
+	    xypdList->CurLevel(), xypdList->MaxLevel());
+    Array<double> &xvals = xypdList->XVal(xypdList->CurLevel());
+    Array<double> &yvals = xypdList->YVal(xypdList->CurLevel());
+    for(int ii(0); ii < xvals.size(); ++ii) {
+      fprintf(fs, "%lf %lf\n", xvals[ii], yvals[ii]);
     }
     fprintf(fs, "\n");
   }
@@ -1589,7 +1598,7 @@ void XYPlotWin::CBdoOptions(Widget, XtPointer, XtPointer) {
     
     int ii;
     Widget wid;
-    char buffer[20], *str = 0;
+    char buffer[32], *str = 0;
     for(ii = 0; ii < 6; ++ii) {
       switch(ii) {
         case 0:
@@ -1693,7 +1702,6 @@ void XYPlotWin::CBdoOptions(Widget, XtPointer, XtPointer) {
 
     XtManageChild(wOptionsForm);
   }
-
   XtPopup(wOptionsDialog, XtGrabNone);
 }
 
@@ -1780,9 +1788,11 @@ void XYPlotWin::CBdoOptionsOKButton(Widget, XtPointer data, XtPointer) {
     parameters->Set_Parameter("FormatY", STR, formatY);
 
     CBdoRedrawPlot(None, NULL, NULL);
-    for(XYPlotLegendItem *ptr = legendHead; ptr; ptr = ptr->next) {
-      XClearWindow(disp, XtWindow(ptr->wid));
-      CBdoDrawLegendItem(None, ptr, NULL);
+    for(list<XYPlotLegendItem *>::iterator item = legendList.begin();
+        item != legendList.end(); ++item)
+    {
+      XClearWindow(disp, XtWindow((*item)->wid));
+      CBdoDrawLegendItem(None, (*item), NULL);
     }
 
     if(saveDefaultQ) {
@@ -1854,36 +1864,40 @@ void XYPlotWin::CBdoSelectDataList(Widget, XtPointer data,
   if(cbs->event->xany.type == ButtonRelease &&
      cbs->event->xbutton.button == 1)
   {
-    if(item->drawQ) {
-      item->drawQ = 0;
+    if(item->drawQ == true) {
+      item->drawQ = false;
       --numDrawnItems;
       XtVaSetValues(item->frame,
 		    XmNtopShadowColor, backgroundPix,
 		    XmNbottomShadowColor, backgroundPix,
 		    NULL);
       if( ! animatingQ) {
-	lloX = lloY =  DBL_MAX;
-	hhiX = hhiY = -DBL_MAX;
-	for(XYPlotLegendItem *ptr = legendHead; ptr; ptr = ptr->next) {
-	  if(ptr->drawQ) {
-	    updateBoundingBox(ptr->XYPLIlist);
+	lloX =  DBL_MAX;
+	lloY =  DBL_MAX;
+	hhiX = -DBL_MAX;
+	hhiY = -DBL_MAX;
+        for(list<XYPlotLegendItem *>::iterator liitem = legendList.begin();
+            liitem != legendList.end(); ++liitem)
+        {
+	  if((*liitem)->drawQ == true) {
+	    UpdateBoundingBox((*liitem)->XYPLIlist);
 	  }
 	}
       }
     } else {
-      item->drawQ = 1;
+      item->drawQ = true;
       ++numDrawnItems;
       XtVaSetValues(item->frame,
 		    XmNtopShadowColor, foregroundPix,
 		    XmNbottomShadowColor, foregroundPix,
 		    NULL);
       if( ! animatingQ) {
-        updateBoundingBox(item->XYPLIlist);
+        UpdateBoundingBox(item->XYPLIlist);
       }
     }
     if( ! animatingQ) {
-      if( ! zoomedInQ) {
-        setBoundingBox();
+      if(zoomedInQ == false) {
+        SetBoundingBox();
       }
       CBdoRedrawPlot(None, NULL, NULL);
     }
@@ -1902,62 +1916,66 @@ void XYPlotWin::CBdoSelectDataList(Widget, XtPointer data,
 
 // -------------------------------------------------------------------
 void XYPlotWin::CBdoRemoveDataList(Widget, XtPointer client_data,
-				   XtPointer call_data) {
+				   XtPointer call_data)
+{
   if(animatingQ) {
     return;
   }
   XYPlotLegendItem *item = (XYPlotLegendItem *) client_data;
-  XYPlotLegendItem *ptr;
+
+  // find the item to remove
+  list<XYPlotLegendItem *>::iterator liitem, linextitem, liprevitem, linextitem2;
+  for(liitem = legendList.begin(); liitem != legendList.end(); ++liitem) {
+    if((*liitem) == item) {
+      liprevitem = liitem;
+      linextitem = liitem;
+      --liprevitem;
+      ++linextitem;
+      break;
+    }
+  }
+  BL_ASSERT(liitem != legendList.end());
 
   if(item == colorChangeItem) {
     colorChangeItem = NULL;
   }
-  if((ptr = item->next) != NULL) {
-    if((ptr->prev = item->prev) != NULL) {
-      item->prev->next = ptr;
-      XtVaSetValues(ptr->frame,
-		    XmNtopAttachment,   XmATTACH_WIDGET,
-                    XmNtopWidget, item->prev->frame,
-		    NULL);
-    } else {
-      legendHead = ptr;
-      XtVaSetValues(ptr->frame,
-		    XmNtopAttachment,   XmATTACH_FORM,
-		    NULL);
-    }
-    if(item->XYPLIlist->copied_from == NULL &&
-       ptr->XYPLIlist->copied_from == item->XYPLIlist)
+  if(linextitem != legendList.end()) {
+    if(item->XYPLIlist->CopiedFrom() == NULL &&
+       (*linextitem)->XYPLIlist->CopiedFrom() == item->XYPLIlist)
     {
-      ptr->XYPLIlist->copied_from = NULL;
-      item->XYPLIlist->copied_from = ptr->XYPLIlist;
-      for(XYPlotLegendItem *ptr2 = ptr->next;
-	  ptr2 && ptr2->XYPLIlist->copied_from == item->XYPLIlist;
-	  ptr2 = ptr2->next)
+      (*linextitem)->XYPLIlist->SetCopiedFrom(NULL);
+      item->XYPLIlist->SetCopiedFrom((*linextitem)->XYPLIlist);
+      linextitem2 = linextitem;
+      ++linextitem2;
+      for( ;
+	  linextitem2 != legendList.end() &&
+	  (*linextitem2)->XYPLIlist->CopiedFrom() == item->XYPLIlist;
+	  ++linextitem2)
       {
-	ptr2->XYPLIlist->copied_from = ptr->XYPLIlist;
+	(*linextitem2)->XYPLIlist->SetCopiedFrom((*linextitem)->XYPLIlist);
       }
     }
-  } else if((legendTail = item->prev) != NULL) {
-    item->prev->next = NULL;
-  } else {
-    legendHead = NULL;
   }
 
   char mask = 0x1 << item->color;
   lineFormats[item->style] &= ~mask;
   --numItems;
 
-  if(item->drawQ) {
+  if(item->drawQ == true) {
     --numDrawnItems;
-    lloX = lloY =  DBL_MAX;
-    hhiX = hhiY = -DBL_MAX;
-    for(ptr = legendHead; ptr; ptr = ptr->next) {
-      if(ptr->drawQ) {
-        updateBoundingBox(ptr->XYPLIlist);
+    lloX =  DBL_MAX;
+    lloY =  DBL_MAX;
+    hhiX = -DBL_MAX;
+    hhiY = -DBL_MAX;
+    for(list<XYPlotLegendItem *>::iterator liptr = legendList.begin();
+        liptr != legendList.end(); ++liptr)
+    {
+      if((*liptr)->drawQ == true) {
+        UpdateBoundingBox((*liptr)->XYPLIlist);
       }
     }
-    if( ! zoomedInQ) {
-      setBoundingBox();
+    if(zoomedInQ == false) {
+      SetBoundingBox();
     }
     CBdoRedrawPlot(None, NULL, NULL);
   }
@@ -1965,6 +1983,8 @@ void XYPlotWin::CBdoRemoveDataList(Widget, XtPointer client_data,
   XtDestroyWidget(item->frame);
   delete item->XYPLIlist;
   delete item;
+  legendList.erase(liitem);
+  ReattachLegendFrames();
 }
 
 
@@ -1989,16 +2009,20 @@ void XYPlotWin::CBdoSetListLevel(Widget, XtPointer data, XtPointer) {
   item->XYPLIlist->SetLevel(cbd->which);
   XClearWindow(disp, XtWindow(item->wid));
   CBdoDrawLegendItem(None, item, NULL);
-  if(item->drawQ) {
-    lloX = lloY = DBL_MAX;
-    hhiX = hhiY = -DBL_MAX;
-    for(item = legendHead; item; item = item->next) {
-      if(item->drawQ) {
-        updateBoundingBox(item->XYPLIlist);
+  if(item->drawQ == true) {
+    lloX =  DBL_MAX;
+    lloY =  DBL_MAX;
+    hhiX = -DBL_MAX;
+    hhiY = -DBL_MAX;
+    for(list<XYPlotLegendItem *>::iterator liitem = legendList.begin();
+        liitem != legendList.end(); ++liitem)
+    {
+      if((*liitem)->drawQ == true) {
+        UpdateBoundingBox((*liitem)->XYPLIlist);
       }
     }
-    if( ! zoomedInQ) {
-      setBoundingBox();
+    if(zoomedInQ == false) {
+      SetBoundingBox();
     }
     CBdoRedrawPlot(None, NULL, NULL);
   }
@@ -2020,8 +2044,10 @@ void XYPlotWin::SetPalette(void) {
     AllAttrs[idx].pixelValue = cCells[icTemp].pixel;
   }
 
-  for(XYPlotLegendItem *item = legendHead; item; item = item->next) {
-    pal->SetWindowPalette(pltParent->GetPaletteName(), XtWindow(item->wid));
+  for(list<XYPlotLegendItem *>::iterator liitem = legendList.begin();
+      liitem != legendList.end(); ++liitem)
+  {
+    pal->SetWindowPalette(pltParent->GetPaletteName(), XtWindow((*liitem)->wid));
   }
 }
 
@@ -2065,21 +2091,23 @@ void XYPlotWin::CBdoSetListColor(Widget, XtPointer, XtPointer call_data) {
 // -------------------------------------------------------------------
 void XYPlotWin::CBdoSelectAllData(Widget, XtPointer, XtPointer) {
   numDrawnItems = numItems;
-  for(XYPlotLegendItem *ptr = legendHead; ptr; ptr = ptr->next) {
-    if( ! ptr->drawQ) {
-      ptr->drawQ = 1;
-      XtVaSetValues(ptr->frame,
+  for(list<XYPlotLegendItem *>::iterator ptr = legendList.begin();
+      ptr != legendList.end(); ++ptr)
+  {
+    if((*ptr)->drawQ == false) {
+      (*ptr)->drawQ = true;
+      XtVaSetValues((*ptr)->frame,
 		    XmNtopShadowColor, foregroundPix,
 		    XmNbottomShadowColor, foregroundPix,
 		    NULL);
       if( ! animatingQ) {
-        updateBoundingBox(ptr->XYPLIlist);
+        UpdateBoundingBox((*ptr)->XYPLIlist);
       }
     }
   }
   if( ! animatingQ) {
-    if( ! zoomedInQ) {
-      setBoundingBox();
+    if(zoomedInQ == false) {
+      SetBoundingBox();
     }
   }
   CBdoRedrawPlot(None, NULL, NULL);
@@ -2089,18 +2117,22 @@ void XYPlotWin::CBdoSelectAllData(Widget, XtPointer, XtPointer) {
 // -------------------------------------------------------------------
 void XYPlotWin::CBdoDeselectAllData(Widget, XtPointer, XtPointer) {
   numDrawnItems = 0;
-  for(XYPlotLegendItem *ptr = legendHead; ptr; ptr = ptr->next) {
-    if(ptr->drawQ) {
-      ptr->drawQ = 0;
-      XtVaSetValues(ptr->frame,
+  for(list<XYPlotLegendItem *>::iterator ptr = legendList.begin();
+      ptr != legendList.end(); ++ptr)
+  {
+    if((*ptr)->drawQ == true) {
+      (*ptr)->drawQ = false;
+      XtVaSetValues((*ptr)->frame,
 		    XmNtopShadowColor, backgroundPix,
 		    XmNbottomShadowColor, backgroundPix,
 		    NULL);
     }
   }
   if( ! animatingQ) {
-    lloX = lloY =  DBL_MAX;
-    hhiX = hhiY = -DBL_MAX;
+    lloX =  DBL_MAX;
+    lloY =  DBL_MAX;
+    hhiX = -DBL_MAX;
+    hhiY = -DBL_MAX;
   }
   CBdoRedrawPlot(None, NULL, NULL);
 
@@ -2119,7 +2151,7 @@ void XYPlotWin::drawHint(void) {
       textX(wPlotWin, devInfo.areaW - 5, devInfo.bdrPad,
 	    "Left click to zoom in.", T_UPPERRIGHT, T_AXIS);
 
-      if(zoomedInQ) {
+      if(zoomedInQ == true) {
         textX(wPlotWin, devInfo.areaW - 5, devInfo.bdrPad + devInfo.axisH,
 	      "Right click to zoom out.", T_UPPERRIGHT, T_AXIS);
       }
@@ -2137,11 +2169,7 @@ void XYPlotWin::drawHint(void) {
 
 // -------------------------------------------------------------------
 void XYPlotWin::CBdoDrawLocation(Widget, XtPointer, XtPointer data) {
-  if(devInfo.areaW < iXLocWinX + 15 * devInfo.axisW) {
-    return;
-  }
   XEvent *event = (XEvent *) data;
-
 
   if(event->type == LeaveNotify) {
     if(dispHintsQ) {
@@ -2187,15 +2215,15 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
   // find which view from the widget w
   XmDrawingAreaCallbackStruct *cbs = (XmDrawingAreaCallbackStruct *) call_data;
 
-  // FIXME:
-  XSetForeground(disp, rbGC, 120);
+  Palette *pal = pltParent->GetPalettePtr();
+  XSetForeground(disp, rbGC, pal->makePixel(120));
 
   if(cbs->event->xany.type == ButtonPress) {
     servingButton = cbs->event->xbutton.button;
     if(servingButton != 1) {
-      if(zoomedInQ) {
-	zoomedInQ = 0;
-	setBoundingBox();
+      if(zoomedInQ == true) {
+	zoomedInQ = false;
+	SetBoundingBox();
 	CBdoRedrawPlot(None, NULL, NULL);
       }
       return;
@@ -2293,8 +2321,8 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 	    highY = lowY;
 	    lowY = temp;
 	  }
-	  zoomedInQ = 1;
-	  setBoundingBox(lowX, lowY, highX, highY);
+	  zoomedInQ = true;
+	  SetBoundingBox(lowX, lowY, highX, highY);
 	  CBdoRedrawPlot(None, NULL, NULL);
 	} else if((anchorX - newX == 0) && (anchorY - newY == 0)) {
 	  if(newX >= iXOrgX && newX <= iXOppX && newY >= iXOrgY && newY <= iXOppY) {
@@ -2304,7 +2332,7 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 	    hiX -= highX;
 	    loY -= highY;
 	    hiY -= highY;
-	    zoomedInQ = 1;
+	    zoomedInQ = true;
 	    CBdoRedrawPlot(None, NULL, NULL);
 	  }
 	}
@@ -2337,14 +2365,15 @@ void XYPlotWin::CBdoDrawLegendItem(Widget, XtPointer data, XtPointer) {
   char legendText[1024];
 
 #if (BL_SPACEDIM == 3)
-  sprintf(legendText, "%d/%d %s", dataList->curLevel, dataList->maxLevel,
-	  dataList->derived.c_str());
+  sprintf(legendText, "%d/%d %s", dataList->CurLevel(), dataList->MaxLevel(),
+	  dataList->DerivedName().c_str());
   textX(item->wid, 5, 10, legendText, T_UPPERLEFT, T_AXIS);
   textX(item->wid, 5, 10 + devInfo.axisH,
-	dataList->intersectPoint[dataList->curLevel], T_UPPERLEFT, T_AXIS);
+	dataList->IntersectPoint(dataList->CurLevel()), T_UPPERLEFT, T_AXIS);
 #else
-  sprintf(legendText, "%d/%d %s %s", dataList->curLevel, dataList->maxLevel,
-	  dataList->derived.c_str(), dataList->intersectPoint[dataList->curLevel]);
+  sprintf(legendText, "%d/%d %s %s", dataList->CurLevel(), dataList->MaxLevel(),
+	  dataList->DerivedName().c_str(),
+	  dataList->IntersectPoint(dataList->CurLevel()));
   textX(item->wid, 5, 10, legendText, T_UPPERLEFT, T_AXIS);
 #endif
   
@@ -2367,7 +2396,6 @@ void XYPlotWin::AddStaticCallback(Widget w, String cbtype, memberXYCB cbf,
 				  void *data)
 {
   XYCBData *cbs = new XYCBData(this, data, cbf);
-  // xycbdPtrs.push_back(cbs)
   int nSize(xycbdPtrs.size());
   xycbdPtrs.resize(nSize + 1);
   xycbdPtrs[nSize] = cbs;
@@ -2383,7 +2411,6 @@ void XYPlotWin::AddStaticWMCallback(Widget w, Atom cbtype, memberXYCB cbf,
 				     void *data)
 {
   XYCBData *cbs = new XYCBData(this, data, cbf);
-  // xycbdPtrs.push_back(cbs)
   int nSize(xycbdPtrs.size());
   xycbdPtrs.resize(nSize + 1);
   xycbdPtrs[nSize] = cbs;
@@ -2399,7 +2426,6 @@ void XYPlotWin::AddStaticEventHandler(Widget w, EventMask mask,
 				      memberXYCB cbf, void *data)
 {
   XYCBData *cbs = new XYCBData(this, data, cbf);
-  // xycbdPtrs.push_back(cbs)
   int nSize(xycbdPtrs.size());
   xycbdPtrs.resize(nSize + 1);
   xycbdPtrs[nSize] = cbs;

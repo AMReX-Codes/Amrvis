@@ -4,100 +4,118 @@
 #ifndef XYPLOTDATALIST_H
 #define XYPLOTDATALIST_H
 
-#include <ListIterator.H>
 #include <Array.H>
 #include <BLassert.H>
 #include <REAL.H>
-#include <IntVect.H>
 #include <FArrayBox.H>
 
+#include <list>
 #include <string>
 using std::string;
+using std::list;
+
+
+class OrderedBoxes {
+  public:
+    OrderedBoxes(const int level, int idir, const Box &databox, const Box &finebox)
+      : iLevel(level), iDir(idir), dataBox(databox), finestBox(finebox)
+    { }
+
+    int ILevel() const { return iLevel; }
+    const Box &DataBox() const { return dataBox; }
+    const Box &FinestBox() const { return finestBox; }
+    bool operator<(const OrderedBoxes &ob) const {
+      return(finestBox.smallEnd()[iDir] < ob.finestBox.smallEnd()[iDir]);
+    }
+
+  protected:
+    int iLevel, iDir;
+    Box dataBox, finestBox;
+
+};
 
 
 class XYPlotDataListLink {
-  friend class XYPlotDataListIterator;
-  friend class XYPlotDataList;
-
   public:
-
-    XYPlotDataListLink(Real *d, int sX, int len)
-      : data(d), length(len), startXi(sX)
+    XYPlotDataListLink(const Real *d, int sX, int len)
+      : xypdllLength(len), startXi(sX)
     { 
       BL_ASSERT(len != 0);
-    };
+      endXi = sX + len;
+      xypdllData = new Real[len];
+      for(int i(0); i < len; ++i) {
+        xypdllData[i] = d[i];
+      }
+    }
+
+    ~XYPlotDataListLink() {
+      delete [] xypdllData;
+    }
+
+    Real *XYPDLLData() const { return xypdllData; }
+    int XYDPLLength() const { return xypdllLength; }
+    int StartXi() const { return startXi; }
+    int EndXi() const { return endXi; }
+    bool operator<(const XYPlotDataListLink &xyp) const {
+      return(startXi < xyp.startXi);
+    }
 
   protected:
-    Real *data;
-    int length, startXi, endXi;
-    XYPlotDataListLink *down;
-    int nDown;
+    Real *xypdllData;
+    int xypdllLength, startXi, endXi;
 };
 
 
 class XYPlotDataList {
-  friend class XYPlotWin;
-  friend class XYPlotDataListLink;
-  friend class XYPlotDataListIterator;
-
   public:
-    XYPlotDataList(const string &_derived, int max_level,
-		   int _gridline,
-		   const Array<int> &ratio_list,
-		   const Array<Real> &d_x,
-		   const Array<char *> &intersect_point,
-		   Real start_x = 0.0);
+    XYPlotDataList(const string &derived, int minlevel, int maxlevel,
+		   int gridlinein,
+		   const Array<int> &ratiolist,
+		   const Array<Real> &dx,
+		   const Array<char *> &intersectpoint,
+		   Real startx = 0.0);
     XYPlotDataList(XYPlotDataList *src);
-
     ~XYPlotDataList();
 
-    char IsEmpty(void) { return emptyQ; }
     void AddFArrayBox(FArrayBox &fab, int direction, int level);
 
     void UpdateStats(void);
     void SetLevel(int new_level) {
       curLevel = (new_level < maxLevel) ? new_level : maxLevel;
     }
+    const string &DerivedName() const { return xypdlDerived; }
+    const XYPlotDataList *CopiedFrom() const { return copiedFrom; }
+    void SetCopiedFrom(XYPlotDataList *xypdl) { copiedFrom = xypdl; }
+    int MaxLevel()  const { return maxLevel; }
+    int NumPoints() const { return numPoints[curLevel]; }
+    int CurLevel()  const { return curLevel; }
+    int Gridline()  const { return gridline; }
+    double StartX() const { return startX; }
+    double EndX()   const { return endX; }
+    double XYPDLLoY(const int ilev) const { return xypdlLoY[ilev]; }
+    double XYPDLHiY(const int ilev) const { return xypdlHiY[ilev]; }
+    char *IntersectPoint(const int ilev) const { return intersectPoint[ilev]; }
+    Array<double> &XVal(int level) { return xypdlXVal[level]; }
+    Array<double> &YVal(int level) { return xypdlYVal[level]; }
 
   protected:
-    Array <List <XYPlotDataListLink *> *> dataSets; 
-    Array <List <int> *> upXi;      // Used for data set iteration [level]
-    Array <int> ratios;             // Used for insertion of data sets beginning
+    Array<list<XYPlotDataListLink *> > dataSets; 
+    Array<int> xypdlRatios;        // Used for insertion of data sets beginning
                                     // in the middle of a single cell [level]
-    Array <Real> dX;                // dX in the proper direction [level]
-    Array <char *> intersectPoint;  // Intersected value (in problem space)
+    Array<Real> dX;                // dX in the proper direction [level]
+    Array<char *> intersectPoint;  // Intersected value (in problem space)
                                     // for labelling plots [level]
-    Array <double> lloY;            // min Y [level]
-    Array <double> hhiY;            // max Y [level]
+    Array<double> xypdlLoY, xypdlHiY;  // [level]
+    Array<Array<double> > xypdlXVal, xypdlYVal;  // [level][data]
 
-    int numPoints, maxLevel, curLevel, gridline;
-    char updatedQ, emptyQ;
+    Array<int> numPoints;
+    int  minLevel, maxLevel, curLevel, gridline, whichDir;
+    bool updatedQ;
     double startX, endX, offsetX;
-    string derived;
-    XYPlotDataList *copied_from;
-
-  private:
-    void addLink(XYPlotDataListLink *l, int level);
+    string xypdlDerived;
+    XYPlotDataList *copiedFrom;
+    Array<BoxList> fabBoxLists, fillBoxLists;
 };
-
-
-class XYPlotDataListIterator {
-  public:
-    explicit XYPlotDataListIterator (XYPlotDataList *aList);
-    ~XYPlotDataListIterator();
-    XYPlotDataListIterator& operator++ ();
-    bool operator! () const { return (curLink == NULL) ? true : false; }
-    operator void* () { return (curLink != NULL) ? this : NULL; }
-
-    double xval, yval;
-  
-  private:
-    XYPlotDataList *list;
-    Array <ListIterator <int> *> XiLI;
-    Array <ListIterator <XYPlotDataListLink *> *> linkLI;
-    XYPlotDataListLink *curLink, *nextLink;
-    int curXi, nextXi, curLevel, maxLevel;
-    Real *data;
-};
- 
 #endif
+// -------------------------------------------------------------------
+// -------------------------------------------------------------------

@@ -84,7 +84,7 @@ void XYPlotParameters::ResetPalette(Palette *newPalPtr) {
 
 
 // -------------------------------------------------------------------
-XYPlotParameters::~XYPlotParameters(void) {
+XYPlotParameters::~XYPlotParameters() {
   st_table_entry *ptr, *next;
 
   // destroy table entries.
@@ -112,7 +112,7 @@ XYPlotParameters::~XYPlotParameters(void) {
 
 
 // -------------------------------------------------------------------
-void XYPlotParameters::GetHardWiredDefaults(void) {
+void XYPlotParameters::GetHardWiredDefaults() {
   char *def_str;
   char buf[1024];
 

@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.50 2002-12-10 20:12:23 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.51 2004-04-16 23:50:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -57,6 +57,8 @@ int  maxPaletteIndex;
 bool SGIrgbfile(true);
 int  fabIOSize;
 bool bShowBody(true);
+bool givenInitialPlanes(false);
+IntVect ivInitialPlanes;
 
 char *FileTypeString[] = {
   "invalidtype", "fab", "multifab", "newplt"
@@ -304,6 +306,10 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
         sscanf(buffer, "%s%d", defaultString, &tempInt);
         PltApp::SetInitialScale(tempInt);
       }
+      else if(strcmp(defaultString, "maxmenuitems") == 0) {
+        sscanf(buffer, "%s%d", defaultString, &tempInt);
+        PltApp::SetInitialMaxMenuItems(tempInt);
+      }
       else if(strcmp(defaultString, "numberformat") == 0) {
         sscanf(buffer, "%s%s", defaultString, tempString);
         PltApp::SetInitialFormatString(tempString);
@@ -423,7 +429,7 @@ void PrintUsage(char *exname) {
   cout << "       [-fabiosize nbits]" << endl;
   cout << "       [-maxlev n]" << endl;
   cout << "       [-palette palname] [-initialderived dername]" << endl;
-  cout << "       [-lightingfile name]" << endl;
+  cout << "       [-lightingfile name] [-maxmenuitems n]" << endl;
   cout << "       [-initialscale n] [-showboxes tf] [-numberformat fmt]" << endl;
   cout << "       [-lowblack] [-showbody tf]"<< endl;
   cout << "       [-cliptoppalette]"<< endl;
@@ -436,6 +442,7 @@ void PrintUsage(char *exname) {
     cout << "       [-makeswf_value]" << endl;
 #endif
     cout << "       [-useminmax min max]" << endl;
+    cout << "       [-initplanes xp yp zp]" << endl;
 #endif
   cout << "       [<filename(s)>]" << endl;
   cout << endl;
@@ -472,6 +479,7 @@ void PrintUsage(char *exname) {
   cout << "  -maxlev n          specify the maximum drawn level." << endl;
   cout << "  -palette palname   set the initial palette." << endl; 
   cout << "  -lightingfile name set the initial lighting parameter file." << endl; 
+  cout << "  -maxmenuitems n    set the max menu items per column to n." << endl; 
   cout << "  -initialderived dername   set the initial derived to dername." << endl; 
   cout << "  -initialscale n    set the initial scale to n." << endl; 
   cout << "  -showboxes tf      show boxes (the value of tf is true or false)." << endl; 
@@ -489,7 +497,8 @@ void PrintUsage(char *exname) {
        << "                     note:  works in batch mode." << endl;
   cout << "  -makeswf_value     same as above, with value model rendering."<<endl;
 #endif
-  cout << "  -useminmax min max use min and max as the global min max values" << endl;
+  cout << "  -useminmax min max       use min and max as the global min max values" << endl;
+  cout << "  -initplanes xp yp zp     set initial planes" << endl;
 #endif
   cout << "  <filename(s)>      must be included if box is specified." << endl;
   cout << endl;
@@ -500,14 +509,13 @@ void PrintUsage(char *exname) {
 
 // -------------------------------------------------------------------
 void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
-  char clsx[10];
-  char clsy[10];
-  char clbx[10];
-  char clby[10];
+  char clsx[32], clsy[32];
+  char clbx[32], clby[32];
 
 #if (BL_SPACEDIM == 3)
-  char clsz[10];
-  char clbz[10];
+  char clsz[32];
+  char clbz[32];
+  char clPlaneX[32], clPlaneY[32], clPlaneZ[32];
 #endif
 
   givenFilename = false;
@@ -674,7 +682,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       }
       ++i;
     } else if(strcmp(argv[i], "-boxslice") == 0) {
-#    if (BL_SPACEDIM == 2)
+#if (BL_SPACEDIM == 2)
       if(argc-1<i+1 || ! strcpy(clsx, argv[i+1])) {
         PrintUsage(argv[0]);
       }
@@ -689,7 +697,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       }
       i += 4;
       givenBoxSlice = true;
-#    else
+#else
       if(argc-1<i+1 || ! strcpy(clsx, argv[i+1])) {
         PrintUsage(argv[0]);
       }
@@ -710,7 +718,21 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       }
       i += 6;
       givenBoxSlice = true;
-#   endif
+#endif
+#if (BL_SPACEDIM == 3)
+    } else if(strcmp(argv[i], "-initplanes") == 0) {
+      if(argc-1<i+1 || ! strcpy(clPlaneX, argv[i+1])) {
+        PrintUsage(argv[0]);
+      }
+      if(argc-1<i+2 || ! strcpy(clPlaneY, argv[i+2])) {
+        PrintUsage(argv[0]);
+      }
+      if(argc-1<i+3 || ! strcpy(clPlaneZ, argv[i+3])) {
+        PrintUsage(argv[0]);
+      }
+      i += 3;
+      givenInitialPlanes = true;
+#endif
     } else if(strcmp(argv[i],"-palette") == 0) {
       PltApp::SetDefaultPalette(argv[i+1]);
       initialPalette = argv[i+1];
@@ -729,6 +751,13 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
         PrintUsage(argv[0]);
       }
       PltApp::SetInitialScale(tempiscale);
+      ++i;
+    } else if(strcmp(argv[i], "-maxmenuitems") == 0) {
+      int tempimaxmenuitems = atoi(argv[i+1]);
+      if(argc-1 < i+1 || tempimaxmenuitems < 1) {
+        PrintUsage(argv[0]);
+      }
+      PltApp::SetInitialMaxMenuItems(tempimaxmenuitems);
       ++i;
     } else if(strcmp(argv[i], "-numberformat") == 0) {
       PltApp::SetInitialFormatString(argv[i+1]);
@@ -786,7 +815,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
   }
 
   if(givenBox || givenBoxSlice) {
-#   if (BL_SPACEDIM == 2)
+#if (BL_SPACEDIM == 2)
       if(atoi(clsx) > atoi(clbx) || atoi(clsy) > atoi(clby)) {
         cout << "A sub-region box must be specified as:\n\t <small x> <small y> "
 	     << "<big x> <big y>\n" << endl;
@@ -796,7 +825,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       comlinebox.setSmall(YDIR, atoi(clsy));
       comlinebox.setBig(XDIR, atoi(clbx));
       comlinebox.setBig(YDIR, atoi(clby));
-#   else
+#else
       if(atoi(clsx) > atoi(clbx) || atoi(clsy) > atoi(clby) || 
 	 atoi(clsz) > atoi(clbz))
       {
@@ -810,8 +839,16 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       comlinebox.setBig(XDIR,   atoi(clbx));
       comlinebox.setBig(YDIR,   atoi(clby));
       comlinebox.setBig(ZDIR,   atoi(clbz));
-#   endif
+#endif
   }
+
+#if (BL_SPACEDIM == 3)
+  if(givenInitialPlanes) {
+    ivInitialPlanes.setVal(XDIR, atoi(clPlaneX));
+    ivInitialPlanes.setVal(YDIR, atoi(clPlaneY));
+    ivInitialPlanes.setVal(ZDIR, atoi(clPlaneZ));
+  }
+#endif
 
 
   if(fileType == INVALIDTYPE) {
@@ -852,6 +889,9 @@ int AVGlobals::SleepTime() { return sleepTime; }
 int  AVGlobals::GetMaxLevel() { return maxLevel; }
 bool AVGlobals::UseMaxLevel() { return useMaxLevel; }
 
+void AVGlobals::SetShowBody(const bool bsb) { bShowBody = bsb; }
+bool AVGlobals::GetShowBody()  { return bShowBody; }
+
 const string &AVGlobals::GetComlineFilename(int i) { return comlinefilename[i]; }
 FileType AVGlobals::GetDefaultFileType()   { return fileType;    }
 
@@ -879,7 +919,7 @@ Array< list<int> > &AVGlobals::GetDumpSlices() { return dumpSliceList; }
 int  AVGlobals::GetFabOutFormat() { return fabIOSize;  }
 
 bool AVGlobals::UseSpecifiedMinMax() { return specifiedMinMax; }
-void AVGlobals::SetSpecifiedMinMax(Real  specifiedmin, Real  specifiedmax) {
+void AVGlobals::SetSpecifiedMinMax(Real specifiedmin, Real specifiedmax) {
   specifiedMin = specifiedmin;
   specifiedMax = specifiedmax;
 }
@@ -889,6 +929,8 @@ void AVGlobals::GetSpecifiedMinMax(Real &specifiedmin, Real &specifiedmax) {
   specifiedmax = specifiedMax;
 }
 
+bool AVGlobals::GivenInitialPlanes() { return givenInitialPlanes; }
+IntVect AVGlobals::GetInitialPlanes() { return ivInitialPlanes; }
 
 // -------------------------------------------------------------------
 int AVGlobals::CRRBetweenLevels(int fromlevel, int tolevel,

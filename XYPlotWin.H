@@ -53,13 +53,12 @@ class XYPlotWin;
 
 typedef void (XYPlotWin::*memberXYCB)(Widget, XtPointer, XtPointer);
 
-typedef struct legend_item_typ {
+typedef struct {
   XYPlotDataList *XYPLIlist;
-  legend_item_typ *prev, *next;
   Widget wid;                     // For legend item drawingarea
   Widget frame;                   // For drawingarea frame
   Widget menu;                    // Popup menu for this item
-  char drawQ;
+  bool drawQ;
   int style, color;
   Pixel pixel;
 #if (BL_SPACEDIM == 2)
@@ -105,8 +104,9 @@ class XYPlotWin {
     GC		          titletextGC, labeltextGC, rbGC, segGC, dotGC;
 
     // Other important numbers.
-    unsigned char           zoomedInQ;
-    XYPlotLegendItem       *legendHead, *legendTail, *colorChangeItem;
+    bool                    zoomedInQ;
+    XYPlotLegendItem       *colorChangeItem;
+    list<XYPlotLegendItem *> legendList;
     unsigned int            numDrawnItems, numItems;
     unsigned char           lineFormats[8];
     unsigned int            numXsegs;
@@ -115,7 +115,8 @@ class XYPlotWin {
     // parameters.
     unsigned char           markQ, tickQ, axisQ, boundBoxQ;
     unsigned char           plotLinesQ, saveDefaultQ, dispHintsQ;
-    unsigned char           animatingQ, tbool[7];
+    bool                    animatingQ;
+    unsigned char           tbool[7];
     int                     lineW, gridW, dotW;
     char                   *XUnitText, *YUnitText, *formatX, *formatY;
     Pixel                   foregroundPix, backgroundPix, gridPix, textPix;
@@ -143,6 +144,7 @@ class XYPlotWin {
 #endif
     int     currFrame;
   
+    void ReattachLegendFrames();
     void DoError(char *error_str) { fprintf(stderr, "%s\n", error_str); }
     void AddStaticCallback(Widget w, String cbtype,
 			   memberXYCB cbf, void *data = NULL);
@@ -154,21 +156,21 @@ class XYPlotWin {
     static void StaticEvent(Widget w, XtPointer client_data,
 			    XEvent *event, char*);
 
-    void setBoundingBox(double lowX  = 1.0, double lowY  = 1.0,
+    void SetBoundingBox(double lowX  = 1.0, double lowY  = 1.0,
 		        double highX = 0.0, double highY = 0.0);
-    void updateBoundingBox(XYPlotDataList *list);
+    void UpdateBoundingBox(XYPlotDataList *list);
     void textX (Widget win, int x, int y, char *text, int just, int style);
     void segX(Widget win, int ns, XSegment *segs, int width,
 	      int style, int lappr, Pixel color);
     void dotX(Widget win, int x, int y, int style, int color);
-    double initGrid(double low, double high, double step);
+    double InitGrid(double low, double high, double step);
     double roundUp(double val);
     void writeValue(char *str, char *fmt, double val, int expv);
-    void CalculateBox(void);
-    void drawGridAndAxis(void);
-    void clearData(void);
-    void drawData(void);
-    void drawHint(void);
+    void CalculateBox();
+    void drawGridAndAxis();
+    void clearData();
+    void drawData();
+    void drawHint();
 
     void CBdoInitializeListColorChange(Widget, XtPointer, XtPointer);
     void CBdoSetListColor(Widget, XtPointer, XtPointer);

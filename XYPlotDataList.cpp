@@ -2,351 +2,226 @@
 // XYPlotDataList.cpp 
 // -------------------------------------------------------------------
 #include "XYPlotDataList.H"
+#include "GlobalUtilities.H"
 #include <cfloat>
 
-#define STRDUP(xx) (strcpy(new char[strlen(xx)+1], (xx)))
-
 // -------------------------------------------------------------------
-XYPlotDataList::XYPlotDataList(const string &_derived, int max_level,
-			       int _gridline,
-			       const Array<int> &ratio_list,
-			       const Array<Real> &d_X,
-			       const Array<char *> &intersect_point,
-			       Real offset_x)
-  : dataSets(max_level+1),
-    upXi(max_level),
-    ratios(ratio_list),
-    dX(d_X),
-    intersectPoint(intersect_point),
-    lloY(max_level+1),
-    hhiY(max_level+1),
-    maxLevel(max_level),
-    gridline(_gridline),
-    offsetX(offset_x),
-    derived(_derived)
+XYPlotDataList::XYPlotDataList(const string &derived, int minlevel,
+                               int maxlevel, int gridlinein,
+			       const Array<int> &ratiolist,
+			       const Array<Real> &dx,
+			       const Array<char *> &intersectpoint,
+			       Real offsetx)
+  : dataSets(maxlevel + 1),
+    xypdlRatios(ratiolist),
+    dX(dx),
+    intersectPoint(intersectpoint),
+    xypdlLoY(maxlevel + 1),
+    xypdlHiY(maxlevel + 1),
+    xypdlXVal(maxlevel + 1),
+    xypdlYVal(maxlevel + 1),
+    numPoints(maxlevel + 1),
+    minLevel(minlevel),
+    maxLevel(maxlevel),
+    gridline(gridlinein),
+    offsetX(offsetx),
+    xypdlDerived(derived),
+    fabBoxLists(maxlevel + 1),
+    fillBoxLists(maxlevel + 1)
 {
-  //cout << "_here 000:  max_level = " << max_level << endl;
-  int idx;
-
-  emptyQ   = 1;
-  updatedQ = 0;
+  updatedQ = false;
   curLevel = 0;
-  copied_from = NULL;
-
-  idx = 0;
-  while(true) {
-  //cout << "_here 000.1:  making a new dataSet:  idx maxLevel = "
-  //     << idx << "  " << maxLevel << endl;
-    dataSets[idx] = new List< XYPlotDataListLink *>();
-    if(idx == maxLevel) {
-      break;
-    }
-    upXi[idx] = new List<int>();
-    ++idx;
-  }
+  copiedFrom = NULL;
 }
 
 
 // -------------------------------------------------------------------
 XYPlotDataList::XYPlotDataList(XYPlotDataList *src)
   : dataSets(src->dataSets),
-    upXi(src->upXi),
-    ratios(src->ratios),
+    xypdlRatios(src->xypdlRatios),
     dX(src->dX),
     intersectPoint(src->intersectPoint),
-    lloY(src->lloY),
-    hhiY(src->hhiY),
+    xypdlLoY(src->xypdlLoY),
+    xypdlHiY(src->xypdlHiY),
     numPoints(src->numPoints),
     maxLevel(src->maxLevel),
     curLevel(src->curLevel),
     gridline(src->gridline),
     updatedQ(src->updatedQ),
-    emptyQ(src->updatedQ),
     startX(src->startX),
     endX(src->endX),
     offsetX(src->offsetX),
-    derived(src->derived) 
+    xypdlDerived(src->xypdlDerived)
 {
-  //cout << "_here 001" << endl;
-  if(src->copied_from) {
-    copied_from = src->copied_from;
+  if(src->copiedFrom) {
+    copiedFrom = src->copiedFrom;
   } else {
-    copied_from = src;
+    copiedFrom = src;
   }
 }
 
 
 // -------------------------------------------------------------------
 XYPlotDataList::~XYPlotDataList() {
-  if(copied_from == NULL) {
-    int idx;
-    for(idx = 0; idx <= maxLevel; ++idx) {
-      for(ListIterator<XYPlotDataListLink *> li(*dataSets[idx]); li; ++li) {
-	delete (*li)->data;
-	delete *li;
+  if(copiedFrom == NULL) {
+    for(int ilev(0); ilev <= maxLevel; ++ilev) {
+      delete intersectPoint[ilev];
+      for(list<XYPlotDataListLink *>::iterator li = dataSets[ilev].begin();
+          li != dataSets[ilev].end(); ++li)
+      {
+        delete (*li);
       }
-      delete dataSets[idx];
-      delete intersectPoint[idx];
-    }
-    for(idx = 0; idx != maxLevel; ++idx) {
-      delete upXi[idx];
     }
   }
 }
 
 
 // -------------------------------------------------------------------
-void XYPlotDataList::AddFArrayBox(FArrayBox &fab, int which_dir, int level) {
-  int length = fab.length()[which_dir];
-  int startXi = fab.smallEnd()[which_dir];
-  Real *data = new Real[length];
-  Real *FABdata = fab.dataPtr();
-  for(int ii(0); ii != length; ++ii) {
-    data[ii] = FABdata[ii];
-  }
-  addLink(new XYPlotDataListLink(data, startXi, length), level);
-}
-
-
-// -------------------------------------------------------------------
-void XYPlotDataList::addLink(XYPlotDataListLink *linky, int level) {
-  //cout << "_here 002:  level = " << level << endl;
+void XYPlotDataList::AddFArrayBox(FArrayBox &fab, int whichdir, int level) {
+  BL_ASSERT(level >= 0);
   BL_ASSERT(level <= maxLevel);
-  emptyQ = 0;
-  updatedQ = 0;
-  linky->endXi = linky->startXi + linky->length;
 
-  ListIterator<XYPlotDataListLink *> curLevLI(*dataSets[level]);
-
-  if(level == 0) {
-    linky->down = NULL;
-
-    while(true) {
-      if( ! curLevLI) {
-	dataSets[0]->append(linky);
-	break;
+  whichDir = whichdir;
+  fabBoxLists[level].push_back(fab.box());
+  updatedQ = false;
+  int istartx(fab.smallEnd()[whichdir]);
+  XYPlotDataListLink *pdll = new XYPlotDataListLink(fab.dataPtr(), istartx,
+                                                    fab.length()[whichdir]);
+  list<XYPlotDataListLink *>::iterator li = dataSets[level].begin();
+  if(li == dataSets[level].end()) {
+    dataSets[level].push_back(pdll);
+  } else {
+    while((*li)->StartXi() < istartx && li != dataSets[level].end()) {
+      ++li;
+      if(li == dataSets[level].end()) {
+        break;
       }
-      if((*curLevLI)->startXi > linky->startXi) {
-	dataSets[0]->addBefore(curLevLI, linky);
-	break;
-      }
-      ++curLevLI;
     }
-  //cout << "_here 002.1:  returning" << endl;
-    return;
+    dataSets[level].insert(li, pdll);
   }
-
-  int temp;
-
-  // ASSUMPTION: DATA IS CELL CENTERED.  If the box we are adding begins
-  // more than halfway through the cell on the level below, then we will
-  // consider the cell below to be "visible".
-  temp = linky->startXi / ratios[level-1] +
-    (((linky->startXi % ratios[level-1]) * 2 > ratios[level-1]) ? 1 : 0);
-  
-  // Insertion into sorted location.
-  ListIterator<int> XiLI(*upXi[level-1]);
-  while(true) {
-    // If we have reached the end of the list, append to the end.
-    if( ! curLevLI) {
-      dataSets[level]->append(linky);
-      upXi[level-1]->append(temp);
-      break;
-    }
-
-    // If the current box in the list begins after the box we are adding,
-    // we have found the position in the list, so stop.
-    if((*curLevLI)->startXi > linky->startXi) {
-      dataSets[level]->addBefore(curLevLI, linky);
-      upXi[level-1]->addBefore(XiLI, temp);
-      break;
-    }
-
-    ++curLevLI;
-    ++XiLI;
-  }
-
-  temp = linky->endXi / ratios[level-1];
-
-  linky->nDown = temp + 
-    (((linky->endXi % ratios[level-1]) * 2 > ratios[level-1])  ? 1 : 0);
-
-  ListIterator<XYPlotDataListLink *> preLevLI(*dataSets[level-1]);
-  //cout << "_here 002.2" << endl;
-  BL_ASSERT(preLevLI);
-  XYPlotDataListLink *down = *preLevLI;
-  while(down->endXi < temp && ++preLevLI) {
-    down = *preLevLI;
-  }
-  linky->down = down;
 }
 
 
 // -------------------------------------------------------------------
-void XYPlotDataList::UpdateStats(void) {
-
-  // Find the number of points, and the extremes for each level.
+void XYPlotDataList::UpdateStats() {
   if(updatedQ) {
     return;
   }
-  numPoints = 0;
-  BL_ASSERT(dataSets[0]->firstElement());
+  BL_ASSERT(dataSets[minLevel].empty() == false);
 
+  int ilev, startxi, endxi;
+  startxi = dataSets[minLevel].front()->StartXi();
+  endxi   = dataSets[minLevel].back()->EndXi();
+  startX  = offsetX + dX[minLevel] * (double) startxi;
+  endX    = offsetX + dX[minLevel] * (double) endxi;
+
+for(int iCurLevel(maxLevel); iCurLevel >= minLevel; --iCurLevel) {
+
+  // back out the probDomain
+  Box probDomain = fabBoxLists[minLevel].minimalBox();
+  probDomain.refine(AVGlobals::CRRBetweenLevels(minLevel, iCurLevel, xypdlRatios));
+  for(int isd(0); isd < BL_SPACEDIM; ++isd) {
+    if(isd != whichDir) {  // squish the pd
+      if(fabBoxLists[iCurLevel].size() > 0) {
+        probDomain.setSmall(isd, (*(fabBoxLists[iCurLevel].begin())).smallEnd(isd));
+        probDomain.setBig(isd, (*(fabBoxLists[iCurLevel].begin())).bigEnd(isd));
+      }
+    }
+  }
+
+  Array<BoxList> unfilledBoxLists(iCurLevel + 1);
+  unfilledBoxLists[iCurLevel].push_back(probDomain);
+
+  for(ilev = iCurLevel; ilev >= minLevel; --ilev) {
+    fillBoxLists[ilev].clear(); 
+    fillBoxLists[ilev].join(unfilledBoxLists[ilev]);
+    fillBoxLists[ilev].intersect(fabBoxLists[ilev]);
+    BoxList tempUnfilled;
+    for(BoxList::iterator bli = unfilledBoxLists[ilev].begin();
+        bli != unfilledBoxLists[ilev].end(); ++bli)
+    {
+      tempUnfilled.join(BoxLib::complementIn(*bli, fabBoxLists[ilev]));
+    }
+    unfilledBoxLists[ilev].clear();
+    unfilledBoxLists[ilev].join(tempUnfilled);
+
+    if(ilev > minLevel) {
+      unfilledBoxLists[ilev - 1].clear();
+      unfilledBoxLists[ilev - 1].join(unfilledBoxLists[ilev]);
+      unfilledBoxLists[ilev - 1].coarsen(AVGlobals::CRRBetweenLevels(ilev - 1,
+                                         ilev, xypdlRatios));
+      for(int isd(0); isd < BL_SPACEDIM; ++isd) {
+        if(isd != whichDir) {  // squish the boxlist
+          if(fabBoxLists[ilev - 1].size() > 0) {
+            for(BoxList::iterator bli = unfilledBoxLists[ilev - 1].begin();
+                bli != unfilledBoxLists[ilev - 1].end(); ++bli)
+            {
+             (*bli).setSmall(isd, (*(fabBoxLists[ilev - 1].begin())).smallEnd(isd));
+             (*bli).setBig(isd, (*(fabBoxLists[ilev - 1].begin())).bigEnd(isd));
+	    }
+          }
+        }
+      }
+    }
+  }
+
+  numPoints[iCurLevel] = 0;
+  for(ilev = minLevel; ilev <= iCurLevel; ++ilev) {
+    for(BoxList::iterator bli = fillBoxLists[ilev].begin();
+        bli != fillBoxLists[ilev].end(); ++bli)
+    {
+      numPoints[iCurLevel] += (*bli).length(whichDir);
+    }
+  }
+  xypdlXVal[iCurLevel].resize(numPoints[iCurLevel]);
+  xypdlYVal[iCurLevel].resize(numPoints[iCurLevel]);
+
+  list<OrderedBoxes> orderedBoxes;
+  for(ilev = minLevel; ilev <= iCurLevel; ++ilev) {
+    for(BoxList::iterator bli = fillBoxLists[ilev].begin();
+        bli != fillBoxLists[ilev].end(); ++bli)
+    {
+      Box refinedBox(*bli);
+      refinedBox.refine(AVGlobals::CRRBetweenLevels(ilev, iCurLevel, xypdlRatios));
+      orderedBoxes.push_back(OrderedBoxes(ilev, whichDir, *bli, refinedBox));
+    }
+  }
+  orderedBoxes.sort();
+  int xIndex(0);
+  for(list<OrderedBoxes>::iterator obli = orderedBoxes.begin();
+        obli != orderedBoxes.end(); ++obli)
   {
-    ListIterator<XYPlotDataListLink *> li(*dataSets[0]);
-    int startXi = (*li)->startXi;
-    int endXi = (*li)->endXi;
-    while(++li) {
-      if((*li)->startXi < startXi) {
-        startXi = (*li)->startXi;
-      }
-      if((*li)->endXi > endXi) {
-        endXi = (*li)->endXi;
-      }
-    }
-    startX = offsetX + dX[0] * startXi;
-    endX = offsetX + dX[0] * endXi;
-  }
-
-  lloY[0] =  DBL_MAX;
-  hhiY[0] = -DBL_MAX;
-
-  for(int idx(0); idx <= maxLevel; ++idx) {
-    for(ListIterator<XYPlotDataListLink *> li(*dataSets[idx]); li; ++li) {
-      Real *ptr = (*li)->data;
-      numPoints += (*li)->length;
-      for(int idx2((*li)->length); idx2 != 0; --idx2) {
-	if(*ptr < lloY[idx]) {
-	  lloY[idx] = *ptr;
-	}
-	if(*ptr > hhiY[idx]) {
-	  hhiY[idx] = *ptr;
-	}
-	++ptr;
-      }
-    }
-    if(idx != maxLevel) {
-      lloY[idx+1] = lloY[idx];
-      hhiY[idx+1] = hhiY[idx];
-    }
-  }
-  updatedQ = 1;
-}
-
-
-// -------------------------------------------------------------------
-XYPlotDataListIterator::XYPlotDataListIterator (XYPlotDataList *alist)
-                       : list(alist),
-                         XiLI(alist->curLevel),
-                         linkLI(alist->curLevel+1),
-                         maxLevel(alist->curLevel)
-{
-  curLevel = 0;
-
-  for(int idx = 0; idx <= maxLevel; ++idx) {
-    linkLI[idx] = new ListIterator<XYPlotDataListLink *> (*list->dataSets[idx]);
-  }
-
-  for(int idx = 0; idx != maxLevel; ++idx) {
-    XiLI[idx] = new ListIterator<int> (*list->upXi[idx]);
-  }
-
-  if( ! *linkLI[0]) {
-    curLink = NULL;
-    return;
-  }
-  curLink = **linkLI[0];
-
-  int temp;
-  while(true) {
-    curXi = curLink->startXi;
-    nextXi = curLink->endXi;
-    if(curLevel != maxLevel && *XiLI[curLevel] &&
-       ((temp = **XiLI[curLevel]) < nextXi))
+    for(int i((*obli).DataBox().smallEnd()[whichDir]);
+        i <= (*obli).DataBox().bigEnd()[whichDir]; ++i)
     {
-      nextXi = temp;
-      nextLink = **linkLI[curLevel+1];
-      ++(*XiLI[curLevel]);
-      ++(*linkLI[curLevel+1]);
-    } else {
-      nextLink = NULL;
-      break;
-    }
-    
-    if(curXi < nextXi) {
-      break;
-    }
-    ++curLevel;
-    curLink = nextLink;
-  }
-  data = curLink->data;
-  xval = (0.5 + curXi) * list->dX[curLevel] + list->offsetX;
-  yval = *data;
-}
-
-
-// -------------------------------------------------------------------
-XYPlotDataListIterator::~XYPlotDataListIterator(){
-  int idx;
-  for(idx = 0; idx <= maxLevel; ++idx) {
-    delete linkLI[idx];
-  }
-  for(idx = 0; idx != maxLevel; ++idx) {
-    delete XiLI[idx];
-  }
-}
-
-
-// -------------------------------------------------------------------
-XYPlotDataListIterator &XYPlotDataListIterator::operator++() {
-  if(++curXi < nextXi) {
-    ++data;
-    xval += list->dX[curLevel];
-    yval = *data;
-    return *this;
-  }
-
-  int temp;
-  do {
-    if(nextLink) {
-      curXi = nextLink->startXi;
-      curLink = nextLink;
-      ++curLevel;
-    } else {
-      if(curLevel != 0) {
-	--curLevel;
-	curXi = curLink->nDown;
-	curLink = curLink->down;
-      } else {
-	while(curLink != **linkLI[0]) {
-	  ++(*linkLI[0]);
+      int obLev((*obli).ILevel());
+      Real xval((0.5 + i) * dX[obLev] + offsetX);
+      xypdlXVal[iCurLevel][xIndex] = xval;
+      for(list<XYPlotDataListLink *>::iterator li = (dataSets[obLev]).begin();
+          li != (dataSets[obLev]).end(); ++li)
+      {
+        XYPlotDataListLink *xypd = *li;
+	if(i >= xypd->StartXi() && i < xypd->EndXi()) {
+	  Real yval(xypd->XYPDLLData()[i - xypd->StartXi()]);
+          xypdlYVal[iCurLevel][xIndex] = yval;
 	}
-	++(*linkLI[0]);
-	if( ! *linkLI[0]) {
-	  curLink = NULL;
-	  return *this;
-	}
-	curLink = **linkLI[0];
-	curXi = curLink->startXi;
       }
+      ++xIndex;
     }
-    nextXi = curLink->endXi;
-    if(curLevel != maxLevel && *XiLI[curLevel] &&
-       ((temp = **XiLI[curLevel]) < nextXi))
-    {
-      nextXi = temp;
-      nextLink = **linkLI[curLevel+1];
-      ++(*XiLI[curLevel]);
-      ++(*linkLI[curLevel+1]);
-    } else {
-      nextLink = NULL;
+  }
+
+  xypdlLoY[iCurLevel] =  DBL_MAX;
+  xypdlHiY[iCurLevel] = -DBL_MAX;
+  for(ilev = minLevel; ilev <= iCurLevel; ++ilev) {
+    for(int ii(0); ii < xypdlYVal[ilev].size(); ++ii) {
+      xypdlLoY[iCurLevel] = min(xypdlLoY[iCurLevel], xypdlYVal[ilev][ii]);
+      xypdlHiY[iCurLevel] = max(xypdlHiY[iCurLevel], xypdlYVal[ilev][ii]);
     }
-  } while(curXi >= nextXi);
-  
-  data = curLink->data + (curXi - curLink->startXi);
-  xval = (0.5 + curXi) * list->dX[curLevel] + list->offsetX;
-  yval = *data;
-  return *this;
+  }
+
+}  // end for(iCurLevel...)
+
+  updatedQ = true;
 }
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.65 2003-03-12 07:40:56 vince Exp $
+// $Id: AmrData.cpp,v 1.66 2004-04-16 23:50:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -866,8 +866,23 @@ bool AmrData::ReadNonPlotfileData(const string &filename, FileType filetype) {
         zvMin = min(zvMin, tempVisMF.min(ic, iComp));
         zvMax = max(zvMax, tempVisMF.max(ic, iComp));
       }
-      levelZeroValue = zvMin - ((zvMax - zvMin) / 256.0);
+      levelZeroValue = zvMin;
       newfab->setVal(levelZeroValue);
+#if(BL_SPACEDIM == 2)
+#ifdef BL_SETMFBACKGROUND
+      Real *dptr = newfab->dataPtr();
+      int idx;
+      for(int icr(0); icr < newfab->box().length(1); ++icr) {
+        for(int icc(0); icc < newfab->box().length(0); ++icc) {
+	  idx = icc + (icr * newfab->box().length(0));
+	  BL_ASSERT(idx < newfab->box().numPts());
+	  if((icc + icr) % 5 == 0) {
+            dptr[idx] = zvMax;
+	  }
+        }
+      }
+#endif
+#endif
       dataGrids[0][iComp]->setFab(0, newfab);
       dataGridsDefined[0][iComp][0] = true;
 

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.83 2003-12-18 23:32:53 vince Exp $
+// $Id: AmrPicture.cpp,v 1.84 2004-04-16 23:50:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -25,15 +25,19 @@ using std::min;
 #include "ArrayView.H"
 #endif
 
+// ---------------------------------------------------------------------
 bool DrawRaster(ContourType cType) {
   return (cType == RASTERONLY || cType == RASTERCONTOURS || cType == VECTORS);
 }
 
 
+// ---------------------------------------------------------------------
 bool DrawContours(ContourType cType) {
   return (cType == RASTERCONTOURS || cType == COLORCONTOURS || cType == BWCONTOURS);
 }
 
+
+// ---------------------------------------------------------------------
 static bool UsingFileRange(const MinMaxRangeType rt) {
   return(rt == FILEGLOBALMINMAX    ||
          rt == FILESUBREGIONMINMAX ||
@@ -55,9 +59,7 @@ AmrPicture::AmrPicture(GraphicsAttributes *gaptr,
              isSubDomain(false)
 {
   int i, ilev;
-
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
-
   int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
 
   numberOfLevels    = maxAllowableLevel + 1;
@@ -89,17 +91,45 @@ AmrPicture::AmrPicture(GraphicsAttributes *gaptr,
     dataSize[ilev]  = dataSizeH[ilev] * dataSizeV[ilev];  // for a picture (slice).
   }
 
-  vLine = 0;
-  hLine = subDomain[maxAllowableLevel].bigEnd(YDIR) *
-	  pltAppStatePtr->CurrentScale();
-  subcutY = hLine;
-  subcut2ndY = hLine;
+  if(AVGlobals::GivenInitialPlanes()) {
+    BL_ASSERT(BL_SPACEDIM == 3);
+    int coarsenCRR = AVGlobals::CRRBetweenLevels(maxAllowableLevel,
+                                                 pltAppStatePtr->FinestLevel(),
+                                                 amrData.RefRatio());
+    int tempSliceV = AVGlobals::GetInitialPlanes()[XDIR];  // at finest lev
+    int tempSliceH = AVGlobals::GetInitialPlanes()[YDIR];  // at finest lev
+    tempSliceV /= coarsenCRR;
+    tempSliceH /= coarsenCRR;
+    tempSliceH = subDomain[maxAllowableLevel].bigEnd(YDIR) - tempSliceH;
+    vLine = max(min(tempSliceV,
+                    subDomain[maxAllowableLevel].bigEnd(XDIR)), 
+                    subDomain[maxAllowableLevel].smallEnd(XDIR));
+    hLine = max(min(tempSliceH,
+                    subDomain[maxAllowableLevel].bigEnd(YDIR)), 
+                    subDomain[maxAllowableLevel].smallEnd(YDIR));
+    vLine *= pltAppStatePtr->CurrentScale();
+    hLine *= pltAppStatePtr->CurrentScale();
+    subcutY = hLine;
+    subcut2ndY = hLine;
+
+    int tempSlice = AVGlobals::GetInitialPlanes()[YZ - myView];  // at finest lev
+    tempSlice /= coarsenCRR;
+    slice = max(min(tempSlice,
+                    subDomain[maxAllowableLevel].bigEnd(YZ-myView)), 
+                    subDomain[maxAllowableLevel].smallEnd(YZ-myView));
+  } else {
+    vLine = 0;
+    hLine = subDomain[maxAllowableLevel].bigEnd(YDIR) *
+	    pltAppStatePtr->CurrentScale();
+    subcutY = hLine;
+    subcut2ndY = hLine;
 
 #if (BL_SPACEDIM == 2)
-  slice = 0;
+    slice = 0;
 #else
-  slice = subDomain[maxAllowableLevel].smallEnd(YZ-myView);
+    slice = subDomain[maxAllowableLevel].smallEnd(YZ-myView);
 #endif
+  }
   sliceBox.resize(numberOfLevels);
 
   for(ilev = minDrawnLevel; ilev <= maxAllowableLevel; ilev++) {  // set type
@@ -168,24 +198,22 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
   }
 
 # if (BL_SPACEDIM == 3)
-    
   if(myView==XY) {
       hLine = (subDomain[maxAllowableLevel].bigEnd(YDIR) -
       		subDomain[maxAllowableLevel].smallEnd(YDIR)) *
 		pltAppStatePtr->CurrentScale();
       vLine = 0;
-    } else if(myView==XZ) {
+  } else if(myView==XZ) {
       hLine = (subDomain[maxAllowableLevel].bigEnd(ZDIR) -
       		subDomain[maxAllowableLevel].smallEnd(ZDIR)) *
 		pltAppStatePtr->CurrentScale();
       vLine = 0;
-    } else {
+  } else {
       hLine = (subDomain[maxAllowableLevel].bigEnd(ZDIR) -
       		subDomain[maxAllowableLevel].smallEnd(ZDIR)) *
 		pltAppStatePtr->CurrentScale();
       vLine = 0;
-    }
-
+  }
 
     if(parentPltAppPtr != NULL) {
       int tempSlice = parentPltAppPtr->GetAmrPicturePtr(myView)->GetSlice();
@@ -197,7 +225,59 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
                       subDomain[maxAllowableLevel].bigEnd(YZ-myView)), 
                       subDomain[maxAllowableLevel].smallEnd(YZ-myView));
     } else {
-      slice = subDomain[maxAllowableLevel].smallEnd(YZ-myView);
+      if(AVGlobals::GivenInitialPlanes()) {
+	int tempSlice = AVGlobals::GetInitialPlanes()[YZ - myView];  // finest lev
+        int coarsenCRR = AVGlobals::CRRBetweenLevels(maxAllowableLevel,
+                                                     pltAppStatePtr->FinestLevel(),
+                                                     amrData.RefRatio());
+        tempSlice /= coarsenCRR;
+        slice = max(min(tempSlice,
+                        subDomain[maxAllowableLevel].bigEnd(YZ-myView)), 
+                        subDomain[maxAllowableLevel].smallEnd(YZ-myView));
+
+        int tempSliceV, tempSliceH;
+        if(myView==XY) {
+          tempSliceV = AVGlobals::GetInitialPlanes()[XDIR];  // at finest lev
+          tempSliceH = AVGlobals::GetInitialPlanes()[YDIR];  // at finest lev
+          tempSliceV /= coarsenCRR;
+          tempSliceH /= coarsenCRR;
+          tempSliceH = subDomain[maxAllowableLevel].bigEnd(YDIR) - tempSliceH;
+          vLine = max(min(tempSliceV,
+                          subDomain[maxAllowableLevel].bigEnd(XDIR)), 
+                          subDomain[maxAllowableLevel].smallEnd(XDIR));
+          hLine = max(min(tempSliceH,
+                          subDomain[maxAllowableLevel].bigEnd(YDIR)), 
+                          subDomain[maxAllowableLevel].smallEnd(YDIR));
+        } else if(myView==XZ) {
+          tempSliceV = AVGlobals::GetInitialPlanes()[XDIR];  // at finest lev
+          tempSliceH = AVGlobals::GetInitialPlanes()[ZDIR];  // at finest lev
+          tempSliceV /= coarsenCRR;
+          tempSliceH /= coarsenCRR;
+          tempSliceH = subDomain[maxAllowableLevel].bigEnd(ZDIR) - tempSliceH;
+          vLine = max(min(tempSliceV,
+                          subDomain[maxAllowableLevel].bigEnd(XDIR)), 
+                          subDomain[maxAllowableLevel].smallEnd(XDIR));
+          hLine = max(min(tempSliceH,
+                          subDomain[maxAllowableLevel].bigEnd(ZDIR)), 
+                          subDomain[maxAllowableLevel].smallEnd(ZDIR));
+        } else {
+          tempSliceV = AVGlobals::GetInitialPlanes()[YDIR];  // at finest lev
+          tempSliceH = AVGlobals::GetInitialPlanes()[ZDIR];  // at finest lev
+          tempSliceV /= coarsenCRR;
+          tempSliceH /= coarsenCRR;
+          tempSliceH = subDomain[maxAllowableLevel].bigEnd(ZDIR) - tempSliceH;
+          vLine = max(min(tempSliceV,
+                          subDomain[maxAllowableLevel].bigEnd(YDIR)), 
+                          subDomain[maxAllowableLevel].smallEnd(YDIR));
+          hLine = max(min(tempSliceH,
+                          subDomain[maxAllowableLevel].bigEnd(ZDIR)), 
+                          subDomain[maxAllowableLevel].smallEnd(ZDIR));
+        }
+        vLine *= pltAppStatePtr->CurrentScale();
+        hLine *= pltAppStatePtr->CurrentScale();
+      } else {
+        slice = subDomain[maxAllowableLevel].smallEnd(YZ - myView);
+      }
     }
     
 # else

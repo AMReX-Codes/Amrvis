@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.63 2004-02-10 22:51:10 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.64 2004-04-16 23:50:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -428,6 +428,23 @@ void BatchFunctions() {
 
 }  // end BatchFunctions
 
+
+// ---------------------------------------------------------------
+void QuitAll() {
+  for(list<PltApp *>::iterator li = pltAppList.begin();
+      li != pltAppList.end(); ++li)
+  {
+    PltApp *obj = *li;
+    Array<DataServices *> dataServicesPtr = obj->GetDataServicesPtrArray();
+    for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
+      dataServicesPtr[ids]->DecrementNumberOfUsers();
+    }
+    delete obj;
+  }
+  pltAppList.clear();
+  DataServices::Dispatch(DataServices::ExitRequest, NULL);
+}
+
  
 // ---------------------------------------------------------------
 void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
@@ -436,19 +453,8 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
   unsigned long item = (unsigned long) client_data;
 
   if(item == QUITITEM) {
-    for(list<PltApp *>::iterator li = pltAppList.begin();
-        li != pltAppList.end(); ++li) {
-      PltApp *obj = *li;
-      Array<DataServices *> dataServicesPtr = obj->GetDataServicesPtrArray();
-      for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
-        dataServicesPtr[ids]->DecrementNumberOfUsers();
-      }
-      delete obj;
-    }
-    pltAppList.clear();
-    DataServices::Dispatch(DataServices::ExitRequest, NULL);
-  }
-  if(item == OPENITEM) {
+    QuitAll();
+  } else if(item == OPENITEM) {
     i = 0;
     FileType fileType(AVGlobals::GetDefaultFileType());
     XmString sMask;
@@ -565,6 +571,12 @@ void CBQuitPltApp(Widget ofPltApp, XtPointer client_data, XtPointer) {
   }
 
   delete obj;
+}
+
+
+// ---------------------------------------------------------------
+void CBQuitAll(Widget, XtPointer, XtPointer) {
+  QuitAll();
 }
 // ---------------------------------------------------------------
 // ---------------------------------------------------------------
