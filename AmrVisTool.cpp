@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.66 2004-04-29 21:56:44 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.67 2004-04-30 22:23:59 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -28,6 +28,7 @@
 #include "ParmParse.H"
 #include "ParallelDescriptor.H"
 #include "DataServices.H"
+#include "PltAppState.H"
 
 #ifdef BL_VOLUMERENDER
 #include "VolRender.H"
@@ -118,9 +119,6 @@ int main(int argc, char *argv[]) {
   if(bBatchMode && AVGlobals::IsAnimation()) {
     BoxLib::Abort("Batch mode and animation mode are incompatible.");
   }
-  if(AVGlobals::GivenBox()) {
-    BoxLib::Abort("Command line subbox not supported yet.");
-  }
 
   if(bBatchMode) {
     DataServices::SetBatchMode();
@@ -192,6 +190,24 @@ int main(int argc, char *argv[]) {
 	    } else {
               pltAppList.push_back(temp);
               dspArray[0]->IncrementNumberOfUsers();
+              if(AVGlobals::GivenBox()) {
+		DataServices *dsp = temp->GetDataServicesPtr();
+	        const AmrData &amrData = dsp->AmrDataRef();
+		Box bPD(amrData.ProbDomain()[amrData.FinestLevel()]);
+		Box itypComlineBox(bPD);  // for correct box type
+		itypComlineBox.setSmall(comlineBox.smallEnd());
+		itypComlineBox.setBig(comlineBox.bigEnd());
+		Box comlineBoxErr(itypComlineBox);
+		itypComlineBox &= bPD;
+		if(itypComlineBox.ok()) {
+                  SubregionPltApp(wTopLevel, comlineBox, comlineBox.smallEnd(),
+		         temp, temp->GetPaletteName(), AVGlobals::IsAnimation(),
+		         temp->GetPltAppState()->CurrentDerived(), comlineFileName);
+		} else {
+	          cerr << "Error:  bad subregion box on the command line:  "
+		       << comlineBoxErr << endl;
+		}
+              }
 	    }
 	  }
         }
@@ -540,7 +556,6 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
 // ---------------------------------------------------------------
 void SubregionPltApp(Widget wTopLevel, const Box &trueRegion,
 		     const IntVect &offset,
-		     //AmrPicture *parentPicturePtr,
 		     PltApp *pltparent,
 		     const string &palfile, int isAnim,
 		     const string &currentderived, const string &file)
