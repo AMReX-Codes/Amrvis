@@ -13,9 +13,11 @@ const int MAXINDEXCHARS   = 4;
 
 #ifdef BL_USE_NEW_HFILES
 #include <strstream>
+#include <cfloat>
 using std::ostrstream;
 using std::ends;
-#else
+# else
+#include <strstream.h>
 #include <float.h>
 #endif
 

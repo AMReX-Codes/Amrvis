@@ -26,14 +26,6 @@
 #include "Box.H"
 #include "AmrvisConstants.H"
 
-# ifndef BL_USE_NEW_HFILES
-#include <iostream.h>
-#include <strstream.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-# endif
-
 const int MAXSTRINGWIDTH = 64;
 
 class PltApp;
