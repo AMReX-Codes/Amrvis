@@ -3,7 +3,9 @@
 // -------------------------------------------------------------------
 
 const int CHARACTERWIDTH  = 13;
-const int DATAITEMHEIGHT  = 22;
+const int CHARACTERHEIGHT  = 22;
+const int MAXINDEXCHARS   = 4;
+//const int WOFFSET         = 4;
 
 #include "Dataset.H"
 #include "PltApp.H"
@@ -18,7 +20,6 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
 {
 
   // alignedRegion is defined on the maxAllowableLevel
-
   int i;
   stringOk = true;
   hDIR = hdir;
@@ -36,7 +37,19 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
   char *fbuff;
   XmStringGetLtoR(sFormatString, XmSTRING_DEFAULT_CHARSET, &fbuff);
   formatString = fbuff;
+  hStringOffset = 12;
+  vStringOffset = -4;
+
+
   XmStringFree(sFormatString);
+
+  whiteIndex = int(pltAppPtr->GetPalettePtr()->WhiteIndex());
+  blackIndex = int(pltAppPtr->GetPalettePtr()->BlackIndex());
+
+  indexWidth  = MAXINDEXCHARS * CHARACTERWIDTH;
+  indexHeight = CHARACTERHEIGHT + 7;
+  
+  hScrollBarPos = vScrollBarPos = 0;
 
   pixSizeX = 1;
   pixSizeY = 1;
@@ -194,7 +207,9 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
   hDIR = hdir;
   vDIR = vdir;
   sDIR = sdir;
-  if( ! stringOk) {
+  hAxisString = "x";
+  vAxisString = "y";
+   if( ! stringOk) {
     return;
   }
 
@@ -223,8 +238,6 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
   }
 
   Palette *palptr = pltAppPtr->GetPalettePtr();
-  int blackIndex(palptr->BlackIndex());
-  //int whiteIndex(palptr->WhiteIndex());
   int colorSlots(palptr->ColorSlots());
   int paletteStart(palptr->PaletteStart());
   int paletteEnd(palptr->PaletteEnd());
@@ -278,7 +291,7 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
   //
   }
 
-  dataItemWidth = largestWidth * CHARACTERWIDTH;
+
   if(Verbose()) {
     cout << stringCount << " data points" << endl;
   }
@@ -294,16 +307,18 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
   }
 
   // determine size of data area
-
-  pixSizeX = datasetRegion[maxAllowableLevel].length(hDIR) * dataItemWidth;
-  pixSizeY = datasetRegion[maxAllowableLevel].length(vDIR) * DATAITEMHEIGHT;
+  dataItemWidth = largestWidth * CHARACTERWIDTH;
+  pixSizeX = datasetRegion[maxAllowableLevel].length(hDIR) * dataItemWidth
+      + ((maxAllowableLevel+1)*indexWidth);
+  pixSizeY = datasetRegion[maxAllowableLevel].length(vDIR) * CHARACTERHEIGHT
+      + ((maxAllowableLevel+1)*indexHeight);
 
   // create StringLoc array and define color scheme 
   if(pixSizeX == 0 || pixSizeY == 0) {
     noData = true;
     sprintf (dataString, "No intersection.");
     pixSizeX = strlen(dataString) * CHARACTERWIDTH;
-    pixSizeY = DATAITEMHEIGHT+5;
+    pixSizeY = CHARACTERHEIGHT+5;
     XtVaSetValues(wPixArea,
 		XmNwidth,	pixSizeX,
 		XmNheight,	pixSizeY,
@@ -364,7 +379,7 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
                 dataStringArray[stringCount].xloc = (temp.smallEnd(hDIR)
 			  + c * crr) * dataItemWidth + 5;
                 dataStringArray[stringCount].yloc = pixSizeY-1 -
-		    (temp.smallEnd(vDIR) + d * crr) * DATAITEMHEIGHT - 4;
+		    (temp.smallEnd(vDIR) + d * crr) * CHARACTERHEIGHT - 4;
 
 	        for(i = lastLevLow; i < lastLevHigh; i++) { // remove overlap
 	 	  if(dataStringArray[i].xloc ==
@@ -401,37 +416,100 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
 
   XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), blackIndex);
 
+    Box tempBox = datasetRegion[maxAllowableLevel];
+    tempBox.shift(hDIR, -datasetRegion[maxAllowableLevel].smallEnd(hDIR)); 
+    tempBox.shift(vDIR, -datasetRegion[maxAllowableLevel].smallEnd(vDIR)); 
+
+    hIndexArray = new StringLoc* [maxAllowableLevel];
+    vIndexArray = new StringLoc* [maxAllowableLevel];
+    for(int level = 0; level <= maxAllowableLevel; level++)
+    {
+        double boxSize = pow(2., maxAllowableLevel-level);
+        // fill the box index arrays  ~**~
+        Box iABox = datasetRegion[level];
+        hIndexArray[level] = new StringLoc[iABox.length(hDIR)];
+        vIndexArray[level] = new StringLoc[iABox.length(vDIR)];
+// horizontal
+        for(d = 0; d < iABox.length(hDIR); d++) {
+            sprintf(dataString, "%d", d + iABox.smallEnd(hDIR));
+            hIndexArray[level][d].color = blackIndex;
+            hIndexArray[level][d].xloc = (boxSize*((tempBox.smallEnd(hDIR)+d) 
+                                                   * dataItemWidth))
+                +hStringOffset;
+            hIndexArray[level][d].yloc = 0;  // find this dynamically when drawing
+            strcpy(hIndexArray[level][d].ds, dataString);
+            hIndexArray[level][d].dslen = strlen(dataString);
+            hIndexArray[level][d].olflag = false;
+        }  // end for(d...)
+        
+        // vertical
+        for(d = 0; d < iABox.length(vDIR); d++) {
+            sprintf(dataString, "%d", d + iABox.smallEnd(vDIR));
+            vIndexArray[level][d].color = blackIndex;
+            vIndexArray[level][d].xloc = 0;  // find this dynamically when drawing
+            vIndexArray[level][d].yloc =((boxSize-((boxSize*iABox.length(vDIR))-
+                              datasetRegion[maxAllowableLevel].length(vDIR))
+                                          +(boxSize*(iABox.length(vDIR)-1-d)))
+                                         * CHARACTERHEIGHT)+vStringOffset;
+            strcpy(vIndexArray[level][d].ds, dataString);
+            vIndexArray[level][d].dslen = strlen(dataString);
+            vIndexArray[level][d].olflag = false;
+        }  // end for(d...)
+    }//end for(int level = 0...
+
 }  // end Dataset::Render
 
 
 // -------------------------------------------------------------------
-void Dataset::DrawGrid(int startX, int startY, int endX, int endY, int refRatio) {
-  int i;
-  Palette *palptr = pltAppPtr->GetPalettePtr();
-  int whiteIndex(palptr->WhiteIndex());
-  int blackIndex(palptr->BlackIndex());
+void Dataset::DrawGrid(int startX, int startY, int finishX, int finishY, 
+                       int gridspacingX, int gridspacingY,
+                       int foregroundIndex, int backgroundIndex) {
+    int i;
+    Display *display = XtDisplay(wPixArea);
+    GC gc = GAptr->PGC();
+    Window dataWindow = XtWindow(wPixArea);
 
-  XSetBackground(XtDisplay(wPixArea), GAptr->PGC(), blackIndex);
-  XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), whiteIndex);
+    XSetBackground(display, gc, backgroundIndex);
+    XSetForeground(display, gc, foregroundIndex);
 
-  XDrawLine(XtDisplay(wPixArea), XtWindow(wPixArea), GAptr->PGC(),
-	    startX + 1, startY, startX + 1, endY);
-  for(i = startX; i <= endX; i += dataItemWidth * refRatio) {
-	XDrawLine(XtDisplay(wPixArea), XtWindow(wPixArea), GAptr->PGC(),
-		  i, startY, i, endY);
-  }
-  XDrawLine(XtDisplay(wPixArea), XtWindow(wPixArea), GAptr->PGC(),
-	    endX - 1, startY, endX - 1, endY);
+    XDrawLine(display, dataWindow, gc, startX+1, startY, startX+1, finishY);
+    for(i = startX; i <= finishX; i += gridspacingX) {
+	XDrawLine(display, dataWindow, gc, i, startY, i, finishY);
+    }
 
-  XDrawLine(XtDisplay(wPixArea), XtWindow(wPixArea), GAptr->PGC(),
-	    startX, startY + 1, endX, startY + 1);
-  for(i = startY; i <= endY; i += DATAITEMHEIGHT * refRatio) {
-	XDrawLine(XtDisplay(wPixArea), XtWindow(wPixArea), GAptr->PGC(),
-		  startX, i, endX, i);
-  }
-  XDrawLine(XtDisplay(wPixArea), XtWindow(wPixArea), GAptr->PGC(),
-	    startX, endY - 1, endX, endY - 1);
-}
+    XDrawLine(display, dataWindow, gc, finishX - 1, startY, finishX - 1, finishY);
+    
+    XDrawLine(display, dataWindow, gc, startX, startY + 1, finishX, startY + 1);
+    for(i = startY; i <= finishY; i += gridspacingY) {
+	XDrawLine(display, dataWindow, gc, startX, i, finishX, i);
+    }
+    XDrawLine(display, dataWindow, gc, startX, finishY - 1, finishX, finishY - 1);
+} // end DrawGrid(...)
+
+
+void Dataset::DrawGrid(int startX, int startY, int finishX, int finishY, 
+                       int refRatio, int foregroundIndex, int backgroundIndex) {
+    int i;
+    Display *display = XtDisplay(wPixArea);
+    GC gc = GAptr->PGC();
+    Window dataWindow = XtWindow(wPixArea);
+
+    XSetBackground(display, gc, backgroundIndex);
+    XSetForeground(display, gc, foregroundIndex);
+
+    XDrawLine(display, dataWindow, gc, startX+1, startY, startX+1, finishY);
+    for(i = startX; i <= finishX; i += dataItemWidth * refRatio) {
+	XDrawLine(display, dataWindow, gc, i, startY, i, finishY);
+    }
+
+    XDrawLine(display, dataWindow, gc, finishX - 1, startY, finishX - 1, finishY);
+    
+    XDrawLine(display, dataWindow, gc, startX, startY + 1, finishX, startY + 1);
+    for(i = startY; i <= finishY; i += CHARACTERHEIGHT * refRatio) {
+	XDrawLine(display, dataWindow, gc, startX, i, finishX, i);
+    }
+    XDrawLine(display, dataWindow, gc, startX, finishY - 1, finishX, finishY - 1);
+} // end DrawGrid(...)
 
 
 // -------------------------------------------------------------------
@@ -467,16 +545,15 @@ void Dataset::CBPixInput(Widget, XtPointer client_data, XtPointer call_data)
 
 // -------------------------------------------------------------------
 void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
-  Palette *palptr = pltAppPtr->GetPalettePtr();
-  int whiteIndex(palptr->WhiteIndex());
+    //Palette *palptr = pltAppPtr->GetPalettePtr();
   int hplot, vplot; 
   int xcell((int) (cbs->event->xbutton.x) / dataItemWidth);
-  int ycell((int) (cbs->event->xbutton.y) / DATAITEMHEIGHT);
+  int ycell((int) (cbs->event->xbutton.y) / CHARACTERHEIGHT);
   Box pictureBox(amrPicturePtr->GetSubDomain()[maxAllowableLevel]);
   Box regionBox(datasetRegion[maxAllowableLevel]);
 
   if(xcell >= 0 && xcell < pixSizeX/dataItemWidth &&
-     ycell >= 0 && ycell < pixSizeY/DATAITEMHEIGHT)
+     ycell >= 0 && ycell < pixSizeY/CHARACTERHEIGHT)
   {
     if(amrPicturePtr->GetMyView() == XY) {
       hplot = regionBox.smallEnd(XDIR) - pictureBox.smallEnd(XDIR) + xcell;
@@ -567,9 +644,6 @@ void Dataset::DoExpose(int fromExpose) {
 
   dataServicesPtr = pltAppPtr->GetDataServicesPtr();
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
-  Palette *palptr = pltAppPtr->GetPalettePtr();
-  int whiteIndex(palptr->WhiteIndex());
-  int blackIndex(palptr->BlackIndex());
   if(noData) {
     cout << "_in Dataset::DoExpose:  noData" << endl;
     XSetBackground(XtDisplay(wPixArea), GAptr->PGC(), blackIndex);
@@ -580,20 +654,64 @@ void Dataset::DoExpose(int fromExpose) {
     unsigned int lev, stringCount;
     Box temp, dataBox;
     Widget hScrollBar, vScrollBar;
-    int hScrollBarPos(0), vScrollBarPos(0);
     Dimension wdth, hght;
 
     XtVaGetValues(wScrollArea, XmNhorizontalScrollBar, &hScrollBar,
 	          XmNverticalScrollBar, &vScrollBar, NULL);
+
 #ifndef SCROLLBARERROR
-    XmScrollBarGetValues(hScrollBar, &hScrollBarPos, NULL, NULL, NULL);
-    XmScrollBarGetValues(vScrollBar, &vScrollBarPos, NULL, NULL, NULL);
+  int hSliderSize, hIncrement, hPageIncrement;
+  int vSliderSize, vIncrement, vPageIncrement;
+
+  XmScrollBarGetValues(hScrollBar, &hScrollBarPos, &hSliderSize,
+		       &hIncrement, &hPageIncrement);
+  XmScrollBarGetValues(vScrollBar, &vScrollBarPos, &vSliderSize,
+		       &vIncrement, &vPageIncrement);
 #endif
+
+  Dimension scrollAreaSpacing;
+  XtVaGetValues(wScrollArea,
+		XmNwidth, &width,
+		XmNheight, &height,
+		XmNspacing, &scrollAreaSpacing,
+		NULL);
+
+  xh = (int) hScrollBarPos - dataItemWidth;
+  yv = (int) vScrollBarPos - dataItemWidth;
+
+  int hScrollBarBuffer = 32;
+  int vScrollBarBuffer = 32;
+  if(pixSizeY == vSliderSize) {  // the vertical scroll bar is not visible
+    vScrollBarBuffer = scrollAreaSpacing;
+  }
+  if(pixSizeX == hSliderSize) {  // the horizontal scroll bar is not visible
+    hScrollBarBuffer = scrollAreaSpacing;
+  }
+
+
+    hIndexAreaHeight = indexHeight;
+    hIndexAreaEnd    = Min((int) pixSizeY, vScrollBarPos + height - hScrollBarBuffer);
+    hIndexAreaStart  = hIndexAreaEnd + 1 - hIndexAreaHeight;
+    vIndexAreaWidth  = indexWidth;
+    vIndexAreaEnd    = Min((int) pixSizeX, hScrollBarPos + width - vScrollBarBuffer);
+    vIndexAreaStart  = vIndexAreaEnd + 1 - vIndexAreaWidth;
+
     XtVaGetValues(wScrollArea, XmNwidth, &wdth, XmNheight, &hght, NULL);
 
+
+    int level = 0;
+    Box bTemp = datasetRegion[level];
+    bTemp.shift(hDIR, -(datasetRegion[level].smallEnd(hDIR))); 
+    bTemp.shift(vDIR, -datasetRegion[level].smallEnd(vDIR)); 
+    
+    
     XClearWindow(GAptr->PDisplay(), XtWindow(wPixArea));
 
-    // draw grid structure for entire region 
+    // XClearArea(GAptr->PDisplay(), XtWindow(wPixArea), 0, 0, 
+    //            dataItemWidth*datasetRegion[0].length(hDIR), 
+    //            dataItemHeight*datasetRegion[0].length(vDIR), false);
+
+     // draw grid structure for entire region 
     for(lev = 0; lev <= maxAllowableLevel; ++lev) {
       for(int iBox = 0; iBox < amrData.boxArray(lev).length(); ++iBox) {
         temp = amrData.boxArray(lev)[iBox];
@@ -605,18 +723,19 @@ void Dataset::DoExpose(int fromExpose) {
 	  temp.shift(hDIR, -datasetRegion[maxAllowableLevel].smallEnd(hDIR)); 
 	  temp.shift(vDIR, -datasetRegion[maxAllowableLevel].smallEnd(vDIR)); 
 	  DrawGrid(temp.smallEnd(hDIR) * dataItemWidth,
-		pixSizeY-1 - (temp.bigEnd(vDIR)+1) * DATAITEMHEIGHT,
-		(temp.bigEnd(hDIR)+1) * dataItemWidth,
-		pixSizeY-1 - temp.smallEnd(vDIR) * DATAITEMHEIGHT,
-		CRRBetweenLevels(lev, maxAllowableLevel, amrData.RefRatio()));
+                   pixSizeY-1 - (temp.bigEnd(vDIR)+1) * CHARACTERHEIGHT,
+                   (temp.bigEnd(hDIR)+1) * dataItemWidth,
+                   pixSizeY-1 - temp.smallEnd(vDIR) * CHARACTERHEIGHT,
+                   CRRBetweenLevels(lev, maxAllowableLevel, amrData.RefRatio()),
+                   whiteIndex, blackIndex);
         }
       }
     }
-
+    
     if(dragging) {
       return;
     }
-
+    
     int xloc, yloc;
     int xh = (int) hScrollBarPos - dataItemWidth;
     int yv = (int) vScrollBarPos - dataItemWidth;
@@ -635,8 +754,8 @@ void Dataset::DoExpose(int fromExpose) {
 #endif
       {
   	XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), 
-       		         dataStringArray[stringCount].color); 
-        XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea),
+       		        whiteIndex/*dataStringArray[stringCount].color*/); 
+         XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea),
 			GAptr->PGC(), xloc, yloc,
 			dataStringArray[stringCount].ds,
 			dataStringArray[stringCount].dslen);
@@ -656,41 +775,132 @@ void Dataset::DoExpose(int fromExpose) {
       if(dataStringArray[stringCount].olflag == false)
 #endif
       {
-        XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea),
-			GAptr->PGC(), xloc, yloc,
-			dataStringArray[stringCount].ds,
-			dataStringArray[stringCount].dslen);
+           XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea),
+          		GAptr->PGC(), xloc, yloc,
+          		dataStringArray[stringCount].ds,
+          		dataStringArray[stringCount].dslen);
       }
     }
   }
 
+  DrawIndices(bTemp);
   }
 }  // end DoExpose
+
+
+// -------------------------------------------------------------------
+void Dataset::DrawIndices(const Box &tempBox) {//~**~
+    int xloc, yloc;
+    unsigned int stringCount;
+    GC gc = GAptr->PGC();
+    Display *display = XtDisplay(wPixArea);
+    Window dataWindow = XtWindow(wPixArea);
+    
+    
+    XSetForeground(display, gc, whiteIndex);
+   for(int level = 0; level<=maxAllowableLevel; level++)
+    {
+    // horizontal
+        XFillRectangle(display, dataWindow, gc, hScrollBarPos,
+                       hIndexAreaStart-(hIndexAreaHeight*level), 
+                       Min((unsigned int) width,  pixSizeX),
+                       hIndexAreaHeight);
+        // vertical
+        XFillRectangle(display, dataWindow, gc, vIndexAreaStart-(vIndexAreaWidth*level),
+                       vScrollBarPos, vIndexAreaWidth,
+                       Min((unsigned int) height, pixSizeY));
+    }
+   
+   for(int level = 0; level<=maxAllowableLevel; level++)
+   {
+       double boxSize = pow(2., maxAllowableLevel-level);
+       
+// draw the horizontal box index grid -- on top of the white background.
+       DrawGrid(tempBox.smallEnd(hDIR) * dataItemWidth, 
+                hIndexAreaStart-(level*hIndexAreaHeight)-1,
+                vIndexAreaStart-(level*vIndexAreaWidth), 
+                hIndexAreaEnd-(level*hIndexAreaHeight),
+                (boxSize)*dataItemWidth, hIndexAreaHeight, 
+                blackIndex, whiteIndex);
+       // draw the vertical box index grid
+       DrawGrid(vIndexAreaStart-(level*vIndexAreaWidth)-1, 
+                (boxSize-((boxSize*datasetRegion[level].length(vDIR))
+                          -datasetRegion[maxAllowableLevel].length(vDIR)))*CHARACTERHEIGHT,
+                vIndexAreaEnd-(level*vIndexAreaWidth), 
+                hIndexAreaStart-(level*hIndexAreaHeight), 
+                vIndexAreaWidth,boxSize*CHARACTERHEIGHT,
+                blackIndex, whiteIndex);
+       
+       XSetForeground(display, gc, blackIndex);
+       XDrawLine(display, dataWindow, gc, vIndexAreaStart-(level*vIndexAreaWidth), 0,
+                 vIndexAreaStart-(level*vIndexAreaWidth), 
+                 hIndexAreaEnd-(level*hIndexAreaHeight) - 1);
+
+       // draw the corner axis labels
+       XDrawLine(display, dataWindow, gc, vIndexAreaStart, hIndexAreaStart,
+                 vIndexAreaEnd,   hIndexAreaEnd - 1);
+// frame the corner box
+       XDrawLine(display, dataWindow, gc, vIndexAreaStart,   hIndexAreaEnd - 1,
+                 vIndexAreaEnd,     hIndexAreaEnd - 1);
+       XDrawLine(display, dataWindow, gc, vIndexAreaEnd - 1, hIndexAreaStart,
+                 vIndexAreaEnd - 1, hIndexAreaEnd);
+       XDrawString(display, dataWindow, gc,
+                   vIndexAreaStart + hStringOffset,
+                   hIndexAreaEnd   + vStringOffset,
+                   hAxisString.c_str(), hAxisString.length());
+       XDrawString(display, dataWindow, gc,
+                   vIndexAreaStart + (indexWidth/2)  + hStringOffset,
+                   hIndexAreaEnd   - (indexHeight/2) + vStringOffset,
+                   vAxisString.c_str(), vAxisString.length());
+       
+       // draw the box indices
+       // horizontal
+       yloc = hIndexAreaEnd + vStringOffset-(level*hIndexAreaHeight);
+       for(stringCount = 0; stringCount < datasetRegion[level].length(hDIR); stringCount++) {
+           xloc = hIndexArray[level][stringCount].xloc;
+           if((xloc > xh) && (xloc < (vIndexAreaStart-(level*vIndexAreaWidth) - (indexWidth / 3)))) {
+               XDrawString(display, dataWindow, gc, xloc, yloc,
+                           hIndexArray[level][stringCount].ds, 
+                           hIndexArray[level][stringCount].dslen); 
+           }
+       }  // end for(...)
+       // vertical
+       xloc = vIndexAreaStart + hStringOffset-(level*vIndexAreaWidth);
+       for(stringCount = 0; stringCount < datasetRegion[level].length(vDIR); stringCount++) {
+           yloc = vIndexArray[level][stringCount].yloc;
+           if((yloc > yv) && (yloc < hIndexAreaStart-(level*hIndexAreaHeight))) {
+               XDrawString(display, dataWindow, gc, xloc, yloc,
+                           vIndexArray[level][stringCount].ds, 
+                           vIndexArray[level][stringCount].dslen);
+           }
+       } 
+   }  //end for( int level . . .
+}  // end DrawIndicies
 
 
 // -------------------------------------------------------------------
 void Dataset::CBDoExposeDataset(Widget, XtPointer client_data,
 				XEvent *, Boolean *)
 {
-  XEvent nextEvent;
-  Dataset *dset = (Dataset *) client_data;
-  while(XCheckTypedWindowEvent(dset->GAptr->PDisplay(),
-	   XtWindow(dset->wPixArea), Expose, &nextEvent))
+    XEvent nextEvent;
+    Dataset *dset = (Dataset *) client_data;
+    while(XCheckTypedWindowEvent(dset->GAptr->PDisplay(),
+                                 XtWindow(dset->wPixArea), Expose, &nextEvent))
   {
-    if(dset->drags) {
-      dset->drags--;
-    }
+      if(dset->drags) {
+          dset->drags--;
+      }
   }
-  dset->DoExpose(true);
+    dset->DoExpose(true);
 }
 
 
 // -------------------------------------------------------------------
 void Dataset::CBScrolling(Widget, XtPointer client_data, XtPointer) {
-  Dataset *dset = (Dataset *) client_data;
-  dset->dragging = true;
-  dset->drags++;
-  dset->DoExpose(false);
+    Dataset *dset = (Dataset *) client_data;
+    dset->dragging = true;
+    dset->drags++;
+    dset->DoExpose(false);
 }
 
 // -------------------------------------------------------------------

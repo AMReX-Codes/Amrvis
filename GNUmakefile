@@ -60,7 +60,7 @@ INCLUDE_LOCATIONS += $(HERE)
 INCLUDE_LOCATIONS += ../pBoxLib_2 ../amrlib
 
 ###### arrayview
-#USE_ARRAYVIEW = TRUE
+#USE_ARRAYVIEW = FALSE
 ifeq (USE_ARRAYVIEW, TRUE)
 DEFINES += -DBL_USE_ARRAYVIEW
 #ARRAYVIEWDIR = /usr/people/vince/Visualization/ArrayView

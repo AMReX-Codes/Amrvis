@@ -5,7 +5,7 @@
 #define _AMRPICTURE_H
 
 #include <fcntl.h>
-#include <iostream.h>
+#include <iostream>
 #include <stream.h>
 #include <fstream.h>
 #include <stdio.h>

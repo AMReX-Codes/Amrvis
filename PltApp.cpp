@@ -498,9 +498,8 @@ void PltApp::PltAppInit() {
   XtSetArg(args[i], XmNlabelString, sBoxes);      i++;
   wBoxesButton = XmCreateToggleButton(wAmrVisMenu, "boxes", args, i);
   XmStringFree(sBoxes);
-
   AddStaticCallback(wBoxesButton, XmNvalueChangedCallback, &PltApp::DoBoxesButton);
-  XmToggleButtonSetState(wBoxesButton, true, false);
+  XmToggleButtonSetState(wBoxesButton, true, false);// need to query parent here
 
 // ****************************************** Output Menu 
   i=0;

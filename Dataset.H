@@ -38,56 +38,81 @@ class DataServices;
 class StringLoc;	
 
 class Dataset {
-  public:
-	Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
-		PltApp *pltappptr, int hdir, int vdir, int sdir);
+public:
+    Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
+            PltApp *pltappptr, int hdir, int vdir, int sdir);
+    
+    ~Dataset();
+    
+    void Render(const Box &alignedRegion, AmrPicture *apptr, PltApp *pltappptr,
+                int hdir, int vdir, int sdir);
+    void DrawIndices(const Box &tempBox);
+    void DoRaise();
+    void DoExpose(int fromExpose);
+    static void CBColorButton(Widget, XtPointer, XtPointer);
+    static void CBQuitButton(Widget, XtPointer, XtPointer);
+    static void CBReadString(Widget, XtPointer, XtPointer);
+    static void CBPixInput(Widget, XtPointer, XtPointer);
+    static void CBEndScrolling(Widget, XtPointer, XtPointer);
+    static void CBScrolling(Widget, XtPointer, XtPointer);
+    static void CBDoExposeDataset(Widget, XtPointer, XEvent *, Boolean *);
+    
+    void DoColorButton();
+    void DoQuitButton();
+    void DoReadString(Widget, XmSelectionBoxCallbackStruct *);
+    void DoPixInput(XmDrawingAreaCallbackStruct *);
+    
+private:
+    Widget		wAmrVisTopLevel, wDatasetTopLevel, wDatasetForm;
+    Widget		wDatasetTools, wScrollArea, wPixArea;
+    Widget		wFormat, wColorButton, wQuitButton;
+    Arg		args[MAXARGS];
+    Box		*datasetRegion;
+    unsigned int	pixSizeX, pixSizeY;
+    int		finestLevel, dataItemWidth, dataItemHeight;
+    int		maxAllowableLevel, stringOk;
+    int		noData, hDIR, vDIR, sDIR, numStrings;
+    char		buffer[BUFSIZ], dataString[MAXSTRINGWIDTH];
+    aString		formatString;
+    StringLoc	*dataStringArray;
+    AmrPicture	*amrPicturePtr;
+    DataServices	*dataServicesPtr;
+    PltApp		*pltAppPtr;
+    GraphicsAttributes	*GAptr;
+    int 		dragging, drags;
+    int		 hStringOffset, vStringOffset;
+    aString	 hAxisString, vAxisString;
+    int indexWidth, indexHeight;
+    int		 hScrollBarPos, vScrollBarPos;
+    int		 hIndexAreaHeight, hIndexAreaStart, hIndexAreaEnd;
+    int		 vIndexAreaWidth,  vIndexAreaStart, vIndexAreaEnd;
+    int		 xh, yv;
+    Dimension	 width, height;
+    StringLoc    **hIndexArray, **vIndexArray;    
 
-	~Dataset();
 
-	void Render(const Box &alignedRegion, AmrPicture *apptr, PltApp *pltappptr,
-		    int hdir, int vdir, int sdir);
-	void DrawIndices(const Box &tempBox);
-	void DoRaise();
-	void DoExpose(int fromExpose);
-	static void CBColorButton(Widget, XtPointer, XtPointer);
-	static void CBQuitButton(Widget, XtPointer, XtPointer);
-	static void CBReadString(Widget, XtPointer, XtPointer);
-	static void CBPixInput(Widget, XtPointer, XtPointer);
-	static void CBEndScrolling(Widget, XtPointer, XtPointer);
-	static void CBScrolling(Widget, XtPointer, XtPointer);
-        static void CBDoExposeDataset(Widget, XtPointer, XEvent *, Boolean *);
+// X baggage
+    //Display     *display;
+    //Visual      *visual;
+    //Screen      *screen;
+    //XVisualInfo  visualInfo;
+    //GC           gc;
+    //Window       root, dataWindow;
+    //int          screenNumber;
+    int          blackIndex, whiteIndex;
 
-	void DoColorButton();
-	void DoQuitButton();
-	void DoReadString(Widget, XmSelectionBoxCallbackStruct *);
-	void DoPixInput(XmDrawingAreaCallbackStruct *);
+    void DrawGrid(int startX, int startY, int finishX, int finishY,
+                  int gridspacingX, int gridspacingY,
+                  int foregroundIndex, int backgroundIndex);
+    void DrawGrid(int startX, int startY, int finishX, int finishY,
+                  int refRatio,
+                  int foregroundIndex, int backgroundIndex);
 
-  private:
-	Widget		wAmrVisTopLevel, wDatasetTopLevel, wDatasetForm;
-	Widget		wDatasetTools, wScrollArea, wPixArea;
-	Widget		wFormat, wColorButton, wQuitButton;
-	Arg		args[MAXARGS];
-	Box		*datasetRegion;
-	unsigned int	pixSizeX, pixSizeY;
-	int		finestLevel, dataItemWidth;
-	int		maxAllowableLevel, stringOk;
-	int		noData, hDIR, vDIR, sDIR, numStrings;
-	char		buffer[BUFSIZ], dataString[MAXSTRINGWIDTH];
-	aString		formatString;
-	StringLoc	*dataStringArray;
-	AmrPicture	*amrPicturePtr;
-	DataServices	*dataServicesPtr;
-	PltApp		*pltAppPtr;
-	GraphicsAttributes	*GAptr;
-	int 		dragging, drags;
-
-	void DrawGrid(int start_x, int start_y,
-			int finish_x, int finish_y, int refRatio);
 };
 
 
 class StringLoc {
-  public:
+public:
     StringLoc()  { }
     ~StringLoc() { }
     char ds[MAXSTRINGWIDTH];
