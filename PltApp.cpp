@@ -13,10 +13,11 @@
 #include <Form.h>
 #include <DrawingA.h>
 #include <Text.h>
+#include <ScrolledW.h>
 #include <TextF.h>
 #include <ToggleB.h>
 #include <SelectioB.h>
-#include <ScrolledW.h>
+#include <List.h>
 #include <Scale.h>
 
 #include <cursorfont.h>
@@ -324,6 +325,7 @@ void PltApp::PltAppInit() {
   formatString = tempchar;
   delete [] tempchar;
 
+  infoShowing = false;
   setRangeShowing = false;
   datasetShowing = false;
   writingRGB = false;
@@ -355,6 +357,8 @@ void PltApp::PltAppInit() {
 
   i=0;
   XtSetArg(args[i], XmNborderWidth, 0);      i++;
+  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
+  XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
   XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);      i++;
   XtSetArg(args[i], XmNbottomOffset, WOFFSET);      i++;
   wScaleOptions = XmCreatePulldownMenu(wAmrVisMenu, "scaleoptions", args, i);
@@ -377,11 +381,13 @@ void PltApp::PltAppInit() {
 
   i=0;
   XtSetArg(args[i], XmNsubMenuId, wScaleOptions);            i++;
-  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);        i++;
-  XtSetArg(args[i], XmNtopOffset, 2);           i++;
+  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
+  XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
+  XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);      i++;
+  XtSetArg(args[i], XmNbottomOffset, WOFFSET);      i++;
   XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);       i++;
-  XtSetArg(args[i], XmNleftOffset, 0);          i++;
-  XtSetArg(args[i], XmNborderWidth, 0);      i++;
+  //XtSetArg(args[i], XmNleftOffset, 0);          i++;
+  //XtSetArg(args[i], XmNborderWidth, 0);      i++;
   XtSetArg(args[i], XmNmenuHistory, wScaleItems[currentScale - 1]);  i++;
   wScaleMenu = XmCreateOptionMenu(wAmrVisMenu, "ScaleMenu", args, i);
 
@@ -421,7 +427,9 @@ void PltApp::PltAppInit() {
   i=0;
   XtSetArg(args[i], XmNsubMenuId, wLevelOptions); i++;
   XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
-  XtSetArg(args[i], XmNtopOffset, 2);      i++;
+  XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
+  XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);      i++;
+  XtSetArg(args[i], XmNbottomOffset, WOFFSET);      i++;
   XtSetArg(args[i], XmNleftWidget, wScaleMenu);      i++;
   XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET);      i++;
   XtSetArg(args[i], XmNleftOffset, 0);      i++;
@@ -478,7 +486,9 @@ void PltApp::PltAppInit() {
   i=0;
   XtSetArg(args[i], XmNsubMenuId, wDerivedOptions); i++;
   XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
-  XtSetArg(args[i], XmNtopOffset, 2);      i++;
+  XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
+  XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);      i++;
+  XtSetArg(args[i], XmNbottomOffset, WOFFSET);      i++;
   XtSetArg(args[i], XmNleftWidget, wLevelMenu);      i++;
   XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET);      i++;
   XtSetArg(args[i], XmNleftOffset, 0);      i++;
@@ -645,7 +655,9 @@ void PltApp::PltAppInit() {
   XtSetArg(args[i], XmNleftWidget, wOutputMenu); i++;
   XtSetArg(args[i], XmNleftOffset, 0); i++;
   XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
-  XtSetArg(args[i], XmNtopOffset, 2);      i++;
+  XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
+  XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);      i++;
+  XtSetArg(args[i], XmNbottomOffset, WOFFSET);      i++;
   XtSetArg(args[i], XmNmenuHistory, wContourItems[currentContour]);  i++;
   wContourMenu = XmCreateOptionMenu(wAmrVisMenu, "lighting", args, i);
   
@@ -662,6 +674,8 @@ void PltApp::PltAppInit() {
   i=0;
   XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
   XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
+  XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);      i++;
+  XtSetArg(args[i], XmNbottomOffset, WOFFSET);      i++;
   XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET);      i++;
   XtSetArg(args[i], XmNleftWidget, wContourMenu); i++;
   XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
@@ -677,7 +691,20 @@ void PltApp::PltAppInit() {
   Dimension bHeight;
   XtVaGetValues(wNumberContours, XmNheight, &bHeight, NULL);
 
-
+  // ************************************************ Info Button
+  i=0;
+  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
+  XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
+  XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);      i++;
+  XtSetArg(args[i], XmNbottomOffset, WOFFSET);      i++;
+  XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET);      i++;
+  XtSetArg(args[i], XmNleftWidget, wNumberContours); i++;
+  XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
+  XmString sInfoButton = XmStringCreateSimple("Info");
+  XtSetArg(args[i], XmNlabelString, sInfoButton);
+  wInfoButton = XmCreatePushButton(wAmrVisMenu, "info", args, i);
+  XmStringFree(sInfoButton);
+  AddStaticCallback(wInfoButton, XmNactivateCallback, &PltApp::DoInfoButton);
 
 // ****************************************** wPicArea
 
@@ -1280,6 +1307,7 @@ void PltApp::PltAppInit() {
   XtManageChild(wPaletteButton);
   XtManageChild(wDerivedMenu);
   XtManageChild(wContourMenu);
+  XtManageChild(wInfoButton);
   XtManageChild(wSetRangeButton);
   XtManageChild(wBoxesButton);
   XtManageChild(wPicArea);
@@ -2042,6 +2070,153 @@ void PltApp::DoPaletteButton(Widget, XtPointer, XtPointer) {
   XtPopup(XtParent(wPalDialog), XtGrabExclusive);
 }
 
+void PltApp::DestroyInfoWindow(Widget, XtPointer xp, XtPointer) {
+  infoShowing = false;
+}
+void PltApp::CloseInfoWindow(Widget, XtPointer, XtPointer) {
+  XtDestroyWidget(wInfoTopLevel);
+}
+
+void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
+  if (infoShowing) {
+    XtPopup(wInfoTopLevel, XtGrabNone);
+    XMapRaised(XtDisplay(wInfoTopLevel), XtWindow(wInfoTopLevel));
+  } else {
+    infoShowing = true;
+    int xpos, ypos, width, height;
+    XtVaGetValues(wAmrVisTopLevel, XmNx, &xpos, XmNy, &ypos,
+                  XmNwidth, &width, XmNheight, &height, NULL);
+
+    wInfoTopLevel = 
+      XtVaCreatePopupShell("Info",
+                           topLevelShellWidgetClass, wAmrVisTopLevel,
+                           XmNwidth,		400,
+                           XmNheight,		300,
+                           XmNx,		50+xpos+width/2,
+                           XmNy,		ypos-10,
+                           NULL);
+    
+    AddStaticCallback(wInfoTopLevel, XmNdestroyCallback,
+                      &PltApp::DestroyInfoWindow);
+    
+    //set visual in case the default isn't 256 pseudocolor
+    if(GAptr->PVisual() 
+       != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber())) {
+      XtVaSetValues(wInfoTopLevel, XmNvisual, GAptr->PVisual(),
+                    XmNdepth, 8, NULL);
+    }
+    
+    wInfoForm = XtVaCreateManagedWidget("infoform",
+                                        xmFormWidgetClass, 
+                                        wInfoTopLevel,
+                                        NULL);
+    
+    int i = 0;
+    XtSetArg(args[i], XmNlistSizePolicy, XmRESIZE_IF_POSSIBLE);   i++;
+    wInfoList = XmCreateScrolledList(wInfoForm, "infoscrolledlist", args, i);
+    XtVaSetValues(XtParent(wInfoList), 
+                  XmNleftAttachment, XmATTACH_FORM,
+                  XmNrightAttachment, XmATTACH_FORM,
+                  XmNtopAttachment, XmATTACH_FORM,
+                  XmNtopOffset, WOFFSET,
+                  XmNbottomAttachment, XmATTACH_POSITION,
+                  XmNbottomPosition, 80,
+                  //XmNbottomAttachment, XmATTACH_WIDGET,
+                  //XmNbottomWidget, wInfoCloseButton,
+                  NULL);
+
+    AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+    
+    int numEntries = 9+amrData.FinestLevel()+1;
+    char **entries = new char *[numEntries];
+    //ostrstream prob_domain;
+    for(int j = 0; j<numEntries; j++) {
+      entries[j] = new char[BUFSIZ];
+    }
+
+    i=0;
+    char buf[BUFSIZ];
+    ostrstream prob(buf, BUFSIZ);
+    prob.precision(15);
+    strcpy(entries[i], fileName.c_str());i++;
+    strcpy(entries[i], amrData.PlotFileVersion().c_str()); i++;
+    prob<<"time: "<<amrData.Time()<<ends;
+    strcpy(entries[i], buf); i++;
+    sprintf(entries[i], "levels: %d", amrData.FinestLevel()+1); i++;
+    sprintf(entries[i], "prob domain"); i++;
+    for(int k = 0; k<=amrData.FinestLevel(); k++) {
+      ostrstream prob_domain(entries[i], BUFSIZ);
+      prob_domain << " level "<<k<<": "<<amrData.ProbDomain()[k]<<ends;
+      i++;
+    }
+    prob.seekp(0);
+    prob<<"refratios:";
+    for(int k=0; k<amrData.FinestLevel(); k++) {
+      prob<<" "<<amrData.RefRatio()[k]; }
+    prob<<ends;
+    strcpy(entries[i], buf); i++;
+
+    prob.seekp(0);
+    prob<<"probsize:";
+    for(int k=0; k<BL_SPACEDIM; k++) {
+       prob<<" "<<amrData.ProbSize()[k]; }
+    prob<<ends;
+    strcpy(entries[i], buf); i++;
+
+    prob.seekp(0);
+    prob<<"prob lo:";
+    for(int k=0; k<BL_SPACEDIM; k++) {
+       prob<<" "<<amrData.ProbLo()[k]; }
+    prob<<ends;
+    strcpy(entries[i], buf); i++;
+
+    prob.seekp(0);
+    prob<<"prob hi:";
+    for(int k=0; k<BL_SPACEDIM; k++) {
+       prob<<" "<<amrData.ProbHi()[k]; }
+    prob<<ends;
+    strcpy(entries[i], buf); i++;
+
+    XmStringTable str_list=
+      (XmStringTable)XtMalloc(numEntries*sizeof(XmString *));
+    for(int j = 0; j<numEntries ; j++) {
+      str_list[j] = XmStringCreateSimple(entries[j]);
+    }
+    
+    XtVaSetValues(wInfoList,
+                  XmNvisibleItemCount, numEntries,
+                  XmNitemCount, numEntries,
+                  XmNitems, str_list,
+                  NULL);
+    
+    for(int j = 0; j<numEntries; j++) {
+      delete [] entries[j];
+    }
+    delete [] entries;
+
+    i=0;
+    XtSetArg(args[i], XmNtopAttachment, XmATTACH_POSITION);   i++;
+    XtSetArg(args[i], XmNtopPosition, 85);    i++;
+    XtSetArg(args[i], XmNbottomAttachment, XmATTACH_POSITION);   i++;
+    XtSetArg(args[i], XmNbottomPosition, 95);    i++;
+    XtSetArg(args[i], XmNrightAttachment, XmATTACH_POSITION);      i++;
+    XtSetArg(args[i], XmNrightPosition, 75);      i++;
+    XtSetArg(args[i], XmNleftAttachment, XmATTACH_POSITION);      i++;
+    XtSetArg(args[i], XmNleftPosition, 25);      i++;
+    XmString sDoneInfo = XmStringCreateSimple("Close");
+    XtSetArg(args[i], XmNlabelString, sDoneInfo);    i++;
+    wInfoCloseButton = XmCreatePushButton(wInfoForm, "doneinfo", args, i);
+    XmStringFree(sDoneInfo);
+    AddStaticCallback(wInfoCloseButton, XmNactivateCallback,
+                      &PltApp::CloseInfoWindow);
+
+    XtManageChild(wInfoList);
+    XtManageChild(wInfoCloseButton);
+    XtPopup(wInfoTopLevel, XtGrabNone);
+  }
+}
+
+
 
 // -------------------------------------------------------------------
 void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
@@ -2083,8 +2258,8 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			XmNy,			ypos,
 			NULL);
 
-        XtAddCallback(wSetRangeTopLevel, XmNdestroyCallback,
-                &PltApp::CBDestroySetRangeWindow, this);
+        AddStaticCallback(wSetRangeTopLevel, XmNdestroyCallback,
+                &PltApp::DestroySetRangeWindow);
 
         //set visual in case the default isn't 256 pseudocolor
         if(GAptr->PVisual() 
@@ -2267,7 +2442,6 @@ void PltApp::DoDoneSetRange(Widget, XtPointer, XtPointer) {
     }
   }
   XtDestroyWidget(wSetRangeTopLevel);
-  //  setRangeShowing = false;
 
   if(datasetShowing) {
     datasetPtr->DoRaise();
@@ -2297,16 +2471,10 @@ void PltApp::DoDoneSetRange(Widget, XtPointer, XtPointer) {
 // -------------------------------------------------------------------
 void PltApp::DoCancelSetRange(Widget, XtPointer, XtPointer) {
   XtDestroyWidget(wSetRangeTopLevel);
-  //setRangeShowing = false;
 }
 
-void PltApp::CBDestroySetRangeWindow(Widget, XtPointer xp, XtPointer) {
-  PltApp *obj =(PltApp *)xp;
-  obj->SetRangeShowing(false);
-}
-
-void PltApp::SetRangeShowing(bool sRS) {
-  setRangeShowing = sRS;
+void PltApp::DestroySetRangeWindow(Widget, XtPointer, XtPointer) {
+  setRangeShowing = false;
 }
 
 // -------------------------------------------------------------------

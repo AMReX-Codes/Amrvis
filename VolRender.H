@@ -90,11 +90,13 @@ public:
   bool            GetPreClassifyAlgorithm() const { return preClassify; }
   void SetAspect( Real newAspect) { vpAspect = newAspect; }
   void SetTransferProperties();
-  void SetLighting(Real, Real, Real, Real);
+  void SetLighting(Real, Real, Real, Real, Real, Real);
   Real GetDiffuse() { return diffuseMat; }
   Real GetAmbient() { return ambientMat; }
   Real GetSpecular() { return specularMat; }
   Real GetShiny() { return shinyMat; }
+  Real GetMinRayOpacity() { return minRayOpacity; }
+  Real GetMaxRayOpacity() { return maxRayOpacity; }
 private:
   Real diffuseMat, shinyMat, specularMat, ambientMat;
   Real vpLen, vpAspect;

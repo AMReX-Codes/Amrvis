@@ -1,11 +1,11 @@
 PRECISION = FLOAT
 PRECISION = DOUBLE
-PROFILE   = FALSE
 PROFILE   = TRUE
+PROFILE   = FALSE
 
 COMP      = KCC
-DEBUG     = TRUE
 DEBUG     = FALSE
+DEBUG     = TRUE
 DIM       = 2
 DIM       = 3
 
@@ -152,8 +152,6 @@ FDEBF += -C -fpe0
 CFLAGS += -g
 
 XTRALIBS += 
-
-LIBRARIES += -lXmu
 
 include $(HERE)/Make.package
 

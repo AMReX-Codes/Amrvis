@@ -81,14 +81,13 @@ public:
   static void	CBToggleRange(Widget, XtPointer, XtPointer);
   static void	CBChangePlane(Widget, XtPointer, XtPointer);
   static void CBReadContourString(Widget, XtPointer, XtPointer);
-  static void CBDestroySetRangeWindow(Widget, XtPointer, XtPointer);
+  void DestroySetRangeWindow(Widget, XtPointer, XtPointer);
+  void DestroyInfoWindow(Widget, XtPointer, XtPointer);
+  void CloseInfoWindow(Widget, XtPointer, XtPointer);
   void DoChangeContour(int, int);
-  void SetLightingWindow(bool lWE);
-  void SetRangeShowing(bool sRS);
 
 #if (BL_SPACEDIM==3)
-  static void CBDestroyDetachWindow(Widget, XtPointer, XtPointer);
-  static void CBDestroyLightingWindow(Widget, XtPointer, XtPointer);
+  void DestroyLightingWindow(Widget, XtPointer, XtPointer);
   static void CBRenderModeMenu(Widget, XtPointer, XtPointer);
   static void CBClassifyMenu(Widget, XtPointer, XtPointer);
   static void CBTransResize(Widget, XtPointer, XtPointer);
@@ -139,6 +138,7 @@ public:
                               XmToggleButtonCallbackStruct *);
   void		DoOpenPalFile(Widget, XtPointer, XtPointer);
   void		DoSubregion(Widget, XtPointer, XtPointer);
+  void DoInfoButton(Widget, XtPointer, XtPointer);
   void		DoOutput(Widget, XtPointer, XtPointer);
   void		DoCreatePSFile(Widget, XtPointer, XtPointer);
   void		DoCreateRGBFile(Widget, XtPointer, XtPointer);
@@ -222,6 +222,8 @@ private:
   Widget		wAnimControl, wControlForm, wControls[WCN];
   Widget		wFrames[NFRAMES];
   Widget                wNumberContours;
+  Widget wInfoButton, wInfoTopLevel, wInfoForm, wInfoCloseButton;
+  Widget wInfoList;
   Array<Widget>	wLevelItems, wScaleItems, wDerivedItems;
   
   aString contourNumString;
@@ -231,7 +233,7 @@ private:
   AmrPicture     *amrPicturePtrArray[NPLANES];
   IntVect		ivLowOffsetMAL;  // at maxAllowableLevel
   Range		rangeType;
-  bool animating2d, setRangeShowing, datasetShowing, paletteDrawn;
+  bool animating2d, setRangeShowing, infoShowing, datasetShowing, paletteDrawn;
   bool showBoxes, lightingModel, showing3dRender, preClassify;
   bool writingRGB;
   int minDrawnLevel, maxDrawnLevel;
@@ -297,8 +299,10 @@ private:
   Widget wAutoDraw, wDAutoDraw;
   Widget wLightButton, wDLightButton;
   Widget wLWCancelButton, wLWDoneButton, wLWApplyButton;
-  Widget wLWNumber1, wLWNumber2, wLWNumber3, wLWNumber4; 
+  Widget wLWNumber1, wLWNumber2, wLWNumber3, wLWNumber4;
+  Widget wLWminOpacity, wLWmaxOpacity; 
   Widget wLWNumberLabel1, wLWNumberLabel2, wLWNumberLabel3, wLWNumberLabel4;
+  Widget wLWminOpacityLabel, wLWmaxOpacityLabel;
   Widget wLight, wLightItems[2], wLightOptions;
   Widget wDLight, wDLightItems[2], wDLightOptions;
   Widget wClassify, wClassifyItems[2], wClassifyOptions;

@@ -41,7 +41,9 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
   specularMat = 0.39;
   diffuseMat = 0.35;
   shinyMat = 10.0;
-
+  minRayOpacity = 0.05;
+  maxRayOpacity = 0.95;
+  
   volData = NULL;
 
   voxelFields = 3;
@@ -576,6 +578,9 @@ void VolRender::MakeVPData() {
     
     cout << "vpClassifyScalars..." << endl;           // --- classify
     
+    vpSetd(vpc, VP_MIN_VOXEL_OPACITY, minRayOpacity);
+    vpSetd(vpc, VP_MAX_RAY_OPACITY,   maxRayOpacity);
+
     vpResult vpret;
     if (preClassify) {
       if (lightingModel) {
@@ -648,7 +653,7 @@ void VolRender::MakeVPData() {
     }
     
     // --- set the shading parameters
-    
+
     if (lightingModel) {
       vpret = vpSetLookupShader(vpc, 1, 1, normalField, shade_table.dataPtr(),
                               maxShadeRampPts * sizeof(float), 0, NULL, 0);
@@ -735,8 +740,6 @@ void VolRender::MakeDefaultTransProperties() {
 
 
 void VolRender::SetTransferProperties() {
-  minRayOpacity = 0.05;
-  maxRayOpacity = 0.95;
   density_ramp = palettePtr->GetTransferArray();
   vpSetClassifierTable(vpc, DENSITY_PARAM, densityField,
                        density_ramp.dataPtr(),
@@ -780,11 +783,14 @@ void VolRender::SetProperties() {
 }
 
 void VolRender::SetLighting(Real ambient, Real diffuse, 
-                            Real specular, Real shiny) {
+                            Real specular, Real shiny,
+                            Real minRay, Real maxRay) {
   ambientMat = ambient;
   diffuseMat = diffuse;
   specularMat = specular;
   shinyMat = shiny;
+  minRayOpacity = minRay;
+  maxRayOpacity = maxRay;
 }
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
