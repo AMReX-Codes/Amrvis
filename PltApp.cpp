@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.77 2001-04-16 16:41:22 vince Exp $
+// $Id: PltApp.cpp,v 1.78 2001-04-16 20:26:56 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -3731,20 +3731,20 @@ void PltApp::ResetAnimation() {
   StopAnimation();
   if( ! interfaceReady) {
 #   if(BL_SPACEDIM == 2)
-    int maxAllowableLevel(pltAppState->MaxAllowableLevel());
+    int maLev(pltAppState->MaxAllowableLevel());
     //int newContourNum(amrPicturePtrArray[ZPLANE]->GetContourNumber());
     AmrPicture *Tempap = amrPicturePtrArray[ZPLANE];
     XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
 			 (XtEventHandler) &PltApp::StaticEvent,
 			 (XtPointer) Tempap);
+    //Array<Box> domain = amrPicturePtrArray[ZPLANE]->GetSubDomain();
+    Box fineDomain(amrPicturePtrArray[ZPLANE]->GetSubDomain()[maLev]);
     delete Tempap;
-    Array<Box> domain = amrPicturePtrArray[ZPLANE]->GetSubDomain();
-    amrPicturePtrArray[ZPLANE]->SetDataServicesPtr(dataServicesPtr[currentFrame]); 
+    //amrPicturePtrArray[ZPLANE]->SetDataServicesPtr(dataServicesPtr[currentFrame]); 
     
     const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
-    Box fineDomain(domain[pltAppState->MaxAllowableLevel()]);
-    fineDomain.refine(CRRBetweenLevels(pltAppState->MaxAllowableLevel(),
-				       amrData.FinestLevel(), amrData.RefRatio()));
+    fineDomain.refine(CRRBetweenLevels(maLev, amrData.FinestLevel(),
+                                       amrData.RefRatio()));
     amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, GAptr, fineDomain, 
 						NULL, this,
 						pltAppState,
