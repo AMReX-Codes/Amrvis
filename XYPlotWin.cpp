@@ -178,7 +178,8 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
 					  XmNx,		winOffsetX,
 					  XmNy,		winOffsetY,
 					  NULL);
-  XmAddWMProtocolCallback(wXYPlotTopLevel, WM_DELETE_WINDOW, CBcloseXYPlotWin,
+  XmAddWMProtocolCallback(wXYPlotTopLevel, WM_DELETE_WINDOW,
+			  (XtCallbackProc) CBcloseXYPlotWin,
 			  (XtPointer) this);
   Widget wControlArea, wScrollArea, wLegendArea,
     wExportButton, wOptionsButton, wCloseButton,
@@ -248,8 +249,8 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
 			    XmNtopOffset,       2,
 			    XmNwidth,           60,
 			    NULL);
-  XtAddCallback(wCloseButton, XmNactivateCallback, CBcloseXYPlotWin,
-		(XtPointer) this);
+  XtAddCallback(wCloseButton, XmNactivateCallback,
+		(XtCallbackProc) CBcloseXYPlotWin, (XtPointer) this);
 
   XmStringFree(label_str1);
   XmStringFree(label_str2);
@@ -1756,8 +1757,10 @@ void XYPlotWin::SetPalette(void) {
 void XYPlotWin::CBdoInitializeListColorChange(Widget, XtPointer data, XtPointer) {
   XYPlotLegendItem *item = (XYPlotLegendItem *) data;
   Widget wPalArea = pltParent->GetPalArea();
-  if (pltParent->PaletteCBQ())
-    XtRemoveCallback(wPalArea, XmNinputCallback, XYPlotWin::StaticCallback, NULL);
+  if(pltParent->PaletteCBQ()) {
+    XtRemoveCallback(wPalArea, XmNinputCallback,
+		     (XtCallbackProc) XYPlotWin::StaticCallback, NULL);
+  }
   pltParent->SetPaletteCBQ();
   colorChangeItem = item;
   AddStaticCallback(wPalArea, XmNinputCallback, &XYPlotWin::CBdoSetListColor);
@@ -2065,7 +2068,8 @@ void XYPlotWin::AddStaticCallback(Widget w, String cbtype, memberXYCB cbf,
 				  void *data) {
 
   XYCBData *cbs = new XYCBData(this, data, cbf);
-  XtAddCallback(w, cbtype, &XYPlotWin::StaticCallback, (XtPointer) cbs);
+  XtAddCallback(w, cbtype, (XtCallbackProc) &XYPlotWin::StaticCallback,
+		(XtPointer) cbs);
 
 }
  
@@ -2073,8 +2077,8 @@ void XYPlotWin::AddStaticWMCallback(Widget w, Atom cbtype, memberXYCB cbf,
 				     void *data) {
 
   XYCBData *cbs = new XYCBData(this, data, cbf);
-  XmAddWMProtocolCallback(w, cbtype,
-			  &XYPlotWin::StaticCallback, (XtPointer) cbs);
+  XmAddWMProtocolCallback(w, cbtype, (XtCallbackProc) &XYPlotWin::StaticCallback,
+			  (XtPointer) cbs);
 
 }
  

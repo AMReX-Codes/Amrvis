@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.67 2000-10-05 20:03:40 vince Exp $
+// $Id: PltApp.cpp,v 1.68 2000-10-05 20:37:11 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -320,7 +320,7 @@ void PltApp::PltAppInit() {
   // window.
   XmAddWMProtocolCallback(wAmrVisTopLevel,
 			  XmInternAtom(GAptr->PDisplay(),"WM_DELETE_WINDOW", false),
-			  CBQuitPltApp, (XtPointer) this);
+			  (XtCallbackProc) CBQuitPltApp, (XtPointer) this);
 
   for(np = 0; np != BL_SPACEDIM; ++np) {
     XYplotwin[np] = NULL; // No 1D plot windows initially.
@@ -451,7 +451,8 @@ void PltApp::PltAppInit() {
 				XmNacceleratorText, label_str,
 				NULL);
   XmStringFree(label_str);
-  XtAddCallback(wid, XmNactivateCallback, CBQuitPltApp, (XtPointer) this);
+  XtAddCallback(wid, XmNactivateCallback, (XtCallbackProc) CBQuitPltApp,
+		(XtPointer) this);
   
   /////////////////////////////////////////////////
   // VIEW MENU
@@ -3686,7 +3687,8 @@ void PltApp::SetHVLine(AmrPicture **apArray) {
 // -------------------------------------------------------------------
 void PltApp::AddStaticCallback(Widget w, String cbtype, memberCB cbf, void *d) {
   CBData *cbs = new CBData(this, d, cbf);
-  XtAddCallback(w, cbtype, &PltApp::StaticCallback, (XtPointer) cbs);
+  XtAddCallback(w, cbtype, (XtCallbackProc ) &PltApp::StaticCallback,
+		(XtPointer) cbs);
 }
 
 
@@ -3701,7 +3703,9 @@ void PltApp::AddStaticEventHandler(Widget w, EventMask mask, memberCB cbf, void 
 // -------------------------------------------------------------------
 XtIntervalId PltApp::AddStaticTimeOut(int time, memberCB cbf, void *d) {
   CBData *cbs = new CBData(this, d, cbf);
-  return XtAppAddTimeOut(appContext, time, &PltApp::StaticTimeOut, (XtPointer) cbs);
+  return XtAppAddTimeOut(appContext, time,
+			 (XtTimerCallbackProc) &PltApp::StaticTimeOut,
+			 (XtPointer) cbs);
 }
 
 

@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.33 2000-10-02 20:53:07 lijewski Exp $
+// $Id: Dataset.cpp,v 1.34 2000-10-05 20:37:11 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -132,7 +132,8 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
   XtSetArg(args[i], XmNcolumns, 12);      i++;
   wFormat = XtCreateManagedWidget("format", xmTextFieldWidgetClass,
 				    wDatasetTools, args, i);
-  XtAddCallback(wFormat, XmNactivateCallback, &Dataset::CBReadString,
+  XtAddCallback(wFormat, XmNactivateCallback,
+		(XtCallbackProc) &Dataset::CBReadString,
 		(XtPointer) this);
   Dimension bHeight;
   XtVaGetValues(wFormat, XmNheight, &bHeight, NULL);
@@ -146,7 +147,8 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
   XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
   XtSetArg(args[i], XmNheight, bHeight);      i++;
   wColorButton = XmCreateToggleButton(wDatasetTools, "Color", args, i);
-  XtAddCallback(wColorButton, XmNvalueChangedCallback, &Dataset::CBColorButton,
+  XtAddCallback(wColorButton, XmNvalueChangedCallback,
+		(XtCallbackProc) &Dataset::CBColorButton,
 		(XtPointer) this);
   XmToggleButtonSetState(wColorButton, true, false);
 
@@ -158,7 +160,8 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
   XtSetArg(args[i], XmNrightOffset, 20);      i++;
   XtSetArg(args[i], XmNheight, bHeight);      i++;
   wQuitButton = XmCreatePushButton(wDatasetTools, "Close", args, i);
-  XtAddCallback(wQuitButton, XmNactivateCallback, &Dataset::CBQuitButton,
+  XtAddCallback(wQuitButton, XmNactivateCallback,
+		(XtCallbackProc) &Dataset::CBQuitButton,
 		(XtPointer) this);
 
   // ************************************************ Max
@@ -234,7 +237,7 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
 			XmNwidth,		pixSizeX, 
 			XmNheight,		pixSizeY,
 			NULL);		
-  XtAddCallback(wPixArea, XmNinputCallback, &Dataset::CBPixInput,
+  XtAddCallback(wPixArea, XmNinputCallback, (XtCallbackProc) &Dataset::CBPixInput,
 		(XtPointer) this);
   XtVaSetValues(wScrollArea, XmNworkWindow, wPixArea, NULL);
 
@@ -245,7 +248,7 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
   XtPopup(wDatasetTopLevel, XtGrabNone);
 
   XtAddEventHandler(wPixArea, ExposureMask, false,
-		&Dataset::CBDoExposeDataset, (XtPointer) this);	
+		(XtEventHandler) &Dataset::CBDoExposeDataset, (XtPointer) this);
 
   Widget wHScrollBar, wVScrollBar;
 
@@ -253,13 +256,13 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
 	        XmNverticalScrollBar, &wVScrollBar, NULL);
 
   XtAddCallback(wHScrollBar, XmNdragCallback,
-		&Dataset::CBScrolling, (XtPointer) this);	
+		(XtCallbackProc) &Dataset::CBScrolling, (XtPointer) this);	
   XtAddCallback(wHScrollBar, XmNvalueChangedCallback,
-		&Dataset::CBEndScrolling, (XtPointer) this);	
+		(XtCallbackProc) &Dataset::CBEndScrolling, (XtPointer) this);	
   XtAddCallback(wVScrollBar, XmNdragCallback,
-		&Dataset::CBScrolling, (XtPointer) this);	
+		(XtCallbackProc) &Dataset::CBScrolling, (XtPointer) this);	
   XtAddCallback(wVScrollBar, XmNvalueChangedCallback,
-		&Dataset::CBEndScrolling, (XtPointer) this);	
+		(XtCallbackProc) &Dataset::CBEndScrolling, (XtPointer) this);	
 
   dragging = false;
   drags = 0;
