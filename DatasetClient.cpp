@@ -1,6 +1,6 @@
 
 //
-// $Id: DatasetClient.cpp,v 1.7 2002-02-19 20:39:41 vince Exp $
+// $Id: DatasetClient.cpp,v 1.8 2004-12-07 22:27:30 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -150,7 +150,7 @@ bool SendRealArray(int sockfd, Real *data[], int nvar,    // size nvar
   int dataBufferSize;
   char *getDataHere, *dataComponentStartingAddress;
 
-  for(int dataComponent = 0; dataComponent < nvar; dataComponent++) {
+  for(int dataComponent = 0; dataComponent < nvar; ++dataComponent) {
     //cout << "dataComponent = " << dataComponent << endl;
     totalBytesSent = 0;
     dataBytesRemaining = totalDataBytes;
@@ -224,7 +224,7 @@ bool ArrayViewFabFormatLabel(FArrayBox *debugFab, const char *format,
   }
 
   Real **dataArray = new Real*[nvar];
-  for(int d = 0; d < nvar; d++) {  // build the array of real pointers
+  for(int d = 0; d < nvar; ++d) {  // build the array of real pointers
     dataArray[d] = debugFab->dataPtr(d);  // dont assume contiguous
   }
   returnValue = ArrayViewRealPtrArrayNVarDims(dataArray, nvar,
@@ -302,7 +302,7 @@ bool ArrayViewTagBox(TagBox *debugTagBox) {
   }
 
   Real **dataArray = new Real*[nvar];
-  for(int d = 0; d < nvar; d++) {  // build the array of real pointers
+  for(int d = 0; d < nvar; ++d) {  // build the array of real pointers
     dataArray[d] = debugFab->dataPtr(d);  // dont assume contiguous
   }
   returnValue = ArrayViewRealPtrArrayNVarDims(dataArray, nvar,
@@ -398,12 +398,12 @@ bool ArrayViewRealNVarFormatLabel(Real *data, int nvar,
 
   Real **dataArray = new Real*[nvar];
   long npts = 1; 
-  for(int sd = 0; sd < BL_SPACEDIM; sd++) {
+  for(int sd = 0; sd < BL_SPACEDIM; ++sd) {
     npts *= (hidim[sd] - lodim[sd] + 1);
   }
 
   char *tempCharPtr;
-  for(int d = 0; d < nvar; d++) {  // build the array of real pointers
+  for(int d = 0; d < nvar; ++d) {  // build the array of real pointers
     tempCharPtr  = ((char *) data);
     tempCharPtr += d * npts * sizeof(Real);
     dataArray[d] = (Real *) tempCharPtr;
@@ -617,12 +617,12 @@ bool ArrayViewMultiFabFormatLabel(MultiFab *multifab, const char *format,
   }
 
   // --------------------------------------------------- send the data
-  for(int element = 0; element < multifab->length(); element++) {
+  for(int element(0); element < multifab->length(); ++element) {
     // construct dataArray for this element
     FArrayBox &fab = (*multifab)[element];
     int nvar = fab.nComp();
     Real **dataArray = new Real*[nvar];
-    for(int d = 0; d < nvar; d++) {  // build the array of Real *
+    for(int d(0); d < nvar; ++d) {  // build the array of Real *
       dataArray[d] = fab.dataPtr(d);  // dont assume contiguous
     }
 

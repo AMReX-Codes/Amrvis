@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.cpp,v 1.32 2004-11-17 22:52:10 car Exp $
+// $Id: Output.cpp,v 1.33 2004-12-07 22:27:30 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -208,7 +208,7 @@ void WritePSPaletteFile(const char *filename, XImage *image,
 	    palette.unpixelate(index, r, g, b);
             if(i % 10 == 0) {
                 sprintf(buf+charindex, "\n");
-                charindex++;
+                ++charindex;
             }
             sprintf(buf+charindex, "%02x%02x%02x ", r, g, b);
             charindex += 7;

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.70 2004-11-17 22:52:10 car Exp $
+// $Id: AmrData.cpp,v 1.71 2004-12-07 22:27:30 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -166,7 +166,7 @@ AmrData::~AmrData() {
 namespace {
   void mytrim(char *str) {
     int i(std::strlen(str));
-    for(int n(i - 1); n >= 0; n--) {
+    for(int n(i - 1); n >= 0; --n) {
       if( str[n] > ' ' ) {
         break;
       }
@@ -315,7 +315,9 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
       } else {
         refRatio.resize(finestLevel, -1);
       }
-      while(isPltIn.get() != '\n');
+      while(isPltIn.get() != '\n') {
+        ;  // do nothing
+      }
       bool bIVRefRatio(false);
       if(isPltIn.peek() == '(') {  // it is an IntVect
         bIVRefRatio = true;
@@ -349,7 +351,9 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
           return false;
         }
       }
-      while(isPltIn.get() != '\n');
+      while(isPltIn.get() != '\n') {
+        ;  // do nothing
+      }
       probDomain.resize(finestLevel + 1);
       maxDomain.resize(finestLevel + 1);
       for(i = 0; i <= finestLevel; ++i) {
@@ -384,7 +388,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
       dxLevel.resize(finestLevel + 1);
       for(i = 0; i <= finestLevel; ++i) {
         dxLevel[i].resize(BL_SPACEDIM);
-        for(k = 0; k < BL_SPACEDIM; k++) {
+        for(k = 0; k < BL_SPACEDIM; ++k) {
 	  isPltIn >> dxLevel[i][k];
 	  if(verbose) {
             if(ParallelDescriptor::IOProcessor()) {
@@ -440,7 +444,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
    boundaryWidth = max(width, sBoundaryWidth);
    bool bRestrictDomain(maxDomain[0].ok());
    if(bRestrictDomain) {
-      for(lev = 1; lev <= finestLevel; lev++) {
+      for(lev = 1; lev <= finestLevel; ++lev) {
         maxDomain[lev] = BoxLib::refine(maxDomain[lev-1],refRatio[lev-1]);
       }
    }
@@ -619,7 +623,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
  	       b_dest = BoxLib::adjCellLo(bx, kdir, 1);
 	       b_src  = b_dest;
 	       b_src  = b_src.shift(kdir, 1);
-               for(n = 1; n <= boundaryWidth; n++) {
+               for(n = 1; n <= boundaryWidth; ++n) {
 	          tmpreg_lo.copy(tmpreg_lo, b_src, 0, b_dest, 0, nComp);
 	          b_dest.shift(kdir, -1);
 	       }
@@ -627,7 +631,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
 	       b_dest = BoxLib::adjCellHi(bx,kdir,1);
 	       b_src = b_dest;
 	       b_src.shift(kdir,-1);
-               for(n = 1; n <= boundaryWidth; n++) {
+               for(n = 1; n <= boundaryWidth; ++n) {
 	          tmpreg_lo.copy(tmpreg_lo,b_src,0,b_dest,0,nComp);
 	          b_dest.shift(kdir,1);
 	       }
@@ -1755,7 +1759,7 @@ bool AmrData::MinMax(const Box &onBox, const string &derived, int level,
 
 // ---------------------------------------------------------------
 int AmrData::StateNumber(const string &statename) const {
-  for(int ivar = 0; ivar < plotVars.size(); ivar++) {
+  for(int ivar = 0; ivar < plotVars.size(); ++ivar) {
     if(statename == plotVars[ivar]) {
       return ivar;
     }

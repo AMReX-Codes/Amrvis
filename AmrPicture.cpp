@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.86 2004-08-05 17:54:24 vince Exp $
+// $Id: AmrPicture.cpp,v 1.87 2004-12-07 22:27:30 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -135,7 +135,7 @@ AmrPicture::AmrPicture(GraphicsAttributes *gaptr,
   }
   sliceBox.resize(numberOfLevels);
 
-  for(ilev = minDrawnLevel; ilev <= maxAllowableLevel; ilev++) {  // set type
+  for(ilev = minDrawnLevel; ilev <= maxAllowableLevel; ++ilev) {  // set type
     sliceBox[ilev].convert(subDomain[minDrawnLevel].type());
   }
 
@@ -616,7 +616,7 @@ void AmrPicture::DrawTerrBoxes(int level, bool bIsWindow, bool bIsPixmap) {
   int hScale(pltAppStatePtr->CurrentScale() * expansion);
 
   if(finestLevel+1 != numberOfLevels) {
-    for(lev = numberOfLevels-1; lev < finestLevel; lev++) {
+    for(lev = numberOfLevels-1; lev < finestLevel; ++lev) {
        //IntVect ref_ratio = amrData.RefRatio(lev);
        hScale = hScale / amrData.RefRatio()[lev];
     }
@@ -1122,7 +1122,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 
         if(vfp > vfeps && vfp < omvfe) {  // a mixed cell
 
-          for(iis = 0; iis < 9; iis++) {
+          for(iis = 0; iis < 9; ++iis) {
             stencil[iis] = -2.0*vfeps;  // flag value for boundary stencils
           }
 
@@ -1198,57 +1198,57 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
           nStartH = 0;
           nEndH   = 2;
           if(stencil[0] < 0.0 && stencil[1] < 0.0 && stencil[2] < 0.0) {
-            nStartH++;
+            ++nStartH;
           }
           if(stencil[0] < 0.0 && stencil[3] < 0.0 && stencil[6] < 0.0) {
-            nStartV++;
+            ++nStartV;
           }
           if(stencil[2] < 0.0 && stencil[5] < 0.0 && stencil[8] < 0.0) {
-            nEndV--;
+            --nEndV;
           }
           if(stencil[6] < 0.0 && stencil[7] < 0.0 && stencil[8] < 0.0) {
-            nEndH--;
+            --nEndH;
           }
 
           nV = nEndV - nStartV + 1;
           nH = nEndH - nStartH + 1;
 
-          for(jsum=nStartH; jsum<=nEndH; jsum++) {
+          for(jsum=nStartH; jsum<=nEndH; ++jsum) {
             sumH[jsum] = 0;
-            for(isum=nStartV; isum<=nEndV; isum++) {
+            for(isum=nStartV; isum<=nEndV; ++isum) {
               sumH[jsum] += stencil[isum + stencilSize*jsum];
             }
           }
-          for(isum=nStartV; isum<=nEndV; isum++) {
+          for(isum=nStartV; isum<=nEndV; ++isum) {
             sumV[isum] = 0;
-            for(jsum=nStartH; jsum<=nEndH; jsum++) {
+            for(jsum=nStartH; jsum<=nEndH; ++jsum) {
               sumV[isum] += stencil[isum + stencilSize*jsum];
             }
           }
 
           tempSum = 0;
-          for(isum=nStartV; isum<=nEndV; isum++) {
+          for(isum=nStartV; isum<=nEndV; ++isum) {
             tempSum += sumV[isum];
           }
           avgV = tempSum / ((Real) nV);
           tempSum = 0;
-          for(isum=nStartH; isum<=nEndH; isum++) {
+          for(isum=nStartH; isum<=nEndH; ++isum) {
             tempSum += sumH[isum];
           }
           avgH = tempSum / ((Real) nH);
 
-          for(isum=nStartV; isum<=nEndV; isum++) {
+          for(isum=nStartV; isum<=nEndV; ++isum) {
             diffAvgV[isum] = sumV[isum] - avgV;
           }
-          for(isum=nStartH; isum<=nEndH; isum++) {
+          for(isum=nStartH; isum<=nEndH; ++isum) {
             diffAvgH[isum] = sumH[isum] - avgH;
           }
 
-          //for(isum=nStartV; isum< nEndV; isum++) {
+          //for(isum=nStartV; isum< nEndV; ++isum) {
             //minDAV = min(diffAvgV[isum], diffAvgV[isum+1]);
             //maxDAV = max(diffAvgV[isum], diffAvgV[isum+1]);
           //}
-          //for(isum=nStartH; isum<=nEndH; isum++) {
+          //for(isum=nStartH; isum<=nEndH; ++isum) {
             //minDAH = min(diffAvgH[isum], diffAvgH[isum+1]);
             //maxDAH = max(diffAvgH[isum], diffAvgH[isum+1]);
           //}
@@ -1294,7 +1294,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
             nCalcBodyCells = 0;
             for(ii = 0; ii < rrcs * rrcs; ++ii) {
               if(imageStencil[ii] == bodyCell) {
-                nCalcBodyCells++;
+                ++nCalcBodyCells;
               }
             }
 
@@ -1351,11 +1351,11 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
               break;
             }
 
-            for(ii=rrcs; ii>iCurrent; ii--) {
-              yBody = (-slope * ((ii-iCurrent)*cellDx)) + (jCurrent*cellDy);
-              jBody = min(rrcs-1, (int) (yBody/cellDy));
-              for(jj=0; jj<=jBody; jj++) {
-                isIndex = (ii-1) + ((rrcs-(jj+1))*rrcs);
+            for(ii=rrcs; ii>iCurrent; --ii) {
+              yBody = (-slope * ((ii - iCurrent) * cellDx)) + (jCurrent * cellDy);
+              jBody = min(rrcs - 1, (int) (yBody / cellDy));
+              for(jj = 0; jj <= jBody; ++jj) {
+                isIndex = (ii - 1) + ((rrcs - (jj + 1)) * rrcs);
                 imageStencil[isIndex] = bodyCell;  // yflip
               }
             }
@@ -1363,7 +1363,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
             // sum the body cells
             nCalcBodyCells = 0;
             for(ii = 0; ii < rrcs * rrcs; ++ii) {
-              if(imageStencil[ii] == bodyCell) { nCalcBodyCells++; }
+              if(imageStencil[ii] == bodyCell) { ++nCalcBodyCells; }
             }
 
           }  // end while(...)

@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.H,v 1.29 2002-12-10 20:12:23 vince Exp $
+// $Id: VolRender.H,v 1.30 2004-12-07 22:27:30 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -26,12 +26,13 @@ using std::string;
 
 class DataServices;
 
+
 class VolRender {
   private:
     VolRender();
   public:
     VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
-	      int maxdrawnlevel, Palette *, const string &asLightFileName);
+	      int maxdrawnlevel, Palette *pptr, const string &asLightFileName);
   
     ~VolRender();
   

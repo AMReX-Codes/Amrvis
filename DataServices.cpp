@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.39 2003-03-12 07:40:56 vince Exp $
+// $Id: DataServices.cpp,v 1.40 2004-12-07 22:27:30 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -966,7 +966,7 @@ bool DataServices::WriteFab(const string &fname, const Box &region, int lev) {
     tempdata.resize(region, 1);
     data.resize(region, amrData.NComp());
   }
-  for(int ivar = 0; ivar < amrData.NComp(); ivar++) {
+  for(int ivar = 0; ivar < amrData.NComp(); ++ivar) {
     //amrData.FillVar(tempdata, lev, amrData.PlotVarNames()[ivar]);
     Array<FArrayBox *> destFabs(1);
     Array<Box> destBoxes(1);

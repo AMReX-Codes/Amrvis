@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.70 2004-11-17 22:52:10 car Exp $
+// $Id: AmrVisTool.cpp,v 1.71 2004-12-07 22:27:30 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -214,6 +214,7 @@ int main(int argc, char *argv[]) {
       }  // end for(nPlots...)
     }  // end if(AVGlobals::IsAnimation())
 
+
     if(ParallelDescriptor::IOProcessor()) {
       XtAppMainLoop(app);
     } else {
@@ -355,6 +356,24 @@ void BatchFunctions() {
       }
       cout << "_in BatchFunctions:  using max level = " << maxDrawnLevel << endl;
       Array<Box> drawDomain = amrData.ProbDomain();
+
+      if(AVGlobals::GivenBox()) {
+        Box comlineBox = AVGlobals::GetBoxFromCommandLine();
+        //cout << "+++++++++++++++++++++++ comlinebox    = " << comlineBox << endl;
+        int finelev(amrData.FinestLevel());
+	if(amrData.ProbDomain()[finelev].contains(comlineBox) == false) {
+	  cerr << "Error:  bad comlineBox:  probDomain(finestLevel) = "
+	       << amrData.ProbDomain()[finelev] << endl;
+	  BoxLib::Abort("Exiting.");
+	}
+        drawDomain[finelev] = comlineBox;
+        for(int ilev(amrData.FinestLevel() - 1); ilev >= 0; --ilev) {
+	  int crr(AVGlobals::CRRBetweenLevels(ilev, finelev, amrData.RefRatio()));
+          drawDomain[ilev] = drawDomain[finelev];
+          drawDomain[ilev].coarsen(crr);
+        //cout << "++++++ drawDomain[" << ilev << "] = " << drawDomain[ilev] << endl;
+        }
+      }
 
       int iPaletteStart(3);
       int iPaletteEnd(AVGlobals::MaxPaletteIndex());

@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.51 2004-09-30 20:03:38 vince Exp $
+// $Id: VolRender.cpp,v 1.52 2004-12-07 22:27:30 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -445,7 +445,7 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
 
      } else {  // only draw the boundingbox
 
-        int lev = minDrawnLevel;
+        int lev(minDrawnLevel);
         int crr(AVGlobals::CRRBetweenLevels(lev, maxDrawnLevel,
 	        amrData.RefRatio()));
           gbox = drawnDomain[lev];
@@ -647,44 +647,33 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
 
 // -------------------------------------------------------------------
 void VolRender::WriteSWFData(const string &filenamebase, bool SWFLight) {
-    cout << "VolRender::WriteSWFData" << endl;
-    BL_ASSERT(bVolRenderDefined);
-    if(ParallelDescriptor::IOProcessor()) {
-        cout << "vpClassify Scalars..." << endl;           // --- classify
-        clock_t time0 = clock();
-        vpResult vpret;
-        bool PCtemp(preClassify);
-        preClassify = true;
-        // here set lighting or value model
-        bool bLMtemp(lightingModel);
-        lightingModel = SWFLight;
+  cout << "VolRender::WriteSWFData" << endl;
+  BL_ASSERT(bVolRenderDefined);
+  if(ParallelDescriptor::IOProcessor()) {
+    cout << "vpClassify Scalars..." << endl;           // --- classify
+    clock_t time0 = clock();
+    vpResult vpret;
+    bool PCtemp(preClassify);
+    preClassify = true;
+    // here set lighting or value model
+    bool bLMtemp(lightingModel);
+    lightingModel = SWFLight;
  
-        MakeVPData();
+    MakeVPData();
         
-        preClassify = PCtemp;
-        lightingModel = bLMtemp;
+    preClassify = PCtemp;
+    lightingModel = bLMtemp;
    
-
-  cout << "----- make vp data time = " << ((clock() - time0)/1000000.0) << endl;
-  string filename = "swf.";
-  filename += filenamebase;
-  filename += (SWFLight ? ".lt" : ".val" );
-  filename += ".vpdat";
-  cout << "----- storing classified volume into file:  " << filename << endl;
-#ifndef S_IRUSR  /* the T3E does not define this */
-#define S_IRUSR 0000400
-#endif
-#ifndef S_IWUSR  /* the T3E does not define this */
-#define S_IWUSR 0000200
-#endif
-#ifndef S_IRGRP  /* the T3E does not define this */
-#define S_IRGRP 0000040
-#endif
-    int fp = open(filename.c_str(), O_CREAT | O_WRONLY,
-		  S_IRUSR | S_IWUSR | S_IRGRP);
-    vpret = vpStoreClassifiedVolume(vpc, fp);
+    cout << "----- make vp data time = " << ((clock() - time0)/1000000.0) << endl;
+    string filename = "swf.";
+    filename += filenamebase;
+    filename += (SWFLight ? ".lt" : ".val" );
+    filename += ".vpdat";
+    cout << "----- storing classified volume into file:  " << filename << endl;
+    FILE *fptr = fopen(filename.c_str(), "w");
+    vpret = vpStoreClassifiedVolume(vpc, fileno(fptr));
     CheckVP(vpret, 4);
-    close(fp);
+    fclose(fptr);
   }
 }
 
@@ -794,10 +783,44 @@ void VolRender::MakeVPData() {
     vpResult vpret;
     if(preClassify) {
       if(lightingModel) {
+//#define AV_LOWMEMRENDER
+#ifdef AV_LOWMEMRENDER
         vpret = vpClassifyScalars(vpc, swfData, swfDataSize,
                                   densityField, gradientField, normalField);
         CheckVP(vpret, 6);
+#else
+        vpret = vpClassifyScalars(vpc, swfData, swfDataSize,
+                                  densityField, gradientField, normalField);
+        CheckVP(vpret, 6);
+#endif
       } else {  // value model
+#ifdef AV_LOWMEMRENDER
+        // the classification and loading of the value model
+        delete [] volData;
+        volData = new RawVoxel[swfDataSize]; // volpack will delete this
+        int xStride(sizeof(RawVoxel));
+        int yStride(drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel));
+        int zStride(drawnDomain[maxDataLevel].length(XDIR) *
+                    drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel));
+        vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
+                               xStride, yStride, zStride);
+        CheckVP(vpret, 9.4);
+        for(int vindex(0); vindex < swfDataSize; ++vindex) {
+          volData[vindex].normal  = swfData[vindex];
+          volData[vindex].density = swfData[vindex];
+        }
+        
+	long int nrc(drawnDomain[maxDataLevel].length(YDIR) *
+	             drawnDomain[maxDataLevel].length(ZDIR));
+	RawVoxel *vscanline = volData;
+	cout << "****** classifying " << nrc << " scanlines." << endl;
+	for(int ix(0); ix < nrc; ++ix) {
+	  if(ix < 5) cout << "----- vscanline = " << vscanline << endl;
+          vpret = vpClassifyScanline(vpc, (void *) vscanline);
+          CheckVP(vpret, 9.5);
+	  vscanline += xStride;
+	}
+#else
         // the classification and loading of the value model
         delete [] volData;
         volData = new RawVoxel[swfDataSize]; // volpack will delete this
@@ -815,6 +838,7 @@ void VolRender::MakeVPData() {
         
         vpret = vpClassifyVolume(vpc);
         CheckVP(vpret, 9.5);
+#endif
         
       }
     } else {   // load the volume data and precompute the minmax octree
