@@ -1,7 +1,6 @@
-//
+// -------------------------------------------------------------------
 // XYPlotParam.cpp -- implementation of XYPlotParameters class
-//
-
+// -------------------------------------------------------------------
 #include <X11/X.h>
 #undef index
 
@@ -24,21 +23,23 @@
 
 #define STRDUP(xx) (strcpy(new char[strlen(xx)+1], (xx)))
 
-///////////////////////////////////////////
-// G L O B A L  V A R I A B L E S
-///////////////////////////////////////////
-static char *defStyle[8] = {
+static char *defStyle[8] = {     // Default Line styles  
   "1", "10", "11110000", "010111", "1110",
-  "1111111100000000", "11001111", "0011000111" }; // Default Line styles  
+  "1111111100000000", "11001111", "0011000111"
+};
 
 static char *positive[] = {"on", "yes", "true", "1", "affirmative", NULL};
 static char *negative[] = {"off", "no", "false", "0", "negative", NULL};
 
+
+
+// -------------------------------------------------------------------
 XYPlotParameters::XYPlotParameters(Palette *palPtr, GraphicsAttributes *gaptr,
 				   char *name)
   : param_palette(palPtr), GAptr(gaptr)
 {
-  title = STRDUP(name);
+  title = new char[strlen(name) + 1];
+  strcpy(title, name);
 
   // Initialize hash table.
   param_table.num_entries = 0;
@@ -46,7 +47,7 @@ XYPlotParameters::XYPlotParameters(Palette *palPtr, GraphicsAttributes *gaptr,
   param_table.grow_factor = ST_DEFAULT_GROW_FACTOR;
   param_table.reorder_flag = ST_DEFAULT_REORDER_FLAG;
   param_table.num_bins = (ST_DEFAULT_INIT_TABLE_SIZE <= 0) ? 1 :
-    ST_DEFAULT_INIT_TABLE_SIZE;
+                                              ST_DEFAULT_INIT_TABLE_SIZE;
   param_table.bins = new st_table_entry *[param_table.num_bins];
   for(int idx(0); idx != param_table.num_bins; ++idx) {
     param_table.bins[idx] = NULL;
@@ -55,9 +56,10 @@ XYPlotParameters::XYPlotParameters(Palette *palPtr, GraphicsAttributes *gaptr,
   GetHardWiredDefaults();
   ReadFromFile("~/.XYPlot.Defaults"); // First read "global" defaults
   ReadFromFile(".XYPlot.Defaults");   // Then read "local" defaults
-
 }
 
+
+// -------------------------------------------------------------------
 void XYPlotParameters::ResetPalette(Palette *newPalPtr) {
   if(param_palette != newPalPtr) {
     param_palette = newPalPtr;
@@ -80,6 +82,7 @@ void XYPlotParameters::ResetPalette(Palette *newPalPtr) {
 }
 
 
+// -------------------------------------------------------------------
 XYPlotParameters::~XYPlotParameters(void) {
   st_table_entry *ptr, *next;
 
@@ -93,7 +96,7 @@ XYPlotParameters::~XYPlotParameters(void) {
         free_resource(entry->real_form);
       }
       if(entry->text_form) {
-        delete entry->text_form;
+        delete [] entry->text_form;
       }
       delete entry;
       delete ptr;
@@ -104,8 +107,11 @@ XYPlotParameters::~XYPlotParameters(void) {
   // clear table bins and the table itself.
   delete param_table.bins;
 
+  delete [] title;
 }
 
+
+// -------------------------------------------------------------------
 void XYPlotParameters::GetHardWiredDefaults(void) {
   char *def_str;
   char buf[1024];
@@ -154,11 +160,13 @@ void XYPlotParameters::GetHardWiredDefaults(void) {
     sprintf(colorstr, "%u", idx * colorindex);
     Set_Parameter(buf, INT, colorstr);
   }
-
 }
 
+
+// -------------------------------------------------------------------
 void XYPlotParameters::Set_Parameter(char *name,  param_types type,
-				     const char *val) {
+				     const char *val)
+{
   param_full *entry = st_lookup(name);
   
   if(entry) {
@@ -166,7 +174,7 @@ void XYPlotParameters::Set_Parameter(char *name,  param_types type,
       free_resource(entry->real_form);
     }
     if(entry->text_form) {
-      delete entry->text_form;
+      delete [] entry->text_form;
     }
   } else {
     entry = new param_full;
@@ -174,10 +182,12 @@ void XYPlotParameters::Set_Parameter(char *name,  param_types type,
   }
   entry->real_form = NULL;
   entry->type = type;
-  entry->text_form = STRDUP(val);
-  
+  entry->text_form = new char[strlen(val) + 1];
+  strcpy(entry->text_form ,val);
 }
 
+
+// -------------------------------------------------------------------
 int XYPlotParameters::Get_Parameter(char *name, params *val) {
   param_full *entry = st_lookup(name);
 
@@ -193,6 +203,8 @@ int XYPlotParameters::Get_Parameter(char *name, params *val) {
   return 1;
 }
 
+
+// -------------------------------------------------------------------
 void XYPlotParameters::free_resource(params *val) {
   switch (val->type) {
     case INT:
@@ -212,6 +224,8 @@ void XYPlotParameters::free_resource(params *val) {
   delete val;
 }
 
+
+// -------------------------------------------------------------------
 params * XYPlotParameters::resolve_entry(char *name, param_types type,
 				     char *form) {
   static char paramstr[] =
@@ -263,6 +277,8 @@ params * XYPlotParameters::resolve_entry(char *name, param_types type,
   return result;
 }
 
+
+// -------------------------------------------------------------------
 int XYPlotParameters::do_color(char *name, XColor *color) {
   Colormap cmap = param_palette->GetColormap();
   if( ! XParseColor(GAptr->PDisplay(),
@@ -285,8 +301,8 @@ int XYPlotParameters::do_color(char *name, XColor *color) {
   // Choose the closest color in the palette, based on Euclidian distance
   // of RGB values (does this create pastel colors??)
 
-  double red = color->red, green = color->green, blue = color->blue;
-  double best = DBL_MAX;
+  double red(color->red), green(color->green), blue(color->blue);
+  double best(DBL_MAX);
   unsigned long best_pix = WhitePixel(GAptr->PDisplay(), GAptr->PScreenNumber());
   int end(param_palette->PaletteEnd());
   for(int ii(param_palette->PaletteStart()); ii <= end; ++ii) {
@@ -307,6 +323,8 @@ int XYPlotParameters::do_color(char *name, XColor *color) {
 
 }  
 
+
+// -------------------------------------------------------------------
 int XYPlotParameters::do_font(char *name, XFontStruct **font_info) {
   char name_copy[DEF_MAX_FONT], query_spec[DEF_MAX_FONT];
   char *font_family, *font_size, **font_list;
@@ -344,6 +362,8 @@ int XYPlotParameters::do_font(char *name, XFontStruct **font_info) {
   return 0;
 }
 
+
+// -------------------------------------------------------------------
 int XYPlotParameters::do_style(char *list, param_style *val) {
   char *i, *spot, last_char;
   int count;
@@ -383,8 +403,10 @@ int XYPlotParameters::do_style(char *list, param_style *val) {
   }
 }
 
+
+// -------------------------------------------------------------------
 int XYPlotParameters::do_bool(char *name, int *val) {
-  char  **term;
+  char **term;
   
   for(term = positive; *term; ++term) {
     if(string_compare(name, *term) == 0) { *val = 1; return 1; }
@@ -396,6 +418,8 @@ int XYPlotParameters::do_bool(char *name, int *val) {
   return 0;
 }
 
+
+// -------------------------------------------------------------------
 void XYPlotParameters::ReadFromFile(char *filename) {
   FILE *fs;
   if((fs = fopen(filename, "r")) != NULL) {
@@ -419,15 +443,16 @@ void XYPlotParameters::ReadFromFile(char *filename) {
   }
 }
 
+
+// -------------------------------------------------------------------
 void XYPlotParameters::WriteToFile(char *filename) {
   st_table_entry *ptr;
-  int     i;
   FILE *fs;
 
   if((fs = fopen(filename, "w")) == NULL) {
     return;
   }
-  for(i = 0; i < param_table.num_bins; ++i) {
+  for(int i(0); i < param_table.num_bins; ++i) {
     for(ptr = param_table.bins[i]; ptr; ptr = ptr->next) {
       param_full *val = ptr->record;
       fprintf(fs, "%s\t", ptr->key);
@@ -435,13 +460,13 @@ void XYPlotParameters::WriteToFile(char *filename) {
         fprintf(fs, "\t");
       }
       switch (val->type) {
-      case INT:   fprintf(fs, "INT");   break;
-      case STR:	  fprintf(fs, "STR");   break;
-      case PIXEL: fprintf(fs, "PIXEL");	break;
-      case FONT:  fprintf(fs, "FONT");	break;
-      case STYLE: fprintf(fs, "STYLE");	break;
-      case BOOL:  fprintf(fs, "BOOL");	break;
-      case DBL:   fprintf(fs, "DBL");	break;
+        case INT:   fprintf(fs, "INT");   break;
+        case STR:   fprintf(fs, "STR");   break;
+        case PIXEL: fprintf(fs, "PIXEL"); break;
+        case FONT:  fprintf(fs, "FONT");  break;
+        case STYLE: fprintf(fs, "STYLE"); break;
+        case BOOL:  fprintf(fs, "BOOL");  break;
+        case DBL:   fprintf(fs, "DBL");   break;
       }
       fprintf(fs, "\t%s\n", val->text_form);
     }
@@ -449,7 +474,14 @@ void XYPlotParameters::WriteToFile(char *filename) {
   fclose(fs);
 }
 
-param_full * XYPlotParameters::st_lookup(register char *key) {
+
+//
+//
+// replace this with a map  vvvvvvvvvvvvvvvv
+//
+//
+// -------------------------------------------------------------------
+param_full *XYPlotParameters::st_lookup(register char *key) {
   register st_table_entry *ptr;
   
   // find entry.
@@ -466,6 +498,8 @@ param_full * XYPlotParameters::st_lookup(register char *key) {
   return NULL;
 }
 
+
+// -------------------------------------------------------------------
 int XYPlotParameters::st_insert(char *key, param_full *value) {
   int hash_val;
   st_table_entry *newentry;
@@ -490,7 +524,8 @@ int XYPlotParameters::st_insert(char *key, param_full *value) {
 
     // add directly.
     if(param_table.num_entries/param_table.num_bins >=
-	param_table.max_density) {
+	param_table.max_density)
+    {
 	rehash();
 	hash_val = strihash(key);
     }
@@ -501,13 +536,14 @@ int XYPlotParameters::st_insert(char *key, param_full *value) {
     param_table.bins[hash_val] = newentry;
     param_table.num_entries++;
     return 0;
-  }
-  else {
+  } else {
     ptr->record = value;
     return 1;
   }
 }
 
+
+// -------------------------------------------------------------------
 void XYPlotParameters::rehash(void) {
   st_table_entry *ptr, *next, **old_bins = param_table.bins;
   int i, hash_val, old_num_bins = param_table.num_bins;
@@ -536,3 +572,5 @@ void XYPlotParameters::rehash(void) {
   }
   delete old_bins;
 }
+// -------------------------------------------------------------------
+// -------------------------------------------------------------------

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.50 2001-05-10 23:38:00 vince Exp $
+// $Id: PltApp.H,v 1.51 2001-05-25 00:39:58 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -334,13 +334,15 @@ private:
   static void StaticTimeOut(XtPointer client_data, XtIntervalId *);
   
   class CBData {  // callback data
-  public:
-    CBData(PltApp *p, XtPointer d, memberCB mcb)
-      : instance(p), data(d), cbFunc(mcb) { }
-    PltApp *instance;
-    XtPointer data;
-    memberCB cbFunc;
+    public:
+      CBData(PltApp *p, XtPointer d, memberCB mcb)
+        : instance(p), data(d), cbFunc(mcb) { }
+      ~CBData() { }
+      PltApp *instance;
+      XtPointer data;
+      memberCB cbFunc;
   };
+  Array<CBData *> cbdPtrs;  // save these so we can delete them later
 };
 
 void	SubregionPltApp(Widget toplevel, const Box &region, const IntVect &offset,

@@ -204,21 +204,25 @@ private:
   void CBdoDrawLocation(Widget, XtPointer, XtPointer);
 
   class XYCBData {  // callback data
-  public:
-    XYCBData(XYPlotWin *p, void *d, memberXYCB mcb)
-      : instance(p), data(d), cbFunc(mcb) { }
-    XYPlotWin *instance;
-    void *data;
-    memberXYCB cbFunc;
-  };
+    public:
+      XYCBData(XYPlotWin *p, void *d, memberXYCB mcb)
+        : instance(p), data(d), cbFunc(mcb) { }
+      ~XYCBData() { }
+      XYPlotWin *instance;
+      void *data;
+      memberXYCB cbFunc;
+    };
+  Array<XYCBData *> xycbdPtrs;
 
   class XYMenuCBData {
-  public:
-    XYMenuCBData(XYPlotLegendItem *_item, int _which)
-      : item(_item), which(_which) { }
-    XYPlotLegendItem *item;
-    int which;
+    public:
+      XYMenuCBData(XYPlotLegendItem *_item, int _which)
+        : item(_item), which(_which) { }
+      ~XYMenuCBData() { }
+      XYPlotLegendItem *item;
+      int which;
   };
+  Array<XYMenuCBData *> xymenucbdPtrs;
 };
 
 void	CBcloseXYPlotWin(Widget, XtPointer, XtPointer);

@@ -41,7 +41,6 @@ using std::setw;
 #include <iomanip.h>
 #endif
 
-#define STRDUP(xx) (strcpy(new char[strlen(xx)+1], (xx)))
 #define MARK (fprintf(stderr, "Mark at file %s, line %d.\n", __FILE__, __LINE__))
 
 // Hack fix for compiler bug for window manager calls
@@ -98,16 +97,30 @@ XYPlotWin::~XYPlotWin() {
     pltParent->DetachXYPlotWin(whichType);
   }
   CBdoClearData(None, NULL, NULL);
-  if(wOptionsDialog != None) XtDestroyWidget(wOptionsDialog);
-  if(wExportFileDialog != None) XtDestroyWidget(wExportFileDialog);
+  if(wOptionsDialog != None) {
+    XtDestroyWidget(wOptionsDialog);
+  }
+  if(wExportFileDialog != None) {
+    XtDestroyWidget(wExportFileDialog);
+  }
   XtDestroyWidget(wXYPlotTopLevel);
   delete GAptr;
-  delete Xsegs[0];
-  delete Xsegs[1];
-  delete XUnitText;
-  delete YUnitText;
-  delete formatY;
-  delete formatX;
+  delete [] Xsegs[0];
+  delete [] Xsegs[1];
+  delete [] XUnitText;
+  delete [] YUnitText;
+  delete [] formatY;
+  delete [] formatX;
+  delete [] pltTitle;
+
+  // delete all the call back parameter structs
+  int nSize;
+  for(nSize = 0; nSize < xycbdPtrs.length(); ++nSize) {
+    delete xycbdPtrs[nSize];
+  }
+  for(nSize = 0; nSize < xymenucbdPtrs.length(); ++nSize) {
+    delete xymenucbdPtrs[nSize];
+  }
 }
 
 
@@ -123,13 +136,15 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
 
   int idx;
   char buffer[BUFSIZE];
-  pltTitle = STRDUP(title);
+  pltTitle = new char[strlen(title) + 1];
+  strcpy(pltTitle, title);
   params param_temp;   // temporary parameter grabbing slot
 
   // Store some local stuff from the parent.
   parameters = pltParent->GetXYPlotParameters();
 
-  wExportFileDialog = wOptionsDialog = None;
+  wExportFileDialog = None;
+  wOptionsDialog = None;
 
   // Standard flags.
   zoomedInQ = 0;
@@ -397,14 +412,21 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
   } else {
     str = PM_STR("XUnitTextZ");
   }
-  XUnitText = STRDUP(str);
+  XUnitText = new char[strlen(str) + 1];
+  strcpy(XUnitText, str);
 
   str       = PM_STR("YUnitText");
-  YUnitText = STRDUP(str);  
+  YUnitText = new char[strlen(str) + 1];
+  strcpy(YUnitText, str);
+
   str       = PM_STR("FormatX");
-  formatX   = STRDUP(str);
+  formatX = new char[strlen(str) + 1];
+  strcpy(formatX, str);
+
   str       = PM_STR("FormatY");
-  formatY   = STRDUP(str);
+  formatY = new char[strlen(str) + 1];
+  strcpy(formatY, str);
+
   gridStyle = PM_STYLE("GridStyle");
 
   for(idx = 0; idx < 8; ++idx) {
@@ -432,6 +454,9 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
                   labeltextFont->max_bounds.descent;
   devInfo.titleH = titletextFont->max_bounds.ascent + 
                   titletextFont->max_bounds.descent;
+
+  xycbdPtrs.reserve(512);      // arbitrarily
+  xymenucbdPtrs.reserve(512);  // arbitrarily
 }
 
 
@@ -498,8 +523,10 @@ void XYPlotWin::UpdateFrame(int frame) {
     ptr->list->UpdateStats();
     if(ptr->list->numPoints > numXsegs) {
       numXsegs = ptr->list->numPoints + 5;
-      delete Xsegs[0]; Xsegs[0] = new XSegment[numXsegs];
-      delete Xsegs[1]; Xsegs[1] = new XSegment[numXsegs];
+      delete [] Xsegs[0];
+      Xsegs[0] = new XSegment[numXsegs];
+      delete [] Xsegs[1];
+      Xsegs[1] = new XSegment[numXsegs];
     }
     if( ! animatingQ) {
       delete tempList;
@@ -621,7 +648,7 @@ void XYPlotWin::CBdoRedrawPlot(Widget w, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::CalculateBox(void) {
+void XYPlotWin::CalculateBox() {
   XWindowAttributes win_attr;
   XGetWindowAttributes(disp, pWindow, &win_attr);
 
@@ -696,7 +723,8 @@ void XYPlotWin::CBdoDrawPlot(Widget, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void XYPlotWin::AddDataList(XYPlotDataList *new_list,
-			    XYPlotLegendItem *insert_after) {
+			    XYPlotLegendItem *insert_after)
+{
   if(++numItems > 64) {
     // Too many data lists to assign unique color/style.  Delete.
     PrintMessage("Too many lines in plotter!\n");
@@ -769,8 +797,14 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
       if(ii < 10) {
         XtVaSetValues(wid, XmNmnemonic, ii + '0', NULL);
       }
+      XYMenuCBData *xymenucb = new XYMenuCBData(new_item, ii);
+      // xymenucbdPtrs.push_back(xymenucb)
+      int nSize(xymenucbdPtrs.length());
+      xymenucbdPtrs.resize(nSize + 1);
+      xymenucbdPtrs[nSize] = xymenucb;
+
       AddStaticCallback(wid, XmNactivateCallback, &XYPlotWin::CBdoSetListLevel,
-			new XYMenuCBData(new_item, ii));
+			xymenucb);
     }
   }
 
@@ -803,8 +837,10 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
     }
     if(new_list->numPoints > numXsegs) {
       numXsegs = new_list->numPoints + 5;
-      delete Xsegs[0]; Xsegs[0] = new XSegment[numXsegs];
-      delete Xsegs[1]; Xsegs[1] = new XSegment[numXsegs];
+      delete [] Xsegs[0];
+      Xsegs[0] = new XSegment[numXsegs];
+      delete [] Xsegs[1];
+      Xsegs[1] = new XSegment[numXsegs];
     }
     new_item->next = NULL;
     if((new_item->prev = legendTail) != NULL) {
@@ -993,8 +1029,9 @@ void XYPlotWin::drawGridAndAxis(void) {
   if(expX != 0) {
     (void) sprintf(final, "%s x 10^%d", XUnitText, expX);
     textX(wPlotWin, Xspot, Yspot, final, T_RIGHT, T_AXIS);
+  } else {
+    textX(wPlotWin, Xspot, Yspot, XUnitText, T_RIGHT, T_AXIS);
   }
-  else textX(wPlotWin, Xspot, Yspot, XUnitText, T_RIGHT, T_AXIS);
   
   // First,  the grid line labels
   Yincr = (devInfo.axisPad + devInfo.axisH) * YUnitsPerPixel;
@@ -1003,8 +1040,7 @@ void XYPlotWin::drawGridAndAxis(void) {
     Yspot = SCREENY(Yindex);
     // Write the axis label
     writeValue(value, formatY, Yindex, expY);
-    textX(wPlotWin, XOrgX - devInfo.bdrPad,
-	   Yspot, value, T_RIGHT, T_AXIS);
+    textX(wPlotWin, XOrgX - devInfo.bdrPad, Yspot, value, T_RIGHT, T_AXIS);
   }
   
   Xincr = (devInfo.axisPad + (devInfo.axisW * 7)) * XUnitsPerPixel;
@@ -1550,54 +1586,50 @@ void XYPlotWin::CBdoOptions(Widget, XtPointer, XtPointer) {
     
     XtManageChild(wOptionsRC);
     
-    Widget wOptionsButtons =
-      XtVaCreateManagedWidget("optionsbuttons", xmFormWidgetClass,
-			      wOptionsForm,
-			      XmNtopAttachment,    XmATTACH_WIDGET,
-			      XmNtopWidget,        wOptionsRC,
-			      XmNtopOffset,        5,
-			      XmNbottomAttachment, XmATTACH_FORM,
-			      XmNbottomOffset,     10,
-			      XmNleftAttachment,   XmATTACH_FORM,
-			      XmNrightAttachment,  XmATTACH_FORM,
-			      XmNfractionBase, 7,
-			      NULL);
-    
     Widget wOkButton =
-      XtVaCreateManagedWidget("Ok", xmPushButtonGadgetClass,
-			      wOptionsButtons,
-			      XmNtopAttachment,    XmATTACH_FORM,
+      XtVaCreateManagedWidget("  Ok  ", xmPushButtonGadgetClass,
+			      wOptionsForm,
 			      XmNbottomAttachment, XmATTACH_FORM,
-			      XmNleftAttachment,   XmATTACH_POSITION,
-			      XmNleftPosition,     1,
-			      XmNrightAttachment,  XmATTACH_POSITION,
-			      XmNrightPosition,    2,
+			      XmNbottomOffset,     WOFFSET,
+			      XmNleftAttachment,   XmATTACH_FORM,
+			      XmNleftOffset,       WOFFSET,
 			      NULL);
     AddStaticCallback(wOkButton, XmNactivateCallback,
 		      &XYPlotWin::CBdoOptionsOKButton, (XtPointer) 1);
     
-    Widget wCancelButton =
-      XtVaCreateManagedWidget("Cancel", xmPushButtonGadgetClass,
-			      wOptionsButtons,
-			      XmNtopAttachment,    XmATTACH_FORM,
+    Widget wApplyButton =
+      XtVaCreateManagedWidget(" Apply ", xmPushButtonGadgetClass,
+			      wOptionsForm,
 			      XmNbottomAttachment, XmATTACH_FORM,
-			      XmNleftAttachment,   XmATTACH_POSITION,
-			      XmNleftPosition,     3,
-			      XmNrightAttachment,  XmATTACH_POSITION,
-			      XmNrightPosition,    4,
+			      XmNbottomOffset,     WOFFSET,
+			      XmNleftAttachment,   XmATTACH_WIDGET,
+			      XmNleftWidget,       wOkButton,
+			      XmNleftOffset,       WOFFSET,
+			      NULL);
+    //AddStaticCallback(wApplyButton, XmNactivateCallback,
+		      //&XYPlotWin::CBdoOptionsOKButton, (XtPointer) 0);
+    
+    Widget wCancelButton =
+      XtVaCreateManagedWidget(" Cancel ", xmPushButtonGadgetClass,
+			      wOptionsForm,
+			      XmNbottomAttachment, XmATTACH_FORM,
+			      XmNbottomOffset,     WOFFSET,
+			      XmNleftAttachment,   XmATTACH_WIDGET,
+			      XmNleftWidget,       wApplyButton,
+			      XmNleftOffset,       WOFFSET,
 			      NULL);
     AddStaticCallback(wCancelButton, XmNactivateCallback,
 		      &XYPlotWin::CBdoOptionsOKButton, (XtPointer) 0);
     
     wid = XtVaCreateManagedWidget("Save as Default",
 			      xmToggleButtonGadgetClass,
-			      wOptionsButtons,
+			      wOptionsForm,
 			      XmNset,     tbool[6],
-			      XmNleftAttachment,   XmATTACH_POSITION,
-			      XmNleftPosition,     5,
-			      XmNrightAttachment,  XmATTACH_FORM,
 			      XmNbottomAttachment, XmATTACH_FORM,
-			      XmNbottomOffset,     5,
+			      XmNbottomOffset,     WOFFSET + 4,
+			      XmNleftAttachment,   XmATTACH_WIDGET,
+			      XmNleftWidget,       wCancelButton,
+			      XmNleftOffset,       2 * WOFFSET,
 			      NULL);
     wOptionsWidgets[6] = wid;
 			      
@@ -1605,7 +1637,6 @@ void XYPlotWin::CBdoOptions(Widget, XtPointer, XtPointer) {
 		      &XYPlotWin::CBdoOptionsToggleButton,
 		      (XtPointer) 6);
 
-    XtManageChild(wOptionsButtons);
     XtManageChild(wOptionsForm);
   }
 
@@ -1657,20 +1688,38 @@ void XYPlotWin::CBdoOptionsOKButton(Widget, XtPointer data, XtPointer) {
     }
 
     XtFree(input);
-    delete XUnitText;
-    delete YUnitText;
-    delete formatX;
-    delete formatY;
-    XUnitText = XmTextGetString(wOptionsWidgets[9]);
-    YUnitText = XmTextGetString(wOptionsWidgets[10]);
-    formatX   = XmTextGetString(wOptionsWidgets[11]);
-    formatY   = XmTextGetString(wOptionsWidgets[12]);
+    delete [] XUnitText;
+    delete [] YUnitText;
+    delete [] formatX;
+    delete [] formatY;
 
-    if(whichType == XDIR)
+    input = XmTextGetString(wOptionsWidgets[9]);
+    XUnitText = new char[strlen(input) + 1];
+    strcpy(XUnitText, input);
+    XtFree(input);
+
+    input = XmTextGetString(wOptionsWidgets[10]);
+    YUnitText = new char[strlen(input) + 1];
+    strcpy(YUnitText, input);
+    XtFree(input);
+
+    input = XmTextGetString(wOptionsWidgets[11]);
+    formatX = new char[strlen(input) + 1];
+    strcpy(formatX, input);
+    XtFree(input);
+
+    input = XmTextGetString(wOptionsWidgets[12]);
+    formatY = new char[strlen(input) + 1];
+    strcpy(formatY, input);
+    XtFree(input);
+
+    if(whichType == XDIR) {
       parameters->Set_Parameter("XUnitTextX", STR, XUnitText);
-    else if(whichType == YDIR)
+    } else if(whichType == YDIR) {
       parameters->Set_Parameter("XUnitTextY", STR, XUnitText);
-    else parameters->Set_Parameter("XUnitTextZ", STR, XUnitText);
+    } else {
+      parameters->Set_Parameter("XUnitTextZ", STR, XUnitText);
+    }
 
     parameters->Set_Parameter("YUnitText", STR, YUnitText);
     parameters->Set_Parameter("FormatX", STR, formatX);
@@ -1682,7 +1731,7 @@ void XYPlotWin::CBdoOptionsOKButton(Widget, XtPointer data, XtPointer) {
       CBdoDrawLegendItem(None, ptr, NULL);
     }
 
-    if(saveDefaultQ){
+    if(saveDefaultQ) {
       int winX, winY;
       XtVaGetValues(wPlotWin,
 		    XmNwidth,   &winX,
@@ -1735,7 +1784,9 @@ void XYPlotWin::CBdoOptionsOKButton(Widget, XtPointer data, XtPointer) {
   sprintf(buffer, "%d", lineW);
   XmTextSetString(wOptionsWidgets[8], buffer);
 
-  XtPopdown(wOptionsDialog);
+  //XtPopdown(wOptionsDialog);
+  XtDestroyWidget(wOptionsDialog);
+  wOptionsDialog = None;
 }
 
 
@@ -2252,6 +2303,11 @@ void XYPlotWin::AddStaticCallback(Widget w, String cbtype, memberXYCB cbf,
 				  void *data)
 {
   XYCBData *cbs = new XYCBData(this, data, cbf);
+  // xycbdPtrs.push_back(cbs)
+  int nSize(xycbdPtrs.length());
+  xycbdPtrs.resize(nSize + 1);
+  xycbdPtrs[nSize] = cbs;
+
   XtAddCallback(w, cbtype, (XtCallbackProc) &XYPlotWin::StaticCallback,
 		(XtPointer) cbs);
 
@@ -2263,6 +2319,11 @@ void XYPlotWin::AddStaticWMCallback(Widget w, Atom cbtype, memberXYCB cbf,
 				     void *data)
 {
   XYCBData *cbs = new XYCBData(this, data, cbf);
+  // xycbdPtrs.push_back(cbs)
+  int nSize(xycbdPtrs.length());
+  xycbdPtrs.resize(nSize + 1);
+  xycbdPtrs[nSize] = cbs;
+
   XmAddWMProtocolCallback(w, cbtype, (XtCallbackProc) &XYPlotWin::StaticCallback,
 			  (XtPointer) cbs);
 
@@ -2274,6 +2335,11 @@ void XYPlotWin::AddStaticEventHandler(Widget w, EventMask mask,
 				      memberXYCB cbf, void *data)
 {
   XYCBData *cbs = new XYCBData(this, data, cbf);
+  // xycbdPtrs.push_back(cbs)
+  int nSize(xycbdPtrs.length());
+  xycbdPtrs.resize(nSize + 1);
+  xycbdPtrs[nSize] = cbs;
+
   XtAddEventHandler(w, mask, false, (XtEventHandler) &XYPlotWin::StaticEvent,
 		    (XtPointer) cbs);
 }

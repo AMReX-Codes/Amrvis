@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.91 2001-05-17 23:32:35 vince Exp $
+// $Id: PltApp.cpp,v 1.92 2001-05-25 00:39:58 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -85,6 +85,11 @@ PltApp::~PltApp() {
     delete datasetPtr;
   }
   XtDestroyWidget(wAmrVisTopLevel);
+
+  // delete all the call back parameter structs
+  for(int nSize(0); nSize < cbdPtrs.length(); ++nSize) {
+    delete cbdPtrs[nSize];
+  }
 }
 
 
@@ -1310,6 +1315,8 @@ void PltApp::PltAppInit() {
 #endif
 
   interfaceReady = true;
+
+  cbdPtrs.reserve(512);  // arbitrarily
   
 }  // end PltAppInit()
 
@@ -2846,7 +2853,7 @@ void PltApp::DoOpenPalFile(Widget w, XtPointer, XtPointer call_data) {
 
 
 // -------------------------------------------------------------------
-XYPlotDataList* PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
+XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 				       const aString *derived)
 {
   const AmrData &amrData(dataServicesPtr[currentFrame]->AmrDataRef());
@@ -3587,8 +3594,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	      sdir = ZDIR;
 	    break;
 	  }
-	  XYPlotDataList *newlist =
-	    CreateLinePlot(V, sdir, mal, oldX / scale, &pltAppState->CurrentDerived());
+	  XYPlotDataList *newlist = CreateLinePlot(V, sdir, mal, oldX / scale,
+	                                           &pltAppState->CurrentDerived());
 	  if(newlist) {
 	    newlist->SetLevel(maxDrawnLevel);
 	    if(XYplotwin[sdir] == NULL) {
@@ -4130,6 +4137,12 @@ void PltApp::ShowFrame() {
 // -------------------------------------------------------------------
 void PltApp::AddStaticCallback(Widget w, String cbtype, memberCB cbf, void *d) {
   CBData *cbs = new CBData(this, d, cbf);
+
+  // cbdPtrs.push_back(cbs)
+  int nSize(cbdPtrs.length());
+  cbdPtrs.resize(nSize + 1);
+  cbdPtrs[nSize] = cbs;
+
   XtAddCallback(w, cbtype, (XtCallbackProc ) &PltApp::StaticCallback,
 		(XtPointer) cbs);
 }
@@ -4139,6 +4152,12 @@ void PltApp::AddStaticCallback(Widget w, String cbtype, memberCB cbf, void *d) {
 void PltApp::AddStaticEventHandler(Widget w, EventMask mask, memberCB cbf, void *d)
 {
   CBData *cbs = new CBData(this, d, cbf);
+
+  // cbdPtrs.push_back(cbs)
+  int nSize(cbdPtrs.length());
+  cbdPtrs.resize(nSize + 1);
+  cbdPtrs[nSize] = cbs;
+
   XtAddEventHandler(w, mask, false, (XtEventHandler) &PltApp::StaticEvent,
 		    (XtPointer) cbs);
 }
@@ -4147,6 +4166,12 @@ void PltApp::AddStaticEventHandler(Widget w, EventMask mask, memberCB cbf, void 
 // -------------------------------------------------------------------
 XtIntervalId PltApp::AddStaticTimeOut(int time, memberCB cbf, void *d) {
   CBData *cbs = new CBData(this, d, cbf);
+
+  // cbdPtrs.push_back(cbs)
+  int nSize(cbdPtrs.length());
+  cbdPtrs.resize(nSize + 1);
+  cbdPtrs[nSize] = cbs;
+
   return XtAppAddTimeOut(appContext, time,
 			 (XtTimerCallbackProc) &PltApp::StaticTimeOut,
 			 (XtPointer) cbs);

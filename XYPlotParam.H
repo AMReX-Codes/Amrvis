@@ -1,7 +1,6 @@
-//
+// -------------------------------------------------------------------
 // XYPlotParam.H -- Class definition for XYPlotParameters
-//
-
+// -------------------------------------------------------------------
 #ifndef _XYPLOT_PARAM_H
 #define _XYPLOT_PARAM_H
 
