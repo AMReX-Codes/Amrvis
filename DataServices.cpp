@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: DataServices.cpp,v 1.17 1998-10-29 23:56:07 vince Exp $
+// $Id: DataServices.cpp,v 1.18 1998-11-26 00:15:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -215,6 +215,12 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     case FillVarArrayOfFabs:
     {
       BoxLib::Abort("FillVarArrayOfFabs not implemented yet.");
+    }
+    break;
+
+    case FillVarMultiFab:
+    {
+      BoxLib::Abort("FillVarMultiFab not implemented yet.");
     }
     break;
 
@@ -726,6 +732,20 @@ bool DataServices::FillVar(FArrayBox *destFab, const Box &destBox,
   }
 
   amrData.FillVar(destFab, destBox, finestFillLevel, varname, procWithFab);
+
+  return true;
+}  // end FillVar
+
+
+// ---------------------------------------------------------------
+bool DataServices::FillVar(MultiFab &destMultiFab, int finestFillLevel,
+			   const aString &varname)
+{
+  if( ! bAmrDataOk) {
+    return false;
+  }
+
+  amrData.FillVar(destMultiFab, finestFillLevel, varname);
 
   return true;
 }  // end FillVar

@@ -327,7 +327,7 @@ c ::: --------------------------------------------------------------
       REAL_T crse(cloi1 :chii1 ,cloi2 :chii2 ,cloi3 :chii3, nvar)
       REAL_T temp(tloi:thii)
 c ::: ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
-c ::: pcntrp:  use piecewise constant interpolation to define
+c ::: pcinterp:  use piecewise constant interpolation to define
 c ::: values on the subregion of the fine FAB defined
 c ::: by (fblo,fbhi).
 c ::: 

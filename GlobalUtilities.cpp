@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GlobalUtilities.cpp,v 1.24 1998-10-29 23:56:08 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.25 1998-11-26 00:15:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -323,7 +323,7 @@ void PrintUsage(char *exname) {
 
 
 
-  cout << "  file type flags:   -fab, -newplt (-newplt is the default)" << endl;
+  cout << "  file type flags:   -fab, -multifab, -newplt (-newplt is the default)" << endl;
   cout << "  -v                 verbose." << endl; 
   //cout << "  -bw n              specify maximum boundary width." << endl; 
   cout << "  -maxpixmapsize n   specify maximum allowed picture size in pixels."

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrVisTool.cpp,v 1.32 1998-11-02 21:39:38 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.33 1998-11-26 00:15:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -85,7 +85,7 @@ void main(int argc, char *argv[]) {
   Box		comlineBox;
   aString	comlineFileName;
 
-    ParallelDescriptor::StartParallel(1,&argc,&argv);
+    ParallelDescriptor::StartParallel(&argc,&argv);
 
   ParmParse pp(0, argv, NULL, NULL);
 
@@ -477,7 +477,7 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
     } else if(fileType==FAB) {
       sMask = XmStringCreateSimple("*.fab");
     } else if(fileType==MULTIFAB) {
-      sMask = XmStringCreateSimple("*.multifab");
+      sMask = XmStringCreateSimple("*_H");
     } else {
       sMask = XmStringCreateSimple("*");
     }
@@ -503,7 +503,7 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
 // ---------------------------------------------------------------
 void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
 
-  char *filename = NULL;
+  char *filename(NULL);
   if( ! XmStringGetLtoR(
 	((XmFileSelectionBoxCallbackStruct*) call_data)->value,
 	XmSTRING_DEFAULT_CHARSET,
@@ -512,13 +512,22 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
     cerr << "CBOpenPltFile : system error" << endl;
     return;
   }
+  FileType fileType(GetDefaultFileType());
+  if(fileType == MULTIFAB) {
+    // delete the _H from the filename if it is there
+    const char *uH = "_H";
+    char *fm2 = filename + (strlen(filename) - 2);
+    if(strcmp(uH, fm2) == 0) {
+      filename[strlen(filename) - 2] = '\0';
+    }
+  }
   char path[BUFSIZ];
   strcpy(path, filename);
-  int i = strlen(path) - 1;
-  while(i > -1 && path[i] != '/') {
-    --i;
+  int pathPos(strlen(path) - 1);
+  while(pathPos > -1 && path[pathPos] != '/') {
+    --pathPos;
   }
-  path[i+1] = '\0';
+  path[pathPos + 1] = '\0';
   sDirectory = XmStringCreateSimple(path);
 
   sprintf(buffer, "Selected file = %s\n", filename);

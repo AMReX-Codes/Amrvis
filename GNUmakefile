@@ -8,8 +8,8 @@ COMP      = mpKCC
 
 COMP      = g++
 COMP      = KCC
-DEBUG     = TRUE
 DEBUG     = FALSE
+DEBUG     = TRUE
 DIM       = 2
 DIM       = 3
 
@@ -32,7 +32,7 @@ EBASE = amrvis
 HERE = .
 
 INCLUDE_LOCATIONS += $(HERE)
-INCLUDE_LOCATIONS += ../pBoxLib_2 ../amrlib
+INCLUDE_LOCATIONS += ../pBoxLib_2
 
 ############################################### define vince's home dir
 ifeq ($(MACHINE), OSF1)
@@ -178,7 +178,7 @@ XTRALIBS +=
 
 include $(HERE)/Make.package
 
-vpath %.cpp $(HERE) ../pBoxLib_2 ../amrlib
+vpath %.cpp $(HERE) ../pBoxLib_2
 vpath %.F $(HERE)
 vpath %.a $(LIBRARY_LOCATIONS)
 

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Dataset.cpp,v 1.27 1998-10-29 23:56:07 vince Exp $
+// $Id: Dataset.cpp,v 1.28 1998-11-26 00:15:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -710,7 +710,10 @@ void Dataset::CBPixInput(Widget, XtPointer client_data, XtPointer call_data)
 void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
   //Palette *palptr = pltAppPtr->GetPalettePtr();
   int hplot, vplot;
-  int HDIR, VDIR, DEPTHDIR;
+  int hDir, vDir;
+# if (BL_SPACEDIM == 3)
+  int depthDir;
+# endif
   static int serverControlOK = 0;
   int xcell((int) (cbs->event->xbutton.x) / dataItemWidth);
   int ycell((int) (cbs->event->xbutton.y) / CHARACTERHEIGHT);
@@ -718,46 +721,56 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
   Box regionBox(datasetRegion[maxDrawnLevel]);
   
   if(cbs->event->xany.type == ButtonPress) {
-    serverControlOK++;
+    ++serverControlOK;
   }
   
   if(xcell >= 0 && xcell < pixSizeX/dataItemWidth &&
      ycell >= 0 && ycell < pixSizeY/CHARACTERHEIGHT)
   {
       if(amrPicturePtr->GetMyView() == XY) {
-        HDIR = XDIR; VDIR = YDIR; DEPTHDIR = ZDIR;
+        hDir = XDIR;
+	vDir = YDIR;
+# if (BL_SPACEDIM == 3)
+	depthDir = ZDIR;
+# endif
       } else if(amrPicturePtr->GetMyView() == XZ) {
-        HDIR = XDIR; VDIR = ZDIR; DEPTHDIR = YDIR;
+        hDir = XDIR;
+	vDir = ZDIR;
+# if (BL_SPACEDIM == 3)
+	depthDir = YDIR;
+# endif
       } else if(amrPicturePtr->GetMyView() == YZ) {
-        HDIR = YDIR; VDIR = ZDIR; DEPTHDIR = XDIR;
+        hDir = YDIR;
+	vDir = ZDIR;
+# if (BL_SPACEDIM == 3)
+	depthDir = XDIR;
+# endif
       }
       
-      if ( xcell > regionBox.bigEnd(HDIR)-regionBox.smallEnd(HDIR))  
-        xcell = regionBox.bigEnd(HDIR)-regionBox.smallEnd(HDIR);
-      if ( ycell > regionBox.bigEnd(VDIR)-regionBox.smallEnd(VDIR))  
-        ycell = regionBox.bigEnd(VDIR)-regionBox.smallEnd(VDIR);
-      hplot = regionBox.smallEnd(HDIR) + xcell;
-      vplot = regionBox.smallEnd(VDIR) + regionBox.length(VDIR)-1 - ycell;
+      if ( xcell > regionBox.bigEnd(hDir)-regionBox.smallEnd(hDir))  
+        xcell = regionBox.bigEnd(hDir)-regionBox.smallEnd(hDir);
+      if ( ycell > regionBox.bigEnd(vDir)-regionBox.smallEnd(vDir))  
+        ycell = regionBox.bigEnd(vDir)-regionBox.smallEnd(vDir);
+      hplot = regionBox.smallEnd(hDir) + xcell;
+      vplot = regionBox.smallEnd(vDir) + regionBox.length(vDir)-1 - ycell;
 
       const AmrData &amrData = dataServicesPtr->AmrDataRef();
       int baseRatio = CRRBetweenLevels(maxDrawnLevel, 
                                        maxAllowableLevel, 
                                        amrData.RefRatio());
 
+      int boxCoor[BL_SPACEDIM];
+      boxCoor[hDir] = hplot;
+      boxCoor[vDir] = vplot; 
 # if (BL_SPACEDIM == 3)
-      int boxCoor[3];
-      boxCoor[HDIR] = hplot;
-      boxCoor[VDIR] = vplot; 
-      boxCoor[DEPTHDIR] = pltAppPtr->GetAmrPicturePtr(YZ-DEPTHDIR)->GetSlice();
-      boxCoor[DEPTHDIR] /= baseRatio;
-      IntVect boxLocation(boxCoor[0], boxCoor[1], boxCoor[2]);
+      boxCoor[depthDir] = pltAppPtr->GetAmrPicturePtr(YZ - depthDir)->GetSlice();
+      boxCoor[depthDir] /= baseRatio;
+      //IntVect boxLocation(boxCoor[XDIR], boxCoor[YDIR], boxCoor[ZDIR]);
 # endif
 # if (BL_SPACEDIM == 2)
-      int boxCoor[2];
-      boxCoor[HDIR] = hplot;
-      boxCoor[VDIR] = vplot; 
-      IntVect boxLocation(boxCoor[0], boxCoor[1]);
+      //IntVect boxLocation(boxCoor[XDIR], boxCoor[YDIR]);
 # endif
+      IntVect boxLocation(boxCoor);
       Box chosenBox(boxLocation, boxLocation);
       int finestCLevel(amrData.FinestContainingLevel(chosenBox, maxDrawnLevel));
       finestCLevel = 
@@ -765,9 +778,9 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
       int boxSize(CRRBetweenLevels(finestCLevel, maxAllowableLevel, 
                   amrData.RefRatio()));
       int modBy(CRRBetweenLevels(finestCLevel, maxDrawnLevel, amrData.RefRatio()));
-      hplot -= pictureBox.smallEnd(HDIR);
+      hplot -= pictureBox.smallEnd(hDir);
       hplot -= (int) fmod(hplot, modBy);
-      vplot -= pictureBox.smallEnd(VDIR);
+      vplot -= pictureBox.smallEnd(vDir);
       vplot -= (int) fmod(vplot, modBy);
       hplot *= baseRatio;
       vplot *= baseRatio;

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.cpp,v 1.22 1998-10-29 23:56:06 vince Exp $
+// $Id: AmrData.cpp,v 1.23 1998-11-26 00:15:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -471,7 +471,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
         VSHOWVAL(verbose, mfNameRelative);
 #endif /* BL_PARALLEL_IO */
 
-        visMF[i].resize(currentVisMF + 1);  // this preserves previouse ones
+        visMF[i].resize(currentVisMF + 1);  // this preserves previous ones
         visMF[i][currentVisMF] = new VisMF(mfName);
 	int iComp(currentIndexComp);
         currentIndexComp += visMF[i][currentVisMF]->nComp();
@@ -672,42 +672,46 @@ bool AmrData::ReadNonPlotfileData(const aString &filename, FileType filetype) {
     VisMF::IO_Buffer io_buffer(VisMF::IO_Buffer_Size);
 #endif
 
-  ifstream is;
-  is.open(filename.c_str(), ios::in);
-  if(is.fail()) {
-     cerr << "Unable to open plotfile: " << filename << endl;
-     return false;
-  }
-
-#ifdef BL_USE_SETBUF
-  is.rdbuf()->setbuf(io_buffer.dataPtr(), io_buffer.length());
-#endif
-
-   aString skipBuff(LINELENGTH);
-   for(i = 0; i < skipPltLines; i++) {
-     skipBuff.getline(is);
-     cout << "Skipped line in file = " << skipBuff << endl;
-   }
-
   time = 0;
-  finestLevel = 0;
+  if(fileType == FAB) {
+    finestLevel = 0;
+  } else if(fileType == MULTIFAB) {
+    finestLevel = 1;  // level zero is filler
+  }
   probDomain.resize(finestLevel + 1);
   maxDomain.resize(finestLevel + 1);
   dxLevel.resize(finestLevel + 1);
-  dxLevel[0].resize(BL_SPACEDIM);
-  refRatio.resize(1);
-  refRatio[0] = 1;
-  for(i = 0; i < BL_SPACEDIM; i++) {
-    probLo[i] = 0.0;
-    probHi[i] = 1.0;  // arbitrarily
-    probSize[i] = probHi[i] - probLo[i];
-    dxLevel[0][i] = 0.0;
+  refRatio.resize(finestLevel + 1);
+  if(fileType == FAB) {
+    refRatio[0] = 1;
+  } else if(fileType == MULTIFAB) {
+    refRatio[0] = 2;
+  }
+  for(int iLevel(0); iLevel <= finestLevel; ++iLevel) {
+    dxLevel[iLevel].resize(BL_SPACEDIM);
+    for(i = 0; i < BL_SPACEDIM; i++) {
+      probLo[i] = 0.0;
+      probHi[i] = 1.0;  // arbitrarily
+      probSize[i] = probHi[i] - probLo[i];
+      dxLevel[iLevel][i] = 0.0;  // temporarily
+    }
   }
 
   dataGrids.resize(finestLevel + 1);
   dataGridsDefined.resize(finestLevel + 1);
 
   if(fileType == FAB) {
+    ifstream is;
+    is.open(filename.c_str(), ios::in);
+    if(is.fail()) {
+       cerr << "Unable to open plotfile: " << filename << endl;
+       return false;
+    }
+
+#ifdef BL_USE_SETBUF
+    is.rdbuf()->setbuf(io_buffer.dataPtr(), io_buffer.length());
+#endif
+
     FArrayBox *newfab = new FArrayBox;
     nComp = newfab->readFrom(is, 0);  // read the first component
     Box fabbox(newfab->box());
@@ -733,22 +737,96 @@ bool AmrData::ReadNonPlotfileData(const aString &filename, FileType filetype) {
       dataGridsDefined[0][iComp].resize(1);
       dataGridsDefined[0][iComp][0] = true;
     }
-    char fabname[32];  // arbitrarily
+    char fabname[64];  // arbitrarily
     plotVars.resize(nComp);
-    for(i = 0; i < nComp; i++) {
+    for(i = 0; i < nComp; ++i) {
       sprintf(fabname, "%s%d", "Fab_", i);
       plotVars[i] = fabname;
     }
     probDomain[0] = newfab->box();
-    for(i = 0; i < BL_SPACEDIM; i++) {
+    for(i = 0; i < BL_SPACEDIM; ++i) {
       dxLevel[0][i] = 1.0 / probDomain[0].length(i);
     }
-  } else if(fileType == MULTIFAB) {
-    cerr << "MULTIFAB file type not yet supported." << endl;
-    return false;
-  }
+    is.close();
 
-  is.close();
+  } else if(fileType == MULTIFAB) {
+    VisMF tempVisMF(filename);
+    nComp = tempVisMF.nComp();
+    probDomain[1] = tempVisMF.boxArray().minimalBox();
+    probDomain[0] = probDomain[1];
+    probDomain[0].coarsen(refRatio[0]);
+    BoxArray mfBoxArray(tempVisMF.boxArray());
+    BoxArray levelZeroBoxArray;
+    levelZeroBoxArray.resize(1);
+    levelZeroBoxArray.set(0, probDomain[0]);
+    dataGrids[0].resize(nComp, NULL);
+    dataGrids[1].resize(nComp, NULL);
+    dataGridsDefined[0].resize(nComp);
+    dataGridsDefined[1].resize(nComp);
+    fabBoxArray.resize(1);
+    fabBoxArray.set(0, probDomain[0]);
+
+    int nGrow(0);
+    char fabname[64];  // arbitrarily
+    plotVars.resize(nComp);
+
+    for(int iComp(0); iComp < nComp; ++iComp) {
+      sprintf(fabname, "%s%d", "MultiFab_", iComp);
+      plotVars[iComp] = fabname;
+
+      for(int iDim(0); iDim < BL_SPACEDIM; ++iDim) {
+        dxLevel[0][iDim] = 1.0 / probDomain[0].length(iDim);
+        dxLevel[1][iDim] = 1.0 / probDomain[1].length(iDim);
+      }
+
+      // set the level zero multifab
+      dataGridsDefined[0][iComp].resize(1, false);
+      dataGrids[0][iComp] = new MultiFab;
+      dataGrids[0][iComp]->define(levelZeroBoxArray, nGrow, Fab_noallocate);
+      FArrayBox *newfab = new FArrayBox(probDomain[0], 1);
+      Real levelZeroValue(tempVisMF.min(0, iComp) -
+		  ((tempVisMF.max(0, iComp) - tempVisMF.min(0, iComp)) / 256.0));
+      newfab->setVal(levelZeroValue);
+      dataGrids[0][iComp]->setFab(0, newfab);
+      dataGridsDefined[0][iComp][0] = true;
+
+    }  // end for(iComp...)
+
+
+      // set the level one multifab
+
+      // here we account for multiple multifabs in a plot file
+      int currentIndexComp(0);
+      int currentVisMF(0);
+      visMF.resize(finestLevel + 1);
+      compIndexToVisMFMap.resize(nComp);
+      compIndexToVisMFComponentMap.resize(nComp);
+
+      while(currentIndexComp < nComp) {
+        visMF[1].resize(currentVisMF + 1);  // this preserves previous ones
+        visMF[1][currentVisMF] = new VisMF(filename);
+        int iComp(currentIndexComp);
+        currentIndexComp += visMF[1][currentVisMF]->nComp();
+        for(int currentVisMFComponent(0); iComp < currentIndexComp; ++iComp) {
+          // make single component multifabs for level one
+          dataGrids[1][iComp] = new MultiFab(visMF[1][currentVisMF]->boxArray(), 1,
+                                             visMF[1][currentVisMF]->nGrow(),
+                                             Fab_noallocate);
+          dataGridsDefined[1][iComp].resize(visMF[1][currentVisMF]->length(),
+                                            false);
+          compIndexToVisMFMap[iComp] = currentVisMF;
+          compIndexToVisMFComponentMap[iComp] = currentVisMFComponent;
+          ++currentVisMFComponent;
+        }
+
+        ++currentVisMF;
+      }  // end while
+
+
+
+
+
+  }  // end if(fileType...)
 
   return true;
 }
@@ -783,21 +861,27 @@ void AmrData::HiNodeLoc(int lev, IntVect ix, Array<Real> &pos) const {
 
 // ---------------------------------------------------------------
 void AmrData::FillVar(FArrayBox *destFab, const Box &destBox,
-		      int finestFillLevel, const aString &nm, int procWithFabs)
+		      int finestFillLevel, const aString &varname, int procWithFabs)
 {
   Array<FArrayBox *> destFabs(1);
   Array<Box> destBoxes(1);
   destFabs[0] = destFab;
   destBoxes[0] = destBox;
 
-  FillVar(destFabs, destBoxes, finestFillLevel, nm, procWithFabs);
+  FillVar(destFabs, destBoxes, finestFillLevel, varname, procWithFabs);
 }
 
+
+// ---------------------------------------------------------------
+void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
+		      const aString &varname)
+{
+}
 
 
 // ---------------------------------------------------------------
 void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
-		      int finestFillLevel, const aString &nm, int procWithFabs)
+		      int finestFillLevel, const aString &varname, int procWithFabs)
 {
 
 //
@@ -812,7 +896,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
    }
 
     int myproc(ParallelDescriptor::MyProc());
-    int stateIndex(StateNumber(nm));
+    int stateIndex(StateNumber(varname));
     int srcComp(0);
     int destComp(0);
     int numComps(1);
@@ -1048,7 +1132,7 @@ int AmrData::NIntersectingGrids(int level, const Box &b) const {
   assert(b.ok());
 
   int nGrids(0);
-  if(fileType == FAB) {
+  if(fileType == FAB || (fileType == MULTIFAB && level == 0)) {
     nGrids = 1;
   } else {
     const BoxArray &visMFBA = visMF[level][0]->boxArray();
@@ -1098,7 +1182,7 @@ MultiFab &AmrData::GetGrids(int level, int componentIndex) {
 
 // ---------------------------------------------------------------
 MultiFab &AmrData::GetGrids(int level, int componentIndex, const Box &onBox) {
-  if(fileType == FAB) {
+  if(fileType == FAB || (fileType == MULTIFAB && level == 0)) {
     // do nothing
   } else {
     int whichVisMF(compIndexToVisMFMap[componentIndex]);
@@ -1152,7 +1236,7 @@ bool AmrData::MinMax(const Box &onBox, const aString &derived, int level,
 
   int compIndex(StateNumber(derived));
 
-  if(fileType == FAB) {
+  if(fileType == FAB || (fileType == MULTIFAB && level == 0)) {
     for(MultiFabIterator gpli(*dataGrids[level][compIndex]);
 	gpli.isValid(); ++gpli)
     {

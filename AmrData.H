@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.H,v 1.8 1998-10-29 23:56:05 vince Exp $
+// $Id: AmrData.H,v 1.9 1998-11-26 00:15:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -25,6 +25,8 @@ protected:
   // List of grids at each level, level 0 being coarsest.
   Array<Array<MultiFab *> > dataGrids;    // [level][component]
   Array<Array<Array<bool> > > dataGridsDefined;  // [level][component][index]
+  // ^^^^^^^^^^^^^^^^^^^^^^^^ need to put these in a class which handles
+  //                          setting defined/not defined
   Array<Array<VisMF *> > visMF;    // [level][whichMultiFab]
   Array<int> compIndexToVisMFMap;  // [nComp]
   Array<int> compIndexToVisMFComponentMap;  // [nComp]
@@ -63,7 +65,7 @@ public:
   const Array<int> &RefRatio() const      { return refRatio; }
   const BoxArray &boxArray(int level) const
   {
-    if(fileType == FAB) {
+    if(fileType == FAB || (fileType == MULTIFAB && level == 0)) {
       return fabBoxArray;
     } else {
       // use visMF[][0]:  all boxArrays are
@@ -102,6 +104,7 @@ public:
                int finestFillLevel, const aString &varName, int procWithFabs);
   void FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
                int finestFillLevel, const aString &varName, int procWithFabs);
+  void FillVar(MultiFab &destMultiFab, int finestFillLevel, const aString &varName);
   
   const aString &GetFileName() const { return fileName; }
   

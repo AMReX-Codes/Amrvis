@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: DataServices.H,v 1.9 1998-10-29 23:56:07 vince Exp $
+// $Id: DataServices.H,v 1.10 1998-11-26 00:15:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -33,6 +33,7 @@ class DataServices {
       DeleteRequest,
       FillVarOneFab,
       FillVarArrayOfFabs,
+      FillVarMultiFab,
       WriteFabOneVar,
       WriteFabAllVars,
       DumpSlicePlaneOneVar,
@@ -61,9 +62,13 @@ class DataServices {
                    int procWithFab);
 
       // FillVarArrayOfFabs
-      //FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
-              //int finestFillLevel, const aString &varname,
-              //int procWithFab);
+      //bool FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
+                   //int finestFillLevel, const aString &varname,
+                   //int procWithFab);
+
+      // FillVarMultiFab
+      bool FillVar(MultiFab &destMultiFab, int finestFillLevel,
+                   const aString &varname);
 
       // WriteFabOneVar:  write a single variable to one fab
       bool WriteFab(const aString &fabfilename, const Box &region, int lev,
