@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.24 2001-01-04 00:03:07 marc Exp $
+// $Id: DataServices.cpp,v 1.25 2001-02-23 22:47:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -576,16 +576,13 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       }
 
       ParallelDescriptor::Broadcast(ioProcNumber, &lineBoxArraySize,
-                                    &lineBoxArraySize,
-                                    sizeof(int));
+                                    &lineBoxArraySize, sizeof(int));
       ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength,
                                     sizeof(int));
       ParallelDescriptor::Broadcast(ioProcNumber, &coarsestLevelToSearch,
-                                    &coarsestLevelToSearch,
-                                    sizeof(int));
+                                    &coarsestLevelToSearch, sizeof(int));
       ParallelDescriptor::Broadcast(ioProcNumber, &finestLevelToSearch,
-                                    &finestLevelToSearch,
-                                    sizeof(int));
+                                    &finestLevelToSearch, sizeof(int));
       lineBoxArrayPtr = new Box[lineBoxArraySize];
 
       derivedLengthPadded = derivedLength + 1;
@@ -593,7 +590,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       derivedCharPtr = new char[derivedLengthPadded];
       if(ParallelDescriptor::IOProcessor()) {
         strcpy(derivedCharPtr, derivedTemp.c_str());
-        for(int iBox = 0; iBox < lineBoxArraySize; ++iBox) {
+        for(int iBox(0); iBox < lineBoxArraySize; ++iBox) {
           lineBoxArrayPtr[iBox] = lineBoxArrayTempPtr[iBox];
         }
       }
@@ -618,8 +615,8 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 
       // set the return values
       if(ParallelDescriptor::IOProcessor()) {
-        bool *bLineIsValidRef    = va_arg(ap, bool *);
-        *bLineIsValidRef         = bLineIsValid;
+        bool *bLineIsValidRef = va_arg(ap, bool *);
+        *bLineIsValidRef      = bLineIsValid;
       }
       // dont need to broadcast the return values--only the IOProcessor uses them
 
@@ -1022,10 +1019,10 @@ void DataServices::LineValues(int lineBoxArraySize, Box *lineBoxArray, int which
     return;
   }
 
-  for(int lev = coarsestLevelToSearch; lev <= finestLevelToSearch; ++lev) {
+  for(int lev(coarsestLevelToSearch); lev <= finestLevelToSearch; ++lev) {
     const BoxArray &intersectedBA = amrData.boxArray(lev);
-    int numGrids = intersectedBA.length();
-    for(int iGrid = 0; iGrid != numGrids; ++iGrid) {
+    int numGrids(intersectedBA.length());
+    for(int iGrid(0); iGrid != numGrids; ++iGrid) {
       if(lineBoxArray[lev].intersects(intersectedBA[iGrid])) {
         bLineIsValid = true;
         FArrayBox *destFab = NULL;

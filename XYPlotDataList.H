@@ -75,8 +75,7 @@ private:
 };
 
 
-class XYPlotDataListIterator
-{
+class XYPlotDataListIterator {
 public:
 
   explicit XYPlotDataListIterator (XYPlotDataList *aList);
@@ -98,4 +97,4 @@ private:
   
 };
  
-#endif /*BL_LIST_H*/
+#endif

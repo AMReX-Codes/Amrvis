@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.71 2001-02-07 01:40:43 vince Exp $
+// $Id: PltApp.cpp,v 1.72 2001-02-23 22:47:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -116,7 +116,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     animFrames = GetFileCount(); 
     BL_ASSERT(dataServicesPtr.length() == animFrames);
     fileNames.resize(animFrames);
-    for(i = 0; i < animFrames; i++) {
+    for(i = 0; i < animFrames; ++i) {
       fileNames[i] = GetComlineFilename(i); 
     }
 
@@ -195,7 +195,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
 					bCartGridSmoothing);
 #endif
 
-  for(i = 0; i != BL_SPACEDIM; i++) {
+  for(i = 0; i != BL_SPACEDIM; ++i) {
     ivLowOffsetMAL.setVal(i, amrData.ProbDomain()[maxlev].smallEnd(i));
   }
 
@@ -392,10 +392,7 @@ void PltApp::PltAppInit() {
   wMainArea = XtVaCreateManagedWidget("MainArea", xmFormWidgetClass,
 				      wAmrVisTopLevel, NULL);
 
-  /////////////////////////////////////////////////
-  // MENU BAR
-  //  -- Modified 7-99 to give interface a nosejob
-  /////////////////////////////////////////////////
+  // ------------------------------- menu bar
   Widget wMenuBar, wMenuPulldown, wid, wCascade;
   char selectText[20], accelText[20], accel[20];
   XmString label_str;
@@ -404,9 +401,7 @@ void PltApp::PltAppInit() {
   XtSetArg(args[2], XmNrightAttachment, XmATTACH_FORM);
   wMenuBar = XmCreateMenuBar(wMainArea, "menubar", args, 3);
 
-  /////////////////////////////////////////////////
-  // FILE MENU
-  /////////////////////////////////////////////////
+  // ------------------------------- file menu
   wMenuPulldown = XmCreatePulldownMenu(wMenuBar, "Filepulldown", NULL, 0);
   XtVaCreateManagedWidget("File", xmCascadeButtonWidgetClass, wMenuBar,
 			  XmNmnemonic, 'F', XmNsubMenuId, wMenuPulldown, NULL);
@@ -454,9 +449,7 @@ void PltApp::PltAppInit() {
   XtAddCallback(wid, XmNactivateCallback, (XtCallbackProc) CBQuitPltApp,
 		(XtPointer) this);
   
-  /////////////////////////////////////////////////
-  // VIEW MENU
-  /////////////////////////////////////////////////
+  // ------------------------------- view menu
   wMenuPulldown = XmCreatePulldownMenu(wMenuBar, "MenuPulldown", NULL, 0);
   XtVaCreateManagedWidget("View", xmCascadeButtonWidgetClass, wMenuBar,
 			  XmNmnemonic, 'V', XmNsubMenuId, wMenuPulldown, NULL);
@@ -582,10 +575,7 @@ void PltApp::PltAppInit() {
   XmStringFree(label_str);
   AddStaticCallback(wid, XmNvalueChangedCallback, &PltApp::DoBoxesButton);
 
-  /////////////////////////////////////////////////
-  // DERIVED MENU
-  /////////////////////////////////////////////////
-
+  // ------------------------------- derived menu
   int maxMenuItems = 20;
   int numberOfDerived = dataServicesPtr[currentFrame]->NumDeriveFunc();
   derivedStrings  = dataServicesPtr[currentFrame]->PlotVarNames();
@@ -597,7 +587,7 @@ void PltApp::PltAppInit() {
 		((numberOfDerived % maxMenuItems == 0) ? 0 : 1), NULL);
   XtVaCreateManagedWidget("Variable", xmCascadeButtonWidgetClass, wMenuBar,
 			  XmNmnemonic, 'a', XmNsubMenuId,   wMenuPulldown, NULL);
-  unsigned long cderived = 0;
+  unsigned long cderived(0);
   wCurrDerived = XtVaCreateManagedWidget(derivedStrings[0].c_str(),
 					 xmToggleButtonGadgetClass, wMenuPulldown,
 					 XmNset, true, NULL);
@@ -666,10 +656,8 @@ void PltApp::PltAppInit() {
 		    &PltApp::DoClassifyMenu, (XtPointer) 1);
 
 #endif
-  /////////////////////////////////////////////////
-  // HELP MENU
-  /////////////////////////////////////////////////
 
+  // ------------------------------- help menu
   wMenuPulldown = XmCreatePulldownMenu(wMenuBar, "MenuPulldown", NULL, 0);
   XtVaCreateManagedWidget("Help", xmCascadeButtonWidgetClass, wMenuBar,
 			  XmNmnemonic, 'H', XmNsubMenuId,   wMenuPulldown, NULL);
@@ -679,8 +667,8 @@ void PltApp::PltAppInit() {
   
   XtManageChild(wMenuBar);
 
-  // ****************** Palette frame and drawing area
 
+  // ****************** Palette frame and drawing area
   wPalFrame =
     XtVaCreateManagedWidget("paletteframe", xmFrameWidgetClass, wMainArea,
 			    XmNtopAttachment,   XmATTACH_WIDGET,
@@ -1064,9 +1052,9 @@ void PltApp::PltAppInit() {
   AddStaticCallback(wOrient, XmNactivateCallback, &PltApp::DoOrient);
   XtManageChild(wOrient);
   
-  int whiteColor = pltPaletteptr->WhiteIndex();
-  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), pltPaletteptr->pixelate(whiteColor));
-  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), pltPaletteptr->pixelate(100));
+  int whiteColor(pltPaletteptr->WhiteIndex());
+  //XSetForeground(GAptr->PDisplay(), GAptr->PGC(), pltPaletteptr->pixelate(whiteColor));
+  //XSetForeground(GAptr->PDisplay(), GAptr->PGC(), pltPaletteptr->pixelate(100));
   wLabelAxes = XtVaCreateManagedWidget("XYZ",
 				       xmPushButtonGadgetClass, wPlotArea,
 				       XmNleftAttachment, XmATTACH_WIDGET,
@@ -1119,7 +1107,7 @@ void PltApp::PltAppInit() {
 
 #endif
   
-  for(np = 0; np < NPLANES; np++) {
+  for(np = 0; np < NPLANES; ++np) {
     AddStaticCallback(wPlotPlane[np], XmNinputCallback,
 		      &PltApp::DoRubberBanding, (XtPointer) np);
     AddStaticEventHandler(wPlotPlane[np], ExposureMask, &PltApp::DoExposePicture,
@@ -1138,8 +1126,9 @@ void PltApp::PltAppInit() {
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPalArea));
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotArea));
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wAmrVisTopLevel));
-  for(np = 0; np != NPLANES; np++)
+  for(np = 0; np != NPLANES; ++np) {
     pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotPlane[np]));
+  }
   
 #if (BL_SPACEDIM == 3)
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wTransDA));
@@ -1168,8 +1157,7 @@ void PltApp::PltAppInit() {
     if(currentDerived == "vol_frac") {
       globalMin = 0.0;
       globalMax = 1.0;
-    }
-    else {
+    } else {
       aString outbuf("Finding global min & max values for ");
       outbuf += currentDerived;
       outbuf += "...\n";
@@ -1179,7 +1167,7 @@ void PltApp::PltAppInit() {
       Real dataMin, dataMax;
       globalMin =  AV_BIG_REAL;
       globalMax = -AV_BIG_REAL;
-      for(int iFrame = 0; iFrame < animFrames; ++iFrame) {
+      for(int iFrame(0); iFrame < animFrames; ++iFrame) {
 	int coarseLevel(0);
 	int fineLevel(amrPicturePtrArray[ZPLANE]->NumberOfLevels());
         for(int lev = coarseLevel; lev < fineLevel; ++lev) {
@@ -1199,7 +1187,7 @@ void PltApp::PltAppInit() {
   }
 #endif
 
-  for(np = 0; np < NPLANES; np++)
+  for(np = 0; np < NPLANES; ++np)
     amrPicturePtrArray[np]->CreatePicture(XtWindow(wPlotPlane[np]),
 					  pltPaletteptr,
 					  derivedStrings[cderived]);
@@ -1214,7 +1202,7 @@ void PltApp::PltAppInit() {
   labelAxes = false;
   transDetached = false;
   
-  for(np = 0; np < NPLANES; np++) {
+  for(np = 0; np < NPLANES; ++np) {
     startcutX[np] = 0;
     startcutY[np] = amrPicturePtrArray[np]->GetHLine();
     finishcutX[np] = 0;
@@ -1228,7 +1216,7 @@ void PltApp::PltAppInit() {
 
   interfaceReady = true;
   
-  for(np = 0; np < NPLANES; np++) {
+  for(np = 0; np < NPLANES; ++np) {
     amrPicturePtrArray[np]->SetDataMin(amrPicturePtrArray[np]->GetRegionMin());
     amrPicturePtrArray[np]->SetDataMax(amrPicturePtrArray[np]->GetRegionMax());
   }  
@@ -1239,9 +1227,9 @@ void PltApp::PltAppInit() {
 
 // -------------------------------------------------------------------
 void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
-  int zPlanePosX = 10, zPlanePosY = 15;
-  int whiteColor = pltPaletteptr->WhiteIndex();
-  int zpColor = whiteColor;
+  int zPlanePosX(10), zPlanePosY(15);
+  int whiteColor(pltPaletteptr->WhiteIndex());
+  int zpColor(whiteColor);
   char sX[LINELENGTH], sY[LINELENGTH], sZ[LINELENGTH];
   
   XClearWindow(GAptr->PDisplay(), XtWindow(wControlForm));
@@ -1252,18 +1240,18 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   
   DrawAxes(wControlForm, zPlanePosX, zPlanePosY, 0, sX, sY, zpColor);
 #if (BL_SPACEDIM == 3)
-  int axisLength = 20;
-  int ypColor = whiteColor, xpColor = whiteColor;
-  int xyzAxisLength = 50;
-  int stringOffsetX = 4, stringOffsetY = 20;
-  int yPlanePosX = 80, yPlanePosY = 15;
-  int xPlanePosX = 10;
-  int xPlanePosY = (int) (axisLength + zPlanePosY + 1.4 * stringOffsetY);
+  int axisLength(20);
+  int ypColor(whiteColor), xpColor(whiteColor);
+  int xyzAxisLength(50);
+  int stringOffsetX(4), stringOffsetY(20);
+  int yPlanePosX(80), yPlanePosY(15);
+  int xPlanePosX(10);
+  int xPlanePosY((int) (axisLength + zPlanePosY + 1.4 * stringOffsetY));
   char temp[LINELENGTH];
   Dimension width, height;
   XtVaGetValues(wControlForm, XmNwidth, &width, XmNheight, &height, NULL);
-  int centerX = (int) width/2;
-  int centerY = (int) height/2-16;
+  int centerX((int) width / 2);
+  int centerY((int) height / 2 - 16);
   
   DrawAxes(wControlForm, yPlanePosX, yPlanePosY, 0, sX, sZ, ypColor);
   DrawAxes(wControlForm, xPlanePosX, xPlanePosY, 0, sY, sZ, xpColor);
@@ -1274,8 +1262,7 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   //		currentScale + ivLowOffsetMAL[ZDIR]);
   XSetForeground(GAptr->PDisplay(), GAptr->PGC(), pltPaletteptr->pixelate(zpColor));
   XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
-	      centerX-xyzAxisLength+12,
-	      centerY+xyzAxisLength+4,
+	      centerX-xyzAxisLength+12, centerY+xyzAxisLength+4,
 	      temp, strlen(temp));
   
   sprintf(temp, "Y=%i", amrPicturePtrArray[YPLANE]->GetSlice());
@@ -1283,8 +1270,7 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   //		currentScale + ivLowOffsetMAL[YDIR]);
   XSetForeground(GAptr->PDisplay(), GAptr->PGC(), pltPaletteptr->pixelate(ypColor));
   XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
-	      centerX+stringOffsetX,
-	      centerY-xyzAxisLength+4,
+	      centerX+stringOffsetX, centerY-xyzAxisLength+4,
 	      temp, strlen(temp));
   
   sprintf(temp, "X=%i", amrPicturePtrArray[XPLANE]->GetSlice());
@@ -1292,11 +1278,11 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   //currentScale + ivLowOffsetMAL[XDIR]);
   XSetForeground(GAptr->PDisplay(), GAptr->PGC(), pltPaletteptr->pixelate(xpColor));
   XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
-	      centerX+4*stringOffsetX,
-	      centerY+stringOffsetY+2,
+	      centerX+4*stringOffsetX, centerY+stringOffsetY+2,
 	      temp, strlen(temp));
   
-  XSetForeground(XtDisplay(wControlForm), GAptr->PGC(), pltPaletteptr->pixelate(ypColor));
+  XSetForeground(XtDisplay(wControlForm), GAptr->PGC(),
+		 pltPaletteptr->pixelate(ypColor));
   XDrawLine(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
 	    centerX, centerY, centerX, centerY-xyzAxisLength);
   XDrawLine(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
@@ -1626,7 +1612,7 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
   
 #if (BL_SPACEDIM == 3)
   int np;
-  for(np = 0; np < NPLANES; np++) {
+  for(np = 0; np < NPLANES; ++np) {
     startcutX[np]  /= currentScale;
     startcutY[np]  /= currentScale;
     finishcutX[np] /= currentScale;
@@ -1643,7 +1629,7 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
 		      currentScale - Min(startcutY[XPLANE], finishcutY[XPLANE]));
   
   if(subregionBox.numPts() <= 4) {
-    for(np = 0; np < NPLANES; np++) {
+    for(np = 0; np < NPLANES; ++np) {
       startcutX[np]  *= currentScale;
       startcutY[np]  *= currentScale;
       finishcutX[np] *= currentScale;
@@ -1688,7 +1674,7 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
 		  this, palFilename, animating2d, currentDerived, fileName);
   
 #if (BL_SPACEDIM == 3)
-  for(np = 0; np < NPLANES; np++) {
+  for(np = 0; np < NPLANES; ++np) {
     startcutX[np]  *= currentScale;
     startcutY[np]  *= currentScale;
     finishcutX[np] *= currentScale;
@@ -1818,8 +1804,8 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   Widget wInfoForm =
     XtVaCreateManagedWidget("infoform", xmFormWidgetClass, wInfoTopLevel, NULL);
   
-  int i = 0;
-  XtSetArg(args[i], XmNlistSizePolicy, XmRESIZE_IF_POSSIBLE);   i++;
+  int i(0);
+  XtSetArg(args[i], XmNlistSizePolicy, XmRESIZE_IF_POSSIBLE);   ++i;
   Widget wInfoList =
     XmCreateScrolledList(wInfoForm, "infoscrolledlist", args, i);
   
@@ -1843,43 +1829,53 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   char buf[BUFSIZ];
   ostrstream prob(buf, BUFSIZ);
   prob.precision(15);
-  strcpy(entries[i], fileName.c_str());i++;
-  strcpy(entries[i], amrData.PlotFileVersion().c_str()); i++;
+  strcpy(entries[i], fileName.c_str()); ++i;
+  strcpy(entries[i], amrData.PlotFileVersion().c_str()); ++i;
   prob << "time: "<< amrData.Time() << ends;
-  strcpy(entries[i], buf); i++;
-  sprintf(entries[i], "levels: %d", amrData.FinestLevel()+1); i++;
-  sprintf(entries[i], "prob domain"); i++;
-  for(int k = 0; k<=amrData.FinestLevel(); k++, i++) {
+  strcpy(entries[i], buf); ++i;
+  sprintf(entries[i], "levels: %d", amrData.FinestLevel()+1); ++i;
+  sprintf(entries[i], "prob domain"); ++i;
+  for(int k(0); k <= amrData.FinestLevel(); ++k, ++i) {
     ostrstream prob_domain(entries[i], BUFSIZ);
     prob_domain << " level " << k << ": " << amrData.ProbDomain()[k] << ends;
   }
 
   prob.seekp(0);
   prob << "refratios:";
-  for(int k=0; k<amrData.FinestLevel(); k++) prob << " " << amrData.RefRatio()[k];
+  for(int k(0); k < amrData.FinestLevel(); ++k) {
+    prob << " " << amrData.RefRatio()[k];
+  }
   prob << ends;
-  strcpy(entries[i], buf); i++;
+  strcpy(entries[i], buf); ++i;
   
   prob.seekp(0);
   prob << "probsize:";
-  for(int k=0; k<BL_SPACEDIM; k++) prob << " " << amrData.ProbSize()[k];
+  for(int k(0); k < BL_SPACEDIM; ++k) {
+    prob << " " << amrData.ProbSize()[k];
+  }
   prob << ends;
-  strcpy(entries[i], buf); i++;
+  strcpy(entries[i], buf); ++i;
   
   prob.seekp(0);
   prob << "prob lo:";
-  for(int k=0; k<BL_SPACEDIM; k++) prob << " " << amrData.ProbLo()[k];
+  for(int k(0); k < BL_SPACEDIM; ++k) {
+    prob << " " << amrData.ProbLo()[k];
+  }
   prob << ends;
-  strcpy(entries[i], buf); i++;
+  strcpy(entries[i], buf); ++i;
   
   prob.seekp(0);
   prob << "prob hi:";
-  for(int k=0; k<BL_SPACEDIM; k++) prob<<" "<< amrData.ProbHi()[k];
+  for(int k(0); k < BL_SPACEDIM; ++k) {
+    prob<<" "<< amrData.ProbHi()[k];
+  }
   prob << ends;
-  strcpy(entries[i], buf); i++;
+  strcpy(entries[i], buf); ++i;
 
   XmStringTable str_list = (XmStringTable)XtMalloc(numEntries*sizeof(XmString *));
-  for(int j = 0; j<numEntries ; j++) str_list[j] = XmStringCreateSimple(entries[j]);
+  for(int j(0); j < numEntries; ++j) {
+    str_list[j] = XmStringCreateSimple(entries[j]);
+  }
     
   XtVaSetValues(wInfoList,
 		XmNvisibleItemCount, numEntries,
@@ -1887,7 +1883,9 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
 		XmNitems, str_list,
 		NULL);
   
-  for(int j = 0; j<numEntries; j++) delete [] entries[j];
+  for(int j(0); j < numEntries; ++j) {
+    delete [] entries[j];
+  }
   delete [] entries;
   
   Widget wInfoCloseButton =
@@ -1939,7 +1937,9 @@ void PltApp::DoContoursButton(Widget, XtPointer, XtPointer) {
   
   //set visual in case the default isn't 256 pseudocolor
   if(GAptr->PVisual() != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber()))
-    XtVaSetValues(wContoursTopLevel, XmNvisual, GAptr->PVisual(), XmNdepth, 8, NULL);
+  {
+    XtVaSetValues(wContoursTopLevel, XmNvisual, GAptr->PVisual(), XmNdepth, 8,NULL);
+  }
         
     
   wContoursForm =
@@ -1957,11 +1957,12 @@ void PltApp::DoContoursButton(Widget, XtPointer, XtPointer) {
 		       "B/W Contours", "Velocity Vectors"};
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   int nItems = (amrData.NComp() < (BL_SPACEDIM + 1)) ? 4 : 5;
-  for(int j = 0; j != nItems; j++) {
-    wid = XtVaCreateManagedWidget(conItems[j],
-				  xmToggleButtonGadgetClass,
+  for(int j(0); j != nItems; ++j) {
+    wid = XtVaCreateManagedWidget(conItems[j], xmToggleButtonGadgetClass,
 				  wContourRadio, NULL);
-    if(j == currentContour) XtVaSetValues(wid, XmNset, true, NULL);
+    if(j == currentContour) {
+      XtVaSetValues(wid, XmNset, true, NULL);
+    }
     AddStaticCallback(wid, XmNvalueChangedCallback, &PltApp::ChangeContour,
 		      (XtPointer) j);
   }
@@ -1995,7 +1996,8 @@ void PltApp::DoContoursButton(Widget, XtPointer, XtPointer) {
 			    XmNsensitive,       (currentContour != 0 &&
 						 currentContour != 4),
 			    NULL);
-  AddStaticCallback(wNumberContours, XmNactivateCallback, &PltApp::ReadContourString);
+  AddStaticCallback(wNumberContours, XmNactivateCallback,
+		    &PltApp::ReadContourString);
   
   wCloseButton =
     XtVaCreateManagedWidget(" Close ",
@@ -2017,13 +2019,18 @@ void PltApp::DoContoursButton(Widget, XtPointer, XtPointer) {
   contoursShowing = true;
 }
 
+
+// -------------------------------------------------------------------
 void PltApp::DestroyContoursWindow(Widget, XtPointer, XtPointer) {
   contoursShowing = false;
 }
 
+
+// -------------------------------------------------------------------
 void PltApp::CloseContoursWindow(Widget, XtPointer, XtPointer) {
   XtPopdown(wContoursTopLevel);
 }
+
 
 // -------------------------------------------------------------------
 void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
@@ -2067,7 +2074,10 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   
   //set visual in case the default isn't 256 pseudocolor
   if(GAptr->PVisual() != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber()))
-    XtVaSetValues(wSetRangeTopLevel, XmNvisual, GAptr->PVisual(), XmNdepth, 8, NULL);
+  {
+    XtVaSetValues(wSetRangeTopLevel, XmNvisual, GAptr->PVisual(),
+		  XmNdepth, 8, NULL);
+  }
         
     
   wSetRangeForm = XtVaCreateManagedWidget("setrangeform",
@@ -2096,27 +2106,22 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 		    &PltApp::DoCancelSetRange);
   
   // make the radio box
-  wSetRangeRadioBox = XmCreateRadioBox(wSetRangeForm,
-				       "setrangeradiobox", NULL, 0);
+  wSetRangeRadioBox = XmCreateRadioBox(wSetRangeForm, "setrangeradiobox", NULL, 0);
   
-  wRangeRadioButton[USEGLOBAL] =
-    XtVaCreateManagedWidget("Global",
+  wRangeRadioButton[USEGLOBAL] = XtVaCreateManagedWidget("Global",
 			    xmToggleButtonWidgetClass, wSetRangeRadioBox, NULL);
   AddStaticCallback(wRangeRadioButton[USEGLOBAL], XmNvalueChangedCallback,
 		    &PltApp::ToggleRange, (XtPointer) USEGLOBAL);
-  wRangeRadioButton[USELOCAL] =
-    XtVaCreateManagedWidget("Local",
+  wRangeRadioButton[USELOCAL] = XtVaCreateManagedWidget("Local",
 			    xmToggleButtonWidgetClass, wSetRangeRadioBox, NULL);
   AddStaticCallback(wRangeRadioButton[USELOCAL], XmNvalueChangedCallback,
 		    &PltApp::ToggleRange, (XtPointer) USELOCAL);
-  wRangeRadioButton[USESPECIFIED] =
-    XtVaCreateManagedWidget("User",
+  wRangeRadioButton[USESPECIFIED] = XtVaCreateManagedWidget("User",
 			    xmToggleButtonWidgetClass, wSetRangeRadioBox, NULL);
   AddStaticCallback(wRangeRadioButton[USESPECIFIED], XmNvalueChangedCallback,
 		    &PltApp::ToggleRange, (XtPointer) USESPECIFIED);
   if(animating2d) {
-    wRangeRadioButton[USEFILE] =
-      XtVaCreateManagedWidget("File",
+    wRangeRadioButton[USEFILE] = XtVaCreateManagedWidget("File",
 			      xmToggleButtonWidgetClass, wSetRangeRadioBox, NULL);
     AddStaticCallback(wRangeRadioButton[USEFILE], XmNvalueChangedCallback,
 		      &PltApp::ToggleRange, (XtPointer) USEFILE);
@@ -2125,8 +2130,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   rangeType = amrPicturePtrArray[ZPLANE]->GetWhichRange();
   XtVaSetValues(wRangeRadioButton[rangeType], XmNset, true, NULL);
   
-  wRangeRC = 
-    XtVaCreateManagedWidget("rangeRC", xmRowColumnWidgetClass,
+  wRangeRC = XtVaCreateManagedWidget("rangeRC", xmRowColumnWidgetClass,
 			    wSetRangeForm,
 			    XmNtopAttachment,   XmATTACH_FORM,
 			    XmNtopOffset,       0,
@@ -2152,15 +2156,13 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   sprintf(range, "Max: %s", fMax);
   XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
 
-  wid =
-    XtVaCreateManagedWidget("wid", xmRowColumnWidgetClass, wRangeRC,
+  wid = XtVaCreateManagedWidget("wid", xmRowColumnWidgetClass, wRangeRC,
 			    XmNorientation, XmHORIZONTAL,
 			    XmNleftOffset,       0,
 			    NULL);
   XtVaCreateManagedWidget("Min:", xmLabelGadgetClass, wid, NULL);
   sprintf(range, format, amrPicturePtrArray[ZPLANE]->GetSpecifiedMin());
-  wUserMin =
-    XtVaCreateManagedWidget("local range",
+  wUserMin = XtVaCreateManagedWidget("local range",
 			    xmTextFieldWidgetClass, wid,
 			    XmNvalue,		range,
 			    XmNeditable,	true,
@@ -2168,15 +2170,13 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			    NULL);
   AddStaticCallback(wUserMin, XmNactivateCallback, &PltApp::DoUserMin);
   
-  wid =
-    XtVaCreateManagedWidget("wid", xmRowColumnWidgetClass, wRangeRC,
+  wid = XtVaCreateManagedWidget("wid", xmRowColumnWidgetClass, wRangeRC,
 			    XmNorientation, XmHORIZONTAL,
  			    XmNleftOffset,       0,
 			    NULL);
   XtVaCreateManagedWidget("Max:", xmLabelGadgetClass, wid, NULL);
   sprintf(range, format, amrPicturePtrArray[ZPLANE]->GetSpecifiedMax());
-  wUserMax =
-    XtVaCreateManagedWidget("local range",
+  wUserMax = XtVaCreateManagedWidget("local range",
 			    xmTextFieldWidgetClass, wid,
 			    XmNvalue,		range,
 			    XmNeditable,	true,
@@ -2192,6 +2192,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wSetRangeTopLevel));
   setRangeShowing = true;
 }
+
 
 // -------------------------------------------------------------------
 void PltApp::DoDoneSetRange(Widget, XtPointer, XtPointer) {
@@ -2259,6 +2260,7 @@ void PltApp::DoCancelSetRange(Widget, XtPointer, XtPointer) {
 void PltApp::DestroySetRangeWindow(Widget, XtPointer, XtPointer) {
   setRangeShowing = false;
 }
+
 
 // -------------------------------------------------------------------
 void PltApp::DoUserMin(Widget, XtPointer, XtPointer) {
@@ -2334,12 +2336,14 @@ void PltApp::DoOpenPalFile(Widget w, XtPointer, XtPointer call_data) {
   projPicturePtr->GetVolRenderPtr()->InvalidateVPData();
   showing3dRender = false;
   // If we could also clear the window...
-  if(XmToggleButtonGetState(wAutoDraw)) DoRender(wAutoDraw, NULL, NULL);
+  if(XmToggleButtonGetState(wAutoDraw)) {
+    DoRender(wAutoDraw, NULL, NULL);
+  }
 # endif
   palFilename = palfile;
   
   XYplotparameters->ResetPalette();
-  for(int np = 0; np != BL_SPACEDIM; ++np) {
+  for(int np(0); np != BL_SPACEDIM; ++np) {
     if(XYplotwin[np]) XYplotwin[np]->SetPalette();
   }
 }
@@ -2363,19 +2367,29 @@ XYPlotDataList* PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
     dir2 = ZDIR;
     break;
   case YPLANE:
-    if(sdir == XDIR) { tdir = ZDIR; dir1 = YDIR; dir2 = ZDIR; }
-    else             { tdir = XDIR; dir1 = XDIR; dir2 = YDIR; }
+    if(sdir == XDIR) {
+      tdir = ZDIR;
+      dir1 = YDIR;
+      dir2 = ZDIR;
+    } else {
+      tdir = XDIR;
+      dir1 = XDIR;
+      dir2 = YDIR;
+    }
     break;
   case XPLANE:
     dir1 = XDIR;
-    if(sdir == YDIR) tdir = ZDIR; 
-    else             tdir = YDIR;
+    if(sdir == YDIR) {
+      tdir = ZDIR; 
+    } else {
+      tdir = YDIR;
+    }
     dir1 = XDIR;
     dir2 = tdir;
     break;
 #endif
   }
-  Array<Box> trueRegion(mal+1);
+  Array<Box> trueRegion(mal + 1);
   trueRegion[mal] = amrPicturePtrArray[V]->GetSliceBox();
   trueRegion[mal].setSmall(tdir, ivLowOffsetMAL[tdir] + ix);
   trueRegion[mal].setBig(tdir, trueRegion[mal].smallEnd(tdir));
@@ -2386,7 +2400,7 @@ XYPlotDataList* PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
   }
   // Create an array of titles corresponding to the intersected line.
   Array<Real> XdX(mal+1);
-  Array<char *> intersectStr(mal+1);
+  Array<char *> intersectStr(mal + 1);
   
 #if (BL_SPACEDIM == 3)
   char buffer[100];
@@ -2471,8 +2485,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 
   if(servingButton == 1) {
     int rectDrawn(false);
-    int anchorX = oldX;
-    int anchorY = oldY;
+    int anchorX(oldX);
+    int anchorY(oldY);
     int newX, newY;
 
     while(true) {
@@ -3543,7 +3557,7 @@ void PltApp::Animate(AnimDirection direction) {
 // -------------------------------------------------------------------
 void PltApp::DirtyFrames() {
   paletteDrawn = false;
-  for(int i = 0; i < animFrames; i++) {
+  for(int i = 0; i < animFrames; ++i) {
     if(readyFrames[i]) {
       XDestroyImage(frameBuffer[i]);
     }

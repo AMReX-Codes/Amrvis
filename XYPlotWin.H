@@ -108,65 +108,35 @@ private:
   Visual                 *vis;
   Cursor	          cursor,
                           zoomCursor;
-  XFontStruct            *labeltextFont,
-                         *titletextFont;
-  GC		          titletextGC,
-                          labeltextGC,
-                          rbGC,
-                          segGC,
-                          dotGC;
+  XFontStruct            *labeltextFont, *titletextFont;
+  GC		          titletextGC, labeltextGC, rbGC, segGC, dotGC;
 
   // Other important numbers.
   unsigned char           zoomedInQ;
-
-  XYPlotLegendItem       *legendHead,
-                         *legendTail, *colorChangeItem;
-  unsigned int            numDrawnItems,
-                          numItems;
+  XYPlotLegendItem       *legendHead, *legendTail, *colorChangeItem;
+  unsigned int            numDrawnItems, numItems;
   unsigned char           lineFormats[8];
-
   unsigned int            numXsegs;
   XSegment               *Xsegs[2];
 
   // parameters.
-  unsigned char           markQ,
-                          tickQ,
-                          axisQ,
-                          boundBoxQ,
-                          plotLinesQ,
-                          saveDefaultQ,
-                          dispHintsQ,
-                          animatingQ,
-                          tbool[7];
-  int                     lineW,
-                          gridW,
-                          dotW;
-  char                   *XUnitText,
-                         *YUnitText,
-                         *formatX,
-                         *formatY;
-  Pixel                   foregroundPix,
-                          backgroundPix,
-                          gridPix,
-                          textPix;
+  unsigned char           markQ, tickQ, axisQ, boundBoxQ,
+                          plotLinesQ, saveDefaultQ, dispHintsQ,
+                          animatingQ, tbool[7];
+  int                     lineW, gridW, dotW;
+  char                   *XUnitText, *YUnitText, *formatX, *formatY;
+  Pixel                   foregroundPix, backgroundPix, gridPix, textPix;
   param_style             gridStyle;
   AttrSet                 AllAttrs[8];
   xgOut                   devInfo;
 
-  Widget                  wLegendMenu,
-                          wLegendButtons,
-                          wPlotWin,
-                          wOptionsDialog,
-                          wExportFileDialog,
-                          wOptionsWidgets[13];
+  Widget                  wLegendMenu, wLegendButtons, wPlotWin,
+                          wOptionsDialog, wExportFileDialog, wOptionsWidgets[13];
   Window                  pWindow;
   Atom                    WM_DELETE_WINDOW;
 
-  double                  gridBase,
-                          gridStep,
-                          gridJuke[101];
-  int                     gridNJuke,
-                          gridCurJuke;
+  double                  gridBase, gridStep, gridJuke[101];
+  int                     gridNJuke, gridCurJuke;
   double                  lloX, lloY,
                           hhiX, hhiY,     // Global bounding box of window
                           loX, loY,
@@ -179,8 +149,7 @@ private:
                           YUnitsPerPixel; // Y Axis scale factor
   int                     XOrgX, XOrgY,   // Origin of bounding box on screen
                           XOppX, XOppY,   // Other point defining bounding box
-                          XLocWinX, XLocWinY,
-                          currHint;
+                          XLocWinX, XLocWinY, currHint;
 #if (BL_SPACEDIM == 2)
   int                     numFrames;
 #endif

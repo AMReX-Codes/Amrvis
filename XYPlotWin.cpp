@@ -93,8 +93,9 @@ using std::endl;
 // -------------------------------------------------------------------
 
 XYPlotWin::~XYPlotWin() {
-  if(pltParent->GetXYPlotWin(whichType) == this)
+  if(pltParent->GetXYPlotWin(whichType) == this) {
     pltParent->DetachXYPlotWin(whichType);
+  }
   CBdoClearData(None, NULL, NULL);
   if(wOptionsDialog != None) XtDestroyWidget(wOptionsDialog);
   if(wExportFileDialog != None) XtDestroyWidget(wExportFileDialog);
@@ -108,8 +109,8 @@ XYPlotWin::~XYPlotWin() {
   delete formatX;
 }
 
-// -------------------------------------------------------------------
 
+// -------------------------------------------------------------------
 XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
 		     int type, int curr_frame)
   : appContext(app),
@@ -119,7 +120,7 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
     currFrame(curr_frame)
 {
 
-  int idx; // Loop counter
+  int idx;
   char buffer[BUFSIZE];
   pltTitle = STRDUP(title);
   params param_temp;   // temporary parameter grabbing slot

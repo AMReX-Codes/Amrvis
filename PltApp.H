@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.38 2000-10-02 20:53:09 lijewski Exp $
+// $Id: PltApp.H,v 1.39 2001-02-23 22:47:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -123,20 +123,20 @@ public:
   int MaxDrawnLevel() const        { return maxDrawnLevel; }
   bool GetShowBoxes() const        { return showBoxes; }
   void SetShowBoxes(bool showing)  { showBoxes = showing; }
-  GraphicsAttributes * GetGAptr()  { return GAptr; }
+  GraphicsAttributes *GetGAptr() const  { return GAptr; }
 
   const aString &GetFileName();
   bool  PaletteDrawn();
-  bool  PaletteCBQ() { return paletteCBQ; }
+  bool  PaletteCBQ() const { return paletteCBQ; }
   void  SetPaletteCBQ() { paletteCBQ = true; }
   void  ClearPaletteCBQ() { paletteCBQ = false; }
-  Widget GetPalArea() { return wPalArea; }
+  Widget GetPalArea() const { return wPalArea; }
   void  PaletteDrawn(bool trueOrFalse);
   
-  XYPlotDataList* CreateLinePlot(int V, int sdir, int mal, int ixY,
+  XYPlotDataList *CreateLinePlot(int V, int sdir, int mal, int ixY,
 				 aString *derived);
-  void  SetGlobalMinMax(Real specifiedMin, Real specifiedMax);
-  GC GetRbgc() { return rbgc; }
+  void SetGlobalMinMax(Real specifiedMin, Real specifiedMax);
+  GC GetRbgc() const { return rbgc; }
 
   void QuitDataset();
   void DoBackStep(int);
@@ -145,13 +145,13 @@ public:
 
 #if (BL_SPACEDIM == 3)
   void DoExposeTransDA(Widget = None, XtPointer = NULL, XtPointer = NULL);
-  ProjectionPicture *GetProjPicturePtr() { return projPicturePtr; }
-  Widget GetWTransDA() { return wTransDA; }
+  ProjectionPicture *GetProjPicturePtr() const { return projPicturePtr; }
+  Widget GetWTransDA() const { return wTransDA; }
 #endif
 
   void DetachXYPlotWin(int dir) { XYplotwin[dir] = NULL; }
-  XYPlotParameters* GetXYPlotParameters() { return XYplotparameters; }
-  XYPlotWin* GetXYPlotWin(int dir) { return XYplotwin[dir]; }
+  XYPlotParameters *GetXYPlotParameters() const { return XYplotparameters; }
+  XYPlotWin *GetXYPlotWin(int dir) const { return XYplotwin[dir]; }
 
 private:
   Widget wTopLevel, wAmrVisTopLevel;
@@ -180,8 +180,8 @@ private:
 #endif
 #endif
 
-  XYPlotParameters* XYplotparameters;
-  XYPlotWin* XYplotwin[BL_SPACEDIM];
+  XYPlotParameters *XYplotparameters;
+  XYPlotWin *XYplotwin[BL_SPACEDIM];
 
   XtAppContext appContext;
   Arg args[MAXARGS];

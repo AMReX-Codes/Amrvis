@@ -8,8 +8,8 @@ COMP      = mpKCC
 
 COMP      = g++
 COMP      = KCC
-DEBUG     = FALSE
 DEBUG     = TRUE
+DEBUG     = FALSE
 DIM       = 2
 DIM       = 3
 NAMESPACE = TRUE
@@ -143,6 +143,7 @@ ifeq ($(DIM),3)
     #DEFINES += -DBL_VOLPACK_NEW
     VOLPACKDIR = ../../volpack/volpack-1.0b3
     VOLPACKDIR = ../volpack
+    VOLPACKDIR = $(VINCEDIR)/volpack
     INCLUDE_LOCATIONS += $(VOLPACKDIR)
     LIBRARY_LOCATIONS += $(VOLPACKDIR)
     LIBRARIES += -lvolpack
