@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.cpp,v 1.52 2003-12-11 01:48:51 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.53 2003-12-13 00:35:31 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -266,7 +266,6 @@ void ProjectionPicture::MakePicture() {
 
   // map imageData colors to colormap range
   Palette *palPtr = pltAppPtr->GetPalettePtr();
-cout << "&&&&&&&&&&&&&&& colorslots palsize = " << palPtr->ColorSlots() << "  " << palPtr->PaletteSize() << endl;
   if(palPtr->ColorSlots() != palPtr->PaletteSize()) {
     const unsigned char *remapTable = palPtr->RemapTable();
     for(int idat(0); idat < daWidth * daHeight; ++idat) {

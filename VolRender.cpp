@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.49 2003-12-11 01:48:51 vince Exp $
+// $Id: VolRender.cpp,v 1.50 2003-12-13 00:35:31 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -300,11 +300,6 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
       }
     }  // end for(gp...)
 
-cout << "******************************(((((((((" << endl;
-SHOWVAL(cSlotsAvail);
-SHOWVAL(oneOverGDiff);
-SHOWVAL(iPaletteStart);
-cout << "******************************)))))))))" << endl;
                                                 // ---------------- VolumeBoxes
     bool bDrawVolumeBoxes(AVGlobals::GetBoxColor() > -1);  // need to limit
                                                            // to palmaxindex
