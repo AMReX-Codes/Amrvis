@@ -3,21 +3,17 @@ PRECISION = DOUBLE
 PROFILE   = TRUE
 PROFILE   = FALSE
 
-# use mpKCC for the sp
-COMP      = mpKCC
-
-COMP      = KCC
-COMP = CC
+COMP      = CC
 COMP      = Intel
 COMP      = g++
 FCOMP     = f77
 FCOMP     = Intel
-FCOMP = ftn
-FCOMP = g77
+FCOMP     = ftn
+FCOMP     = g77
 DEBUG     = FALSE
 DEBUG     = TRUE
-DIM       = 3
 DIM       = 2
+DIM       = 3
 NAMESPACE = FALSE
 NAMESPACE = TRUE
 
@@ -45,19 +41,11 @@ EBASE = amrvis
 HERE = .
 
 INCLUDE_LOCATIONS += $(HERE)
-#INCLUDE_LOCATIONS += ../pBoxLib_2
 INCLUDE_LOCATIONS += ../BoxLib
-#INCLUDE_LOCATIONS += ../BoxLib/std
 
 DEFINES += -DBL_PARALLEL_IO
 
 ifeq ($(MACHINE),OSF1)
-  ifeq ($(COMP),KCC)
-    CXXFLAGS += --diag_suppress 837
-  endif
-endif
-
-ifeq ($(MACHINE),T3E)
   ifeq ($(COMP),KCC)
     CXXFLAGS += --diag_suppress 837
   endif
@@ -96,24 +84,6 @@ ifeq ($(MACHINE), AIX)
   #INCLUDE_LOCATIONS += /usr/include/X11/Xaw
   LIBRARIES += -lXm -lXt -lX11
   DEFINES += -D_ALL_SOURCE
-endif
-
-ifeq ($(MACHINE), T3E)
-  ifeq ($(WHICHT3E), NERSC)
-    INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/X11
-    INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/Xm
-    INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include
-    INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/X11/Xaw
-    LIBRARY_LOCATIONS += /opt/ctl/cvt/cvt/lib
-    LIBRARIES += -lXm -lSM -lICE -lXt -lX11
-  endif
-  ifeq ($(WHICHT3E), ARSC)
-    INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/X11
-    INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/Xm
-    INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/X11/Xaw
-    LIBRARY_LOCATIONS += /opt/ctl/cvt/cvt/lib
-    LIBRARIES += -lXm -lSM -lICE -lXt -lX11
-  endif
 endif
 
 ifeq ($(MACHINE),CRAYX1)
@@ -159,8 +129,7 @@ ifeq ($(DIM),3)
   endif
   ifeq ($(USE_VOLRENDER), TRUE)
     DEFINES += -DBL_VOLUMERENDER
-    # VOLPACKDIR = ../../volpack/volpack_cpp
-    # VOLPACKDIR = ../../volpack/volpack-1.0b3
+    #VOLPACKDIR = ../../volpack-1.0b3
     #VOLPACKDIR = $(PBOXLIB_HOME)/volpack
     VOLPACKDIR = ../volpack
     #VOLPACKDIR = ../../volpack.test
@@ -196,12 +165,6 @@ endif
 
 #FDEBF += -fpe1
 #FOPTF  = -fpe1
-
-############################################### 3rd analyzer
-#CXXDEBF = +K0 --link_command_prefix 3rd
-#LIBRARIES += -ldnet_stub
-
-#CFLAGS += -g
 
 #XTRALIBS += 
 
