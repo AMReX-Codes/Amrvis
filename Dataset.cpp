@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.46 2002-08-30 22:46:22 vince Exp $
+// $Id: Dataset.cpp,v 1.47 2002-11-14 22:59:30 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -30,6 +30,7 @@ const int MAXINDEXCHARS   = 4;
 
 #include <strstream>
 #include <cfloat>
+#include <cmath>
 using std::ostrstream;
 using std::ends;
 using std::cout;
@@ -566,8 +567,8 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
 						           amrData.RefRatio()));
       int boxSize(((int) (ceil(dBoxSize)-dBoxSize >= 0.5 ?
                      floor(dBoxSize): ceil(dBoxSize))));
-      int vStartPos((int) (fmod(datasetRegion[maxDrawnLevel].bigEnd(vDIR) + 1,
-				boxSize)));
+      int vStartPos((int) (fmod(double(datasetRegion[maxDrawnLevel].bigEnd(vDIR) + 1),
+				double(boxSize))));
       vStartPos = (vStartPos != 0 ? vStartPos - boxSize:vStartPos);
       // fill the box index arrays 
       Box iABox(datasetRegion[level]);
@@ -758,9 +759,9 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
       int modBy(AVGlobals::CRRBetweenLevels(finestCLevel, maxDrawnLevel,
                                             amrData.RefRatio()));
       hplot -= pictureBox.smallEnd(hDir);
-      hplot -= (int) fmod(hplot, modBy);
+      hplot -= (int) fmod(double(hplot), double(modBy));
       vplot -= pictureBox.smallEnd(vDir);
-      vplot -= (int) fmod(vplot, modBy);
+      vplot -= (int) fmod(double(vplot), double(modBy));
       hplot *= baseRatio;
       vplot *= baseRatio;
       vplot += boxSize;
@@ -1010,8 +1011,8 @@ void Dataset::DrawIndices() {
                 (boxSize)*dataItemWidth, hIndexAreaHeight, 
                 blackIndex, whiteIndex);
        // draw the vertical box index grid
-       int vStart((int) (fmod(datasetRegion[maxDrawnLevel].bigEnd(vDIR) + 1,
-			      boxSize)));
+       int vStart((int) (fmod(double(datasetRegion[maxDrawnLevel].bigEnd(vDIR) + 1),
+			      double(boxSize))));
        vStart = (vStart != 0? vStart - boxSize:vStart);
        DrawGrid(vIndexAreaStart-(count*vIndexAreaWidth)-1,
                 vStart*CHARACTERHEIGHT,
