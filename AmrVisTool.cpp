@@ -90,7 +90,7 @@ void main(int argc, char *argv[]) {
   AmrData::SetSkipPltLines(GetSkipPltLines());
   AmrData::SetStaticBoundaryWidth(GetBoundaryWidth());
 
-  ParallelDescriptor::StartParallel(NProcs());
+  ParallelDescriptor::StartParallel(NProcs(), &argc, &argv);
 
   if(SleepTime() > 0) {
     sleep(SleepTime());
