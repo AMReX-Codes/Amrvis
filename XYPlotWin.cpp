@@ -695,8 +695,8 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
   for(j = 0, mask = 0x1; lineFormats[i] & mask; ++j, mask = mask << 1);
 
 //j = 254;
-cout << "_here 00:  j = " << j << endl;
-j = 4;
+//cout << "_here 00:  j = " << j << endl;
+//j = 4;
 
   XYPlotLegendItem *new_item = new XYPlotLegendItem;
 
@@ -1022,8 +1022,8 @@ void XYPlotWin::drawData(void){
     color = item->pixel;
     sx1 = li.xval;
     sy1 = li.yval;
-cout << endl << "_here 1:  about to draw segments." << endl;
-cout << "  maxSegs = " << devInfo.maxSegs << endl;
+//cout << endl << "_here 1:  about to draw segments." << endl;
+//cout << "  maxSegs = " << devInfo.maxSegs << endl;
     while(++li) {
       sx2 = li.xval;
       sy2 = li.yval;
@@ -1034,55 +1034,55 @@ cout << "  maxSegs = " << devInfo.maxSegs << endl;
       ssy2 = sy2;
 
 //bool bDiag(X_idx >= 79 && X_idx <= 81);
-bool bDiag(false);
-bool bDiagLines(true);
+//bool bDiag(false);
+//bool bDiagLines(true);
 //if(bDiag) {
-if(bDiagLines) {
-  cout << "[" << X_idx << "]:  sx1 sx2 = " << sx1 << "  " << sx2 << endl;
-}
+//if(bDiagLines) {
+  //cout << "[" << X_idx << "]:  sx1 sx2 = " << sx1 << "  " << sx2 << endl;
+//}
       // Put segment in (ssx1,ssy1) (ssx2,ssy2), clip to window boundary
       C_CODE(ssx1, ssy1, code1);
       C_CODE(ssx2, ssy2, code2);
-if(bDiag) { cout << "      code1 code2 = " << code1 << "  " << code2 << endl; }
+//if(bDiag) { cout << "      code1 code2 = " << code1 << "  " << code2 << endl; }
       mark_inside = (code1 == 0);
-if(bDiag) { cout << "      mark_inside = " << mark_inside << endl; }
+//if(bDiag) { cout << "      mark_inside = " << mark_inside << endl; }
       while (code1 || code2) {
 	if (code1 & code2) break;
 	cd = (code1 ? code1 : code2);
 	if (cd & LEFT_CODE) {	     // Crosses left edge
-if(bDiag) { cout << "      _here 2.LEFT" << endl; }
+//if(bDiag) { cout << "      _here 2.LEFT" << endl; }
 	  ty = ssy1 + (ssy2 - ssy1) * (UsrOrgX - ssx1) / (ssx2 - ssx1);
 	  tx = UsrOrgX;
 	}
 	else if (cd & RIGHT_CODE) {  // Crosses right edge
-if(bDiag) { cout << "      _here 2.RIGHT" << endl; }
+//if(bDiag) { cout << "      _here 2.RIGHT" << endl; }
 	  ty = ssy1 + (ssy2 - ssy1) * (UsrOppX - ssx1) / (ssx2 - ssx1);
 	  tx = UsrOppX;
 	}
 	else if (cd & BOTTOM_CODE) { // Crosses bottom edge
-if(bDiag) { cout << "      _here 2.BOTTOM" << endl; }
+//if(bDiag) { cout << "      _here 2.BOTTOM" << endl; }
 	  tx = ssx1 + (ssx2 - ssx1) * (UsrOrgY - ssy1) / (ssy2 - ssy1);
 	  ty = UsrOrgY;
 	}
 	else if (cd & TOP_CODE) {    // Crosses top edge
-if(bDiag) { cout << "      _here 2.TOP" << endl; }
+//if(bDiag) { cout << "      _here 2.TOP" << endl; }
 	  tx = ssx1 + (ssx2 - ssx1) * (UsrOppY - ssy1) / (ssy2 - ssy1);
 	  ty = UsrOppY;
 	}
 	if (cd == code1) {
-if(bDiag) { cout << "      _here 2.code1" << endl; }
+//if(bDiag) { cout << "      _here 2.code1" << endl; }
 	  ssx1 = tx;
 	  ssy1 = ty;
 	  C_CODE(ssx1, ssy1, code1);
 	}
 	else {
-if(bDiag) { cout << "      _here 2.code2" << endl; }
+//if(bDiag) { cout << "      _here 2.code2" << endl; }
 	  ssx2 = tx;
 	  ssy2 = ty;
 	  C_CODE(ssx2, ssy2, code2);
 	}
       }
-if(bDiag) { cout << "      code1 code2 = " << code1 << "  " << code2 << endl; }
+//if(bDiag) { cout << "      code1 code2 = " << code1 << "  " << code2 << endl; }
       if (!code1 && !code2) {
 	// Add segment to list
 	Xsegs[0][X_idx].x1 = Xsegs[1][X_idx].x1;
@@ -1093,6 +1093,7 @@ if(bDiag) { cout << "      code1 code2 = " << code1 << "  " << code2 << endl; }
 	Xsegs[1][X_idx].y1 = SCREENY(ssy1);
 	Xsegs[1][X_idx].x2 = SCREENX(ssx2);
 	Xsegs[1][X_idx].y2 = SCREENY(ssy2);
+/*
 short xx1, xx2, yy1, yy2;
 xx1 =  Xsegs[1][X_idx].x1;
 xx2 =  Xsegs[1][X_idx].x2;
@@ -1107,6 +1108,7 @@ if((Xsegs[0][X_idx].x1 + Xsegs[0][X_idx].y1 +
          << "  " << setw(3) << yy2 << endl;
   }
 }
+*/
 	X_idx++;
       }
       sx1 = sx2;
