@@ -6,12 +6,12 @@ PROFILE   = FALSE
 # use mpKCC for the sp
 COMP      = mpKCC
 
-COMP      = KCC
 COMP      = g++
-DEBUG     = TRUE
+COMP      = KCC
 DEBUG     = FALSE
-DIM       = 2
+DEBUG     = TRUE
 DIM       = 3
+DIM       = 2
 NAMESPACE = FALSE
 NAMESPACE = TRUE
 
@@ -41,7 +41,7 @@ HERE = .
 INCLUDE_LOCATIONS += $(HERE)
 #INCLUDE_LOCATIONS += ../pBoxLib_2
 INCLUDE_LOCATIONS += ../BoxLib
-INCLUDE_LOCATIONS += ../BoxLib/std
+#INCLUDE_LOCATIONS += ../BoxLib/std
 
 DEFINES += -DBL_PARALLEL_IO
 #DEFINES += -DBL_USE_SETBUF
