@@ -11,8 +11,10 @@
 #ifdef BL_USE_NEW_HFILES
 #include <iostream>
 using std::ios;
+#include <cstdio>
 #else
 #include <iostream.h>
+#include <stdio.h>
 #endif
 
 #ifdef SHOWVAL
