@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Output.cpp,v 1.16 2000-06-14 20:08:27 car Exp $
+// $Id: Output.cpp,v 1.17 2000-06-16 17:55:52 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -20,6 +20,7 @@
 #include <iomanip>
 #include <cmath>
 #include <cstdio>
+#include <cstdlib>
 using std::hex;
 using std::dec;
 using std::ofstream;
@@ -28,10 +29,11 @@ using std::ofstream;
 #include <iomanip.h>
 #include <math.h>
 #include <stdio.h>
+#include <stdlib.h>
 #endif
 
 
-IMAGE *iopen(char *file, unsigned int type, unsigned int dim,
+IMAGE *iopen(const char *file, unsigned int type, unsigned int dim,
              unsigned int xsize, unsigned int ysize, unsigned int zsize);
 int putrow(IMAGE *image, unsigned short *buffer, unsigned int y, unsigned int z);
 void cvtshorts( unsigned short buffer[], long n);
@@ -45,13 +47,10 @@ void cvtimage(long *buffer);
 
 
 // -------------------------------------------------------------------
-void WritePSFile(char *filename, XImage *image,
+void WritePSFile(const char *filename, XImage *image,
 		 int imagesizehoriz, int imagesizevert,
-		 const Array<XColor> &colorcells)
+		 const Palette& palette)
 {
-  int i, j, index;
-  XColor color;
-
   ofstream fout(filename);
   fout << "%!PS-Adobe-2.0" << '\n';
   fout <<  "%%BoundingBox: 0 0 " << imagesizehoriz-1 << " "
@@ -68,12 +67,14 @@ void WritePSFile(char *filename, XImage *image,
 
   fout << hex;
   char *buf = new char[8*imagesizehoriz+1];
-  for(j = 0; j < imagesizevert; j++) {
+  for(int j = 0; j < imagesizevert; j++) {
     int charindex = 0;
-    for(i = 0; i < imagesizehoriz; i++) {
+    for(int i = 0; i < imagesizehoriz; i++) {
       //BL_ASSERT(charindex>8*imagesizehoriz+1);
-      index = (int) XGetPixel(image, i, j);
-      color = colorcells[index];
+      //FIXME
+      unsigned char r, g, b;
+      Pixel index = XGetPixel(image, i, j);
+      palette.unpixelate(index, r, g, b);
       if(i % 10 == 0) {
         sprintf(buf+charindex, "\n");
         charindex++;
@@ -81,10 +82,7 @@ void WritePSFile(char *filename, XImage *image,
       //fout << setw(2) << setfill('0') << (color.red >> 8);
       //fout << setw(2) << setfill('0') << (color.green >> 8);
       //fout << setw(2) << setfill('0') << (color.blue >> 8) << ' ';
-      sprintf(buf+charindex, "%02x%02x%02x ",
-	      (color.red   >> 8),
-	      (color.green >> 8),
-	      (color.blue  >> 8));
+      sprintf(buf+charindex, "%02x%02x%02x ", r, g, b);
       charindex += 7;
     }
     fout << buf;
@@ -97,15 +95,11 @@ void WritePSFile(char *filename, XImage *image,
 
 
 // -------------------------------------------------------------------
-void WritePSPaletteFile(char *filename, XImage *image,
+void WritePSPaletteFile(const char *filename, XImage *image,
                         int imagesizehoriz, int imagesizevert,
-                        const Array<XColor> &colorcells,
                         const Array<Real> &palValueList,
-			const aString &palNumFormat)
+			const aString &palNumFormat, const Palette& palette)
 {
-    int i, j, index;
-    XColor color;
-    
     ofstream fout(filename);
     fout << "%!PS-Adobe-2.0" << '\n';
     fout <<  "%%BoundingBox: 0 0 " << imagesizehoriz-1 << " "
@@ -122,19 +116,18 @@ void WritePSPaletteFile(char *filename, XImage *image,
     
     fout << hex;
     char *buf = new char[8*imagesizehoriz+1];
-    for(j = 0; j < imagesizevert; ++j) {
+    for(int j = 0; j < imagesizevert; ++j) {
       int charindex = 0;
-        for(i = 0; i < imagesizehoriz; ++i) {
-            index = (int) XGetPixel(image, i, j);
-            color = colorcells[index];
+        for(int i = 0; i < imagesizehoriz; ++i) {
+	  //FIXME
+	    unsigned long index = (unsigned long) XGetPixel(image, i, j);
+	    unsigned char r, g, b;
+	    palette.unpixelate(index, r, g, b);
             if(i % 10 == 0) {
                 sprintf(buf+charindex, "\n");
                 charindex++;
             }
-            sprintf(buf+charindex, "%02x%02x%02x ",
-                    (color.red   >> 8),
-                    (color.green >> 8),
-                    (color.blue  >> 8));
+            sprintf(buf+charindex, "%02x%02x%02x ", r, g, b);
             charindex += 7;
         }
         fout << buf;
@@ -165,15 +158,14 @@ void WritePSPaletteFile(char *filename, XImage *image,
 
 
 // -------------------------------------------------------------------
-void WriteRGBFile(char *filename, XImage *ximage,
-		   int imagesizehoriz, int imagesizevert,
-		   const Array<XColor> &colorcells)
+void WriteRGBFile(const char *filename, XImage *ximage,
+		  int imagesizehoriz, int imagesizevert,
+		  const Palette& palette)
 {
   unsigned short rbuf[8192];
   unsigned short gbuf[8192];
   unsigned short bbuf[8192];
-  XColor color;
-  int x, y, xsize, ysize, index;
+  int xsize, ysize;
   IMAGE *image;
 
   xsize = imagesizehoriz;
@@ -183,14 +175,15 @@ void WriteRGBFile(char *filename, XImage *ximage,
   // no support for RLE.
   image = iopen(filename, VERBATIM(1), 3, xsize, ysize, 3);
 
-  for(y=0; y<ysize; y++) {
+  for(int y=0; y<ysize; y++) {
     /* fill rbuf, gbuf, and bbuf with pixel values */
-    for(x=0; x<xsize; x++) {
-      index = (int) XGetPixel(ximage,x,y);
-      color = colorcells[index];
-      rbuf[x] = color.red   >> 8;
-      gbuf[x] = color.green >> 8;
-      bbuf[x] = color.blue  >> 8;
+    for(int x=0; x<xsize; x++) {
+      Pixel index = XGetPixel(ximage,x,y);
+      unsigned char r, g, b;
+      palette.unpixelate(index, r, g, b);
+      rbuf[x] = r;
+      gbuf[x] = g;
+      bbuf[x] = b;
     }
     putrow(image,rbuf,ysize-1-y,0);         /* red row */
     putrow(image,gbuf,ysize-1-y,1);         /* green row */
@@ -206,7 +199,7 @@ void WriteRGBFile(char *filename, XImage *ximage,
 #endif
 
 // -------------------------------------------------------------
-IMAGE *iopen(char *file, unsigned int type, unsigned int dim,
+IMAGE *iopen(const char *file, unsigned int type, unsigned int dim,
              unsigned int xsize, unsigned int ysize, unsigned int zsize)
 {
   IMAGE  *image;

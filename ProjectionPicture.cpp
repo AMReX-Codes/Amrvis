@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ProjectionPicture.cpp,v 1.31 2000-06-14 20:08:28 car Exp $
+// $Id: ProjectionPicture.cpp,v 1.32 2000-06-16 17:55:53 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -447,7 +447,7 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
     delete [] volpackImageData;
   }
   volpackImageData = new unsigned char[daWidth*daHeight];
-  imageData = new unsigned char[widthpad*daHeight*XBitmapPad(XtDisplay(drawingArea))/8];
+  imageData = static_cast<unsigned char*>(malloc(widthpad*daHeight*XBitmapPad(XtDisplay(drawingArea))/8));
   if(imageData == NULL || volpackImageData == NULL ) {
     cout << " SetDrawingAreaDimensions::imageData : new failed" << endl;
     BoxLib::Abort("Exiting.");

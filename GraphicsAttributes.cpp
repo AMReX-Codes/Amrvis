@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GraphicsAttributes.cpp,v 1.10 2000-06-14 20:08:26 car Exp $
+// $Id: GraphicsAttributes.cpp,v 1.11 2000-06-16 17:55:52 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -23,10 +23,22 @@ using std::endl;
 //  #include <X11/Xlibint.h>
 #undef index
 
+unsigned long
+buildShift(unsigned long mask)
+{
+  unsigned long shift = 0;
+  while (!(mask & 1))
+    {
+      mask >>= 1;
+      shift++;
+    }
+  return shift;
+}
 
 // -------------------------------------------------------------------
-GraphicsAttributes::GraphicsAttributes(Widget topLevel) {
-  appTopLevel = topLevel;
+GraphicsAttributes::GraphicsAttributes(Widget topLevel)
+  : appTopLevel(topLevel)
+{
   display = XtDisplay(topLevel);
   screen = XtScreen(topLevel);
   screennumber = DefaultScreen(display);
@@ -36,6 +48,7 @@ GraphicsAttributes::GraphicsAttributes(Widget topLevel) {
     {
       visual = visual_info.visual;
       depth = 8;
+      red_shift = blue_shift = green_shift = 0;
     }
   else
     {
@@ -45,6 +58,9 @@ GraphicsAttributes::GraphicsAttributes(Widget topLevel) {
 	{
 	  visual = visual_info.visual;
 	  depth = DefaultDepth(display, screennumber);
+	  red_shift = buildShift(visual_info.red_mask);
+	  green_shift = buildShift(visual_info.green_mask);
+	  blue_shift = buildShift(visual_info.blue_mask);
 	}
       else if( status == 0 ) {
 	cerr << "Error: bad XMatchVisualInfo: no PseudoColor Visual" << endl;
@@ -61,11 +77,6 @@ GraphicsAttributes::PBitmapPaddedWidth(int width) const
 {
   return (1+(width-1)/(BitmapPad(display)/8))*BitmapPad(display)/8;
 }
-
-// -------------------------------------------------------------------
-GraphicsAttributes::~GraphicsAttributes() {
-}
-
 
 // -------------------------------------------------------------------
 // return number of bytes per pixel this display uses
@@ -86,3 +97,17 @@ int GraphicsAttributes::CalculateNBP() {
 } /* CalculateNBP() */
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
+
+ostream&
+operator<<(ostream& os, const GraphicsAttributes& ga)
+{
+  return os << "("
+	    << "red_shift = " << ga.PRedShift() << ", "
+	    << "green_shift = " << ga.PGreenShift() << ", "
+	    << "blue_shift = " << ga.PBlueShift() << ", "
+	    << "red_mask = " << ga.PRedMask() << ", "
+	    << "green_mask = " << ga.PGreenMask() << ", "
+	    << "blue_mask = " << ga.PBlueMask() << ", "
+	    << "bits_per_rgb = " << ga.PBitsPerRGB()
+	    << ")";
+}

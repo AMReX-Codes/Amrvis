@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.H,v 1.15 2000-06-14 20:08:27 car Exp $
+// $Id: Palette.H,v 1.16 2000-06-16 17:55:52 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -20,6 +20,7 @@ const int TEXTCOLOR       = 224;
 const int TOTALPALHEIGHT  = 280;
 const int TOTALPALWIDTH   = 150;
 
+#include <GraphicsAttributes.H>
 #include <X11/Intrinsic.h>
 //#include <StringDefs.h>
 
@@ -42,6 +43,7 @@ protected:
   int		transSet;
   Array<float>  transferArray;
   unsigned char *remapTable; // for remapping to a smaller color index set
+#if 0
   Display       *display;
   Visual        *visual;
   Screen        *screen;
@@ -49,13 +51,16 @@ protected:
   GC            gc;
   Window        root;
   int           screenNumber;
+  int bits_per_rgb;
+  bool isTrueColor;
+  int palDepth;
+#else
+  GraphicsAttributes* GAptr;
+#endif
   Array<XColor> sysccells;
   
   static Colormap systemColmap;
   PaletteType paletteType;
-  bool visTrueColor;
-  int bits_per_rgb;
-  int palDepth;
   Array<unsigned char> abuff;
   Array<unsigned char> rbuff;
   Array<unsigned char> gbuff;
@@ -94,6 +99,8 @@ public:
   XImage *GetPictureXImage();
   unsigned char *RemapTable() const  { return remapTable;     }
 
+  const GraphicsAttributes& theGAptr() const { return *GAptr; }
+
   const Array<unsigned char>& theABuff() const { return abuff; }
   const Array<unsigned char>& theRBuff() const { return rbuff; }
   const Array<unsigned char>& theGBuff() const { return gbuff; }
@@ -104,6 +111,7 @@ public:
   unsigned char theGBuff(int i) const { return gbuff[i]; }
   unsigned char theBBuff(int i) const { return bbuff[i]; }
   unsigned long pixelate(int i) const;
+  void unpixelate(Pixel p, unsigned char& r, unsigned char& g, unsigned char& b) const;
 private:
   void ReadPalette(const aString &palNam);
   Palette(Widget &w);

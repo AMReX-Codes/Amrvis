@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Output.H,v 1.8 2000-06-14 20:08:27 car Exp $
+// $Id: Output.H,v 1.9 2000-06-16 17:55:52 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -15,6 +15,8 @@
 #include "REAL.H"
 #include "Array.H"
 #include "aString.H"
+
+#include <Palette.H>
 
 // the following is support for writing rgb files.
 #define IMAGIC  0732
@@ -61,19 +63,18 @@ typedef struct {
 } IMAGE;
 
 
-void WritePSFile(char *filename, XImage *image,
+void WritePSFile(const char *filename, XImage *image,
                  int imagesizehoriz, int imagesizevert,
-                 const Array<XColor> &colorcells);
+                 const Palette& palette);
 
-void WritePSPaletteFile(char *filename, XImage *image,
+void WritePSPaletteFile(const char *filename, XImage *image,
                         int imagesizehoriz, int imagesizevert,
-                        const Array<XColor> &colorcells,
                         const Array<Real> &palValuesList,
-			const aString &palNumFormat);
+			const aString &palNumFormat, const Palette& palette);
 
-void WriteRGBFile(char *filename, XImage *image,
-		   int imagesizehoriz, int imagesizevert,
-                   const Array<XColor> &colorcells);
+void WriteRGBFile(const char *filename, XImage *image,
+		  int imagesizehoriz, int imagesizevert,
+		  const Palette& palette);
 
 #endif
 

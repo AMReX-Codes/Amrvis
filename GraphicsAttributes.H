@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GraphicsAttributes.H,v 1.11 2000-06-14 20:08:26 car Exp $
+// $Id: GraphicsAttributes.H,v 1.12 2000-06-16 17:55:52 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -12,15 +12,19 @@
 
 #include "AmrvisConstants.H"
 
+#ifdef BL_USE_NEW_HFILES
+#include <iostream>
+using std::ostream;
+#else
+#include <iostream.h>
+#endif
+
 #include <X11/X.h>
 #include <X11/Intrinsic.h>
 #undef index
 
-extern "C" {
-  int close(int);
-}
-
 class GraphicsAttributes {
+    friend ostream& operator<<(ostream& os, const GraphicsAttributes& ga);
   protected:
 
     Widget	appTopLevel;
@@ -33,10 +37,12 @@ class GraphicsAttributes {
     int		depth, screennumber, bytesPerPixel;
 
     int		CalculateNBP();
+  unsigned long red_shift;
+  unsigned long green_shift;
+  unsigned long blue_shift;
   public:
 
-    GraphicsAttributes(Widget);
-    ~GraphicsAttributes();
+    explicit GraphicsAttributes(Widget);
 
     Widget   PTopLevel()      const { return appTopLevel; }
     Display *PDisplay()       const { return display; }
@@ -49,6 +55,12 @@ class GraphicsAttributes {
     int      PBytesPerPixel() const { return bytesPerPixel; }
     int      PBitsPerRGB()    const { return visual_info.bits_per_rgb; }
     bool     isTrueColor()    const { return visual_info.c_class == TrueColor; }
+    unsigned long PRedMask()  const { return visual_info.red_mask; }
+    unsigned long PGreenMask() const { return visual_info.green_mask; }
+    unsigned long PBlueMask() const { return visual_info.blue_mask; }
+    unsigned long PRedShift()  const { return red_shift; }
+    unsigned long PGreenShift() const { return green_shift; }
+    unsigned long PBlueShift() const { return blue_shift; }
     int      PBitmapPaddedWidth(int width) const;
 };
 

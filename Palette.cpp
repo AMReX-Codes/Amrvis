@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.cpp,v 1.25 2000-06-14 13:55:10 car Exp $
+// $Id: Palette.cpp,v 1.26 2000-06-16 17:55:53 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -26,7 +26,6 @@ Colormap Palette::systemColmap;
 Palette::Palette(Widget &w,  int datalistlength, int width,
 		 int totalwidth, int totalheight, int reservesystemcolors)
 {
-  visTrueColor = false;
   totalColorSlots = MaxPaletteIndex() + 1;
   sysccells.resize(totalColorSlots);
   transferArray.resize(totalColorSlots);
@@ -36,6 +35,8 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
   pmax = 1.0;
   defaultFormat = "%6.4f";
 
+  GAptr = new GraphicsAttributes(w);
+#if 0
   display = XtDisplay(w);
   root = RootWindow(display, DefaultScreen(display));
   screen = XtScreen(w);
@@ -54,7 +55,7 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
 				    DefaultDepth(display, screenNumber), TrueColor, &visualInfo);
       if ( status != 0 )
 	{
-	  visTrueColor=true;
+	  isTrueColor=true;
 	  visual = visualInfo.visual;
 	  bits_per_rgb = visualInfo.bits_per_rgb;
 	  palDepth = DefaultDepth(display, screenNumber);
@@ -65,7 +66,6 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
 	exit(1);
       }
     }
-
 /*
   cout << endl;
   cout << "_in Palette:  screen  DefaultScreen(display) visualInfo.screen = "
@@ -73,28 +73,28 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
        << endl;
   cout << endl;
 */
-
   gc = screen->default_gc;
+#endif
 
   totalPalWidth = totalwidth;
   palWidth  = width;
   totalPalHeight = totalheight;
   dataList.resize(datalistlength);
-  if ( visTrueColor )
+  if ( GAptr->isTrueColor() )
     {
-      colmap = DefaultColormap(display, screenNumber);
+      colmap = DefaultColormap(GAptr->PDisplay(), GAptr->PScreenNumber());
     }
   else
     {
-      colmap = XCreateColormap(display, root, visual, AllocAll);
+      colmap = XCreateColormap(GAptr->PDisplay(), GAptr->PRoot(), GAptr->PVisual(), AllocAll);
     }
   transSet = false;
-  systemColmap = DefaultColormap(display, screenNumber);
+  systemColmap = DefaultColormap(GAptr->PDisplay(), GAptr->PScreenNumber());
   for(int ii = 0; ii < totalColorSlots; ++ii) {
     sysccells[ii].pixel = ii;
   }
-  XQueryColors(display, systemColmap, sysccells.dataPtr(), totalColorSlots);
-  if ( visTrueColor )
+  XQueryColors(GAptr->PDisplay(), systemColmap, sysccells.dataPtr(), totalColorSlots);
+  if ( GAptr->isTrueColor() )
     {
       reserveSystemColors = 0;
       colorOffset = 0;
@@ -128,6 +128,7 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
 Palette::Palette(int datalistlength, int width,
 		 int totalwidth, int totalheight, int reservesystemcolors)
 {
+  GAptr = 0;
   //  bool visTrueColor = false;
   totalColorSlots = MaxPaletteIndex() + 1;
   sysccells.resize(totalColorSlots);
@@ -174,7 +175,7 @@ Palette::~Palette() {
 
 // -------------------------------------------------------------------
 void Palette::ExposePalette() {
-    XCopyArea(display, palPixmap, palWindow, gc,
+    XCopyArea(GAptr->PDisplay(), palPixmap, palWindow, GAptr->PGC(),
 	    0, 0, totalPalWidth, totalPalHeight+50, 0, 0);
 }
 
@@ -206,16 +207,16 @@ void Palette::Draw(Real palMin, Real palMax, const aString &numberFormat) {
   pmin = palMin;
   pmax = palMax;
   defaultFormat = numberFormat;
-  XClearWindow(display, palWindow);
+  XClearWindow(GAptr->PDisplay(), palWindow);
 
   if(palPixmap == 0) {
-    palPixmap = XCreatePixmap(display, palWindow, totalPalWidth,
-			      totalPalHeight + 50, palDepth);
+    palPixmap = XCreatePixmap(GAptr->PDisplay(), palWindow, totalPalWidth,
+			      totalPalHeight + 50, GAptr->PDepth());
   }
-  XGetWindowAttributes(display, palWindow, &winAttribs);
-  XSetForeground(display, gc, BlackIndex());
+  XGetWindowAttributes(GAptr->PDisplay(), palWindow, &winAttribs);
+  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), BlackIndex());
 // ERROR here for 24 bit color pc
-  XFillRectangle(display, palPixmap, gc, 0, 0, totalPalWidth, totalPalHeight + 50);
+  XFillRectangle(GAptr->PDisplay(), palPixmap, GAptr->PGC(), 0, 0, totalPalWidth, totalPalHeight + 50);
 
   if(transSet) {    // show transfers in palette
     int transpnt, zerolinex = palWidth - 5;
@@ -223,39 +224,39 @@ void Palette::Draw(Real palMin, Real palMax, const aString &numberFormat) {
       cy = ((totalColorSlots - 1) - i) + 14;
       // draw transparency as black
       // FIXME:
-      XSetForeground(display, gc, ccells[blackIndex].pixel);
+      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), ccells[blackIndex].pixel);
       transpnt = (int) (zerolinex*(1.0-transferArray[i]));
-      XDrawLine(display, palPixmap, gc, 0, cy, transpnt, cy);
+      XDrawLine(GAptr->PDisplay(), palPixmap, GAptr->PGC(), 0, cy, transpnt, cy);
 
       // draw color part of line
       // FIXME:
-      XSetForeground(display, gc, ccells[i].pixel);
-      XDrawLine(display, palPixmap, gc, transpnt, cy, palWidth, cy);
+      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), ccells[i].pixel);
+      XDrawLine(GAptr->PDisplay(), palPixmap, GAptr->PGC(), transpnt, cy, palWidth, cy);
     }
     
     // draw black line represening zero opacity
       // FIXME:
-    XSetForeground(display, gc, ccells[blackIndex].pixel);
-    XDrawLine(display, palPixmap, gc, zerolinex, 14, zerolinex, colorSlots + 14);
+    XSetForeground(GAptr->PDisplay(), GAptr->PGC(), ccells[blackIndex].pixel);
+    XDrawLine(GAptr->PDisplay(), palPixmap, GAptr->PGC(), zerolinex, 14, zerolinex, colorSlots + 14);
 
   } else {
     for(i = paletteStart; i < totalColorSlots; i++) {
-      XSetForeground(display, gc, ccells[i].pixel);
+      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), ccells[i].pixel);
       cy = ((totalColorSlots - 1) - i) + 14;
-      XDrawLine(display, palPixmap, gc, 0, cy, palWidth, cy);
+      XDrawLine(GAptr->PDisplay(), palPixmap, GAptr->PGC(), 0, cy, palWidth, cy);
     }
   }
 
   char palString[64];
   for(i = 0; i < dataList.length(); ++i) {
-    XSetForeground(display, gc, WhiteIndex());
+    XSetForeground(GAptr->PDisplay(), GAptr->PGC(), WhiteIndex());
     dataList[i] = palMin + (dataList.length()-1-i) *
 			   (palMax - palMin)/(dataList.length() - 1);
     if(i == 0) {
       dataList[i] = palMax;  // to avoid roundoff
     }
     sprintf(palString, numberFormat.c_str(), dataList[i]);
-    XDrawString(display, palPixmap, gc, palWidth + 4,
+    XDrawString(GAptr->PDisplay(), palPixmap, GAptr->PGC(), palWidth + 4,
 		(i * colorSlots / (dataList.length() - 1)) + 20,
 		palString, strlen(palString));
   }
@@ -272,7 +273,7 @@ void Palette::SetWindow(Window drawPaletteHere) {
 // -------------------------------------------------------------------
 void Palette::SetWindowPalette(const aString &palName, Window newPalWindow) {
   ReadPalette(palName);
-  XSetWindowColormap(display, newPalWindow, colmap);
+  XSetWindowColormap(GAptr->PDisplay(), newPalWindow, colmap);
 }
 
 
@@ -285,9 +286,9 @@ void Palette::ChangeWindowPalette(const aString &palName, Window newPalWindow) {
 // -------------------------------------------------------------------
 void Palette::ReadPalette(const aString &palName) {
   ReadSeqPalette(palName);
-  if ( visTrueColor ) return;
-  XStoreColors(display, colmap, ccells.dataPtr(), totalColorSlots);
-  XStoreColors(display, colmap, sysccells.dataPtr(), reserveSystemColors);
+  if ( GAptr->isTrueColor() ) return;
+  XStoreColors(GAptr->PDisplay(), colmap, ccells.dataPtr(), totalColorSlots);
+  XStoreColors(GAptr->PDisplay(), colmap, sysccells.dataPtr(), reserveSystemColors);
 }
 
 
@@ -301,11 +302,11 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
   Array<int> indexArray(iSeqPalSize);
   int	i, fd;		/* file descriptor */
 
-  const unsigned long bprgb = bits_per_rgb;
+  const unsigned long bprgb = GAptr->PBitsPerRGB();
   if((fd = open(fileName.c_str(), O_RDONLY, NULL)) < 0) {
     cout << "Can't open colormap file:  " << fileName << endl;
     for(i = 0; i < totalColorSlots; i++) {    // make a default grayscale colormap.
-      if ( visTrueColor )
+      if ( GAptr->isTrueColor() )
 	{
 	  // FIXME: not 24 bit!
 	  ccells[i].pixel = (((rbuff[i]>>(8-bprgb)) <<2*bprgb)
@@ -387,7 +388,7 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
   }
 
   for(i = 0; i < totalColorSlots; ++i) {
-    if ( visTrueColor )
+    if ( GAptr->isTrueColor() )
       {
 	// FIXME: not 24 bit!
 	ccells[i].pixel = (((rbuff[i]>>(8-bprgb)) <<2*bprgb)
@@ -433,7 +434,7 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
 
 // -------------------------------------------------------------------
 XImage *Palette::GetPictureXImage() {
-  return (XGetImage(display, palPixmap, 0, 0,
+  return (XGetImage(GAptr->PDisplay(), palPixmap, 0, 0,
                 totalPalWidth, totalPalHeight, AllPlanes, ZPixmap));
 }
 // -------------------------------------------------------------------
@@ -442,8 +443,8 @@ XImage *Palette::GetPictureXImage() {
 unsigned long
 Palette::BlackIndex()    const
 {
-  if ( visTrueColor )
-    return BlackPixel(display, screenNumber);
+  if ( GAptr->isTrueColor() )
+    return BlackPixel(GAptr->PDisplay(), GAptr->PScreenNumber());
   else
     return blackIndex;
 }
@@ -451,8 +452,8 @@ Palette::BlackIndex()    const
 unsigned long
 Palette::WhiteIndex()    const
 {
-  if ( visTrueColor )
-    return WhitePixel(display, screenNumber);
+  if ( GAptr->isTrueColor() )
+    return WhitePixel(GAptr->PDisplay(), GAptr->PScreenNumber());
   else
     return whiteIndex;
 }
@@ -466,4 +467,21 @@ Palette::pixelate(int i) const
     return WhiteIndex();
   else
     return ccells[i].pixel;
+}
+
+void
+Palette::unpixelate(Pixel index, unsigned char& r, unsigned char& g, unsigned char& b) const
+{
+  if ( GAptr->isTrueColor() )
+    {
+      r = (index&GAptr->PRedMask()) >> GAptr->PRedShift();
+      g = (index&GAptr->PGreenMask()) >> GAptr->PGreenShift();
+      b = (index&GAptr->PBlueMask()) >> GAptr->PBlueShift();
+    }
+  else
+    {
+      r = ccells[index].red   >> 8;
+      g = ccells[index].green >> 8;
+      b = ccells[index].blue  >> 8;
+    }
 }
