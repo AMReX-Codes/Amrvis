@@ -20,6 +20,8 @@
 #include <volpack.h>
 #endif
 
+
+
 class DataServices;
 
 class VolRender {
@@ -71,7 +73,7 @@ public:
     
     void SetImage(unsigned char *image_data, int width, int height,
                          int pixel_type);
-    void            WriteSWFData(const aString &filenamebase);
+    void            WriteSWFData(const aString &filenamebase, bool SWFLight);
     unsigned char  *GetSWFData()               { return swfData; }
     int             GetSWFDataSize()   const   { return swfDataSize; }
     bool      	VPDataValid()      const   { return vpDataValid; }

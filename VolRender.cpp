@@ -50,6 +50,7 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
   densitySize = sizeof(unsigned char);
   densityMax = 255;
 
+
   gradientField = 2;
   gradientOffset = vpFieldOffset(dummy_voxel, gradient);
   gradientSize = sizeof(unsigned char);
@@ -456,34 +457,29 @@ void VolRender::MakeSWFDataOneProc(DataServices *dataServicesPtr,
 
 
 // -------------------------------------------------------------------
-void VolRender::WriteSWFData(const aString &filenamebase) {
+void VolRender::WriteSWFData(const aString &filenamebase, bool SWFLight) {
     cout<<"VolRender::WriteSWFData"<<endl;
-  assert(bVolRenderDefined);
-  if(ParallelDescriptor::IOProcessor()) {
-    cout << "vpClassify Scalars..." << endl;           // --- classify
-    clock_t time0 = clock();
-    vpResult vpret;
-    if (lightingModel) {
-//        if (preClassify) {
-        vpret = vpClassifyScalars(vpc, swfData, swfDataSize,
-                                  densityField, gradientField, normalField);
-        CheckVP(vpret, 3);
-//        } else {
-//            vpret = vpVolumeNormals(vpc, ...);
-//            CheckVP(vpret, 3.1);
-//        }
-    } else {
-//        if (preClassify) {
-//        } else {
+    assert(bVolRenderDefined);
+    if(ParallelDescriptor::IOProcessor()) {
+        cout << "vpClassify Scalars..." << endl;           // --- classify
+        clock_t time0 = clock();
+        vpResult vpret;
+        bool PCtemp = preClassify;
+        preClassify = true;
+        //here set lighting or value model
+        bool LMtemp = lightingModel;
+        lightingModel = SWFLight;
+ 
         MakeVPData();
-        vpret = vpClassifyVolume(vpc);
-        CheckVP(vpret, 3.2);
-//    }
-    }
-  
+        
+        preClassify = PCtemp;
+        lightingModel = LMtemp;
+   
+
   cout << "----- make vp data time = " << ((clock()-time0)/1000000.0) << endl;
   aString filename = "swf.";
   filename += filenamebase;
+  filename += (SWFLight ? ".lt" : ".val" );
   filename += ".vpdat";
   cout << "----- storing classified volume into file:  " << filename << endl;
 #ifndef S_IRUSR  /* the T3E does not define this */
@@ -516,35 +512,11 @@ void VolRender::InvalidateVPData() {
 }
 
 void VolRender::SetLightingModel(bool lightOn) {
-    //if (lightingModel == lightOn)
-    //    return;
     lightingModel = lightOn;
-    /*
-      if (lightingModel) {
-        normalField = 0;
-        normalOffset = vpFieldOffset(dummy_voxel, normal);
-        normalSize = sizeof(short);
-        normalMax = VP_NORM_MAX;
-        gradientField = 2;
-        gradientOffset = vpFieldOffset(dummy_voxel, gradient);
-        gradientSize = sizeof(unsigned char);
-        gradientMax = 255;
-    } else {    
-        normalField = 2;
-        normalOffset = vpFieldOffset(dummy_voxel, normal);
-        normalSize = sizeof(unsigned char);
-        normalMax = 255;
-        gradientField = 0;   // this will be unused
-        gradientOffset = vpFieldOffset(dummy_voxel, gradient);
-        gradientSize = sizeof(short);
-        gradientMax = VP_NORM_MAX;
-    }*/
 }
 
 void VolRender::SetPreClassifyAlgorithm(bool pC)
 {
-//    if ( preClassify == pC )
-//        return;
     preClassify = pC;
 }
 
@@ -635,7 +607,8 @@ void VolRender::MakeVPData() {
             CheckVP(vpret, 9.5);
         
         }
-    } else { //load the volume data and precompute the minmax octree
+    } else { //value rendering --
+             //load the volume data and precompute the minmax octree
         if (lightingModel) {
             delete [] volData;
             volData = new RawVoxel[swfDataSize]; 

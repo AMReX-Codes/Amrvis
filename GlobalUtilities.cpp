@@ -24,6 +24,7 @@ int sleepTime;
 bool givenBox;
 bool givenBoxSlice;
 bool makeSWFData;
+bool makeSWFLight;
 bool dumpSlices;
 bool sliceAllVars;
 bool givenFilename;
@@ -355,6 +356,7 @@ void ParseCommandLine(int argc, char *argv[]) {
   givenBox = false;
   givenBoxSlice = false;
   makeSWFData = false;
+  makeSWFLight = false;
   dumpSlices = false;
   sliceAllVars = false;
   verbose = false;
@@ -473,8 +475,10 @@ void ParseCommandLine(int argc, char *argv[]) {
       givenBox = true;
 #   endif
 
-    } else if(strcmp(argv[i], "-makeswf") == 0) {
-      makeSWFData = true;
+    } else if(strcmp(argv[i], "-makeswf_light") == 0) {
+        makeSWFData = true; makeSWFLight = true;
+    } else if(strcmp(argv[i], "-makeswf_value") == 0) {
+        makeSWFData = true; makeSWFLight = false;
     } else if(strcmp(argv[i], "-useminmax") == 0) {
       specifiedMinMax = true;
       if(argc-2<i+2) {
@@ -655,6 +659,7 @@ FileType GetDefaultFileType()   { return fileType;    }
 bool GivenBox()    { return givenBox;     }
 bool GivenBoxSlice() { return givenBoxSlice;     }
 bool MakeSWFData() { return makeSWFData;  }
+bool MakeSWFLight() { return makeSWFLight; }
 bool DumpSlices()  { return dumpSlices;   }
 bool SliceAllVars(){ return sliceAllVars; }
 

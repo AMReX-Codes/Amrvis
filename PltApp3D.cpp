@@ -106,10 +106,9 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
       quatRotation = viewTrans.GetRotation();
       quatRotation2 = viewTrans.GetRenderRotation();
 // should replace the trigonometric equations...
-      newRotation = AmrQuaternion(cos(change), 0, 0, sin(change));
-// this last number scales the rotations correctly
-      newRotation2 = AmrQuaternion(cos(-change), 0, 0, sin(-change));
-      
+      newRotation = AmrQuaternion(cos(-change), 0, 0, sin(-change));
+      newRotation2 = AmrQuaternion(cos(change), 0, 0, sin(change));
+
       quatRotation = newRotation * quatRotation;
       viewTrans.SetRotation(quatRotation);
       quatRotation2 = newRotation2 * quatRotation2;

@@ -3,14 +3,15 @@ CEXE_headers += AmrPicture.H AmrData.H AmrvisConstants.H \
 		GlobalUtilities.H GraphicsAttributes.H \
                 GridPicture.H MessageArea.H \
                 Palette.H PltApp.H Output.H Quaternion.H Point.H \
-                Trackball.H 
+                Trackball.H
 
 CEXE_sources += AmrPicture.cpp AmrData.cpp AmrVisTool.cpp \
                 DataServices.cpp Dataset.cpp \
 		GraphicsAttributes.cpp GridPicture.cpp \
                 MessageArea.cpp PltApp.cpp \
                 GlobalUtilities.cpp Palette.cpp PltAppOutput.cpp \
-		Output.cpp Quaternion.cpp Point.cpp Trackball.cpp 
+		Output.cpp Quaternion.cpp Point.cpp Trackball.cpp
+
 
 ifeq ($(DIM),3)
 ifeq ($(USE_VOLRENDER), TRUE)

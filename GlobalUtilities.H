@@ -37,6 +37,7 @@ bool GivenBoxSlice();
 bool GivenFilename();
 int GetFileCount();
 bool MakeSWFData();
+bool MakeSWFLight();
 bool UseSpecifiedMinMax();
 void SetSpecifiedMinMax(Real  specifiedmin, Real  specifiedmax);
 void GetSpecifiedMinMax(Real &specifiedmin, Real &specifiedmax);

@@ -648,7 +648,10 @@ void PltApp::PltAppInit() {
 		         XmNbottomAttachment,	XmATTACH_FORM,
 		         XmNtopAttachment,	XmATTACH_FORM,
 		         XmNshadowType,		XmSHADOW_ETCHED_IN,
-		         NULL);
+                         XmNspacing,            0,
+                         XmNmarginHeight,       0,
+                         NULL);
+
   wPlotArea = XtVaCreateWidget("plotarea", xmFormWidgetClass,
 		               wFrames[PLOTFRAME],
 		               NULL);
@@ -824,7 +827,10 @@ void PltApp::PltAppInit() {
 
   i=0;
   wLightOptions = XmCreatePulldownMenu(wPlotArea,"lightingoptions", args, i);
-  XtVaSetValues(wLightOptions, XmNuserData, this, NULL);
+  XtVaSetValues(wLightOptions, XmNuserData, this, 
+                XmNmarginHeight, 0,
+                XmNspacing, 0,
+                NULL);
   XmString LightItems[2];
   LightItems[0] = XmStringCreateSimple("Light");
   LightItems[1] = XmStringCreateSimple("Value");
@@ -833,6 +839,8 @@ void PltApp::PltAppInit() {
   for(int j = 0; j<2; j++)
   {
     XtSetArg(args[0], XmNlabelString, LightItems[j]);
+    XtSetArg(args[1], XmNmarginHeight, 0);
+    XtSetArg(args[2], XmNspacing, 0);
     wLightItems[j] = XmCreatePushButtonGadget(wLightOptions,
                                               "light", args, 1);
     XtAddCallback(wLightItems[j], XmNactivateCallback,
@@ -850,6 +858,8 @@ void PltApp::PltAppInit() {
     XtSetArg(args[i], XmNleftOffset, WOFFSET); i++;
     XtSetArg(args[i], XmNtopAttachment, XmATTACH_POSITION); i++;
     XtSetArg(args[i], XmNtopPosition, 50); i++;
+    XtSetArg(args[i], XmNspacing, 0); i++;
+    XtSetArg(args[i], XmNmarginHeight, 0); i++;
     XtSetArg(args[i], XmNmenuHistory, wLightItems[0]);  i++;
     wLight = XmCreateOptionMenu(wPlotArea, "lighting", args, i);
 
@@ -892,6 +902,8 @@ void PltApp::PltAppInit() {
     XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET); i++;
     XtSetArg(args[i], XmNleftWidget, wLight); i++;
     XtSetArg(args[i], XmNleftOffset, WOFFSET); i++;
+    XtSetArg(args[i], XmNmarginHeight, 0); i++;
+    XtSetArg(args[i], XmNspacing, 0); i++;
     XtSetArg(args[i], XmNtopAttachment, XmATTACH_POSITION); i++;
     XtSetArg(args[i], XmNtopPosition, 50); i++;
     XtSetArg(args[i], XmNmenuHistory, wClassifyItems[0]);  i++;

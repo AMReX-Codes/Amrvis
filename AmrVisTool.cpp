@@ -411,7 +411,7 @@ void BatchFunctions() {
       volRender.MakeSWFData(&dataServices, dataMin, dataMax, GetInitialDerived(),
                             iPaletteStart, iPaletteEnd,
                             iBlackIndex, iWhiteIndex, iColorSlots);
-      volRender.WriteSWFData(comlineFileName);
+      volRender.WriteSWFData(comlineFileName, MakeSWFLight());
 
     } 
 #endif
