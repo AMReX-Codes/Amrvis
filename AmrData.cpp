@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.62 2002-08-16 00:22:33 vince Exp $
+// $Id: AmrData.cpp,v 1.63 2002-10-23 22:03:05 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -848,8 +848,14 @@ bool AmrData::ReadNonPlotfileData(const string &filename, FileType filetype) {
       dataGrids[0][iComp] = new MultiFab;
       dataGrids[0][iComp]->define(levelZeroBoxArray, 0, nGrow, Fab_noallocate);
       FArrayBox *newfab = new FArrayBox(probDomain[0], 1);
-      Real levelZeroValue(tempVisMF.min(0, iComp) -
-		  ((tempVisMF.max(0, iComp) - tempVisMF.min(0, iComp)) / 256.0));
+      Real levelZeroValue, zvMin, zvMax;
+      zvMin = tempVisMF.min(0, iComp);  // init with first value
+      zvMax = tempVisMF.max(0, iComp);  // init with first value
+      for(int ic(0); ic < tempVisMF.size(); ++ic) {
+        zvMin = min(zvMin, tempVisMF.min(ic, iComp));
+        zvMax = max(zvMax, tempVisMF.max(ic, iComp));
+      }
+      levelZeroValue = zvMin - ((zvMax - zvMin) / 256.0);
       newfab->setVal(levelZeroValue);
       dataGrids[0][iComp]->setFab(0, newfab);
       dataGridsDefined[0][iComp][0] = true;
