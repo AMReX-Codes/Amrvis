@@ -2,6 +2,7 @@
 // Palette.cpp
 // -------------------------------------------------------------------
 #include "Palette.H"
+#include "GlobalUtilities.H"
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -276,9 +277,9 @@ int Palette::ReadSeqPalette(const aString &fileName) {
   rbuff[blackIndex] = 0;   gbuff[blackIndex] = 0;   bbuff[blackIndex] = 0;
   rbuff[whiteIndex] = 255; gbuff[whiteIndex] = 255; bbuff[whiteIndex] = 255;
 
-  //bool lowBlack = false;
-  bool lowBlack = true;
-  if(lowBlack) {   // set low value to black
+  //bool PallowBlack = false;
+  //bool PallowBlack = true;
+  if(LowBlack()) {   // set low value to black
     rbuff[paletteStart] = 0;
     gbuff[paletteStart] = 0;
     bbuff[paletteStart] = 0;

@@ -25,6 +25,7 @@ bool givenBox;
 bool givenBoxSlice;
 bool makeSWFData;
 bool makeSWFLight;
+bool lowBlack;
 bool dumpSlices;
 bool sliceAllVars;
 bool givenFilename;
@@ -294,6 +295,7 @@ void PrintUsage(char *exname) {
 # if (BL_SPACEDIM == 3)
     cout << "       [-makeswf_light]" << endl;
     cout << "       [-makeswf_value]" << endl;
+    cout << "       [-lowblack]"<<endl;
     cout << "       [-useminmax min max]" << endl;
 #endif
   cout << "       [<filename(s)>]" << endl;
@@ -330,6 +332,7 @@ void PrintUsage(char *exname) {
   cout << "                     to a file, using the lighting model."<<endl
        << "                     note:  works in batch mode." << endl;
   cout << "  -makeswf_value     same as above, with value model rendering."<<endl;
+  cout << "  -lowblack          sets the lowest color in the palette to black."<<endl;
   cout << "  -useminmax min max use min and max as the global min max values" << endl;
 #endif
   cout << "  -v                 verbose." << endl; 
@@ -362,6 +365,7 @@ void ParseCommandLine(int argc, char *argv[]) {
   givenBoxSlice = false;
   makeSWFData = false;
   makeSWFLight = false;
+  lowBlack = false;
   dumpSlices = false;
   sliceAllVars = false;
   verbose = false;
@@ -484,6 +488,8 @@ void ParseCommandLine(int argc, char *argv[]) {
         makeSWFData = true; makeSWFLight = true;
     } else if(strcmp(argv[i], "-makeswf_value") == 0) {
         makeSWFData = true; makeSWFLight = false;
+    } else if(strcmp(argv[i], "-lowblack") == 0) {
+        lowBlack = true;
     } else if(strcmp(argv[i], "-useminmax") == 0) {
       specifiedMinMax = true;
       if(argc-2<i+2) {
@@ -668,6 +674,7 @@ bool GivenBox()    { return givenBox;     }
 bool GivenBoxSlice() { return givenBoxSlice;     }
 bool MakeSWFData() { return makeSWFData;  }
 bool MakeSWFLight() { return makeSWFLight; }
+bool LowBlack() { return lowBlack; }
 bool DumpSlices()  { return dumpSlices;   }
 bool SliceAllVars(){ return sliceAllVars; }
 
