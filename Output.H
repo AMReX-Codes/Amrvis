@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.H,v 1.11 2001-06-11 20:09:43 vince Exp $
+// $Id: Output.H,v 1.12 2001-07-31 19:45:09 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -10,6 +10,7 @@
 #define _OUTPUT_H_
 
 #include <X11/Xlib.h>
+#undef index
 
 #include "REAL.H"
 #include "Array.H"
