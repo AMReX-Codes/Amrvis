@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.H,v 1.21 1998-10-29 23:56:06 vince Exp $
+// $Id: AmrPicture.H,v 1.22 1998-12-02 00:38:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -30,8 +30,10 @@ class PltApp;
 class DataServices;
 class GraphicsAttributes;
 
+enum VectorDerived { enVelocity, enMomentum, enNoneFound };
+
 class AmrPicture {
-public:
+ public:
   AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
              PltApp *pltappptr, DataServices *dataservicesptr);
   // construct an AmrPicture using data from filename
@@ -121,7 +123,9 @@ public:
   bool Raster() {return raster; }
   bool ColorContour() { return colContour; }
   bool VectorField() { return vectorField; }
-private:
+  VectorDerived FindVectorDerived(Array<aString> &aVectorDeriveNames);
+
+ private:
   Window 			pictureWindow;
   int	numberOfLevels, finestLevel, numberOfDerived, numberOfContours;
   Real			dataMinAllGrids, dataMaxAllGrids;

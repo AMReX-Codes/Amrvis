@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.cpp,v 1.32 1998-10-29 23:56:06 vince Exp $
+// $Id: AmrPicture.cpp,v 1.33 1998-12-02 00:38:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1743,6 +1743,107 @@ int AmrPicture::contour(const FArrayBox &fab, Real value,
 
 
 // ---------------------------------------------------------------------
+VectorDerived AmrPicture::FindVectorDerived(Array<aString> &aVectorDeriveNames) {
+  // figure out if we are using velocities, momentums, or if neither are available
+  // first try velocities
+
+  if(dataServicesPtr->CanDerive("x_velocity") &&
+     dataServicesPtr->CanDerive("y_velocity")
+#if (BL_SPACEDIM == 3)
+     && dataServicesPtr->CanDerive("z_velocity")
+#endif
+    )
+  {
+    aVectorDeriveNames[0] = "x_velocity";
+    aVectorDeriveNames[1] = "y_velocity";
+#if (BL_SPACEDIM == 3)
+    aVectorDeriveNames[2] = "z_velocity";
+#endif
+    return enVelocity;
+
+  } else
+    if(dataServicesPtr->CanDerive("xvel") &&
+       dataServicesPtr->CanDerive("yvel")
+#if (BL_SPACEDIM == 3)
+       && dataServicesPtr->CanDerive("zvel")
+#endif
+    )
+  {
+    aVectorDeriveNames[0] = "xvel";
+    aVectorDeriveNames[1] = "yvel";
+#if (BL_SPACEDIM == 3)
+    aVectorDeriveNames[2] = "zvel";
+#endif
+    return enVelocity;
+
+  } else
+    if(dataServicesPtr->CanDerive("x_vel") &&
+       dataServicesPtr->CanDerive("y_vel")
+#if (BL_SPACEDIM == 3)
+       && dataServicesPtr->CanDerive("z_vel")
+#endif
+    )
+  {
+    aVectorDeriveNames[0] = "x_vel";
+    aVectorDeriveNames[1] = "y_vel";
+#if (BL_SPACEDIM == 3)
+    aVectorDeriveNames[2] = "z_vel";
+#endif
+    return enVelocity;
+
+  } else
+    if(dataServicesPtr->CanDerive("x_momentum") &&
+       dataServicesPtr->CanDerive("y_momentum")
+#if (BL_SPACEDIM == 3)
+       && dataServicesPtr->CanDerive("z_momentum")
+#endif
+    )
+  {
+    aVectorDeriveNames[0] = "x_momentum";
+    aVectorDeriveNames[1] = "y_momentum";
+#if (BL_SPACEDIM == 3)
+    aVectorDeriveNames[2] = "z_momentum";
+#endif
+    return enMomentum;
+
+  } else
+    if(dataServicesPtr->CanDerive("xmom") &&
+       dataServicesPtr->CanDerive("ymom")
+#if (BL_SPACEDIM == 3)
+       && dataServicesPtr->CanDerive("zmom")
+#endif
+    )
+  {
+    aVectorDeriveNames[0] = "xmom";
+    aVectorDeriveNames[1] = "ymom";
+#if (BL_SPACEDIM == 3)
+    aVectorDeriveNames[2] = "zmom";
+#endif
+    return enMomentum;
+
+  } else
+    if(dataServicesPtr->CanDerive("x_mom") &&
+       dataServicesPtr->CanDerive("y_mom")
+#if (BL_SPACEDIM == 3)
+       && dataServicesPtr->CanDerive("z_mom")
+#endif
+    )
+  {
+    aVectorDeriveNames[0] = "x_mom";
+    aVectorDeriveNames[1] = "y_mom";
+#if (BL_SPACEDIM == 3)
+    aVectorDeriveNames[2] = "z_mom";
+#endif
+    return enMomentum;
+
+  } else {
+    return enNoneFound;
+  }
+
+}
+
+
+// ---------------------------------------------------------------------
 void AmrPicture::DrawVectorField(Display *pDisplay, 
                                  Drawable &pDrawable, GC pGC)
 {
@@ -1770,35 +1871,64 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
   FArrayBox density(DVFSliceBox);
   FArrayBox hVelocity(DVFSliceBox);
   FArrayBox vVelocity(DVFSliceBox);
+  VectorDerived whichVectorDerived;
+  Array<aString> choice(BL_SPACEDIM);
 
-  // fill the density and momentum:
-  aString sDensity("density");
-  aString choice[3];
-  choice[0] = "xmom";
-  choice[1] = "ymom";
-  choice[2] = "zmom";
-  aString hMom = choice[hDir];
-  aString vMom = choice[vDir];
+  whichVectorDerived = FindVectorDerived(choice);
 
-  DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
-                         (void *) &density,
-			 (void *) (&(density.box())),
-                         maxDrawnLevel,
-			 (void *) &sDensity);
-  DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
-                         (void *) &hVelocity,
-			 (void *) (&(hVelocity.box())),
-                         maxDrawnLevel,
-			 (void *) &hMom);
-  DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
-                         (void *) &vVelocity,
-			 (void *) (&(vVelocity.box())),
-                         maxDrawnLevel,
-			 (void *) &vMom);
+  if(whichVectorDerived == enNoneFound) {
+    cerr << "Could not find suitable quantities to create velocity vectors."
+	 << endl;
+    return;
+  }
 
-  // then divide to get velocity
-  hVelocity /= density;
-  vVelocity /= density;
+  if(whichVectorDerived == enVelocity) {
+    // fill the velocities
+    aString hVel(choice[hDir]);
+    aString vVel(choice[vDir]);
+    DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
+                           (void *) &hVelocity,
+			   (void *) (&(hVelocity.box())),
+                           maxDrawnLevel,
+			   (void *) &hVel);
+    DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
+                           (void *) &vVelocity,
+			   (void *) (&(vVelocity.box())),
+                           maxDrawnLevel,
+			   (void *) &vVel);
+
+  } else {  // using momentums
+    assert(whichVectorDerived == enMomentum);
+    // fill the density and momentum:
+    aString sDensity("density");
+    if( ! dataServicesPtr->CanDerive(sDensity)) {
+      cerr << "Found momentums in the plot file but not density." << endl;
+      return;
+    }
+
+    aString hMom(choice[hDir]);
+    aString vMom(choice[vDir]);
+
+    DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
+                           (void *) &density,
+			   (void *) (&(density.box())),
+                           maxDrawnLevel,
+			   (void *) &sDensity);
+    DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
+                           (void *) &hVelocity,
+			   (void *) (&(hVelocity.box())),
+                           maxDrawnLevel,
+			   (void *) &hMom);
+    DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
+                           (void *) &vVelocity,
+			   (void *) (&(vVelocity.box())),
+                           maxDrawnLevel,
+			   (void *) &vMom);
+
+    // then divide to get velocity
+    hVelocity /= density;
+    vVelocity /= density;
+  }
   
   // compute maximum speed
   Real smax(0.0);

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.cpp,v 1.52 1998-11-02 21:39:38 vince Exp $
+// $Id: PltApp.cpp,v 1.53 1998-12-02 00:38:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -640,9 +640,12 @@ void PltApp::PltAppInit() {
   ContourItems[4] = XmStringCreateSimple("velocity vectors");
   
   int nItems(5);
-  if(amrData.NComp() < (BL_SPACEDIM + 1)) {
+  Array<aString> vvNames(BL_SPACEDIM);  // unused return value
+  if(amrPicturePtrArray[ZPLANE]->FindVectorDerived(vvNames) == enNoneFound) {
+    //cout << "Cannot find quantities to draw velocity vectors." << endl;
     nItems = 4;  // no velocity vectors
   }
+
   for(int j = 0; j < nItems; ++j) {
     XtSetArg(args[0], XmNlabelString, ContourItems[j]);
     wContourItems[j] = XmCreatePushButtonGadget(wContourOptions,
