@@ -13,7 +13,7 @@
 #include <ctype.h>
 #include <string.h>
 #include <stdlib.h>
-#include <malloc.h>
+//#include <malloc.h>
 #include <X11/Xos.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
