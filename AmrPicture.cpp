@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.62 2001-05-01 22:57:32 vince Exp $
+// $Id: AmrPicture.cpp,v 1.63 2001-05-04 00:16:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -435,7 +435,7 @@ void AmrPicture::APChangeContour(ContourType prevCType) {
     }
     if( ! pltAppPtr->PaletteDrawn()) {
       pltAppPtr->PaletteDrawn(true);
-      palPtr->Draw(minUsing, maxUsing, pltAppPtr->GetFormatString());
+      palPtr->Draw(minUsing, maxUsing, pltAppStatePtr->GetFormatString());
     }
   }
   int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
@@ -805,7 +805,7 @@ void AmrPicture::APMakeImages(Palette *palptr) {
   }
   if( ! pltAppPtr->PaletteDrawn()) {
     pltAppPtr->PaletteDrawn(true);
-    palptr->Draw(minUsing, maxUsing, pltAppPtr->GetFormatString());
+    palptr->Draw(minUsing, maxUsing, pltAppStatePtr->GetFormatString());
   }
   int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
   APDraw(minDrawnLevel, maxDrawnLevel);

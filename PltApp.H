@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.47 2001-04-26 00:41:13 vince Exp $
+// $Id: PltApp.H,v 1.48 2001-05-04 00:16:34 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -98,8 +98,8 @@ public:
   static void SetReserveSystemColors(int reservesystemcolors);
   
   Widget WId()                     { return wAmrVisTopLevel; }
-  aString GetFormatString() const  { return formatString; }
-  void SetFormatString(aString str) { formatString = str; }
+  //aString GetFormatString() const  { return formatString; }
+  void SetNewFormatString(const aString &newformatstring);
   AmrPicture *GetAmrPicturePtr(int plane) { return amrPicturePtrArray[plane]; }
   Palette *GetPalettePtr()         { return pltPaletteptr; }
   aString GetPaletteName()         { return palFilename; }
@@ -152,7 +152,9 @@ private:
   Widget wWhichFileLabel, wWhichFileScale, wWhichTimeLabel;
   Widget wControlForm;
   Widget wNumberContours;
-  Widget wContoursTopLevel, wInfoTopLevel, wSetRangeTopLevel;
+  Widget wContoursTopLevel, wInfoTopLevel;
+  Widget wSetRangeTopLevel, wNumberFormatTopLevel;
+  Widget wFormat;
   Widget wLocArea, wPlotArea;
   Widget wControls[WCN];
   Widget wCurrScale, wCurrLevel, wCurrDerived;
@@ -180,7 +182,8 @@ private:
   AmrPicture *amrPicturePtrArray[NPLANES];
   IntVect ivLowOffsetMAL;  // at maxAllowableLevel
   MinMaxRangeType currentRangeType;
-  bool animating2d, setRangeShowing, contoursShowing, infoShowing;
+  bool animating2d, setRangeShowing, contoursShowing, infoShowing, bFormatShowing;
+  bool bSetRangeRedraw;
   bool datasetShowing, paletteDrawn, writingRGB, interfaceReady;
   bool paletteCBQ;
   int servingButton;
@@ -190,7 +193,7 @@ private:
   int startX, startY, endX, endY;
   int maxAllowableScale;
   bool bCartGridSmoothing;
-  aString contourNumString, formatString, fileName, palFilename;
+  aString contourNumString, fileName, palFilename;
   char buffer[BUFSIZ];
   Box trueRegion, selectionBox;
   Dataset *datasetPtr;
@@ -260,9 +263,12 @@ private:
   void DoUpdateFrame(Widget, XtPointer, XtPointer);
   void DoSpeedScale(Widget, XtPointer, XtPointer);
   void DoDatasetButton(Widget, XtPointer, XtPointer);
+  void DoNumberFormatButton(Widget, XtPointer, XtPointer);
   void DoPaletteButton(Widget, XtPointer, XtPointer);
   void DoSetRangeButton(Widget, XtPointer, XtPointer);
   void DoContoursButton(Widget, XtPointer, XtPointer);
+  void DoDoneNumberFormat(Widget, XtPointer, XtPointer);
+  void DoCancelNumberFormat(Widget, XtPointer, XtPointer);
   void DoDoneSetRange(Widget, XtPointer, XtPointer);
   void DoCancelSetRange(Widget, XtPointer, XtPointer);
   void DoUserMin(Widget, XtPointer, XtPointer);
@@ -278,6 +284,7 @@ private:
 
   void ToggleRange(Widget, XtPointer, XtPointer);
   void ReadContourString(Widget, XtPointer, XtPointer);
+  void DestroyNumberFormatWindow(Widget, XtPointer, XtPointer);
   void DestroySetRangeWindow(Widget, XtPointer, XtPointer);
   void DestroyContoursWindow(Widget, XtPointer, XtPointer);
   void DestroyInfoWindow(Widget, XtPointer, XtPointer);

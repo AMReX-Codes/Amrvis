@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.36 2001-04-16 16:41:21 vince Exp $
+// $Id: Dataset.cpp,v 1.37 2001-05-04 00:16:34 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -57,16 +57,8 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
   amrPicturePtr = apptr;
   dataServicesPtr = pltAppPtr->GetDataServicesPtr();
   maxAllowableLevel = pltAppStatePtr->MaxAllowableLevel();
-  char tempFormat[32];
-  strcpy(tempFormat, pltAppPtr->GetFormatString().c_str());
-  XmString sFormatString = XmStringCreateSimple(tempFormat);
-  char *fbuff;
-  XmStringGetLtoR(sFormatString, XmSTRING_DEFAULT_CHARSET, &fbuff);
-  formatString = fbuff;
   hStringOffset = 12;
   vStringOffset = -4;
-
-  XmStringFree(sFormatString);
 
   whiteIndex = int(pltAppPtr->GetPalettePtr()->WhiteIndex());
   blackIndex = int(pltAppPtr->GetPalettePtr()->BlackIndex());
@@ -118,37 +110,20 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
                 	XmNheight,              50,
 			NULL);
 
-  // ************************************************ Format Text Field
+  // ************************************************ Color Button
   i=0;
   XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      ++i;
   XtSetArg(args[i], XmNtopOffset, WOFFSET);      ++i;
   XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      ++i;
   XtSetArg(args[i], XmNleftOffset, WOFFSET);      ++i;
-  char fbuff2[64];
-  strcpy(fbuff2, formatString.c_str());
-  XtSetArg(args[i], XmNvalue, fbuff2);      ++i;
-  XtSetArg(args[i], XmNcolumns, 12);      ++i;
-  wFormat = XtCreateManagedWidget("format", xmTextFieldWidgetClass,
-				    wDatasetTools, args, i);
-  XtAddCallback(wFormat, XmNactivateCallback,
-		(XtCallbackProc) &Dataset::CBReadString,
-		(XtPointer) this);
-  Dimension bHeight;
-  XtVaGetValues(wFormat, XmNheight, &bHeight, NULL);
-
-  // ************************************************ Color Button
-  i=0;
-  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      ++i;
-  XtSetArg(args[i], XmNtopOffset, WOFFSET);      ++i;
-  XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET);      ++i;
-  XtSetArg(args[i], XmNleftWidget, wFormat);      ++i;
-  XtSetArg(args[i], XmNleftOffset, WOFFSET);      ++i;
-  XtSetArg(args[i], XmNheight, bHeight);      ++i;
+  //XtSetArg(args[i], XmNheight, bHeight);      ++i;
   wColorButton = XmCreateToggleButton(wDatasetTools, "Color", args, i);
   XtAddCallback(wColorButton, XmNvalueChangedCallback,
 		(XtCallbackProc) &Dataset::CBColorButton,
 		(XtPointer) this);
   XmToggleButtonSetState(wColorButton, true, false);
+  Dimension bHeight;
+  XtVaGetValues(wColorButton, XmNheight, &bHeight, NULL);
 
   // ************************************************ Close Button
   i=0;
@@ -327,6 +302,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
     vAxisString = "error";
   }
 
+  const char *fstring = pltAppStatePtr->GetFormatString().c_str();
   if( ! stringOk) {
     return;
   }
@@ -399,7 +375,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
         for(d = 0; d < dataBox.length(vDIR); ++d) {
           ddl = d*dataBox.length(hDIR);
           for(c = 0; c < dataBox.length(hDIR); ++c) {
-            sprintf(dataString, formatString.c_str(), dataPoint[c+ddl]);
+            sprintf(dataString, fstring, dataPoint[c+ddl]);
             largestWidth = Max((int) strlen(dataString), largestWidth);
           }
         }
@@ -418,13 +394,13 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   XmStringFree(sNewLevel);
   
   
-  sprintf(minInfoV, formatString.c_str(), dataFab[maxDrawnLevel].min() );
+  sprintf(minInfoV, fstring, dataFab[maxDrawnLevel].min());
   sprintf(minInfo, "Min:%s", minInfoV);
   XmString sNewMin = XmStringCreateSimple(minInfo);
   XtVaSetValues(wMinValue, XmNlabelString, sNewMin, NULL);
   XmStringFree(sNewMin);
 
-  sprintf(maxInfoV, formatString.c_str(), dataFab[maxDrawnLevel].max() );
+  sprintf(maxInfoV, fstring, dataFab[maxDrawnLevel].max());
   sprintf(maxInfo, "Max:%s", maxInfoV);
   XmString sNewMax = XmStringCreateSimple(maxInfo);
   XtVaSetValues(wMaxValue, XmNlabelString, sNewMax, NULL);
@@ -490,10 +466,8 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
     stringCount = 0; 
     int lastLevLow(0), lastLevHigh(0);
     int csm1(colorSlots - 1);
-    //Real datamin(amrPicturePtr->GetWhichMin());
     Real datamin, datamax;
     pltAppStatePtr->GetMinMax(datamin, datamax);
-    //Real globalDiff(amrPicturePtr->GetWhichMax() - amrPicturePtr->GetWhichMin());
     Real globalDiff(datamax - datamin);
     Real oneOverGlobalDiff;
     if(globalDiff < FLT_MIN) {
@@ -509,8 +483,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
         if(datasetRegion[lev].intersects(temp)) {
           temp &= datasetRegion[lev];
           dataBox = temp;
-          temp.refine(CRRBetweenLevels(lev,
-                                       maxDrawnLevel, amrData.RefRatio()));
+          temp.refine(CRRBetweenLevels(lev, maxDrawnLevel, amrData.RefRatio()));
           temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
           temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
           FArrayBox dataFabTemp(dataBox, 1);
@@ -518,14 +491,12 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
           dataPoint = dataFabTemp.dataPtr();
           int ddl;
           int crr = CRRBetweenLevels(lev, maxDrawnLevel, amrData.RefRatio());
-          //Real amrmax(amrPicturePtr->GetWhichMax());
-          //Real amrmin(amrPicturePtr->GetWhichMin());
 	  Real amrmin(datamin), amrmax(datamax);
           
           for(d = 0; d < dataBox.length(vDIR); ++d) {
             ddl = d * dataBox.length(hDIR);
             for(c = 0; c < dataBox.length(hDIR); ++c) {
-              sprintf(dataString, formatString.c_str(), dataPoint[c+ddl]);
+              sprintf(dataString, fstring, dataPoint[c+ddl]);
               if(dataPoint[c+ddl] > amrmax) {
                 dataStringArray[stringCount].color = paletteEnd;    // clip
               } else if(dataPoint[c+ddl] < amrmin) {
@@ -711,15 +682,6 @@ void Dataset::CBColorButton(Widget, XtPointer client_data, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void Dataset::CBReadString(Widget w, XtPointer client_data,
-			XtPointer call_data)
-{
-  Dataset *obj = (Dataset *) client_data;
-  obj->DoReadString(w, (XmSelectionBoxCallbackStruct *) call_data);
-}
-
-
-// -------------------------------------------------------------------
 void Dataset::CBPixInput(Widget, XtPointer client_data, XtPointer call_data)
 {
   Dataset *obj = (Dataset *) client_data;
@@ -826,37 +788,6 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
     // protect from incorrect bit manipulation (didn't grab the server)
   }
 } // end DoPixInput
-
-
-// -------------------------------------------------------------------
-void Dataset::DoReadString(Widget w, XmSelectionBoxCallbackStruct *) {
-  char temp[64];
-  strcpy(temp, XmTextFieldGetString(w));
-  if(temp[0] != '%') {
-    formatString  = "%";
-    formatString += temp;
-  } else {
-    formatString = temp;
-  }
-  // unexhaustive string check to prevent errors 
-  stringOk = true;
-  for(int i(0); i < formatString.length(); ++i) {
-    if(formatString[i] == 's' || formatString[i] == 'u'
-        || formatString[i] == 'p')
-    {
-      stringOk = false;
-    }
-  }
-  if(stringOk) {
-    pltAppPtr->SetFormatString(formatString);
-    XClearWindow(GAptr->PDisplay(), XtWindow(wPixArea));
-    DatasetRender(datasetRegion[maxDrawnLevel], amrPicturePtr, pltAppPtr,
-	          pltAppStatePtr, hDIR, vDIR, sDIR);
-    pltAppPtr->GetPalettePtr()->SetFormat(formatString);
-    pltAppPtr->GetPalettePtr()->Redraw();  // change palette numbers
-  }
-  DoExpose(false);
-}
 
 
 // -------------------------------------------------------------------

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.86 2001-05-01 22:57:33 vince Exp $
+// $Id: PltApp.cpp,v 1.87 2001-05-04 00:16:34 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -483,13 +483,15 @@ void PltApp::PltAppInit() {
   char *tempchar = new char[LINELENGTH];
   XmStringGetLtoR(sFormatString, XmSTRING_DEFAULT_CHARSET, &tempchar);
   XmStringFree(sFormatString);
-  formatString = tempchar;
+  pltAppState->SetFormatString(tempchar);
   delete [] tempchar;
 
   infoShowing = false;
   contoursShowing = false;
   setRangeShowing = false;
+  bSetRangeRedraw = false;
   datasetShowing = false;
+  bFormatShowing = false;
   writingRGB = false;
 			  
   int palListLength(PALLISTLENGTH);
@@ -677,8 +679,18 @@ void PltApp::PltAppInit() {
   XmStringFree(label_str);
   AddStaticCallback(wid, XmNactivateCallback, &PltApp::DoDatasetButton);
 
-  XtVaCreateManagedWidget(NULL,
-			  xmSeparatorGadgetClass, wMenuPulldown,
+  // To change the number format string
+  label_str = XmStringCreateSimple("F");
+  wid = XtVaCreateManagedWidget("Number Format...",
+				xmPushButtonGadgetClass, wMenuPulldown,
+				XmNmnemonic,  'F',
+				// XmNaccelerator, "<Key>F",
+				// XmNacceleratorText, label_str,
+				NULL);
+  XmStringFree(label_str);
+  AddStaticCallback(wid, XmNactivateCallback, &PltApp::DoNumberFormatButton);
+
+  XtVaCreateManagedWidget(NULL, xmSeparatorGadgetClass, wMenuPulldown,
 			  NULL);
 
   // Toggle viewing the boxes
@@ -2232,10 +2244,11 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   }
 
   char range[LINELENGTH];
+  char saveRangeString[LINELENGTH];
   char format[LINELENGTH];
   char fMin[LINELENGTH];
   char fMax[LINELENGTH];
-  strcpy(format, formatString.c_str());
+  strcpy(format, pltAppState->GetFormatString().c_str());
   Widget wSetRangeForm, wDoneButton, wApplyButton, wCancelButton;
   Widget wSetRangeRadioBox, wRangeRC, wid;
 
@@ -2247,14 +2260,19 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			 rtMin, rtMax);
   sprintf(fMin, format, rtMin);
   sprintf(fMax, format, rtMax);
-  sprintf (range, "Min: %s  Max: %s", fMin, fMax);
+  sprintf(range, "Min: %s  Max: %s", fMin, fMax);
+  strcpy(saveRangeString, range);
   
-  XtVaGetValues(wAmrVisTopLevel, XmNx, &xpos, XmNy, &ypos,
-		XmNwidth, &width, XmNheight, &height, NULL);
+  XtVaGetValues(wAmrVisTopLevel,
+		XmNx, &xpos,
+		XmNy, &ypos,
+		XmNwidth, &width,
+		XmNheight, &height,
+		NULL);
   
   wSetRangeTopLevel = XtVaCreatePopupShell("Set Range",
 			 topLevelShellWidgetClass, wAmrVisTopLevel,
-			 XmNwidth,		12*(strlen(range)+2),
+			 XmNwidth,		250,
 			 XmNheight,		200,
 			 XmNx,			xpos+width/2,
 			 XmNy,			ypos,
@@ -2369,8 +2387,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			    NULL);
   // make the strings representing data min and maxes
   pltAppState->GetMinMax(GLOBALMINMAX, currentFrame,
-			 pltAppState->CurrentDerivedNumber(),
-			 rtMin, rtMax);
+			 pltAppState->CurrentDerivedNumber(), rtMin, rtMax);
   sprintf(fMin, format, rtMin);
   sprintf(fMax, format, rtMax);
   sprintf(range, "Min: %s", fMin);
@@ -2426,6 +2443,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   XtManageChild(wSetRangeRadioBox);
   XtManageChild(wRangeRC);
   XtManageChild(wDoneButton);
+  XtManageChild(wApplyButton);
   XtManageChild(wCancelButton);
   if(animating2d) {
     XtManageChild(wFileRangeCheckBox);
@@ -2433,6 +2451,194 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   XtPopup(wSetRangeTopLevel, XtGrabNone);
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wSetRangeTopLevel));
   setRangeShowing = true;
+
+  int isrw, iwidw;
+  XtVaGetValues(wSetRangeRadioBox, XmNwidth, &isrw, NULL);
+  XtVaGetValues(wid, XmNwidth, &iwidw, NULL);
+  XtVaSetValues(wSetRangeTopLevel, XmNwidth, isrw + (2 * iwidw) + 10, NULL);
+}
+
+
+// -------------------------------------------------------------------
+void PltApp::SetNewFormatString(const aString &newformatstring) {
+  pltAppState->SetFormatString(newformatstring);
+  pltPaletteptr->SetFormat(newformatstring);
+  pltPaletteptr->Redraw();
+  if(datasetShowing) {
+    int hdir, vdir, sdir;
+    if(activeView==ZPLANE) { hdir = XDIR; vdir = YDIR; sdir = ZDIR; }
+    if(activeView==YPLANE) { hdir = XDIR; vdir = ZDIR; sdir = YDIR; }
+    if(activeView==XPLANE) { hdir = YDIR; vdir = ZDIR; sdir = XDIR; }
+    datasetPtr->DatasetRender(trueRegion, amrPicturePtrArray[activeView],
+		              this, pltAppState, hdir, vdir, sdir);
+    datasetPtr->DoExpose(false);
+  }
+  if(setRangeShowing) {
+    bSetRangeRedraw = true;
+    XtDestroyWidget(wSetRangeTopLevel);
+    setRangeShowing = false;
+    DoSetRangeButton(NULL, NULL, NULL);
+    setRangeShowing = true;
+  }
+}
+
+
+// -------------------------------------------------------------------
+void PltApp::DoNumberFormatButton(Widget, XtPointer, XtPointer) {
+  Position xpos, ypos;
+  Dimension width, height;
+
+  if(bFormatShowing) {
+    XtPopup(wNumberFormatTopLevel, XtGrabNone);
+    XMapRaised(XtDisplay(wNumberFormatTopLevel), XtWindow(wNumberFormatTopLevel));
+    return;
+  }
+
+  char format[LINELENGTH];
+  strcpy(format, pltAppState->GetFormatString().c_str());
+  Widget wNumberFormatForm, wDoneButton, wApplyButton, wCancelButton, wid;
+
+  
+  XtVaGetValues(wAmrVisTopLevel,
+		XmNx, &xpos,
+		XmNy, &ypos,
+		XmNwidth, &width,
+		XmNheight, &height,
+		NULL);
+  
+  wNumberFormatTopLevel = XtVaCreatePopupShell("Number Format",
+			 topLevelShellWidgetClass, wAmrVisTopLevel,
+			 XmNwidth,		200,
+			 XmNheight,		100,
+			 XmNx,			xpos+width/2,
+			 XmNy,			ypos,
+			 NULL);
+  
+  AddStaticCallback(wNumberFormatTopLevel, XmNdestroyCallback,
+		    &PltApp::DestroyNumberFormatWindow);
+  
+  //set visual in case the default isn't 256 pseudocolor
+  if(GAptr->PVisual() != XDefaultVisual(display, GAptr->PScreenNumber())) {
+    XtVaSetValues(wNumberFormatTopLevel, XmNvisual, GAptr->PVisual(),
+		  XmNdepth, 8, NULL);
+  }
+        
+    
+  wNumberFormatForm = XtVaCreateManagedWidget("setrangeform",
+				  xmFormWidgetClass, wNumberFormatTopLevel,
+				  NULL);
+  
+  // make the buttons
+  wDoneButton = XtVaCreateManagedWidget(" Ok ",
+					xmPushButtonGadgetClass, wNumberFormatForm,
+					XmNbottomAttachment, XmATTACH_FORM,
+					XmNbottomOffset, WOFFSET,
+					XmNleftAttachment, XmATTACH_FORM,
+					XmNleftOffset, WOFFSET,
+					NULL);
+  bool bKillNFWindow(true);
+  AddStaticCallback(wDoneButton, XmNactivateCallback, &PltApp::DoDoneNumberFormat,
+		    (XtPointer) bKillNFWindow);
+  
+  wApplyButton = XtVaCreateManagedWidget(" Apply ",
+				  xmPushButtonGadgetClass, wNumberFormatForm,
+				  XmNbottomAttachment, XmATTACH_FORM,
+				  XmNbottomOffset, WOFFSET,
+				  XmNleftAttachment, XmATTACH_WIDGET,
+				  XmNleftWidget, wDoneButton,
+				  XmNleftOffset, WOFFSET,
+				  NULL);
+  bKillNFWindow = false;
+  AddStaticCallback(wApplyButton, XmNactivateCallback, &PltApp::DoDoneNumberFormat,
+		    (XtPointer) bKillNFWindow);
+  
+  wCancelButton = XtVaCreateManagedWidget(" Cancel ",
+				  xmPushButtonGadgetClass, wNumberFormatForm,
+				  XmNbottomAttachment, XmATTACH_FORM,
+				  XmNbottomOffset, WOFFSET,
+				  XmNrightAttachment, XmATTACH_FORM,
+				  XmNrightOffset, WOFFSET,
+				  NULL);
+  AddStaticCallback(wCancelButton, XmNactivateCallback,
+		    &PltApp::DoCancelNumberFormat);
+  
+  wid = XtVaCreateManagedWidget("Format:",
+			    xmLabelGadgetClass, wNumberFormatForm,
+			    XmNtopAttachment, XmATTACH_FORM,
+			    XmNtopOffset, WOFFSET,
+			    XmNleftAttachment, XmATTACH_FORM,
+			    XmNleftOffset, WOFFSET,
+			    NULL);
+  wFormat = XtVaCreateManagedWidget("format",
+			    xmTextFieldWidgetClass, wNumberFormatForm,
+			    XmNvalue,		format,
+			    XmNeditable,	true,
+			    XmNcolumns,		strlen(format) + 4,
+			    XmNtopAttachment, XmATTACH_FORM,
+			    XmNtopOffset, WOFFSET,
+			    XmNleftAttachment, XmATTACH_WIDGET,
+			    XmNleftWidget, wid,
+			    XmNleftOffset, WOFFSET,
+			    NULL);
+  AddStaticCallback(wFormat, XmNactivateCallback, &PltApp::DoDoneNumberFormat,
+		    (XtPointer) bKillNFWindow);
+  
+  XtManageChild(wDoneButton);
+  XtManageChild(wApplyButton);
+  XtManageChild(wCancelButton);
+
+  XtPopup(wNumberFormatTopLevel, XtGrabNone);
+  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wNumberFormatTopLevel));
+  bFormatShowing = true;
+}
+
+
+// -------------------------------------------------------------------
+void PltApp::DoDoneNumberFormat(Widget, XtPointer client_data, XtPointer) {
+  bool bKillNFWindow = (bool) client_data;
+  paletteDrawn = false;
+
+  aString tempFormatString;
+
+  char temp[64];
+  strcpy(temp, XmTextFieldGetString(wFormat));
+  if(temp[0] != '%') {
+    tempFormatString  = "%";
+    tempFormatString += temp;
+  } else {
+    tempFormatString = temp;
+  }
+  // unexhaustive string check to prevent errors
+  bool stringOk(true);
+  for(int i(0); i < tempFormatString.length(); ++i) {
+    if(tempFormatString[i] == 's' || tempFormatString[i] == 'u'
+        || tempFormatString[i] == 'p')
+    {
+      stringOk = false;
+    }
+  }
+  if(stringOk) {
+    SetNewFormatString(tempFormatString);
+  } else {
+    cerr << "Error in format string." << endl;
+  }
+
+  if(bKillNFWindow) {
+    XtDestroyWidget(wNumberFormatTopLevel);
+  }
+
+}
+
+
+// -------------------------------------------------------------------
+void PltApp::DoCancelNumberFormat(Widget, XtPointer, XtPointer) {
+  XtDestroyWidget(wNumberFormatTopLevel);
+}
+
+
+// -------------------------------------------------------------------
+void PltApp::DestroyNumberFormatWindow(Widget, XtPointer, XtPointer) {
+  bFormatShowing = false;
 }
 
 
@@ -2484,21 +2690,9 @@ void PltApp::DoDoneSetRange(Widget, XtPointer client_data, XtPointer) {
   if(datasetShowing) {
     datasetPtr->DoRaise();
     int hdir, vdir, sdir;
-    if(activeView==ZPLANE) {
-      hdir = XDIR;
-      vdir = YDIR;
-      sdir = ZDIR;
-    }
-    if(activeView==YPLANE) {
-      hdir = XDIR;
-      vdir = ZDIR;
-      sdir = YDIR;
-    }
-    if(activeView==XPLANE) {
-      hdir = YDIR;
-      vdir = ZDIR;
-      sdir = XDIR;
-    }
+    if(activeView==ZPLANE) { hdir = XDIR; vdir = YDIR; sdir = ZDIR; }
+    if(activeView==YPLANE) { hdir = XDIR; vdir = ZDIR; sdir = YDIR; }
+    if(activeView==XPLANE) { hdir = YDIR; vdir = ZDIR; sdir = XDIR; }
     datasetPtr->DatasetRender(trueRegion, amrPicturePtrArray[activeView], this,
                               pltAppState, hdir, vdir, sdir);
     datasetPtr->DoExpose(false);
@@ -2509,12 +2703,16 @@ void PltApp::DoDoneSetRange(Widget, XtPointer client_data, XtPointer) {
 // -------------------------------------------------------------------
 void PltApp::DoCancelSetRange(Widget, XtPointer, XtPointer) {
   XtDestroyWidget(wSetRangeTopLevel);
+  setRangeShowing = false;
 }
 
 
 // -------------------------------------------------------------------
 void PltApp::DestroySetRangeWindow(Widget, XtPointer, XtPointer) {
-  setRangeShowing = false;
+  if(bSetRangeRedraw == false) {
+    setRangeShowing = false;
+  }
+  bSetRangeRedraw = false;
 }
 
 
@@ -2567,7 +2765,9 @@ void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
     DirtyFrames(); 
   }
   pltAppState->SetShowingBoxes( ! pltAppState->GetShowingBoxes());
-  //amrPicturePtrArray[ZPLANE]->ToggleBoxes();
+  for(int np(0); np < NPLANES; ++np) {
+    amrPicturePtrArray[np]->DoExposePicture();
+  }
 #if (BL_SPACEDIM == 3)
     projPicturePtr->MakeBoxes(); 
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
@@ -2609,7 +2809,6 @@ void PltApp::DoOpenPalFile(Widget w, XtPointer, XtPointer call_data) {
   projPicturePtr->GetVolRenderPtr()->SetTransferProperties();
   projPicturePtr->GetVolRenderPtr()->InvalidateVPData();
   showing3dRender = false;
-  // If we could also clear the window...
   if(XmToggleButtonGetState(wAutoDraw)) {
     DoRender(wAutoDraw, NULL, NULL);
   }
@@ -2680,15 +2879,15 @@ XYPlotDataList* PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 #if (BL_SPACEDIM == 3)
   char buffer[100];
   sprintf(buffer, "%s%s %s%s",
-	  (dir1 == XDIR) ? "X=" : "Y=", formatString.c_str(),
-	  (dir2 == YDIR) ? "Y=" : "Z=", formatString.c_str());
+	  (dir1 == XDIR) ? "X=" : "Y=", pltAppState->GetFormatString().c_str(),
+	  (dir2 == YDIR) ? "Y=" : "Z=", pltAppState->GetFormatString().c_str());
 #endif
   for(lev = 0; lev <= mal; ++lev) {
     XdX[lev] = amrData.DxLevel()[lev][sdir];
     intersectStr[lev] = new char[30];
 #if (BL_SPACEDIM == 2)
     sprintf(intersectStr[lev], ((dir1 == XDIR) ? "X=" : "Y="));
-    sprintf(intersectStr[lev]+2, formatString.c_str(), gridOffset[dir1] +
+    sprintf(intersectStr[lev]+2, pltAppState->GetFormatString().c_str(), gridOffset[dir1] +
 	    (0.5 + trueRegion[lev].smallEnd(dir1))*amrData.DxLevel()[lev][dir1]);
 #elif (BL_SPACEDIM == 3)
     sprintf(intersectStr[lev], buffer,
@@ -2990,7 +3189,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 				 &intersectedLevel, &intersectedGrid,
 				 &dataValue, &goodIntersect);
 	  char dataValueCharString[LINELENGTH];
-	  sprintf(dataValueCharString, formatString.c_str(), dataValue);
+	  sprintf(dataValueCharString, pltAppState->GetFormatString().c_str(), dataValue);
 	  aString dataValueString(dataValueCharString);
 	  ostrstream buffout(buffer, BUFSIZ);
 	  if(goodIntersect) {
@@ -3887,21 +4086,9 @@ void PltApp::ShowFrame() {
   
   if(datasetShowing) {
     int hdir, vdir, sdir;
-    if(activeView == ZPLANE) {
-      hdir = XDIR;
-      vdir = YDIR;
-      sdir = ZDIR;
-    }
-    if(activeView == YPLANE) {
-      hdir = XDIR;
-      vdir = ZDIR;
-      sdir = YDIR;
-    }
-    if(activeView == XPLANE) {
-      hdir = YDIR;
-      vdir = ZDIR;
-      sdir = XDIR;
-    }
+    if(activeView == ZPLANE) { hdir = XDIR; vdir = YDIR; sdir = ZDIR; }
+    if(activeView == YPLANE) { hdir = XDIR; vdir = ZDIR; sdir = YDIR; }
+    if(activeView == XPLANE) { hdir = YDIR; vdir = ZDIR; sdir = XDIR; }
     datasetPtr->DatasetRender(trueRegion, amrPicturePtrArray[activeView], this,
 		              pltAppState, hdir, vdir, sdir);
     datasetPtr->DoExpose(false);
@@ -3998,8 +4185,8 @@ void PltApp::SetInitialScale(int initScale) {
   PltApp::initialScale = initScale;
 }
 
-void PltApp::SetInitialFormatString(const aString &formatString) {
-  PltApp::initialFormatString = formatString;
+void PltApp::SetInitialFormatString(const aString &formatstring) {
+  PltApp::initialFormatString = formatstring;
 }
 
 void PltApp::SetDefaultShowBoxes(int showboxes) {

@@ -50,16 +50,6 @@ private:
 public:
   // created when opening a new file
   PltAppState(int numFrames, int numDerived);
-  
-  // for subregion
-  /*
-  PltAppState(XtAppContext app, Widget w, const Box &region,
-         const IntVect &offset,
-         AmrPicture *parentPtr, PltApp *pltparent,
-         const aString &palfile, bool isAnim,
-         const aString &newderived, const aString &file);
-  */
-  
   ~PltAppState();
 
   PltAppState &operator=(const PltAppState &rhs);
@@ -82,6 +72,10 @@ public:
   // ------------------------ boxes
   bool GetShowingBoxes() const        { return showBoxes; }
   void SetShowingBoxes(bool showing)  { showBoxes = showing; }
+
+  // ------------------------ number format
+  aString GetFormatString() const                 { return formatString;      }
+  void SetFormatString(const aString &newformat)  { formatString = newformat; }
 
   // ------------------------ contours
   void SetContourType(ContourType newContourType)
@@ -139,6 +133,7 @@ private:
   ContourType currentContourType;
   int nContours;
   MinMaxRangeType currentMinMaxType;
+  aString formatString;
 
   // mins and maxes
   Array<Array<Array<CMinMax> > > minMax;   // minMax [frame] [derived] [RangeType]
@@ -151,7 +146,7 @@ private:
   //bool datasetShowing, paletteDrawn, writingRGB, interfaceReady;
   //int minDrawnLevel, maxDrawnLevel, minDataLevel, maxDataLevel;
   //int activeView;
-  aString contourNumString, formatString, fileName, palFilename;
+  aString contourNumString, fileName, palFilename;
   //Array<aString> fileNames, derivedStrings;
   //GraphicsAttributes	*GAptr;
 

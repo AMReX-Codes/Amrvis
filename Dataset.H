@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.H,v 1.26 2001-04-16 16:41:21 vince Exp $
+// $Id: Dataset.H,v 1.27 2001-05-04 00:16:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -13,11 +13,8 @@
 #undef index
 
 #include "Dataset.H"
-//#include "PltApp.H"
-//#include "DataServices.H"
 #include "GlobalUtilities.H"
 #include "GraphicsAttributes.H"
-//#include "AmrPicture.H"
 
 #include "Box.H"
 #include "AmrvisConstants.H"
@@ -46,7 +43,6 @@ class Dataset {
   void DoExpose(int fromExpose);
   static void CBColorButton(Widget, XtPointer, XtPointer);
   static void CBQuitButton(Widget, XtPointer, XtPointer);
-  static void CBReadString(Widget, XtPointer, XtPointer);
   static void CBPixInput(Widget, XtPointer, XtPointer);
   static void CBEndScrolling(Widget, XtPointer, XtPointer);
   static void CBScrolling(Widget, XtPointer, XtPointer);
@@ -54,7 +50,6 @@ class Dataset {
   
   void DoColorButton();
   void DoQuitButton();
-  void DoReadString(Widget, XmSelectionBoxCallbackStruct *);
   void DoPixInput(XmDrawingAreaCallbackStruct *);
 
   AmrPicture *GetAmrPicturePtr() { return amrPicturePtr; }
@@ -70,7 +65,6 @@ class Dataset {
   int		maxAllowableLevel, maxDrawnLevel, minDrawnLevel, stringOk;
   int		noData, hDIR, vDIR, sDIR, numStrings, *myStringCount;
   char		buffer[BUFSIZ], dataString[MAXSTRINGWIDTH];
-  aString	formatString;
   StringLoc	*dataStringArray, **myDataStringArray;
   bool          bDataStringArrayAllocated;
   AmrPicture	*amrPicturePtr;
