@@ -478,7 +478,7 @@ void XYPlotWin::InitializeAnimation(int curr_frame, int num_frames) {
     ptr->anim_lists = new Array<XYPlotDataList *>(numFrames);
     ptr->ready_list = new Array<char>(numFrames, 0);
   }
-  pltParent->GetPltAppState()->GetMinMax(lloY, hhiY);
+  pltParent->GetPltAppState()->GetMinMax((Real &) lloY, (Real &) hhiY);
   if( ! zoomedInQ) {
     setBoundingBox();
     CBdoRedrawPlot(None, NULL, NULL);

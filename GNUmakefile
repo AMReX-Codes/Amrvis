@@ -57,6 +57,12 @@ ifeq ($(MACHINE),T3E)
   endif
 endif
 
+ifeq ($(MACHINE),AIX)
+  ifeq ($(COMP),KCC)
+    CXXFLAGS += --diag_suppress 837
+  endif
+endif
+
 ############################################### x includes and libraries
 ifeq ($(MACHINE), OSF1)
   LIBRARIES += -lXm -lXt -lX11
@@ -127,10 +133,10 @@ ifeq ($(DIM),3)
     DEFINES += -DBL_VOLUMERENDER
     # VOLPACKDIR = ../../volpack/volpack_cpp
     # VOLPACKDIR = ../../volpack/volpack-1.0b3
-    VOLPACKDIR = $(PBOXLIB_HOME)/volpack
+    #VOLPACKDIR = $(PBOXLIB_HOME)/volpack
     #VOLPACKDIR = ../volpack
     #VOLPACKDIR = ../../volpack.test
-    #VOLPACKDIR = ../../volpack
+    VOLPACKDIR = ../../volpack
     INCLUDE_LOCATIONS += $(VOLPACKDIR)
     LIBRARY_LOCATIONS += $(VOLPACKDIR)
     LIBRARIES += -lvolpack

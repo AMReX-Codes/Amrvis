@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.42 2002-02-19 20:39:41 vince Exp $
+// $Id: Dataset.cpp,v 1.43 2002-08-14 18:29:20 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -254,6 +254,7 @@ Dataset::~Dataset() {
   delete [] datasetRegion;
   delete [] dataStringArray;
   if(bDataStringArrayAllocated) {
+    BL_ASSERT(maxAllowableLevel == pltAppStatePtr->MaxAllowableLevel());
     for(int j = 0; j <= maxAllowableLevel; ++j) {
       delete [] myDataStringArray[j];
     }
@@ -273,6 +274,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   Real *dataPoint; 
   
   if(bDataStringArrayAllocated) {
+    BL_ASSERT(maxAllowableLevel == pltAppStatePtr->MaxAllowableLevel());
     for(int j(0); j <= maxAllowableLevel; ++j) {
       delete [] myDataStringArray[j];
     }
@@ -314,7 +316,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   
   // set up datasetRegion
   //we shall waste some space to that datasetRegion[lev] corresponds to lev
-  datasetRegion = new Box[maxAllowableLevel+1];
+  datasetRegion = new Box[maxAllowableLevel + 1];
   datasetRegion[maxAllowableLevel] = alignedRegion;
   for(i = maxAllowableLevel - 1; i >= 0; --i) {
     datasetRegion[i] = datasetRegion[maxAllowableLevel];
@@ -324,9 +326,10 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   
   // datasetRegion is now an array of Boxes that encloses the selected region
   
-  Array<FArrayBox> dataFab(maxAllowableLevel+1);
+  Array<FArrayBox *> dataFab(maxAllowableLevel + 1);
   for(i = 0; i <= maxAllowableLevel; ++i) {
-    dataFab[i].resize(datasetRegion[i], 1);
+    //dataFab[i]->resize(datasetRegion[i], 1);
+    dataFab[i] = new FArrayBox(datasetRegion[i], 1);
   }
   
   Palette *palptr = pltAppPtr->GetPalettePtr();
@@ -353,12 +356,14 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   
   int largestWidth(0);
   stringCount = 0;
-  myStringCount = new int[maxAllowableLevel];
+  myStringCount = new int[maxAllowableLevel + 1];
   for(lev = 0; lev <= maxAllowableLevel; ++lev) {
     myStringCount[lev] = 0;
     DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
-                           (void *) &dataFab[lev],
-			   (void *) &(dataFab[lev].box()),
+                           //(void *) &dataFab[lev],
+                           (void *) dataFab[lev],
+			   //(void *) &(dataFab[lev].box()),
+			   (void *) &(dataFab[lev]->box()),
                            lev,
 			   (void *) &(pltAppStatePtr->CurrentDerived()));
     for(int iBox(0); iBox < amrData.boxArray(lev).size(); ++iBox) {
@@ -368,7 +373,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
         temp &= datasetRegion[lev];
         dataBox = temp;
         FArrayBox dataFabTemp(dataBox, 1);
-        dataFabTemp.copy(dataFab[lev]);
+        dataFabTemp.copy(*(dataFab[lev]));
         dataPoint = dataFabTemp.dataPtr();
         stringCount += dataBox.length(vDIR) * dataBox.length(hDIR);
         myStringCount[lev] +=  dataBox.length(vDIR) * dataBox.length(hDIR);
@@ -394,13 +399,13 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   XmStringFree(sNewLevel);
   
   
-  sprintf(minInfoV, fstring, dataFab[maxDrawnLevel].min());
+  sprintf(minInfoV, fstring, dataFab[maxDrawnLevel]->min());
   sprintf(minInfo, "Min:%s", minInfoV);
   XmString sNewMin = XmStringCreateSimple(minInfo);
   XtVaSetValues(wMinValue, XmNlabelString, sNewMin, NULL);
   XmStringFree(sNewMin);
 
-  sprintf(maxInfoV, fstring, dataFab[maxDrawnLevel].max());
+  sprintf(maxInfoV, fstring, dataFab[maxDrawnLevel]->max());
   sprintf(maxInfo, "Max:%s", maxInfoV);
   XmString sNewMax = XmStringCreateSimple(maxInfo);
   XtVaSetValues(wMaxValue, XmNlabelString, sNewMax, NULL);
@@ -420,7 +425,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
     cout << "Error in Dataset::DatasetRender:  out of memory" << endl;
     return;
   }
-  myDataStringArray = new StringLoc * [maxAllowableLevel+1];
+  myDataStringArray = new StringLoc * [maxAllowableLevel + 1];
   int level;
   for(level = 0; level <= maxDrawnLevel; ++level) {
     myDataStringArray[level] = new StringLoc [myStringCount[level] ];
@@ -487,7 +492,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
           temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
           temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
           FArrayBox dataFabTemp(dataBox, 1);
-          dataFabTemp.copy(dataFab[lev]);
+          dataFabTemp.copy(*(dataFab[lev]));
           dataPoint = dataFabTemp.dataPtr();
           int ddl;
           int crr = CRRBetweenLevels(lev, maxDrawnLevel, amrData.RefRatio());
@@ -558,13 +563,13 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   tempBox.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
   tempBox.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
   
-  hIndexArray = new StringLoc* [maxDrawnLevel+1];
-  vIndexArray = new StringLoc* [maxDrawnLevel+1];
-  for(int j = 0; j <= maxDrawnLevel; ++j) {
+  hIndexArray = new StringLoc *[maxDrawnLevel + 1];
+  vIndexArray = new StringLoc *[maxDrawnLevel + 1];
+  for(int j(0); j <= maxDrawnLevel; ++j) {
     hIndexArray[j] = NULL;
     vIndexArray[j] = NULL;
   }
-  for(int level = minDrawnLevel; level <= maxDrawnLevel; ++level) {
+  for(int level(minDrawnLevel); level <= maxDrawnLevel; ++level) {
       Box temp(datasetRegion[level]);
       
       temp.refine(CRRBetweenLevels(level, maxDrawnLevel, amrData.RefRatio()));
@@ -608,8 +613,12 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
         vIndexArray[level][d].dslen = strlen(dataString);
         vIndexArray[level][d].olflag = false;
       }  // end for(d...)
-    }  //end for(int level = minDrawnLevel...)
+  }  //end for(int level = minDrawnLevel...)
   
+  for(i = 0; i < dataFab.size(); ++i) {
+    delete dataFab[i];
+  }
+
 }  // end Dataset::DatasetRender
 
 
@@ -793,7 +802,7 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
 // -------------------------------------------------------------------
 void Dataset::DoQuitButton() {
   pltAppPtr->QuitDataset();
-  delete this;
+  //delete this;
 }
 
 

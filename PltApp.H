@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.58 2002-02-07 23:59:02 vince Exp $
+// $Id: PltApp.H,v 1.59 2002-08-14 18:29:20 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -234,7 +234,7 @@ private:
 
 #endif
   
-  void PltAppInit();           // called by constructors
+  void PltAppInit(bool bSubVolume = false);           // called by constructors
 
   void DoDrawPointerLocation(Widget, XtPointer, XtPointer);
   void ChangeScale(Widget, XtPointer, XtPointer);

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.102 2002-02-26 01:00:02 vince Exp $
+// $Id: PltApp.cpp,v 1.103 2002-08-14 18:29:20 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -298,7 +298,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 // -------------------------------------------------------------------
 PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 	       const IntVect &offset,
-	       //AmrPicture *parentPtr,
 	       PltApp *pltParent, const string &palfile,
 	       bool isAnim, const string &newderived, const string &filename)
   : wTopLevel(w),
@@ -335,6 +334,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 
   pltAppState->SetMinAllowableLevel(minAllowableLevel);
   pltAppState->SetMaxAllowableLevel(maxlev);
+  pltAppState->SetMinDrawnLevel(minAllowableLevel);
+  pltAppState->SetMaxDrawnLevel(max(minAllowableLevel, pltAppState->MaxDrawnLevel()));
 
   Box maxDomain(region);
   if(maxlev < finestLevel) {
@@ -396,12 +397,12 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     --fnl;
   }
 
-  char timestr[20];
+  char timestr[32];
   // If animating, do not indicate the time.
   if(animating2d) {
     timestr[0] = '\0';
   } else {
-    ostrstream timeOut(timestr, 20);
+    ostrstream timeOut(timestr, 32);
     timeOut << " T = " << amrData.Time() << ends;
   }
 
@@ -429,10 +430,10 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   xgc = gaPtr->PGC();
 
   if(gaPtr->PVisual() != XDefaultVisual(display, gaPtr->PScreenNumber())) {
-      XtVaSetValues(wAmrVisTopLevel, XmNvisual, gaPtr->PVisual(),
-                    XmNdepth, 8, NULL);
+    XtVaSetValues(wAmrVisTopLevel, XmNvisual, gaPtr->PVisual(), XmNdepth, 8, NULL);
   }
-  pltAppState->SetMinDrawnLevel(minAllowableLevel);
+  //pltAppState->SetMinDrawnLevel(minAllowableLevel);
+  //pltAppState->SetMaxDrawnLevel(max(minAllowableLevel, pltAppState->MaxDrawnLevel()));
   for(int np(0); np < NPLANES; ++np) {
     amrPicturePtrArray[np] = new AmrPicture(np, gaPtr, region,
 					    pltParent, this,
@@ -446,12 +447,12 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   }
 #endif
   ivLowOffsetMAL = offset;
-  PltAppInit();
+  PltAppInit(true);
 }
 
 
 // -------------------------------------------------------------------
-void PltApp::PltAppInit() {
+void PltApp::PltAppInit(bool bSubVolume) {
   int np;
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   int minAllowableLevel(pltAppState->MinAllowableLevel());
@@ -479,7 +480,7 @@ void PltApp::PltAppInit() {
   
   servingButton = 0;
   activeView = ZPLANE;
-  int maxDrawnLevel = maxAllowableLevel;
+  int maxDrawnLevel(maxAllowableLevel);
   startX = 0;
   startY = 0;
   endX = 0;
@@ -645,6 +646,9 @@ void PltApp::PltAppInit() {
   wCascade = XmCreatePulldownMenu(wMenuPulldown, "levelmenu", NULL, 0);
   XtVaCreateManagedWidget("Level", xmCascadeButtonWidgetClass, wMenuPulldown,
 			  XmNmnemonic, 'L', XmNsubMenuId, wCascade, NULL);
+
+  wCurrLevel = NULL;
+  BL_ASSERT(minAllowableLevel <= maxDrawnLevel);
   for(int menuLevel(minAllowableLevel); menuLevel <= maxDrawnLevel; ++menuLevel) {
     sprintf(selectText, "%i/%i", menuLevel, amrData.FinestLevel());
     wid = XtVaCreateManagedWidget(selectText, xmToggleButtonGadgetClass, wCascade,
@@ -661,14 +665,15 @@ void PltApp::PltAppInit() {
 		    NULL);			      
       XmStringFree(label_str);
     }
-    if(menuLevel - minAllowableLevel == maxDrawnLevel) {
+    if(menuLevel == maxDrawnLevel) {
       // Toggle button indicates current level in view
       XtVaSetValues(wid, XmNset, true, NULL);
       wCurrLevel = wid;
     }
     AddStaticCallback(wid, XmNvalueChangedCallback, &PltApp::ChangeLevel,
-		      (XtPointer)(menuLevel - minAllowableLevel));
+		      (XtPointer)(menuLevel));
   }
+  Widget wTempDrawLevel = wid;
 
   // Button to create (or pop up) a dialog to set contour settings
   label_str = XmStringCreateSimple("C");
@@ -1322,6 +1327,12 @@ void PltApp::PltAppInit() {
 
   cbdPtrs.reserve(512);  // arbitrarily
   
+  if(bSubVolume) {
+    //ChangeLevel(wTempDrawLevel, (XtPointer)(pltAppState->MaxDrawnLevel()), NULL);
+    XtVaSetValues(wTempDrawLevel, XmNset, true, NULL);
+    ChangeLevel(wTempDrawLevel, (XtPointer)(pltAppState->MaxAllowableLevel()), NULL);
+  }
+
 }  // end PltAppInit()
 
 
@@ -1496,21 +1507,24 @@ void PltApp::ChangeScale(Widget w, XtPointer client_data, XtPointer) {
 // -------------------------------------------------------------------
 void PltApp::ChangeLevel(Widget w, XtPointer client_data, XtPointer) {
 
+  unsigned long newLevel = (unsigned long) client_data;
+  int minDrawnLevel(pltAppState->MinAllowableLevel());
+  //int maxDrawnLevel(newLevel + pltAppState->MinAllowableLevel());
+  int maxDrawnLevel(newLevel);
+
   if(w == wCurrLevel) {
     XtVaSetValues(w, XmNset, true, NULL);
-    return;
+    //return;
   }
-  XtVaSetValues(wCurrLevel, XmNset, false, NULL);
+  if(wCurrLevel != NULL) {
+    XtVaSetValues(wCurrLevel, XmNset, false, NULL);
+  }
   wCurrLevel = w;
 
   if(animating2d) {
     ResetAnimation();
     DirtyFrames(); 
   }
-
-  unsigned long newLevel = (unsigned long) client_data;
-  int minDrawnLevel(pltAppState->MinAllowableLevel());
-  int maxDrawnLevel(newLevel + pltAppState->MinAllowableLevel());
 
   pltAppState->SetMinDrawnLevel(minDrawnLevel);
   pltAppState->SetMaxDrawnLevel(maxDrawnLevel);
@@ -1951,6 +1965,7 @@ void PltApp::DoDatasetButton(Widget, XtPointer, XtPointer) {
 // -------------------------------------------------------------------
 void PltApp::QuitDataset() {
   datasetShowing = false;
+  delete datasetPtr;
 }
 
 
