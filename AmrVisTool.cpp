@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.67 2004-04-30 22:23:59 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.68 2004-05-26 01:07:55 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -8,7 +8,7 @@
 // ---------------------------------------------------------------
 
 #include <stdio.h>
-#if ! (defined(BL_AIX) || defined(BL_IRIX64) || defined(BL_CYGWIN_NT))
+#if ! (defined(BL_OSF1) || defined(BL_AIX) || defined(BL_IRIX64) || defined(BL_CYGWIN_NT))
 #include <endian.h>
 #endif
 
