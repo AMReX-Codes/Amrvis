@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ProjectionPicture.cpp,v 1.35 2000-06-17 16:31:11 car Exp $
+// $Id: ProjectionPicture.cpp,v 1.36 2000-08-28 21:48:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -230,44 +230,47 @@ void ProjectionPicture::MakePicture() {
 
   Real mvmat[4][4];
 
-  Real tempLenRatio = longestWindowLength/
-      (scale[longestBoxSideDir]*longestBoxSide);
-  Real tempLen = 0.5*tempLenRatio;
+  Real tempLenRatio(longestWindowLength/(scale[longestBoxSideDir]*longestBoxSide));
+  Real tempLen(0.5 * tempLenRatio);
   viewTransformPtr->SetAdjustments(tempLen, daWidth, daHeight);
   viewTransformPtr->MakeTransform();
 
   viewTransformPtr->GetRenderRotationMat(mvmat);
-  volRender->MakePicture(mvmat, tempLen,
-                         daWidth, daHeight);
+  volRender->MakePicture(mvmat, tempLen, daWidth, daHeight);
 
   // map imageData colors to colormap range
   Palette *palPtr = pltAppPtr->GetPalettePtr();
   if(palPtr->ColorSlots() != palPtr->PaletteSize()) {
     const unsigned char *remapTable = palPtr->RemapTable();
-    int idat;
-    for(idat=0; idat<daWidth*daHeight; idat++) {
-      volpackImageData[idat] = remapTable[(unsigned char)volpackImageData[idat]];
+    for(int idat(0); idat < daWidth * daHeight; ++idat) {
+      volpackImageData[idat] = remapTable[(unsigned char) volpackImageData[idat]];
     }
   }
 
-  for ( int j = 0; j < daHeight; ++j )
-    {
-      for ( int i = 0; i < daWidth; ++i )
-	{
-	  unsigned char imm1 = volpackImageData[i+j*daWidth];
-	  XPutPixel(PPXImage, i, j, palPtr->makePixel(imm1));
-	  // imageData[i+j*daWidth] = imm1;
-	}
+unsigned char iMin, iMax;
+iMin = 255;
+iMax = 0;
+
+  for(int j(0); j < daHeight; ++j ) {
+    for(int i(0); i < daWidth; ++i ) {
+      unsigned char imm1 = volpackImageData[i+j*daWidth];
+iMin = Min(iMin, imm1);
+iMax = Max(iMax, imm1);
+      XPutPixel(PPXImage, i, j, palPtr->makePixel(imm1));
+      // imageData[i+j*daWidth] = imm1;
     }
-  unsigned char iMin, iMax;
-  iMin = 255;  iMax = 0;
-  for(int ii = 0; ii < daWidth * daHeight; ++ii) {
-      iMin = Min(iMin, imageData[ii]);
-      iMax = Max(iMax, imageData[ii]);
   }
+
+/*
+for(int ii = 0; ii < daWidth * daHeight; ++ii) {
+iMin = Min(iMin, imageData[ii]);
+iMax = Max(iMax, imageData[ii]);
+}
+*/
+cout << "**** _in ProjPic::MakePicture():  iMin iMax = " << (unsigned int) iMin << "  " << (unsigned int) iMax << endl;
 
   XPutImage(XtDisplay(drawingArea), pixMap, XtScreen(drawingArea)->
-        default_gc, PPXImage, 0, 0, 0, 0, daWidth, daHeight);
+            default_gc, PPXImage, 0, 0, 0, 0, daWidth, daHeight);
 
   cout << "----- make picture time = " << ((clock()-time0)/1000000.0) << endl;
 
