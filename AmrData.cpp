@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.cpp,v 1.42 2000-04-21 17:54:05 car Exp $
+// $Id: AmrData.cpp,v 1.43 2000-08-03 00:14:06 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -13,7 +13,7 @@
 #include "Misc.H"
 #include "VisMF.H"
 
-#ifndef BL_Linux
+#if ! (defined(BL_Linux) || defined(BL_AIX))
 #define BL_ALWAYS_FIX_DENORMALS
 #endif
 
