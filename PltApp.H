@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.56 2001-08-23 20:10:47 vince Exp $
+// $Id: PltApp.H,v 1.57 2001-11-16 01:48:08 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -97,7 +97,6 @@ public:
   static void SetReserveSystemColors(int reservesystemcolors);
   
   Widget WId()                     { return wAmrVisTopLevel; }
-  //string GetFormatString() const  { return formatString; }
   void SetNewFormatString(const string &newformatstring);
   AmrPicture *GetAmrPicturePtr(int plane) { return amrPicturePtrArray[plane]; }
   Palette *GetPalettePtr()         { return pltPaletteptr; }
@@ -125,7 +124,6 @@ public:
   
   XYPlotDataList *CreateLinePlot(int V, int sdir, int mal, int ixY,
 				 const string *derived);
-  //void SetGlobalMinMax(Real specifiedMin, Real specifiedMax);
   GC GetRbgc() const { return rbgc; }
 
   void QuitDataset();
@@ -187,7 +185,6 @@ private:
   bool datasetShowing, paletteDrawn, writingRGB, interfaceReady;
   bool paletteCBQ;
   int servingButton;
-  //int minDrawnLevel, maxDrawnLevel, maxDataLevel;
   int currentFrame, animFrames, frameSpeed;
   int activeView;
   int startX, startY, endX, endY;
@@ -343,11 +340,10 @@ private:
 };
 
 void	SubregionPltApp(Widget toplevel, const Box &region, const IntVect &offset,
-			//AmrPicture *app,
 			PltApp *pltparent, const string &palfile,
 			int isanim, const string &derived,
 			const string &filename);
 void	CBQuitPltApp(Widget, XtPointer, XtPointer);
-void	PrintMessage(char *);
+void	PrintMessage(char *cpmsg);
 
 #endif

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrvisConstants.H,v 1.17 2001-10-17 17:53:33 lijewski Exp $
+// $Id: AmrvisConstants.H,v 1.18 2001-11-16 01:48:08 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -95,11 +95,9 @@ static char *FileTypeString[] = {
 
 
 #ifdef BL_USE_FLOAT
-//#define AV_SMALL_REAL FLT_MIN
 #define AV_BIG_REAL FLT_MAX
 #else
 # ifdef BL_USE_DOUBLE
-//#define AV_SMALL_REAL DBL_MIN
 #define AV_BIG_REAL DBL_MAX
 # else
 #   error Must define BL_USE_FLOAT or BL_USE_DOUBLE

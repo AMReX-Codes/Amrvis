@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.H,v 1.41 2001-10-17 17:53:33 lijewski Exp $
+// $Id: AmrPicture.H,v 1.42 2001-11-16 01:48:08 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -119,7 +119,7 @@ class AmrPicture {
   Array<FArrayBox *>	sliceFab;
   Array<unsigned char *>  imageData, scaledImageData;
   Array<XImage *>       xImageArray;
-  Array<bool >           xImageCreated;
+  Array<bool>           xImageCreated;
   GraphicsAttributes	*GAptr;
   PltApp	        *pltAppPtr;
   PltAppState	        *pltAppStatePtr;
@@ -128,7 +128,6 @@ class AmrPicture {
   GC			xgc;
   int			myView, hLine, vLine;
   int			maxLevelWithGrids;
-  //bool		maxsFound;
   int			hColor, vColor, myColor, slice, sliceDir;
   bool                  bCartGridSmoothing;
   bool                  pixMapCreated, isSubDomain, findSubRange;

@@ -1,6 +1,6 @@
 
 //
-// $Id: GraphicsAttributes.H,v 1.17 2001-10-17 17:53:33 lijewski Exp $
+// $Id: GraphicsAttributes.H,v 1.18 2001-11-16 01:48:08 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -52,7 +52,7 @@ class GraphicsAttributes {
     bool     IsTrueColor()    const { return visual_info.c_class == TrueColor; }
     unsigned long PRedMask()  const { return visual_info.red_mask; }
     unsigned long PGreenMask() const { return visual_info.green_mask; }
-    unsigned long PBlueMask() const { return visual_info.blue_mask; }
+    unsigned long PBlueMask()  const { return visual_info.blue_mask; }
     unsigned long PRedShift()  const { return red_shift; }
     unsigned long PGreenShift() const { return green_shift; }
     unsigned long PBlueShift() const { return blue_shift; }

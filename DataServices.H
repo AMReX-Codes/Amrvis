@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.H,v 1.16 2001-10-17 17:53:33 lijewski Exp $
+// $Id: DataServices.H,v 1.17 2001-11-16 01:48:08 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -112,7 +112,7 @@ class DataServices {
 
     // information functions
     const string &GetFileName() const { return fileName; }
-    FileType GetFileType()       const { return fileType; }
+    FileType GetFileType()      const { return fileType; }
     bool CanDerive(const string &name) const;
     int  NumDeriveFunc() const;
     void ListDeriveFunc(ostream &os) const;

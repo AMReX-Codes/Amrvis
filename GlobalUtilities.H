@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.H,v 1.15 2001-08-22 00:22:32 vince Exp $
+// $Id: GlobalUtilities.H,v 1.16 2001-11-16 01:48:08 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -73,7 +73,6 @@ const string &GetLightingFileName();
 
 bool DumpSlices();
 bool SliceAllVars();
-//Array< List<int> > &GetDumpSlices();
 Array< list<int> > &GetDumpSlices();
 int  GetFabOutFormat();
 

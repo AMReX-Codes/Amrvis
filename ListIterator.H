@@ -3,7 +3,7 @@
 #define BL_LIST_H
 
 //
-// $Id: ListIterator.H,v 1.1 2001-08-21 23:39:03 vince Exp $
+// $Id: ListIterator.H,v 1.2 2001-11-16 01:48:08 vince Exp $
 //
 
 #include <BLassert.H>
@@ -39,332 +39,79 @@ private:
     ListLink<T>* suc;
 };
 
-//
-//@Man:
-//@Memo: Iterate over a List
-/*@Doc:
-
-  The class ListIterator<T> is an iterator over class List<T>.
-  
-  This class does NOT provide a default constructor or an assignment operator.
-*/
-
 template <class T>
 class ListIterator
 {
 public:
-    //
-    //@ManDoc: Construct a ListIterator<T> to first element of aList.
-    //
     explicit ListIterator (const List<T>& aList);
-    //
-    //@ManDoc: The copy constructor.
-    //
     ListIterator (const ListIterator<T>& rhs);
-
-    /*@ManDoc: Reset this ListIterator<T> to point to the first element
-               in the List<T>.
-    */
     void rewind ();
-
-    /*@ManDoc: Return a constant reference to the object in the List<T>
-               currently pointed to by this ListIterator<T>.
-    */
     const T& operator() () const;
-
-    /*@ManDoc: Return a constant reference to the object in the List<T>
-               currently pointed to by this ListIterator<T>.
-    */
     const T& operator* () const;
-
-    /*@ManDoc: This is a conversion operator that makes the iterator look
-               like a pointer.  This operator makes it easy to check if the
-               iterator is pointing to an element on the List<T>.  If the
-               iterator has been moved off the List<T> or if the List<T> is
-               empty, this conversion returns the NULL pointer.
-    */
     operator void* ();
-
-    /*@ManDoc: Returns true if ListIterator<T> doesn't point to any
-               element on the List<T>.
-    */
     bool operator! () const;
-
-    /*@ManDoc: Return a constant reference to the object in the List<T>
-               currently pointed to by the iterator.
-    */
     const T& value () const;
-
-    /*@ManDoc: This is the prefix auto-increment operator.  It advances the
-               ListIterator<T> to point to the next element on the List<T>.
-               It then returns a reference to itself to allow for chaining
-               with other operators.
-    */
     ListIterator<T>& operator++ ();
-
-    /*@ManDoc: This is the prefix auto-decrement operator.  It moves the
-               ListIterator<T> to point to the previous element on the
-               List<T>.  It then returns a reference to itself to allow for
-               chaining with other operators.
-    */
     ListIterator<T>& operator-- ();
-
-    /*@ManDoc: This is the postfix auto-decrement operator.  It moves the
-               ListIterator<T> to point to the previous element on the
-               List<T>.  It then returns a ListIterator<T> that points to
-               the old element to allow for chaining with other operators.
-
-    */
     ListIterator<T> operator-- (int);
-
-    /*@ManDoc: This is the postfix auto-increment operator.  It advances the
-               ListIterator<T> to point to the next element on the List<T>.
-               It then returns a ListIterator<T> that points to the old
-               element to allow for chaining with other operators.
-    */
     ListIterator<T> operator++ (int);
-
-    /*@ManDoc: Do the two ListIterator<T>s point to the same List<T> and
-               the same element within the List<T>?
-    */
     bool operator== (const ListIterator<T>&) const;
-    //
-    //@ManDoc: Are the ListIterator<T>s not equal?
-    //
     bool operator!= (const ListIterator<T>&) const;
 
 protected:
-    //
-    // Construct a ListIterator<T> to a List<T> and object in that List<T>.
-    //
-    ListIterator (const List<T>& _list,
-                  ListLink<T>*   _p);
-    //
-    // A reference to the List<T> to which we point.
-    //
+    ListIterator (const List<T>& _list, ListLink<T>*   _p);
     const List<T>& list;
-    //
-    // A pointer to the element in the List<T> to which we point.
-    //
     ListLink<T>* p;
 
 private:
     friend class List<T>;
-    //
-    // These are disallowed.
-    //
     ListIterator ();
     ListIterator<T>& operator= (const ListIterator<T>&);
 };
-
-//
-//@Man:
-//@Memo: A Doubly-Linked List
-/*@Doc:
-
-  The List<T> class is a template class that implements a doubly-linked list
-  of objects.  A List<T> is a useful container class when the number of
-  objects in the collection is not known ahead of time.   A List<T> can
-  contain an arbitrary number of elements; operations such as insertion,
-  deletion, and catenation are easily implemented and inexpensive.
-
-  The only difficulty when defining a list class is devising a mechanism to
-  access the elements.  In an array, an element is accessed using an
-  integer index.  Since the elements in a List<T> are ordered by position,
-  we could define an integer indexing operation that walks along the
-  List<T> links from the beginning until the numbered element is found.
-  Unfortunately, this would be very inefficient when accessing elements near
-  the  end of a long list.  Another solution is to allow user access to the
-  individual link objects that contain the element as well as the forward and
-  backward pointers.  This is not a satisfactory solution since it allows
-  user access to the internal representation of the class.  The solution
-  chosen is to define a ListIterator<T> template class.
-  
-  Think of a ListIterator<T> as a pointer to an object in the List<T>.  You
-  can access the element currently pointed to by the iterator, move the
-  iterator forward and backward through the List<T>, and use it as a
-  mechanism to define where elements should be inserted and deleted.  If the
-  iterator is moved off the end of the list it behaves as a null pointer.
-
-  This is a concrete class, not a polymorphic one.
-*/
 
 template <class T>
 class List
 {
 public:
-    //
-    //@ManDoc: Construct an empty List<T>.
-    //
     List ();
-    //
-    //@ManDoc: The copy constructor.
-    //
     List (const List<T>& rhs);
-    //
-    //@ManDoc: The assignment operator.
-    //
     List<T>& operator= (const List<T>& rhs);
-    //
-    //@ManDoc: The destructor.
-    //
     ~List();
-    //
-    //@ManDoc: Adds a copy of the value to the beginning of the List<T>.
-    //
     void prepend (const T& value);
-    //
-    //@ManDoc: Adds a copy of the value to the end of the List<T>.
-    //
     void append (const T& value);
-    //
-    //@ManDoc: Adds a copy of the value to the end of the List<T>.
-    //
     void add (const T& value);
-    //
-    //@ManDoc: Appends a copy of all items in List<T> src to this List<T>.
-    //
     void join (const List<T>& src);
-
-    /*@ManDoc: Appends a copy of all items in List<T> src to this List<T>.
-               This differs from join() in that it unlinks the objects from
-               the List<T> src and glues them to the end of this List<T>,
-               leaving List<T> src empty.  This is more efficient that
-               join() if src is no longer needed.
-    */
     void catenate (List<T>& src);
-    //
-    //@ManDoc: Removes all objects from the List<T>.
-    //
     void clear ();
-    //
-    //@ManDoc: Returns a reference to the first element in the List<T>.
-    //
     T& firstElement () const;
-    //
-    //@ManDoc: Returns a reference to the last element in the List<T>.
-    //
     T& lastElement () const;
-
-    /*@ManDoc: Returns true if the List<T> contains an object identical
-               to value.  Type T must have an operator==() defined, or
-               be an intrinsic type.
-    */
     bool includes (const T& value) const;
-
-    /*@ManDoc: Returns true if the this and rhs are memberwise equal;
-               i.e. the two lists are the same size and each of the
-               elements in the list compare equal. Type T must have an
-               operator==() defined, or be an intrinsic type.
-    */
     bool operator== (const List<T>& rhs) const;
-    //
-    //@ManDoc: Returns true if the this and rhs are not equal.
-    //
     bool operator!= (const List<T>& rhs) const;
-    //
-    //@ManDoc: Returns true if the List<T> is empty.
-    //
     bool isEmpty () const;
-    //
-    //@ManDoc: Returns true if the List<T> is not empty.
-    //
     bool isNotEmpty () const;
-    //
-    //@ManDoc: Returns the number of objects in the List<T>.
-    //
     int length () const;
-    //
-    //@ManDoc: Removes the first element in the List<T>.
-    //
     void removeFirst ();
-    //
-    //@ManDoc: Removes the last element in the List<T>.
-    //
     void removeLast ();
-    //
-    //@ManDoc: Returns reference to object pointed to by the ListIterator<T>.
-    //
     const T& operator[] (const ListIterator<T>& li) const;
-    //
-    //@ManDoc: Returns reference to object pointed to by the ListIterator<T>.
-    //
     T& operator[] (const ListIterator<T>& li);
-    //
-    //@ManDoc: Removes all objects in the List<T> equal to value.
-    //
     void remove (const T& value);
-
-    /*@ManDoc: Removes all objects in the List<T> equal to any of the
-               values in lst.
-    */
     void remove (const List<T>& lst);
-    //
-    //@ManDoc: Removes the object pointed to by the ListIterator<T>.
-    //
     void remove (ListIterator<T>& lit);
-    //
-    //@ManDoc: Replace the value pointed to by the ListIterator<T> by val.
-    //
-    void replace (ListIterator<T>& li,
-                         const T&         val);
-
-    /*@ManDoc: Insert val into List<T> after the object pointed to by
-               ListIterator<T>.
-    */
-    void addAfter (ListIterator<T>& lit,
-                   const T&         val);
-
-    /*@ManDoc: Insert val into List<T> before the object pointed to by
-               ListIterator<T>.
-    */
-    void addBefore (ListIterator<T>& lit,
-                    const T&         val);
-    //
-    //@ManDoc: Returns a ListIterator<T> to the first object in this List<T>.
-    //
+    void replace (ListIterator<T>& li, const T&         val);
+    void addAfter (ListIterator<T>& lit, const T&         val);
+    void addBefore (ListIterator<T>& lit, const T&         val);
     ListIterator<T> first () const;
-    //
-    //@ManDoc: Returns a ListIterator<T> to the last object in this List<T>.
-    //
     ListIterator<T> last () const;
 
 protected:
-    //
-    // A helper function for removing nodes.
-    //
     void remove (ListLink<T> *ln);
-    //
-    // A helper function for adding nodes.
-    //
-    ListLink<T>* addBefore (ListLink<T>* ln,
-                            const T&     val);
-    //
-    // A helper function for adding nodes.
-    //
-    ListLink<T>* addAfter (ListLink<T>* ln,
-                           const T&     val);
-    //
-    // The head of the list.
-    //
+    ListLink<T>* addBefore (ListLink<T>* ln, const T&     val);
+    ListLink<T>* addAfter (ListLink<T>* ln, const T&     val);
     ListLink<T>* head;
-    //
-    // The tail of the list.
-    //
     ListLink<T>* tail;
-    //
-    // Our good and trusted friend.
-    //
     friend class ListIterator<T>;
 };
-
-//
-// Inlines.
-//
-
-//
-// The ListIterator stuff.
-//
 
 template <class T>
 inline
@@ -497,10 +244,6 @@ ListIterator<T>::operator!= (const ListIterator<T>& _li) const
 {
     return ! ListIterator<T>::operator==(_li);
 }
-
-//
-// List stuff.
-//
 
 template <class T>
 inline
@@ -645,10 +388,6 @@ List<T>::last () const
     return ListIterator<T>(*this,tail);
 }
 
-//
-// List members
-//
-
 template <class T>
 List<T>::List (const List<T>& source)
     :
@@ -662,9 +401,6 @@ List<T>::List (const List<T>& source)
             append(li());
 }
 
-//
-// This isn't inlined as it's declared virtual.
-//
 
 template <class T>
 void
