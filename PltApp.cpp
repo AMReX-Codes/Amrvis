@@ -68,8 +68,8 @@ PltApp::~PltApp() {
 PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
 	       DataServices *dataservicesptr, bool isAnim)
 {
-    if (! dataservicesptr->AmrDataOk() )
-        return;
+    if (! dataservicesptr->AmrDataOk() ) // checks if the Dataservices 
+        return;                          // are open and working
   int i;
   anim = isAnim;
   paletteDrawn = false;

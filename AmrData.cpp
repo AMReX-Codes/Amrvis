@@ -8,6 +8,7 @@
 #include "Boolean.H"
 #include "VisMF.H"
 
+#include "kutils.H"
 
 #ifdef CRAY
 #     if (BL_SPACEDIM == 2)
@@ -137,8 +138,8 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
        cout << "Plot file version:  " << plotFileVersion << endl;
      }
 
-      // read list of variables written
-      is >> nComp;
+     // read list of variables written
+     is >> nComp;
       if(nComp < 1 || nComp > 1024) {  // arbitrarily limit to 1024
         cerr << "Error in AmrData:  bad nComp = " << nComp << endl;
         return false;
@@ -146,10 +147,11 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
       VSHOWVAL(Verbose(), nComp);
 
       plotVars.resize(nComp);
+      eatws(is); // eat white space left by << operator
       for(i = 0; i < nComp; ++i) {
-        is >> plotName;
-        plotVars[i] = plotName;
-        VSHOWVAL(Verbose(), plotName);
+          plotName.getline(is);
+          plotVars[i] = plotName;
+          VSHOWVAL(Verbose(), plotName);
       }
 
       int spacedim;

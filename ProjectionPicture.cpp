@@ -276,7 +276,7 @@ void ProjectionPicture::DrawBoxes() {
   for(i = showBoxesFix*(bPoints-16); i < bPoints-(1-showSubCut)*8; i++) {
     XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
 		boxtranspoints[i].color);
-    XDrawLine(XtDisplay(drawingArea), XtWindow(drawingArea),
+    /* XDrawLine(XtDisplay(drawingArea), XtWindow(drawingArea),
     		XtScreen(drawingArea)->default_gc, boxtranspoints[i].x,
 		boxtranspoints[i].y,
 		boxtranspoints[boxtranspoints[i].lineto1].x,
@@ -285,7 +285,7 @@ void ProjectionPicture::DrawBoxes() {
 		XtScreen(drawingArea)->default_gc, boxtranspoints[i].x,
 		boxtranspoints[i].y,
                 boxtranspoints[boxtranspoints[i].lineto2].x,
-                boxtranspoints[boxtranspoints[i].lineto2].y);
+                boxtranspoints[boxtranspoints[i].lineto2].y);*/
   }
 }
 
@@ -300,7 +300,7 @@ void ProjectionPicture::DrawBoxesIntoPixmap() {
   for(i = showBoxesFix*(bPoints-16); i < bPoints-(1-showSubCut)*8; i++) {
     XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
 		boxtranspoints[i].color);
-    XDrawLine(XtDisplay(drawingArea), pixMap,
+    /*XDrawLine(XtDisplay(drawingArea), pixMap,
     		XtScreen(drawingArea)->default_gc, boxtranspoints[i].x,
 		boxtranspoints[i].y,
 		boxtranspoints[boxtranspoints[i].lineto1].x,
@@ -309,7 +309,7 @@ void ProjectionPicture::DrawBoxesIntoPixmap() {
 		XtScreen(drawingArea)->default_gc, boxtranspoints[i].x,
 		boxtranspoints[i].y,
                 boxtranspoints[boxtranspoints[i].lineto2].x,
-                boxtranspoints[boxtranspoints[i].lineto2].y);
+                boxtranspoints[boxtranspoints[i].lineto2].y);*/
   }
   image = XGetImage(XtDisplay(drawingArea), pixMap, 0, 0,
 		    daWidth, daHeight, AllPlanes, ZPixmap);

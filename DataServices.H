@@ -102,7 +102,7 @@ class DataServices {
     void ListDeriveFunc(ostream &os) const;
     const Array<aString> &PlotVarNames() const { return amrData.PlotVarNames(); }
     AmrData &AmrDataRef() { return amrData; }
-    bool AmrDataOk() { return bAmrDataOk; }
+    bool AmrDataOk() { return bAmrDataOk; }  
 
     // other functions
     int GetNumberOfUsers() const  { return numberOfUsers; }
