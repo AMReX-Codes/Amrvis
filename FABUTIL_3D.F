@@ -101,7 +101,7 @@ c ::: local var
               ioff = mod(fn-1,lratio)
               voff(fn) = float(ioff)-hafrat
 100       continue
-      elseif (maxlen .eq. leny) then
+      else if (maxlen .eq. leny) then
           do 110 j = fblo(2), fbhi(2) 
               fn = j-fslo(2)+1
               joff = mod(fn-1,lratio)
@@ -113,7 +113,7 @@ c ::: local var
               koff = mod(fn-1,lratio)
               voff(fn) = float(koff)-hafrat
 120       continue
-      endif
+      end if
       do 130 n = 1, nvar 
 
 c ::: ::::: compute slopes in x direction
@@ -165,22 +165,22 @@ c ::: ..,.......::::: strip out a fine grid slope vector
                           if (k .lt. fblo(3)) then
                               goto 210
 c                             --- next ---
-                          endif
+                          end if
                           if (k .gt. fbhi(3)) then
                               goto 211
 c                             --- break ---
-                          endif
+                          end if
                           zoff = float(koff)-hafrat
                           do 220 joff = 0, lratio-1 
                               j = lratio*jc + joff
                               if (j .lt. fblo(2)) then
                                   goto 220
 c                                 --- next ---
-                              endif
+                              end if
                               if (j .gt. fbhi(2)) then
                                   goto 221
 c                                 --- break ---
-                              endif
+                              end if
                               yoff = float(joff)-hafrat
 
                               do 230 i = fblo(1), fbhi(1) 
@@ -195,7 +195,7 @@ c                                 --- break ---
 211                   continue
 180               continue
 170           continue
-          elseif (maxlen .eq. leny) then
+          else if (maxlen .eq. leny) then
               do 240 kc = cblo(3), cbhi(3) 
                   do 250 ic = cblo(1), cbhi(1) 
 
@@ -219,22 +219,22 @@ c ::: ..,.......::::: strip out a fine grid slope vector
                           if (k .lt. fblo(3)) then
                               goto 280
 c                             --- next ---
-                          endif
+                          end if
                           if (k .gt. fbhi(3)) then
                               goto 281
 c                             --- break ---
-                          endif
+                          end if
                           zoff = float(koff)-hafrat
                           do 290 ioff = 0, lratio-1 
                               i = lratio*ic + ioff
                               if (i .lt. fblo(1)) then
                                   goto 290
 c                                 --- next ---
-                              endif
+                              end if
                               if (i .gt. fbhi(1)) then
                                   goto 291
 c                                 --- break ---
-                              endif
+                              end if
                               xoff = float(ioff)-hafrat
 
                               do 300 j = fblo(2), fbhi(2) 
@@ -273,22 +273,22 @@ c ::: ..,.......::::: strip out a fine grid slope vector
                           if (j .lt. fblo(2)) then
                               goto 350
 c                             --- next ---
-                          endif
+                          end if
                           if (j .gt. fbhi(2)) then
                               goto 351
 c                             --- break ---
-                          endif
+                          end if
                           yoff = float(joff)-hafrat
                           do 360 ioff = 0, lratio-1 
                               i = lratio*ic + ioff
                               if (i .lt. fblo(1)) then
                                   goto 360
 c                                 --- next ---
-                              endif
+                              end if
                               if (i .gt. fbhi(1)) then
                                   goto 361
 c                                 --- break ---
-                              endif
+                              end if
                               xoff = float(ioff)-hafrat
 
                               do 370 k = fblo(3), fbhi(3) 
@@ -303,7 +303,7 @@ c                                 --- break ---
 351                   continue
 320               continue
 310           continue
-          endif
+          end if
 130   continue
 
       return
@@ -481,7 +481,7 @@ c ::: local var
               ccen = half*(cvc1(ic)+cvc1(ic+1))
               voff(fn) = (fcen-ccen)/(cvc1(ic+1)-cvc1(ic))
 380       continue
-      elseif (maxlen .eq. leny) then
+      else if (maxlen .eq. leny) then
           do 390 j = fbloi2, fbhii2 
               fn = j-fslo(2)+1
               jc = IX_PROJ(j,lratio)
@@ -497,7 +497,7 @@ c ::: local var
               ccen = half*(cvc3(kc)+cvc3(kc+1))
               voff(fn) = (fcen-ccen)/(cvc3(kc+1)-cvc3(kc))
 400       continue
-      endif
+      end if
       do 410 n = 1, nvar 
 
 c ::: ::::: compute slopes in x direction
@@ -549,11 +549,11 @@ c ::: ..,.......::::: strip out a fine grid slope vector
                           if (k .lt. fbloi3) then
                               goto 490
 c                             --- next ---
-                          endif
+                          end if
                           if (k .gt. fbhii3) then
                               goto 491
 c                             --- break ---
-                          endif
+                          end if
                           fcen = half*(fvc3(k)+fvc3(k+1))
                           ccen = half*(cvc3(kc)+cvc3(kc+1))
                           zoff = (fcen-ccen)/(cvc3(kc+1)-cvc3(kc))
@@ -562,11 +562,11 @@ c                             --- break ---
                               if (j .lt. fbloi2) then
                                   goto 500
 c                                 --- next ---
-                              endif
+                              end if
                               if (j .gt. fbhii2) then
                                   goto 501
 c                                 --- break ---
-                              endif
+                              end if
                               fcen = half*(fvc2(j)+fvc2(j+1))
                               ccen = half*(cvc2(jc)+cvc2(jc+1))
                               yoff = (fcen-ccen)/(cvc2(jc+1)-cvc2(jc))
@@ -583,7 +583,7 @@ c                                 --- break ---
 491                   continue
 460               continue
 450           continue
-          elseif (maxlen .eq. leny) then
+          else if (maxlen .eq. leny) then
               do 520 kc = cblo(3), cbhi(3) 
                   do 530 ic = cblo(1), cbhi(1) 
 
@@ -607,11 +607,11 @@ c ::: ..,.......::::: strip out a fine grid slope vector
                           if (k .lt. fbloi3) then
                               goto 560
 c                             --- next ---
-                          endif
+                          end if
                           if (k .gt. fbhii3) then
                               goto 561
 c                             --- break ---
-                          endif
+                          end if
                           fcen = half*(fvc3(k)+fvc3(k+1))
                           ccen = half*(cvc3(kc)+cvc3(kc+1))
                           zoff = (fcen-ccen)/(cvc3(kc+1)-cvc3(kc))
@@ -620,11 +620,11 @@ c                             --- break ---
                               if (i .lt. fbloi1) then
                                   goto 570
 c                                 --- next ---
-                              endif
+                              end if
                               if (i .gt. fbhii1) then
                                   goto 571
 c                                 --- break ---
-                              endif
+                              end if
                               fcen = half*(fvc1(i)+fvc1(i+1))
                               ccen = half*(cvc1(ic)+cvc1(ic+1))
                               xoff = (fcen-ccen)/(cvc1(ic+1)-cvc1(ic))
@@ -665,11 +665,11 @@ c ::: ..,.......::::: strip out a fine grid slope vector
                           if (j .lt. fbloi2) then
                               goto 630
 c                             --- next ---
-                          endif
+                          end if
                           if (j .gt. fbhii2) then
                               goto 631
 c                             --- break ---
-                          endif
+                          end if
                           fcen = half*(fvc2(j)+fvc2(j+1))
                           ccen = half*(cvc2(jc)+cvc2(jc+1))
                           yoff = (fcen-ccen)/(cvc2(jc+1)-cvc2(jc))
@@ -678,11 +678,11 @@ c                             --- break ---
                               if (i .lt. fbloi1) then
                                   goto 640
 c                                 --- next ---
-                              endif
+                              end if
                               if (i .gt. fbhii1) then
                                   goto 641
 c                                 --- break ---
-                              endif
+                              end if
                               fcen = half*(fvc1(i)+fvc1(i+1))
                               ccen = half*(cvc1(ic)+cvc1(ic+1))
                               xoff = (fcen-ccen)/(cvc1(ic+1)-cvc1(ic))
@@ -699,7 +699,7 @@ c                                 --- break ---
 631                   continue
 600               continue
 590           continue
-          endif
+          end if
 410   continue
 
       return

@@ -98,7 +98,7 @@ c ::: local var
               joff = mod(fn-1,lratio)
               voff(fn) = float(joff)-hafrat
 110       continue
-      endif
+      end if
       do 120 n = 1, nvar 
 
 c ::: ::::: compute slopes in x direction
@@ -138,11 +138,11 @@ c ::: ..,.......::::: strip out a fine grid slope vector
                       if (j .lt. fblo(2)) then
                           goto 180
 c                         --- next ---
-                      endif
+                      end if
                       if (j .gt. fbhi(2)) then
                           goto 181
 c                         --- break ---
-                      endif
+                      end if
                       yoff = float(joff)-hafrat
 
                       do 190 i = fblo(1), fbhi(1) 
@@ -174,11 +174,11 @@ c ::: ..,.......::::: strip out a fine grid slope vector
                       if (i .lt. fblo(1)) then
                           goto 230
 c                         --- next ---
-                      endif
+                      end if
                       if (i .gt. fbhi(1)) then
                           goto 231
 c                         --- break ---
-                      endif
+                      end if
                       xoff = float(ioff)-hafrat
 
                       do 240 j = fblo(2), fbhi(2) 
@@ -189,7 +189,7 @@ c                         --- break ---
 230               continue
 231               continue
 200           continue
-          endif
+          end if
 120   continue
 
       return
