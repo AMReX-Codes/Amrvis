@@ -164,6 +164,8 @@ public:
 	int MinDrawnLevel() const        { return minDrawnLevel; }
 	int MaxDrawnLevel() const        { return maxDrawnLevel; }
 
+    bool GetShowBoxes() { return showBoxes; }
+    void SetShowBoxes(bool showing) { showBoxes = showing; }
 	const aString &GetFileName();
 	bool  PaletteDrawn();
 	void  PaletteDrawn(bool trueOrFalse);
@@ -201,6 +203,7 @@ private:
 	IntVect		ivLowOffsetMAL;  // at maxAllowableLevel
 	Range		rangeType;
 	bool		anim, setRangeShowing, datasetShowing, paletteDrawn;
+        bool            showBoxes;
 	int		minDrawnLevel, maxDrawnLevel;
 	int		minDataLevel,  maxDataLevel;
 	aString		fileName, palFilename;

@@ -117,7 +117,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     SetInitialDerived(dataServicesPtr->PlotVarNames()[0]);
   }
   currentDerived = PltApp::initialDerived;
- 
+  SetShowBoxes(GetDefaultShowBoxes());
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
   int finestLevel(amrData.FinestLevel());
   int maxlev = DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
@@ -165,7 +165,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   palFilename = palfile;
   char header[BUFSIZ];
 
-  SetDefaultShowBoxes(pltParent->GetAmrPicturePtr(0)->ShowingBoxes());
+  SetShowBoxes(pltParent->GetShowBoxes());
 
   if(anim) {
     animFrames = GetFileCount(); 
@@ -502,7 +502,7 @@ void PltApp::PltAppInit() {
   wBoxesButton = XmCreateToggleButton(wAmrVisMenu, "boxes", args, i);
   XmStringFree(sBoxes);
   AddStaticCallback(wBoxesButton, XmNvalueChangedCallback, &PltApp::DoBoxesButton);
-  XmToggleButtonSetState(wBoxesButton, GetDefaultShowBoxes(), false);
+  XmToggleButtonSetState(wBoxesButton, GetShowBoxes(), false);
   
 
 // ****************************************** Output Menu 

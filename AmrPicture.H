@@ -67,6 +67,7 @@ class AmrPicture {
 	int	FinestLevel()       { return numberOfLevels - 1; }
 	int	MaxAllowableLevel() { return maxAllowableLevel; }
 	bool	ShowingBoxes()      { return showBoxes; }
+    void    SetShowBoxes(bool b) { showBoxes = b; }
 	unsigned int ImageSizeH()   { return imageSizeH; }
 	unsigned int ImageSizeV()   { return imageSizeV; }
 	DataServices *GetDataServicesPtr()    { return dataServicesPtr; } 
