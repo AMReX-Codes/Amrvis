@@ -1,11 +1,13 @@
 
 //
-// $Id: GraphicsAttributes.cpp,v 1.12 2000-10-02 20:53:08 lijewski Exp $
+// $Id: GraphicsAttributes.cpp,v 1.13 2001-02-20 21:47:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
 // GraphicsAttributes.cpp
 // ---------------------------------------------------------------
+#include <BoxLib.H>
+
 #ifdef BL_USE_NEW_HFILES
 #include <iostream>
 using std::cerr;
@@ -62,8 +64,7 @@ GraphicsAttributes::GraphicsAttributes(Widget topLevel)
 	  blue_shift = buildShift(visual_info.blue_mask);
 	}
       else if( status == 0 ) {
-	cerr << "Error: bad XMatchVisualInfo: no PseudoColor Visual" << endl;
-	exit(1);
+	BoxLib::Abort("Error: bad XMatchVisualInfo: no PseudoColor Visual.");
       }
     }
   gc = screen->default_gc;
