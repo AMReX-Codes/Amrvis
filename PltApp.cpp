@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.72 2001-02-23 22:47:33 vince Exp $
+// $Id: PltApp.cpp,v 1.73 2001-02-28 02:03:03 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1447,23 +1447,23 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
       globalMax = -AV_BIG_REAL;
       int coarseLevel(0);
       int fineLevel(maxDrawnLevel);
-      for(int lev = coarseLevel; lev <= fineLevel; lev++) {
+      for(int lev(coarseLevel); lev <= fineLevel; ++lev) {
 	bool minMaxValid(false);
 	DataServices::Dispatch(DataServices::MinMaxRequest,
 			       dataServicesPtr[currentFrame],
 			       (void *) &(amrData.ProbDomain()[lev]),
 			       (void *) &(derivedStrings[derivedNumber]),
 			       lev, &dataMin, &dataMax, &minMaxValid);
-	if(!minMaxValid) continue;
+	if( ! minMaxValid) {
+	  continue;
+	}
 	globalMin = Min(globalMin, dataMin);
 	globalMax = Max(globalMax, dataMax);
       }
-    }
-    else if(strcmp(derivedStrings[derivedNumber].c_str(),"vol_frac") == 0) {
+    } else if(strcmp(derivedStrings[derivedNumber].c_str(),"vol_frac") == 0) {
       globalMin = 0.0;
       globalMax = 1.0;
-    }
-    else {
+    } else {
       aString outbuf("Finding global min & max values for ");
       outbuf += derivedStrings[derivedNumber];
       outbuf += "...\n";
@@ -1475,15 +1475,17 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
       globalMax = -AV_BIG_REAL;
       int coarseLevel(0);
       int fineLevel(maxDrawnLevel);
-      for(int iFrame = 0; iFrame < animFrames; ++iFrame) {
-	for(int lev = coarseLevel; lev <= fineLevel; ++lev) {
+      for(int iFrame(0); iFrame < animFrames; ++iFrame) {
+	for(int lev(coarseLevel); lev <= fineLevel; ++lev) {
 	  bool minMaxValid(false);
 	  DataServices::Dispatch(DataServices::MinMaxRequest,
 				 dataServicesPtr[iFrame],
 				 (void *) &(amrData.ProbDomain()[lev]),
 				 (void *) &(derivedStrings[derivedNumber]),
 				 lev, &dataMin, &dataMax, &minMaxValid);
-	  if(!minMaxValid) continue;
+	  if( ! minMaxValid) {
+	    continue;
+	  }
 	  globalMin = Min(globalMin, dataMin);
 	  globalMax = Max(globalMax, dataMax);
 	}
@@ -1497,9 +1499,9 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   XtVaSetValues(wPlotLabel, XmNlabelString, label_str, NULL);
   XmStringFree(label_str);
 
-  for(int V = 0; V < NPLANES; ++V) {
-    amrPicturePtrArray[V]->SetMaxDrawnLevel(maxDrawnLevel);
-    amrPicturePtrArray[V]->ChangeDerived(derivedStrings[derivedNumber],
+  for(int iv(0); iv < NPLANES; ++iv) {
+    amrPicturePtrArray[iv]->SetMaxDrawnLevel(maxDrawnLevel);
+    amrPicturePtrArray[iv]->ChangeDerived(derivedStrings[derivedNumber],
                                          pltPaletteptr);
   }
   
@@ -1516,15 +1518,14 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   if(UseSpecifiedMinMax()) {
     Real specifiedMin, specifiedMax;
     GetSpecifiedMinMax(specifiedMin, specifiedMax);
-    for(int V = 0; V < NPLANES; ++V) {
-      amrPicturePtrArray[V]->SetDataMin(specifiedMin);
-      amrPicturePtrArray[V]->SetDataMax(specifiedMax);
+    for(int iv(0); iv < NPLANES; ++iv) {
+      amrPicturePtrArray[iv]->SetDataMin(specifiedMin);
+      amrPicturePtrArray[iv]->SetDataMax(specifiedMax);
     }
-  }
-  else {
-    for(int V = 0; V < NPLANES; ++V) {
-      amrPicturePtrArray[V]->SetDataMin(amrPicturePtrArray[V]->GetRegionMin());
-      amrPicturePtrArray[V]->SetDataMax(amrPicturePtrArray[V]->GetRegionMax());
+  } else {
+    for(int iv(0); iv < NPLANES; ++iv) {
+      amrPicturePtrArray[iv]->SetDataMin(amrPicturePtrArray[iv]->GetRegionMin());
+      amrPicturePtrArray[iv]->SetDataMax(amrPicturePtrArray[iv]->GetRegionMax());
     }
   }
 }
@@ -1592,7 +1593,9 @@ void PltApp::SetNumContours(bool bRedrawAmrPicture) {
 void PltApp::ToggleRange(Widget w, XtPointer client_data, XtPointer call_data) {
   unsigned long r = (unsigned long) client_data;
   XmToggleButtonCallbackStruct *state = (XmToggleButtonCallbackStruct *) call_data;
-  if(state->set == true) rangeType = (Range) r;
+  if(state->set == true) {
+    rangeType = (RangeType) r;
+  }
 }
 
 // -------------------------------------------------------------------
@@ -2048,8 +2051,8 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   char fMin[LINELENGTH];
   char fMax[LINELENGTH];
   strcpy(format, formatString.c_str());
-  Widget wSetRangeForm, wDoneButton, wCancelButton, wSetRangeRadioBox,
-    wRangeRC, wid;
+  Widget wSetRangeForm, wDoneButton, wCancelButton;
+  Widget wSetRangeRadioBox, wRangeRC, wid;
 
   
   // do these here to set XmNwidth of wSetRangeTopLevel

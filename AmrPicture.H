@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.H,v 1.32 2001-02-07 01:40:43 vince Exp $
+// $Id: AmrPicture.H,v 1.33 2001-02-28 02:02:38 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -96,12 +96,12 @@ class AmrPicture {
   Real	GetMax() const       { return dataMaxAllGrids; }
   Real	GetRegionMin() const { return dataMinRegion; }
   Real	GetRegionMax() const { return dataMaxRegion; }
-  void	SetWhichRange(Range which);
-  void  SetContourNumber(int);
+  void	SetWhichRange(RangeType which);
+  void  SetContourNumber(int nContours) { numberOfContours = nContours; }
   int   GetContourNumber() const { return numberOfContours; }
   int   MinDrawnLevel() const { return minDrawnLevel; }
   int   MaxDrawnLevel() const { return maxDrawnLevel; }
-  Range	GetWhichRange() const { return whichRange; }
+  RangeType GetWhichRange() const { return whichRange; }
   Real	GetWhichMin();
   Real	GetWhichMax();
   void	SetHColor(int c)          { hColor = c; }
@@ -118,7 +118,7 @@ class AmrPicture {
   Real	MaxUsing() const          { return maxUsing; }
   Window	PictureWindow()   { return pictureWindow; }
   void	SetMaxDrawnLevel(int lev) { maxDrawnLevel = lev; }
-  void  SetCartGridSmoothing(bool tf);
+  void  SetCartGridSmoothing(bool tf) { bCartGridSmoothing = tf; }
   PltApp *GetPltAppPtr()          { return pltAppPtr; }
   void ChangeContour(int);
   bool Contours() const     { return contours; }
@@ -130,13 +130,13 @@ class AmrPicture {
  private:
   Window 		pictureWindow;
   int			numberOfLevels, finestLevel;
-  int			numberOfDerived, numberOfContours;
+  int			numberOfContours;
   Real			dataMinAllGrids, dataMaxAllGrids;
   Real			dataMinRegion, dataMaxRegion;
   Real			dataMinSpecified, dataMaxSpecified;
   Real			dataMinFile, dataMaxFile;
   Real			minUsing, maxUsing;
-  Range			whichRange;
+  RangeType             whichRange;
   Array<unsigned long>  dataSize, dataSizeH, dataSizeV;
   unsigned int   	imageSize, imageSizeH, imageSizeV;
   aString		currentDerived;
