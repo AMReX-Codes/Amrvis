@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.cpp,v 1.46 2000-06-16 18:46:50 car Exp $
+// $Id: AmrPicture.cpp,v 1.47 2000-06-16 20:29:23 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1100,8 +1100,6 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
   if( ! bCartGridSmoothing) {
     if ( true )
       {
-	const unsigned long bprgb = GAptr->PBitsPerRGB();
-	assert(bprgb <= 8);
 	for ( int j = 0; j < imagesizev; ++j )
 	  {
 	    int jtmp =  datasizeh * (j/scale);

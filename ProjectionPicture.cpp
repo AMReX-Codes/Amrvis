@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ProjectionPicture.cpp,v 1.33 2000-06-16 18:46:50 car Exp $
+// $Id: ProjectionPicture.cpp,v 1.34 2000-06-16 20:29:23 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -250,7 +250,6 @@ void ProjectionPicture::MakePicture() {
     }
   }
 
-  const unsigned long bprgb = pltAppPtr->GetGAptr()->PBitsPerRGB();
   for ( int j = 0; j < daHeight; ++j )
     {
       for ( int i = 0; i < daWidth; ++i )
