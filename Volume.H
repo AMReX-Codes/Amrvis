@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Volume.H,v 1.13 1999-06-08 20:46:29 vince Exp $
+// $Id: Volume.H,v 1.14 2000-06-14 20:28:27 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,12 +9,6 @@
 // ---------------------------------------------------------------
 #ifndef _VOLUME_H_
 #define _VOLUME_H_
-
-#ifdef BL_USE_NEW_HFILES
-#include <iostream>
-#else
-#include <iostream.h>
-#endif
 
 #ifdef BL_VOLUMERENDER
 #include <volpack.h>
@@ -44,10 +38,4 @@ static RawVoxel *dummy_voxel;
 
 #define BYTES_PER_VOXEL	sizeof(RawVoxel)	// voxel size in bytes
 
-#define CheckVP(vpret, n)  \
-	  if(vpret != VP_OK) { \
-            cerr << "VolPack error " << n << ":  " \
-		 << vpGetErrorString(vpGetError(vpc)) << endl; \
-            exit(-4); \
-	  }
 #endif

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: VolRender.cpp,v 1.30 2000-06-14 20:08:28 car Exp $
+// $Id: VolRender.cpp,v 1.31 2000-06-14 20:28:27 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -13,8 +13,14 @@
 #include "ParallelDescriptor.H"
 
 #ifdef BL_USE_NEW_HFILES
+#include <iostream>
+#include <cstdlib>
+using std::cerr;
+using std::endl;
 #include <ctime>
 #else
+#include <iostream.h>
+#include <stdlib.h>
 #include <time.h>
 #endif
 
@@ -23,6 +29,13 @@
 
 extern Real RadToDeg(Real angle);
 extern Real DegToRad(Real angle);
+
+#define CheckVP(vpret, n)  \
+	  if(vpret != VP_OK) { \
+            cerr << "VolPack error " << n << ":  " \
+		 << vpGetErrorString(vpGetError(vpc)) << endl; \
+            exit(-4); \
+	  }
 
 
 // -------------------------------------------------------------------
