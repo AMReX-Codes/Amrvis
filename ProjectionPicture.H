@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.H,v 1.20 2001-03-14 00:41:55 vince Exp $
+// $Id: ProjectionPicture.H,v 1.21 2002-10-22 17:53:51 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -25,10 +25,13 @@ class PltApp;
 // represents data points in physical space that connect lines to other points
 class RealPoint {
   public:
-    RealPoint() { component[0] = component[1] = component[2] = 0.; }
+    RealPoint() { component[0] = component[1] = component[2] = 0.0; }
     Real component[3];
-    RealPoint(Real r1, Real r2, Real r3) { component[0] = r1; 
-    component[1] = r2; component[2] = r3; }
+    RealPoint(Real r1, Real r2, Real r3) {
+      component[0] = r1; 
+      component[1] = r2;
+      component[2] = r3;
+    }
 };
 
 // represents box points in screen space with color values
@@ -148,7 +151,6 @@ private:
   int  longestBoxSideDir;
   int  nDenRampPts, nGradRampPts, nShadeRampPts;
   int  maxDenRampPts, maxGradRampPts, maxShadeRampPts;
-  char rampfilename[LINELENGTH];
   unsigned char	volumeBoxColor;
 #ifdef BL_VOLUMERENDER
   VolRender *volRender;

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.59 2002-09-13 18:01:33 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.60 2002-10-22 17:53:51 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -536,7 +536,6 @@ void SubregionPltApp(Widget wTopLevel, const Box &trueRegion,
 		     const string &currentderived, const string &file)
 {
   PltApp *temp = new PltApp(app, wTopLevel, trueRegion, offset,
-		    //parentPicturePtr,
 		    pltparent, palfile, isAnim, currentderived, file);
   if(temp == NULL) {
     cerr << "Error in SubregionPltApp:  could not make a new PltApp." << endl;

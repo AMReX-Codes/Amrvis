@@ -45,7 +45,7 @@
 #define DEF_COL_BORDER		"black"
 #define DEF_COL_FOREGROUND	"black"
 #define DEF_COL_FIRSTSTYLE	"1"
-#define DEF_GRID_COLOR          "green"
+#define DEF_GRID_COLOR          "gray"
 #define DEF_TEXT_COLOR          "white"
 
 #define DEF_INT		"0"

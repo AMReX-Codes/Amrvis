@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.cpp,v 1.47 2002-08-16 00:22:33 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.48 2002-10-22 17:53:51 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -144,7 +144,7 @@ void ProjectionPicture::TransformBoxPoints(int iLevel, int iBoxIndex) {
 			  boxReal[iLevel][iBoxIndex].vertices[i].component[2],
 			  px, py, pz);
     boxTrans[iLevel][iBoxIndex].vertices[i] =
-	     TransPoint((int)(px+.5), daHeight-(int)(py+.5));
+	     TransPoint((int)(px + 0.5), daHeight - (int)(py + 0.5));
   }
 }
 
@@ -214,13 +214,12 @@ void ProjectionPicture::MakeSlices() {
   Real px, py, pz;
   for(int j(0); j < 3 ; ++j) {
     for(int i(0); i < 4; ++i) {
-          viewTransformPtr->
-              TransformPoint(realSlice[j].edges[i].component[0],
-                             realSlice[j].edges[i].component[1],
-                             realSlice[j].edges[i].component[2],
-                             px, py, pz);
-          transSlice[j].edges[i] = TransPoint((int)(px + 0.5), 
-                                              daHeight - (int)(py + 0.5));
+      viewTransformPtr-> TransformPoint(realSlice[j].edges[i].component[0],
+                                        realSlice[j].edges[i].component[1],
+                                        realSlice[j].edges[i].component[2],
+                                        px, py, pz);
+      transSlice[j].edges[i] = TransPoint((int)(px + 0.5), 
+                                          daHeight - (int)(py + 0.5));
     }
   }
 }
@@ -283,12 +282,12 @@ void ProjectionPicture::DrawBoxesIntoDrawable(const Drawable &drawable,
   maxDrawnLevel = pltAppPtr->GetPltAppState()->MaxDrawnLevel();
   
   if(pltAppPtr->GetPltAppState()->GetShowingBoxes()) {
-    for(int iLevel = iFromLevel; iLevel <= iToLevel; ++iLevel) {
+    for(int iLevel(iFromLevel); iLevel <= iToLevel; ++iLevel) {
       // FIXME:
       XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
                      boxColors[iLevel]);
       int nBoxes(boxTrans[iLevel].size());
-      for(int iBox = 0; iBox < nBoxes; ++iBox) {
+      for(int iBox(0); iBox < nBoxes; ++iBox) {
         boxTrans[iLevel][iBox].Draw(XtDisplay(drawingArea), drawable,
                                     XtScreen(drawingArea)->default_gc);
         
@@ -440,7 +439,8 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
 					 DefaultScreen(XtDisplay(drawingArea))),
 			  DefaultDepthOfScreen(XtScreen(drawingArea)), ZPixmap, 0,
 			  (char *) imageData, widthpad, daHeight,
-			  XBitmapPad(XtDisplay(drawingArea)), widthpad*XBitmapPad(XtDisplay(drawingArea))/8);
+			  XBitmapPad(XtDisplay(drawingArea)),
+			  widthpad * XBitmapPad(XtDisplay(drawingArea)) / 8);
   
   if(pixCreated) {
     XFreePixmap(XtDisplay(drawingArea), pixMap);
@@ -452,7 +452,7 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
 
 #ifdef BL_VOLUMERENDER
   // --- set the image buffer
-  volRender->SetImage( (unsigned char *)volpackImageData, daWidth, daHeight,
+  volRender->SetImage( (unsigned char *) volpackImageData, daWidth, daHeight,
                        VP_LUMINANCE);
 #endif
   longestWindowLength  = (Real) max(daWidth, daHeight);
@@ -493,8 +493,14 @@ RealBox::RealBox() {
 RealBox::RealBox(RealPoint p1, RealPoint p2, RealPoint p3, RealPoint p4, 
                  RealPoint p5, RealPoint p6, RealPoint p7, RealPoint p8)
 {
-    vertices[0] = p1; vertices[1] = p2; vertices[2] = p3; vertices[3] = p4;
-    vertices[4] = p5; vertices[5] = p6; vertices[6] = p7; vertices[7] = p8;
+    vertices[0] = p1;
+    vertices[1] = p2;
+    vertices[2] = p3;
+    vertices[3] = p4;
+    vertices[4] = p5;
+    vertices[5] = p6;
+    vertices[6] = p7;
+    vertices[7] = p8;
 }
 
 
@@ -527,8 +533,14 @@ TransBox::TransBox() {
 TransBox::TransBox(TransPoint p1, TransPoint p2, TransPoint p3, TransPoint p4, 
                    TransPoint p5, TransPoint p6, TransPoint p7, TransPoint p8)
 {
-  vertices[0] = p1; vertices[1] = p2; vertices[2] = p3; vertices[3] = p4;
-  vertices[4] = p5; vertices[5] = p6; vertices[6] = p7; vertices[7] = p8;
+  vertices[0] = p1;
+  vertices[1] = p2;
+  vertices[2] = p3;
+  vertices[3] = p4;
+  vertices[4] = p5;
+  vertices[5] = p6;
+  vertices[6] = p7;
+  vertices[7] = p8;
 }
 
 
@@ -572,66 +584,67 @@ RealSlice::RealSlice(RealPoint p1, RealPoint p2, RealPoint p3, RealPoint p4) {
 
 //--------------------------------------------------------------------
 RealSlice::RealSlice(int count, int slice, const Box &worldBox) {
-    Real dimensions[6] = { worldBox.smallEnd(XDIR), worldBox.smallEnd(YDIR),
-                           worldBox.smallEnd(ZDIR), worldBox.bigEnd(XDIR)+1,
-                           worldBox.bigEnd(YDIR)+1, worldBox.bigEnd(ZDIR)+1 };
-    dirOfFreedom = count;
-    if(dirOfFreedom == 0) {
-        edges[0] = RealPoint(dimensions[0], dimensions[1], slice);
-        edges[1] = RealPoint(dimensions[3], dimensions[1], slice);
-        edges[2] = RealPoint(dimensions[3], dimensions[4], slice);
-        edges[3] = RealPoint(dimensions[0], dimensions[4], slice);
-    }
-    if(dirOfFreedom == 1) {
-        edges[0] = RealPoint(dimensions[0], slice, dimensions[2]);
-        edges[1] = RealPoint(dimensions[3], slice, dimensions[2]);
-        edges[2] = RealPoint(dimensions[3], slice, dimensions[5]);
-        edges[3] = RealPoint(dimensions[0], slice, dimensions[5]);
-    }
-    if(dirOfFreedom == 2) {
-        edges[0] = RealPoint(slice, dimensions[1], dimensions[2]);
-        edges[1] = RealPoint(slice, dimensions[4], dimensions[2]);
-        edges[2] = RealPoint(slice, dimensions[4], dimensions[5]);
-        edges[3] = RealPoint(slice, dimensions[1], dimensions[5]);
-    }
+  Real dimensions[6] = { worldBox.smallEnd(XDIR), worldBox.smallEnd(YDIR),
+                         worldBox.smallEnd(ZDIR), worldBox.bigEnd(XDIR)+1,
+                         worldBox.bigEnd(YDIR)+1, worldBox.bigEnd(ZDIR)+1 };
+  dirOfFreedom = count;
+  if(dirOfFreedom == 0) {
+    edges[0] = RealPoint(dimensions[0], dimensions[1], slice);
+    edges[1] = RealPoint(dimensions[3], dimensions[1], slice);
+    edges[2] = RealPoint(dimensions[3], dimensions[4], slice);
+    edges[3] = RealPoint(dimensions[0], dimensions[4], slice);
+  }
+  if(dirOfFreedom == 1) {
+    edges[0] = RealPoint(dimensions[0], slice, dimensions[2]);
+    edges[1] = RealPoint(dimensions[3], slice, dimensions[2]);
+    edges[2] = RealPoint(dimensions[3], slice, dimensions[5]);
+    edges[3] = RealPoint(dimensions[0], slice, dimensions[5]);
+  }
+  if(dirOfFreedom == 2) {
+    edges[0] = RealPoint(slice, dimensions[1], dimensions[2]);
+    edges[1] = RealPoint(slice, dimensions[4], dimensions[2]);
+    edges[2] = RealPoint(slice, dimensions[4], dimensions[5]);
+    edges[3] = RealPoint(slice, dimensions[1], dimensions[5]);
+  }
 }
 
 
 //--------------------------------------------------------------------
 void RealSlice::ChangeSlice(int NewSlice) {
-    for(int k = 0; k < 4; ++k) {
-      edges[k].component[2-dirOfFreedom] = NewSlice;
-    }
+  for(int k(0); k < 4; ++k) {
+    edges[k].component[2-dirOfFreedom] = NewSlice;
+  }
 }
 
 
 //--------------------------------------------------------------------
 TransSlice::TransSlice() {
-    TransPoint zero(0,0);
-    for(int i = 0; i < 4; ++i) {
-      edges[i] = zero;
-    }
+  TransPoint zero(0,0);
+  for(int i = 0; i < 4; ++i) {
+    edges[i] = zero;
+  }
 }
 
 
 //--------------------------------------------------------------------
-TransSlice::TransSlice(TransPoint p1, TransPoint p2, TransPoint p3, TransPoint p4) {
-    edges[0] = p1;
-    edges[1] = p2;
-    edges[2] = p3;
-    edges[3] = p4;
+TransSlice::TransSlice(TransPoint p1, TransPoint p2,
+                       TransPoint p3, TransPoint p4)
+{
+  edges[0] = p1;
+  edges[1] = p2;
+  edges[2] = p3;
+  edges[3] = p4;
 }
 
 
 //--------------------------------------------------------------------
 void TransSlice::Draw(Display *display, Window window, GC gc) {
-    for(int j = 0; j < 3; ++j) {
-        XDrawLine(display, window, gc,
-                  edges[j].x, edges[j].y,
-                  edges[j+1].x,edges[j+1].y);
-    }
-    XDrawLine(display, window, gc, edges[0].x, edges[0].y, 
-              edges[3].x, edges[3].y);
+  for(int j = 0; j < 3; ++j) {
+    XDrawLine(display, window, gc,
+              edges[j].x, edges[j].y,
+              edges[j+1].x,edges[j+1].y);
+  }
+  XDrawLine(display, window, gc, edges[0].x, edges[0].y, edges[3].x, edges[3].y);
 }
 //--------------------------------------------------------------------
 //--------------------------------------------------------------------

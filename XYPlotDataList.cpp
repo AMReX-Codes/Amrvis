@@ -25,6 +25,7 @@ XYPlotDataList::XYPlotDataList(const string &_derived, int max_level,
     offsetX(offset_x),
     derived(_derived)
 {
+  cout << "_here 000:  max_level = " << max_level << endl;
   int idx;
 
   emptyQ   = 1;
@@ -34,6 +35,8 @@ XYPlotDataList::XYPlotDataList(const string &_derived, int max_level,
 
   idx = 0;
   while(true) {
+  cout << "_here 000.1:  making a new dataSet:  idx maxLevel = "
+       << idx << "  " << maxLevel << endl;
     dataSets[idx] = new List< XYPlotDataListLink *>();
     if(idx == maxLevel) {
       break;
@@ -64,6 +67,7 @@ XYPlotDataList::XYPlotDataList(XYPlotDataList *src)
     offsetX(src->offsetX),
     derived(src->derived) 
 {
+  cout << "_here 001" << endl;
   if(src->copied_from) {
     copied_from = src->copied_from;
   } else {
@@ -106,6 +110,7 @@ void XYPlotDataList::AddFArrayBox(FArrayBox &fab, int which_dir, int level) {
 
 // -------------------------------------------------------------------
 void XYPlotDataList::addLink(XYPlotDataListLink *linky, int level) {
+  cout << "_here 002:  level = " << level << endl;
   BL_ASSERT(level <= maxLevel);
   emptyQ = 0;
   updatedQ = 0;
@@ -127,6 +132,7 @@ void XYPlotDataList::addLink(XYPlotDataListLink *linky, int level) {
       }
       ++curLevLI;
     }
+  cout << "_here 002.1:  returning" << endl;
     return;
   }
 
@@ -166,6 +172,7 @@ void XYPlotDataList::addLink(XYPlotDataListLink *linky, int level) {
     (((linky->endXi % ratios[level-1]) * 2 > ratios[level-1])  ? 1 : 0);
 
   ListIterator<XYPlotDataListLink *> preLevLI(*dataSets[level-1]);
+  cout << "_here 002.2" << endl;
   BL_ASSERT(preLevLI);
   XYPlotDataListLink *down = *preLevLI;
   while(down->endXi < temp && ++preLevLI) {
