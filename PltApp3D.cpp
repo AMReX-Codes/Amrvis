@@ -4,7 +4,6 @@
 #include "PltApp.H"
 #include "Quaternion.H"
 #include <LabelG.h>
-//#include <X11/Xmu/Converters.h>
 
 // -------------------------------------------------------------------
 void PltApp::DoExposeTransDA() {
@@ -183,7 +182,6 @@ void PltApp::CBTransResize(Widget w, XtPointer client_data, XtPointer call_data)
 // -------------------------------------------------------------------
 void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
   transDetached = false;
-
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   //Query wDLight for its state:
   Widget getHistory;
@@ -270,7 +268,6 @@ void PltApp::DoApplyLightingWindow(Widget, XtPointer, XtPointer) {
         specular != volRenderPtr->GetSpecular() ||
         shiny != volRenderPtr->GetShiny() ) { 
       volRenderPtr->SetLighting(ambient, diffuse, specular, shiny);
-      //load VolRender::classifyFields, VolRender::shadeFields?
       //update render image if necessary
       projPicturePtr->GetVolRenderPtr()->InvalidateVPData();
       if (XmToggleButtonGetState(wAutoDraw)) {
@@ -283,12 +280,19 @@ void PltApp::DoApplyLightingWindow(Widget, XtPointer, XtPointer) {
 void PltApp::DoDoneLightingWindow(Widget w, XtPointer xp1, XtPointer xp2) {
   DoApplyLightingWindow(w, xp1, xp2);
   XtDestroyWidget(wLWTopLevel);
-  lightingWindowExists = false;
+}
+
+void PltApp::CBDestroyLightingWindow(Widget w, XtPointer xp, XtPointer) {
+  PltApp *obj = (PltApp *)xp;
+  obj->SetLightingWindow(false);
 }
 
 void PltApp::DoCancelLightingWindow(Widget, XtPointer, XtPointer) {
   XtDestroyWidget(wLWTopLevel);
-  lightingWindowExists = false;
+}
+
+void PltApp::SetLightingWindow(bool lightingWE) {
+   lightingWindowExists = lightingWE;
 }
 
 void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
@@ -303,29 +307,30 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
     aString LWtitlebar = "Lighting";
     strcpy(buffer, LWtitlebar.c_str());
     
-    //XtAddConverter(XtRCallProc, XtRCallback, XmuCvtFunctionToCallback, 
-    //               NULL, 0);
-    
     wLWTopLevel = 
       XtVaCreatePopupShell(buffer,
                            topLevelShellWidgetClass, 
                            wAmrVisTopLevel,
-                           //XtNdestroyCallback, DoCloseLightingWindow,
                            XmNwidth, 200,
                            XmNheight, 200,
                            XmNx, xpos+wdth-20,
                            XmNy, ypos+20,
                            NULL);
+
+    XtAddCallback(wLWTopLevel, XmNdestroyCallback,
+                   &PltApp::CBDestroyLightingWindow, this);
+        
     if(GAptr->PVisual() 
        != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber())) {
       XtVaSetValues(wLWTopLevel, XmNvisual, GAptr->PVisual(),
                     XmNdepth, 8, NULL);
     }
+    
     wLWForm = XtVaCreateManagedWidget("detachform",
                                       xmFormWidgetClass, wLWTopLevel,
                                       NULL);
 
-	// make the buttons
+    // make the buttons
     int i=0;
     XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);   i++;
     XtSetArg(args[i], XmNbottomOffset, WOFFSET);    i++;
@@ -472,57 +477,6 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 
     XmStringFree(sLWVariableSet4);
 
-    //    XtAddCallback(wNumberContours, XmNactivateCallback, 
-    //              &PltApp::CBReadContourString,
-    //              (XtPointer) this);
-    //Dimension bHeight;
-    //XtVaGetValues(wNumberContours, XmNheight, &bHeight, NULL);
-
-
-    /*wUserMin = 
-      XtVaCreateManagedWidget("local range",
-                              xmTextFieldWidgetClass, wSetRangeForm,
-                              XmNvalue,		range,
-                              XmNtopWidget,		wLocalRange,
-                              XmNtopAttachment,	XmATTACH_WIDGET,
-                              XmNtopOffset,		3,
-                              XmNleftWidget,		wMin,
-                              XmNleftAttachment,	XmATTACH_WIDGET,
-                              XmNleftOffset,		WOFFSET,
-                              XmNeditable,		true,
-                              XmNcolumns,		strlen(range)+2,
-                              NULL);
-    AddStaticCallback(wUserMin, XmNactivateCallback, &PltApp::DoUserMin);
-    
-    sprintf(range, "Max:");
-    wMax = 
-      XtVaCreateManagedWidget(range, xmLabelGadgetClass, wSetRangeForm,
-                              XmNtopWidget,		wLocalRange,
-                              XmNtopAttachment,	XmATTACH_WIDGET,
-                              XmNtopOffset,		10,
-                              XmNleftWidget,		wUserMin,
-                              XmNleftAttachment,	XmATTACH_WIDGET,
-                              XmNleftOffset,		WOFFSET,
-                              NULL);
-    sprintf(range, format, amrPicturePtrArray[ZPLANE]->GetSpecifiedMax());
-    wUserMax = XtVaCreateManagedWidget("local range",
-                                       xmTextFieldWidgetClass, wSetRangeForm,
-                                       XmNvalue,		range,
-                                       XmNtopWidget,		wLocalRange,
-                                       XmNtopAttachment,	XmATTACH_WIDGET,
-                                       XmNtopOffset,		3,
-                                       XmNleftWidget,		wMax,
-                                       XmNleftAttachment,	XmATTACH_WIDGET,
-                                       XmNleftOffset,		WOFFSET,
-                                       XmNeditable,		true,
-                                       XmNcolumns,		strlen(range)+2,
-                                       NULL);
-    
-    AddStaticCallback(wUserMax, XmNactivateCallback, &PltApp::DoUserMax);
-    
-    XtManageChild(wSetRangeRadioBox);
-    
-    XtPopup(wSetRangeTopLevel, XtGrabNone);*/
     XtManageChild(wLWCancelButton);
     XtManageChild(wLWDoneButton);
     XtManageChild(wLWApplyButton);
@@ -532,6 +486,15 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   } else {
     XRaiseWindow(GAptr->PDisplay(), XtWindow(wLWTopLevel));
   }
+}
+
+void PltApp::CBDestroyDetachWindow(Widget w, XtPointer xp1, XtPointer xp2) {
+  PltApp *obj = (PltApp *)xp1;
+  obj->DoAttach(w, xp1, xp2);
+}
+
+void PltApp::CBAttach(Widget w, XtPointer xp, XtPointer) {
+  XtDestroyWidget(XtParent(XtParent(w)));
 }
 
 // -------------------------------------------------------------------
@@ -583,6 +546,9 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
 	XmNx,			xpos+wdth/2,
 	XmNy,			ypos+hght/2,
 	NULL);
+  
+  XtAddCallback(wDetachTopLevel, XmNdestroyCallback,
+                &PltApp::CBDestroyDetachWindow, this);
 
   if(GAptr->PVisual() 
      != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber())) {
@@ -603,7 +569,8 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   XtSetArg(args[i], XmNlabelString, sAttach);    i++;
   wAttach = XmCreatePushButton(wDetachForm, "attach", args, i);
   XmStringFree(sAttach);
-  AddStaticCallback(wAttach, XmNactivateCallback, &PltApp::DoAttach);
+  XtAddCallback(wAttach, XmNactivateCallback, 
+                &PltApp::CBAttach, NULL);
   XtManageChild(wAttach);
 
   i=0;

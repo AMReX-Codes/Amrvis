@@ -82,12 +82,16 @@ public:
   static void	CBChangePlane(Widget, XtPointer, XtPointer);
   static void CBReadContourString(Widget, XtPointer, XtPointer);
   void DoChangeContour(int, int);
+  void SetLightingWindow(bool lWE);
 
 #if (BL_SPACEDIM==3)
+  static void CBDestroyDetachWindow(Widget, XtPointer, XtPointer);
+  static void CBDestroyLightingWindow(Widget, XtPointer, XtPointer);
   static void CBRenderModeMenu(Widget, XtPointer, XtPointer);
   static void CBClassifyMenu(Widget, XtPointer, XtPointer);
-  static void	CBTransResize(Widget, XtPointer, XtPointer);
-  static void	CBTransInput(Widget, XtPointer, XtPointer);
+  static void CBTransResize(Widget, XtPointer, XtPointer);
+  static void CBTransInput(Widget, XtPointer, XtPointer);
+  static void CBAttach(Widget, XtPointer, XtPointer);
 
   void DoRenderModeMenu(Widget, XtPointer, XtPointer);
   void DoClassifyMenu(Widget, XtPointer, XtPointer);
@@ -278,9 +282,9 @@ private:
   static int	placementOffsetX;
   static int	placementOffsetY;
   static int	reserveSystemColors;
+  bool lightingWindowExists;
   
 #if (BL_SPACEDIM==3)
-  bool lightingWindowExists;
   ProjectionPicture	*projPicturePtr;
   ViewTransform	viewTrans;
 #endif

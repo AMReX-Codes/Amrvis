@@ -153,7 +153,7 @@ CFLAGS += -g
 
 XTRALIBS += 
 
-#LIBRARIES += -lXmu
+LIBRARIES += -lXmu
 
 include $(HERE)/Make.package
 

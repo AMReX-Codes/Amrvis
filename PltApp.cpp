@@ -281,7 +281,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 void PltApp::PltAppInit() {
   placementOffsetX += 4;
   placementOffsetY += 8;
-
+  
   int i, np;
   servingButton = 0;
   XYyz = 0;
