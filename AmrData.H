@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.H,v 1.13 1999-03-18 17:57:51 sstanley Exp $
+// $Id: AmrData.H,v 1.14 1999-04-28 23:42:46 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -51,6 +51,7 @@ class AmrData {
   aString plotFileVersion;
   
   FileType fileType;
+  bool bCartGrid;
   
  public:
   AmrData();
@@ -103,12 +104,15 @@ class AmrData {
                int finestFillLevel, const aString &varName, int procWithFabs);
   void FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
                int finestFillLevel, const aString &varName, int procWithFabs);
-  void FillVar(MultiFab &destMultiFab, int finestFillLevel, const aString &varName);
+  void FillVar(MultiFab &destMultiFab, int finestFillLevel, const aString &varName,
+	       int srcComp = 0, int destComp = 0, int numComps = 1);
   
   const aString &GetFileName() const { return fileName; }
   
   void SetFileType(FileType type);
-  FileType GetFileType() const     { return fileType; }
+  FileType GetFileType() const     { return fileType;  }
+  bool CartGrid() const            { return bCartGrid; }
+
   void SetBoundaryWidth(int width) { boundaryWidth = width; }
   
   bool CanDerive(const aString &name) const;

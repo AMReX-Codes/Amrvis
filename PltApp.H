@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.H,v 1.29 1999-03-08 22:00:48 vince Exp $
+// $Id: PltApp.H,v 1.30 1999-04-28 23:42:47 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -215,7 +215,7 @@ public:
   Widget wPicArea, wPalArea, wPlotArea;
   Widget wScrollArea[NPLANES], wPlotPlane[NPLANES];
   Widget wBoxesButton, wPaletteButton, wDatasetButton;
-  Widget wCGSmoothButton, wControlArea, wSetRangeButton;
+  Widget wCartGridSmoothButton, wControlArea, wSetRangeButton;
   Widget wRangeRadioButton[NRANGES];
   Widget wOutputMenuBar, wOutputMenu, wOutputButton;
   Widget wPSFileButton, wFABFileButton, wRGBFileButton;
@@ -270,17 +270,18 @@ public:
   int		multiclickInterval;
   int		currentScale, previousScale, maxAllowableScale;
   int		minAllowableLevel;
+  bool          bCartGridSmoothing;
   
   // baggage for fast rubber banding
   GC		rbgc;
-  XEvent		nextEvent;
+  XEvent	nextEvent;
   int 		rWidth, rHeight, rStartX, rStartY;
   int		anchorX, anchorY, rectDrawn;
   int		oldX, oldY, newX, newY;
   int		rootX, rootY;  // place holders for x call
   unsigned int	inputMask;
-  Window		whichRoot, whichChild;
-  Cursor		cursor;
+  Window	whichRoot, whichChild;
+  Cursor	cursor;
   
   
   static aString	defaultPaletteString;
@@ -327,7 +328,7 @@ public:
   void Animate(AnimDirection direction);
   void ShowFrame();
   void DirtyFrames();
-  void DoCGSmooth(Widget, XtPointer, XtPointer);
+  void DoCartGridSmooth(Widget, XtPointer, XtPointer);
   void DoRubberBanding(Widget, XtPointer, XtPointer);
   void DoBoxesButton(Widget, XtPointer, XtPointer);
   void DoAnimBackStep();

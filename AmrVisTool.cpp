@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrVisTool.cpp,v 1.36 1999-04-19 00:42:11 car Exp $
+// $Id: AmrVisTool.cpp,v 1.37 1999-04-28 23:42:47 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -474,14 +474,12 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
     i = 0;
     FileType fileType(GetDefaultFileType());
     XmString sMask;
-    if(fileType==NEWPLT) {
-      sMask = XmStringCreateSimple("plt*");
-    } else if(fileType==FAB) {
+    if(fileType == FAB) {
       sMask = XmStringCreateSimple("*.fab");
-    } else if(fileType==MULTIFAB) {
+    } else if(fileType == MULTIFAB) {
       sMask = XmStringCreateSimple("*_H");
     } else {
-      sMask = XmStringCreateSimple("*");
+      sMask = XmStringCreateSimple("plt*");
     }
 
     XmString sNone = XmStringCreateSimple("none");

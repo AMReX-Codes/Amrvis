@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GlobalUtilities.cpp,v 1.27 1999-03-08 22:00:47 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.28 1999-04-28 23:42:47 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -268,8 +268,6 @@ void GetDefaults(const aString &defaultsFile) {
           fileType = FAB;
 	} else if(strcmp(tempString, "multifab") == 0) {
           fileType = MULTIFAB;
-	} else if(strcmp(tempString, "newplt") == 0) {
-          fileType = NEWPLT;
 	} else {  // error
 	  cerr << "Error in defaults file:  invalid parameter for filetype:  "
 	       << tempString << endl;

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.cpp,v 1.35 1998-12-03 23:33:30 vince Exp $
+// $Id: AmrPicture.cpp,v 1.36 1999-04-28 23:42:47 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -22,21 +22,24 @@
 
 // ---------------------------------------------------------------------
 AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
-		       PltApp *pltappptr, DataServices *dataservicesptr)
+		       PltApp *pltappptr, DataServices *dataservicesptr,
+		       bool bcartgridsmoothing)
+           : 
+             contours(false),
+             raster(true),
+             colContour(false),
+             vectorField(false),
+             minDrawnLevel(mindrawnlevel),
+             GAptr(gaptr),
+             pltAppPtr(pltappptr),
+             myView(XY),
+             isSubDomain(false),
+             findSubRange(false),
+             dataServicesPtr(dataservicesptr),
+             bCartGridSmoothing(bcartgridsmoothing)
 {
   int i, ilev;
-  contours = false;
-  raster = true;
-  colContour = false;
-  vectorField = false;
-  minDrawnLevel = mindrawnlevel;
-  GAptr = gaptr;
-  pltAppPtr = pltappptr;
-  myView = XY;
-  isSubDomain = false;
-  findSubRange = false;
 
-  dataServicesPtr = dataservicesptr;
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
 
   if(UseSpecifiedMinMax()) {
@@ -108,7 +111,15 @@ AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
 AmrPicture::AmrPicture(int view, int mindrawnlevel, 
                        GraphicsAttributes *gaptr, Box region,
                        AmrPicture *parentPicturePtr,
-                       PltApp *parentPltAppPtr, PltApp *pltappptr)
+                       PltApp *parentPltAppPtr, PltApp *pltappptr,
+		       bool bcartgridsmoothing)
+	   :
+             myView(view),
+             minDrawnLevel(mindrawnlevel),
+             GAptr(gaptr),
+             pltAppPtr(pltappptr),
+             isSubDomain(true),
+             bCartGridSmoothing(bcartgridsmoothing)
 {
   assert(parentPicturePtr != NULL);
   assert(pltappptr != NULL);
@@ -119,11 +130,6 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
   colContour = parentPicturePtr->ColorContour();
   vectorField = parentPicturePtr->VectorField();
 
-  myView = view;
-  minDrawnLevel = mindrawnlevel;
-  GAptr = gaptr;
-  pltAppPtr = pltappptr;
-  isSubDomain = true;
   if(myView == XY) {
     findSubRange = true;
   } else {
@@ -141,7 +147,7 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
   maxAllowableLevel = DetermineMaxAllowableLevel(region, finestLevel,
 				   MaxPictureSize(), amrData.RefRatio());
 
-  numberOfLevels = maxAllowableLevel + 1;
+  numberOfLevels    = maxAllowableLevel + 1;
   maxDrawnLevel     = maxAllowableLevel;
   maxLevelWithGrids = maxAllowableLevel;
  
@@ -929,13 +935,404 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 { 
   int i, j, jish, jtmp;
 
-  for(j = 0; j < imagesizev; ++j) {
-    jish = j*imagesizeh;
-    jtmp =  datasizeh * (j/scale);
-    for(i = 0; i < imagesizeh; ++i) {
-      scaledimagedata[i+jish] = imagedata [ (i/scale) + jtmp ];
+  if(! bCartGridSmoothing) {
+    for(j = 0; j < imagesizev; ++j) {
+      jish = j*imagesizeh;
+      jtmp =  datasizeh * (j/scale);
+      for(i = 0; i < imagesizeh; ++i) {
+        scaledimagedata[i+jish] = imagedata [ (i/scale) + jtmp ];
+      }
     }
-  }
+  } else {  // bCartGridSmoothing
+/*
+    int ii, jj, rrcs, iis;
+    int blackIndex, whiteIndex, bodyColor;
+    blackIndex = palPtr->BlackIndex();
+    whiteIndex = palPtr->WhiteIndex();
+    bodyColor = blackIndex;
+    Real vfeps = gridptr->AmrPlotPtr()->VfEps(myLevel);
+    Real *vfracPoint = vfracData->dataPtr();
+    Real vfp, omvfe = 1.0 - vfeps;
+    int vidx, svidx;
+    Real stencil[9];
+    int nBodyCells, nScaledImageCells;
+
+    nScaledImageCells = rrcs*rrcs;
+
+    Real sumH[3], sumV[3];
+    Real diffAvgV[3], diffAvgH[3], avgV, avgH;
+    //Real minDAV, maxDAV, minDAH, maxDAH;
+    Real normV, normH;
+    int  isum, jsum, nStartV, nEndV, nStartH, nEndH, tempSum;
+    int nV, nH, stencilSize = 3;
+    int nCalcBodyCells, fluidCell = 1, bodyCell = 0, markedCell = -1;
+    Real cellDx = 1.0/((Real) rrcs), cellDy = 1.0/((Real) rrcs);
+    Real yBody, slope;
+    int iCurrent, jCurrent, jBody;
+    int isIndex;
+
+    Array<int> imageStencil(nScaledImageCells);
+
+    for(j = 0; j < dataSizeV; j++) {
+      for(i = 0; i < dataSizeH; i++) {
+        vidx = i + (dataSizeV-1-j)*dataSizeH;  // get the volfrac for cell(i,j)
+        vfp = vfracPoint[vidx];
+
+        if(vfp > vfeps && vfp < omvfe) {  // a mixed cell
+
+          for(iis = 0; iis < 9; iis++) {
+            stencil[iis] = -2.0*vfeps;  // flag value for boundary stencils
+          }
+
+          // fill the stencil with volume fractions
+          svidx = (i-1) + (dataSizeV-1-(j-1))*dataSizeH;  // up left
+          if((i-1) >= 0 && (dataSizeV-1-(j-1)) < dataSizeV) {
+            stencil[0] = vfracPoint[svidx];
+          }
+          svidx = (i  ) + (dataSizeV-1-(j-1))*dataSizeH;  // up
+          if((dataSizeV-1-(j-1)) < dataSizeV) {
+            stencil[1] = vfracPoint[svidx];
+          }
+          svidx = (i+1) + (dataSizeV-1-(j-1))*dataSizeH;  // up right
+          if((i+1) < dataSizeH && (dataSizeV-1-(j-1)) < dataSizeV) {
+            stencil[2] = vfracPoint[svidx];
+          }
+          svidx = (i-1) + (dataSizeV-1-(j  ))*dataSizeH;  // left
+          if((i-1) >= 0) {
+            stencil[3] = vfracPoint[svidx];
+          }
+          stencil[4] = vfp;  // the center
+          svidx = (i+1) + (dataSizeV-1-(j  ))*dataSizeH;  // right
+          if((i+1) < dataSizeH) {
+            stencil[5] = vfracPoint[svidx];
+          }
+          svidx = (i-1) + (dataSizeV-1-(j+1))*dataSizeH;  // down left
+          if((i-1) >= 0 && ((int)(dataSizeV-1-(j+1))) >= 0) {
+            stencil[6] = vfracPoint[svidx];
+          }
+          svidx = (i  ) + (dataSizeV-1-(j+1))*dataSizeH;  // down
+          if(((int)(dataSizeV-1-(j+1))) >= 0) {
+            stencil[7] = vfracPoint[svidx];
+          }
+          svidx = (i+1) + (dataSizeV-1-(j+1))*dataSizeH;  // down right
+          if((i+1) < dataSizeH && ((int)(dataSizeV-1-(j+1))) >= 0) {
+            stencil[8] = vfracPoint[svidx];
+          }
+
+#if (BL_SPACEDIM==2)
+          // fix for straight lines near corners
+          Real smallval = 0.0001;
+          if(Abs(stencil[4] - stencil[3]) < smallval &&
+             Abs(stencil[4] - stencil[5]) > smallval) {
+            stencil[2] = -2.0*vfeps;  // flag value
+            stencil[5] = -2.0*vfeps;  // flag value
+            stencil[8] = -2.0*vfeps;  // flag value
+          }
+          if(Abs(stencil[4] - stencil[5]) < smallval &&
+             Abs(stencil[4] - stencil[3]) > smallval) {
+            stencil[0] = -2.0*vfeps;  // flag value
+            stencil[3] = -2.0*vfeps;  // flag value
+            stencil[6] = -2.0*vfeps;  // flag value
+          }
+          if(Abs(stencil[4] - stencil[1]) < smallval &&
+             Abs(stencil[4] - stencil[7]) > smallval) {
+            stencil[6] = -2.0*vfeps;  // flag value
+            stencil[7] = -2.0*vfeps;  // flag value
+            stencil[8] = -2.0*vfeps;  // flag value
+          }
+          if(Abs(stencil[4] - stencil[7]) < smallval &&
+             Abs(stencil[4] - stencil[1]) > smallval) {
+            stencil[0] = -2.0*vfeps;  // flag value
+            stencil[1] = -2.0*vfeps;  // flag value
+            stencil[2] = -2.0*vfeps;  // flag value
+          }
+#endif
+
+          nBodyCells = (int) ((1.0-vfp)*nScaledImageCells);
+                    // there should be this many body cells calculated
+
+          nStartV = 0;
+          nEndV   = 2;
+          nStartH = 0;
+          nEndH   = 2;
+          if(stencil[0] < 0.0 && stencil[1] < 0.0 && stencil[2] < 0.0) {
+            nStartH++;
+          }
+          if(stencil[0] < 0.0 && stencil[3] < 0.0 && stencil[6] < 0.0) {
+            nStartV++;
+          }
+          if(stencil[2] < 0.0 && stencil[5] < 0.0 && stencil[8] < 0.0) {
+            nEndV--;
+          }
+          if(stencil[6] < 0.0 && stencil[7] < 0.0 && stencil[8] < 0.0) {
+            nEndH--;
+          }
+
+          nV = nEndV - nStartV + 1;
+          nH = nEndH - nStartH + 1;
+
+          for(jsum=nStartH; jsum<=nEndH; jsum++) {
+            sumH[jsum] = 0;
+            for(isum=nStartV; isum<=nEndV; isum++) {
+              sumH[jsum] += stencil[isum + stencilSize*jsum];
+            }
+          }
+          for(isum=nStartV; isum<=nEndV; isum++) {
+            sumV[isum] = 0;
+            for(jsum=nStartH; jsum<=nEndH; jsum++) {
+              sumV[isum] += stencil[isum + stencilSize*jsum];
+            }
+          }
+
+          tempSum = 0;
+          for(isum=nStartV; isum<=nEndV; isum++) {
+            tempSum += sumV[isum];
+          }
+          avgV = tempSum / ((Real) nV);
+          tempSum = 0;
+          for(isum=nStartH; isum<=nEndH; isum++) {
+            tempSum += sumH[isum];
+          }
+          avgH = tempSum / ((Real) nH);
+
+          for(isum=nStartV; isum<=nEndV; isum++) {
+            diffAvgV[isum] = sumV[isum] - avgV;
+          }
+          for(isum=nStartH; isum<=nEndH; isum++) {
+            diffAvgH[isum] = sumH[isum] - avgH;
+          }
+
+          //for(isum=nStartV; isum< nEndV; isum++) {
+            //minDAV = Min(diffAvgV[isum], diffAvgV[isum+1]);
+            //maxDAV = Max(diffAvgV[isum], diffAvgV[isum+1]);
+          //}
+          //for(isum=nStartH; isum<=nEndH; isum++) {
+            //minDAH = Min(diffAvgH[isum], diffAvgH[isum+1]);
+            //maxDAH = Max(diffAvgH[isum], diffAvgH[isum+1]);
+          //}
+          normH =  ((diffAvgV[nEndV] - diffAvgV[nStartV]) * ((Real) nH));
+                                                  // nH is correct here
+          normV = -((diffAvgH[nEndH] - diffAvgH[nStartH]) * ((Real) nV));
+                                                  // nV is correct here
+
+          for(ii=0; ii<rrcs*rrcs; ii++) {
+            imageStencil[ii] = fluidCell;
+          }
+          if(Abs(normV) > 0.000001) {
+            slope = normH/normV;  // perpendicular to normal
+          } else {
+            slope = normH;  // avoid divide by zero
+          }
+
+          if(normV > 0.0 && normH > 0.0) {         // upper right quadrant
+
+          iCurrent = 0;
+          jCurrent = 0;
+          nCalcBodyCells = 0;
+          while(nCalcBodyCells < nBodyCells) {
+            iCurrent++;
+            if(iCurrent > rrcs) {
+              iCurrent = 1;
+              jCurrent++;
+            }
+            if(jCurrent > rrcs) {
+              break;
+            }
+            for(ii=0; ii<iCurrent; ii++) {
+              yBody = (slope * ((iCurrent-ii)*cellDx)) + (jCurrent*cellDy);
+              jBody = Min(rrcs-1, (int) (yBody/cellDy));
+              for(jj=0; jj<=jBody; jj++) {
+                isIndex = ii + ((rrcs-(jj+1))*rrcs);
+                imageStencil[isIndex] = bodyCell;  // yflip
+              }
+            }
+
+            // sum the body cells
+            // do it this way to allow redundant setting of body cells
+            nCalcBodyCells = 0;
+            for(ii=0; ii<rrcs*rrcs; ii++) {
+              if(imageStencil[ii] == bodyCell) {
+                nCalcBodyCells++;
+              }
+            }
+
+          }  // end while(...)
+
+          } else if(normV < 0.0 && normH < 0.0) {    // lower left quadrant
+
+            iCurrent = rrcs;
+            jCurrent = rrcs;
+
+          nCalcBodyCells = 0;
+          while(nCalcBodyCells < nBodyCells) {
+            iCurrent--;
+            if(iCurrent < 0) {
+              iCurrent = rrcs-1;
+              jCurrent--;
+            }
+            if(jCurrent < 1) {
+              break;
+            }
+
+            for(ii=rrcs; ii>iCurrent; ii--) {
+              yBody = (slope * ((ii-iCurrent)*cellDx)) +
+                      ((rrcs-jCurrent)*cellDy);
+              jBody = Max(0, (int) (rrcs-(yBody/cellDy)));
+              for(jj=jBody; jj<rrcs; jj++) {
+                isIndex = (ii-1) + ((rrcs-(jj+1))*rrcs);
+                imageStencil[isIndex] = bodyCell;  // yflip
+              }
+            }
+
+            // sum the body cells
+            nCalcBodyCells = 0;
+            for(ii=0; ii<rrcs*rrcs; ii++) {
+              if(imageStencil[ii] == bodyCell) { nCalcBodyCells++; }
+            }
+          }  // end while(...)
+
+
+          } else if(normV > 0.0 && normH < 0.0) {     //  upper left quadrant
+
+            iCurrent = rrcs;
+            jCurrent = 0;
+
+          nCalcBodyCells = 0;
+          while(nCalcBodyCells < nBodyCells) {
+
+            iCurrent--;
+            if(iCurrent < 0) {
+              iCurrent = rrcs-1;
+              jCurrent++;
+            }
+            if(jCurrent > rrcs) {
+              break;
+            }
+
+            for(ii=rrcs; ii>iCurrent; ii--) {
+              yBody = (-slope * ((ii-iCurrent)*cellDx)) + (jCurrent*cellDy);
+              jBody = Min(rrcs-1, (int) (yBody/cellDy));
+              for(jj=0; jj<=jBody; jj++) {
+                isIndex = (ii-1) + ((rrcs-(jj+1))*rrcs);
+                imageStencil[isIndex] = bodyCell;  // yflip
+              }
+            }
+
+            // sum the body cells
+            nCalcBodyCells = 0;
+            for(ii=0; ii<rrcs*rrcs; ii++) {
+              if(imageStencil[ii] == bodyCell) { nCalcBodyCells++; }
+            }
+
+          }  // end while(...)
+
+          } else if(normV < 0.0 && normH > 0.0) {     // lower right quadrant
+            iCurrent = 0;
+            jCurrent = rrcs;
+
+          nCalcBodyCells = 0;
+          while(nCalcBodyCells < nBodyCells) {
+
+            iCurrent++;
+            if(iCurrent > rrcs) {
+              iCurrent = 1;
+              jCurrent--;
+            }
+            if(jCurrent < 1) {
+              break;
+            }
+
+            for(ii=0; ii<iCurrent; ii++) {
+              yBody = (-slope * ((iCurrent-ii)*cellDx)) +
+                      ((rrcs-jCurrent)*cellDy);
+              jBody = Max(0, (int) (rrcs-(yBody/cellDy)));
+              for(jj=jBody; jj<rrcs; jj++) {
+                isIndex = ii + ((rrcs-(jj+1))*rrcs);  // yflip
+                imageStencil[isIndex] = bodyCell;
+              }
+            }
+
+            // sum the body cells
+            nCalcBodyCells = 0;
+            for(ii=0; ii<rrcs*rrcs; ii++) {
+              if(imageStencil[ii] == bodyCell) { nCalcBodyCells++; }
+            }
+
+          }  // end while(...)
+
+          } else if(Abs(normV) < 0.000001) {  // vertical face
+
+            if(normH > 0.0) {  // body is on the left edge of the cell
+              for(jj=0; jj<rrcs; jj++) {
+                for(ii=0; ii<(nBodyCells/rrcs); ii++) {
+                  isIndex = ii + ((rrcs-(jj+1))*rrcs);
+                  imageStencil[isIndex] = bodyCell;
+                }
+              }
+            } else {           // body is on the right edge of the cell
+              for(jj=0; jj<rrcs; jj++) {
+                for(ii=rrcs-(nBodyCells/rrcs); ii<rrcs; ii++) {
+                  isIndex = ii + ((rrcs-(jj+1))*rrcs);
+                  imageStencil[isIndex] = bodyCell;
+                }
+              }
+            }
+
+          } else if(Abs(normH) < 0.000001) {  // horizontal face
+
+            if(normV > 0.0) {  // body is on the bottom edge of the cell
+              for(jj=0; jj<(nBodyCells/rrcs); jj++) {
+                for(ii=0; ii<rrcs; ii++) {
+                  isIndex = ii + ((rrcs-(jj+1))*rrcs);
+                  imageStencil[isIndex] = bodyCell;
+                }
+              }
+            } else {           // body is on the top edge of the cell
+              for(jj=rrcs-(nBodyCells/rrcs); jj<rrcs; jj++) {
+                for(ii=0; ii<rrcs; ii++) {
+                  isIndex = ii + ((rrcs-(jj+1))*rrcs);
+                  imageStencil[isIndex] = bodyCell;
+                }
+              }
+            }
+          } else {
+
+            for(ii=0; ii<rrcs*rrcs; ii++) {
+              imageStencil[ii] = markedCell;
+            }
+          }  // end long if block
+
+          // set cells to correct color
+          for(jj=0; jj<rrcs; jj++) {
+            for(ii=0; ii<rrcs; ii++) {
+              if(imageStencil[ii + (jj*rrcs)] == fluidCell) {  // in fluid
+                scaledImageData[((i*rrcs)+ii)+(((j*rrcs)+jj)*imageSizeH)] =
+                                                imageData[i + j*dataSizeH];
+              } else if(imageStencil[ii + (jj*rrcs)] == markedCell) {
+                scaledImageData[((i*rrcs)+ii)+(((j*rrcs)+jj)*imageSizeH)] =
+                                                                whiteIndex;
+              } else {  // in body
+                scaledImageData[((i*rrcs)+ii)+(((j*rrcs)+jj)*imageSizeH)] =
+                                                                 bodyColor;
+              }
+            }  // end for(ii...)
+          }  // end for(jj...)
+
+        } else {  // non mixed cell
+          for(jj=0; jj<rrcs; jj++) {
+            for(ii=0; ii<rrcs; ii++) {
+              scaledImageData[((i*rrcs)+ii) + (((j*rrcs)+jj) * imageSizeH)] =
+                       imageData[i + j*dataSizeH];
+            }
+          }
+        }
+
+      }  // end for(i...)
+    }  // end for(j...)
+*/
+
+
+  }  // end if(bCartGridSmoothing)
 
   *ximage = XCreateImage(GAptr->PDisplay(), GAptr->PVisual(),
 		GAptr->PDepth(), ZPixmap, 0, (char *) scaledimagedata,
@@ -1444,6 +1841,12 @@ void AmrPicture::SetWhichRange(Range newRange) {
     framesMade = false;
   }
   DoStop();
+}
+
+
+// ---------------------------------------------------------------------
+void AmrPicture::SetCartGridSmoothing(bool tf) {
+  bCartGridSmoothing = tf;
 }
 
 

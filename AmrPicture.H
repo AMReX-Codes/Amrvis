@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.H,v 1.23 1999-01-07 21:08:56 vince Exp $
+// $Id: AmrPicture.H,v 1.24 1999-04-28 23:42:46 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -35,14 +35,16 @@ enum VectorDerived { enVelocity, enMomentum, enNoneFound };
 class AmrPicture {
  public:
   AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
-             PltApp *pltappptr, DataServices *dataservicesptr);
+             PltApp *pltappptr, DataServices *dataservicesptr,
+	     bool bcartgridsmoothing);
   // construct an AmrPicture using data from filename
   // 3D: called by first XY view
   
   AmrPicture(int view, int mindrawnlevel, 
              GraphicsAttributes *gaptr, Box region, 
              AmrPicture *parentPicturePtr, 
-             PltApp *parentPltAppPtr, PltApp *pltappptr);
+             PltApp *parentPltAppPtr, PltApp *pltappptr,
+	     bool bcartgridsmoothing);
   // construct an AmrPicture using pointer to data & box
   
   ~AmrPicture();
@@ -117,6 +119,7 @@ class AmrPicture {
   Real	MaxUsing()                { return maxUsing; }
   Window	PictureWindow()           { return pictureWindow; }
   void	SetMaxDrawnLevel(int lev) { maxDrawnLevel = lev; }
+  void  SetCartGridSmoothing(bool tf);
   PltApp *GetPltAppPtr() {return pltAppPtr; }
   void ChangeContour(int);
   bool Contours() { return contours; }
@@ -166,7 +169,7 @@ class AmrPicture {
   Array<unsigned char *>  imageData, scaledImageData;
   Array<XImage *>         xImageArray;
   Array<bool >            xImageCreated;
-  bool contours, raster, colContour, vectorField;
+  bool contours, raster, colContour, vectorField, bCartGridSmoothing;
   
   
   // private functions

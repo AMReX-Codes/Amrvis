@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.cpp,v 1.54 1999-03-08 22:00:48 vince Exp $
+// $Id: PltApp.cpp,v 1.55 1999-04-28 23:42:48 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -100,6 +100,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     animating2d(isAnim),
     currentFrame(0),
     currentContour(0),
+    bCartGridSmoothing(false),
     lightingWindowExists(false)
 {
   if( ! dataservicesptr[0]->AmrDataOk()) {
@@ -169,15 +170,17 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
   currentScale = Max(1, Min(GetInitialScale(), maxAllowableScale));
   
   amrPicturePtrArray[ZPLANE] = new AmrPicture(minAllowableLevel, GAptr,
-                                              this, dataServicesPtr[currentFrame]);
+                                              this, dataServicesPtr[currentFrame],
+                                              bCartGridSmoothing);
 #if (BL_SPACEDIM == 3)
   amrPicturePtrArray[YPLANE] = new AmrPicture(YPLANE, minAllowableLevel, 
                                  GAptr, amrData.ProbDomain()[finestLevel],
                                  amrPicturePtrArray[ZPLANE], NULL,
-                                 this);
+                                 this, bCartGridSmoothing);
   amrPicturePtrArray[XPLANE] = new AmrPicture(XPLANE, minAllowableLevel, 
                         GAptr, amrData.ProbDomain()[finestLevel],
-			amrPicturePtrArray[ZPLANE], NULL, this);
+			amrPicturePtrArray[ZPLANE], NULL, this,
+                        bCartGridSmoothing);
 #endif
   for(i = 0; i < BL_SPACEDIM; i++) {
     ivLowOffsetMAL.setVal(i, amrData.ProbDomain()[maxlev].smallEnd(i));
@@ -214,6 +217,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 
   SetShowBoxes(pltParent->GetShowBoxes());
 
+  bCartGridSmoothing =  pltParent->bCartGridSmoothing;
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   int finestLevel(amrData.FinestLevel());
   int maxlev = DetermineMaxAllowableLevel(region, finestLevel,
@@ -261,7 +265,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   for(int np = 0; np < NPLANES; ++np) {
     amrPicturePtrArray[np] = new AmrPicture(np, minAllowableLevel, 
                                             GAptr, region,
-					    parentPtr, pltParent, this);
+					    parentPtr, pltParent, this,
+                                            bCartGridSmoothing);
   }
   
   int newContourNum(pltParent->GetAmrPicturePtr(0)->GetContourNumber());
@@ -713,6 +718,24 @@ void PltApp::PltAppInit() {
   wInfoButton = XmCreatePushButton(wAmrVisMenu, "info", args, i);
   XmStringFree(sInfoButton);
   AddStaticCallback(wInfoButton, XmNactivateCallback, &PltApp::DoInfoButton);
+
+// ****************************************** CartGridSmoothing Button
+  i=0;
+  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
+  XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
+  XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);      i++;
+  XtSetArg(args[i], XmNbottomOffset, WOFFSET);      i++;
+  XtSetArg(args[i], XmNleftWidget, wInfoButton);      i++;
+  XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET);      i++;
+  XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
+  XmString sSmooth = XmStringCreateSimple("Smooth");
+  XtSetArg(args[i], XmNlabelString, sSmooth);      i++;
+  wCartGridSmoothButton = XmCreatePushButton(wAmrVisMenu, "cartgridsmooth",
+					     args, i);
+  XmStringFree(sSmooth);
+
+  AddStaticCallback(wCartGridSmoothButton, XmNactivateCallback,
+                    &PltApp::DoCartGridSmooth);
 
 // ****************************************** wPicArea
 
@@ -1317,15 +1340,18 @@ void PltApp::PltAppInit() {
   XtManageChild(wInfoButton);
   XtManageChild(wSetRangeButton);
   XtManageChild(wBoxesButton);
+  if(amrData.CartGrid()) {
+    XtManageChild(wCartGridSmoothButton);
+  }
   XtManageChild(wPicArea);
   XtManageChild(wPalArea);
   XtManageChild(wPlotArea);
   XtPopup(wAmrVisTopLevel, XtGrabNone);
 
-  int palListLength = PALLISTLENGTH;
-  int palWidth = PALWIDTH;
-  int totalPalWidth = TOTALPALWIDTH;
-  int totalPalHeight = TOTALPALHEIGHT;
+  int palListLength(PALLISTLENGTH);
+  int palWidth(PALWIDTH);
+  int totalPalWidth(TOTALPALWIDTH);
+  int totalPalHeight(TOTALPALHEIGHT);
   pltPaletteptr = new Palette(wTopLevel, palListLength, palWidth,
 			      totalPalWidth, totalPalHeight, 
 			      reserveSystemColors);
@@ -2541,6 +2567,23 @@ void PltApp::DoUserMax(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
+void PltApp::DoCartGridSmooth(Widget, XtPointer, XtPointer) {
+  bCartGridSmoothing = ! bCartGridSmoothing;
+  if(animating2d) {
+    ResetAnimation();
+    DirtyFrames();
+  }
+  int np;
+  for(np = 0; np < NPLANES; ++np) {
+    amrPicturePtrArray[np]->SetCartGridSmoothing(bCartGridSmoothing);
+  }
+  for(np = 0; np < NPLANES; ++np) {  // update picture
+    amrPicturePtrArray[np]->ChangeDerived(currentDerived, pltPaletteptr);
+  }
+}
+
+
+// -------------------------------------------------------------------
 void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
   if(animating2d) {
     ResetAnimation();
@@ -3590,7 +3633,8 @@ void PltApp::ResetAnimation() {
 			amrData.FinestLevel(), amrData.RefRatio()));
       amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, minAllowableLevel,
                                                   GAptr, fineDomain, 
-                                                  tempap, NULL, this);
+                                                  tempap, NULL, this,
+						  bCartGridSmoothing);
       amrPicturePtrArray[ZPLANE]->SetMaxDrawnLevel(maxDrawnLevel);
       DoReadContourString(wNumberContours, NULL, false);
   
@@ -3691,7 +3735,8 @@ void PltApp::ShowFrame() {
 			finestLevel, amrData.RefRatio()));
       amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, minAllowableLevel, 
                                                   GAptr, fineDomain, 
-                                                  tempap, NULL, this);
+                                                  tempap, NULL, this,
+						  bCartGridSmoothing);
       XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
   	                (XtEventHandler) CBDoExposePicture, (XtPointer) tempap);
       DoReadContourString(wNumberContours, NULL, false);

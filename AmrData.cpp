@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.cpp,v 1.29 1999-04-19 00:42:11 car Exp $
+// $Id: AmrData.cpp,v 1.30 1999-04-28 23:42:46 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -122,6 +122,7 @@ AmrData::~AmrData() {
 // ---------------------------------------------------------------
 bool AmrData::ReadData(const aString &filename, FileType filetype) {
    fileType = filetype;
+   bCartGrid = false;
    if(filetype == FAB || filetype == MULTIFAB) {
      return ReadNonPlotfileData(filename, filetype);
    }
@@ -170,9 +171,15 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
    }
 
      is >> plotFileVersion;
+     if(strncmp(plotFileVersion.c_str(), "CartGrid", 8) == 0) {
+       bCartGrid = true;
+     }
      if(verbose) {
        if(ParallelDescriptor::IOProcessor()) {
          cout << "Plot file version:  " << plotFileVersion << endl;
+	 if(bCartGrid) {
+	   cout << ":::: Found a CartGrid file type." << endl;
+	 }
        }
      }
 
@@ -871,7 +878,8 @@ void AmrData::FillVar(FArrayBox *destFab, const Box &destBox,
 
 // ---------------------------------------------------------------
 void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
-		      const aString &varname)
+		      const aString &varname,
+		      int srcComp, int destComp, int numComps)
 {
 // This function fills the destMultiFab which is defined on
 // the finestFillLevel.
@@ -884,9 +892,6 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
 
     int myProc(ParallelDescriptor::MyProc());
     int stateIndex(StateNumber(varname));
-    int srcComp(0);
-    int destComp(0);
-    int numComps(1);
 
     int currentLevel;
     Array<int> cumulativeRefRatios(finestFillLevel + 1, -1);
