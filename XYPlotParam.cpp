@@ -352,7 +352,7 @@ int XYPlotParameters::do_font(char *name, XFontStruct **font_info) {
   
   // First attempt to interpret as font family/size
   strcpy(name_copy, name);
-  if((font_size = index(name_copy, '-'))) {
+  if((font_size = strchr(name_copy, '-'))) {
     *font_size = '\0';
     font_family = name_copy;
     ++font_size;

@@ -10,8 +10,10 @@ COMP      = KCC
 COMP      = Intel
 COMP      = g++
 COMP      = Intel
+COMP = CC
 FCOMP     = f77
 FCOMP     = Intel
+FCOMP = ftn
 DEBUG     = FALSE
 DEBUG     = TRUE
 DIM       = 3
@@ -105,6 +107,18 @@ ifeq ($(MACHINE), T3E)
     LIBRARY_LOCATIONS += /opt/ctl/cvt/cvt/lib
     LIBRARIES += -lXm -lSM -lICE -lXt -lX11
   endif
+endif
+
+ifeq ($(MACHINE),CRAYX1)
+  INCLUDE_LOCATIONS += /opt/ctl/motif/2.1.0.0/include
+  LIBRARY_LOCATIONS += /opt/ctl/motif/2.1.0.0/lib
+  LIBRARIES += -lXm
+  LIBRARIES += -lXp
+  LIBRARIES += -lXext
+  LIBRARIES += -lSM
+  LIBRARIES += -lICE
+  LIBRARIES += -lXt
+  LIBRARIES += -lX11
 endif
 
 ifeq ($(MACHINE), CYGWIN_NT)

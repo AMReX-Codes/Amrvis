@@ -1,11 +1,14 @@
 
 //
-// $Id: PltApp.cpp,v 1.126 2004-07-19 22:33:16 vince Exp $
+// $Id: PltApp.cpp,v 1.127 2004-07-29 16:30:32 car Exp $
 //
 
 // ---------------------------------------------------------------
 // PltApp.cpp
 // ---------------------------------------------------------------
+
+#include <winstd.H>
+
 #include "PltApp.H"
 #include "PltAppState.H"
 #include "AmrPicture.H"

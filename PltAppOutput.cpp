@@ -1,11 +1,14 @@
 
 //
-// $Id: PltAppOutput.cpp,v 1.35 2004-07-09 22:05:42 vince Exp $
+// $Id: PltAppOutput.cpp,v 1.36 2004-07-29 16:30:32 car Exp $
 //
 
 // ---------------------------------------------------------------
 // PltAppOutput.cpp
 // ---------------------------------------------------------------
+
+#include <winstd.H>
+
 #include <Xm/Xm.h>
 #include <Xm/SelectioB.h>
 #include <Xm/ToggleB.h>

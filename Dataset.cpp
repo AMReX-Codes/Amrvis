@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.54 2004-04-30 21:08:56 vince Exp $
+// $Id: Dataset.cpp,v 1.55 2004-07-29 16:30:32 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,6 +9,8 @@
 const int CHARACTERWIDTH  = 13;
 const int CHARACTERHEIGHT = 22;
 const int MAXINDEXCHARS   = 4;
+
+#include <winstd.H>
 
 #include <Xm/Xm.h>
 #include <Xm/DrawingA.h>

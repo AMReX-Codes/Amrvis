@@ -1,11 +1,14 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.84 2004-04-16 23:50:43 vince Exp $
+// $Id: AmrPicture.cpp,v 1.85 2004-07-29 16:30:32 car Exp $
 //
 
 // ---------------------------------------------------------------
 // AmrPicture.cpp
 // ---------------------------------------------------------------
+
+#include <winstd.H>
+
 #include "AmrPicture.H"
 #include "PltApp.H"
 #include "PltAppState.H"

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.68 2004-07-09 22:05:42 vince Exp $
+// $Id: AmrData.cpp,v 1.69 2004-07-29 16:30:32 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -21,12 +21,15 @@ using std::endl;
 using std::min;
 using std::max;
 
-#if ! (defined(BL_Linux) || defined(BL_AIX) || defined(BL_IRIX64) || defined(WIN32) || defined(BL_CYGWIN_NT))
+#if ! (defined(BL_Linux) || defined(BL_AIX) || defined(BL_IRIX64) || defined(WIN32) || defined(BL_CYGWIN_NT) || defined(BL_CRAYX1))
 #define BL_ALWAYS_FIX_DENORMALS
 #endif
 
 #ifdef BL_ALWAYS_FIX_DENORMALS
 #include <float.h>
+#if defined(BL_CRAYX1)
+#  include <ieeefp.h>
+#endif
 #if defined(BL_T3E)
 #  include <fp.h>
 #  if (BL_USE_FLOAT)
