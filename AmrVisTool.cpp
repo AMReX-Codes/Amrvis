@@ -126,7 +126,7 @@ void main(int argc, char *argv[]) {
       }
       FileType fileType = GetDefaultFileType();
       assert(fileType != INVALIDTYPE);
-      DataServices *dataServices = new DataServices(comlineFileName, fileType);
+      DataServices *dataServicesPtr = new DataServices(comlineFileName, fileType);
 
       if(GivenBox()) {
         ParallelDescriptor::Abort("Command line subbox not supported yet.");
@@ -134,13 +134,15 @@ void main(int argc, char *argv[]) {
 
 
       if(ParallelDescriptor::IOProcessor()) {
-          PltApp *temp = new PltApp(app, wTopLevel, comlineFileName,
-                                    dataServices, IsAnimation());
-          if(temp == NULL) {
-              cerr << "Error:  could not make a new PltApp." << endl;
-          }
-        //pltAppList.append(temp);
-        //cout << ">>>> pltAppList appending " << temp << endl;
+        PltApp *temp = new PltApp(app, wTopLevel, comlineFileName,
+			          dataServicesPtr, IsAnimation());
+	if(temp == NULL) {
+	  cerr << "Error:  could not make a new PltApp." << endl;
+	} else {
+          pltAppList.append(temp);
+          dataServicesPtr->IncrementNumberOfUsers();
+          //cout << ">>>> pltAppList appending " << temp << endl;
+	}
       }
 
     }  // end for(nPlots...)
@@ -415,7 +417,14 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
   unsigned long item = (unsigned long) client_data;
 
   if(item == QUITITEM) {
-    //exit(0);
+    for(ListIterator<PltApp *> li(pltAppList); li; ++li) {
+      PltApp *obj = pltAppList[li];
+      //cout << "<<<< pltAppList removing " << obj << endl;
+      DataServices *dataServicesPtr = obj->GetDataServicesPtr();
+      dataServicesPtr->DecrementNumberOfUsers();
+      delete obj;
+    }
+    pltAppList.clear();
     DataServices::Dispatch(DataServices::ExitRequest, NULL);
   }
   if(item == OPENITEM) {
@@ -476,16 +485,53 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
   sprintf(buffer, "Selected file = %s\n", filename);
   messageText.PrintText(buffer);
 
-  DataServices *dataServices = new DataServices(filename, GetDefaultFileType());
-  DataServices::Dispatch(DataServices::NewRequest, dataServices, NULL);
-  PltApp *temp = new PltApp(app, wTopLevel, filename, dataServices, false);
+  DataServices *dataServicesPtr = new DataServices(filename, GetDefaultFileType());
+  DataServices::Dispatch(DataServices::NewRequest, dataServicesPtr, NULL);
+
+  PltApp *temp = new PltApp(app, wTopLevel, filename, dataServicesPtr, false);
   if(temp == NULL) {
-      cerr << "Error:  could not make a new PltApp." << endl;
+    cerr << "Error:  could not make a new PltApp." << endl;
+  } else {
+    pltAppList.append(temp);
+    dataServicesPtr->IncrementNumberOfUsers();
+    //cout << ">>>> pltAppList appending " << temp << endl;
   }
-  //pltAppList.append(temp);
-  //cout << ">>>> pltAppList appending " << temp << endl;
 
   XtPopdown(XtParent(w));
+}
+
+
+// ---------------------------------------------------------------
+void SubregionPltApp(Widget wTopLevel, const Box &trueRegion,
+		     const IntVect &offset,
+		     AmrPicture *parentPicturePtr, PltApp *pltparent,
+		     const aString &palfile, int isAnim,
+		     const aString &currentderived, const aString &file)
+{
+  PltApp *temp = new PltApp(app, wTopLevel, trueRegion, offset, parentPicturePtr,
+		    pltparent, palfile, isAnim, currentderived, file);
+  if(temp == NULL) {
+    cerr << "Error in SubregionPltApp:  could not make a new PltApp." << endl;
+  } else {
+    DataServices *dataServicesPtr = temp->GetDataServicesPtr();
+    pltAppList.append(temp);
+    dataServicesPtr->IncrementNumberOfUsers();
+    //cout << ">>>> pltAppList appending " << temp << endl;
+  }
+}
+
+
+// ---------------------------------------------------------------
+void CBQuitPltApp(Widget ofPltApp, XtPointer client_data, XtPointer) {
+  PltApp *obj = (PltApp *) client_data;
+  pltAppList.remove(obj);
+  //cout << "<<<< pltAppList removing " << obj << endl;
+
+  DataServices *dataServicesPtr = obj->GetDataServicesPtr();
+  dataServicesPtr->DecrementNumberOfUsers();
+  DataServices::Dispatch(DataServices::DeleteRequest, dataServicesPtr, NULL);
+
+  delete obj;
 }
 
 
@@ -529,40 +575,6 @@ void CBHelpMenu(Widget, XtPointer client_data, XtPointer) {
     XtPopup(XtParent(wHelpWindow), XtGrabExclusive);
   }  
   */
-}
-
-
-// ---------------------------------------------------------------
-void SubregionPltApp(Widget wTopLevel, const Box &trueRegion,
-		     const IntVect &offset,
-		     AmrPicture *parentPicturePtr, PltApp *pltparent,
-		     const aString &palfile, int isAnim,
-		     const aString &currentderived, const aString &file)
-{
-  PltApp *temp = new PltApp(app, wTopLevel, trueRegion, offset, parentPicturePtr,
-		    pltparent, palfile, isAnim, currentderived, file);
-  if(temp == NULL) {
-    cerr << "Error in SubregionPltApp:  could not make a new PltApp." << endl;
-  }
-  //pltAppList.append(temp);
-  //cout << ">>>> pltAppList appending " << temp << endl;
-}
-
-
-// ---------------------------------------------------------------
-void CBQuitPltApp(Widget ofPltApp, XtPointer client_data, XtPointer) {
-  PltApp *obj = (PltApp *) client_data;
-# if (BL_SPACEDIM == 3)
-    obj->GetAmrPicturePtr(XY)->DoStop();
-    obj->GetAmrPicturePtr(XZ)->DoStop();
-    obj->GetAmrPicturePtr(YZ)->DoStop();
-# endif
-  //XSync(XtDisplay(ofPltApp), false);
-
-  //Widget w = obj->WId();
-  //pltAppList.remove(obj);
-  //cout << "<<<< pltAppList removing " << obj << endl;
-  delete obj;
 }
 // ---------------------------------------------------------------
 // ---------------------------------------------------------------

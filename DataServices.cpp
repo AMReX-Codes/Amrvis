@@ -103,16 +103,15 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     // verify dsArrayIndex is correct
     assert(ds->dsArrayIndex == checkArrayIndex);
 
-    continue;
+    continue;  // go to the top of the while loop
   }
 
 
   // handle exit request
-  if(requestType == ExitRequest) {
-    // cleanup memory
+  if(requestType == ExitRequest) {                // cleanup memory
     for(int i = 0; i < dsArray.length(); ++i) {
       if(DataServices::dsArray[i] != NULL) {
-	DataServices::dsArray[i]->numberOfUsers = 0;
+	assert(DataServices::dsArray[i]->numberOfUsers == 0);
 	delete DataServices::dsArray[i];
       }
     }
@@ -136,6 +135,23 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 
 
   switch(requestType) {
+    case DeleteRequest:
+    {
+      bool bDeleteDS(false);
+      assert(DataServices::dsArray[whichDSIndex]->numberOfUsers >= 0);
+      if(ParallelDescriptor::IOProcessor()) {
+	bDeleteDS = (DataServices::dsArray[whichDSIndex]->numberOfUsers == 0);
+      }
+      ParallelDescriptor::ShareVar(&bDeleteDS, sizeof(bool));
+      ParallelDescriptor::Synchronize();  // for ShareVar
+      ParallelDescriptor::Broadcast(ioProcNumber, &bDeleteDS, &bDeleteDS);
+      if(bDeleteDS) {
+        delete DataServices::dsArray[whichDSIndex];
+      }
+      ParallelDescriptor::UnshareVar(&bDeleteDS);
+    }
+    break;
+
     case FillVarOneFab:
     {
       FArrayBox *destFab = NULL;
@@ -450,6 +466,114 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     }
     break;
 
+    case PointValueRequest:
+    {
+      // interface: (requestType, dsPtr,
+      //             pointBoxArraySize, pointBoxArray *,
+      //             derivedName,
+      //             coarsestLevelToSearch, finestLevelToSearch,
+      //             intersectedLevel,  /* return this value */
+      //             intersectedBox,    /* return this value */
+      //             dataPointValue,    /* return this value */
+      //             bPointIsValid)     /* return this value */
+
+      // need to broadcast pointBoxArraySize, pointBoxArray, derivedName,
+      // coarsestLevelToSearch, and finestLevelToSearch
+
+      int pointBoxArraySize;
+      Box *pointBoxArrayPtr, *pointBoxArrayTempPtr;
+      int coarsestLevelToSearch, finestLevelToSearch;
+
+      aString derivedTemp;
+      char *derivedCharPtr;
+      int derivedLength, derivedLengthPadded;
+
+      if(ParallelDescriptor::IOProcessor()) {
+        pointBoxArraySize = va_arg(ap, int);
+        pointBoxArrayTempPtr = va_arg(ap, Box *);
+        const aString &derivedRef = va_arg(ap, const aString);
+        derivedTemp = derivedRef;
+	derivedLength = derivedTemp.length();
+        coarsestLevelToSearch = va_arg(ap, int);
+        finestLevelToSearch   = va_arg(ap, int);
+      }
+
+      ParallelDescriptor::ShareVar(&pointBoxArraySize, sizeof(int));
+      ParallelDescriptor::ShareVar(&derivedLength, sizeof(int));
+      ParallelDescriptor::ShareVar(&coarsestLevelToSearch, sizeof(int));
+      ParallelDescriptor::ShareVar(&finestLevelToSearch, sizeof(int));
+      ParallelDescriptor::Synchronize();  // for ShareVar
+      ParallelDescriptor::Broadcast(ioProcNumber, &pointBoxArraySize,
+						  &pointBoxArraySize);
+      ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength);
+      ParallelDescriptor::Broadcast(ioProcNumber, &coarsestLevelToSearch,
+						  &coarsestLevelToSearch);
+      ParallelDescriptor::Broadcast(ioProcNumber, &finestLevelToSearch,
+						  &finestLevelToSearch);
+      ParallelDescriptor::UnshareVar(&finestLevelToSearch);
+      ParallelDescriptor::UnshareVar(&coarsestLevelToSearch);
+      ParallelDescriptor::UnshareVar(&derivedLength);
+      ParallelDescriptor::UnshareVar(&pointBoxArraySize);
+
+      pointBoxArrayPtr = new Box[pointBoxArraySize];
+
+      derivedLengthPadded = derivedLength + 1;
+      derivedLengthPadded += derivedLengthPadded % 8;
+      derivedCharPtr = new char[derivedLengthPadded];
+      if(ParallelDescriptor::IOProcessor()) {
+        strcpy(derivedCharPtr, derivedTemp.c_str());
+	for(int iBox = 0; iBox < pointBoxArraySize; ++iBox) {
+	  pointBoxArrayPtr[iBox] = pointBoxArrayTempPtr[iBox];
+	}
+      }
+      ParallelDescriptor::ShareVar(derivedCharPtr, derivedLengthPadded);
+      ParallelDescriptor::ShareVar(pointBoxArrayPtr,
+				   pointBoxArraySize * sizeof(Box));
+      ParallelDescriptor::Synchronize();  // for ShareVar
+      ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
+				    derivedLengthPadded);
+      ParallelDescriptor::Broadcast(ioProcNumber,
+				    pointBoxArrayPtr, pointBoxArrayPtr,
+				    pointBoxArraySize * sizeof(Box));
+      ParallelDescriptor::UnshareVar(pointBoxArrayPtr);
+      ParallelDescriptor::UnshareVar(derivedCharPtr);
+
+      aString derived(derivedCharPtr);
+      delete [] derivedCharPtr;
+
+      // return values
+      int intersectedLevel;
+      Box intersectedBox;
+      Real dataPointValue;
+      bool bPointIsValid;
+
+      ds->PointValue(pointBoxArraySize, pointBoxArrayPtr,
+		     derived,
+		     coarsestLevelToSearch,
+		     finestLevelToSearch,
+		     intersectedLevel,
+		     intersectedBox,
+		     dataPointValue,
+		     bPointIsValid);
+
+      // set the return values
+      if(ParallelDescriptor::IOProcessor()) {
+        int *intersectedLevelRef = va_arg(ap, int *);
+        Box *intersectedBoxRef   = va_arg(ap, Box *);
+        Real *dataPointValueRef  = va_arg(ap, Real *);
+        bool *bPointIsValidRef   = va_arg(ap, bool *);
+	*intersectedLevelRef     = intersectedLevel;
+	*intersectedBoxRef       = intersectedBox;
+	*dataPointValueRef       = dataPointValue;
+	*bPointIsValidRef        = bPointIsValid;
+      }
+
+      // dont need to broadcast the return values--only the IOProcessor uses them
+
+      delete [] pointBoxArrayPtr;
+    }
+    break;
+
   }  // end switch
 
   if(ParallelDescriptor::IOProcessor()) {
@@ -753,22 +877,59 @@ int DataServices::NumDeriveFunc() const {
 
 
 // ---------------------------------------------------------------
-bool DataServices::PointValue(Array<Box> &pointBox, int &intersectLevel,
-		 Box &intersectGrid, aString &dataValue,
-		 int coarseLevel, int fineLevel,
-		 const aString &currentDerived, aString formatString)
+void DataServices::PointValue(int pointBoxArraySize, Box *pointBoxArray,
+		              const aString &currentDerived,
+		              int coarsestLevelToSearch,
+			      int finestLevelToSearch,
+		              int &intersectedLevel,
+		              Box &intersectedGrid,
+			      Real &dataPointValue,
+		              bool &bPointIsValid)
 {
+  bPointIsValid = false;
   if( ! bAmrDataOk) {
-    return false;
+    return;
   }
+
+  intersectedLevel =
+	  amrData.FinestContainingLevel(pointBoxArray[finestLevelToSearch],
+					finestLevelToSearch);
+
+  if(intersectedLevel < coarsestLevelToSearch) {
+    return;
+  }
+
+  Box destBox(pointBoxArray[intersectedLevel]);
+  assert(destBox.volume() == 1);
+
+  const BoxArray &intersectedBA = amrData.boxArray(intersectedLevel);
+  for(int iGrid = 0; iGrid < intersectedBA.length(); ++iGrid) {
+    if(destBox.intersects(intersectedBA[iGrid])) {
+      intersectedGrid = intersectedBA[iGrid];
+      break;
+    }
+  }
+
+  FArrayBox *destFab(NULL);
+  if(ParallelDescriptor::IOProcessor()) {
+    destFab = new FArrayBox(destBox, 1);
+  }
+  amrData.FillVar(destFab, destBox, intersectedLevel, currentDerived,
+		  ParallelDescriptor::IOProcessorNumber());
+
+  if(ParallelDescriptor::IOProcessor()) {
+    dataPointValue = (destFab->dataPtr())[0];
+    delete destFab;
+  }
+  bPointIsValid = true;
+
+
 /*
   Box gridBox;
-  Real dataPointValue;
   int intersectBoxIndex;
   assert(coarseLevel >= 0 && coarseLevel <= amrData.FinestLevel());
   assert(fineLevel >= 0 && fineLevel <= amrData.FinestLevel());
   bool bReturnValue(false);
-  bool bBodyValue(false);
   bool bValueFoundLocally(false);
   bool bValueFoundAnywhere(false);
   ParallelDescriptor::ShareVar(&dataPointValue, sizeof(Real));
@@ -805,25 +966,14 @@ bool DataServices::PointValue(Array<Box> &pointBox, int &intersectLevel,
     ParallelDescriptor::Broadcast(myproc, &intersectBoxIndex, &intersectBoxIndex);
     ParallelDescriptor::Broadcast(myproc, &intersectLevel, &intersectLevel);
   }
-  ReduceBoolOr(bBodyValue);
   ReduceBoolOr(bReturnValue);
 
   intersectGrid = *grids[intersectLevel].box(intersectBoxIndex);
-  char tdv[LINELENGTH];
-  if(bBodyValue) {
-    dataValue = "body";
-  } else {
-    sprintf(tdv, formatString.c_str(), dataPointValue);
-    dataValue = tdv;
-  }
 
   ParallelDescriptor::UnshareVar(&intersectLevel);
   ParallelDescriptor::UnshareVar(&intersectBoxIndex);
   ParallelDescriptor::UnshareVar(&dataPointValue);
-
-  return bReturnValue;
 */
-  return false;
 }  // end PointValue
 
 

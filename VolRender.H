@@ -14,6 +14,7 @@
 #include "REAL.H" 
 #include "Box.H" 
 #include "AmrvisConstants.H" 
+#include "Volume.H" 
 
 #ifdef BL_VOLUMERENDER
 #include <volpack.h>
@@ -55,6 +56,7 @@ class VolRender {
 	int		*densityRampX, *gradientRampX;
 	float		*densityRampY, *gradientRampY;
 	float		minRayOpacity, maxRayOpacity;
+	RawVoxel       *volData;
 
   public:
 	vpContext      *GetVPContext()             { return vpc; }

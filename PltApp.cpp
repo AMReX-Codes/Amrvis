@@ -33,17 +33,18 @@ const int CONTROLSFRAME  = 4;
 
 // -------------------------------------------------------------------
 PltApp::~PltApp() {
-  int np;
-  dataServicesPtr->DecrementNumberOfUsers();
-  assert(dataServicesPtr->GetNumberOfUsers() >= 0);
-  if(dataServicesPtr->GetNumberOfUsers() == 0) {
-    delete dataServicesPtr;
-  }
+
+#if (BL_SPACEDIM == 3)
+  amrPicturePtrArray[XPLANE]->DoStop();;
+  amrPicturePtrArray[YPLANE]->DoStop();;
+  amrPicturePtrArray[ZPLANE]->DoStop();;
+#endif
+
   XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
   	               (XtEventHandler) CBDoExposePicture,
 	               (XtPointer) amrPicturePtrArray[ZPLANE]);
 
-  for(np = 0; np < NPLANES; np++) {
+  for(int np = 0; np < NPLANES; np++) {
     delete amrPicturePtrArray[np];
   }
 
@@ -105,7 +106,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
   FileType fileType = GetDefaultFileType();
   assert(fileType != INVALIDTYPE);
   dataServicesPtr = dataservicesptr;
-  dataServicesPtr->IncrementNumberOfUsers();
+
   if( ! (dataServicesPtr->CanDerive(PltApp::initialDerived)) &&
       ! (fileType == FAB)  && ! (fileType == MULTIFAB))
   {
@@ -156,7 +157,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 	       bool isAnim, const aString &newderived, const aString &file)
 {
   dataServicesPtr = pltParent->dataServicesPtr;
-  dataServicesPtr->IncrementNumberOfUsers();
   anim = isAnim;
   paletteDrawn = false;
   appContext = app;
@@ -1093,7 +1093,6 @@ void PltApp::PltAppInit() {
         } else {
           temp->ReadPlotFile(GetComlineFilename(i));
         }
-        temp->IncrementNumberOfUsers();
 	int coarseLevel = 0;
 	int fineLevel   = amrPicturePtrArray[ZPLANE]->NumberOfLevels();
         for(lev = coarseLevel; lev < fineLevel; lev++) {
@@ -1528,7 +1527,6 @@ void PltApp::DoChangeDerived(int V, Widget, XtPointer client_data, XtPointer) {
           } else {
             temp->ReadPlotFile(GetComlineFilename(i));
           }
-          temp->IncrementNumberOfUsers();
           int coarseLevel = 0;
           int fineLevel   = maxDrawnLevel;
           for(lev = coarseLevel; lev <= fineLevel; lev++) {
@@ -1563,7 +1561,6 @@ void PltApp::DoChangeDerived(int V, Widget, XtPointer client_data, XtPointer) {
           } else {
             temp->ReadPlotFile(GetComlineFilename(i));
           }
-          temp->IncrementNumberOfUsers();
           int coarseLevel = 0;
           int fineLevel   = maxDrawnLevel;
           for(lev = coarseLevel; lev <= fineLevel; lev++) {
@@ -1676,7 +1673,6 @@ void PltApp::DoDatasetButton(Widget, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void PltApp::QuitDataset() {
-  //delete datasetPtr;
   datasetShowing = false;
 }
 
@@ -2250,8 +2246,8 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 	       abs(anchorY - nextEvent.xbutton.y) <= dataAtClickThreshold)
 	    {
 	      // data at click
-	      int y, lev(-1), mal(maxAllowableLevel);
-	      Box temp, dataBox;
+	      int y, intersectedLevel(-1), mal(maxAllowableLevel);
+	      Box temp, intersectedGrid;
 	      Array<Box> trueRegion(mal+1);
 	      int plane(amrPicturePtrArray[V]->GetSlice());
 
@@ -2288,7 +2284,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 	        trueRegion[mal].shift(ZDIR, ivLowOffsetMAL[ZDIR]);
 	      }
 
-	      for(y = mal - 1; y >= 0; y--) {
+	      for(y = mal - 1; y >= 0; --y) {
 	        trueRegion[y] = trueRegion[mal];
 	        trueRegion[y].coarsen(CRRBetweenLevels(y, mal,
 			              amrData.RefRatio()));
@@ -2297,27 +2293,35 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 	      }
 
 	      bool goodIntersect;
-	      aString dataValue(LINELENGTH);
-	      //goodIntersect = dataServicesPtr->PointValue(trueRegion, lev,
-				       //dataBox, dataValue, 0, mal,
+	      Real dataValue;
+	      //goodIntersect = dataServicesPtr->PointValue(trueRegion,
+				       //intersectedLevel,
+				       //intersectedGrid, dataValue, 0, mal,
 				       //currentDerived, formatString);
-	      cerr << endl;
-	      cerr << "Error:  PointValueRequest not yet implemented." << endl;
-	      cerr << endl;
-	      goodIntersect = false;
-	      //goodIntersect =
-		DataServices::Dispatch(DataServices::PointValueRequest,
-				       dataServicesPtr, trueRegion, lev,
-				       dataBox, dataValue, 0, mal,
-				       currentDerived, formatString);
+	      //cerr << endl;
+	      //cerr << "Error:  PointValueRequest not yet implemented." << endl;
+	      //cerr << endl;
+	      //goodIntersect = false;
+	      DataServices::Dispatch(DataServices::PointValueRequest,
+				     dataServicesPtr,
+				     trueRegion.length(), trueRegion.dataPtr(),
+				     currentDerived,
+				     minDrawnLevel, maxDrawnLevel,
+				     &intersectedLevel, &intersectedGrid,
+				     &dataValue, &goodIntersect);
+	      char dataValueCharString[LINELENGTH];
+	      sprintf(dataValueCharString, formatString.c_str(), dataValue);
+	      aString dataValueString(dataValueCharString);
 	      ostrstream buffout(buffer, BUFSIZ);
 	      if(goodIntersect) {
-	        buffout << "level = " << lev << endl;
-	        buffout << "point = " << trueRegion[lev].smallEnd() << endl;
-	        buffout << "grid  = " << dataBox << endl;
-	        buffout << "value = " << dataValue << endl;
+	        buffout << '\n';
+	        buffout << "level = " << intersectedLevel << '\n';
+	        buffout << "point = " << trueRegion[intersectedLevel].smallEnd()
+			<< '\n';
+	        buffout << "grid  = " << intersectedGrid << '\n';
+	        buffout << "value = " << dataValueString << '\n';
 	      } else {
-		buffout << "Bad point at mouse click" << endl;
+		buffout << "Bad point at mouse click" << '\n';
 	      }
 	      buffout << ends;  // end the string
 	      PrintMessage(buffer);
@@ -2958,10 +2962,6 @@ void PltApp::ResetAnimation() {
       Array<Box> domain = tempap->GetSubDomain();
       char tempString[BUFSIZ];
       strcpy(tempString, tempap->CurrentDerived().c_str());
-      dataServicesPtr->DecrementNumberOfUsers();
-      if(dataServicesPtr->GetNumberOfUsers() == 0) {
-	delete dataServicesPtr;
-      }
       FileType fileType = GetDefaultFileType();
       assert(fileType != INVALIDTYPE);
       if(fileType == BOXDATA || fileType == BOXCHAR || fileType == FAB) {
@@ -2970,7 +2970,6 @@ void PltApp::ResetAnimation() {
         newAmrPlot->ReadPlotFile(fileNames[currentFrame]);
       }
       amrPlotPtr = newAmrPlot;
-      amrPlotPtr->IncrementNumberOfUsers();
       tempap->SetAmrPlotPtr(newAmrPlot); 
 
       Box fineDomain = domain[tempap->MaxAllowableLevel()];
@@ -3064,10 +3063,6 @@ void PltApp::ShowFrame() {
       Array<Box> domain = tempap->GetSubDomain();
       char tempString[BUFSIZ];
       strcpy(tempString, tempap->CurrentDerived().c_str());
-      amrPlotPtr->DecrementNumberOfUsers();
-      if(amrPlotPtr->GetNumberOfUsers() == 0) {
-        delete amrPlotPtr;
-      }
 
       FileType fileType = GetDefaultFileType();
       assert(fileType != INVALIDTYPE);
@@ -3077,7 +3072,6 @@ void PltApp::ShowFrame() {
         newAmrPlot->ReadPlotFile(fileNames[currentFrame]);
       }
       amrPlotPtr = newAmrPlot;
-      amrPlotPtr->IncrementNumberOfUsers();
       tempap->SetAmrPlotPtr(newAmrPlot); 
 
       const AmrData &amrData = dataServices->AmrDataRef();

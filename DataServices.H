@@ -24,6 +24,7 @@ class DataServices {
       InvalidRequestType = 0,
       ExitRequest,
       NewRequest,
+      DeleteRequest,
       FillVarOneFab,
       FillVarArrayOfFabs,
       WriteFabOneVar,
@@ -86,10 +87,11 @@ class DataServices {
                   Real &dataMin, Real &dataMax, bool &minMaxValid);
 
       // PointValueRequest
-      bool PointValue(Array<Box> &pointBox, int &intersectLevel,
-                      Box &intersectGrid, aString &dataValue,
-                      int coarseLevel, int fineLevel,
-                      const aString &currentDerived, aString formatString);
+      void PointValue(int pointBoxArraySize, Box *pointBoxArray,
+		      const aString &currentDerived,
+		      int coarsestLevelToSearch, int finestLevelToSearch,
+		      int &intersectedLevel, Box &intersectedGrid,
+		      Real &dataPointValue, bool &bPointIsValid);
 
 
   public:

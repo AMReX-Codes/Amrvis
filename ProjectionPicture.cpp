@@ -107,8 +107,6 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
 
   ReadTransferFile("vpramps.dat");
   
-  
-
 }  // end ProjectionPicture()
 
 
@@ -273,34 +271,32 @@ imageout.close();
  
 // -------------------------------------------------------------------
 void ProjectionPicture::DrawBoxes() {
-    int i;
-    int showBoxesFix = 1 - amrPicturePtr->ShowingBoxes();
-    for(i = showBoxesFix*(bPoints-16); i < bPoints-(1-showSubCut)*8; i++) {
-        XSetForeground(XtDisplay(drawingArea), 
-                       XtScreen(drawingArea)->default_gc,
-                       boxtranspoints[i].color);
-        XDrawLine(XtDisplay(drawingArea), XtWindow(drawingArea),
-                  XtScreen(drawingArea)->default_gc, boxtranspoints[i].x,
-                  boxtranspoints[i].y,
-                  boxtranspoints[boxtranspoints[i].lineto1].x,
-                  boxtranspoints[boxtranspoints[i].lineto1].y);
-        XDrawLine(XtDisplay(drawingArea), XtWindow(drawingArea),
-                  XtScreen(drawingArea)->default_gc, boxtranspoints[i].x,
-                  boxtranspoints[i].y,
-                  boxtranspoints[boxtranspoints[i].lineto2].x,
-                  boxtranspoints[boxtranspoints[i].lineto2].y);
+    int showBoxesFix(1 - amrPicturePtr->ShowingBoxes());
+    for(int i = showBoxesFix*(bPoints-16); i < bPoints-(1-showSubCut)*8; ++i) {
+      XSetForeground(XtDisplay(drawingArea), 
+                     XtScreen(drawingArea)->default_gc,
+                     boxtranspoints[i].color);
+      XDrawLine(XtDisplay(drawingArea), XtWindow(drawingArea),
+                XtScreen(drawingArea)->default_gc, boxtranspoints[i].x,
+                boxtranspoints[i].y,
+                boxtranspoints[boxtranspoints[i].lineto1].x,
+                boxtranspoints[boxtranspoints[i].lineto1].y);
+      XDrawLine(XtDisplay(drawingArea), XtWindow(drawingArea),
+                XtScreen(drawingArea)->default_gc, boxtranspoints[i].x,
+                boxtranspoints[i].y,
+                boxtranspoints[boxtranspoints[i].lineto2].x,
+                boxtranspoints[boxtranspoints[i].lineto2].y);
     }
 }
 
 
 // -------------------------------------------------------------------
 void ProjectionPicture::DrawBoxesIntoPixmap() {
-  int i;
   XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc, 0);
   XFillRectangle(XtDisplay(drawingArea),  pixMap,
 		 XtScreen(drawingArea)->default_gc, 0, 0, daWidth, daHeight);
-  int showBoxesFix = 1 - amrPicturePtr->ShowingBoxes();
-  for(i = showBoxesFix*(bPoints-16); i < bPoints-(1-showSubCut)*8; i++) {
+  int showBoxesFix(1 - amrPicturePtr->ShowingBoxes());
+  for(int i = showBoxesFix*(bPoints-16); i < bPoints-(1-showSubCut)*8; i++) {
     XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
 		boxtranspoints[i].color);
     XDrawLine(XtDisplay(drawingArea), pixMap,

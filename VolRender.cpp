@@ -2,7 +2,6 @@
 // VolRender.cpp
 // -------------------------------------------------------------------
 #include "VolRender.H"
-#include "Volume.H"
 #include "DataServices.H"
 #include "GlobalUtilities.H"
 #include "ParallelDescriptor.H"
@@ -17,6 +16,8 @@ extern Real DegToRad(Real angle);
 #define VOLUMEBOXES 0
 //#define VOLUMEBOXES 1
 
+
+// -------------------------------------------------------------------
 void ShadeFunc(void *voxel, float *intensity, void *clientData) {
   *intensity = ((RawVoxel *)voxel)->density;
 }
@@ -79,6 +80,8 @@ VolRender::~VolRender() {
   assert(bVolRenderDefined);
   if(ParallelDescriptor::IOProcessor()) {
     vpDestroyContext(vpc);
+    //cout << endl << "~~~~~~~~~~ volData = " << volData << endl << endl;
+    //delete [] volData;
     if(swfDataAllocated) {
       delete [] swfData;
     }
@@ -166,18 +169,11 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
       Box swfDataBox(drawnDomain[maxDrawnLevel]);
       FArrayBox swfFabData;
       if(ParallelDescriptor::IOProcessor()) {
-          swfFabData.resize(swfDataBox, 1);
+        swfFabData.resize(swfDataBox, 1);
       }
-
-      //Array<FArrayBox *> destFabs(1);
-      //Array<Box> destBoxes(1);
-      //destFabs[0]  = &swfFabData;
-      //destBoxes[0] = swfDataBox;
 
       DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
 			     &swfFabData, swfDataBox, maxDrawnLevel, derivedName);
-      //amrData.FillVar(destFabs, destBoxes, maxDrawnLevel, derivedName,
-                          //ParallelDescriptor::IOProcessorNumber());
 
       if(ParallelDescriptor::IOProcessor()) {
         Real gmin(rDataMin);
@@ -560,7 +556,10 @@ void VolRender::MakeVPData() {
     vpret = vpSetCallback(vpc, VP_GRAY_SHADE_FUNC, ShadeFunc);
     CheckVP(vpret, 9);
 
-    RawVoxel *volData = new RawVoxel[swfDataSize]; // volpack will delete this
+    //RawVoxel *volData = new RawVoxel[swfDataSize]; // volpack will delete this
+    volData = new RawVoxel[swfDataSize]; // volpack will delete this
+    // there is a memory leak with volData if vpDestroyContext is not called
+    //cout << endl << "********** volData = " << volData << endl << endl;
     int xStride, yStride, zStride;
     xStride = sizeof(RawVoxel);
     yStride = drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel);
