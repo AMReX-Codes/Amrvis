@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------
-// AmrPicture.cpp
+// AmrPicture.C
 // -------------------------------------------------------------------
 
 #include "AmrPicture.H"
@@ -15,6 +15,7 @@
 AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
 		       PltApp *pltappptr, DataServices *dataservicesptr)
 {
+  contours = false; raster = true; colContour = false;
   int i, ilev;
   minDrawnLevel = mindrawnlevel;
   GAptr = gaptr;
@@ -97,6 +98,15 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
                        AmrPicture *parentPicturePtr,
                        PltApp *parentPltAppPtr, PltApp *pltappptr)
 {
+  if (parentPltAppPtr != NULL && parentPltAppPtr->GetAmrPicturePtr(0) != NULL) {
+    contours = parentPltAppPtr->GetAmrPicturePtr(0)->Contours();
+    raster = parentPltAppPtr->GetAmrPicturePtr(0)->Raster();
+    colContour = parentPltAppPtr->GetAmrPicturePtr(0)->ColorContour();
+  } else {
+    if (parentPltAppPtr == NULL)
+      {  contours = false; raster = true; colContour = false; }
+    else cerr << "error:  can't access the parent pictures"<<endl;
+  }
   int ilev;
   myView = view;
   minDrawnLevel = mindrawnlevel;
@@ -201,6 +211,7 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
 
 // ---------------------------------------------------------------------
 void AmrPicture::AmrPictureInit() {
+  numberOfContours = 0;
   int iLevel;
   if(myView==XZ) {
     sliceBox[maxAllowableLevel].setSmall(YDIR, slice);
@@ -221,7 +232,9 @@ void AmrPicture::AmrPictureInit() {
   for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
     sliceFab[iLevel] = new FArrayBox(sliceBox[iLevel], 1);
   }
+  //xImageArray.resize(numberOfLevels, NULL);
   xImageArray.resize(numberOfLevels);
+  //xImageCreated.resize(numberOfLevels, false);
 
   // use maxAllowableLevel because all imageSizes are the same
   // regardless of which level is showing
@@ -269,23 +282,19 @@ void AmrPicture::AmrPictureInit() {
 }  // end AmrPictureInit()
 
 void AmrPicture::SetHVLine() {
-  int first(0);
-  for(int i = 0; i <= YZ; ++i) {
-    if(i == myView) {
-      // do nothing
-    } else if(first == 0) {
-      hLine = imageSizeV-1 -
-              ((pltAppPtr->GetAmrPicturePtr(i)->GetSlice() -
-              pltAppPtr->GetAmrPicturePtr(YZ - i)->
-		  GetSubDomain()[maxDrawnLevel].smallEnd(YZ - i)) *
-              pltAppPtr->CurrentScale());
+  int first = 0;
+  for(int i = 0; i<=YZ ;i++) {
+    if ( i == myView ) ;
+    else if (first == 0) {
+      hLine = imageSizeV-1 
+        - ((pltAppPtr->GetAmrPicturePtr(i)->GetSlice()
+            - pltAppPtr->GetAmrPicturePtr(YZ - i)->GetSubDomain()[maxDrawnLevel].smallEnd(YZ - i))
+           * pltAppPtr->CurrentScale());
       first = 1;
-    } else {
-      vLine = (pltAppPtr->GetAmrPicturePtr(i)->GetSlice() -
-               pltAppPtr->GetAmrPicturePtr(YZ - i)->
-	            GetSubDomain()[maxDrawnLevel].smallEnd(YZ - i)) *
-               pltAppPtr->CurrentScale();
-    }
+    } else 
+      vLine = ( pltAppPtr->GetAmrPicturePtr(i)->GetSlice()
+                - pltAppPtr->GetAmrPicturePtr(YZ - i)->GetSubDomain()[maxDrawnLevel].smallEnd(YZ - i))
+        * pltAppPtr->CurrentScale();
   }
 }
 
@@ -327,6 +336,21 @@ void AmrPicture::SetSlice(int view, int here) {
       if(sliceFab[lev]->box() != sliceBox[lev]) {
         if(sliceFab[lev]->box().numPts() != sliceBox[lev].numPts()) {
           delete [] imageData[lev];
+	/*
+          if(myView==XZ) {
+            dataSizeH[lev] = sliceBox[lev].length(XDIR);
+            dataSizeV[lev] = sliceBox[lev].length(ZDIR);
+          } else if(myView==YZ) {
+            dataSizeH[lev] = sliceBox[lev].length(YDIR);
+            dataSizeV[lev] = sliceBox[lev].length(ZDIR);
+          } else {
+            dataSizeH[lev] = sliceBox[lev].length(XDIR);
+            dataSizeV[lev] = sliceBox[lev].length(YDIR);
+          }
+          dataSize[ilev]  = dataSizeH[lev] * dataSizeV[lev];
+
+          imageData[lev] = new unsigned char[dataSize[lev]];
+	*/
 	  cerr << endl;
 	  cerr << "Suspicious sliceBox in AmrPicture::SetSlice" << endl;
 	  cerr << "sliceFab[" << lev << "].box() = " << sliceFab[lev]->box() << endl;
@@ -391,6 +415,43 @@ void AmrPicture::SetSlice(int view, int here) {
 }  // end SetSlice(...)
 
 
+void AmrPicture::ChangeContour(int array_val)
+{
+  //  bool tmp_contours = contours;
+  bool tmp_raster = raster;
+  //bool tmp_colContour = colContour;
+  if (array_val == 0) {
+    SetRasterOnly();
+  } else if (array_val == 1) {
+    SetRasterContour();
+  } else if (array_val == 2) {
+    SetColorContour();
+  } else if (array_val == 3) {
+    SetBWContour();
+  }
+  if (raster == tmp_raster) // raster hasn't changed the image so all we
+    { Draw(minDrawnLevel, maxDrawnLevel); } // have to do is redraw the contours
+  else {
+    ChangeRasterImage(); // instead we want to recreate the image -- though we shouldn't have to reread the data, as we do now
+  }
+}
+
+void AmrPicture::SetRasterOnly() {
+  contours = false; raster = true; colContour = false;
+}
+ 
+void AmrPicture::SetRasterContour() {
+  contours = true; raster = true; colContour = false;
+}
+
+void AmrPicture::SetColorContour() {
+  contours = true; raster = false; colContour = true;
+}
+
+void AmrPicture::SetBWContour() {
+  contours = true; raster = false; colContour = false;
+}
+
 // ---------------------------------------------------------------------
 void AmrPicture::DrawBoxes(Array< Array<GridPicture> > &gp,
 			   Drawable &drawable)
@@ -403,8 +464,7 @@ void AmrPicture::DrawBoxes(Array< Array<GridPicture> > &gp,
       if(level == minDrawnLevel) {
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->WhiteIndex());
       } else {
-        XSetForeground(GAptr->PDisplay(), GAptr->PGC(),
-		       MaxPaletteIndex()-80*(level-1));
+        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), MaxPaletteIndex()-80*(level-1));
       }
       for(int i = 0; i < gp[level].length(); ++i) {
 	xbox = gp[level][i].HPositionInPicture();
@@ -431,15 +491,18 @@ void AmrPicture::Draw(int fromLevel, int toLevel) {
 			   imageSizeH, imageSizeV, GAptr->PDepth());
     pixMapCreated = true;
   }  
-
+ 
   XPutImage(GAptr->PDisplay(), pixMap, GAptr->PGC(),
             xImageArray[toLevel], 0, 0, 0, 0, imageSizeH, imageSizeV);
+           
+  if (contours) {
+    DrawContour(sliceFab, GAptr->PDisplay(), pixMap, GAptr->PGC());
+  }
 
   if( ! pltAppPtr->Animating()) {
     DoExposePicture();
   }
 }  // end AmrPicture::Draw.
-
 
 // ---------------------------------------------------------------------
 void AmrPicture::SyncPicture() {
@@ -629,6 +692,8 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
 	  if(Verbose()) {
             cout << "Deriving into Grids at level " << lev << endl;
 	  }
+          //amrData.MinMax(amrData.ProbDomain()[lev], currentDerived, lev,
+			     //dataMin, dataMax);
 	  bool minMaxValid(false);
           DataServices::Dispatch(DataServices::MinMaxRequest,
 			         dataServicesPtr,
@@ -701,8 +766,8 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
 		           sliceFab[iLevel], sliceFab[iLevel]->box(),
 			   iLevel, derived);
     CreateImage(*(sliceFab[iLevel]), imageData[iLevel],
-		dataSizeH[iLevel], dataSizeV[iLevel],
-	        minUsing, maxUsing, palPtr);
+ 		dataSizeH[iLevel], dataSizeV[iLevel],
+ 	        minUsing, maxUsing, palPtr);
     CreateScaledImage(&(xImageArray[iLevel]), pltAppPtr->CurrentScale() *
                 CRRBetweenLevels(iLevel, maxAllowableLevel, amrData.RefRatio()),
                 imageData[iLevel], scaledImageData[iLevel],
@@ -721,6 +786,27 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
 
 }  // end ChangeDerived
 
+// **************************************************
+
+void AmrPicture::ChangeRasterImage() {
+  AmrData &amrData = dataServicesPtr->AmrDataRef();
+  for(int iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
+    CreateImage(*(sliceFab[iLevel]), imageData[iLevel],
+ 		dataSizeH[iLevel], dataSizeV[iLevel],
+ 	        minUsing, maxUsing, palPtr);
+    CreateScaledImage(&(xImageArray[iLevel]), pltAppPtr->CurrentScale() *
+               CRRBetweenLevels(iLevel, maxAllowableLevel, amrData.RefRatio()),
+               imageData[iLevel], scaledImageData[iLevel],
+               dataSizeH[iLevel], dataSizeV[iLevel],
+               imageSizeH, imageSizeV);
+  }
+  if( ! pltAppPtr->PaletteDrawn()) {
+    pltAppPtr->PaletteDrawn(true);
+    palPtr->Draw(minUsing, maxUsing, pltAppPtr->GetFormatString());
+  }
+  Draw(minDrawnLevel, maxDrawnLevel);
+  
+}  // end ChangeRasterImage
 
 // -------------------------------------------------------------------
 // convert Real to char in imagedata from fab
@@ -737,34 +823,43 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
     oneOverGDiff = 1.0 / (globalMax - globalMin);
   }
   const Real *dataPoint = fab.dataPtr();
+  int whiteIndex = palptr->WhiteIndex();
   int blackIndex = palptr->BlackIndex();
   int colorSlots = palptr->ColorSlots();
   int paletteStart = palptr->PaletteStart();
   int paletteEnd = palptr->PaletteEnd();
   int csm1 = colorSlots - 1;
-
+  
   Real dPoint;
-
+  
   // flips the image in Vert dir: j => datasizev-j-1
-    for(int j = 0; j < datasizev; ++j) {
-      jdsh = j * datasizeh;
-      jtmp1 = (datasizev-j-1) * datasizeh;
-      for(int i = 0; i < datasizeh; ++i) {
-        dIndex = i + jtmp1;
-        dPoint = dataPoint[dIndex];
-        iIndex = i + jdsh;
+  for(int j = 0; j < datasizev; ++j) {
+    jdsh = j * datasizeh;
+    jtmp1 = (datasizev-j-1) * datasizeh;
+    for(int i = 0; i < datasizeh; ++i) {
+      dIndex = i + jtmp1;
+      dPoint = dataPoint[dIndex];
+      iIndex = i + jdsh;
+      if (raster) {
         if(dPoint > globalMax) {  // clip
           imagedata[iIndex] = paletteEnd;
         } else if(dPoint < globalMin) {  // clip
           imagedata[iIndex] = paletteStart;
         } else {
           imagedata[iIndex] = (unsigned char)
-             ((((dPoint - globalMin) * oneOverGDiff) * csm1) );
-           //    ^^^^^^^^^^^^^^^^^ Real data
+            ((((dPoint - globalMin) * oneOverGDiff) * csm1) );
+          //    ^^^^^^^^^^^^^^^^^ Real data
           imagedata[iIndex] += paletteStart;
-        }
+        } 
+      }else {
+        imagedata[iIndex] = whiteIndex;
       }
+//if((unsigned int) (imagedata[iIndex]) > 252) {
+//cout << "============ imageData = " << (unsigned int) (imagedata[iIndex]) << endl;
+//}
+     
     }
+  }
 }  // end CreateImage(...)
 
 // ---------------------------------------------------------------------
@@ -824,11 +919,16 @@ void AmrPicture::ChangeScale(int newScale) {
   for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
     delete [] scaledImageData[iLevel];
     scaledImageData[iLevel] = new unsigned char[imageSize];
+    //if(xImageCreated[iLevel]) {
+      //XDestroyImage(xImageArray[iLevel]);
+      //xImageCreated[iLevel] = false;
+    //}
     CreateScaledImage(&xImageArray[iLevel], newScale *
                 CRRBetweenLevels(iLevel, maxAllowableLevel, amrData.RefRatio()),
                 imageData[iLevel], scaledImageData[iLevel],
                 dataSizeH[iLevel], dataSizeV[iLevel],
                 imageSizeH, imageSizeV);
+    //xImageCreated[iLevel] = true;
   }
 
   hLine = ((hLine / (pltAppPtr->PreviousScale())) * newScale) + (newScale - 1);
@@ -988,7 +1088,6 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
              imageSizeH, imageSizeV);
 
     ShowFrameImage(islice);
-    //RubberBandSlice(islice);
 #   if (BL_SPACEDIM == 3)
     
     if( ! framesMade) {
@@ -1015,6 +1114,7 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
     framesMade = false;
     sprintf(buffer, "Cancelled.\n"); 
     PrintMessage(buffer);
+    //cout << "anim cancelled, setting slice to " << start+islice << endl;
     ChangeSlice(start+islice);
     AmrPicture *apXY = pltAppPtr->GetAmrPicturePtr(XY);
     AmrPicture *apXZ = pltAppPtr->GetAmrPicturePtr(XZ);
@@ -1099,6 +1199,7 @@ void AmrPicture::DoFrameUpdate() {
         --slice;
     } else {
         slice = subDomain[maxAllowableLevel].bigEnd(sliceDir);
+    
     }
   } 
   int iRelSlice(slice - subDomain[maxAllowableLevel].smallEnd(sliceDir));
@@ -1120,6 +1221,7 @@ void AmrPicture::DoStop() {
 }
 
 
+
 // ---------------------------------------------------------------------
 void AmrPicture::Sweep(AnimDirection direction) {
   if(pendingTimeOut != 0) {
@@ -1136,32 +1238,12 @@ void AmrPicture::Sweep(AnimDirection direction) {
   }
 }
 
-
-//----------------------------------------------------------------------
-void AmrPicture::RubberBandSlice(int iSlice) {
-  static int sweepStarted = 0;
-  static int lastSlice = 0;
-  if(sweepStarted) {
-    UndrawSlice(lastSlice);
-  } else {
-    sweepStarted = 1;
-  }
-  DrawSlice(iSlice);
-  lastSlice = iSlice;
-  
-}
-  
-//----------------------------------------------------------------------
 void AmrPicture::UndrawSlice(int iSlice) {
 }
-
-
-//----------------------------------------------------------------------
 void AmrPicture::DrawSlice(int iSlice) {
   XDrawLine(GAptr->PDisplay(), pictureWindow, GetPltAppPtr()->GetRbgc(),
             0, 30, imageSizeH, 30);
 }
-
 
 // ---------------------------------------------------------------------
 void AmrPicture::ShowFrameImage(int iSlice) {
@@ -1174,6 +1256,11 @@ void AmrPicture::ShowFrameImage(int iSlice) {
             frameBuffer[iRelSlice], 0, 0, 0, 0, imageSizeH, imageSizeV);
 
   DrawBoxes(frameGrids[iRelSlice], pictureWindow);
+
+  if (contours) {
+    DrawContour(sliceFab, GAptr->PDisplay(), pictureWindow, GAptr->PGC());
+  }
+
 
   // draw plane "cutting" lines
   XSetForeground(GAptr->PDisplay(), GAptr->PGC(), hColor);
@@ -1217,8 +1304,6 @@ void AmrPicture::ShowFrameImage(int iSlice) {
       XClearWindow(XtDisplay(pltAppPtr->GetWTransDA()), 
                    XtWindow(pltAppPtr->GetWTransDA()));
       pltAppPtr->DoExposeTransDA();
-  } else {
-      //do some rubberbanding
   }
 # endif
 
@@ -1260,5 +1345,429 @@ void AmrPicture::SetWhichRange(Range newRange) {
   framesMade = false;
   DoStop();
 }
+
+void AmrPicture::SetContourNumber(int newContours) 
+{
+  numberOfContours = newContours;
+}
+
+
+// ---------------------------------------------------------------------
+
+void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
+                             Display *passed_display, 
+                             Drawable &passed_PixMap, 
+                             GC passed_gc)
+{
+  Real v_min = GetWhichMin();
+  Real v_max = GetWhichMax();
+  Real v_off;
+  if (numberOfContours != 0.)
+    v_off = v_min + 0.5*(v_max - v_min)/numberOfContours;
+  else 
+    v_off = 1.;
+  int hDir, vDir;
+  if(myView==XZ) {
+    hDir = XDIR; vDir = ZDIR;
+  } else if(myView==YZ) {
+    hDir = YDIR; vDir = ZDIR;
+  } else {
+    hDir = XDIR; vDir = YDIR;
+  }
+  
+  const AmrData &amrData = dataServicesPtr->AmrDataRef();
+
+  Array <Real> pos_low(BL_SPACEDIM);
+  Array <Real> pos_high(BL_SPACEDIM);
+  amrData.LoNodeLoc(maxDrawnLevel, passedSliceFab[maxDrawnLevel]->smallEnd(), 
+                    pos_low);
+  amrData.HiNodeLoc(maxDrawnLevel, passedSliceFab[maxDrawnLevel]->bigEnd(), 
+                    pos_high);
+  
+  Real xlft = pos_low[hDir];
+  Real ybot = pos_low[vDir];
+  Real xrgt = pos_high[hDir];
+  Real ytop = pos_high[vDir];
+
+  for (int lev = minDrawnLevel; lev <= maxDrawnLevel; lev++) {
+    const bool *mask_array = NULL;
+    bool mask_bool = false;
+    BaseFab<bool> mask(passedSliceFab[lev]->box());
+    mask.setVal(false);
+    
+    if (lev != maxDrawnLevel) {
+      int lratio = CRRBetweenLevels(lev, lev+1, amrData.RefRatio());
+      // construct mask array.  must be size FAB.
+      const BoxArray &nextFinest = amrData.boxArray(lev+1);
+      for (int j = 0; j < nextFinest.length(); j++) {
+        Box coarseBox(coarsen(nextFinest[j],lratio));
+        if (coarseBox.intersects(passedSliceFab[lev]->box())) {
+          coarseBox &= passedSliceFab[lev]->box();
+          mask.setVal(true,coarseBox,0);
+        }
+      }
+    }
+    
+    // get rid of the complement ofht e
+    const BoxArray &levelBoxArray = amrData.boxArray(lev);
+    BoxArray complement = complementIn(passedSliceFab[lev]->box(), 
+                                       levelBoxArray);
+    for(int i = 0; i < complement.length(); i++) {
+      mask.setVal(true, complement[i], 0);
+    }
+    
+    mask_array = mask.dataPtr();
+    mask_bool = true;
+    
+    int paletteEnd = palPtr->PaletteEnd();
+    int paletteStart = palPtr->PaletteStart();
+    int csm1 = palPtr->ColorSlots() - 1;
+    Real oneOverGDiff;
+    if((maxUsing - minUsing) < FLT_MIN) {
+      oneOverGDiff = 0.0;
+    } else {
+      oneOverGDiff = 1.0 / (maxUsing - minUsing);
+    }
+
+    int drawColor = palPtr->BlackIndex();
+    for (int icont = 0; icont < (int)numberOfContours; icont++) {
+      Real frac = (Real) icont / numberOfContours;
+      Real value = v_off + frac*(v_max - v_min);
+      if (colContour) {
+        if(value > maxUsing) {  // clip
+          drawColor = paletteEnd;
+        } else if(value < minUsing) {  // clip
+          drawColor = paletteStart;
+        } else {
+          drawColor = (int)
+            ((((value - minUsing) * oneOverGDiff) * csm1) );
+          //    ^^^^^^^^^^^^^^^^^ Real data
+          drawColor += paletteStart;
+        }
+      }
+      contour(*(passedSliceFab[lev]), value, mask_bool, mask_array,
+              passed_display, passed_PixMap, passed_gc, drawColor,
+              passedSliceFab[lev]->box().length(hDir), 
+              passedSliceFab[lev]->box().length(vDir),
+              xlft, ybot, xrgt, ytop);
+    }
+  } // loop over levels
+  
+  //  if (r.show_grids == 2) {
+  //    draw_vector_field(r, time);
+  //  }
+}
+
+
+
+// contour plotting
+//int AmrPicture::contour(const Real *data, Real value,
+int AmrPicture::contour(const FArrayBox &fab, Real value,
+                        bool has_mask, const bool *mask,
+                        Display *display, Drawable &dPixMap, GC gc, int FGColor,
+                        int xLength, int yLength,
+                        Real leftEdge, Real bottomEdge, 
+                        Real rightEdge, Real topEdge)
+{
+  // data     = data to be contoured
+// value    = value to contour
+// has_mask = true if mask array available
+// mask     = array of mask values.  will not contour in masked off cells
+// xLength       = dimension of arrays in X direction
+// yLength       = dimension of arrays in Y direction
+// leftEdge     = position of left   edge of grid in domain
+// rightEdge     = position of right  edge of grid in domain
+// bottomEdge     = position of bottom edge of grid in domain
+// topEdge     = position of top    edge of grid in domain
+  //  cout<<"Entering contour... "; 
+  const Real *data = fab.dataPtr();
+  Real xDiff = (rightEdge-leftEdge)/(xLength-1);
+  Real yDiff = (topEdge-bottomEdge)/(yLength-1);
+  
+  bool left, right, bottom, top;   // does contour line intersect this side?
+  Real  xLeft, yLeft;         // where contour line intersects left side
+  Real  xRight, yRight;       // where contour line intersects right side
+  Real  xBottom, yBottom;     // where contour line intersects bottom side
+  Real  xTop, yTop;               // where contour line intersects top side
+  bool failure_status = false;
+  for (int j = 0; j < yLength-1; j++) {
+    for (int i = 0; i < xLength-1; i++) {
+      if ( has_mask ) {
+        if ( mask[(i)+(j)*xLength] ||
+             mask[(i+1)+(j)*xLength] ||
+             mask[(i+1)+(j+1)*xLength] ||
+             mask[(i)+(j+1)*xLength] ) {
+          continue;
+        }
+      }
+      Real  left_bottom = data[(i)+(j)*xLength];         // left bottom value
+      Real  left_top = data[(i)+(j+1)*xLength];          // left top value
+      Real  right_bottom = data[(i+1)+(j)*xLength];      // right bottom value
+      Real  right_top = data[(i+1)+(j+1)*xLength];       // right top value
+      xLeft = leftEdge + xDiff*(i);
+      xRight = xLeft + xDiff;
+      yBottom = bottomEdge + yDiff*(j);
+      yTop = yBottom + yDiff;
+      
+      left = Between(left_bottom,value,left_top);
+      right = Between(right_bottom,value,right_top);
+      bottom = Between(left_bottom,value,right_bottom);
+      top = Between(left_top,value,right_top);
+      
+      // figure out where things intersect the cell
+      if (left) {
+        if (left_bottom != left_top) {
+          yLeft = yBottom + yDiff*(value-left_bottom)/(left_top-left_bottom);
+        } else {
+          yLeft = yBottom;
+          failure_status = true;
+        }
+      }
+      if (right) {
+        if (right_bottom != right_top) {
+          yRight = yBottom + yDiff*(value-right_bottom)/(right_top-right_bottom);
+        } else {
+          yRight = yBottom;
+          failure_status = true;
+        }
+      }
+      if (bottom) {
+        if (left_bottom != right_bottom) {
+          xBottom = xLeft + xDiff*(value-left_bottom)/(right_bottom-left_bottom);
+        } else {
+          xBottom = xRight;
+          failure_status = true;
+        }
+      }
+      if (top) {
+        if (left_top != right_top) {
+          xTop = xLeft + xDiff*(value-left_top)/(right_top-left_top);
+        } else {
+          xTop = xRight;
+          failure_status = true;
+        }
+      }
+      
+      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), FGColor);
+      
+      Real vReal2X, hReal2X;
+      hReal2X = (Real)imageSizeH /(rightEdge - leftEdge);
+      vReal2X = (Real)imageSizeV /(topEdge - bottomEdge);
+      
+      if (left) { 
+        xLeft -= leftEdge; yLeft -= bottomEdge;
+        xLeft *= hReal2X; yLeft *= vReal2X;
+      }
+      if (right) {
+        xRight -= leftEdge; yRight -= bottomEdge;
+        xRight *= hReal2X; yRight *= vReal2X;
+      }
+      if (top) {
+        xTop -= leftEdge; yTop -= bottomEdge;
+        xTop *= hReal2X; yTop *= vReal2X; 
+      }
+      if (bottom) {
+        xBottom -= leftEdge; yBottom -= bottomEdge;
+        xBottom *= hReal2X; yBottom *= vReal2X; 
+      }
+      
+      // finally, draw contour line
+      if (left && right && bottom && top) {
+        // intersects all sides, generate saddle point
+        XDrawLine(display, dPixMap, gc, 
+                  xLeft, imageSizeV-yLeft,xRight, imageSizeV-yRight);
+        XDrawLine(display, dPixMap, gc,
+                  xTop, imageSizeV-yTop,xBottom,imageSizeV-yBottom);
+      } else if (top && bottom) {
+        // only intersects top and bottom sides
+        XDrawLine(display, dPixMap, gc,
+                  xTop,imageSizeV-yTop,xBottom,imageSizeV-yBottom);
+      } else if (left) {
+        if (right) {
+          XDrawLine(display, dPixMap, gc,
+                    xLeft,imageSizeV-yLeft,xRight,imageSizeV-yRight);
+        } else if (top) {
+          XDrawLine(display, dPixMap, gc,
+                    xLeft,imageSizeV-yLeft,xTop,imageSizeV-yTop);
+        } else {
+          XDrawLine(display, dPixMap, gc,
+                    xLeft,imageSizeV-yLeft,xBottom,imageSizeV-yBottom);
+        }
+      } else if (right) {
+        if (top) {
+          XDrawLine(display, dPixMap, gc,
+                    xRight,imageSizeV-yRight,xTop,imageSizeV-yTop);
+        } else {
+          XDrawLine(display, dPixMap, gc,
+                    xRight,imageSizeV-yRight,xBottom,imageSizeV-yBottom);
+        }
+      }
+      
+    } // for I
+  } // for J
+  //  cout<<"leaving contour"<<endl;
+  return failure_status;
+}
+
+
+/* 
+void AmrPicture::DrawVectorField(const ContFrame& r, Real time)
+{
+  int lev, i, j;
+  int maxlev = r.level;
+  int amrlev = amrptr->finestLevel();
+  if (maxlev < 0) maxlev = amrlev;
+  maxlev = Min(maxlev,amrlev);
+  if (maxlev > MAX_LEV) {
+    cerr << "Contour::draw: maxlev > MAX_LEV" << endl;
+    abort();
+  }
+  
+  // get velocity field
+  PArray<FARRAYBOX> *u[MAX_LEV];
+  PArray<FARRAYBOX> *v[MAX_LEV];
+  for (lev = 0; lev <= maxlev; lev++) {
+    u[lev] = amrptr->derive("x_velocity",time,lev);
+    v[lev] = amrptr->derive("y_velocity",time,lev);
+  }
+  
+  // zero out region covered by fine level
+  for (lev = 0; lev < maxlev; lev++) {
+    const BoxArray &bs = amrptr->boxArray(lev);
+    PArray<FARRAYBOX> &U = *u[lev];
+    PArray<FARRAYBOX> &V = *v[lev];
+    const BoxArray &bsf = amrptr->boxArray(lev+1);
+    int lrat = amrptr->refRatio(lev);
+    for (i = 0; i < bs.length(); i++) {
+      for (j = 0; j < bsf.length(); j++) {
+        BOX bfine(coarsen(bsf[j],lrat));
+        bfine &= bs[i];
+        if (bfine.ok()) {
+          U[i].setVal(0.0,bfine,0);
+          V[i].setVal(0.0,bfine,0);
+        }
+      }
+    }
+  }
+  
+  // compute maximum speed
+  Real smax = 0.0;
+  for (lev = 0; lev <= maxlev; lev++) {
+    const BoxArray &bs = amrptr->boxArray(lev);
+    PArray<FARRAYBOX> &U = *u[lev];
+    PArray<FARRAYBOX> &V = *v[lev];
+    for (i = 0; i < bs.length(); i++) {
+      // compute max speed
+      int npts = bs[i].numPts();
+      const Real* udat = U[i].dataPtr();
+      const Real* vdat = V[i].dataPtr();
+      int k;
+      for (k = 0; k < npts; k++) {
+        Real s = sqrt(udat[k]*udat[k]+vdat[k]*vdat[k]);
+        smax = Max(smax,s);
+      }
+    }
+  }
+  
+  if (smax < 1.0e-8) {
+    cout << "CONTOUR: zero velocity field" << endl;
+  } else {
+  */   
+    // set color of vectors
+    /*
+      const Real* dx0 = amrptr->Geom(0).CellSize();
+      int  percent = 10;
+      Real xProbLength = Geometry::ProbLength(0);
+      Real Amax = xProbLength/Real(percent);
+      Real eps = 1.0e-3;
+      Real alen = 0.25;
+      int  nxprob = (int) (xProbLength/dx0[0]);
+      int  stride = nxprob/(2*percent);
+      if (stride < 1) stride = 1;
+      */
+    // --------- new sussman code
+  /*
+    const Real* dx0 = amrptr->Geom(0).CellSize();
+    int maxpoints= 20;  // partition longest side into 20 parts
+    Real maxlen=Geometry::ProbLength(0);
+    for (i = 1; i < BL_SPACEDIM; i++)
+      if (Geometry::ProbLength(i)>maxlen)
+        maxlen=Geometry::ProbLength(i);
+    
+    Real sight_h=maxlen/maxpoints;
+    int stride[BL_SPACEDIM];
+    for (i = 0; i < BL_SPACEDIM; i++) {
+      stride[i]= (int) (sight_h/dx0[i]);
+      if (stride[i]<1) stride[i]=1;
+    }
+    Real Amax=1.25*sight_h;
+    Real eps = 1.0e-3;
+    Real alen = 0.25;
+    // --------- end new sussman code
+    
+    // draw vectors
+    for (lev = 0; lev <= maxlev; lev++) {
+      //r.win->setfgColor(Vector_Colors[lev]);
+      // to allow more than 6 levels
+      r.win->setfgColor(Vector_Colors[lev%num_vector_colors]);
+      if (lev > 0) {
+        for(i = 0; i < BL_SPACEDIM; i++) {
+          stride[i] *= 2;
+        }
+      }
+      const Real* hx = amrptr->Geom(lev).CellSize();
+      const BoxArray &bs = amrptr->boxArray(lev);
+      PArray<FARRAYBOX> &U = *u[lev];
+      PArray<FARRAYBOX> &V = *v[lev];
+      int k;
+      for (k = 0; k < bs.length(); k++) {
+        const BOX& bx = bs[k];
+        int ilo = bx.smallEnd(0);
+        int ihi = bx.bigEnd(0);
+        int nx = ihi-ilo+1;
+        int jlo = bx.smallEnd(1);
+        int jhi = bx.bigEnd(1);
+        Real xlft = (ilo + 0.5)*hx[0];
+        Real ybot = (jlo + 0.5)*hx[1];
+        const Real* udat = U[k].dataPtr();
+        const Real* vdat = V[k].dataPtr();
+        for (j = jlo; j <= jhi; j+=stride[1]) {
+          Real y = ybot + (j-jlo)*hx[1];
+          for (i = ilo; i <= ihi; i+=stride[0]) {
+            Real x = xlft + (i-ilo)*hx[0];
+            Real u1 = udat[i-ilo + nx*(j-jlo)];
+            Real v1 = vdat[i-ilo + nx*(j-jlo)];
+            Real s = sqrt(u1*u1 + v1*v1);
+            if (s < eps) continue;
+            Real a = Amax*(u1/smax);
+            Real b = Amax*(v1/smax);
+            Real nlen = sqrt(a*a + b*b);
+            Real x2 = x + a;
+            Real y2 = y + b;
+            r.win->movePen(x,y);
+            r.win->drawLine(x2,y2);
+            Real p1 = x2 - alen*a;
+            Real p2 = y2 - alen*b;
+            p1 = p1 - (alen/2.0)*b;
+            p2 = p2 + (alen/2.0)*a;
+            r.win->drawLine(p1,p2);
+          }
+        }
+        
+      }
+    }
+    
+  } // end else
+  
+  // free memory
+  for (lev = 0; lev <= maxlev; lev++) {
+    delete u[lev];
+    delete v[lev];
+    u[lev] = v[lev] = NULL;
+  }
+  
+}
+*/
+
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------

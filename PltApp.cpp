@@ -24,6 +24,10 @@
 #include <CascadeB.h>
 #include <Frame.h>
 
+#if defined(BL_PARALLELVOLUMERENDER)
+#include <PVolRender.H>
+#endif
+
 const int MAXSCALE       = 32;
 const int MENUFRAME      = 0;
 const int PALETTEFRAME   = 1;
@@ -60,6 +64,8 @@ PltApp::~PltApp() {
   }
   if(animating2d) {
     StopAnimation();
+  //for(int i = 1; i < animFrames; i++) {
+  //}
   }
   XtDestroyWidget(wAmrVisTopLevel);
 }
@@ -68,13 +74,14 @@ PltApp::~PltApp() {
 // -------------------------------------------------------------------
 PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
 	       const Array<DataServices *> &dataservicesptr, bool isAnim)
-      : paletteDrawn(false),
-	appContext(app),
-	wTopLevel(w),
-	fileName(filename),
-	dataServicesPtr(dataservicesptr),
-	animating2d(isAnim),
-	currentFrame(0)
+  : paletteDrawn(false),
+    appContext(app),
+    wTopLevel(w),
+    fileName(filename),
+    dataServicesPtr(dataservicesptr),
+    animating2d(isAnim),
+    currentFrame(0),
+    currentContour(0)
 {
   if( ! dataservicesptr[0]->AmrDataOk()) {
     return;
@@ -92,16 +99,16 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     fileNames.resize(animFrames);
     fileNames[currentFrame] = fileName;
   }
-
+  
   char shortfilename[BUFSIZ];
   int fnl(fileName.length() - 1);
   while(fnl > -1 && fileName[fnl] != '/') {
     --fnl;
   }
   strcpy(shortfilename, &fileName[fnl+1]);
-
+  
   wAmrVisTopLevel = XtVaCreatePopupShell(shortfilename, 
-			topLevelShellWidgetClass, wTopLevel,
+                        topLevelShellWidgetClass, wTopLevel,
 			XmNwidth,	initialWindowWidth,
 			XmNheight,	initialWindowHeight,
                         XmNx,		100+placementOffsetX,
@@ -111,27 +118,27 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
   GAptr = new GraphicsAttributes(wAmrVisTopLevel);
   if(GAptr->PVisual() 
      != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber())) {
-      XtVaSetValues(wAmrVisTopLevel, XmNvisual, GAptr->PVisual(),
-                    XmNdepth, 8, NULL);
+    XtVaSetValues(wAmrVisTopLevel, XmNvisual, GAptr->PVisual(),
+                  XmNdepth, 8, NULL);
   }
   FileType fileType = GetDefaultFileType();
   assert(fileType != INVALIDTYPE);
-
+  
   if( ! (dataServicesPtr[currentFrame]->CanDerive(PltApp::initialDerived)) &&
       ! (fileType == FAB)  && ! (fileType == MULTIFAB))
-  {
-    cerr << "Bad initial derived:  cannot derive "
-	 << PltApp::initialDerived <<endl;
-    cerr << "defaulting to "
-         << dataServicesPtr[currentFrame]->PlotVarNames()[0] << endl;
-    SetInitialDerived(dataServicesPtr[currentFrame]->PlotVarNames()[0]);
-  }
+    {
+      cerr << "Bad initial derived:  cannot derive "
+           << PltApp::initialDerived <<endl;
+      cerr << "defaulting to "
+           << dataServicesPtr[currentFrame]->PlotVarNames()[0] << endl;
+      SetInitialDerived(dataServicesPtr[currentFrame]->PlotVarNames()[0]);
+    }
   currentDerived = PltApp::initialDerived;
   SetShowBoxes(GetDefaultShowBoxes());
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   int finestLevel(amrData.FinestLevel());
   int maxlev = DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
-                            finestLevel, MaxPictureSize(), amrData.RefRatio());
+                 finestLevel, MaxPictureSize(), amrData.RefRatio());
   minAllowableLevel = 0;
   Box maxDomain(amrData.ProbDomain()[maxlev]);
   unsigned long dataSize = maxDomain.length(XDIR) * maxDomain.length(YDIR);
@@ -141,21 +148,28 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     maxAllowableScale = (int) sqrt((Real) (MaxPictureSize()/dataSize));
   }
   currentScale = Max(1, Min(GetInitialScale(), maxAllowableScale));
-
+  
   amrPicturePtrArray[ZPLANE] = new AmrPicture(minAllowableLevel, GAptr,
                                               this, dataServicesPtr[currentFrame]);
 #if (BL_SPACEDIM == 3)
-    amrPicturePtrArray[YPLANE] = new AmrPicture(YPLANE, minAllowableLevel, 
+  amrPicturePtrArray[YPLANE] = new AmrPicture(YPLANE, minAllowableLevel, 
                                  GAptr, amrData.ProbDomain()[finestLevel],
                                  amrPicturePtrArray[ZPLANE], NULL,
                                  this);
-    amrPicturePtrArray[XPLANE] = new AmrPicture(XPLANE, minAllowableLevel, 
+  amrPicturePtrArray[XPLANE] = new AmrPicture(XPLANE, minAllowableLevel, 
                         GAptr, amrData.ProbDomain()[finestLevel],
 			amrPicturePtrArray[ZPLANE], NULL, this);
 #endif
-    for(i = 0; i < BL_SPACEDIM; i++) {
+  for(i = 0; i < BL_SPACEDIM; i++) {
     ivLowOffsetMAL.setVal(i, amrData.ProbDomain()[maxlev].smallEnd(i));
   }
+  
+  contourNumString = aString("5");
+  for (int j = 0; j<NPLANES ; j++) {
+    amrPicturePtrArray[j]->SetContourNumber(5);
+  }
+
+  
   palFilename = PltApp::defaultPaletteString;
   PltAppInit();
 }
@@ -197,7 +211,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     maxAllowableScale = (int) sqrt((Real) (MaxPictureSize()/dataSize));
   }
   currentScale = Min(maxAllowableScale, pltParent->CurrentScale());
-
+  currentContour = pltParent->CurrentContour();
+  
   char shortfilename[BUFSIZ];
   int fnl = fileName.length() - 1;
   while (fnl>-1 && fileName[fnl] != '/') {
@@ -224,12 +239,23 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
       XtVaSetValues(wAmrVisTopLevel, XmNvisual, GAptr->PVisual(),
                     XmNdepth, 8, NULL);
   }
+//cout << "------ _in PltApp(subregion):  region = " << region << endl;
   for(int np = 0; np < NPLANES; np++) {
     amrPicturePtrArray[np] = new AmrPicture(np, minAllowableLevel, 
                                             GAptr, region,
 					    parentPtr, pltParent,
                                             this);
   }
+  
+  int newContourNum = pltParent->GetAmrPicturePtr(0)->GetContourNumber();
+  char contourString[4];
+  sprintf(contourString, "%i", newContourNum);
+  contourNumString = aString(contourString);
+  for (int j = 0; j<NPLANES ; j++) {
+    amrPicturePtrArray[j]->SetContourNumber(newContourNum);
+  }
+  
+
 
 # if (BL_SPACEDIM == 3)
   SetHVLine(amrPicturePtrArray);
@@ -566,6 +592,81 @@ void PltApp::PltAppInit() {
   AddStaticCallback(wFABFileButton, XmNactivateCallback, &PltApp::DoOutput);
 
   XtManageChild(wOutputMenuBar);
+
+// ****************************************** Contour Menu
+
+  i=0;
+  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
+  XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
+  XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);      i++;
+  XtSetArg(args[i], XmNbottomOffset, WOFFSET);      i++;
+  XtSetArg(args[i], XmNleftWidget, wOutputMenu);      i++;
+  XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET);      i++;
+  XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
+  wContourOptions = XmCreatePulldownMenu(wAmrVisMenu,"contouroptions", args, i);
+  XtVaSetValues(wContourOptions, XmNuserData, this, 
+                XmNmarginHeight, 0,
+                XmNspacing, 0,
+                NULL);
+  XmString ContourItems[4];
+  ContourItems[0] = XmStringCreateSimple("raster");
+  ContourItems[1] = XmStringCreateSimple("raster w/contours");
+  ContourItems[2] = XmStringCreateSimple("color contours");
+  ContourItems[3] = XmStringCreateSimple("b/w contours");
+  
+  
+  for(int j = 0; j<4; j++)
+    {
+      XtSetArg(args[0], XmNlabelString, ContourItems[j]);
+      wContourItems[j] = XmCreatePushButtonGadget(wContourOptions,
+                                              "contour", args, 3);
+      XtAddCallback(wContourItems[j], XmNactivateCallback,
+                    &PltApp::CBChangeContour, (XtPointer)j);
+      XmStringFree(ContourItems[j]);
+    }
+  XtManageChildren(wContourItems, 4);
+  
+  
+  
+  i=0;
+  XtSetArg(args[i], XmNsubMenuId, wContourOptions); i++;
+  XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET); i++;
+  XtSetArg(args[i], XmNleftWidget, wOutputMenu); i++;
+  XtSetArg(args[i], XmNleftOffset, 0); i++;
+  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
+  XtSetArg(args[i], XmNtopOffset, 2);      i++;
+  XtSetArg(args[i], XmNmenuHistory, wContourItems[currentContour]);  i++;
+  wContourMenu = XmCreateOptionMenu(wAmrVisMenu, "lighting", args, i);
+  
+  //set this string to "" for cray
+  XmString newContourString = XmStringCreateSimple("");
+  XtVaSetValues(XmOptionLabelGadget(wContourMenu),
+                XmNlabelString, newContourString,
+                NULL);
+  XmStringFree(newContourString);
+  
+  XtManageChild(wContourMenu);
+ 
+  // ************************************************ Contour Number Field
+  i=0;
+  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
+  XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
+  XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET);      i++;
+  XtSetArg(args[i], XmNleftWidget, wContourMenu); i++;
+  XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
+  char cNbuff[64];
+  strcpy(cNbuff, contourNumString.c_str());
+  XtSetArg(args[i], XmNvalue, cNbuff);      i++;
+  XtSetArg(args[i], XmNcolumns, 4);      i++;
+  wNumberContours = XtCreateManagedWidget("contours", xmTextFieldWidgetClass,
+				    wAmrVisMenu, args, i);
+  XtAddCallback(wNumberContours, XmNactivateCallback, 
+                &PltApp::CBReadContourString,
+  		(XtPointer) this);
+  Dimension bHeight;
+  XtVaGetValues(wNumberContours, XmNheight, &bHeight, NULL);
+
+
 
 // ****************************************** wPicArea
 
@@ -1163,11 +1264,12 @@ void PltApp::PltAppInit() {
 
   XtManageChild(wScaleMenu);
   XtManageChild(wLevelMenu);
-  XtManageChild(wDerivedMenu);
   XtManageChild(wQuitButton);
   XtManageChild(wSubregionButton);
   XtManageChild(wDatasetButton);
   XtManageChild(wPaletteButton);
+  XtManageChild(wDerivedMenu);
+  XtManageChild(wContourMenu);
   XtManageChild(wSetRangeButton);
   XtManageChild(wBoxesButton);
   XtManageChild(wPicArea);
@@ -1338,6 +1440,9 @@ void PltApp::DoExposeRef() {
 	DrawAxes(wControlForm, xPlanePosX, xPlanePosY, 0, sY, sZ, xpColor);
 
 	sprintf(temp, "Z=%i", amrPicturePtrArray[ZPLANE]->GetSlice());
+//                (amrPicturePtrArray[YPLANE]->
+//		ImageSizeV()-1 - amrPicturePtrArray[YPLANE]->GetHLine())/
+//		currentScale + ivLowOffsetMAL[ZDIR]);
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(), zpColor);
 	XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
 		    centerX-xyzAxisLength+12,
@@ -1345,6 +1450,8 @@ void PltApp::DoExposeRef() {
 		    temp, strlen(temp));
 
 	sprintf(temp, "Y=%i", amrPicturePtrArray[YPLANE]->GetSlice());
+//amrPicturePtrArray[XPLANE]->GetVLine()/
+//		currentScale + ivLowOffsetMAL[YDIR]);
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(), ypColor);
 	XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
 		    centerX+stringOffsetX,
@@ -1352,6 +1459,8 @@ void PltApp::DoExposeRef() {
 		    temp, strlen(temp));
 
 	sprintf(temp, "X=%i", amrPicturePtrArray[XPLANE]->GetSlice());
+                //amrPicturePtrArray[ZPLANE]->GetVLine()/
+		//currentScale + ivLowOffsetMAL[XDIR]);
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(), xpColor);
 	XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
 		    centerX+4*stringOffsetX,
@@ -1449,8 +1558,47 @@ void PltApp::CBChangeLevel(Widget w, XtPointer client_data,
   obj->DoExposeRef();
 }
 
+void PltApp::CBReadContourString(Widget w, XtPointer client_data,
+                                 XtPointer call_data)
+{
+  PltApp *obj = (PltApp *) client_data;
+  obj->DoReadContourString(w, (XmSelectionBoxCallbackStruct *) call_data);
+}
 
+void PltApp::DoReadContourString(Widget w, XmSelectionBoxCallbackStruct *) {
+  char temp[64];
+  strcpy(temp, XmTextFieldGetString(w));
+  aString tmpContourNumString(temp);
+  // unexhaustive string check to prevent errors 
+  bool stringOk = true;
+  if (tmpContourNumString.length() < 3) {
+    for(int i=0; i < tmpContourNumString.length(); i++) {
+      //check to make sure the input is an integer
+      if( ! isdigit(tmpContourNumString[i]) )
+        {
+          stringOk = false;
+        }
+    }
+  } else {
+    stringOk = false;
+  }
 
+  if(stringOk) {
+    contourNumString = tmpContourNumString;
+    int newContourNumber = atoi(contourNumString.c_str());
+    for (int ii = 0; ii<NPLANES ; ii++) {
+      amrPicturePtrArray[ii]->SetContourNumber(newContourNumber);
+      amrPicturePtrArray[ii]->Draw(amrPicturePtrArray[ii]->MinDrawnLevel(), 
+                                   amrPicturePtrArray[ii]->MaxDrawnLevel());
+    }
+  }
+  char cNbuff[10];
+  strcpy(cNbuff, contourNumString.c_str());
+  XtSetArg(args[0], XmNvalue, cNbuff);
+  XtSetValues(w, args, 1);
+}
+  
+  
 // -------------------------------------------------------------------
 void PltApp::CBChangeDerived(Widget w, XtPointer client_data,
 				XtPointer call_data)
@@ -1482,6 +1630,34 @@ void PltApp::CBChangeDerived(Widget w, XtPointer client_data,
 }
 
 
+// -------------------------------------------------------------------
+void PltApp::CBChangeContour(Widget w, XtPointer input_data,
+				XtPointer)
+{
+  int array_value;
+  unsigned long getobj;
+  XtVaGetValues(XtParent(w), XmNuserData, &getobj, NULL);
+  PltApp *obj = (PltApp *) getobj;
+  if (input_data == (XtPointer)0) {
+    array_value = 0;
+  } else if (input_data == (XtPointer)1) {
+    array_value = 1;
+  } else if (input_data == (XtPointer)2) {
+    array_value = 2;
+  } else if (input_data == (XtPointer)3) {
+    array_value = 3; 
+  } else assert(0);
+  obj->SetCurrentContour(array_value);
+  for(int np = 0; np < NPLANES; ++np) {
+    obj->DoChangeContour(array_value, np);
+  }  
+}
+
+void PltApp::DoChangeContour(int input_data, int plane) 
+{
+  GetAmrPicturePtr(plane)->ChangeContour(input_data);
+}
+
 
 // -------------------------------------------------------------------
 void PltApp::AddStaticCallback(Widget w, String cbtype, memberCB cbf) {
@@ -1501,8 +1677,8 @@ void PltApp::StaticCallback(Widget w, XtPointer client_data, XtPointer call_data
 // -------------------------------------------------------------------
 void PltApp::CBToggleRange(Widget w, XtPointer client_data, XtPointer call_data) {
   unsigned long getobj;
-  unsigned long r((unsigned long) client_data);
-  Range range((Range) r);
+  unsigned long r = (unsigned long) client_data;
+  Range range = (Range) r;
   XtVaGetValues(XtParent(w), XmNuserData, &getobj, NULL);
   PltApp *obj = (PltApp *) getobj;
   obj->DoToggleRange(w, range, (XmToggleButtonCallbackStruct *) call_data);
@@ -1576,6 +1752,12 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
 
     // then pass the slices to the subregion constructor below...
 
+//cout << "++++++++ _in  PltApp::DoSubregion:  about to SubregionPltApp." << endl;
+//cout << "         subregionBox         = " << subregionBox << endl;
+//cout << "         subregionBoxMAL      = " << subregionBoxMAL << endl;
+//cout << "         maxAllowableLevel    = " << maxAllowableLevel << endl;
+//cout << "         newMinAllowableLevel = " << newMinAllowableLevel << endl;
+//cout << endl;
     SubregionPltApp(wTopLevel, subregionBox, ivOffset, amrPicturePtrArray[ZPLANE],
 		    this, palFilename, animating2d, currentDerived, fileName);
   }
@@ -2136,7 +2318,6 @@ void PltApp::DoUserMax(Widget, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
-  showBoxes = XmToggleButtonGetState(wBoxesButton);
   if(animating2d) {
     ResetAnimation();
     DirtyFrames(); 
@@ -2916,8 +3097,8 @@ void PltApp::DoBackStep(int plane) {
           amrPicturePtrArray[ZPLANE]->SetHLine(0);
           amrPicturePtrArray[ZPLANE]->DoExposePicture();
           amrPicturePtrArray[plane]->ChangeSlice(amrPicturePtrArray[plane]->
-                                       GetSubDomain()[amrPicturePtrArray[plane]->
-                                       MaxAllowableLevel()].bigEnd(YDIR));
+                                                 GetSubDomain()[amrPicturePtrArray[plane]->
+                                                               MaxAllowableLevel()].bigEnd(YDIR));
       }
   }
   if(plane == ZPLANE) {
@@ -2939,8 +3120,8 @@ void PltApp::DoBackStep(int plane) {
           amrPicturePtrArray[YPLANE]->SetHLine(0);
           amrPicturePtrArray[YPLANE]->DoExposePicture();
           amrPicturePtrArray[plane]->ChangeSlice(amrPicturePtrArray[plane]->
-                                       GetSubDomain()[amrPicturePtrArray[plane]->
-                                       MaxAllowableLevel()].bigEnd(ZDIR));
+                                                 GetSubDomain()[amrPicturePtrArray[plane]->
+                                                               MaxAllowableLevel()].bigEnd(ZDIR));
       }
   }
 #if (BL_SPACEDIM == 3)
@@ -3381,8 +3562,8 @@ void PltApp::SetInitialFormatString(const aString &formatString) {
   PltApp::initialFormatString = formatString;
 }
 
-void PltApp::SetDefaultShowBoxes(int showboxes) {
-  PltApp::defaultShowBoxes = showboxes;
+void PltApp::SetDefaultShowBoxes(int showBoxes) {
+  PltApp::defaultShowBoxes = showBoxes;
 }
 
 void PltApp::SetInitialWindowHeight(int initWindowHeight) {
