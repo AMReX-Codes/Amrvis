@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.H,v 1.26 2001-08-22 00:22:32 vince Exp $
+// $Id: VolRender.H,v 1.27 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,13 +9,9 @@
 #ifndef _VOLRENDER_H_
 #define _VOLRENDER_H_
 
-#ifdef BL_USE_NEW_HFILES
 #include <cstdio>
 #include <string>
 using std::string;
-#else
-#include <stdio.h>
-#endif
 
 #include "Array.H" 
 #include "REAL.H" 

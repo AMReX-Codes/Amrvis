@@ -1,6 +1,6 @@
 
 //
-// $Id: ViewTransform.cpp,v 1.19 2001-01-04 17:46:34 vince Exp $
+// $Id: ViewTransform.cpp,v 1.20 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,16 +9,10 @@
 #include "ViewTransform.H"
 #include "Trackball.H"
 
-#ifdef BL_USE_NEW_HFILES
 #include <iostream>
 #include <cmath>
 using std::endl;
 using std::cout;
-#else
-#include <iostream.h>
-#include <math.h>
-#endif
-
 
 // -------------------------------------------------------------------
 ViewTransform::ViewTransform() {

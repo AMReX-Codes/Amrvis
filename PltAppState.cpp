@@ -3,7 +3,6 @@
 // ---------------------------------------------------------------
 #include "PltAppState.H"
 
-#ifdef BL_USE_NEW_HFILES
 #include <cctype>
 #include <strstream>
 #include <iostream>
@@ -14,10 +13,6 @@ using std::cerr;
 using std::endl;
 using std::min;
 using std::max;
-#else
-#include <ctype.h>
-#include <strstream.h>
-#endif
 
 
 // -------------------------------------------------------------------

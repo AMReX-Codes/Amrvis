@@ -32,7 +32,6 @@
 #include "PltAppState.H"
 #include "GraphicsAttributes.H"
 
-#ifdef BL_USE_NEW_HFILES
 #include <iostream>
 #include <iomanip>
 using std::setw;
@@ -41,10 +40,6 @@ using std::cerr;
 using std::endl;
 using std::min;
 using std::max;
-#else
-#include <iostream.h>
-#include <iomanip.h>
-#endif
 
 #define MARK (fprintf(stderr, "Mark at file %s, line %d.\n", __FILE__, __LINE__))
 
@@ -66,16 +61,11 @@ static char markBits[8][8] = {
 
 static param_style param_null_style = {STYLE, 0, (char *) 0};
 
-#ifdef BL_USE_NEW_HFILES
 #include <cctype>
 #include <strstream>
 using std::ostrstream;
 using std::ends;
 using std::endl;
-#else
-#include <ctype.h>
-#include <strstream.h>
-#endif
 
 // Some macros for obtaining parameters.
 #define PM_INT(name) ((parameters->Get_Parameter(name, &param_temp)) ? \

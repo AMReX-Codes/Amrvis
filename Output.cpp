@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.cpp,v 1.26 2001-08-22 00:22:32 vince Exp $
+// $Id: Output.cpp,v 1.27 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -14,7 +14,6 @@
 
 #include <fcntl.h>
 #include <unistd.h>
-#ifdef BL_USE_NEW_HFILES
 #include <fstream>
 #include <iomanip>
 #include <cmath>
@@ -30,14 +29,6 @@ using std::cerr;
 using std::endl;
 using std::min;
 using std::max;
-#else
-#include <fstream.h>
-#include <iomanip.h>
-#include <math.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <strstream.h>
-#endif
 
 
 IMAGE *iopen(const char *file, unsigned int type, unsigned int dim,

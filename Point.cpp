@@ -1,17 +1,12 @@
 
 //
-// $Id: Point.cpp,v 1.7 2000-10-02 20:53:09 lijewski Exp $
+// $Id: Point.cpp,v 1.8 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
 // Point.cpp
 // ---------------------------------------------------------------
-#ifdef BL_USE_NEW_HFILES
 #include <cmath>
-#else
-#include <math.h>
-#endif
-
 
 #include "Point.H"
 

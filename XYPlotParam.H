@@ -7,11 +7,7 @@
 #include <X11/X.h>
 #include <X11/Xlib.h>
 
-#ifdef BL_USE_NEW_HFILES
 #include <cctype>
-#else
-#include <ctype.h>
-#endif
 
 #define ST_DEFAULT_MAX_DENSITY 5
 #define ST_DEFAULT_INIT_TABLE_SIZE 11

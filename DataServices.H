@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.H,v 1.15 2001-09-28 23:57:20 vince Exp $
+// $Id: DataServices.H,v 1.16 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -12,13 +12,9 @@
 #include "Array.H"
 #include "AmrData.H"
 
-#ifdef BL_USE_NEW_HFILES
 #include <cstdarg>
 #include <string>
 using std::string;
-#else
-#include <stdarg.h>
-#endif
 
 class XYPlotDataList;
 

@@ -1,16 +1,12 @@
 
 //
-// $Id: WriteRGB.cpp,v 1.9 2001-03-14 00:41:55 vince Exp $
+// $Id: WriteRGB.cpp,v 1.10 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
 // WriteRGB.cpp
 // ---------------------------------------------------------------
-#ifdef BL_USE_NEW_HFILES
 #include <cstdio>
-#else
-#include <stdio.h>
-#endif
 
 #define IMAGIC  0732
 

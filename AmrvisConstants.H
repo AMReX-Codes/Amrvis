@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrvisConstants.H,v 1.16 2001-08-23 20:10:47 vince Exp $
+// $Id: AmrvisConstants.H,v 1.17 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -10,11 +10,7 @@
 #define _AMRVISCONSTANTS_H
 
 #include <REAL.H>
-#ifdef BL_USE_NEW_HFILES
 #include <cfloat>
-#else
-#include <float.h>
-#endif
 
 #include <stdio.h>
 

@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.42 2001-08-23 20:10:47 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.43 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,7 +9,6 @@
 #include "GlobalUtilities.H"
 #include "FArrayBox.H"
 #include "FabConv.H"
-#ifdef BL_USE_NEW_HFILES
 #include <fstream>
 #include <iostream>
 using std::ifstream;
@@ -19,9 +18,6 @@ using std::cerr;
 using std::endl;
 using std::min;
 using std::max;
-#else
-#include <fstream.h>
-#endif
 
 #include "PltApp.H"
 #include "ParallelDescriptor.H"

@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.39 2001-08-22 00:22:32 vince Exp $
+// $Id: VolRender.cpp,v 1.40 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -11,17 +11,11 @@
 #include "GlobalUtilities.H"
 #include "ParallelDescriptor.H"
 
-#ifdef BL_USE_NEW_HFILES
 #include <iostream>
 #include <cstdlib>
 using std::cerr;
 using std::endl;
 #include <ctime>
-#else
-#include <iostream.h>
-#include <stdlib.h>
-#include <time.h>
-#endif
 
 #include <unistd.h>
 #include <fcntl.h>

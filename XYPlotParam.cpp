@@ -8,13 +8,8 @@
 #include "Palette.H"
 #include "GraphicsAttributes.H"
 
-#ifdef BL_USE_NEW_HFILES
 #include <cstdlib>
 #include <cstring>
-#else
-#include <stdlib.h>
-#include <string.h>
-#endif
 
 #define DEF(name, typ, def_name) \
  if((def_str = XGetDefault(GAptr->PDisplay(), title, (name)))) \

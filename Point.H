@@ -1,6 +1,6 @@
 
 //
-// $Id: Point.H,v 1.6 2000-10-02 20:53:09 lijewski Exp $
+// $Id: Point.H,v 1.7 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,14 +9,9 @@
 #ifndef _AMR_POINT_H_
 #define _AMR_POINT_H_
 
-#ifdef BL_USE_NEW_HFILES
 #include <iostream>
 #include <cmath>
 using std::ostream;
-#else
-#include <iostream.h>
-#include <math.h>
-#endif
 
 #include "REAL.H"
 

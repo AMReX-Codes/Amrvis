@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.39 2001-08-21 20:37:55 vince Exp $
+// $Id: Dataset.cpp,v 1.40 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -28,7 +28,6 @@ const int MAXINDEXCHARS   = 4;
 #include "AmrPicture.H"
 #include "DataServices.H"
 
-#ifdef BL_USE_NEW_HFILES
 #include <strstream>
 #include <cfloat>
 using std::ostrstream;
@@ -38,12 +37,6 @@ using std::cerr;
 using std::endl;
 using std::min;
 using std::max;
-
-# else
-#include <strstream.h>
-#include <float.h>
-#endif
-
 
 // -------------------------------------------------------------------
 Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,

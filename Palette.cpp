@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.39 2001-10-05 23:01:32 vince Exp $
+// $Id: Palette.cpp,v 1.40 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -13,7 +13,6 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#ifdef BL_USE_NEW_HFILES
 #include <cassert>
 #include <cstdio>
 using std::cout;
@@ -21,10 +20,6 @@ using std::cerr;
 using std::endl;
 using std::min;
 using std::max;
-#else
-#include <stdio.h>
-#include <assert.h>
-#endif
 
 Colormap Palette::systemColmap;
 

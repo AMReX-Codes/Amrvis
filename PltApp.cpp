@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.98 2001-08-23 20:10:47 vince Exp $
+// $Id: PltApp.cpp,v 1.99 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -41,7 +41,6 @@
 #include <PVolRender.H>
 #endif
 
-#ifdef BL_USE_NEW_HFILES
 #include <cctype>
 #include <strstream>
 using std::ostrstream;
@@ -51,11 +50,6 @@ using std::cerr;
 using std::endl;
 using std::min;
 using std::max;
-
-#else
-#include <ctype.h>
-#include <strstream.h>
-#endif
 
 // Hack for window manager calls
 #ifndef FALSE

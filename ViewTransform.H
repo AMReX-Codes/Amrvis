@@ -1,6 +1,6 @@
 
 //
-// $Id: ViewTransform.H,v 1.13 2001-01-04 17:46:33 vince Exp $
+// $Id: ViewTransform.H,v 1.14 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,12 +9,8 @@
 #ifndef _VIEWTRANSFORM_H_
 #define _VIEWTRANSFORM_H_
 
-#ifdef BL_USE_NEW_HFILES
 #include <iostream>
 using std::iostream;
-#else
-#include <iostream.h>
-#endif
 
 #include "REAL.H" 
 #include "Quaternion.H"

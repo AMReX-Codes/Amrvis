@@ -44,8 +44,6 @@ INCLUDE_LOCATIONS += ../BoxLib
 #INCLUDE_LOCATIONS += ../BoxLib/std
 
 DEFINES += -DBL_PARALLEL_IO
-#DEFINES += -DBL_USE_SETBUF
-DEFINES += -DBL_USE_NEW_HFILES
 
 ifeq ($(MACHINE),OSF1)
   ifeq ($(COMP),KCC)
@@ -76,7 +74,6 @@ ifeq ($(MACHINE), AIX)
   #INCLUDE_LOCATIONS += /usr/include/X11/Xaw
   LIBRARIES += -lXm -lXt -lX11
   DEFINES += -D_ALL_SOURCE
-  DEFINES += -DBL_USE_NEW_HFILES
 endif
 
 ifeq ($(MACHINE), T3E)
@@ -131,9 +128,9 @@ ifeq ($(DIM),3)
     # VOLPACKDIR = ../../volpack/volpack_cpp
     # VOLPACKDIR = ../../volpack/volpack-1.0b3
     #VOLPACKDIR = $(PBOXLIB_HOME)/volpack
-    #VOLPACKDIR = ../volpack
+    VOLPACKDIR = ../volpack
     #VOLPACKDIR = ../../volpack.test
-    VOLPACKDIR = ../../volpack
+    #VOLPACKDIR = ../../volpack
     INCLUDE_LOCATIONS += $(VOLPACKDIR)
     LIBRARY_LOCATIONS += $(VOLPACKDIR)
     LIBRARIES += -lvolpack

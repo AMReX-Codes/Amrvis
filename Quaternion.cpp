@@ -1,16 +1,12 @@
 
 //
-// $Id: Quaternion.cpp,v 1.10 2000-10-02 20:53:10 lijewski Exp $
+// $Id: Quaternion.cpp,v 1.11 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
 // Quaternion.cpp
 // ---------------------------------------------------------------
-#ifdef BL_USE_NEW_HFILES
 #include <cmath>
-#else
-#include <math.h>
-#endif
 
 #include "Quaternion.H"
 

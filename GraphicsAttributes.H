@@ -1,6 +1,6 @@
 
 //
-// $Id: GraphicsAttributes.H,v 1.16 2001-10-05 21:57:11 vince Exp $
+// $Id: GraphicsAttributes.H,v 1.17 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -11,12 +11,8 @@
 
 #include "AmrvisConstants.H"
 
-#ifdef BL_USE_NEW_HFILES
 #include <iostream>
 using std::ostream;
-#else
-#include <iostream.h>
-#endif
 
 #include <X11/X.h>
 #include <X11/Intrinsic.h>

@@ -1,22 +1,15 @@
 
 //
-// $Id: DatasetClient.cpp,v 1.5 2000-10-02 20:53:08 lijewski Exp $
+// $Id: DatasetClient.cpp,v 1.6 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
 // DatasetClient.cpp
 // ---------------------------------------------------------------
-#ifdef BL_USE_NEW_HFILES
 #include <climits>
 #include <cstring>
 #include <cstdlib>
 #include <cstdio>
-#else
-#include <limits.h>
-#include <string.h>
-#include <stdlib.h>
-#include <stdio.h>
-#endif
 
 #include <sys/types.h>
 #include <sys/socket.h>

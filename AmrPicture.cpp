@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.70 2001-08-22 01:05:50 vince Exp $
+// $Id: AmrPicture.cpp,v 1.71 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -18,11 +18,7 @@ using std::cerr;
 using std::endl;
 using std::max;
 
-#ifdef BL_USE_NEW_HFILES
 #include <ctime>
-#else
-#include <time.h>
-#endif
 
 #ifdef BL_USE_ARRAYVIEW
 #include "ArrayView.H"

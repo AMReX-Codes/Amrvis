@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.31 2001-10-09 20:19:41 lijewski Exp $
+// $Id: DataServices.cpp,v 1.32 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -14,7 +14,6 @@
 # include "XYPlotDataList.H"
 #endif
 
-#ifdef BL_USE_NEW_HFILES
 #include <iostream>
 #include <fstream>
 #include <cstdio>
@@ -25,11 +24,6 @@ using std::cerr;
 using std::endl;
 using std::min;
 using std::max;
-
-#else
-#include <iostream.h>
-#include <stdio.h>
-#endif
 
 Array<DataServices *> DataServices::dsArray;
 int DataServices::dsArrayIndexCounter = 0;

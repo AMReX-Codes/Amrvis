@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.58 2001-10-16 19:54:52 vince Exp $
+// $Id: AmrData.cpp,v 1.59 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -47,6 +47,13 @@ using std::max;
 #include <cstdio>
 using std::ios;
 using std::ifstream;
+
+//
+// This MUST be defined if don't have pubsetbuf() in I/O Streams Library.
+//
+#ifdef BL_USE_SETBUF
+#define pubsetbuf setbuf
+#endif
 
 #ifdef SHOWVAL
 #undef SHOWVAL
@@ -159,15 +166,11 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
     File += "Header";
 #endif /*BL_PARALLEL_IO*/
 
-#ifdef BL_USE_SETBUF
     VisMF::IO_Buffer io_buffer(VisMF::IO_Buffer_Size);
-#endif
 
     ifstream isPltIn;
 
-#ifdef BL_USE_SETBUF
-    isPltIn.rdbuf()->setbuf(io_buffer.dataPtr(), io_buffer.size());
-#endif
+    isPltIn.rdbuf()->pubsetbuf(io_buffer.dataPtr(), io_buffer.size());
 
    if(verbose) {
      if(ParallelDescriptor::IOProcessor()) {

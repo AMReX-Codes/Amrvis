@@ -1,6 +1,6 @@
 
 //
-// $Id: GraphicsAttributes.cpp,v 1.14 2001-10-05 21:57:11 vince Exp $
+// $Id: GraphicsAttributes.cpp,v 1.15 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -8,13 +8,9 @@
 // ---------------------------------------------------------------
 #include <BoxLib.H>
 
-#ifdef BL_USE_NEW_HFILES
 #include <iostream>
 using std::cerr;
 using std::endl;
-#else
-#include <iostream.h>
-#endif
 
 #include "GraphicsAttributes.H"
 #include <X11/X.h>

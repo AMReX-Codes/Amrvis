@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.cpp,v 1.42 2001-08-14 00:57:54 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.43 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -14,13 +14,8 @@
 #include "DataServices.H"
 #include "Volume.H"
 
-#ifdef BL_USE_NEW_HFILES
 #include <cmath>
 #include <ctime>
-#else
-#include <math.h>
-#include <time.h>
-#endif
 
 // -------------------------------------------------------------------
 ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,

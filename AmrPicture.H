@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.H,v 1.40 2001-08-22 00:22:32 vince Exp $
+// $Id: AmrPicture.H,v 1.41 2001-10-17 17:53:33 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,11 +9,7 @@
 #ifndef _AMRPICTURE_H
 #define _AMRPICTURE_H
 
-#ifdef BL_USE_NEW_HFILES
 #include <cstdio>
-#else
-#include <stdio.h>
-#endif
 
 #include "REAL.H"
 #include "Box.H"
