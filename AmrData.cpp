@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.cpp,v 1.31 1999-04-30 20:18:37 vince Exp $
+// $Id: AmrData.cpp,v 1.32 1999-05-08 00:24:44 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -919,11 +919,9 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
     assert(varNames.length() == destFillComps.length());
     int nFillVars(varNames.length());
 
-for(int currentFillIndex(0); currentFillIndex < nFillVars; ++currentFillIndex) {
-
+  for(int currentFillIndex(0); currentFillIndex < nFillVars; ++currentFillIndex) {
     int destComp(destFillComps[currentFillIndex]);
     int stateIndex(StateNumber(varNames[currentFillIndex]));
-
     // ensure the required grids are in memory
     for(currentLevel = 0; currentLevel <= finestFillLevel; ++currentLevel) {
       for(int iBox = 0; iBox < destBoxes.length(); ++iBox) {
@@ -1008,7 +1006,7 @@ for(int currentFillIndex(0); currentFillIndex < nFillVars; ++currentFillIndex) {
                   fillBoxId[ibox][currentLevel][currentBLI][0] = 
 		      multiFabCopyDesc.AddBox(stateDataMFId[currentLevel],
 					      tempCoarseBox, &tempUnfillableBoxes,
-					      srcComp, destComp, nFillComps);
+					      srcComp, 0, 1);
 
                   unfillableBoxesOnThisLevel.join(tempUnfillableBoxes);
                   ++currentBLI;
@@ -1058,7 +1056,7 @@ for(int currentFillIndex(0); currentFillIndex < nFillVars; ++currentFillIndex) {
         {
             Box tempCoarseBox(
 		       fillBoxId[currentIndex][currentLevel][currentBox][0].box());
-            FArrayBox tempCoarseDestFab(tempCoarseBox, nFillComps);
+            FArrayBox tempCoarseDestFab(tempCoarseBox, 1);
             tempCoarseDestFab.setVal(1.e30);
             multiFabCopyDesc.FillFab(stateDataMFId[currentLevel],
 			  fillBoxId[currentIndex][currentLevel][currentBox][0],
@@ -1099,9 +1097,9 @@ for(int currentFillIndex(0); currentFillIndex < nFillVars; ++currentFillIndex) {
                     srcdestBox &= destMultiFab[currentIndex].box();
                     srcdestBox &= intersectDestBox;
                     if(srcdestBox.ok()) {
-                        destMultiFab[currentIndex].copy(*copyFromThisFab,
-                                                        srcdestBox, 0, srcdestBox,
-                                                        destComp, nFillComps);
+                      destMultiFab[currentIndex].copy(*copyFromThisFab,
+                                                      srcdestBox, 0, srcdestBox,
+                                                      destComp, nFillComps);
                     }
               }
             }
@@ -1110,7 +1108,7 @@ for(int currentFillIndex(0); currentFillIndex < nFillVars; ++currentFillIndex) {
     }  // end for(currentIndex...)
 
 
-}  // end for(currentFillIndex...)
+  }  // end for(currentFillIndex...)
 
 
 }
