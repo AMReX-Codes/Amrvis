@@ -70,7 +70,6 @@ ifeq ($(USE_MPI), TRUE)
 endif
 
 DEFINES += -DBL_PARALLEL_IO
-DEFINES += -DAMRVIS_TRUE_COLOR
 
 ifeq ($(COMP),KCC)
   ifeq ($(KCC_VERSION),3.3)
