@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.85 2004-07-29 16:30:32 car Exp $
+// $Id: AmrPicture.cpp,v 1.86 2004-08-05 17:54:24 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -982,7 +982,7 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
     int paletteEnd(palptr->PaletteEnd());
     int colorSlots(palptr->ColorSlots());
     int csm1(colorSlots - 1);
-    if(bCartGrid == false) {
+    if(bCartGrid == false || (bCartGrid && AVGlobals::GetShowBody() == false)) {
       for(int j(0); j < datasizev; ++j) {
         jdsh = j * datasizeh;
         jtmp1 = (datasizev-j-1) * datasizeh;

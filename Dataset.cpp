@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.55 2004-07-29 16:30:32 car Exp $
+// $Id: Dataset.cpp,v 1.56 2004-08-05 17:54:24 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -71,7 +71,8 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
   indexWidth  = MAXINDEXCHARS * CHARACTERWIDTH;
   indexHeight = CHARACTERHEIGHT + 7;
   
-  hScrollBarPos = vScrollBarPos = 0;
+  hScrollBarPos = 0;
+  vScrollBarPos = 0;
 
   pixSizeX = 1;
   pixSizeY = 1;
