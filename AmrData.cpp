@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.cpp,v 1.36 1999-05-11 17:39:45 lijewski Exp $
+// $Id: AmrData.cpp,v 1.37 1999-07-15 00:21:05 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -169,11 +169,17 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
      if(strncmp(plotFileVersion.c_str(), "CartGrid", 8) == 0) {
        bCartGrid = true;
      }
+     if(strncmp(plotFileVersion.c_str(), "Terrain", 7) == 0) {
+       bTerrain = true;
+     }
      if(verbose) {
        if(ParallelDescriptor::IOProcessor()) {
          cout << "Plot file version:  " << plotFileVersion << endl;
 	 if(bCartGrid) {
 	   cout << ":::: Found a CartGrid file type." << endl;
+	 }
+	 if(bTerrain) {
+	   cout << ":::: Found a Terrain file type." << endl;
 	 }
        }
      }
@@ -327,6 +333,17 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 	    }
 	  }
 	}
+      }
+
+      vfEps.resize(finestLevel + 1);  // must resize these even if not cartGrid
+      afEps.resize(finestLevel + 1);
+      if(bCartGrid) {
+        for(i = 0; i <= finestLevel; i++) {
+          is >> vfEps[i];
+          if(verbose) {
+            cout << "vfEps[" << i << "] = " << vfEps[i] << endl;
+          }
+        }
       }
 
       for(i = 0; i < BL_SPACEDIM; i++) {
@@ -1484,6 +1501,20 @@ bool AmrData::DefineFab(int level, int componentIndex, int fabIndex) {
 
 
 // ---------------------------------------------------------------
+void AmrData::FlushGrids(int componentIndex) {
+
+  for(int lev = 0; lev <= finestLevel; ++lev) {
+    dataGrids[lev][componentIndex]->clear();
+    for(MultiFabIterator mfi(*dataGrids[lev][componentIndex]);
+        mfi.isValid(); ++mfi)
+    {
+       dataGridsDefined[lev][componentIndex][mfi.index()] = false;
+    }
+  }
+}
+
+
+// ---------------------------------------------------------------
 bool AmrData::MinMax(const Box &onBox, const aString &derived, int level,
 		     Real &dataMin, Real &dataMax)
 {
@@ -1520,6 +1551,38 @@ bool AmrData::MinMax(const Box &onBox, const aString &derived, int level,
 
           dataMin = Min(dataMin, min);
           dataMax = Max(dataMax, max);
+      }
+    }
+  } else if(bCartGrid && (compIndex != StateNumber("vol_frac"))) {
+    for(MultiFabIterator gpli(*dataGrids[level][compIndex]);
+	gpli.isValid(); ++gpli)
+    {
+      DependentMultiFabIterator vfdmfi(gpli,
+				      *dataGrids[level][StateNumber("vol_frac")]);
+      int whichVisMF(compIndexToVisMFMap[compIndex]);
+      int whichVisMFComponent(compIndexToVisMFComponentMap[compIndex]);
+      Real visMFMin(visMF[level][whichVisMF]->min(gpli.index(),
+		    whichVisMFComponent));
+      Real visMFMax(visMF[level][whichVisMF]->max(gpli.index(),
+		    whichVisMFComponent));
+      if(onBox.contains(gpli.validbox())) {
+        dataMin = Min(dataMin, visMFMin);
+        dataMax = Max(dataMax, visMFMax);
+        valid = true;
+      } else if(onBox.intersects(visMF[level][whichVisMF]->
+				 boxArray()[gpli.index()]))
+      {
+        if(visMFMin < dataMin || visMFMax > dataMax) {  // do it the hard way
+	  DefineFab(level, compIndex, gpli.index());
+          valid = true;
+          overlap = onBox;
+          overlap &= gpli.validbox();
+          min = gpli().min(overlap, 0);
+          max = gpli().max(overlap, 0);
+
+          dataMin = Min(dataMin, min);
+          dataMax = Max(dataMax, max);
+        }  // end if(visMFMin...)
       }
     }
   } else {

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.H,v 1.15 1999-04-30 20:18:37 vince Exp $
+// $Id: AmrData.H,v 1.16 1999-07-15 00:21:05 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -42,6 +42,7 @@ class AmrData {
   Array<Real> probHi;
   Real time;
   Array<aString> plotVars;
+  Array<Real> vfEps, afEps;
   int nComp;
   int nRegions;         // number of boundary regions
   int boundaryWidth;    // number of zones in the boundary regions
@@ -52,6 +53,7 @@ class AmrData {
   
   FileType fileType;
   bool bCartGrid;
+  bool bTerrain;
   
  public:
   AmrData();
@@ -114,6 +116,9 @@ class AmrData {
   void SetFileType(FileType type);
   FileType GetFileType() const     { return fileType;  }
   bool CartGrid() const            { return bCartGrid; }
+  Real VfEps(int level) const      { return vfEps[level]; }
+  void SetVfEps(Real *newvfeps, int finestlev);
+  bool Terrain()  const            { return bTerrain; }
 
   void SetBoundaryWidth(int width) { boundaryWidth = width; }
   
@@ -134,6 +139,7 @@ class AmrData {
   int NIntersectingGrids(int level, const Box &b) const;
   MultiFab &GetGrids(int level, int componentIndex);
   MultiFab &GetGrids(int level, int componentIndex, const Box &onBox);
+  void FlushGrids(int componentIndex);
   
   // calculate the min and max values of derived on onBox at level
   // return false if onBox did not intersect any grids
