@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.69 2001-08-22 00:22:32 vince Exp $
+// $Id: AmrPicture.cpp,v 1.70 2001-08-22 01:05:50 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -130,7 +130,6 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
 
   int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
   numberOfLevels = maxAllowableLevel + 1;
-  int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
   maxLevelWithGrids = maxAllowableLevel;
  
   int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
@@ -188,7 +187,8 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
       int tempSlice = parentPltAppPtr->GetAmrPicturePtr(myView)->GetSlice();
       tempSlice *= CRRBetweenLevels(parentPltAppPtr->GetPltAppState()->
 				    MaxDrawnLevel(), 
-                                    maxDrawnLevel, amrData.RefRatio());
+                                    pltAppStatePtr->MaxDrawnLevel(),
+                                    amrData.RefRatio());
       slice = max(min(tempSlice,
                       subDomain[maxAllowableLevel].bigEnd(YZ-myView)), 
                   subDomain[maxAllowableLevel].smallEnd(YZ-myView));

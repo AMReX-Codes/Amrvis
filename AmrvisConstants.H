@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrvisConstants.H,v 1.14 2001-04-24 23:42:28 vince Exp $
+// $Id: AmrvisConstants.H,v 1.15 2001-08-22 01:05:50 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -89,10 +89,6 @@ enum ContourType {
   VECTORS        = 4,
   NCONTOPTIONS   = 5,
   INVALIDCONTOURTYPE
-};
-
-static char *RangeTypeString[] = {
-    "useglobal", "uselocal", "usespecified", "usefile", "nranges", "invalidrange"
 };
 
 enum FileType { INVALIDTYPE = 0, FAB, MULTIFAB, NEWPLT, NUMDBPTYPES };

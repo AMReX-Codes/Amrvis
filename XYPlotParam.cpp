@@ -332,7 +332,7 @@ int XYPlotParameters::do_font(char *name, XFontStruct **font_info) {
   
   // First attempt to interpret as font family/size
   strcpy(name_copy, name);
-  if(font_size = index(name_copy, '-')) {
+  if((font_size = index(name_copy, '-'))) {
     *font_size = '\0';
     font_family = name_copy;
     ++font_size;
@@ -345,7 +345,7 @@ int XYPlotParameters::do_font(char *name, XFontStruct **font_info) {
       
       // Load first one that you can
       for(i = 0; i < font_count; ++i) {
-	if(*font_info = XLoadQueryFont(GAptr->PDisplay(), font_list[i])) {
+	if((*font_info = XLoadQueryFont(GAptr->PDisplay(), font_list[i]))) {
 	  break;
 	}
       }

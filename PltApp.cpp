@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.96 2001-08-22 00:22:32 vince Exp $
+// $Id: PltApp.cpp,v 1.97 2001-08-22 01:05:50 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -101,15 +101,15 @@ PltApp::~PltApp() {
 // -------------------------------------------------------------------
 PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 	       const Array<DataServices *> &dataservicesptr, bool isAnim)
-  : paletteDrawn(false),
+  : wTopLevel(w),
     appContext(app),
-    wTopLevel(w),
-    fileName(filename),
-    dataServicesPtr(dataservicesptr),
-    animating2d(isAnim),
-    currentFrame(0),
     currentRangeType(GLOBALMINMAX),
-    bCartGridSmoothing(false)
+    animating2d(isAnim),
+    paletteDrawn(false),
+    currentFrame(0),
+    bCartGridSmoothing(false),
+    fileName(filename),
+    dataServicesPtr(dataservicesptr)
 {
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   lightingWindowExists = false;
@@ -303,17 +303,17 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 	       //AmrPicture *parentPtr,
 	       PltApp *pltParent, const string &palfile,
 	       bool isAnim, const string &newderived, const string &filename)
-  : paletteDrawn(false),
+  : wTopLevel(w),
     appContext(app),
-    wTopLevel(w),
-    fileName(filename),
-    fileNames(pltParent->fileNames),
-    animFrames(pltParent->animFrames),
-    dataServicesPtr(pltParent->dataServicesPtr),
     animating2d(isAnim),
+    paletteDrawn(false),
     currentFrame(pltParent->currentFrame),
+    animFrames(pltParent->animFrames),
+    fileName(filename),
     palFilename(palfile),
-    lightingFilename(pltParent->lightingFilename)
+    lightingFilename(pltParent->lightingFilename),
+    dataServicesPtr(pltParent->dataServicesPtr),
+    fileNames(pltParent->fileNames)
 {
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   bFileRangeButtonSet = pltParent->bFileRangeButtonSet;
@@ -3173,7 +3173,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	if(anchorX == nextEvent.xbutton.x && anchorY == nextEvent.xbutton.y) {
 	  // data at click
 	  int y, intersectedLevel(-1);
-	  Box temp, intersectedGrid;
+	  Box intersectedGrid;
 	  Array<Box> trueRegion(mal+1);
 	  int plane(amrPicturePtrArray[V]->GetSlice());
 	  

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.54 2001-08-22 00:22:32 vince Exp $
+// $Id: AmrData.cpp,v 1.55 2001-08-22 01:05:50 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1355,7 +1355,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
 
     for(int currentIndex = 0; currentIndex < destBoxes.size(); ++currentIndex) {
       for(int currentLevel = 0; currentLevel <= finestFillLevel; ++currentLevel) {
-        const Box &currentPDomain = probDomain[currentLevel];
+        //const Box &currentPDomain = probDomain[currentLevel];
 
 	if(myproc != procWithFabs) {
 	  break;
