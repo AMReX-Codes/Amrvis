@@ -31,8 +31,10 @@ class AmrPicture {
 	// construct an AmrPicture using data from filename
 	// 3D: called by first XY view
 
-	AmrPicture(int view, int mindrawnlevel, GraphicsAttributes *gaptr,
-		   Box region, AmrPicture *parentPicturePtr, PltApp *pltappptr);
+	AmrPicture(int view, int mindrawnlevel, 
+                   GraphicsAttributes *gaptr, Box region, 
+                   AmrPicture *parentPicturePtr, 
+                   PltApp *parentPltAppPtr, PltApp *pltappptr);
 	// construct an AmrPicture using pointer to data & box
 
 	~AmrPicture();

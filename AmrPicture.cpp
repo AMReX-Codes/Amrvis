@@ -92,12 +92,15 @@ AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
 
 
 // ---------------------------------------------------------------------
-AmrPicture::AmrPicture(int view, int mindrawnlevel,
-		GraphicsAttributes *gaptr, Box region,
-		AmrPicture *parentPicturePtr, PltApp *pltappptr)
+AmrPicture::AmrPicture(int view, int mindrawnlevel, 
+                       GraphicsAttributes *gaptr, Box region,
+                       AmrPicture *parentPicturePtr,
+                       PltApp *parentPltAppPtr, PltApp *pltappptr)
 {
+//    cout<<"Entering AmrPicture::AmrPicture..."<<endl;
   int ilev;
   myView = view;
+//  cout<<"My view is "<<myView<<endl;
   minDrawnLevel = mindrawnlevel;
   GAptr = gaptr;
   pltAppPtr = pltappptr;
@@ -168,7 +171,23 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
 		pltAppPtr->CurrentScale();
       vLine = 0;
     }
-    slice = subDomain[maxAllowableLevel].smallEnd(YZ - myView);
+    slice = subDomain[maxAllowableLevel].smallEnd(YZ - myView)
+        + (parentPltAppPtr != NULL ?
+           parentPltAppPtr->GetAmrPicturePtr(YZ-myView)->GetSlice():
+           0);
+//    cout<<"slice is set to "<<slice<<endl;
+    int first = 0;
+    for(int i = 0; i<=YZ && parentPltAppPtr != NULL;i++) {
+        if ( i == myView ) break;
+        if (first == 0) {
+            hLine = parentPltAppPtr->GetAmrPicturePtr(YZ-i)->GetSlice()
+                * pltAppPtr->CurrentScale();
+            first = 1;
+        }
+        else
+            vLine = parentPltAppPtr->GetAmrPicturePtr(YZ-i)->GetSlice()
+                * pltAppPtr->CurrentScale();
+    }
 # else
     vLine = 0;
     hLine = 0;
@@ -181,12 +200,13 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
   sliceBox[maxAllowableLevel] = subDomain[maxAllowableLevel];
 
   AmrPictureInit();
+//  cout<<"Leaving AmrPicture::AmrPicture"<<endl;
 }  // end AmrPicture constructor
 
 
 // ---------------------------------------------------------------------
 void AmrPicture::AmrPictureInit() {
-
+    //   cout<<"Entering AmrPictureInit, slice is "<<slice<<endl;
   int iLevel;
   if(myView==XZ) {
     sliceBox[maxAllowableLevel].setSmall(YDIR, slice);
@@ -253,7 +273,8 @@ void AmrPicture::AmrPictureInit() {
   pixMapCreated = false;
 
   SetSlice(myView, slice);
-
+//  cout<<"have set slice to "<<slice<<endl;
+//  cout<<"Leaving AmrPicture::AmrPictureInit"<<endl;
 }  // end AmrPictureInit()
 
 
@@ -526,7 +547,7 @@ void AmrPicture::DoExposePicture() {
       XSetForeground(GAptr->PDisplay(), GAptr->PGC(), vColor-30);
       XDrawLine(GAptr->PDisplay(), pictureWindow,
 		GAptr->PGC(), vLine+1, 0, vLine+1, imageSizeV); 
-      
+                  
       if(subCutShowing) {
           // draw subvolume cutting border 
           XSetForeground(GAptr->PDisplay(), GAptr->PGC(), 90);

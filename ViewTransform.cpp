@@ -2,74 +2,15 @@
 // ViewTransform.C
 // -------------------------------------------------------------------
 #include "ViewTransform.H"
-
-// ------------------------------------------------- utility functions
-// -------------------------------------------------------------------
-Real DegToRad(Real angle) {
-  return (angle * M_PI/180.0);
-}
+#include "Trackball.H"
+#include <assert.h>
 
 // -------------------------------------------------------------------
-Real RadToDeg(Real angle) {
-  return (angle * 180.0/M_PI);
-}
-
-// -------------------------------------------------------------------
-void multM4(MatrixFour &mAB, MatrixFour &mA, MatrixFour &mB) {  // 4x4
-  int i,j;
-  for(i=0; i<4; i++) {
-    for(j=0; j<4; j++) {
-      mAB[i][j] = mA[i][0] * mB[0][j] + mA[i][1] * mB[1][j] +
-                  mA[i][2] * mB[2][j] + mA[i][3] * mB[3][j];
-    }
-  }
-}
-
-
-// -------------------------------------------------------------------
-// -------------------------------------------------------------------
-ViewTransform::ViewTransform() {
-  ViewTransformInit(0.0, 0.0, 0.0, 0.0, 0.0);
-}
-
-
-// -------------------------------------------------------------------
-ViewTransform::ViewTransform(Real rHo, Real tHeta, Real pHi, Real yr,
-				Real dist)
+ViewTransform::ViewTransform()
 {
-  ViewTransformInit(rHo, tHeta, pHi, yr, dist);
-}
 
-
-// -------------------------------------------------------------------
-void ViewTransform::ViewTransformInit(Real rHo, Real tHeta, Real pHi,
-				      Real yr, Real dist)
-{
-  int i, j;
-
-  for (i=0; i<4; i++) {
-    for (j=0; j<4; j++) {
-      if(i==j) {
-        mScale[i][j]  = 1.0;
-        mTrans[i][j]  = 1.0;
-        mRx[i][j] = 1.0;
-        mRy[i][j] = 1.0;
-        mRz[i][j] = 1.0;
-      } else {
-        mScale[i][j]  = 0.0;
-        mTrans[i][j]  = 0.0;
-        mRx[i][j] = 0.0;
-        mRy[i][j] = 0.0;
-        mRz[i][j] = 0.0;
-      }
-      mTemp1[i][j] = 0.0;
-      mTemp2[i][j] = 0.0;
-      mTemp3[i][j] = 0.0;
-    }
-  }
-  rho = rHo;
-  theta = tHeta;
-  phi = pHi;
+  rotation = AmrQuaternion();
+  renderRotation = AmrQuaternion();
   screenPositionX = 0;
   screenPositionY = 0;
   objCenterX = 0.0;
@@ -90,68 +31,80 @@ ViewTransform::~ViewTransform() {
 }
 
 
+//--------------------------------------------------------------------
+AmrQuaternion ViewTransform::Screen2Quat(int start_X, int start_Y, 
+                                         int end_X, int end_Y) {
+    Real xWorldStart = (Real)(start_X-screenPositionX)/
+        (screenPositionX*scaleX);
+    Real yWorldStart = (Real)(start_Y-screenPositionY)/
+        (screenPositionY*scaleX);
+    Real xWorldEnd = (Real)(end_X-screenPositionX)/(screenPositionX*scaleX);
+    Real yWorldEnd = (Real)(end_Y-screenPositionY)/(screenPositionY*scaleX);
+    
+    return trackball(xWorldEnd, yWorldEnd, xWorldStart, yWorldStart);
+}
+
+
+
 // -------------------------------------------------------------------
 void ViewTransform::TransformPoint(Real x, Real y, Real z,
 				   Real &pX, Real &pY, Real &pZ)
 {
-  for(int ii=0; ii<4; ii++) {
-    for(int jj=0; jj<4; jj++) {
-      mTemp0[ii][jj] = 0.0;
+//apply rotation to (x, y, z, 1);
+    Real scale[4] = {scaleX, scaleY, scaleZ, 1.};
+    Real point[4]= {x-objCenterX,y-objCenterY,z-objCenterZ,1};
+    Real newPoint[4];
+    for(int ii=0; ii<2; ii++) {
+//save time -- only the first two numbers, I think
+        int temp = 0;
+        for(int jj=0; jj<4; jj++) {
+            temp += point[jj]*mRotation[ii][jj]*scale[jj];
+        }
+        newPoint[ii] = temp;
     }
-  }
-  mTemp0[0][0] = x - objCenterX;
-  mTemp0[0][1] = y - objCenterY;
-  mTemp0[0][2] = z - objCenterZ;
-  mTemp0[0][3] = 1.0;
-
-  multM4(mTemp1, mRx, mRy);
-  multM4(mTemp2, mTemp1, mRz);
-  multM4(mTemp3, mTemp2, mScale);
-
-  multM4(mTemp2, mTemp0, mTemp3);
-
-  pX = mTemp2[0][0] + screenPositionX;
-  pY = mTemp2[0][1] + screenPositionY;
-  pZ = mTemp2[0][2];
-
+    pX = newPoint[0] + screenPositionX;
+    pY = newPoint[1] + screenPositionY;
+//    pZ = newPoint[2];
 }
 
+void ViewTransform::Print()const {
+    cout<<"ViewTransform::Print() does nothing now"<<endl;
+}
 
 // -------------------------------------------------------------------
 void ViewTransform::MakeTransform() {
-  mScale[0][0] = scaleX;
-  mScale[1][1] = scaleY;
-  mScale[2][2] = scaleZ;
-
-  mRx[1][1] = cos(rho);
-  mRx[2][2] = cos(rho);
-  mRx[1][2] = sin(rho);
-  mRx[2][1] =-sin(rho);
-
-  mRy[0][0] = cos(theta);
-  mRy[2][2] = cos(theta);
-  mRy[0][2] = sin(theta);
-  mRy[2][0] =-sin(theta);
-
-  mRz[0][0] = cos(phi);
-  mRz[1][1] = cos(phi);
-  mRz[0][1] = sin(phi);
-  mRz[1][0] =-sin(phi);
+  rotation.tomatrix(mRotation);
+  renderRotation.tomatrix(mRenderRotation);
 }
-
 
 // -------------------------------------------------------------------
-void ViewTransform::Print() const {
+void ViewTransform::GetRotationMat(MatrixFour m) {
+    for(int i = 0; i< 4; i++) {
+        for (int j = 0; j<4 ; j++) {
+            m[i][j] = mRotation[i][j];
+        }
+    }
+}
+    
+void ViewTransform::GetRenderRotationMat(MatrixFour m) {
+    for(int i = 0; i< 4; i++) {
+        for (int j = 0; j<4 ; j++) {
+            m[i][j] = mRenderRotation[i][j];
+        }
+    }
+}
+    
+
+void ViewTransform::ViewRotationMat() const {
   int i, j;
-  printf("%s\n", "transform matrix");
+  printf("%s\n", "Rotation matrix");
   for (i=0; i<4; i++) {
     for (j=0; j<4; j++) {
-      //printf("%7.2f", transform[i][j]);
+      printf("%7.2f", mRotation[i][j]);
     }
-    //printf("\n");
+    printf("\n");
   }
 }
-
 
 // -------------------------------------------------------------------
 ostream& operator << (ostream &o, const ViewTransform &v) {
@@ -160,3 +113,10 @@ ostream& operator << (ostream &o, const ViewTransform &v) {
 }
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
+
+
+
+
+
+
+

@@ -2,6 +2,7 @@
 // PltApp3D.C 
 // -------------------------------------------------------------------
 #include "PltApp.H"
+#include "Quaternion.H"
 
 // -------------------------------------------------------------------
 void PltApp::DoExposeTransDA() {
@@ -30,6 +31,8 @@ void PltApp::DoExposeTransDA() {
 // -------------------------------------------------------------------
 void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
   Real temp;
+  AmrQuaternion quatRotation, quatRotation2;
+  AmrQuaternion newRotation, newRotation2;
 #ifdef BL_VOLUMERENDER
     Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
 #endif
@@ -44,25 +47,22 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
   if(servingButton==1) {
     endX = cbs->event->xbutton.x;
     endY = cbs->event->xbutton.y;
-    temp = viewTrans.GetRho()+(startY-endY)*0.003;
-    if(temp > 6.282) {
-      temp -= 6.282;
-    }
-    if(temp < 0.0) {
-      temp = 6.282;
-    }
-    viewTrans.SetRho(temp);
-
-    temp = viewTrans.GetTheta()+(endX-startX)*0.003;
-    if(temp>6.282) {
-      temp -= 6.282;
-    }
-    if(temp<0.0) {
-      temp = 6.282;
-    }
-    viewTrans.SetTheta(temp);
+    quatRotation = viewTrans.GetRotation();
+    quatRotation2 = viewTrans.GetRenderRotation();
+    newRotation = viewTrans.Screen2Quat(projPicturePtr->ImageSizeH()-startX,
+                                        startY,
+                                        projPicturePtr->ImageSizeH()-endX,
+                                        endY);
+    newRotation2 = viewTrans.Screen2Quat(projPicturePtr->ImageSizeH()-startX,
+                                         projPicturePtr->ImageSizeV()-startY,
+                                         projPicturePtr->ImageSizeH()-endX,
+                                         projPicturePtr->ImageSizeV()-endY);
+    quatRotation = newRotation * quatRotation;
+    viewTrans.SetRotation(quatRotation);
+    quatRotation2 = newRotation2 * quatRotation2;
+    viewTrans.SetRenderRotation(quatRotation2);
     viewTrans.MakeTransform();
-
+    
 #ifdef BL_VOLUMERENDER
     if(XmToggleButtonGetState(currentAutoDraw)) {
       DoRender(w, NULL, NULL);
@@ -87,7 +87,7 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
   if(servingButton==2) {
     endX = cbs->event->xbutton.x;
     endY = cbs->event->xbutton.y;
-    temp = viewTrans.GetPhi()+(endY-startY)*0.003;
+/*    temp = viewTrans.GetPhi()+(endY-startY)*0.003;
     if(temp>6.282) {
       temp -= 6.282;
     }
@@ -95,7 +95,7 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
       temp = 6.282;
     }
     viewTrans.SetPhi(temp);
-
+    */
     viewTrans.MakeTransform();
 
 #ifdef BL_VOLUMERENDER
@@ -434,9 +434,7 @@ void PltApp::Clear() {
   Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
   XmToggleButtonSetState(currentAutoDraw, false, false);
 #endif
-  viewTrans.SetRho(0.0);
-  viewTrans.SetTheta(0.0);
-  viewTrans.SetPhi(0.0);
+  viewTrans.SetRotation(AmrQuaternion(1, 0, 0, 0));
   viewTrans.MakeTransform();
   DoExposeTransDA();
 }
@@ -466,9 +464,8 @@ void PltApp::DoAutoDraw(Widget w, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void PltApp::DoOrient(Widget w, XtPointer, XtPointer) {
- viewTrans.SetRho(0.0);
-  viewTrans.SetTheta(0.0);
-  viewTrans.SetPhi(0.0);
+    viewTrans.SetRotation(AmrQuaternion());
+    viewTrans.SetRenderRotation(AmrQuaternion());
   viewTrans.MakeTransform();
 #ifdef BL_VOLUMERENDER
   Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
@@ -539,7 +536,7 @@ void PltApp::DoRender(Widget w, XtPointer, XtPointer) {
     int iColorSlots   = pltPaletteptr->ColorSlots();
     Real minUsing(amrPicturePtrArray[ZPLANE]->MinUsing());
     Real maxUsing(amrPicturePtrArray[ZPLANE]->MaxUsing());
-    volRender->MakeSWFData(dataServicesPtr,
+    volRender->MakeSWFData(dataServicesPtr[currentFrame],
 				minUsing, maxUsing,
 				currentDerived, 
 				iPaletteStart, iPaletteEnd,
@@ -556,7 +553,6 @@ void PltApp::DoRender(Widget w, XtPointer, XtPointer) {
   projPicturePtr->DrawPicture();
 #endif
 }
-
 
 // -------------------------------------------------------------------
 void CBExposeTransDA(Widget, XtPointer client_data, XExposeEvent) {

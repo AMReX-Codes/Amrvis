@@ -9,13 +9,8 @@
 #include <math.h>
 #include <time.h>
 
-extern Real RadToDeg(Real angle);
-extern Real DegToRad(Real angle);
-Real radToDeg = 180.0 / M_PI;
-
 #define VOLUMEBOXES 0
 //#define VOLUMEBOXES 1
-
 // -------------------------------------------------------------------
 ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
 				Widget da, int w, int h)
@@ -47,8 +42,8 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
 
   const AmrData &amrData = pltAppPtr->GetDataServicesPtr()->AmrDataRef();
 
-  boxRealPoints.resize(maxDataLevel + 1);
-  boxTransPoints.resize(maxDataLevel + 1);
+  boxReal.resize(maxDataLevel + 1);
+  boxTrans.resize(maxDataLevel + 1);
   for(lev = minDrawnLevel; lev <= maxDataLevel; ++lev) {
     int nBoxes(amrData.NIntersectingGrids(lev, theDomain[lev]));
     if(lev == minDrawnLevel) {
@@ -56,12 +51,8 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
       iBoundingBoxIndex = iSubCutBoxIndex + 1;
       nBoxes += 2;  // for the bounding box and subcut box
     }
-    boxRealPoints[lev].resize(nBoxes);
-    boxTransPoints[lev].resize(nBoxes);
-    for(int iBox = 0; iBox < nBoxes; ++iBox) {
-      boxRealPoints[lev][iBox].resize(NVERTICIES);
-      boxTransPoints[lev][iBox].resize(NVERTICIES);
-    }
+    boxReal[lev].resize(nBoxes);
+    boxTrans[lev].resize(nBoxes);
   }
   subCutColor = 160;
   boxColors.resize(maxDataLevel + 1);
@@ -121,53 +112,20 @@ ProjectionPicture::~ProjectionPicture() {
 
 // -------------------------------------------------------------------
 void ProjectionPicture::AddBox(const Box &theBox, int index, int level) {
-  boxRealPoints[level][index][0].x = theBox.smallEnd(XDIR);
-  boxRealPoints[level][index][0].y = theBox.smallEnd(YDIR);
-  boxRealPoints[level][index][0].z = theBox.smallEnd(ZDIR);
-  boxRealPoints[level][index][0].lineto1 = 7;
-  boxRealPoints[level][index][0].lineto2 = 1;
+    RealBox newBox;
+    Real dimensions[6] = { theBox.smallEnd(XDIR), theBox.smallEnd(YDIR),
+                           theBox.smallEnd(ZDIR), theBox.bigEnd(XDIR)+1,
+                           theBox.bigEnd(YDIR)+1, theBox.bigEnd(ZDIR)+1 };
+    newBox.vertices[0] = RealPoint(dimensions[0], dimensions[1], dimensions[2]);
+    newBox.vertices[1] = RealPoint(dimensions[3], dimensions[1], dimensions[2]);
+    newBox.vertices[2] = RealPoint(dimensions[3], dimensions[4], dimensions[2]);
+    newBox.vertices[3] = RealPoint(dimensions[0], dimensions[4], dimensions[2]);
+    newBox.vertices[4] = RealPoint(dimensions[0], dimensions[1], dimensions[5]);
+    newBox.vertices[5] = RealPoint(dimensions[3], dimensions[1], dimensions[5]);
+    newBox.vertices[6] = RealPoint(dimensions[3], dimensions[4], dimensions[5]);
+    newBox.vertices[7] = RealPoint(dimensions[0], dimensions[4], dimensions[5]);
 
-  boxRealPoints[level][index][1].x = theBox.bigEnd(XDIR)+1;
-  boxRealPoints[level][index][1].y = theBox.smallEnd(YDIR);
-  boxRealPoints[level][index][1].z = theBox.smallEnd(ZDIR);
-  boxRealPoints[level][index][1].lineto1 = 6;
-  boxRealPoints[level][index][1].lineto2 = 2;
-
-  boxRealPoints[level][index][2].x = theBox.bigEnd(XDIR)+1;
-  boxRealPoints[level][index][2].y = theBox.bigEnd(YDIR)+1;
-  boxRealPoints[level][index][2].z = theBox.smallEnd(ZDIR);
-  boxRealPoints[level][index][2].lineto1 = 5;
-  boxRealPoints[level][index][2].lineto2 = 3;
-
-  boxRealPoints[level][index][3].x = theBox.smallEnd(XDIR);
-  boxRealPoints[level][index][3].y = theBox.bigEnd(YDIR)+1;
-  boxRealPoints[level][index][3].z = theBox.smallEnd(ZDIR);
-  boxRealPoints[level][index][3].lineto1 = 0;
-  boxRealPoints[level][index][3].lineto2 = 4;
-
-  boxRealPoints[level][index][4].x = theBox.smallEnd(XDIR);
-  boxRealPoints[level][index][4].y = theBox.bigEnd(YDIR)+1;
-  boxRealPoints[level][index][4].z = theBox.bigEnd(ZDIR)+1;
-  boxRealPoints[level][index][4].lineto1 = 5;
-  boxRealPoints[level][index][4].lineto2 = 3;
-
-  boxRealPoints[level][index][5].x = theBox.bigEnd(XDIR)+1;
-  boxRealPoints[level][index][5].y = theBox.bigEnd(YDIR)+1;
-  boxRealPoints[level][index][5].z = theBox.bigEnd(ZDIR)+1;
-  boxRealPoints[level][index][5].lineto1 = 6;
-  boxRealPoints[level][index][5].lineto2 = 2;
-
-  boxRealPoints[level][index][6].x = theBox.bigEnd(XDIR)+1;
-  boxRealPoints[level][index][6].y = theBox.smallEnd(YDIR);
-  boxRealPoints[level][index][6].z = theBox.bigEnd(ZDIR)+1;
-  boxRealPoints[level][index][6].lineto1 = 7;
-  boxRealPoints[level][index][6].lineto2 = 1;
-
-  boxRealPoints[level][index][7].x = theBox.smallEnd(XDIR);
-  boxRealPoints[level][index][7].y = theBox.smallEnd(YDIR);
-  boxRealPoints[level][index][7].z = theBox.bigEnd(ZDIR)+1;
-  boxRealPoints[level][index][7].lineto1 = 4;
-  boxRealPoints[level][index][7].lineto2 = 0;
+    boxReal[level][index] = newBox;
 }
 
 
@@ -177,16 +135,11 @@ void ProjectionPicture::TransformBoxPoints(int iLevel, int iBoxIndex) {
 
   for(int i = 0; i < NVERTICIES; ++i) {
     viewTransformPtr->
-	   TransformPoint(boxRealPoints[iLevel][iBoxIndex][i].x,
-			  boxRealPoints[iLevel][iBoxIndex][i].y,
-			  boxRealPoints[iLevel][iBoxIndex][i].z,
+	   TransformPoint(boxReal[iLevel][iBoxIndex].vertices[i].x,
+			  boxReal[iLevel][iBoxIndex].vertices[i].y,
+			  boxReal[iLevel][iBoxIndex].vertices[i].z,
 			  px, py, pz);
-    boxTransPoints[iLevel][iBoxIndex][i].x = (int) (px+.5);
-    boxTransPoints[iLevel][iBoxIndex][i].y = daHeight - (int)(py+.5);
-    boxTransPoints[iLevel][iBoxIndex][i].lineto1 =
-		          boxRealPoints[iLevel][iBoxIndex][i].lineto1;
-    boxTransPoints[iLevel][iBoxIndex][i].lineto2 =
-			  boxRealPoints[iLevel][iBoxIndex][i].lineto2;
+    boxTrans[iLevel][iBoxIndex].vertices[i]=TransPoint((int)(px+.5), daHeight-(int)(py+.5));
   }
 }
 
@@ -203,16 +156,11 @@ void ProjectionPicture::MakeSubCutBox() {
   if(showSubCut) {
     for(int i = 0; i < NVERTICIES; ++i) {
       viewTransformPtr->
-	   TransformPoint(boxRealPoints[minDrawnLevel][iSubCutBoxIndex][i].x,
-			  boxRealPoints[minDrawnLevel][iSubCutBoxIndex][i].y,
-			  boxRealPoints[minDrawnLevel][iSubCutBoxIndex][i].z,
+	   TransformPoint(boxReal[minDrawnLevel][iSubCutBoxIndex].vertices[i].x,
+			  boxReal[minDrawnLevel][iSubCutBoxIndex].vertices[i].y,
+			  boxReal[minDrawnLevel][iSubCutBoxIndex].vertices[i].z,
 			  px, py, pz);
-      boxTransPoints[minDrawnLevel][iSubCutBoxIndex][i].x = (int) (px+.5);
-      boxTransPoints[minDrawnLevel][iSubCutBoxIndex][i].y = daHeight - (int)(py+.5);
-      boxTransPoints[minDrawnLevel][iSubCutBoxIndex][i].lineto1 =
-		          boxRealPoints[minDrawnLevel][iSubCutBoxIndex][i].lineto1;
-      boxTransPoints[minDrawnLevel][iSubCutBoxIndex][i].lineto2 =
-			  boxRealPoints[minDrawnLevel][iSubCutBoxIndex][i].lineto2;
+      boxTrans[minDrawnLevel][iSubCutBoxIndex].vertices[i]=TransPoint((int)(px+.5), daHeight-(int)(py+.5));
     }
   }
 }
@@ -227,25 +175,11 @@ void ProjectionPicture::MakeBoxes() {
 
   if(amrPicturePtr->ShowingBoxes()) {
     for(int iLevel = minDrawnLevel; iLevel <= maxDrawnLevel; ++iLevel) {
-      int nBoxes(boxTransPoints[iLevel].length());
+      int nBoxes(boxTrans[iLevel].length());
       if(iLevel == minDrawnLevel) {
         nBoxes -= 2;  // for sub cut and bounding box
       }
       for(int iBox = 0; iBox < nBoxes; ++iBox) {
-	/*
-        for(int i = 0; i < NVERTICIES; ++i) {
-          viewTransformPtr->TransformPoint(boxRealPoints[iLevel][iBox][i].x,
-			                   boxRealPoints[iLevel][iBox][i].y,
-			                   boxRealPoints[iLevel][iBox][i].z,
-			                   px, py, pz);
-          boxTransPoints[iLevel][iBox][i].x = (int) (px+.5);
-          boxTransPoints[iLevel][iBox][i].y = daHeight - (int) (py+.5);
-          boxTransPoints[iLevel][iBox][i].lineto1 =
-				       boxRealPoints[iLevel][iBox][i].lineto1;
-          boxTransPoints[iLevel][iBox][i].lineto2 =
-				       boxRealPoints[iLevel][iBox][i].lineto2;
-        }
-	*/
         TransformBoxPoints(iLevel, iBox);
       }
     }
@@ -255,17 +189,13 @@ void ProjectionPicture::MakeBoxes() {
 
   // bounding box
   for(int i = 0; i < NVERTICIES; ++i) {
-    viewTransformPtr->
-	 TransformPoint(boxRealPoints[minDrawnLevel][iBoundingBoxIndex][i].x,
-			boxRealPoints[minDrawnLevel][iBoundingBoxIndex][i].y,
-			boxRealPoints[minDrawnLevel][iBoundingBoxIndex][i].z,
+//      cout<<"int "<<i<<"\ttransformpoints:"<<endl;
+      viewTransformPtr->
+	 TransformPoint(boxReal[minDrawnLevel][iBoundingBoxIndex].vertices[i].x,
+			boxReal[minDrawnLevel][iBoundingBoxIndex].vertices[i].y,
+			boxReal[minDrawnLevel][iBoundingBoxIndex].vertices[i].z,
 			px, py, pz);
-    boxTransPoints[minDrawnLevel][iBoundingBoxIndex][i].x = (int) (px+.5);
-    boxTransPoints[minDrawnLevel][iBoundingBoxIndex][i].y = daHeight - (int)(py+.5);
-    boxTransPoints[minDrawnLevel][iBoundingBoxIndex][i].lineto1 =
-		        boxRealPoints[minDrawnLevel][iBoundingBoxIndex][i].lineto1;
-    boxTransPoints[minDrawnLevel][iBoundingBoxIndex][i].lineto2 =
-			boxRealPoints[minDrawnLevel][iBoundingBoxIndex][i].lineto2;
+    boxTrans[minDrawnLevel][iBoundingBoxIndex].vertices[i]=TransPoint((int)(px+.5), daHeight-(int)(py+.5));
   }
 }
 
@@ -279,11 +209,15 @@ void ProjectionPicture::MakePicture() {
 
   viewTransformPtr->GetScale(scale[XDIR], scale[YDIR], scale[ZDIR]);
 
+
+  Real mvmat[4][4];
+  viewTransformPtr->GetRenderRotationMat(mvmat);
   vpCurrentMatrix(vpc, VP_MODEL);
   vpIdentityMatrix(vpc);
-  vpRotate(vpc, VP_X_AXIS, radToDeg * (viewTransformPtr->GetRho()));
-  vpRotate(vpc, VP_Y_AXIS, radToDeg * (viewTransformPtr->GetTheta()));
-  vpRotate(vpc, VP_Z_AXIS, radToDeg * (viewTransformPtr->GetPhi()));
+  //viewTransformPtr->ViewRotationMat();
+  vpSetMatrix(vpc, mvmat);
+
+
 
   vpCurrentMatrix(vpc, VP_PROJECT);
   vpIdentityMatrix(vpc);
@@ -340,27 +274,6 @@ imageout.close();
 }  // end MakePicture()
 
 
-/*
-// -------------------------------------------------------------------
-void ProjectionPicture::DrawBox(const BoxTransPoint &btp[NVERTICIES]) {
-  for(i = 0; i < NVERTICIES; ++i) {
-     XDrawLine(XtDisplay(drawingArea), XtWindow(drawingArea),
-                  XtScreen(drawingArea)->default_gc,
-		  btp[minDrawnLevel][iSubCutBoxIndex][i].x,
-		  btp[minDrawnLevel][iSubCutBoxIndex][i].y,
-                  btp[btp[i].lineto1].x,
-                  btp[btp[i].lineto1].y);
-
-     XDrawLine(XtDisplay(drawingArea), XtWindow(drawingArea),
-                  XtScreen(drawingArea)->default_gc, boxTransPoints[i].x,
-                  btp[i].y,
-                  btp[btp[i].lineto2].x,
-                  btp[btp[i].lineto2].y);
-  }
-}
-*/
-
- 
 // -------------------------------------------------------------------
 void ProjectionPicture::DrawBoxes(int iFromLevel, int iToLevel) {
   DrawBoxesIntoDrawable(XtWindow(drawingArea), iFromLevel, iToLevel);
@@ -378,30 +291,14 @@ void ProjectionPicture::DrawBoxesIntoDrawable(const Drawable &drawable,
       for(int iLevel = iFromLevel; iLevel <= iToLevel; ++iLevel) {
         XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
                        boxColors[iLevel]);
-        int nBoxes(boxTransPoints[iLevel].length());
+        int nBoxes(boxTrans[iLevel].length());
         if(iLevel == minDrawnLevel) {
 	  nBoxes -= 2;  // for subcut and bounding box
         }
 	for(int iBox = 0; iBox < nBoxes; ++iBox) {
-          for(int i = 0; i < NVERTICIES; ++i) {
-            XDrawLine(XtDisplay(drawingArea), drawable,
-                      XtScreen(drawingArea)->default_gc,
-		      boxTransPoints[iLevel][iBox][i].x,
-		      boxTransPoints[iLevel][iBox][i].y,
-                      boxTransPoints[iLevel][iBox]
-		         [boxTransPoints[iLevel][iBox][i].lineto1].x,
-                      boxTransPoints[iLevel][iBox]
-		         [boxTransPoints[iLevel][iBox][i].lineto1].y);
-
-            XDrawLine(XtDisplay(drawingArea), drawable,
-                      XtScreen(drawingArea)->default_gc,
-		      boxTransPoints[iLevel][iBox][i].x,
-		      boxTransPoints[iLevel][iBox][i].y,
-                      boxTransPoints[iLevel][iBox]
-		         [boxTransPoints[iLevel][iBox][i].lineto2].x,
-                      boxTransPoints[iLevel][iBox]
-		         [boxTransPoints[iLevel][iBox][i].lineto2].y);
-          }
+            boxTrans[iLevel][iBox].Draw(XtDisplay(drawingArea), drawable,
+                                        XtScreen(drawingArea)->default_gc);
+          
 	}
       }
     }
@@ -411,56 +308,22 @@ void ProjectionPicture::DrawBoxesIntoDrawable(const Drawable &drawable,
                      subCutColor);
       //DrawBox(boxTransPoints[minDrawnLevel][iSubCutBoxIndex]);
       //
-      for(int i = 0; i < NVERTICIES; ++i) {
-        XDrawLine(XtDisplay(drawingArea), drawable,
-                  XtScreen(drawingArea)->default_gc,
-		  boxTransPoints[minDrawnLevel][iSubCutBoxIndex][i].x,
-		  boxTransPoints[minDrawnLevel][iSubCutBoxIndex][i].y,
-                  boxTransPoints[minDrawnLevel][iSubCutBoxIndex]
-		     [boxTransPoints[minDrawnLevel][iSubCutBoxIndex][i].lineto1].x,
-                  boxTransPoints[minDrawnLevel][iSubCutBoxIndex]
-		     [boxTransPoints[minDrawnLevel][iSubCutBoxIndex][i].lineto1].y);
+      boxTrans[minDrawnLevel][iSubCutBoxIndex].Draw(XtDisplay(drawingArea), drawable,
+                                                    XtScreen(drawingArea)->default_gc);
 
-        XDrawLine(XtDisplay(drawingArea), drawable,
-                  XtScreen(drawingArea)->default_gc,
-		  boxTransPoints[minDrawnLevel][iSubCutBoxIndex][i].x,
-		  boxTransPoints[minDrawnLevel][iSubCutBoxIndex][i].y,
-                  boxTransPoints[minDrawnLevel][iSubCutBoxIndex]
-		     [boxTransPoints[minDrawnLevel][iSubCutBoxIndex][i].lineto2].x,
-                  boxTransPoints[minDrawnLevel][iSubCutBoxIndex]
-		     [boxTransPoints[minDrawnLevel][iSubCutBoxIndex][i].lineto2].y);
-      }
-      //
     }
-
     // draw bounding box
     XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
                    boxColors[minDrawnLevel]);
-    for(int i = 0; i < NVERTICIES; ++i) {
-      XDrawLine(XtDisplay(drawingArea), drawable,
-                XtScreen(drawingArea)->default_gc,
-		boxTransPoints[minDrawnLevel][iBoundingBoxIndex][i].x,
-		boxTransPoints[minDrawnLevel][iBoundingBoxIndex][i].y,
-                boxTransPoints[minDrawnLevel][iBoundingBoxIndex]
-		  [boxTransPoints[minDrawnLevel][iBoundingBoxIndex][i].lineto1].x,
-                boxTransPoints[minDrawnLevel][iBoundingBoxIndex]
-		  [boxTransPoints[minDrawnLevel][iBoundingBoxIndex][i].lineto1].y);
-
-      XDrawLine(XtDisplay(drawingArea), drawable,
-                XtScreen(drawingArea)->default_gc,
-		boxTransPoints[minDrawnLevel][iBoundingBoxIndex][i].x,
-		boxTransPoints[minDrawnLevel][iBoundingBoxIndex][i].y,
-                boxTransPoints[minDrawnLevel][iBoundingBoxIndex]
-		  [boxTransPoints[minDrawnLevel][iBoundingBoxIndex][i].lineto2].x,
-                boxTransPoints[minDrawnLevel][iBoundingBoxIndex]
-		  [boxTransPoints[minDrawnLevel][iBoundingBoxIndex][i].lineto2].y);
-    }
+    
+    boxTrans[minDrawnLevel][iBoundingBoxIndex].Draw(XtDisplay(drawingArea), drawable,
+                                                    XtScreen(drawingArea)->default_gc);
 }
 
 
 // -------------------------------------------------------------------
 void ProjectionPicture::DrawBoxesIntoPixmap(int iFromLevel, int iToLevel) {
-  XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc, 0);
+    XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc, 0);
   XFillRectangle(XtDisplay(drawingArea),  pixMap,
 		 XtScreen(drawingArea)->default_gc, 0, 0, daWidth, daHeight);
   DrawBoxesIntoDrawable(pixMap, iFromLevel, iToLevel);
@@ -481,24 +344,25 @@ void ProjectionPicture::DrawPicture() {
 void ProjectionPicture::LabelAxes() {
   int xHere(1);	// Where to label axes with X, Y, and Z
   int yHere(3);
-  int zHere(7);
+  int zHere(4);
   minDrawnLevel = pltAppPtr->MinDrawnLevel();
   maxDrawnLevel = pltAppPtr->MaxDrawnLevel();
   XDrawString(XtDisplay(drawingArea), XtWindow(drawingArea),
               XtScreen(drawingArea)->default_gc,
-              boxTransPoints[minDrawnLevel][iBoundingBoxIndex][xHere].x,
-              boxTransPoints[minDrawnLevel][iBoundingBoxIndex][xHere].y,
+              boxTrans[minDrawnLevel][iBoundingBoxIndex].vertices[xHere].x,
+              boxTrans[minDrawnLevel][iBoundingBoxIndex].vertices[xHere].y,
               "X", 1);
-    XDrawString(XtDisplay(drawingArea), XtWindow(drawingArea),
+  XDrawString(XtDisplay(drawingArea), XtWindow(drawingArea),
               XtScreen(drawingArea)->default_gc,
-              boxTransPoints[minDrawnLevel][iBoundingBoxIndex][yHere].x,
-              boxTransPoints[minDrawnLevel][iBoundingBoxIndex][yHere].y,
+              boxTrans[minDrawnLevel][iBoundingBoxIndex].vertices[yHere].x,
+              boxTrans[minDrawnLevel][iBoundingBoxIndex].vertices[yHere].y,
               "Y", 1);
-    XDrawString(XtDisplay(drawingArea), XtWindow(drawingArea),
+  XDrawString(XtDisplay(drawingArea), XtWindow(drawingArea),
               XtScreen(drawingArea)->default_gc,
-              boxTransPoints[minDrawnLevel][iBoundingBoxIndex][zHere].x,
-              boxTransPoints[minDrawnLevel][iBoundingBoxIndex][zHere].y,
+              boxTrans[minDrawnLevel][iBoundingBoxIndex].vertices[zHere].x,
+              boxTrans[minDrawnLevel][iBoundingBoxIndex].vertices[zHere].y,
               "Z", 1);
+              
 }
 
 
@@ -579,3 +443,55 @@ void ProjectionPicture::ReadTransferFile(const aString &rampFileName) {
 }  // end ReadTransferFile
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
+
+
+//--------------------------------------------------------------------
+//----- BOX AND POINT STUFF-------------------------------------------
+//--------------------------------------------------------------------
+
+RealBox::RealBox() {
+    RealPoint zero(0., 0., 0.);
+    for (int i = 0; i < 8 ; i++)
+        vertices[i] = zero;
+}
+
+RealBox::RealBox(RealPoint p1, RealPoint p2, RealPoint p3, RealPoint p4, 
+                 RealPoint p5, RealPoint p6, RealPoint p7, RealPoint p8)
+{
+    vertices[0] = p1; vertices[1] = p2; vertices[2] = p3; vertices[3] = p4;
+    vertices[4] = p5; vertices[5] = p6; vertices[6] = p7; vertices[7] = p8;
+}
+
+TransBox::TransBox() {
+    TransPoint zero(0,0);
+    for (int i = 0; i < 8 ; i++)
+        vertices[i] = zero;
+}
+
+TransBox::TransBox(TransPoint p1, TransPoint p2, TransPoint p3, TransPoint p4, 
+                   TransPoint p5, TransPoint p6, TransPoint p7, TransPoint p8)
+{
+    vertices[0] = p1; vertices[1] = p2; vertices[2] = p3; vertices[3] = p4;
+    vertices[4] = p5; vertices[5] = p6; vertices[6] = p7; vertices[7] = p8;
+}
+
+void TransBox::Draw(Display *display, Window window, GC gc)
+{
+    for(int j = 0; j<2;j++) {
+        for(int i = 0; i<3;i++){
+            XDrawLine(display, window, gc,
+                      vertices[j*4+i].x, vertices[j*4+i].y,
+                      vertices[j*4+i+1].x,vertices[j*4+i+1].y);
+        }
+        XDrawLine(display, window, gc, vertices[j*4].x, vertices[j*4].y, 
+                  vertices[j*4+3].x, vertices[j*4+3].y);
+    }
+    for(int k = 0;k<4;k++) {
+        XDrawLine(display, window, gc,
+                  vertices[k].x, vertices[k].y,
+                  vertices[k+4].x, vertices[k+4].y);
+    }
+            
+}
+
+//--------------------------------------------------------------------

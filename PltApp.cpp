@@ -145,12 +145,13 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
   amrPicturePtrArray[ZPLANE] = new AmrPicture(minAllowableLevel, GAptr,
                                               this, dataServicesPtr[currentFrame]);
 #if (BL_SPACEDIM == 3)
-    amrPicturePtrArray[YPLANE] = new AmrPicture(YPLANE, minAllowableLevel, GAptr,
-    			amrData.ProbDomain()[finestLevel],
-			amrPicturePtrArray[ZPLANE], this);
-    amrPicturePtrArray[XPLANE] = new AmrPicture(XPLANE, minAllowableLevel, GAptr,
-    			amrData.ProbDomain()[finestLevel],
-			amrPicturePtrArray[ZPLANE], this);
+    amrPicturePtrArray[YPLANE] = new AmrPicture(YPLANE, minAllowableLevel, 
+                                 GAptr, amrData.ProbDomain()[finestLevel],
+                                 amrPicturePtrArray[ZPLANE], NULL,
+                                 this);
+    amrPicturePtrArray[XPLANE] = new AmrPicture(XPLANE, minAllowableLevel, 
+                        GAptr, amrData.ProbDomain()[finestLevel],
+			amrPicturePtrArray[ZPLANE], NULL, this);
 #endif
     for(i = 0; i < BL_SPACEDIM; i++) {
     ivLowOffsetMAL.setVal(i, amrData.ProbDomain()[maxlev].smallEnd(i));
@@ -175,6 +176,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 	animating2d(isAnim),
 	currentFrame(pltParent->currentFrame),
         palFilename(palfile)
+//>>>>>>> 1.16
 {
   char header[BUFSIZ];
 
@@ -223,9 +225,12 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
       XtVaSetValues(wAmrVisTopLevel, XmNvisual, GAptr->PVisual(),
                     XmNdepth, 8, NULL);
   }
-  for(int np = 0; np < NPLANES; ++np) {
-    amrPicturePtrArray[np] = new AmrPicture(np, minAllowableLevel, GAptr, region,
-					    parentPtr, this);
+  int np;
+  for(np = 0; np < NPLANES; np++) {
+    amrPicturePtrArray[np] = new AmrPicture(np, minAllowableLevel, 
+                                            GAptr, region,
+					    parentPtr, pltParent,
+                                            this);
   }
 
   ivLowOffsetMAL = offset;
@@ -2984,7 +2989,8 @@ void PltApp::ResetAnimation() {
       fineDomain.refine(CRRBetweenLevels(tempap->MaxAllowableLevel(),
 			amrData.FinestLevel(), amrData.RefRatio()));
       amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, minAllowableLevel,
-                                                  GAptr, fineDomain, tempap, this);
+                                                  GAptr, fineDomain, 
+                                                  tempap, NULL, this);
       amrPicturePtrArray[ZPLANE]->SetMaxDrawnLevel(maxDrawnLevel);
 
       XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
@@ -3078,8 +3084,9 @@ void PltApp::ShowFrame() {
       Box fineDomain(domain[tempap->MaxAllowableLevel()]);
       fineDomain.refine(CRRBetweenLevels(tempap->MaxAllowableLevel(),
 			finestLevel, amrData.RefRatio()));
-      amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, minAllowableLevel, GAptr,
-	                                          fineDomain, tempap, this);
+      amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, minAllowableLevel, 
+                                                  GAptr, fineDomain, 
+                                                  tempap, NULL, this);
       XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
   	                (XtEventHandler) CBDoExposePicture, (XtPointer) tempap);
       delete tempap;

@@ -2,6 +2,7 @@
 #define _AMR_QUATERNION_H_
 
 #include "REAL.H"
+#include "Point.H"
 
 /***************************************************************************
 
@@ -30,12 +31,13 @@ class AmrQuaternion
     AmrQuaternion()  { w=1.;  x=y=z=0.; }		//  The identity rotation
     AmrQuaternion(Real W, Real X, Real Y, Real Z)  { w=W; x=X; y=Y; z=Z; }
     AmrQuaternion(Real, Real, Real, Real, Real, Real);
-
-    AmrQuaternion operator *(const AmrQuaternion &q) const;	//  right-mult by q
-    AmrQuaternion operator /(const AmrQuaternion &q) const;	//  right-mult by q^-1
-    AmrQuaternion operator *=(const AmrQuaternion &q);	//  right-mult by q
-    AmrQuaternion operator /=(const AmrQuaternion &q);	//  right-mult by q^-1
-    friend AmrQuaternion inverse(const AmrQuaternion &q);	//  inverse
+    //returns a quaternion that rotates p1 to p2
+    AmrQuaternion(const AmrSpherePoint &p1, const AmrSpherePoint &p2);
+    AmrQuaternion operator *(const AmrQuaternion &q) const;//right-mult by q
+    AmrQuaternion operator /(const AmrQuaternion &q) const;//right-mult by q^-1
+    AmrQuaternion operator *=(const AmrQuaternion &q);	//right-mult by q
+    AmrQuaternion operator /=(const AmrQuaternion &q);	//right-mult by q^-1
+    friend AmrQuaternion inverse(const AmrQuaternion &q);//  inverse
 
     void tomatrix( Real m[4][4] ) const;
     

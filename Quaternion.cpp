@@ -3,7 +3,7 @@
 #include <iostream.h>
 #include <math.h>
 
-//#include "point.h"
+//#include "Point.H"
 #include "Quaternion.H"
 
 /*
@@ -29,7 +29,9 @@ AmrQuaternion::AmrQuaternion(const spoint &axis, Real sin_half_angle)
     y = sin_half_angle*Y(axis);
     z = sin_half_angle*Z(axis);
 }
-AmrQuaternion::AmrQuaternion(const spoint &s1, const spoint &s2)
+*/
+AmrQuaternion::AmrQuaternion(const AmrSpherePoint &s1, 
+                             const AmrSpherePoint &s2)
 {
     Real c = s1*s2;			//  cosine of rotation angle
     Real xn = Y(s1)*Z(s2) - Z(s1)*Y(s2);   //  unnormalized axis of rotation
@@ -41,7 +43,7 @@ AmrQuaternion::AmrQuaternion(const spoint &s1, const spoint &s2)
     x = 0.5*xn/ch;    y = 0.5*yn/ch;    z = 0.5*zn/ch;
 }
 
-
+/*
 void AmrQuaternion::tomatrix( Real m[3][3] ) const
 {
     Real wx=w*x, wy=w*y, wz=w*z, xz=x*z, yz=y*z, xy=x*y;
