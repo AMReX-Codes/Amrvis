@@ -10,6 +10,10 @@
 
 #include <cstdlib>
 #include <cstring>
+#ifdef BL_IRIX64
+#include <strings.h>
+// for index ^^^^^
+#endif
 
 #define DEF(name, typ, def_name) \
  if((def_str = XGetDefault(gaPtr->PDisplay(), title, (name)))) \
