@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.cpp,v 1.31 2003-02-28 02:01:38 vince Exp $
+// $Id: Output.cpp,v 1.32 2004-11-17 22:52:10 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -310,6 +310,12 @@ void WritePPMFile(const char *filename, XImage *ximage,
     delete [] ivdata;
 }
 
+
+#ifdef BL_Darwin
+#define _IOWRT 0002
+#define _IOERR 0040
+#define _IORW  0400
+#endif
 
 #ifdef BL_Linux
 #define _IOWRT 0002

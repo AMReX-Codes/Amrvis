@@ -7,13 +7,13 @@ PROFILE   = FALSE
 COMP      = mpKCC
 
 COMP      = KCC
+COMP = CC
 COMP      = Intel
 COMP      = g++
-COMP      = Intel
-COMP = CC
 FCOMP     = f77
 FCOMP     = Intel
 FCOMP = ftn
+FCOMP = g77
 DEBUG     = FALSE
 DEBUG     = TRUE
 DIM       = 3
@@ -74,6 +74,13 @@ ifeq ($(MACHINE), OSF1)
   LIBRARIES += -lXm -lXt -lX11
 endif
 
+ifeq ($(MACHINE), Darwin)
+  INCLUDE_LOCATIONS += /usr/X11R6/include
+  LIBRARY_LOCATIONS += /usr/X11R6/lib
+# LIBRARIES += -lXm -lXp -lXt -lXext -lSM -lICE -lXpm -lX11
+  LIBRARIES += -lXm -lXp -lXt                         -lX11
+  LDFLAGS   += -bind_at_load
+endif
 ifeq ($(MACHINE), Linux)
   INCLUDE_LOCATIONS += /usr/X11R6/include
   LIBRARY_LOCATIONS += /usr/X11R6/lib
