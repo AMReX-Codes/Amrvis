@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.cpp,v 1.55 1999-04-28 23:42:48 vince Exp $
+// $Id: PltApp.cpp,v 1.56 1999-05-10 17:18:42 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -109,7 +109,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
   int i;
   if(animating2d) {
     animFrames = GetFileCount(); 
-    assert(dataServicesPtr.length() == animFrames);
+    BLassert(dataServicesPtr.length() == animFrames);
     fileNames.resize(animFrames);
     for(i = 0; i < animFrames; i++) {
       fileNames[i] = GetComlineFilename(i); 
@@ -142,7 +142,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
                   XmNdepth, GAptr->PDepth(), NULL);
   }
   FileType fileType = GetDefaultFileType();
-  assert(fileType != INVALIDTYPE);
+  BLassert(fileType != INVALIDTYPE);
   
   if( ! (dataServicesPtr[currentFrame]->CanDerive(PltApp::initialDerived)) &&
       ! (fileType == FAB)  && ! (fileType == MULTIFAB))
@@ -1418,7 +1418,7 @@ void PltApp::PltAppInit() {
                                         pltPaletteptr, derivedStrings[cderived]);
   }
   FileType fileType = dataServicesPtr[currentFrame]->GetFileType();
-  assert(fileType != INVALIDTYPE);
+  BLassert(fileType != INVALIDTYPE);
   if(fileType == FAB  || fileType == MULTIFAB) {
     currentDerived = amrPicturePtrArray[ZPLANE]->CurrentDerived();
   }
@@ -3797,7 +3797,7 @@ void PltApp::ShowFrame() {
 
 // -------------------------------------------------------------------
 void PltApp::SetGlobalMinMax(Real specifiedMin, Real specifiedMax) {
-  assert(specifiedMax > specifiedMin);
+  BLassert(specifiedMax > specifiedMin);
   for(int np = 0; np < NPLANES; np++) {
     amrPicturePtrArray[np]->SetWhichRange(USESPECIFIED);
     amrPicturePtrArray[np]->SetDataMin(specifiedMin);

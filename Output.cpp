@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Output.cpp,v 1.13 1999-03-31 22:52:28 car Exp $
+// $Id: Output.cpp,v 1.14 1999-05-10 17:18:42 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -67,7 +67,7 @@ void WritePSFile(char *filename, XImage *image,
   for(j = 0; j < imagesizevert; j++) {
     int charindex = 0;
     for(i = 0; i < imagesizehoriz; i++) {
-      //assert(charindex>8*imagesizehoriz+1);
+      //BLassert(charindex>8*imagesizehoriz+1);
       index = (int) XGetPixel(image, i, j);
       color = colorcells[index];
       if(i % 10 == 0) {

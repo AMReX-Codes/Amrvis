@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: DatasetClient.cpp,v 1.2 1998-10-29 23:56:07 vince Exp $
+// $Id: DatasetClient.cpp,v 1.3 1999-05-10 17:18:42 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -151,7 +151,7 @@ bool SendRealArray(int sockfd, Real *data[], int nvar,    // size nvar
   //cout << ">>> sending data." << endl;
 
   long t_long = sizeof(Real) * dataBox.numPts();
-  assert(t_long < INT_MAX);
+  BLassert(t_long < INT_MAX);
   int totalDataBytes = int(t_long);
   int totalBytesSent, dataBytesRemaining;
   int dataBufferSize;

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GlobalUtilities.cpp,v 1.28 1999-04-28 23:42:47 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.29 1999-05-10 17:18:42 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -752,9 +752,9 @@ void GetSpecifiedMinMax(Real &specifiedmin, Real &specifiedmax) {
 
 // -------------------------------------------------------------------
 int CRRBetweenLevels(int fromlevel, int tolevel, const Array<int> &refratios) {
-  assert(fromlevel >= 0);
-  assert(tolevel >= fromlevel);
-  assert(tolevel <= refratios.length());
+  BLassert(fromlevel >= 0);
+  BLassert(tolevel >= fromlevel);
+  BLassert(tolevel <= refratios.length());
   int level, rr = 1;
   for(level = fromlevel; level < tolevel; level++) {
     rr *= refratios[level];
@@ -767,9 +767,9 @@ int CRRBetweenLevels(int fromlevel, int tolevel, const Array<int> &refratios) {
 int DetermineMaxAllowableLevel(const Box &finestbox, int finestlevel,
                                int maxpoints, const Array<int> &refratios)
 {
-  assert(finestlevel >= 0);
-  assert(maxpoints >= 0);
-  assert(finestbox.ok());
+  BLassert(finestlevel >= 0);
+  BLassert(maxpoints >= 0);
+  BLassert(finestbox.ok());
 
   Box levelDomain(finestbox);
   int maxallowablelevel(finestlevel);

@@ -29,7 +29,7 @@ void GridPicture::GridPictureInit(int level,
   pictureSizeV = picSizeV;
   overlapBox = overlapbox;
 
-  assert(overlapBox.sameSize(boxWithData));
+  BLassert(overlapBox.sameSize(boxWithData));
 
   imageBox = overlapBox; 
   imageBox.refine(refRatio * currentScale);
