@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.cpp,v 1.34 1998-12-02 23:24:14 vince Exp $
+// $Id: AmrPicture.cpp,v 1.35 1998-12-03 23:33:30 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1797,6 +1797,7 @@ VectorDerived AmrPicture::FindVectorDerived(Array<aString> &aVectorDeriveNames) 
 #if (BL_SPACEDIM == 3)
        && dataServicesPtr->CanDerive("z_momentum")
 #endif
+       && dataServicesPtr->CanDerive("density")
     )
   {
     aVectorDeriveNames[0] = "x_momentum";
@@ -1812,6 +1813,7 @@ VectorDerived AmrPicture::FindVectorDerived(Array<aString> &aVectorDeriveNames) 
 #if (BL_SPACEDIM == 3)
        && dataServicesPtr->CanDerive("zmom")
 #endif
+       && dataServicesPtr->CanDerive("density")
     )
   {
     aVectorDeriveNames[0] = "xmom";
@@ -1827,6 +1829,7 @@ VectorDerived AmrPicture::FindVectorDerived(Array<aString> &aVectorDeriveNames) 
 #if (BL_SPACEDIM == 3)
        && dataServicesPtr->CanDerive("z_mom")
 #endif
+       && dataServicesPtr->CanDerive("density")
     )
   {
     aVectorDeriveNames[0] = "x_mom";
