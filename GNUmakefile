@@ -18,6 +18,7 @@ USE_BSP=TRUE
 USE_VOLRENDER = FALSE
 USE_VOLRENDER = TRUE
 
+PBOXLIB_HOME = ..
 include ../mk/Make.defs
 
 EBASE = amrvis
