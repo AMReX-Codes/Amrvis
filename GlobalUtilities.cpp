@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.54 2004-05-04 20:26:35 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.55 2004-05-04 20:45:42 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -613,7 +613,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       fileType = NEWPLT;
     } else if(strcmp(argv[i],"-v") == 0) {
       verbose = true;
-    } else if(strcmp(argv[i], "-b") == 0 || strcmp(argv[i], "-subdomain")) {
+    } else if(strcmp(argv[i], "-b") == 0 || strcmp(argv[i], "-subdomain") == 0) {
 #    if (BL_SPACEDIM == 2)
       if(argc-1<i+1 || ! strcpy(clsx, argv[i+1])) {
         PrintUsage(argv[0]);
