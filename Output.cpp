@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.cpp,v 1.22 2001-06-13 00:40:37 vince Exp $
+// $Id: Output.cpp,v 1.23 2001-06-13 01:20:54 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -74,6 +74,14 @@ void WriteNewPSFile(const char *filename, XImage *image,
   fout << "/d {moveto 1 0 rlineto 0 -1 rlineto -1 0 rlineto closepath fill} def\n";
   fout << "/s {setrgbcolor newpath} def\n";
 
+  for(int ipal(palette.PaletteStart()); ipal <= palette.PaletteEnd(); ++ipal) {
+    palette.unpixelate(ipal, r, g, b);
+    fout << "/c" << ipal << " {"
+	 << rgb[(int) r] << " " << rgb[(int) g] << " " << rgb[(int) b]
+         << " s} def\n";
+  }
+
+  fout << "\n1 setlinewidth\n";
   fout << "\n% box color defs\n";
   for(int iblev(minlev); iblev <= maxlev; ++iblev) {
     if(iblev == minlev) {
@@ -85,27 +93,22 @@ void WriteNewPSFile(const char *filename, XImage *image,
            << "} def\n";
     }
   }
+  fout << "\n";
 
+  // draw the pixels
   for(int j(0); j < imagesizevert; ++j) {
     int jflip(imagesizevert - (j + 1));
     for(int i(0); i < imagesizehoriz; ++i) {
-      palette.unpixelate(XGetPixel(image, i, j), r, g, b);
-      fout << rgb[(int) r] << " " << rgb[(int) g] << " " << rgb[(int) b]
-	   << " s " << i << " " << jflip << " d\n";
+      fout << "c" << XGetPixel(image, i, j) << " "
+	   << i << " " << jflip << " d\n";
     }
   }
 
   // draw the boxes
-  fout << "% draw the boxes\n";
+  fout << "\n\n% draw the boxes\n";
   for(int ilev(minlev); ilev <= maxlev; ++ilev) {
     fout << "\n% boxes for level " << ilev << "\n";
-    if(ilev == minlev) {
-      fout << "boxcolor" << ilev << " setrgbcolor\n";
-    } else {
-      palette.unpixelate(MaxPaletteIndex() - 80 * ilev, r, g, b);
-      fout << rgb[(int) r] << " " << rgb[(int) g] << " " << rgb[(int) b]
-           << " setrgbcolor\n";
-    }
+    fout << "boxcolor" << ilev << " setrgbcolor\n\n";
     for(int i(0); i < gridBoxes[ilev].length(); ++i) {
       const GridBoxes gb = gridBoxes[ilev][i];
       int yboxinv(imagesizevert - (gb.ybox + 1));
