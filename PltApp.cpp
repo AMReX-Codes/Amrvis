@@ -146,6 +146,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     ivLowOffsetMAL.setVal(i, amrData.ProbDomain()[maxlev].smallEnd(i));
   }
   palFilename = PltApp::defaultPaletteString;
+  cout<<"GetDefaultShowBoxes() is "
+      <<( GetDefaultShowBoxes() ? "true" : "false" )<<endl;
   PltAppInit();
 }
 
@@ -164,6 +166,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   fileName = file;
   palFilename = palfile;
   char header[BUFSIZ];
+
+  SetDefaultShowBoxes(pltParent->GetAmrPicturePtr(0)->ShowingBoxes());
 
   if(anim) {
     animFrames = GetFileCount(); 
@@ -499,7 +503,8 @@ void PltApp::PltAppInit() {
   wBoxesButton = XmCreateToggleButton(wAmrVisMenu, "boxes", args, i);
   XmStringFree(sBoxes);
   AddStaticCallback(wBoxesButton, XmNvalueChangedCallback, &PltApp::DoBoxesButton);
-  XmToggleButtonSetState(wBoxesButton, true, false);// need to query parent here
+  XmToggleButtonSetState(wBoxesButton, GetDefaultShowBoxes(), false);
+  
 
 // ****************************************** Output Menu 
   i=0;
