@@ -41,23 +41,6 @@ HERE = .
 INCLUDE_LOCATIONS += $(HERE)
 INCLUDE_LOCATIONS += ../pBoxLib_2
 
-############################################### define vince's home dir
-ifeq ($(MACHINE), OSF1)
-  VINCEDIR = /usr/people/vince
-endif
-ifeq ($(MACHINE), T3E)
-  ifeq ($(WHICHT3E), NERSC)
-    VINCEDIR = /u1/vince
-  endif
-  ifeq ($(WHICHT3E), NAVO)
-    VINCEDIR = /home/Cvince
-  endif
-  ifeq ($(WHICHT3E), ARSC)
-    VINCEDIR = /u2/wes/beckner
-  endif
-endif
-
-
 DEFINES += -DBL_PARALLEL_IO
 
 ifeq ($(MACHINE),OSF1)
@@ -121,7 +104,6 @@ endif
 ############################################### arrayview
 ifeq (USE_ARRAYVIEW, TRUE)
   DEFINES += -DBL_USE_ARRAYVIEW
-  #ARRAYVIEWDIR = $(VINCEDIR)/ArrayView
   ARRAYVIEWDIR = .
   INCLUDE_LOCATIONS += $(ARRAYVIEWDIR)
   #LIBRARY_LOCATIONS += $(ARRAYVIEWDIR)
@@ -139,11 +121,9 @@ ifeq ($(DIM),3)
   endif
   ifeq ($(USE_VOLRENDER), TRUE)
     DEFINES += -DBL_VOLUMERENDER
-    #VOLPACKDIR = ../../volpack/volpack_cpp
-    #DEFINES += -DBL_VOLPACK_NEW
-    VOLPACKDIR = ../../volpack/volpack-1.0b3
-    VOLPACKDIR = ../volpack
-    VOLPACKDIR = $(VINCEDIR)/volpack
+    # VOLPACKDIR = ../../volpack/volpack_cpp
+    # VOLPACKDIR = ../../volpack/volpack-1.0b3
+    VOLPACKDIR = $(PBOXLIB_HOME)/volpack
     INCLUDE_LOCATIONS += $(VOLPACKDIR)
     LIBRARY_LOCATIONS += $(VOLPACKDIR)
     LIBRARIES += -lvolpack
@@ -185,7 +165,7 @@ endif
 #XTRALIBS += 
 
 include $(HERE)/Make.package
-include $(TOP)/pBoxLib_2/Make.package
+include $(PBOXLIB_HOME)/pBoxLib_2/Make.package
 
 vpath %.cpp $(HERE) ../pBoxLib_2
 vpath %.H $(HERE) ../pBoxLib_2
