@@ -14,13 +14,14 @@ bool DataServices::dsBatchMode = false;
 DataServices::DataServices(const aString &filename, const FileType &filetype)
              : fileName(filename), fileType(filetype), bAmrDataOk(false)
 {
-  bAmrDataOk = amrData.ReadData(fileName, fileType);
-
-  dsArrayIndex = DataServices::dsArrayIndexCounter;
-  ++DataServices::dsArrayIndexCounter;
-  DataServices::dsArray.resize(DataServices::dsArrayIndexCounter);
-  DataServices::dsArray[dsArrayIndex] = this;
   numberOfUsers = 0;  // the user must do all incrementing and decrementing
+  bAmrDataOk = amrData.ReadData(fileName, fileType);
+  if(bAmrDataOk) {
+    dsArrayIndex = DataServices::dsArrayIndexCounter;
+    ++DataServices::dsArrayIndexCounter;
+    DataServices::dsArray.resize(DataServices::dsArrayIndexCounter);
+    DataServices::dsArray[dsArrayIndex] = this;
+  }
 }
 
 

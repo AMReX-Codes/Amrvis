@@ -6,7 +6,10 @@
 #include "PltApp.H"
 #include "DataServices.H"
 #include <time.h>
+
+#ifdef BL_USE_ARRAYVIEW
 #include "ArrayView.H"
+#endif
 
 // ---------------------------------------------------------------------
 AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
@@ -43,7 +46,7 @@ AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
   maxLevelWithGrids = maxAllowableLevel;
 
   subDomain.resize(numberOfLevels);
-  for(ilev = 0; ilev <= maxAllowableLevel; ilev++) {  // set type
+  for(ilev = 0; ilev <= maxAllowableLevel; ++ilev) {  // set type
     subDomain[ilev].convert(amrData.ProbDomain()[0].type());
   }
 
@@ -57,9 +60,14 @@ AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
 			 amrData.RefRatio()));
   }
 
-  dataSizeH = subDomain[maxAllowableLevel].length(XDIR);
-  dataSizeV = subDomain[maxAllowableLevel].length(YDIR); 
-  dataSize  = dataSizeH * dataSizeV;	 // for a picture (slice).
+  dataSizeH.resize(numberOfLevels);
+  dataSizeV.resize(numberOfLevels);
+  dataSize.resize(numberOfLevels);
+  for(ilev = 0; ilev <= maxAllowableLevel; ++ilev) {
+    dataSizeH[ilev] = subDomain[ilev].length(XDIR);
+    dataSizeV[ilev] = subDomain[ilev].length(YDIR); 
+    dataSize[ilev]  = dataSizeH[ilev] * dataSizeV[ilev];  // for a picture (slice).
+  }
 
   vLine = 0;
   hLine = subDomain[maxAllowableLevel].bigEnd(YDIR) * pltAppPtr->CurrentScale();
@@ -126,17 +134,22 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
 	      (CRRBetweenLevels(ilev, maxAllowableLevel, amrData.RefRatio()));
   }
 
-  if(myView==XZ) {
-    dataSizeH = subDomain[maxAllowableLevel].length(XDIR);
-    dataSizeV = subDomain[maxAllowableLevel].length(ZDIR);
-  } else if(myView==YZ) {
-    dataSizeH = subDomain[maxAllowableLevel].length(YDIR);
-    dataSizeV = subDomain[maxAllowableLevel].length(ZDIR);
-  } else {
-    dataSizeH = subDomain[maxAllowableLevel].length(XDIR);
-    dataSizeV = subDomain[maxAllowableLevel].length(YDIR);
+  dataSizeH.resize(numberOfLevels);
+  dataSizeV.resize(numberOfLevels);
+  dataSize.resize(numberOfLevels);
+  for(ilev = 0; ilev <= maxAllowableLevel; ++ilev) {
+    if(myView==XZ) {
+      dataSizeH[ilev] = subDomain[ilev].length(XDIR);
+      dataSizeV[ilev] = subDomain[ilev].length(ZDIR);
+    } else if(myView==YZ) {
+      dataSizeH[ilev] = subDomain[ilev].length(YDIR);
+      dataSizeV[ilev] = subDomain[ilev].length(ZDIR);
+    } else {
+      dataSizeH[ilev] = subDomain[ilev].length(XDIR);
+      dataSizeV[ilev] = subDomain[ilev].length(YDIR);
+    }
+    dataSize[ilev]  = dataSizeH[ilev] * dataSizeV[ilev];
   }
-  dataSize = dataSizeH * dataSizeV;
 
 # if (BL_SPACEDIM == 3)
     if(myView==XY) {
@@ -174,6 +187,7 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
 // ---------------------------------------------------------------------
 void AmrPicture::AmrPictureInit() {
 
+  int iLevel;
   if(myView==XZ) {
     sliceBox[maxAllowableLevel].setSmall(YDIR, slice);
     sliceBox[maxAllowableLevel].setBig(YDIR, slice);
@@ -189,15 +203,29 @@ void AmrPicture::AmrPictureInit() {
 
   CoarsenSliceBox();
 
-  sliceFab.resize(sliceBox[maxAllowableLevel], 1);
+  sliceFab.resize(numberOfLevels);
+  for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
+    sliceFab[iLevel] = new FArrayBox(sliceBox[iLevel], 1);
+  }
+  image.resize(numberOfLevels);
 
-  imageSizeH = pltAppPtr->CurrentScale() * dataSizeH;  // dont use imageBox.length()
-  imageSizeV = pltAppPtr->CurrentScale() * dataSizeV;  // because of node
-						       // centered boxes
+  // use maxAllowableLevel because all imageSizes are the same
+  // regardless of which level is showing
+  // dont use imageBox.length() because of node centered boxes
+  imageSizeH = pltAppPtr->CurrentScale() * dataSizeH[maxAllowableLevel];
+  imageSizeV = pltAppPtr->CurrentScale() * dataSizeV[maxAllowableLevel];
   imageSize = imageSizeH * imageSizeV;
 
-  imageData = new unsigned char[dataSize];
-  scaledImageData = new unsigned char[imageSize];
+  imageData.resize(numberOfLevels);
+  scaledImageData.resize(numberOfLevels);
+  for(iLevel = 0; iLevel < minDrawnLevel; ++iLevel) {
+    imageData[iLevel]       = NULL;
+    scaledImageData[iLevel] = NULL;
+  }
+  for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
+    imageData[iLevel]       = new unsigned char[dataSize[iLevel]];
+    scaledImageData[iLevel] = new unsigned char[imageSize];
+  }
 
   pendingTimeOut = 0;
   frameSpeed = 300;
@@ -229,15 +257,20 @@ void AmrPicture::AmrPictureInit() {
 
 // ---------------------------------------------------------------------
 AmrPicture::~AmrPicture() {
+  int iLevel;
   if(framesMade) {
-    for(int i = minDrawnLevel;
-        i < subDomain[maxAllowableLevel].length(sliceDir); ++i)
+    for(iLevel = minDrawnLevel;
+        iLevel < subDomain[maxAllowableLevel].length(sliceDir); ++iLevel)
     {
-      XDestroyImage(frameBuffer[i]);
+      XDestroyImage(frameBuffer[iLevel]);
     }
   }
-  delete [] imageData;
-  delete [] scaledImageData;
+  for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
+    delete [] imageData[iLevel];
+    delete [] scaledImageData[iLevel];
+    delete sliceFab[iLevel];
+    XDestroyImage(image[iLevel]);
+  }
 
   if(pixMapCreated) {
     XFreePixmap(GAptr->PDisplay(), pixMap);
@@ -257,12 +290,35 @@ void AmrPicture::SetSlice(int view, int here) {
     sliceBox[maxAllowableLevel].setSmall(sliceDir, slice);
     sliceBox[maxAllowableLevel].setBig(sliceDir, slice);
     CoarsenSliceBox();
-    if(sliceFab.box() != sliceBox[maxAllowableLevel]) {
-      if(sliceFab.box().numPts() != sliceBox[maxAllowableLevel].numPts()) {
-        delete [] imageData;
-        imageData = new unsigned char[sliceBox[maxAllowableLevel].numPts()];
+    for(lev = minDrawnLevel; lev <= maxAllowableLevel; ++lev) {
+      if(sliceFab[lev]->box() != sliceBox[lev]) {
+        if(sliceFab[lev]->box().numPts() != sliceBox[lev].numPts()) {
+          delete [] imageData[lev];
+	/*
+          if(myView==XZ) {
+            dataSizeH[lev] = sliceBox[lev].length(XDIR);
+            dataSizeV[lev] = sliceBox[lev].length(ZDIR);
+          } else if(myView==YZ) {
+            dataSizeH[lev] = sliceBox[lev].length(YDIR);
+            dataSizeV[lev] = sliceBox[lev].length(ZDIR);
+          } else {
+            dataSizeH[lev] = sliceBox[lev].length(XDIR);
+            dataSizeV[lev] = sliceBox[lev].length(YDIR);
+          }
+          dataSize[ilev]  = dataSizeH[lev] * dataSizeV[lev];
+
+          imageData[lev] = new unsigned char[dataSize[lev]];
+	*/
+	  cerr << endl;
+	  cerr << "Suspicious sliceBox in AmrPicture::SetSlice" << endl;
+	  cerr << "sliceFab[" << lev << "].box() = " << sliceFab[lev]->box() << endl;
+	  cerr << "sliceBox[" << lev << "]       = " << sliceBox[lev]       << endl;
+	  cerr << endl;
+
+          imageData[lev] = new unsigned char[sliceBox[lev].numPts()];
+        }
+        sliceFab[lev]->resize(sliceBox[lev], 1);
       }
-      sliceFab.resize(sliceBox[maxAllowableLevel], 1);
     }
 # endif
 
@@ -309,7 +365,7 @@ void AmrPicture::SetSlice(int view, int here) {
         gpArray[lev][gridNumber].GridPictureInit(lev,
 		CRRBetweenLevels(lev, maxAllowableLevel, amrData.RefRatio()),
 		pltAppPtr->CurrentScale(), imageSizeH, imageSizeV,
-		GAptr, temp, sliceDataBox, sliceDir);
+		temp, sliceDataBox, sliceDir);
         ++gridNumber;
       }
     }
@@ -318,50 +374,48 @@ void AmrPicture::SetSlice(int view, int here) {
 
 
 // ---------------------------------------------------------------------
-void AmrPicture::DrawBoxes() {
-  int i, level;
+void AmrPicture::DrawBoxes(Array< Array<GridPicture> > &gp,
+			   Drawable &drawable)
+{
   short xbox, ybox;
   unsigned short wbox, hbox;
 
   if(showBoxes) {
-    for(level = minDrawnLevel; level <= maxDrawnLevel; level++) {
+    for(int level = minDrawnLevel; level <= maxDrawnLevel; ++level) {
       if(level == minDrawnLevel) {
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->WhiteIndex());
       } else {
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(), 255-80*(level-1));
       }
-      for(i = 0; i < gpArray[level].length(); i++) {
-	xbox = gpArray[level][i].HPositionInPicture();
-	ybox = gpArray[level][i].VPositionInPicture();
-	wbox = gpArray[level][i].ImageSizeH(); 
-	hbox = gpArray[level][i].ImageSizeV(); 
+      for(int i = 0; i < gp[level].length(); ++i) {
+	xbox = gp[level][i].HPositionInPicture();
+	ybox = gp[level][i].VPositionInPicture();
+	wbox = gp[level][i].ImageSizeH(); 
+	hbox = gp[level][i].ImageSizeV(); 
 
-        XDrawRectangle(GAptr->PDisplay(), pictureWindow,  GAptr->PGC(),
+        XDrawRectangle(GAptr->PDisplay(), drawable,  GAptr->PGC(),
 			xbox, ybox, wbox, hbox);
       }
     }
   }
   // draw bounding box
-  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->BlackIndex());
-  XDrawRectangle(GAptr->PDisplay(), pictureWindow, GAptr->PGC(), 0, 0,
+  //XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->BlackIndex());
+  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->WhiteIndex());
+  XDrawRectangle(GAptr->PDisplay(), drawable, GAptr->PGC(), 0, 0,
 			imageSizeH-1, imageSizeV-1);
 }
 
 
 // ---------------------------------------------------------------------
 void AmrPicture::Draw(int fromLevel, int toLevel) {
-  if(pixMapCreated == true) {
-    XFreePixmap(GAptr->PDisplay(), pixMap);
+  if( ! pixMapCreated) {
+    pixMap = XCreatePixmap(GAptr->PDisplay(), pictureWindow,
+			   imageSizeH, imageSizeV, GAptr->PDepth());
+    pixMapCreated = true;
   }  
 
-  pixMap = XCreatePixmap(GAptr->PDisplay(), pictureWindow,
-			   imageSizeH, imageSizeV, GAptr->PDepth());
-  pixMapCreated = true;
-
-// fixme:  use fromLevel and toLevel
-
   XPutImage(GAptr->PDisplay(), pixMap, GAptr->PGC(),
-            image, 0, 0, 0, 0, imageSizeH, imageSizeV);
+            image[toLevel], 0, 0, 0, 0, imageSizeH, imageSizeV);
 
   if( ! pltAppPtr->Animating()) {
     DoExposePicture();
@@ -429,7 +483,7 @@ void AmrPicture::DoExposePicture() {
       XCopyArea(GAptr->PDisplay(), pixMap, pictureWindow, 
  		GAptr->PGC(), 0, 0, imageSizeH, imageSizeV, 0, 0); 
 
-      DrawBoxes();
+      DrawBoxes(gpArray, pictureWindow);
 
       if( ! subCutShowing) {   // draw selected region
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(), 60);
@@ -513,12 +567,6 @@ void AmrPicture::DoExposePicture() {
 
 
 // ---------------------------------------------------------------------
-void AmrPicture::SetWindow(Window drawPictureHere) {
-  pictureWindow = drawPictureHere;
-}
-
-
-// ---------------------------------------------------------------------
 void AmrPicture::ChangeSlice(int here) {
   if(pendingTimeOut != 0) {
     DoStop();
@@ -534,7 +582,7 @@ void AmrPicture::CreatePicture(Window drawPictureHere, Palette *palptr,
 {
   palPtr = palptr;
   currentDerived = derived;
-  SetWindow(drawPictureHere);
+  pictureWindow = drawPictureHere;
   ChangeDerived(currentDerived, palptr);
 }
 
@@ -651,14 +699,19 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
   VSHOWVAL(Verbose(), minUsing)
   VSHOWVAL(Verbose(), maxUsing)
 
-  DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
-		         &sliceFab, sliceFab.box(), maxDrawnLevel, derived);
-  CreateImage(sliceFab, imageData, dataSizeH, dataSizeV,
-	      minUsing, maxUsing, palPtr);
-  CreateScaledImage(&image, pltAppPtr->CurrentScale(),
-                    imageData, scaledImageData,
-                    dataSizeH, dataSizeV,
-                    imageSizeH, imageSizeV);
+  for(int iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
+    DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
+		           sliceFab[iLevel], sliceFab[iLevel]->box(),
+			   iLevel, derived);
+    CreateImage(*(sliceFab[iLevel]), imageData[iLevel],
+		dataSizeH[iLevel], dataSizeV[iLevel],
+	        minUsing, maxUsing, palPtr);
+    CreateScaledImage(&(image[iLevel]), pltAppPtr->CurrentScale() *
+                CRRBetweenLevels(iLevel, maxAllowableLevel, amrData.RefRatio()),
+                imageData[iLevel], scaledImageData[iLevel],
+                dataSizeH[iLevel], dataSizeV[iLevel],
+                imageSizeH, imageSizeV);
+  }
 
   if( ! pltAppPtr->PaletteDrawn()) {
     pltAppPtr->PaletteDrawn(true);
@@ -749,29 +802,39 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 
 // ---------------------------------------------------------------------
 void AmrPicture::ChangeScale(int newScale) { 
-  XFreePixmap(GAptr->PDisplay(), pixMap);
-  pixMapCreated = false;
+  int iLevel;
   framesMade = false;
   if(pendingTimeOut != 0) {
     DoStop();
   }
-  imageSizeH = newScale   * dataSizeH;
-  imageSizeV = newScale   * dataSizeV;
+  imageSizeH = newScale   * dataSizeH[maxAllowableLevel];
+  imageSizeV = newScale   * dataSizeV[maxAllowableLevel];
   imageSize  = imageSizeH * imageSizeV;
   XClearWindow(GAptr->PDisplay(), pictureWindow);
 
-  int lev, grid;
-  for(lev = minDrawnLevel; lev <= maxAllowableLevel; lev++) {
-   for(grid = 0; grid < gpArray[lev].length(); grid++) {
-     gpArray[lev][grid].ChangeScale(newScale, imageSizeH, imageSizeV);
+  if(pixMapCreated) {
+    XFreePixmap(GAptr->PDisplay(), pixMap);
+  }  
+  pixMap = XCreatePixmap(GAptr->PDisplay(), pictureWindow,
+			   imageSizeH, imageSizeV, GAptr->PDepth());
+  pixMapCreated = true;
+
+  for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
+   for(int grid = 0; grid < gpArray[iLevel].length(); ++grid) {
+     gpArray[iLevel][grid].ChangeScale(newScale, imageSizeH, imageSizeV);
    }
   }
-  delete [] scaledImageData;
-  scaledImageData = new unsigned char[imageSize];
-  CreateScaledImage(&image, newScale,
-                    imageData, scaledImageData,
-                    dataSizeH, dataSizeV,
-                    imageSizeH, imageSizeV);
+
+  AmrData &amrData = dataServicesPtr->AmrDataRef();
+  for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
+    delete [] scaledImageData[iLevel];
+    scaledImageData[iLevel] = new unsigned char[imageSize];
+    CreateScaledImage(&image[iLevel], newScale *
+                CRRBetweenLevels(iLevel, maxAllowableLevel, amrData.RefRatio()),
+                imageData[iLevel], scaledImageData[iLevel],
+                dataSizeH[iLevel], dataSizeV[iLevel],
+                imageSizeH, imageSizeV);
+  }
 
   hLine = ((hLine / (pltAppPtr->PreviousScale())) * newScale) + (newScale - 1);
   vLine = ((vLine / (pltAppPtr->PreviousScale())) * newScale) + (newScale - 1);
@@ -789,24 +852,23 @@ void AmrPicture::ChangeLevel(int lowLevel, int hiLevel) {
   }
   XClearWindow(GAptr->PDisplay(), pictureWindow);
 
-  cerr << endl;
-  cerr << "AmrPicture::ChangeLevel not yet implemented." << endl;
-  // fix Draw to use min and max levels
-  cerr << endl;
-
   Draw(minDrawnLevel, maxDrawnLevel);
 }
 
 
 // ---------------------------------------------------------------------
 XImage *AmrPicture::GetPictureXImage() {
-  int i, level, xbox, ybox, wbox, hbox;
+  int xbox, ybox, wbox, hbox;
   XImage *image;
 
   if(showBoxes) {
-    for(level = minDrawnLevel; level <= maxDrawnLevel; level++) {
-      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), 255-40*level);
-      for(i = 0; i < gpArray[level].length(); i++) {
+    for(int level = minDrawnLevel; level <= maxDrawnLevel; ++level) {
+      if(level == minDrawnLevel) {
+        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->WhiteIndex());
+      } else {
+        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), 255-80*level);
+      }
+      for(int i = 0; i < gpArray[level].length(); ++i) {
 	xbox = gpArray[level][i].HPositionInPicture();
 	ybox = gpArray[level][i].VPositionInPicture();
 	wbox = gpArray[level][i].ImageSizeH(); 
@@ -824,8 +886,12 @@ XImage *AmrPicture::GetPictureXImage() {
   image = XGetImage(GAptr->PDisplay(), pixMap, 0, 0,
 		imageSizeH, imageSizeV, AllPlanes, ZPixmap);
 
-  XFreePixmap(GAptr->PDisplay(), pixMap);
-  pixMapCreated = false;
+  if(pixMapCreated) {
+    XFreePixmap(GAptr->PDisplay(), pixMap);
+  }  
+  pixMap = XCreatePixmap(GAptr->PDisplay(), pictureWindow,
+			   imageSizeH, imageSizeV, GAptr->PDepth());
+  pixMapCreated = true;
   Draw(minDrawnLevel, maxDrawnLevel);
   return image;
 }
@@ -847,7 +913,6 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
   int islice, i, j, lev, gridNumber;
   Array<int> intersectGrids;
   int maxLevelWithGridsHere;
-  GridPicture **animPicture;
   int posneg(1);
   if(direction == ANIMNEGDIR) {
     posneg = -1;
@@ -866,9 +931,9 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
       XDestroyImage(frameBuffer[ii]);
     }
   }
-  frameBuffer = new XImage*[length];
-  unsigned char *frameImageData = new unsigned char[dataSize];
-  //unsigned char *frameScaledImageData = new unsigned char[imageSize];
+  frameGrids.resize(length); 
+  frameBuffer.resize(length);
+  unsigned char *frameImageData = new unsigned char[dataSize[maxDrawnLevel]];
 
   for(i = 0; i < length; ++i) {
     islice = ((slice + (posneg * i)) + length) % length;
@@ -881,25 +946,14 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
       interBox[j].coarsen(CRRBetweenLevels(j, maxAllowableLevel,
 			  amrData.RefRatio()));
     }
-    maxLevelWithGridsHere = maxDrawnLevel;
     for(lev = minDrawnLevel; lev <= maxAllowableLevel; ++lev) {
-      intersectGrids[lev] = 0;
-      for(int iBox = 0; iBox < amrData.boxArray(lev).length(); ++iBox) {
-        if(interBox[lev].intersects(amrData.boxArray(lev)[iBox])) {
-          ++intersectGrids[lev];
-        }
-      }
+      intersectGrids[lev] = amrData.NIntersectingGrids(lev, interBox[lev]);
     }
-    animPicture = new GridPicture*[maxLevelWithGridsHere + 1]; 
+    maxLevelWithGridsHere = maxDrawnLevel;
+    frameGrids[islice].resize(maxLevelWithGridsHere + 1); 
     for(lev = minDrawnLevel; lev <= maxLevelWithGridsHere; ++lev) {
-      animPicture[lev] = new GridPicture[intersectGrids[lev]];
-      if(animPicture[lev] == NULL) {
-        sprintf(buffer, "Out of memory."); 
-        PrintMessage(buffer);
-        return;
-      }
+      frameGrids[islice][lev].resize(intersectGrids[lev]);
     } 
-
 
     for(lev = minDrawnLevel; lev <= maxLevelWithGridsHere; ++lev) {
       gridNumber = 0;
@@ -911,77 +965,35 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
 	  temp.shift(XDIR, -subDomain[lev].smallEnd(XDIR));
 	  temp.shift(YDIR, -subDomain[lev].smallEnd(YDIR));
           temp.shift(ZDIR, -subDomain[lev].smallEnd(ZDIR));
-          animPicture[lev][gridNumber].GridPictureInit(lev,
+          frameGrids[islice][lev][gridNumber].GridPictureInit(lev,
                   CRRBetweenLevels(lev, maxAllowableLevel, amrData.RefRatio()),
                   pltAppPtr->CurrentScale(), imageSizeH, imageSizeV,
-                  GAptr, temp, sliceDataBox, sliceDir);
-          //animPicture[lev][gridNumber].Derive(currentDerived.c_str());
-          //animPicture[lev][gridNumber].CreateImage(minUsing, maxUsing, palPtr);
+                  temp, sliceDataBox, sliceDir);
           ++gridNumber;
         }
       }
     }   // end for(lev...)
 
     // get the data for this slice
-    FArrayBox imageFab(interBox[maxAllowableLevel], 1);
-    ArrayView(&imageFab);
+    FArrayBox imageFab(interBox[maxDrawnLevel], 1);
     DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
-			   &imageFab, imageFab.box(), maxAllowableLevel,
+			   &imageFab, imageFab.box(), maxDrawnLevel,
                            currentDerived);
 
-    CreateImage(imageFab, frameImageData, dataSizeH, dataSizeV,
+    CreateImage(imageFab, frameImageData,
+		dataSizeH[maxDrawnLevel], dataSizeV[maxDrawnLevel],
                 minUsing, maxUsing, palPtr);
 
     // this cannot be deleted because it belongs to the XImage
     unsigned char *frameScaledImageData = new unsigned char[imageSize];
-    CreateScaledImage(&(frameBuffer[islice]), pltAppPtr->CurrentScale(),
-                      frameImageData, frameScaledImageData,
-                      dataSizeH, dataSizeV,
-                      imageSizeH, imageSizeV);
+    CreateScaledImage(&(frameBuffer[islice]), pltAppPtr->CurrentScale() *
+             CRRBetweenLevels(maxDrawnLevel, maxAllowableLevel, amrData.RefRatio()),
+             frameImageData, frameScaledImageData,
+             dataSizeH[maxDrawnLevel], dataSizeV[maxDrawnLevel],
+             imageSizeH, imageSizeV);
 
-/*
-    // Send grid image data directly to char array.
-    unsigned char *interImageData = new unsigned char[imageSize];
-    int jish;
-    for(lev = minDrawnLevel; lev <= maxLevelWithGridsHere; ++lev) {
-      for(gridNumber = 0; gridNumber < intersectGrids[lev]; ++gridNumber) {
-        gridData = animPicture[lev][gridNumber].GetScaledImageData();
-        c = 0;
-        for(int j = animPicture[lev][gridNumber].VPositionInPicture();
-	    j < (animPicture[lev][gridNumber].ImageSizeV() +
-		 animPicture[lev][gridNumber].VPositionInPicture()); ++j)
-        {
-	  jish = j*imageSizeH;
-          for(int k = animPicture[lev][gridNumber].HPositionInPicture();
-	      k < (animPicture[lev][gridNumber].ImageSizeH() +
-                   animPicture[lev][gridNumber].HPositionInPicture()); ++k)
-          {
-	    // boundary checking
-	    if(k<imageSizeH && k+jish < imageSize && k >= 0 && j >= 0) {
-              interImageData[k+jish] = gridData[c];
-            }
-            ++c;
-          }
-        }
-      }
-    }  // end for(lev...)
-    frameBuffer[islice] = XCreateImage(GAptr->PDisplay(), GAptr->PVisual(),
-			GAptr->PDepth(), ZPixmap, 0, (char *) interImageData,
-			imageSizeH, imageSizeV,
-			XBitmapPad(GAptr->PDisplay()), imageSizeH);
-    if(frameBuffer[islice] == NULL) {
-      sprintf(buffer, "Out of memory."); 
-      PrintMessage(buffer);
-      return;
-    }
-*/
+    ShowFrameImage(islice);
 
-    XPutImage(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
-              frameBuffer[islice], 0, 0, 0, 0, imageSizeH, imageSizeV);
-
-    for(lev = minDrawnLevel; lev <= maxLevelWithGridsHere; lev++) {
-      delete [] animPicture[lev];
-    }
 #   if (BL_SPACEDIM == 3)
       XEvent event;
       if(XCheckMaskEvent(GAptr->PDisplay(), ButtonPressMask, &event)) {
@@ -995,7 +1007,6 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
   }  // end for(i=0; ...)
 
   delete [] frameImageData;
-  //delete [] frameScaledImageData;
 
   if(cancelled) {
     framesMade = false;
@@ -1062,18 +1073,19 @@ void AmrPicture::CBFrameTimeOut(XtPointer client_data, XtIntervalId *) {
 void AmrPicture::DoFrameUpdate() {
   if(sweepDirection == ANIMPOSDIR) {
     if(slice < subDomain[maxAllowableLevel].bigEnd(sliceDir)) {
-      slice++;
+      ++slice;
     } else {
       slice = subDomain[maxAllowableLevel].smallEnd(sliceDir);
     }
   } else {
     if(slice > subDomain[maxAllowableLevel].smallEnd(sliceDir)) {
-      slice--;
+      --slice;
     } else {
       slice = subDomain[maxAllowableLevel].bigEnd(sliceDir);
     }
   } 
-  ShowFrameImage();
+  int iRelSlice(slice - subDomain[maxAllowableLevel].smallEnd(sliceDir));
+  ShowFrameImage(iRelSlice);
   XSync(GAptr->PDisplay(), false);
   pendingTimeOut = XtAppAddTimeOut(pltAppPtr->GetAppContext(),
   				frameSpeed, &AmrPicture::CBFrameTimeOut,
@@ -1109,14 +1121,17 @@ void AmrPicture::Sweep(AnimDirection direction) {
 
 
 // ---------------------------------------------------------------------
-void AmrPicture::ShowFrameImage() {
+void AmrPicture::ShowFrameImage(int iSlice) {
   AmrPicture *apXY = pltAppPtr->GetAmrPicturePtr(XY);
   AmrPicture *apXZ = pltAppPtr->GetAmrPicturePtr(XZ);
   AmrPicture *apYZ = pltAppPtr->GetAmrPicturePtr(YZ);
+  //int iRelSlice(iSlice - subDomain[maxAllowableLevel].smallEnd(sliceDir));
+  int iRelSlice(iSlice);
 
   XPutImage(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
-            frameBuffer[slice - subDomain[maxAllowableLevel].smallEnd(sliceDir)],
-            0, 0, 0, 0, imageSizeH, imageSizeV);
+            frameBuffer[iRelSlice], 0, 0, 0, 0, imageSizeH, imageSizeV);
+
+  DrawBoxes(frameGrids[iRelSlice], pictureWindow);
 
   // draw plane "cutting" lines
   XSetForeground(GAptr->PDisplay(), GAptr->PGC(), hColor);
@@ -1133,30 +1148,21 @@ void AmrPicture::ShowFrameImage() {
 		GAptr->PGC(), vLine+1, 0, vLine+1, imageSizeV); 
   
   if(sliceDir == XDIR) {
-    apXY->SetVLine((slice - subDomain[maxAllowableLevel].smallEnd(XDIR)) *
-                               pltAppPtr->CurrentScale());
+    apXY->SetVLine(iRelSlice * pltAppPtr->CurrentScale());
     apXY->DoExposePicture();
-    apXZ->SetVLine((slice - subDomain[maxAllowableLevel].smallEnd(XDIR)) *
-                                pltAppPtr->CurrentScale());
+    apXZ->SetVLine(iRelSlice * pltAppPtr->CurrentScale());
     apXZ->DoExposePicture();
   }
   if(sliceDir == YDIR) {
-    apXY->SetHLine(apXY->ImageSizeV() - 1 - (slice -
-				subDomain[maxAllowableLevel].smallEnd(YDIR)) *
-                       		pltAppPtr->CurrentScale());
+    apXY->SetHLine(apXY->ImageSizeV() - 1 - iRelSlice * pltAppPtr->CurrentScale());
     apXY->DoExposePicture();
-    apYZ->SetVLine((slice - subDomain[maxAllowableLevel].smallEnd(YDIR)) *
-                                pltAppPtr->CurrentScale());
+    apYZ->SetVLine(iRelSlice * pltAppPtr->CurrentScale());
     apYZ->DoExposePicture();
   }
   if(sliceDir == ZDIR) {
-    apYZ->SetHLine(apYZ->ImageSizeV() - 1 - (slice -
-				subDomain[maxAllowableLevel].smallEnd(ZDIR)) *
-				pltAppPtr->CurrentScale());
+    apYZ->SetHLine(apYZ->ImageSizeV() - 1 - iRelSlice * pltAppPtr->CurrentScale());
     apYZ->DoExposePicture();
-    apXZ->SetHLine(apXZ->ImageSizeV() - 1 - (slice -
-				subDomain[maxAllowableLevel].smallEnd(ZDIR)) *
-                                pltAppPtr->CurrentScale());
+    apXZ->SetHLine(apXZ->ImageSizeV() - 1 - iRelSlice * pltAppPtr->CurrentScale());
     apXZ->DoExposePicture();
   }
   pltAppPtr->DoExposeRef();

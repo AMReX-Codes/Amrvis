@@ -14,12 +14,10 @@ GridPicture::GridPicture() {
 // -------------------------------------------------------------------
 void GridPicture::GridPictureInit(int level,
 			int rratio, int scale, int picSizeH, int picSizeV,
-			GraphicsAttributes *gaptr, const Box &overlapbox,
+			const Box &overlapbox,
 			const Box &boxWithData, int slicedir)
 {
   sliceDir = slicedir;
-  GAptr = gaptr;
-  myLevel = level;
   refRatio = rratio;
   currentScale = scale; 
   pictureSizeH = picSizeH;
@@ -29,7 +27,7 @@ void GridPicture::GridPictureInit(int level,
   assert(overlapBox.sameSize(boxWithData));
 
   imageBox = overlapBox; 
-  imageBox.refine(refRatio*currentScale);
+  imageBox.refine(refRatio * currentScale);
 
   if(sliceDir == ZDIR) {
     dataSizeH = boxWithData.length(XDIR);
@@ -44,9 +42,6 @@ void GridPicture::GridPictureInit(int level,
   imageSizeH = dataSizeH * refRatio * currentScale;
   imageSizeV = dataSizeV * refRatio * currentScale;
 
-  dataSize  = dataSizeH  * dataSizeV;
-  imageSize = imageSizeH * imageSizeV;
-
 }  // end GridPictureInit
 
 
@@ -57,15 +52,13 @@ GridPicture::~GridPicture() {
 
 // -------------------------------------------------------------------
 void  GridPicture::ChangeScale(int newScale, int picSizeH, int picSizeV) {
-  previousScale = currentScale;
   currentScale = newScale;
   imageBox = overlapBox; 
-  imageBox.refine(refRatio*currentScale); 
+  imageBox.refine(refRatio * currentScale); 
 
   // use datasize instead of imageBox.length() for node centered boxes
   imageSizeH = dataSizeH * refRatio * currentScale;
   imageSizeV = dataSizeV * refRatio * currentScale;
-  imageSize = imageSizeH * imageSizeV;
   pictureSizeH = picSizeH;
   pictureSizeV = picSizeV;
 }

@@ -18,14 +18,14 @@
 class PltApp;
 
 // represents data points in physical space that connect lines to other points
-typedef struct {
+struct BoxRealPoint {
   Real x, y, z;
-  int lineto1, lineto2, color;
-} BoxRealPoint;
+  int lineto1, lineto2;
+};
 
 // represents box points in screen space with color values
 struct BoxTransPoint {
-  int x, y, lineto1, lineto2, color;
+  int x, y, lineto1, lineto2;
 };
 
 
@@ -35,32 +35,39 @@ public:
 
 	~ProjectionPicture();
 
-	VolRender *GetVolRenderPtr() { return volRender; }
+	VolRender *GetVolRenderPtr() const { return volRender; }
 	void    ReadTransferFile(const aString &rampFileName);
 	void	MakeBoxes();
 	void	MakePicture();
-	void	DrawBoxes();
-	void	DrawBoxesIntoPixmap();
+	void	DrawBoxesIntoDrawable(const Drawable &drawable,
+				      int iFromLevel, int iToLevel);
+	void	DrawBoxes(int iFromLevel, int iToLevel);
+	void	DrawBoxesIntoPixmap(int iFromLevel, int iToLevel);
 	void	DrawPicture();
 	void	LabelAxes();
 	void	ToggleShowSubCut();
-	void	SetSubCut(Box newbox);
+	void	SetSubCut(const Box &newbox);
 	void	SetDrawingAreaDimensions(int w, int h); // called when resized 
 	void SetDrawingArea(Widget drawhere) { drawingArea = drawhere; }
-	XImage *GetPictureXImage() { return image; }
-	int ImageSizeH() { return daWidth; }
-	int ImageSizeV() { return daHeight; }
+	XImage *GetPictureXImage() const { return image; }
+	int ImageSizeH() const { return daWidth; }
+	int ImageSizeV() const { return daHeight; }
 
 private:
+        enum { NVERTICIES = 8 };
+
 	Widget		drawingArea;
 	AmrPicture     *amrPicturePtr;
 	ViewTransform  *viewTransformPtr;
-	BoxRealPoint   *boxrealpoints;
-	BoxTransPoint  *boxtranspoints;
-	unsigned int	nPoints, bPoints;
-	int		daWidth, daHeight, pixCreated;
-	int		xHere, yHere, zHere, showSubCut;
-	int		minDrawnLevel, maxDataLevel;
+	Array<Array<Array<BoxRealPoint> > >  boxRealPoints;
+	Array<Array<Array<BoxTransPoint> > > boxTransPoints;
+	Array<int>	boxPoints;
+	Array<int>	boxColors;
+	int             subCutColor;
+	int		daWidth, daHeight;
+	bool		showSubCut, pixCreated;
+	int             iSubCutBoxIndex, iBoundingBoxIndex;
+	int		minDrawnLevel, maxDrawnLevel, maxDataLevel;
 	Real		xcenter, ycenter, zcenter;
 	Pixmap		pixMap;
 	unsigned char  *imageData;
@@ -78,7 +85,10 @@ private:
 	unsigned char	volumeBoxColor;
 	VolRender       *volRender;
 
-	void		AddBox(Box, int);  // converts a Box to eight BoxRealPoints 
+	// converts a Box to eight BoxRealPoints at the specified level
+	void		AddBox(const Box &theBox, int index, int level);
+	void            MakeSubCutBox();
+	void            TransformBoxPoints(int iLevel, int iBoxIndex);
 
 };
 

@@ -9,7 +9,7 @@ void PltApp::DoExposeTransDA() {
   if(XmToggleButtonGetState(currentAutoDraw)) {
       projPicturePtr->DrawPicture();
   } else {
-      projPicturePtr->DrawBoxes();
+      projPicturePtr->DrawBoxes(minDrawnLevel, maxDrawnLevel);
   }
   if(labelAxes) {
     if(XmToggleButtonGetState(currentAutoDraw)) {

@@ -134,14 +134,16 @@ void main(int argc, char *argv[]) {
 
 
       if(ParallelDescriptor::IOProcessor()) {
-        PltApp *temp = new PltApp(app, wTopLevel, comlineFileName,
-			          dataServicesPtr, IsAnimation());
-	if(temp == NULL) {
-	  cerr << "Error:  could not make a new PltApp." << endl;
-	} else {
-          pltAppList.append(temp);
-          dataServicesPtr->IncrementNumberOfUsers();
-          //cout << ">>>> pltAppList appending " << temp << endl;
+	if(dataServicesPtr->AmrDataOk()) {
+          PltApp *temp = new PltApp(app, wTopLevel, comlineFileName,
+			            dataServicesPtr, IsAnimation());
+	  if(temp == NULL) {
+	    cerr << "Error:  could not make a new PltApp." << endl;
+	  } else {
+            pltAppList.append(temp);
+            dataServicesPtr->IncrementNumberOfUsers();
+            //cout << ">>>> pltAppList appending " << temp << endl;
+	  }
 	}
       }
 
@@ -446,6 +448,7 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
       XtSetArg (args[i], XmNdirectory, sDirectory); i++;
     }
     XtSetArg (args[i], XmNpattern, sMask); i++;
+    XtSetArg (args[i], XmNfileTypeMask, XmFILE_ANY_TYPE); i++;
     wDialog = XmCreateFileSelectionDialog(wTopLevel, "Open File", args, i);
     XtAddCallback(wDialog, XmNokCallback, CBOpenPltFile,   NULL);
     XtAddCallback(wDialog, XmNcancelCallback, 

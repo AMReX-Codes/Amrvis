@@ -110,7 +110,7 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
 
   // write the iso picture
   if( ! XmToggleButtonGetState(wAutoDraw)) {
-    projPicturePtr->DrawBoxesIntoPixmap();
+    projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
   }
   sprintf(psfilename, "%s.XYZ.ps", fileNameBase);
   image = projPicturePtr->GetPictureXImage();  
@@ -175,7 +175,7 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
 
   // write the iso picture
   if( ! XmToggleButtonGetState(wAutoDraw)) {
-    projPicturePtr->DrawBoxesIntoPixmap();
+    projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
   }
   sprintf(rgbfilename, "%s.XYZ.rgb", fileNameBase);
   image = projPicturePtr->GetPictureXImage();

@@ -64,14 +64,14 @@ AmrData::AmrData() {
 
 
 // ---------------------------------------------------------------
-AmrData::~AmrData(){
+AmrData::~AmrData() {
 
-   for(int i = 0; i < nRegions; i++) {
-     for(int lev = 0; lev <= finestLevel; lev++) {
+   for(int i = 0; i < nRegions; ++i) {
+     for(int lev = 0; lev <= finestLevel; ++lev) {
        delete regions[lev][i];
      }
    }
-   for(int lev = 0; lev <= finestLevel; lev++) {
+   for(int lev = 0; lev <= finestLevel; ++lev) {
      for(int iComp = 0; iComp < nComp; ++iComp) {
        for(MultiFabIterator mfi(*dataGrids[lev][iComp]); mfi.isValid(); ++mfi) {
          if(dataGridsDefined[lev][iComp][mfi.index()]) {
@@ -602,6 +602,9 @@ bool AmrData::ReadNonPlotfileData(const aString &filename, FileType filetype) {
     for(int iComp = 1; iComp < nComp; ++iComp) {
       dataGrids[0][iComp] = new MultiFab;
       dataGrids[0][iComp]->define(fabBoxArray, nGrow, Fab_noallocate);
+      newfab = new FArrayBox;
+      is.seekg(0, ios::beg);
+      newfab->readFrom(is, iComp);  // read the iComp component
       dataGrids[0][iComp]->setFab(0, newfab);
       dataGridsDefined[0][iComp].resize(1);
       dataGridsDefined[0][iComp][0] = true;

@@ -11,7 +11,6 @@
 #include <stdio.h>
 
 #include "AmrvisConstants.H"
-#include "GraphicsAttributes.H"
 #include "Box.H"
 
 
@@ -22,7 +21,7 @@ public:
   GridPicture();
   ~GridPicture();
   void GridPictureInit(int level, int rratio, int scale,
-    			int picSizeH, int picSizeV, GraphicsAttributes *ga,
+    			int picSizeH, int picSizeV,
 			const Box &overlapbox, const Box &boxWithData,
 			int slicedir);
   void ChangeScale(int newScale, int picSizeH, int picSizeV);
@@ -36,14 +35,12 @@ public:
 private:
 
   Box		overlapBox;
-  unsigned int 	dataSize, dataSizeH, dataSizeV;
-  unsigned int  imageSize, imageSizeH, imageSizeV;
+  unsigned int 	dataSizeH, dataSizeV;
+  unsigned int  imageSizeH, imageSizeV;
   unsigned int	pictureSizeH, pictureSizeV;
-  int		currentScale, previousScale;
-  int		myLevel, refRatio, sliceDir, slice;
+  int		currentScale;
+  int		refRatio, sliceDir;
   Box		imageBox;
-  GraphicsAttributes	*GAptr;
-
 };
 
 #endif

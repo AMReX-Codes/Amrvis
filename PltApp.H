@@ -149,18 +149,20 @@ public:
 					 { return amrPicturePtrArray[plane]; }
 	Palette *GetPalettePtr()         { return pltPaletteptr; }
 	DataServices *GetDataServicesPtr()         { return dataServicesPtr; }
-	int GetActiveView()              { return activeView;    }
+	int GetActiveView() const        { return activeView;    }
 	XtAppContext GetAppContext()     { return appContext;    }
 	Widget GetStopButtonWidget()     { return wControls[WCSTOP]; }
-	int IsAnim()                     { return anim; }
-	int Animating()                  { return ((int) animating); }
-	int CurrentFrame()               { return currentFrame; }
+	int IsAnim()        const        { return anim; }
+	int Animating()     const        { return ((int) animating); }
+	int CurrentFrame()  const        { return currentFrame; }
 	XImage *CurrentFrameXImage()     { return frameBuffer[currentFrame]; }
-	Real GlobalMin()                 { return globalMin; }
-	Real GlobalMax()                 { return globalMax; }
-	int CurrentScale()               { return currentScale; }
-	int PreviousScale()              { return previousScale; }
-	int MinAllowableLevel()          { return minAllowableLevel; }
+	Real GlobalMin()    const        { return globalMin; }
+	Real GlobalMax()    const        { return globalMax; }
+	int CurrentScale()  const        { return currentScale; }
+	int PreviousScale() const        { return previousScale; }
+	int MinAllowableLevel() const    { return minAllowableLevel; }
+	int MinDrawnLevel() const        { return minDrawnLevel; }
+	int MaxDrawnLevel() const        { return maxDrawnLevel; }
 
 	const aString &GetFileName();
 	bool  PaletteDrawn();

@@ -660,6 +660,10 @@ void ParseCommandLine(int argc, char *argv[]) {
     }
   }
 
+  if(fileType == FAB) {
+    nProcs = 1;
+  }
+
 }  // end ParseCommandLine
 
 

@@ -348,9 +348,8 @@ void PltApp::PltAppInit() {
   wLevelOptions = XmCreatePulldownMenu(wAmrVisMenu, "leveloptions", args, i);
   XtVaSetValues(wLevelOptions, XmNuserData, this, NULL);
 
-  int menuLevel;
-  for(menuLevel = minDrawnLevel;
-      menuLevel < amrPicturePtrArray[ZPLANE]->NumberOfLevels(); menuLevel++)
+  for(int menuLevel = minDrawnLevel;
+      menuLevel < amrPicturePtrArray[ZPLANE]->NumberOfLevels(); ++menuLevel)
   {
     sprintf(levelItem, "Level %i/%i", menuLevel, amrData.FinestLevel());
     levelStringList[menuLevel - minDrawnLevel] = XmStringCreateSimple(levelItem);
@@ -1297,11 +1296,10 @@ void PltApp::CBChangeScale(Widget w, XtPointer client_data, XtPointer call_data)
 void PltApp::CBChangeLevel(Widget w, XtPointer client_data,
 				XtPointer call_data)
 {
-  int np;
   unsigned long getobj;
   XtVaGetValues(XtParent(w), XmNuserData, &getobj, NULL);
   PltApp *obj = (PltApp *) getobj;
-  for(np = 0; np < NPLANES; np++) {
+  for(int np = 0; np < NPLANES; ++np) {
     obj->DoChangeLevel(np, w, client_data, call_data);
   }
 }
@@ -1311,7 +1309,6 @@ void PltApp::CBChangeLevel(Widget w, XtPointer client_data,
 void PltApp::CBChangeDerived(Widget w, XtPointer client_data,
 				XtPointer call_data)
 {
-  int np;
   unsigned long getobj;
   XtVaGetValues(XtParent(w), XmNuserData, &getobj, NULL);
   PltApp *obj = (PltApp *) getobj;
@@ -1332,7 +1329,7 @@ void PltApp::CBChangeDerived(Widget w, XtPointer client_data,
   obj->Clear();
 #endif
   obj->paletteDrawn = false;
-  for(np = 0; np < NPLANES; np++) {
+  for(int np = 0; np < NPLANES; ++np) {
     obj->DoChangeDerived(np, w, client_data, call_data);
   }
 }
@@ -1474,7 +1471,7 @@ void PltApp::DoChangeScale(int V) {
 
 // -------------------------------------------------------------------
 void PltApp::DoChangeLevel(int V, Widget, XtPointer client_data, XtPointer) {
-  unsigned long newLevel = (unsigned long) client_data;
+  unsigned long newLevel((unsigned long) client_data);
 
   if(anim) {
     ResetAnimation();
@@ -1485,6 +1482,14 @@ void PltApp::DoChangeLevel(int V, Widget, XtPointer client_data, XtPointer) {
   maxDrawnLevel = newLevel + minDrawnLevel;
 
   amrPicturePtrArray[V]->ChangeLevel(minDrawnLevel, maxDrawnLevel);
+
+  if(V == ZPLANE) {
+    if(! XmToggleButtonGetState(wAutoDraw)) {
+      projPicturePtr->MakeBoxes(); 
+      XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
+      DoExposeTransDA();
+    }
+  }
 }
 
 
@@ -2211,7 +2216,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 	          xyz12 &= subdomain;
 
 	          projPicturePtr->SetSubCut(xyz12); 
-                  projPicturePtr->MakeBoxes();
+                  //projPicturePtr->MakeBoxes();
                   XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
     	          DoExposeTransDA();
                 }
