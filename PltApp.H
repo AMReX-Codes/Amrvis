@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.H,v 1.34 2000-04-21 17:54:06 car Exp $
+// $Id: PltApp.H,v 1.35 2000-06-12 16:10:39 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -59,6 +59,9 @@ struct ClientDataStruct {   // for passing information through client_data
     XtPointer object, data;
     unsigned long tempint1, tempint2;
 };
+
+class XYPlotParameters;
+class XYPlotWin;
 
 typedef void (PltApp::*memberCB)(Widget, XtPointer, XtPointer);
 
@@ -145,8 +148,8 @@ public:
 #endif
 
   void DetachXYPlotWin(int dir) { XYplotwin[dir] = NULL; }
-  class XYPlotParameters *GetXYPlotParameters() { return XYplotparameters; }
-  class XYPlotWin * GetXYPlotWin(int dir) { return XYplotwin[dir]; }
+  XYPlotParameters* GetXYPlotParameters() { return XYplotparameters; }
+  XYPlotWin* GetXYPlotWin(int dir) { return XYplotwin[dir]; }
 
 private:
   Widget wTopLevel, wAmrVisTopLevel;
@@ -175,8 +178,8 @@ private:
 #endif
 #endif
 
-  class XYPlotParameters *XYplotparameters;
-  class XYPlotWin *XYplotwin[BL_SPACEDIM];
+  XYPlotParameters* XYplotparameters;
+  XYPlotWin* XYplotwin[BL_SPACEDIM];
 
   XtAppContext appContext;
   Arg args[MAXARGS];
