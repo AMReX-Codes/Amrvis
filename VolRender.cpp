@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: VolRender.cpp,v 1.32 2000-06-14 21:43:44 car Exp $
+// $Id: VolRender.cpp,v 1.33 2000-08-28 21:47:38 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -281,7 +281,7 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
     }  // end for(gp...)
 
     // ----------------------------------------------------- VolumeBoxes
-    bool bDrawVolumeBoxes(GetBoxColor() > -1);
+    bool bDrawVolumeBoxes(GetBoxColor() > -1);  // need to limit to palmaxindex
     if(bDrawVolumeBoxes) {
       int edger, edgec, edgep;
       int volumeBoxColor(GetBoxColor());
@@ -294,6 +294,11 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
 	const BoxArray &gridBoxes = amrData.boxArray(lev);
 	for(int iGrid = 0; iGrid < gridBoxes.length(); ++iGrid) {
           gbox = gridBoxes[iGrid];
+	  // grow high end by one to eliminate overlap
+	  //gbox.growHi(XDIR, 1);
+	  //gbox.growHi(YDIR, 1);
+	  //gbox.growHi(ZDIR, 1);
+	  //
           Box goverlap(gbox & drawnDomain[lev]);
           grefbox = goverlap;
           grefbox.refine(crr);
@@ -430,13 +435,13 @@ void VolRender::WriteSWFData(const aString &filenamebase, bool SWFLight) {
         bool PCtemp(preClassify);
         preClassify = true;
         //here set lighting or value model
-        bool LMtemp(lightingModel);
+        bool bLMtemp(lightingModel);
         lightingModel = SWFLight;
  
         MakeVPData();
         
         preClassify = PCtemp;
-        lightingModel = LMtemp;
+        lightingModel = bLMtemp;
    
 
   cout << "----- make vp data time = " << ((clock()-time0)/1000000.0) << endl;
@@ -483,7 +488,7 @@ void VolRender::SetLightingModel(bool lightOn) {
   lightingModel = lightOn;
   if(lightingModel == true) {
     vpSetVoxelField(vpc, normalField, normalSize, normalOffset, maxShadeRampPts-1);
-  } else {
+  } else {  // value model
     vpSetVoxelField(vpc, normalField, normalSize, normalOffset, paletteSize-1);
   }
 }
@@ -571,7 +576,7 @@ void VolRender::MakeVPData() {
         vpret = vpClassifyScalars(vpc, swfData, swfDataSize,
                                   densityField, gradientField, normalField);
         CheckVP(vpret, 6);
-      } else {
+      } else {  // value model
         // the classification and loading of the value model
         delete [] volData;
         volData = new RawVoxel[swfDataSize]; // volpack will delete this
@@ -591,7 +596,7 @@ void VolRender::MakeVPData() {
         CheckVP(vpret, 9.5);
         
       }
-    } else {  // value rendering --
+    } else {
       // load the volume data and precompute the minmax octree
       if(lightingModel) {
         delete [] volData;
@@ -607,7 +612,7 @@ void VolRender::MakeVPData() {
                                 densityField, gradientField, normalField);
         CheckVP(vpret, 6.1);
         
-      } else {
+      } else {  // value model
         delete [] volData;
         volData = new RawVoxel[swfDataSize]; 
         int xStride(sizeof(RawVoxel));
@@ -662,7 +667,7 @@ void VolRender::MakeVPData() {
       vpret = vpShadeTable(vpc);
       CheckVP(vpret, 8);
 
-    } else {
+    } else {  // value model
       BL_ASSERT(palettePtr != NULL);
       for(int sn = 0; sn < paletteSize; ++sn) {
         value_shade_table[sn] = (float) sn;
@@ -757,7 +762,7 @@ void VolRender::SetProperties() {
   if(lightingModel) {
     vpSetVoxelField(vpc,  normalField, normalSize, normalOffset,
                   maxShadeRampPts-1);
-  } else {
+  } else {  // value model
     vpSetVoxelField(vpc,  normalField, normalSize, normalOffset,
                     paletteSize - 1);
   }
