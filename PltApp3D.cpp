@@ -53,9 +53,10 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
       endY = cbs->event->xbutton.y;
      if (cbs->event->xbutton.state & ShiftMask)
       {
-          Real x = 0; Real y = 0;
-          viewTrans.GetTranslation(x, y);
-          viewTrans.SetTranslation(x-(startX-endX), y+(startY-endY) );
+          //Real x = 0; Real y = 0;
+          //viewTrans.GetTranslation(x, y);
+          viewTrans.MakeTranslation(startX, startY, endX, endY, 
+                                    projPicturePtr->longestBoxSide/64.);
       } else {
           quatRotation = viewTrans.GetRotation();
           quatRotation2 = viewTrans.GetRenderRotation();
@@ -598,7 +599,7 @@ void PltApp::DoAutoDraw(Widget w, XtPointer, XtPointer) {
 void PltApp::DoOrient(Widget w, XtPointer, XtPointer) {
     viewTrans.SetRotation(AmrQuaternion());
     viewTrans.SetRenderRotation(AmrQuaternion());
-    viewTrans.SetTranslation(0., 0.);
+    viewTrans.ResetTranslation();
   viewTrans.MakeTransform();
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);

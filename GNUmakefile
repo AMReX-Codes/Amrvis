@@ -4,8 +4,8 @@ PROFILE   = TRUE
 PROFILE   = FALSE
 
 COMP      = KCC
-DEBUG     = TRUE
 DEBUG     = FALSE
+DEBUG     = TRUE
 DIM       = 2
 DIM       = 3
 

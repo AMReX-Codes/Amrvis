@@ -526,7 +526,7 @@ void VolRender::SetImage(unsigned char *image_data, int width, int height,
     vpSetImage(vpc, image_data, width, height, width, pixel_type);
 }
 
-void VolRender::MakePicture(Real mvmat[4][4], Real Aspect, Real longWinLen,
+Real VolRender::MakePicture(Real mvmat[4][4], Real longWinLen,
                             Real *scalePtr, int longBoxSideDir, 
                             Real longBoxSide, int width, int height)
 {
@@ -538,19 +538,19 @@ void VolRender::MakePicture(Real mvmat[4][4], Real Aspect, Real longWinLen,
 
     Real lenRatio = longWinLen/(scalePtr[longBoxSideDir]*longBoxSide);
     Real Len = 0.5*lenRatio;
+    vpLen = Len;
   if(width < height) {    // undoes volpacks aspect ratio scaling
-    vpWindow(vpc, VP_PARALLEL, -Len*Aspect, Len*Aspect,
+    vpWindow(vpc, VP_PARALLEL, -Len*vpAspect, Len*vpAspect,
 			       -Len, Len,
 			       -Len, Len);
   } else {
     vpWindow(vpc, VP_PARALLEL, -Len, Len,
-			       -Len*Aspect, Len*Aspect,
+			       -Len*vpAspect, Len*vpAspect,
 			       -Len, Len);
   }
-  
 
   vpResult vpret;
-  
+
   if(lightingModel) {
       vpret = vpShadeTable(vpc);
       CheckVP(vpret, 12);
@@ -565,6 +565,7 @@ void VolRender::MakePicture(Real mvmat[4][4], Real Aspect, Real longWinLen,
       vpret = vpRenderRawVolume(vpc);
       CheckVP(vpret, 11.2);
   }
+  return Len;
 }
 
 // -------------------------------------------------------------------

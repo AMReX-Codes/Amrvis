@@ -67,7 +67,7 @@ public:
                                 int iBlackIndex, int iWhiteIndex,
                                 int iColorSlots);
     
-    void MakePicture(Real mvmat[4][4], Real Aspect, Real longWinLen,
+    Real MakePicture(Real mvmat[4][4], Real longWinLen,
                      Real *scalePtr, int longBoxSideDir, 
                      Real longBoxSide, int width, int height);
     
@@ -89,7 +89,9 @@ public:
     bool            GetLightingModel() { return lightingModel; }
     void            SetPreClassifyAlgorithm(bool);
     bool            GetPreClassifyAlgorithm() { return preClassify; }
+    void SetAspect( Real newAspect) { vpAspect = newAspect; }
 private:
+    Real vpLen, vpAspect;
     bool            lightingModel, preClassify;
     int voxelFields;
     int normalField, normalOffset, normalSize, normalMax;

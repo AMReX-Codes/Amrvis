@@ -234,10 +234,13 @@ void ProjectionPicture::MakePicture() {
 
   Real mvmat[4][4];
   viewTransformPtr->GetRenderRotationMat(mvmat);
-  volRender->MakePicture(mvmat, aspect, longestWindowLength,
-                         scale, longestBoxSideDir, longestBoxSide,
-                         daWidth, daHeight);
- 
+  Real tempLen =   volRender->MakePicture(mvmat, longestWindowLength,
+                                          scale, longestBoxSideDir, 
+                                          longestBoxSide,
+                                          daWidth, daHeight);
+  cout<<"Setting Adjustments"<<endl;
+  viewTransformPtr->SetAdjustments(tempLen, daWidth, daHeight);
+  
   // map imageData colors to colormap range
   Palette *palPtr = pltAppPtr->GetPalettePtr();
   if(palPtr->ColorSlots() != palPtr->PaletteSize()) {
@@ -511,7 +514,8 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
 
   longestWindowLength  = (Real) Max(daWidth, daHeight);
   shortestWindowLength = (Real) Min(daWidth, daHeight);
-  aspect = shortestWindowLength/longestWindowLength;
+  volRender->SetAspect(shortestWindowLength/longestWindowLength);
+  viewTransformPtr->SetAspect(shortestWindowLength/longestWindowLength);
 
   Box alignedBox(theDomain[minDrawnLevel]);
   const AmrData &amrData = pltAppPtr->GetDataServicesPtr()->AmrDataRef();

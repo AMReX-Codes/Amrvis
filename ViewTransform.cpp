@@ -17,9 +17,10 @@ ViewTransform::ViewTransform()
   objCenterY = 0.0;
   objCenterZ = 0.0;
   scale = 1.0;
-  transX = 0.0;
-  transY = 0.0;
+  boxTransX = renTransX = 0.0;
+  boxTransY = renTransY = 0.0;
   MakeTransform();
+  txAdjust = tyAdjust = 1.;
 }
 
 
@@ -41,7 +42,21 @@ AmrQuaternion ViewTransform::Screen2Quat(int start_X, int start_Y,
                      xWorldStart/box_size, yWorldStart/box_size);
 }
 
-
+void ViewTransform::MakeTranslation(int start_X, int start_Y, 
+                                    int end_X, int end_Y, Real box_size) {
+    //norm coord. onto [-1,1] by [-1,1] grid
+    Real xWorldStart = (Real)(start_X)/
+        (screenPositionX);
+    Real yWorldStart = (Real)(start_Y)/
+        (screenPositionY);
+    Real xWorldEnd = (Real)(end_X)/(screenPositionX);
+    Real yWorldEnd = (Real)(end_Y)/(screenPositionY);
+    renTransX += (xWorldEnd - xWorldStart);
+    renTransY += (yWorldEnd - yWorldStart);
+    // that isn't right for the boxes
+    boxTransX += (end_X - start_X);
+    boxTransY += (start_Y - end_Y);
+}
 
 // -------------------------------------------------------------------
 void ViewTransform::TransformPoint(Real x, Real y, Real z,
@@ -71,15 +86,29 @@ void ViewTransform::Print()const {
 }
 
 
+
 // -------------------------------------------------------------------
-void ViewTransform::MakeTransform() {//ugh  full of hacks
+void ViewTransform::MakeTransform() {//ugh  full of hacks, the constants
   rotation.tomatrix(mRotation);
-  mRotation[0][3] = transX*0.2/sqrt(scale);
-  mRotation[1][3] = transY*0.2/sqrt(scale);
+  mRotation[0][3] = boxTransX*0.185;
+  mRotation[1][3] = boxTransY*0.185;
   renderRotation.tomatrix(mRenderRotation);
-  mRenderRotation[0][3] = transX*0.003/scale;
-  mRenderRotation[1][3] = -transY*0.003/scale;
+  mRenderRotation[0][3] = (renTransX)*txAdjust*0.2;
+  mRenderRotation[1][3] = (renTransY)*tyAdjust*0.2;
+  ViewRotationMat();
 }
+
+void ViewTransform::SetAdjustments(Real len, int width, int height) {
+    cout<<"len and aspect:  "<<len<<" "<<vtAspect<<endl;
+    if (width < height) {
+        txAdjust = len*vtAspect;
+        tyAdjust = len;
+    } else {
+        txAdjust = len;
+        tyAdjust = len*vtAspect;
+    }
+}
+
 
 
 // -------------------------------------------------------------------

@@ -148,7 +148,7 @@ private:
     Array<Box> theDomain;
     char buffer[BUFSIZ];
     PltApp *pltAppPtr;
-    Real scale[3], aspect, lenRatio, vpLen;
+    Real scale[3];
     Real longestWindowLength, shortestWindowLength;
     int		longestBoxSideDir;
     int		nDenRampPts, nGradRampPts, nShadeRampPts;
