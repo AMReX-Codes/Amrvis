@@ -1,6 +1,6 @@
 
 //
-// $Id: Quaternion.H,v 1.7 2000-11-22 00:23:45 vince Exp $
+// $Id: Quaternion.H,v 1.8 2003-09-11 00:02:14 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -32,75 +32,70 @@ where r is an increment which is successively applied to a position q.
 
 ***************************************************************************/
 
-class AmrQuaternion
-{
-  Real w, x, y, z;
-public:
-  AmrQuaternion()  { w=1.;  x=y=z=0.; }		//  The identity rotation
-  AmrQuaternion(Real W, Real X, Real Y, Real Z)  { w=W; x=X; y=Y; z=Z; }
-  AmrQuaternion(Real, Real, Real, Real, Real, Real);
-  //returns a quaternion that rotates p1 to p2
-  AmrQuaternion(const AmrSpherePoint &p1, const AmrSpherePoint &p2);
-  AmrQuaternion operator *(const AmrQuaternion &q) const;//right-mult by q
-  AmrQuaternion operator /(const AmrQuaternion &q) const;//right-mult by q^-1
-  AmrQuaternion operator *=(const AmrQuaternion &q);	//right-mult by q
-  AmrQuaternion operator /=(const AmrQuaternion &q);	//right-mult by q^-1
-  friend AmrQuaternion inverse(const AmrQuaternion &q);//  inverse
-  
-  Real InfNorm() const;
-  void tomatrix( Real m[4][4] ) const;
+class AmrQuaternion {
+  private:
+    Real w, x, y, z;
 
-  Real QW() const { return w; }
-  Real QX() const { return x; }
-  Real QY() const { return y; }
-  Real QZ() const { return z; }
+  public:
+    AmrQuaternion()  { w=1.;  x=y=z=0.; }		    // identity rotation
+    AmrQuaternion(Real W, Real X, Real Y, Real Z)  { w=W; x=X; y=Y; z=Z; }
+    AmrQuaternion(Real, Real, Real, Real, Real, Real);
+    //returns a quaternion that rotates p1 to p2
+    AmrQuaternion(const AmrSpherePoint &p1, const AmrSpherePoint &p2);
+    AmrQuaternion operator*(const AmrQuaternion &q) const;  // right-mult by q
+    AmrQuaternion operator/(const AmrQuaternion &q) const;  // right-mult by q^-1
+    AmrQuaternion operator*=(const AmrQuaternion &q);	    // right-mult by q
+    AmrQuaternion operator/=(const AmrQuaternion &q);	    // right-mult by q^-1
+    friend AmrQuaternion inverse(const AmrQuaternion &q);   // inverse
   
-  friend ostream& operator<<( ostream &s, const AmrQuaternion &q);
+    Real InfNorm() const;
+    void tomatrix( Real m[4][4] ) const;
+
+    Real QW() const { return w; }
+    Real QX() const { return x; }
+    Real QY() const { return y; }
+    Real QZ() const { return z; }
+  
+    friend ostream& operator<<( ostream &s, const AmrQuaternion &q);
 };
 
-inline AmrQuaternion AmrQuaternion::operator *(const AmrQuaternion &q) const
-{
-  return AmrQuaternion(	w*q.w - x*q.x - y*q.y - z*q.z,
-			x*q.w + w*q.x + y*q.z - z*q.y,
-			y*q.w + w*q.y + z*q.x - x*q.z,
-			z*q.w + w*q.z + x*q.y - y*q.x );
+inline AmrQuaternion AmrQuaternion::operator*(const AmrQuaternion &q) const {
+  return AmrQuaternion(w*q.w - x*q.x - y*q.y - z*q.z,
+		       x*q.w + w*q.x + y*q.z - z*q.y,
+		       y*q.w + w*q.y + z*q.x - x*q.z,
+		       z*q.w + w*q.z + x*q.y - y*q.x);
 }
 
-inline AmrQuaternion AmrQuaternion::operator /(const AmrQuaternion &q) const
-{
-  return AmrQuaternion(	w*q.w + x*q.x + y*q.y + z*q.z,
-			x*q.w - w*q.x - y*q.z + z*q.y,
-			y*q.w - w*q.y - z*q.x + x*q.z,
-			z*q.w - w*q.z - x*q.y + y*q.x );
+inline AmrQuaternion AmrQuaternion::operator/(const AmrQuaternion &q) const {
+  return AmrQuaternion(w*q.w + x*q.x + y*q.y + z*q.z,
+		       x*q.w - w*q.x - y*q.z + z*q.y,
+		       y*q.w - w*q.y - z*q.x + x*q.z,
+		       z*q.w - w*q.z - x*q.y + y*q.x);
 }
 
-inline AmrQuaternion AmrQuaternion::operator *=(const AmrQuaternion &q)
-{
-  Real ww = w*q.w - x*q.x - y*q.y - z*q.z;
-  Real xx = x*q.w + w*q.x + y*q.z - z*q.y;
-  Real yy = y*q.w + w*q.y + z*q.x - x*q.z;
-  Real zz = z*q.w + w*q.z + x*q.y - y*q.x;
-  w=ww;  x=xx;  y=yy;  z=zz;
+inline AmrQuaternion AmrQuaternion::operator*=(const AmrQuaternion &q) {
+  Real ww(w*q.w - x*q.x - y*q.y - z*q.z);
+  Real xx(x*q.w + w*q.x + y*q.z - z*q.y);
+  Real yy(y*q.w + w*q.y + z*q.x - x*q.z);
+  Real zz(z*q.w + w*q.z + x*q.y - y*q.x);
+  w = ww;  x = xx;  y = yy;  z = zz;
   return *this;
 }
 
-inline AmrQuaternion AmrQuaternion::operator /=(const AmrQuaternion &q)
-{
-  Real ww = w*q.w + x*q.x + y*q.y + z*q.z;
-  Real xx = x*q.w - w*q.x - y*q.z + z*q.y;
-  Real yy = y*q.w - w*q.y - z*q.x + x*q.z;
-  Real zz = z*q.w - w*q.z - x*q.y + y*q.x;
-  w=ww;  x=xx;  y=yy;  z=zz;
+inline AmrQuaternion AmrQuaternion::operator/=(const AmrQuaternion &q) {
+  Real ww(w*q.w + x*q.x + y*q.y + z*q.z);
+  Real xx(x*q.w - w*q.x - y*q.z + z*q.y);
+  Real yy(y*q.w - w*q.y - z*q.x + x*q.z);
+  Real zz(z*q.w - w*q.z - x*q.y + y*q.x);
+  w = ww;  x = xx;  y = yy;  z = zz;
   return *this;
 }
 
-inline AmrQuaternion inverse(const AmrQuaternion &q)
-{
+inline AmrQuaternion inverse(const AmrQuaternion &q) {
   return AmrQuaternion( q.w, -q.x, -q.y, -q.z );
 }
 
-inline ostream& operator << ( ostream &s, const AmrQuaternion &q)
-{
+inline ostream& operator<<( ostream &s, const AmrQuaternion &q) {
   return s << "AmrQuaternion( " << q.w << " , " << q.x << " , "
            << q.y << " , " << q.z << " )";
 }

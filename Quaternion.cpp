@@ -1,6 +1,6 @@
 
 //
-// $Id: Quaternion.cpp,v 1.12 2002-02-19 20:39:41 vince Exp $
+// $Id: Quaternion.cpp,v 1.13 2003-09-11 00:02:14 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -21,11 +21,11 @@
 AmrQuaternion::AmrQuaternion(const AmrSpherePoint &s1, 
                              const AmrSpherePoint &s2)
 {
-  Real c(s1 * s2);			//  cosine of rotation angle
-  Real xn(Y(s1) * Z(s2) - Z(s1) * Y(s2));   //  unnormalized axis of rotation
+  Real c(s1 * s2);			   // cosine of rotation angle
+  Real xn(Y(s1) * Z(s2) - Z(s1) * Y(s2));  // unnormalized axis of rotation
   Real yn(Z(s1) * X(s2) - X(s1) * Z(s2));
   Real zn(X(s1) * Y(s2) - Y(s1) * X(s2));
-  Real ch(sqrt(0.5 * (1.0 + c)));	//  cosine of half rotation angle
+  Real ch(sqrt(0.5 * (1.0 + c)));	   // cosine of half rotation angle
   Real chTemp(0.5 / ch);
   
   w = ch;
@@ -39,11 +39,11 @@ AmrQuaternion::AmrQuaternion(const AmrSpherePoint &s1,
 // defines the quaternion that rotates (x1,y1,z1) to (x2,y2,z2)
 // ---------------------------------------------------------------
 AmrQuaternion::AmrQuaternion(Real x1,Real y1,Real z1,Real x2,Real y2,Real z2) {
-  Real c(x1 * x2 + y1 * y2 + z1 * z2);			//  cosine of rotation angle
-  Real xn(y1 * z2 - z1 * y2);   //  unnormalized axis of rotation
+  Real c(x1 * x2 + y1 * y2 + z1 * z2);	// cosine of rotation angle
+  Real xn(y1 * z2 - z1 * y2);           // unnormalized axis of rotation
   Real yn(z1 * x2 - x1 * z2);
   Real zn(x1 * y2 - y1 * x2);
-  Real ch(sqrt(0.5 * (1.0 + c)));	//  cosine of half rotation angle
+  Real ch(sqrt(0.5 * (1.0 + c)));	// cosine of half rotation angle
   Real chTemp(0.5 / ch);
   
   w = ch;
@@ -55,15 +55,9 @@ AmrQuaternion::AmrQuaternion(Real x1,Real y1,Real z1,Real x2,Real y2,Real z2) {
 
 // ---------------------------------------------------------------
 void AmrQuaternion::tomatrix( Real m[4][4] ) const {
-  Real wx(w * x);
-  Real wy(w * y);
-  Real wz(w * z);
-  Real xz(x * z);
-  Real yz(y * z);
-  Real xy(x * y);
-  Real xx(x * x);
-  Real yy(y * y);
-  Real zz(z * z);
+  Real wx(w * x), wy(w * y), wz(w * z);
+  Real xz(x * z), yz(y * z), xy(x * y);
+  Real xx(x * x), yy(y * y), zz(z * z);
   
   m[0][0] = 1.-2.*(yy+zz);  m[0][1] = 2.*(xy-wz);    m[0][2] = 2.*(xz+wy);
   m[1][0] = 2.*(xy+wz);     m[1][1]= 1.-2.*(zz+xx);  m[1][2] = 2.*(yz-wx);
@@ -81,7 +75,7 @@ Real AmrQuaternion::InfNorm() const {
   this->tomatrix(mat);
   Real max(0.0);
   Real sum(0.0);
-  for(int i = 0; i < 3; ++i) {
+  for(int i(0); i < 3; ++i) {
     sum = mat[i][0] + mat[i][1] + mat[i][2];
     max = (sum > max ? sum : max );
   }
