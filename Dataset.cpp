@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.56 2004-08-05 17:54:24 vince Exp $
+// $Id: Dataset.cpp,v 1.57 2004-09-21 22:50:34 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1014,7 +1014,14 @@ void Dataset::DoExpose(int fromExpose) {
             }  // end for
           }  // end for
         } else {
-            XSetForeground(XtDisplay(wPixArea), gaPtr->PGC(), whiteIndex);
+	    Pixel foregroundPix, backgroundPix;
+	    XtVaGetValues(wPixArea,
+	                  XmNforeground, &foregroundPix,
+			  XmNbackground, &backgroundPix,
+			  NULL);
+
+            //XSetForeground(XtDisplay(wPixArea), gaPtr->PGC(), whiteIndex);
+            XSetForeground(XtDisplay(wPixArea), gaPtr->PGC(), foregroundPix);
             for(int lvl(minDrawnLevel); lvl <= maxDrawnLevel; ++lvl) {
               for(stringCount=0; stringCount < myStringCount[lvl]; ++stringCount) {
                 xloc = myDataStringArray[lvl][stringCount].xloc;
