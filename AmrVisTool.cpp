@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrVisTool.cpp,v 1.34 1999-01-07 21:08:56 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.35 1999-03-31 22:52:28 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -32,6 +32,10 @@
 #include <ToggleB.h>
 #include <ToggleBG.h>
 #include <Xos.h>
+// BoxLib has index member functions, Xos might define it (LessTif).
+#ifdef index
+#undef index
+#endif
 
 #include "MessageArea.H"
 #include "GraphicsAttributes.H"

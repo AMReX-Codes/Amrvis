@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Output.cpp,v 1.12 1998-10-30 18:43:06 lijewski Exp $
+// $Id: Output.cpp,v 1.13 1999-03-31 22:52:28 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -194,6 +194,12 @@ void WriteRGBFile(char *filename, XImage *ximage,
   }
   iclose(image);
 }
+
+#ifdef BL_Linux
+#define _IOWRT 0002
+#define _IOERR 0040
+#define _IORW  0400
+#endif
 
 // -------------------------------------------------------------
 IMAGE *iopen(char *file, unsigned int type, unsigned int dim,

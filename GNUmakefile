@@ -19,8 +19,8 @@ USE_ARRAYVIEW = FALSE
 USE_MPI=FALSE
 USE_MPI=TRUE
 
-USE_VOLRENDER = FALSE
 USE_VOLRENDER = TRUE
+USE_VOLRENDER = FALSE
 
 USE_PARALLELVOLRENDER = TRUE
 USE_PARALLELVOLRENDER = FALSE
@@ -76,7 +76,11 @@ ifeq ($(USE_MPI), TRUE)
 ifeq ($(USE_UPSHOT), TRUE)
 LIBRARIES += -llmpi -lpmpi
 endif
+ifeq ($(MACHINE), Linux)
+LIBRARIES += -lmpich
+else
 LIBRARIES += -lmpi
+endif
 endif
 
 
@@ -98,6 +102,15 @@ endif
 ############################################### x includes and libraries
 ifeq ($(MACHINE), OSF1)
 INCLUDE_LOCATIONS += /usr/include/X11 /usr/include/Xm /usr/include/X11/Xaw
+LIBRARIES += -lXm -lXt -lX11
+endif
+
+ifeq ($(MACHINE), Linux)
+INCLUDE_LOCATIONS += /usr/X11R6/include/X11
+INCLUDE_LOCATIONS += /usr/local/include
+INCLUDE_LOCATIONS += /usr/local/include/Xm
+LIBRARY_LOCATIONS += /usr/local/lib
+LIBRARY_LOCATIONS += /usr/X11R6/lib
 LIBRARIES += -lXm -lXt -lX11
 endif
 
@@ -168,7 +181,7 @@ FOPTF  = -fast -O5 -tune ev5
 endif
 endif
 
-FDEBF += -C -fpe0
+#FDEBF += -C -fpe0
 
 ############################################### 3rd analyzer
 #CXXDEBF = +K0 --link_command_prefix 3rd
