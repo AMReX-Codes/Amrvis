@@ -9,16 +9,14 @@
 // I N C L U D E S
 /////////////////////////////////////////////
 
-//#include <malloc.h>
-#include <ctype.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <strings.h>
-#include <X11/Xos.h>
+#include <X11/X.h>
 #include <X11/Xlib.h>
-#include <X11/Xutil.h>
-#include <X11/cursorfont.h>
-#undef index
+
+#ifdef BL_USE_NEW_HFILES
+#include <cctype>
+#else
+#include <ctype.h>
+#endif
 
 /////////////////////////////////////////////
 // D E F I N I T I O N S

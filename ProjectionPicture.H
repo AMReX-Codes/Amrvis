@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ProjectionPicture.H,v 1.16 2000-06-13 23:18:21 car Exp $
+// $Id: ProjectionPicture.H,v 1.17 2000-06-14 20:08:28 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -10,8 +10,7 @@
 #ifndef _PROJECTIONPICTURE_H_
 #define _PROJECTIONPICTURE_H_
 
-#include <Xm.h>
-#include <DrawingA.h>
+#include <Xm/Xm.h>
 #undef index
 
 #include "AmrPicture.H" 

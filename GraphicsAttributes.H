@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GraphicsAttributes.H,v 1.10 2000-06-13 23:18:20 car Exp $
+// $Id: GraphicsAttributes.H,v 1.11 2000-06-14 20:08:26 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -12,10 +12,8 @@
 
 #include "AmrvisConstants.H"
 
-#include <X.h>
-#include <Xlib.h>
-#include <Intrinsic.h>
-#include <StringDefs.h>
+#include <X11/X.h>
+#include <X11/Intrinsic.h>
 #undef index
 
 extern "C" {

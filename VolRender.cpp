@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: VolRender.cpp,v 1.29 1999-05-10 18:54:19 car Exp $
+// $Id: VolRender.cpp,v 1.30 2000-06-14 20:08:28 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -58,7 +58,7 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
   //voxel field variables:
   normalField = 0;
   normalOffset = vpFieldOffset(dummy_voxel, normal);
-  normalSize = sizeof(short);
+  normalSize = 2;		// sizeof(short); on a t3e this will want to be 2
   normalMax = VP_NORM_MAX;
 
   densityField = 1;

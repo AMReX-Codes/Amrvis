@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.cpp,v 1.62 2000-06-14 00:53:20 car Exp $
+// $Id: PltApp.cpp,v 1.63 2000-06-14 20:08:27 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,28 +9,30 @@
 // ---------------------------------------------------------------
 #include "PltApp.H"
 
-#include <MainW.h>
-#include <PushB.h>
-#include <PushBG.h>
-#include <FileSB.h>
-#include <Label.h>
-#include <LabelG.h>
-#include <RowColumn.h>
-#include <Form.h>
-#include <DrawingA.h>
-#include <Text.h>
-#include <ScrolledW.h>
-#include <TextF.h>
-#include <ToggleB.h>
-#include <SelectioB.h>
-#include <List.h>
-#include <Scale.h>
-#include <SeparatoG.h>
+#include <Xm/Protocols.h>
+#include <Xm/ToggleBG.h>
+//  #include <MainW.h>
+#include <Xm/PushB.h>
+#include <Xm/PushBG.h>
+#include <Xm/FileSB.h>
+#include <Xm/Label.h>
+#include <Xm/LabelG.h>
+#include <Xm/RowColumn.h>
+#include <Xm/Form.h>
+#include <Xm/DrawingA.h>
+#include <Xm/Text.h>
+#include <Xm/ScrolledW.h>
+#include <Xm/TextF.h>
+#include <Xm/ToggleB.h>
+//  #include <SelectioB.h>
+#include <Xm/List.h>
+#include <Xm/Scale.h>
+#include <Xm/SeparatoG.h>
+#include <Xm/Frame.h>
+#include <Xm/ArrowB.h>
+#include <Xm/CascadeB.h>
 
-#include <cursorfont.h>
-#include <ArrowB.h>
-#include <CascadeB.h>
-#include <Frame.h>
+#include <X11/cursorfont.h>
 
 #if defined(BL_PARALLELVOLUMERENDER)
 #include <PVolRender.H>
@@ -3576,7 +3578,7 @@ void PltApp::ShowFrame() {
     amrPicturePtrArray[ZPLANE]->CreatePicture(XtWindow(wPlotPlane[ZPLANE]),
 					      pltPaletteptr, tempString);
     AddStaticEventHandler(wPlotPlane[ZPLANE], ExposureMask,
-			  DoExposePicture, (XtPointer) ZPLANE);
+			  &PltApp::DoExposePicture, (XtPointer) ZPLANE);
     frameBuffer[currentFrame] = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
 #   endif
     readyFrames[currentFrame] = true;

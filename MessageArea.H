@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: MessageArea.H,v 1.4 1998-10-29 23:56:08 vince Exp $
+// $Id: MessageArea.H,v 1.5 2000-06-14 20:08:26 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -10,7 +10,8 @@
 #ifndef _MESSAGEAREA_H
 #define _MESSAGEAREA_H
 
-#include <Text.h>
+#include <Xm/Xm.h>
+#include <Xm/Text.h>
 
 class cMessageArea {
   private:

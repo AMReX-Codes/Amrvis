@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GraphicsAttributes.cpp,v 1.9 2000-06-13 23:18:20 car Exp $
+// $Id: GraphicsAttributes.cpp,v 1.10 2000-06-14 20:08:26 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,7 +9,6 @@
 // ---------------------------------------------------------------
 #ifdef BL_USE_NEW_HFILES
 #include <iostream>
-#include <cassert>
 using std::cerr;
 using std::endl;
 #else
@@ -17,7 +16,12 @@ using std::endl;
 #endif
 
 #include "GraphicsAttributes.H"
-#include <Xlibint.h>
+#include <X11/X.h>
+#include <X11/Xlib.h>
+#include <X11/Intrinsic.h>
+//  #include <X11/StringDefs.h>
+//  #include <X11/Xlibint.h>
+#undef index
 
 
 // -------------------------------------------------------------------

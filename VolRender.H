@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: VolRender.H,v 1.19 1999-03-08 22:00:49 vince Exp $
+// $Id: VolRender.H,v 1.20 2000-06-14 20:08:28 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,12 +9,6 @@
 // ---------------------------------------------------------------
 #ifndef _VOLRENDER_H_
 #define _VOLRENDER_H_
-
-#ifdef BL_USE_NEW_HFILES
-#include <cstdio>
-#else
-#include <stdio.h>
-#endif
 
 #include "aString.H" 
 #include "Array.H" 

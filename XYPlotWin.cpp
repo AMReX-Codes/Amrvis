@@ -2,9 +2,43 @@
 // XYPlotWin.cpp
 // ---------------------------------------------------------------
 
+#include <Xm/AtomMgr.h>
+#include <Xm/Protocols.h>
+#include <Xm/Form.h>
+#include <Xm/RowColumn.h>
+#include <Xm/CascadeB.h>
+#include <Xm/PushBG.h>
+#include <Xm/PushB.h>
+#include <Xm/CascadeBG.h>
+//  #include <Xm/MenuShell.h>
+#include <Xm/Frame.h>
+#include <Xm/ScrolledW.h>
+#include <Xm/DrawingA.h>
+//  #include <Xm/DrawnB.h>
+#include <Xm/Text.h>
+#include <Xm/DialogS.h>
+#include <Xm/LabelG.h>
+//  #include <Xm/PanedW.h>
+#include <Xm/ToggleBG.h>
+#include <Xm/ToggleB.h>
+#include <Xm/FileSB.h>
+#include <Xm/MessageB.h>
+
+#include <X11/Xos.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+#include <X11/cursorfont.h>
+#include <X11/keysym.h>
+
 #include "XYPlotWin.H"
+#ifdef BL_USE_NEW_HFILES
+#include <iostream>
+#include <iomanip>
+using std::setw;
+#else
 #include <iostream.h>
 #include <iomanip.h>
+#endif
 
 #define STRDUP(xx) (strcpy(new char[strlen(xx)+1], (xx)))
 #define MARK (fprintf(stderr, "Mark at file %s, line %d.\n", __FILE__, __LINE__))

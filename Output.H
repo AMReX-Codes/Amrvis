@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Output.H,v 1.7 1998-10-29 23:56:08 vince Exp $
+// $Id: Output.H,v 1.8 2000-06-14 20:08:27 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -10,7 +10,7 @@
 #ifndef _OUTPUT_H_
 #define _OUTPUT_H_
 
-#include <Intrinsic.h>
+#include <X11/Xlib.h>
 
 #include "REAL.H"
 #include "Array.H"

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.H,v 1.35 2000-06-12 16:10:39 car Exp $
+// $Id: PltApp.H,v 1.36 2000-06-14 20:08:27 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -10,8 +10,8 @@
 #ifndef _PLTAPP_H_
 #define _PLTAPP_H_
 
-#include <Xm.h>
-#include <Intrinsic.h>
+#include <Xm/Xm.h>
+#include <X11/Intrinsic.h>
 #undef index
 
 #include "AmrvisConstants.H"
@@ -62,6 +62,7 @@ struct ClientDataStruct {   // for passing information through client_data
 
 class XYPlotParameters;
 class XYPlotWin;
+class Dataset;
 
 typedef void (PltApp::*memberCB)(Widget, XtPointer, XtPointer);
 

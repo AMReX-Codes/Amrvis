@@ -12,11 +12,11 @@ DEBUG     = FALSE
 DEBUG     = TRUE
 DIM       = 2
 DIM       = 3
-NAMESPACE = TRUE
 NAMESPACE = FALSE
+NAMESPACE = TRUE
 
-STRICTLY  = TRUE
 STRICTLY  = FALSE
+STRICTLY  = TRUE
 
 USE_ARRAYVIEW = TRUE
 USE_ARRAYVIEW = FALSE
@@ -60,11 +60,9 @@ endif
 
 DEFINES += -DBL_PARALLEL_IO
 
-ifeq ($(COMP),KCC)
-  ifeq ($(KCC_VERSION),3.3)
+ifeq ($(MACHINE),OSF1)
+  ifeq ($(COMP),KCC)
     CXXFLAGS += --diag_suppress 837
-    CXXOPTF  += -Olimit 2400
-    #CXXFLAGS += -fprm n -fptm u
   endif
 endif
 
@@ -77,9 +75,7 @@ ifeq ($(MACHINE), OSF1)
 endif
 
 ifeq ($(MACHINE), Linux)
-  INCLUDE_LOCATIONS += /usr/X11R6/include/X11
   INCLUDE_LOCATIONS += /usr/X11R6/include
-  INCLUDE_LOCATIONS += /usr/X11R6/include/Xm
   LIBRARY_LOCATIONS += /usr/X11R6/lib
   LIBRARIES += -lXm -lXp -lXt -lXext -lSM -lICE -lXpm -lX11
 endif

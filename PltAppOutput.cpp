@@ -1,8 +1,13 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltAppOutput.cpp,v 1.17 2000-04-04 00:18:24 vince Exp $
+// $Id: PltAppOutput.cpp,v 1.18 2000-06-14 20:08:28 car Exp $
 //
+
+#include <Xm/Xm.h>
+#include <Xm/SelectioB.h>
+#include <Xm/ToggleB.h>
+#include <Xm/Text.h>
 
 // ---------------------------------------------------------------
 // PltAppOutput.cpp

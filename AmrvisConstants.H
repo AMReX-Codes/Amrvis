@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrvisConstants.H,v 1.5 1999-04-13 23:39:59 vince Exp $
+// $Id: AmrvisConstants.H,v 1.6 2000-06-14 20:08:25 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -10,7 +10,7 @@
 #ifndef _AMRVISCONSTANTS_H
 #define _AMRVISCONSTANTS_H
 
-#include "REAL.H"
+#include <REAL.H>
 #ifdef BL_USE_NEW_HFILES
 #include <cfloat>
 #else

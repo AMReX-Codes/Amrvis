@@ -1,12 +1,16 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Output.cpp,v 1.15 1999-05-10 18:54:18 car Exp $
+// $Id: Output.cpp,v 1.16 2000-06-14 20:08:27 car Exp $
 //
 
 // ---------------------------------------------------------------
 // Output.cpp
 // ---------------------------------------------------------------
+#include <X11/X.h>
+#include <X11/Xlib.h>
+#include <X11/Xutil.h>
+
 #include "Output.H"
 
 #include <fcntl.h>

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.H,v 1.14 2000-06-14 00:53:20 car Exp $
+// $Id: Palette.H,v 1.15 2000-06-14 20:08:27 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -20,12 +20,8 @@ const int TEXTCOLOR       = 224;
 const int TOTALPALHEIGHT  = 280;
 const int TOTALPALWIDTH   = 150;
 
-#include <Intrinsic.h>
-#include <StringDefs.h>
-
-extern "C" {
-  int close(int);
-}
+#include <X11/Intrinsic.h>
+//#include <StringDefs.h>
 
 enum PaletteType { ALPHA, NON_ALPHA };
 

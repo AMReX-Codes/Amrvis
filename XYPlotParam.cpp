@@ -2,8 +2,21 @@
 // XYPlotParam.cpp -- implementation of XYPlotParameters class
 //
 
+#include <X11/X.h>
+//#include <X11/Xos.h>
+//#include <X11/Xlib.h>
+//#include <X11/Xutil.h>
+//#include <X11/cursorfont.h>
+#undef index
+
 #include "XYPlotParam.H"
+#ifdef BL_USE_NEW_HFILES
+#include <cstdlib>
+#include <cstring>
+#else
 #include <stdlib.h>
+#include <string.h>
+#endif
 
 #define DEF(name, typ, def_name) \
  if (def_str = XGetDefault(GAptr->PDisplay(), title, name)) \

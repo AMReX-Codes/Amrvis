@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Dataset.cpp,v 1.31 2000-06-13 23:19:07 car Exp $
+// $Id: Dataset.cpp,v 1.32 2000-06-14 20:08:25 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -11,10 +11,25 @@ const int CHARACTERWIDTH  = 13;
 const int CHARACTERHEIGHT = 22;
 const int MAXINDEXCHARS   = 4;
 
-#include "Dataset.H"
-#include "PltApp.H"
-#include "DataServices.H"
-#include "GlobalUtilities.H"
+#include <Xm/Xm.h>
+//  #include <MainW.h>
+//  #include <RowColumn.h>
+#include <Xm/DrawingA.h>
+#include <Xm/PushB.h>
+//  #include <PushBG.h>
+#include <Xm/ToggleB.h>
+//  #include <ToggleBG.h>
+//  #include <SelectioB.h>
+#include <Xm/ScrollBar.h>
+#include <Xm/ScrolledW.h>
+#include <Xm/Text.h>
+#include <Xm/TextF.h>
+//  #include <DialogS.h>
+#include <Xm/Form.h>
+#include <Xm/Label.h>
+#undef index
+
+#include <Dataset.H>
 
 #ifdef BL_USE_NEW_HFILES
 #include <strstream>

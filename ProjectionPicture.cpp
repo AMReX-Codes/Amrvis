@@ -1,12 +1,14 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ProjectionPicture.cpp,v 1.30 2000-06-13 23:19:08 car Exp $
+// $Id: ProjectionPicture.cpp,v 1.31 2000-06-14 20:08:28 car Exp $
 //
 
 // ---------------------------------------------------------------
 // ProjectionPicture.cpp
 // ---------------------------------------------------------------
+#include <X11/X.h>
+
 #include "ProjectionPicture.H"
 #include "PltApp.H"
 #include "DataServices.H"

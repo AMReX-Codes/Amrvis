@@ -1,15 +1,36 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp3D.cpp,v 1.31 2000-04-04 00:18:23 vince Exp $
+// $Id: PltApp3D.cpp,v 1.32 2000-06-14 20:08:27 car Exp $
 //
 
+#include <Xm/Xm.h>
+#include <Xm/Protocols.h>
+#include <Xm/ToggleBG.h>
+//  #include <MainW.h>
+#include <Xm/PushB.h>
+#include <Xm/PushBG.h>
+//  #include <FileSB.h>
+//  #include <Label.h>
+#include <Xm/LabelG.h>
+//  #include <RowColumn.h>
+#include <Xm/Form.h>
+#include <Xm/DrawingA.h>
+//  #include <Xm/Text.h>
+//  #include <ScrolledW.h>
+#include <Xm/TextF.h>
+#include <Xm/ToggleB.h>
+//  #include <SelectioB.h>
+//  #include <List.h>
+//  #include <Scale.h>
+//  #include <SeparatoG.h>
+//  #include <LabelG.h>
 // ---------------------------------------------------------------
 // PltApp3D.cpp
 // ---------------------------------------------------------------
 #include "PltApp.H"
 #include "Quaternion.H"
-#include <LabelG.h>
+
 
 #define MARK fprintf(stderr, "Mark: file %s, line %d.\n", __FILE__, __LINE__)
 // -------------------------------------------------------------------

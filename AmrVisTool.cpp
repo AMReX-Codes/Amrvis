@@ -1,41 +1,30 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrVisTool.cpp,v 1.41 2000-06-13 23:18:20 car Exp $
+// $Id: AmrVisTool.cpp,v 1.42 2000-06-14 20:08:25 car Exp $
 //
 
 // ---------------------------------------------------------------
 // AmrVisTool.cpp
 // ---------------------------------------------------------------
-#ifdef BL_USE_NEW_HFILES
-#include <iostream>
-#include <cstdlib>
-#include <cstdio>
-#else
-#include <iostream.h>
-#include <stdlib.h>
-#include <stdio.h>
-#endif
 
 // X/Motif headers
-#include <Xm.h>
-#include <MainW.h>
-#include <PushB.h>
-#include <PushBG.h>
-#include <FileSB.h>
-#include <MessageB.h>
-#include <Label.h>
-#include <Text.h>
-#include <RowColumn.h>
-#include <Form.h>
-#include <DrawingA.h>
-#include <ToggleB.h>
-#include <ToggleBG.h>
-#include <Xos.h>
+#include <Xm/Xm.h>
+//  #include <MainW.h>
+//  #include <PushB.h>
+//  #include <PushBG.h>
+#include <Xm/FileSB.h>
+//  #include <MessageB.h>
+//  #include <Label.h>
+//  #include <Text.h>
+//  #include <RowColumn.h>
+#include <Xm/Form.h>
+//  #include <DrawingA.h>
+//  #include <ToggleB.h>
+//  #include <ToggleBG.h>
+#include <X11/Xos.h>
 // BoxLib has index member functions, Xos might define it (LessTif).
-#ifdef index
 #undef index
-#endif
 
 #include "MessageArea.H"
 #include "GraphicsAttributes.H"

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Dataset.H,v 1.21 2000-06-13 23:18:20 car Exp $
+// $Id: Dataset.H,v 1.22 2000-06-14 20:08:25 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -10,26 +10,16 @@
 #ifndef _DATASET_H_
 #define _DATASET_H_
 
-#include <Xm.h>
-#include <MainW.h>
-#include <RowColumn.h>
-#include <DrawingA.h>
-#include <PushB.h>
-#include <PushBG.h>
-#include <ToggleB.h>
-#include <ToggleBG.h>
-#include <SelectioB.h>
-#include <ScrollBar.h>
-#include <ScrolledW.h>
-#include <Text.h>
-#include <TextF.h>
-#include <DialogS.h>
-#include <Form.h>
-#include <Label.h>
+#include <Xm/Xm.h>
 #undef index
 
+#include "Dataset.H"
+#include "PltApp.H"
+#include "DataServices.H"
+#include "GlobalUtilities.H"
 #include "GraphicsAttributes.H"
 #include "AmrPicture.H"
+
 #include "Box.H"
 #include "AmrvisConstants.H"
 
