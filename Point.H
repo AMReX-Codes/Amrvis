@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Point.H,v 1.4 1998-10-29 23:56:10 vince Exp $
+// $Id: Point.H,v 1.5 1999-01-16 00:33:04 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -12,9 +12,11 @@
 
 #ifdef BL_USE_NEW_HFILES
 #include <iostream>
+#include <cmath>
 using std::ostream;
 #else
 #include <iostream.h>
+#include <math.h>
 #endif
 
 #include "REAL.H"
