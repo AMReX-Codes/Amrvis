@@ -2180,7 +2180,7 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 			     ButtonPressMask | ButtonReleaseMask |
 			     PointerMotionMask | PointerMotionHintMask,
 			     zoomCursor, CurrentTime);
-    XGrabServer(disp);
+    AVXGrab avxGrab(disp);
     lowX = TRANX(anchorX);
     lowY = TRANY(anchorY);
     
@@ -2237,7 +2237,7 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 	break;
 	
       case ButtonRelease:
-	XUngrabServer(disp);  // giveitawaynow
+	avxGrab.ExplicitUngrab();  // giveitawaynow
 	
 	// undraw rectangle
 	rWidth  = abs(oldX-anchorX);

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.60 2002-08-16 00:22:33 vince Exp $
+// $Id: PltApp.H,v 1.61 2002-11-27 00:42:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -335,6 +335,39 @@ private:
   };
   Array<CBData *> cbdPtrs;  // save these so we can delete them later
 };
+
+
+// -------------------------------------------------------------------
+class AVXGrab {
+  public:
+    AVXGrab(Display *display) : bIsGrabbed(true), cachedDisplay(display) {
+      XGrabServer(display);
+    }
+
+    ~AVXGrab() {
+      if(bIsGrabbed) {
+        std::cout << "_______in ~AVXGrab:  implicit ungrab." << std::endl;
+      }
+      XUngrabServer(cachedDisplay);
+      bIsGrabbed = false;
+    }
+
+    void ExplicitUngrab() {
+      if(bIsGrabbed == false) {
+        std::cout << "_______in AVXGrab::ExplicitUngrab:  server not grabbed."
+                  << std::endl;
+      }
+      XUngrabServer(cachedDisplay);
+      bIsGrabbed = false;
+    }
+
+  private:
+    AVXGrab();  // not implemented
+    bool bIsGrabbed;
+    Display *cachedDisplay;
+};
+// -------------------------------------------------------------------
+
 
 void	SubregionPltApp(Widget toplevel, const Box &region, const IntVect &offset,
 			PltApp *pltparent, const string &palfile,

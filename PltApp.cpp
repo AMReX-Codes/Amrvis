@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.115 2002-10-02 18:16:58 car Exp $
+// $Id: PltApp.cpp,v 1.116 2002-11-27 00:42:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -50,6 +50,7 @@ using std::cerr;
 using std::endl;
 using std::min;
 using std::max;
+using std::flush;
 
 // Hack for window manager calls
 #ifndef FALSE
@@ -64,6 +65,7 @@ static bool UsingFileRange(const MinMaxRangeType rt) {
          rt == FILESUBREGIONMINMAX ||
          rt == FILEUSERMINMAX);
 }
+
 
 // -------------------------------------------------------------------
 PltApp::~PltApp() {
@@ -2977,7 +2979,6 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 // -------------------------------------------------------------------
 void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 {
-
   XmDrawingAreaCallbackStruct *cbs = (XmDrawingAreaCallbackStruct *) call_data;
 
   if(cbs->event->xany.type != ButtonPress) {
@@ -3013,7 +3014,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
   XChangeActivePointerGrab(display, PointerMotionHintMask |
 			   ButtonMotionMask | ButtonReleaseMask |
 			   OwnerGrabButtonMask, cursor, CurrentTime);
-  XGrabServer(display);
+  AVXGrab avxGrab(display);
 
   if(servingButton == 1) {
     int rectDrawn(false);
@@ -3172,7 +3173,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	break;
 	
       case ButtonRelease: {
-	XUngrabServer(display);  // giveitawaynow
+        avxGrab.ExplicitUngrab();
 	
 	startX = (max(0, min(imageWidth,  anchorX))) / scale;
 	startY = (max(0, min(imageHeight, anchorY))) / scale;
@@ -3326,7 +3327,11 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	    amrPicturePtrArray[np]->DoExposePicture();
 	  }
 	}
+	return;
       }
+      break;
+      case NoExpose:
+      break;
       default:
 	return;
       }  // end switch
@@ -3411,7 +3416,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	break;
 	
       case ButtonRelease:
-	XUngrabServer(display);
+        avxGrab.ExplicitUngrab();
 	tempi = max(0, min(imageHeight, nextEvent.xbutton.y));
 	amrPicturePtrArray[V]->SetHLine(tempi);
 #if (BL_SPACEDIM == 3)
@@ -3572,7 +3577,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	break;
 	
       case ButtonRelease:
-	XUngrabServer(display);
+        avxGrab.ExplicitUngrab();
 	tempi = max(0, min(imageWidth, nextEvent.xbutton.x));
 	amrPicturePtrArray[V]->SetVLine(tempi);
 #if (BL_SPACEDIM == 3)
