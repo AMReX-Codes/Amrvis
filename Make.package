@@ -11,9 +11,11 @@ CEXE_sources += AmrPicture.cpp AmrData.cpp AmrVisTool.cpp \
                 GlobalUtilities.cpp Palette.cpp PltAppOutput.cpp \
 		Output.cpp
 
+ifeq ($(DIM),3)
 ifeq ($(USE_VOLRENDER), TRUE)
 CEXE_headers += VolRender.H
 CEXE_sources += VolRender.cpp
+endif
 endif
 
 

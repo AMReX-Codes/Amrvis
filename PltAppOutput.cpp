@@ -37,18 +37,18 @@ void PltApp::DoOutput(Widget w, XtPointer, XtPointer) {
 
   char tempstr[BUFSIZ], timestep[BUFSIZ];
   char cder[BUFSIZ];
-  if(anim) {
+  if(animating2d) {
     strcpy(tempfilename, fileNames[currentFrame].c_str());
   } else {
     strcpy(tempfilename, fileNames[0].c_str());
   }
   i = strlen(tempfilename) - 1;
-  while(i >- 1 && tempfilename[i] != '/') {
+  while(i > -1 && tempfilename[i] != '/') {
     --i;
   }
   ++i;  // skip first (bogus) character
 
-  FileType fileType = dataServicesPtr->GetFileType();
+  FileType fileType = dataServicesPtr[currentFrame]->GetFileType();
   assert(fileType != INVALIDTYPE);
   if(fileType == FAB || fileType == MULTIFAB) {
     strcpy(timestep, &tempfilename[i]);
@@ -57,7 +57,7 @@ void PltApp::DoOutput(Widget w, XtPointer, XtPointer) {
   }
   i = 0;
   while(timestep[i] != '\0' && timestep[i] != '.') {
-    i++;
+    ++i;
   }
   timestep[i] = '\0';
   strcpy(cder, currentDerived.c_str());  // do this because currentDerive does not
@@ -80,7 +80,7 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   XColor *colors = pltPaletteptr->GetColorCells();
   int palSize = pltPaletteptr->PaletteSize();
 
-  if(anim) {
+  if(animating2d) {
     ResetAnimation();
   }
 
@@ -149,7 +149,7 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
   XColor *colors = pltPaletteptr->GetColorCells();
   int palSize = pltPaletteptr->PaletteSize();
 
-  if(anim) {
+  if(animating2d) {
     ResetAnimation();
   }
 
@@ -216,7 +216,8 @@ void PltApp::DoCreateFABFile(Widget w, XtPointer, XtPointer call_data) {
         
   aString derivedQuantity(amrPicturePtrArray[0]->CurrentDerived());
   Array<Box> bx = amrPicturePtrArray[0]->GetSubDomain();
-  DataServices::Dispatch(DataServices::WriteFabOneVar, dataServicesPtr,
+  DataServices::Dispatch(DataServices::WriteFabOneVar,
+			 dataServicesPtr[currentFrame],
                          fabFileName, bx[maxDrawnLevel], maxDrawnLevel,
 			 derivedQuantity);
   XtDestroyWidget(w);

@@ -56,7 +56,7 @@ PltApp::~PltApp() {
   if(datasetShowing) {
     delete datasetPtr;
   }
-  if(anim) {
+  if(animating2d) {
     StopAnimation();
   //for(int i = 1; i < animFrames; i++) {
   //}
@@ -67,29 +67,36 @@ PltApp::~PltApp() {
 
 // -------------------------------------------------------------------
 PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
-	       DataServices *dataservicesptr, bool isAnim)
+	       const Array<DataServices *> &dataservicesptr, bool isAnim)
+      : paletteDrawn(false),
+	appContext(app),
+	wTopLevel(w),
+	fileName(filename),
+	dataServicesPtr(dataservicesptr),
+	animating2d(isAnim),
+	currentFrame(0)
 {
-  if (! dataservicesptr->AmrDataOk() ) // checks if the Dataservices 
-      return;                          // are open and working
+  if( ! dataservicesptr[0]->AmrDataOk()) {
+    return;
+  }
   int i;
-  anim = isAnim;
-  paletteDrawn = false;
-  appContext = app;
-  wTopLevel = w; 
-  fileName = filename;
-  if(anim) {
+  if(animating2d) {
     animFrames = GetFileCount(); 
+    assert(dataServicesPtr.length() == animFrames);
     fileNames.resize(animFrames);
+    for(i = 0; i < animFrames; i++) {
+      fileNames[i] = GetComlineFilename(i); 
+    }
   } else {
     animFrames = 1;
-    fileNames.resize(1);
-    currentFrame = 0;
+    fileNames.resize(animFrames);
     fileNames[currentFrame] = fileName;
   }
+
   char shortfilename[BUFSIZ];
-  int fnl = fileName.length() - 1;
+  int fnl(fileName.length() - 1);
   while(fnl > -1 && fileName[fnl] != '/') {
-    fnl--;
+    --fnl;
   }
   strcpy(shortfilename, &fileName[fnl+1]);
 
@@ -109,20 +116,19 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
   }
   FileType fileType = GetDefaultFileType();
   assert(fileType != INVALIDTYPE);
-  dataServicesPtr = dataservicesptr;
 
-  if( ! (dataServicesPtr->CanDerive(PltApp::initialDerived)) &&
+  if( ! (dataServicesPtr[currentFrame]->CanDerive(PltApp::initialDerived)) &&
       ! (fileType == FAB)  && ! (fileType == MULTIFAB))
   {
     cerr << "Bad initial derived:  cannot derive "
 	 << PltApp::initialDerived <<endl;
     cerr << "defaulting to "
-         << dataServicesPtr->PlotVarNames()[0] << endl;
-    SetInitialDerived(dataServicesPtr->PlotVarNames()[0]);
+         << dataServicesPtr[currentFrame]->PlotVarNames()[0] << endl;
+    SetInitialDerived(dataServicesPtr[currentFrame]->PlotVarNames()[0]);
   }
   currentDerived = PltApp::initialDerived;
   SetShowBoxes(GetDefaultShowBoxes());
-  const AmrData &amrData = dataServicesPtr->AmrDataRef();
+  const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   int finestLevel(amrData.FinestLevel());
   int maxlev = DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
                             finestLevel, MaxPictureSize(), amrData.RefRatio());
@@ -137,7 +143,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
   currentScale = Max(1, Min(GetInitialScale(), maxAllowableScale));
 
   amrPicturePtrArray[ZPLANE] = new AmrPicture(minAllowableLevel, GAptr,
-                                              this, dataServicesPtr);
+                                              this, dataServicesPtr[currentFrame]);
 #if (BL_SPACEDIM == 3)
     amrPicturePtrArray[YPLANE] = new AmrPicture(YPLANE, minAllowableLevel, GAptr,
     			amrData.ProbDomain()[finestLevel],
@@ -158,35 +164,28 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
 PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 	       const IntVect &offset, AmrPicture *parentPtr,
 	       PltApp *pltParent, const aString &palfile,
-	       bool isAnim, const aString &newderived, const aString &file)
+	       bool isAnim, const aString &newderived, const aString &filename)
+      : paletteDrawn(false),
+	appContext(app),
+	wTopLevel(w),
+	fileName(filename),
+	fileNames(pltParent->fileNames),
+	animFrames(pltParent->animFrames),
+	dataServicesPtr(pltParent->dataServicesPtr),
+	animating2d(isAnim),
+	currentFrame(pltParent->currentFrame),
+        palFilename(palfile)
 {
-  dataServicesPtr = pltParent->dataServicesPtr;
-  anim = isAnim;
-  paletteDrawn = false;
-  appContext = app;
-  wTopLevel = w; 
-  fileName = file;
-  palFilename = palfile;
   char header[BUFSIZ];
 
   SetShowBoxes(pltParent->GetShowBoxes());
 
-  if(anim) {
-    animFrames = GetFileCount(); 
-    fileNames.resize(animFrames);
-  } else {
-    animFrames = 1;
-    fileNames.resize(1);
-    currentFrame = 0;
-    fileNames[currentFrame] = fileName;
-  }
-
-  const AmrData &amrData = dataServicesPtr->AmrDataRef();
+  const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   int finestLevel(amrData.FinestLevel());
   int maxlev = DetermineMaxAllowableLevel(region, finestLevel,
 				    MaxPictureSize(), amrData.RefRatio());
   minAllowableLevel = amrData.FinestContainingLevel(region, finestLevel);
-  Box maxDomain = region;
+  Box maxDomain(region);
   if(maxlev < finestLevel) {
     maxDomain.coarsen(CRRBetweenLevels(maxlev, finestLevel,amrData.RefRatio()));
   }
@@ -201,7 +200,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   char shortfilename[BUFSIZ];
   int fnl = fileName.length() - 1;
   while (fnl>-1 && fileName[fnl] != '/') {
-    fnl--;
+    --fnl;
   }
   strcpy(shortfilename, &fileName[fnl+1]);
 
@@ -218,13 +217,13 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 		  	NULL);
 
   GAptr = new GraphicsAttributes(wAmrVisTopLevel);
+
   if (GAptr->PVisual() 
       != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber())) {
       XtVaSetValues(wAmrVisTopLevel, XmNvisual, GAptr->PVisual(),
                     XmNdepth, 8, NULL);
   }
-  int np;
-  for(np = 0; np < NPLANES; np++) {
+  for(int np = 0; np < NPLANES; ++np) {
     amrPicturePtrArray[np] = new AmrPicture(np, minAllowableLevel, GAptr, region,
 					    parentPtr, this);
   }
@@ -251,7 +250,7 @@ void PltApp::PltAppInit() {
 
   activeView = ZPLANE;
 
-  const AmrData &amrData = dataServicesPtr->AmrDataRef();
+  const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
 
   int maxAllowLev = amrPicturePtrArray[ZPLANE]->MaxAllowableLevel();
   maxDrawnLevel = maxAllowLev;
@@ -392,8 +391,8 @@ void PltApp::PltAppInit() {
 // ****************************************** Derive Menu
 
   int derived;
-  numberOfDerived = dataServicesPtr->NumDeriveFunc();
-  derivedStrings  = dataServicesPtr->PlotVarNames();
+  numberOfDerived = dataServicesPtr[currentFrame]->NumDeriveFunc();
+  derivedStrings  = dataServicesPtr[currentFrame]->PlotVarNames();
 
   XmStringTable derivedStringList;
   derivedStringList = (XmStringTable)
@@ -613,17 +612,11 @@ void PltApp::PltAppInit() {
 		&PltApp::DoSetRangeButton);
 
   currentFrame = 0;
-  animating = 0;
+  animationIId = 0;
   frameSpeed = 1;
 
   readyFrames.resize(animFrames, false);
   frameBuffer.resize(animFrames);
-
-  if(anim) {
-    for(i = 0; i < animFrames; i++) {
-      fileNames[i] = GetComlineFilename(i); 
-    }
-  }
 
 
   wFrames[PLOTFRAME] = XtVaCreateManagedWidget("plotframe", xmFrameWidgetClass,
@@ -918,7 +911,7 @@ void PltApp::PltAppInit() {
     } else {
       adjustHeight2D = 0;
     }
-    if(anim) {
+    if(animating2d) {
       i=0;
       XmString sControlswcastop = XmStringCreateSimple("0");
       XtSetArg(args[i], XmNlabelString, sControlswcastop); i++;
@@ -947,9 +940,9 @@ void PltApp::PltAppInit() {
 		      XmNy, wcfHeight-2*halfbutton-adjustHeight2D,
 		      NULL); 
       }
-    }  // end if(anim)
-#if (BL_SPACEDIM == 3)
+    }  // end if(animating2d)
 
+#if (BL_SPACEDIM == 3)
     for(wc=WCSTOP; wc<=WCZPOS; wc++) {
       XtAddCallback(wControls[wc], XmNactivateCallback,
 		  &PltApp::CBChangePlane, (XtPointer) this);
@@ -958,7 +951,7 @@ void PltApp::PltAppInit() {
 #endif
 
     Dimension slw, ssw;
-     if(anim || BL_SPACEDIM == 3) {
+    if(animating2d || BL_SPACEDIM == 3) {
 
     wLabelFast = XtVaCreateManagedWidget("Speed", xmLabelWidgetClass,
 	wControlForm,	
@@ -979,10 +972,11 @@ void PltApp::PltAppInit() {
 	              NULL);
       XtAddCallback(wSpeedScale, XmNvalueChangedCallback,
     	  &PltApp::CBSpeedScale, (XtPointer) this);
-     }  // end if(anim || BL_SPACEDIM == 3)
 
-     if(anim) {
-      wWhichFileScale = XtVaCreateManagedWidget("whichFileScale",
+     }  // end if(animating2d || BL_SPACEDIM == 3)
+
+     if(animating2d) {
+       wWhichFileScale = XtVaCreateManagedWidget("whichFileScale",
 	                    xmScaleWidgetClass, wControlForm,
 	                    XmNminimum,		0,
 	                    XmNmaximum,		animFrames-1,
@@ -992,33 +986,34 @@ void PltApp::PltAppInit() {
                             XmNy, wcfHeight - 7 * halfbutton - adjustHeight2D,
 	                    NULL);
 
-      AddStaticCallback(wWhichFileScale, XmNvalueChangedCallback,
-		        &PltApp::DoAnimFileScale);
+       AddStaticCallback(wWhichFileScale, XmNvalueChangedCallback,
+		         &PltApp::DoAnimFileScale);
 
-      wAnimLabelFast = XtVaCreateManagedWidget("File", xmLabelWidgetClass,
+       wAnimLabelFast = XtVaCreateManagedWidget("File", xmLabelWidgetClass,
 	                   wControlForm,	
                            XmNy, wcfHeight - 7 * halfbutton - adjustHeight2D,
 	                   NULL);
-      XtVaGetValues(wAnimLabelFast, XmNwidth, &slw, NULL);
-      XtVaSetValues(wAnimLabelFast, XmNx, wcfWidth-slw, NULL);
+       XtVaGetValues(wAnimLabelFast, XmNwidth, &slw, NULL);
+       XtVaSetValues(wAnimLabelFast, XmNx, wcfWidth-slw, NULL);
 
-      char tempFileName[1024];
-      strcpy(tempFileName, fileName.c_str());
-      XmString fileString = XmStringCreateSimple(tempFileName);
-      wWhichFileLabel = XtVaCreateManagedWidget("whichFileLabel",
+       char tempFileName[1024];
+       strcpy(tempFileName, fileName.c_str());
+       XmString fileString = XmStringCreateSimple(tempFileName);
+       wWhichFileLabel = XtVaCreateManagedWidget("whichFileLabel",
 	                    xmLabelWidgetClass, wControlForm,	
 	                    XmNx, 0,
 	                    XmNy, wcfHeight - 4 * halfbutton - 3 - adjustHeight2D,
 	                    XmNlabelString,         fileString,
 	                    NULL);
-      XmStringFree(fileString);
+       XmStringFree(fileString);
 
-      for(wc=WCATNEG; wc<=WCATPOS; wc++) {
-        XtAddCallback(wControls[wc], XmNactivateCallback,
-		      &PltApp::CBChangePlane, (XtPointer) this);
-      }
+       for(wc=WCATNEG; wc<=WCATPOS; wc++) {
+         XtAddCallback(wControls[wc], XmNactivateCallback,
+		       &PltApp::CBChangePlane, (XtPointer) this);
+       }
 
-   }  // end if(anim)
+   }  // end if(animating2d)
+
 #if (BL_SPACEDIM == 2)
     XtVaSetValues(wScrollArea[ZPLANE], 
 		XmNrightAttachment,	XmATTACH_FORM,
@@ -1065,46 +1060,42 @@ void PltApp::PltAppInit() {
 #if (BL_SPACEDIM == 3)
     pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wTransDA));
 #endif
-  if(anim) {
-  ParallelDescriptor::Abort("PltApp::anim not yet supported.");
-  /*
+
+#if (BL_SPACEDIM == 2)
+  if(animating2d) {
     if(strcmp(derivedStrings[cderived].c_str(), "vol_frac") == 0) {
       globalMin = 0.0;
       globalMax = 1.0;
     } else {
-      aString outbuf = "Finding global min & max values for ";
+      aString outbuf("Finding global min & max values for ");
       outbuf += derivedStrings[cderived];
       outbuf += "...\n";
       strcpy(buffer, outbuf.c_str());
       PrintMessage(buffer);
 
-      AmrPlot *temp;
-      int lev;
       Real dataMin, dataMax;
       globalMin =  AV_BIG_REAL;
       globalMax = -AV_BIG_REAL;
-      for(i=0; i<animFrames; i++) {
-        temp = new AmrPlot;
-        FileType fileType = GetDefaultFileType();
-        assert(fileType != INVALIDTYPE);
-        if(fileType == FAB || fileType == MULTIFAB) {
-          temp->ReadNonPlotFile(GetComlineFilename(i), fileType);
-        } else {
-          temp->ReadPlotFile(GetComlineFilename(i));
-        }
-	int coarseLevel = 0;
-	int fineLevel   = amrPicturePtrArray[ZPLANE]->NumberOfLevels();
-        for(lev = coarseLevel; lev < fineLevel; lev++) {
-          temp->MinMax(amrData.ProbDomain()[lev], derivedStrings[cderived],
-		       lev, dataMin, dataMax);
-          globalMin = Min(globalMin, dataMin);
-          globalMax = Max(globalMax, dataMax);
+      for(int iFrame = 0; iFrame < animFrames; ++iFrame) {
+	int coarseLevel(0);
+	int fineLevel(amrPicturePtrArray[ZPLANE]->NumberOfLevels());
+        for(int lev = coarseLevel; lev < fineLevel; ++lev) {
+          bool minMaxValid(false);
+          DataServices::Dispatch(DataServices::MinMaxRequest,
+                                 dataServicesPtr[iFrame],
+                                 amrData.ProbDomain()[lev],
+                                 derivedStrings[cderived], lev,
+                                 &dataMin, &dataMax, &minMaxValid);
+          if(minMaxValid) {
+            globalMin = Min(globalMin, dataMin);
+            globalMax = Max(globalMax, dataMax);
+          }
 	}
-	delete temp;
       }
     } 
-  */
   }
+#endif
+
 #if (BL_SPACEDIM == 3)
     Dimension width, height;
     XtVaGetValues(wTransDA, XmNwidth, &width, XmNheight, &height, NULL);
@@ -1115,9 +1106,9 @@ void PltApp::PltAppInit() {
 #endif
     for(np = 0; np < NPLANES; np++) {
         amrPicturePtrArray[np]->CreatePicture(XtWindow(wPlotPlane[np]),
-                                              pltPaletteptr, derivedStrings[cderived]);
+                                        pltPaletteptr, derivedStrings[cderived]);
   }
-  FileType fileType = dataServicesPtr->GetFileType();
+  FileType fileType = dataServicesPtr[currentFrame]->GetFileType();
   assert(fileType != INVALIDTYPE);
   if(fileType == FAB  || fileType == MULTIFAB) {
     currentDerived = amrPicturePtrArray[ZPLANE]->CurrentDerived();
@@ -1382,7 +1373,7 @@ void PltApp::CBToggleRange(Widget w, XtPointer client_data, XtPointer call_data)
 // -------------------------------------------------------------------
 void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
   Box subregionBox;
-  const AmrData &amrData = dataServicesPtr->AmrDataRef();
+  const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   int finestLevel(amrData.FinestLevel());
   int maxAllowableLevel(amrPicturePtrArray[ZPLANE]->MaxAllowableLevel());
   int newMinAllowableLevel;
@@ -1442,7 +1433,7 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
     IntVect ivOffset = subregionBoxMAL.smallEnd();
 
     SubregionPltApp(wTopLevel, subregionBox, ivOffset, amrPicturePtrArray[ZPLANE],
-		    this, palFilename, anim, currentDerived, fileName);
+		    this, palFilename, animating2d, currentDerived, fileName);
   }
 
 #if (BL_SPACEDIM == 3)
@@ -1458,7 +1449,7 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void PltApp::DoChangeScale(int V) {
-  if(anim) {
+  if(animating2d) {
     ResetAnimation();
     DirtyFrames(); 
   }
@@ -1491,7 +1482,7 @@ void PltApp::DoChangeScale(int V) {
 void PltApp::DoChangeLevel(int V, Widget, XtPointer client_data, XtPointer) {
   unsigned long newLevel((unsigned long) client_data);
 
-  if(anim) {
+  if(animating2d) {
     ResetAnimation();
     DirtyFrames(); 
   }
@@ -1501,6 +1492,7 @@ void PltApp::DoChangeLevel(int V, Widget, XtPointer client_data, XtPointer) {
 
   amrPicturePtrArray[V]->ChangeLevel(minDrawnLevel, maxDrawnLevel);
 
+#if (BL_SPACEDIM == 3)
   if(V == ZPLANE) {
 #ifdef BL_VOLUMERENDER
     if(! XmToggleButtonGetState(wAutoDraw)) {
@@ -1514,6 +1506,7 @@ void PltApp::DoChangeLevel(int V, Widget, XtPointer client_data, XtPointer) {
       DoExposeTransDA();
 #endif
   }
+#endif
 }
 
 
@@ -1533,75 +1526,63 @@ void PltApp::DoChangeDerived(int V, Widget, XtPointer client_data, XtPointer) {
     }
 
     currentDerived = derivedStrings[derivedNumber];
+    const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
 
-    if(anim) {
+    if(animating2d) {
       ResetAnimation();
       DirtyFrames();
-    }
-    if(anim) {
-    /*
-      if(rangeType==USEFILE) {
-        AmrPlot *temp;
-        int lev;
+      if(rangeType == USEFILE) {
         Real dataMin, dataMax;
-
         globalMin =  AV_BIG_REAL;
         globalMax = -AV_BIG_REAL;
-	i = currentFrame;
-          temp = new AmrPlot;
-          FileType fileType = GetDefaultFileType();
-          assert(fileType != INVALIDTYPE);
-          if(fileType == BOXDATA || fileType == BOXCHAR  || fileType == FAB) {
-            temp->ReadNonPlotFile(GetComlineFilename(i), fileType);
-          } else {
-            temp->ReadPlotFile(GetComlineFilename(i));
-          }
-          int coarseLevel = 0;
-          int fineLevel   = maxDrawnLevel;
-          for(lev = coarseLevel; lev <= fineLevel; lev++) {
-            temp->MinMax(amrData.ProbDomain()[lev],
-                         derivedStrings[derivedNumber], lev, dataMin, dataMax);
+        int coarseLevel(0);
+        int fineLevel(maxDrawnLevel);
+        for(int lev = coarseLevel; lev <= fineLevel; lev++) {
+          //temp->MinMax(amrData.ProbDomain()[lev],
+                         //derivedStrings[derivedNumber], lev, dataMin, dataMax);
+          bool minMaxValid(false);
+          DataServices::Dispatch(DataServices::MinMaxRequest,
+                                 dataServicesPtr[currentFrame],
+                                 amrData.ProbDomain()[lev],
+                                 derivedStrings[derivedNumber], lev,
+                                 &dataMin, &dataMax, &minMaxValid);
+          if(minMaxValid) {
             globalMin = Min(globalMin, dataMin);
             globalMax = Max(globalMax, dataMax);
           }
-          delete temp;
+        }
       } else if(strcmp(derivedStrings[derivedNumber].c_str(),"vol_frac") == 0) {
         globalMin = 0.0;
         globalMax = 1.0;
       } else {
-        aString outbuf = "Finding global min & max values for ";
+        aString outbuf("Finding global min & max values for ");
         outbuf += derivedStrings[derivedNumber];
         outbuf += "...\n";
         strcpy(buffer, outbuf.c_str());
         PrintMessage(buffer);
 
-        AmrPlot *temp;
-        int lev;
         Real dataMin, dataMax;
-
         globalMin =  AV_BIG_REAL;
         globalMax = -AV_BIG_REAL;
-        for(i = 0; i < animFrames; i++) {
-          temp = new AmrPlot;
-          FileType fileType = GetDefaultFileType();
-          assert(fileType != INVALIDTYPE);
-          if(fileType == BOXDATA || fileType == BOXCHAR  || fileType == FAB) {
-            temp->ReadNonPlotFile(GetComlineFilename(i), fileType);
-          } else {
-            temp->ReadPlotFile(GetComlineFilename(i));
+        int coarseLevel(0);
+        int fineLevel(maxDrawnLevel);
+        for(int iFrame = 0; iFrame < animFrames; ++iFrame) {
+          for(int lev = coarseLevel; lev <= fineLevel; ++lev) {
+            //temp->MinMax(amrData.ProbDomain()[lev],
+                         //derivedStrings[derivedNumber], lev, dataMin, dataMax);
+            bool minMaxValid(false);
+            DataServices::Dispatch(DataServices::MinMaxRequest,
+                                   dataServicesPtr[iFrame],
+                                   amrData.ProbDomain()[lev],
+                                   derivedStrings[derivedNumber], lev,
+                                   &dataMin, &dataMax, &minMaxValid);
+            if(minMaxValid) {
+              globalMin = Min(globalMin, dataMin);
+              globalMax = Max(globalMax, dataMax);
+            }
           }
-          int coarseLevel = 0;
-          int fineLevel   = maxDrawnLevel;
-          for(lev = coarseLevel; lev <= fineLevel; lev++) {
-            temp->MinMax(amrData.ProbDomain()[lev],
-                         derivedStrings[derivedNumber], lev, dataMin, dataMax);
-            globalMin = Min(globalMin, dataMin);
-            globalMax = Max(globalMax, dataMax);
-          }
-          delete temp;
         }
       } 
-    */
     }
     amrPicturePtrArray[V]->ChangeDerived(derivedStrings[derivedNumber],
                                          pltPaletteptr);
@@ -1727,7 +1708,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   Dimension width, height;
 
 /*
-  if(anim) {
+  if(animating2d) {
     ResetAnimation();
     DirtyFrames(); 
   }
@@ -1814,7 +1795,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			  xmToggleButtonWidgetClass, wSetRangeRadioBox, NULL);
 	XtAddCallback(wRangeRadioButton[USESPECIFIED], XmNvalueChangedCallback,
 		      CBToggleRange, (XtPointer)USESPECIFIED);
-	if(anim) {
+	if(animating2d) {
 	  wRangeRadioButton[USEFILE] = XtVaCreateManagedWidget("File",
 					  xmToggleButtonWidgetClass,
 					  wSetRangeRadioBox, NULL);
@@ -1933,7 +1914,7 @@ void PltApp::DoDoneSetRange(Widget, XtPointer, XtPointer) {
 #if (BL_SPACEDIM == 3)
     Clear();
 #endif
-    if(anim) {
+    if(animating2d) {
       ResetAnimation();
       DirtyFrames(); 
       ShowFrame();
@@ -2007,7 +1988,7 @@ void PltApp::DoUserMax(Widget, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
-  if(anim) {
+  if(animating2d) {
     ResetAnimation();
     DirtyFrames(); 
   }
@@ -2058,7 +2039,7 @@ void PltApp::DoOpenPalFile(Widget w, XtPointer, XtPointer call_data) {
 void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
   int np, V, scale, imageHeight, imageWidth, loX, loY, hiX, hiY;
   int maxAllowableLevel(amrPicturePtrArray[ZPLANE]->MaxAllowableLevel());
-  const AmrData &amrData = dataServicesPtr->AmrDataRef();
+  const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   int finestLevel(amrData.FinestLevel());
   int dataAtClickThreshold(0);  // how close to previous point
   Box subdomain(amrPicturePtrArray[ZPLANE]->GetSubDomain()[maxAllowableLevel]);
@@ -2084,7 +2065,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
   imageWidth  = amrPicturePtrArray[V]->ImageSizeH() - 1;
   scale       = currentScale;
 
-  if(anim) {
+  if(animating2d) {
     ResetAnimation();
   }
   if(cbs->event->xany.type == ButtonPress) {
@@ -2339,16 +2320,8 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 
 	      bool goodIntersect;
 	      Real dataValue;
-	      //goodIntersect = dataServicesPtr->PointValue(trueRegion,
-				       //intersectedLevel,
-				       //intersectedGrid, dataValue, 0, mal,
-				       //currentDerived, formatString);
-	      //cerr << endl;
-	      //cerr << "Error:  PointValueRequest not yet implemented." << endl;
-	      //cerr << endl;
-	      //goodIntersect = false;
 	      DataServices::Dispatch(DataServices::PointValueRequest,
-				     dataServicesPtr,
+				     dataServicesPtr[currentFrame],
 				     trueRegion.length(), trueRegion.dataPtr(),
 				     currentDerived,
 				     minDrawnLevel, maxDrawnLevel,
@@ -2996,36 +2969,26 @@ void PltApp::DoAnimFileScale(Widget, XtPointer, XtPointer cbs) {
 
 // -------------------------------------------------------------------
 void PltApp::ResetAnimation() {
-  ParallelDescriptor::Abort("PltApp::ResetAnimation() not yet implemented.");
-/*
   StopAnimation();
   if( ! interfaceReady) {
 #   if(BL_SPACEDIM == 2)
-      int maxAllowableLevel = amrPicturePtrArray[ZPLANE]->MaxAllowableLevel();
+      int maxAllowableLevel(amrPicturePtrArray[ZPLANE]->MaxAllowableLevel());
       AmrPicture *tempap = amrPicturePtrArray[ZPLANE];
-      AmrPlot *newAmrPlot = new AmrPlot;
       Array<Box> domain = tempap->GetSubDomain();
       char tempString[BUFSIZ];
       strcpy(tempString, tempap->CurrentDerived().c_str());
-      FileType fileType = GetDefaultFileType();
-      assert(fileType != INVALIDTYPE);
-      if(fileType == BOXDATA || fileType == BOXCHAR || fileType == FAB) {
-        newAmrPlot->ReadNonPlotFile(fileNames[currentFrame], fileType);
-      } else {
-        newAmrPlot->ReadPlotFile(fileNames[currentFrame]);
-      }
-      amrPlotPtr = newAmrPlot;
-      tempap->SetAmrPlotPtr(newAmrPlot); 
+      tempap->SetDataServicesPtr(dataServicesPtr[currentFrame]); 
 
-      Box fineDomain = domain[tempap->MaxAllowableLevel()];
+      const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+      Box fineDomain(domain[tempap->MaxAllowableLevel()]);
       fineDomain.refine(CRRBetweenLevels(tempap->MaxAllowableLevel(),
-			amrPlotPtr->FinestLevel(), amrPlotPtr->RefRatio()));
-      amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, minAllowableLevel, GAptr, 
-    			fineDomain, tempap, this);
+			amrData.FinestLevel(), amrData.RefRatio()));
+      amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, minAllowableLevel,
+                                                  GAptr, fineDomain, tempap, this);
       amrPicturePtrArray[ZPLANE]->SetMaxDrawnLevel(maxDrawnLevel);
 
       XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
-  	(XtEventHandler) CBDoExposePicture, (XtPointer) tempap);
+  	                   (XtEventHandler) CBDoExposePicture, (XtPointer) tempap);
       delete tempap;
       amrPicturePtrArray[ZPLANE]->CreatePicture(XtWindow(wPlotPlane[ZPLANE]),
                                                 pltPaletteptr, tempString);
@@ -3035,15 +2998,14 @@ void PltApp::ResetAnimation() {
       interfaceReady = true;
 #   endif
   }
-*/
 }
 
 
 // -------------------------------------------------------------------
 void PltApp::StopAnimation() {
-  if(animating) {
-    XtRemoveTimeOut(animating);
-    animating = false;
+  if(animationIId) {
+    XtRemoveTimeOut(animationIId);
+    animationIId = 0;
   }
 }
 
@@ -3051,8 +3013,8 @@ void PltApp::StopAnimation() {
 // -------------------------------------------------------------------
 void PltApp::Animate(AnimDirection direction) {
   StopAnimation();
-  animating = XtAppAddTimeOut(appContext, frameSpeed,
-	&PltApp::CBUpdateFrame, (XtPointer) this);
+  animationIId = XtAppAddTimeOut(appContext, frameSpeed,
+	                         &PltApp::CBUpdateFrame, (XtPointer) this);
   animDirection = direction;
 }
 
@@ -3091,47 +3053,35 @@ void PltApp::DoUpdateFrame() {
   }
   ShowFrame();
   XSync(GAptr->PDisplay(), false);
-  animating = XtAppAddTimeOut(appContext, frameSpeed,
-	                      &PltApp::CBUpdateFrame, (XtPointer) this);
+  animationIId = XtAppAddTimeOut(appContext, frameSpeed,
+	                         &PltApp::CBUpdateFrame, (XtPointer) this);
 }
 
 
 // -------------------------------------------------------------------
 void PltApp::ShowFrame() {
-  ParallelDescriptor::Abort("PltApp::ShowFrame() not yet implemented.");
-/*
   interfaceReady = false;
   if( ! readyFrames[currentFrame] || datasetShowing || rangeType == USEFILE) {
 #   if(BL_SPACEDIM == 2)
       AmrPicture *tempap = amrPicturePtrArray[ZPLANE];
-      AmrPlot *newAmrPlot = new AmrPlot;
       Array<Box> domain = tempap->GetSubDomain();
       char tempString[BUFSIZ];
       strcpy(tempString, tempap->CurrentDerived().c_str());
 
-      FileType fileType = GetDefaultFileType();
-      assert(fileType != INVALIDTYPE);
-      if(fileType == BOXDATA || fileType == BOXCHAR || fileType == FAB) {
-        newAmrPlot->ReadNonPlotFile(fileNames[currentFrame], fileType);
-      } else {
-        newAmrPlot->ReadPlotFile(fileNames[currentFrame]);
-      }
-      amrPlotPtr = newAmrPlot;
-      tempap->SetAmrPlotPtr(newAmrPlot); 
+      tempap->SetDataServicesPtr(dataServicesPtr[currentFrame]);
 
-      const AmrData &amrData = dataServices->AmrDataRef();
+      const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
       int finestLevel(amrData.FinestLevel());
-      int maxlev = DetermineMaxAllowableLevel(amrData.ProbDomain(finestLevel),
-		       finestLevel, MaxPictureSize(), amrData.RefRatio());
+      int maxlev(DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
+		       finestLevel, MaxPictureSize(), amrData.RefRatio()));
 
-      Box fineDomain = domain[tempap->MaxAllowableLevel()];
+      Box fineDomain(domain[tempap->MaxAllowableLevel()]);
       fineDomain.refine(CRRBetweenLevels(tempap->MaxAllowableLevel(),
 			finestLevel, amrData.RefRatio()));
       amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, minAllowableLevel, GAptr,
 	                                          fineDomain, tempap, this);
       XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
   	                (XtEventHandler) CBDoExposePicture, (XtPointer) tempap);
-
       delete tempap;
 
       amrPicturePtrArray[ZPLANE]->SetMaxDrawnLevel(maxDrawnLevel);
@@ -3155,7 +3105,7 @@ void PltApp::ShowFrame() {
     amrPicturePtrArray[ZPLANE]->ImageSizeH(),
     amrPicturePtrArray[ZPLANE]->ImageSizeV());
 
-  char tempFileName[1024];
+  char tempFileName[BUFSIZ];
   strcpy(tempFileName, fileNames[currentFrame].c_str());
   XmString fileString = XmStringCreateSimple(tempFileName);
   XtVaSetValues(wWhichFileLabel, XmNlabelString, fileString, NULL);
@@ -3163,27 +3113,26 @@ void PltApp::ShowFrame() {
   XmScaleSetValue(wWhichFileScale, currentFrame);
 
   if(datasetShowing) {
-	int hdir, vdir, sdir;
-	if(activeView==ZPLANE) {
-	  hdir = XDIR;
-	  vdir = YDIR;
-	  sdir = ZDIR;
-	}
-	if(activeView==YPLANE) {
-	  hdir = XDIR;
-	  vdir = ZDIR;
-	  sdir = YDIR;
-	}
-	if(activeView==XPLANE) {
-	  hdir = YDIR;
-	  vdir = ZDIR;
-	  sdir = XDIR;
-	}
+    int hdir, vdir, sdir;
+    if(activeView==ZPLANE) {
+      hdir = XDIR;
+      vdir = YDIR;
+      sdir = ZDIR;
+    }
+    if(activeView==YPLANE) {
+      hdir = XDIR;
+      vdir = ZDIR;
+      sdir = YDIR;
+    }
+    if(activeView==XPLANE) {
+      hdir = YDIR;
+      vdir = ZDIR;
+      sdir = XDIR;
+    }
     datasetPtr->Render(trueRegion, amrPicturePtrArray[ZPLANE], this,
 		       hdir, vdir, sdir);
     datasetPtr->DoExpose(false);
   }
-*/
 }  // end ShowFrame
 
 

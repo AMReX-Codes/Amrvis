@@ -764,52 +764,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
      assert(probDomain[finestFillLevel].contains(destBoxes[iIndex]));
    }
 
-/*  original code vvvvvvvvvvvvvv
-   Box dbox(dest.box());
-   Box ovlp(dbox);
-   ovlp &= probDomain[finestFillLevel];
-   if(ovlp.ok()) {   // fill on the interior
-      if(finestFillLevel > 0) {
-         BoxDomain fd;
-         fd.add(ovlp);
-	 for(MultiFabIterator gpli(*dataGrids[finestFillLevel]);
-	     gpli.isValid(); ++gpli)
-	 {
-           if(ovlp.intersects(gpli.validbox())) {
-   	     fd.rmBox(gpli.validbox());
-           }
-         }
-         Box fine_unfilled = fd.minimalBox();
-      
-         if(fine_unfilled.ok()) {
-            int lrat = refRatio[finestFillLevel-1];
-            // not all filled, must interpolate from a coarser level.
-            fd.simplify();
-	    BoxDomainIterator bli(fd);
-            while(bli) {
-               Box fine_box(bli());
-               Box crse_box = coarsen(fine_box,lrat);
-               FArrayBox crse_patch(crse_box,1);
-	       FillVar(crse_patch,finestFillLevel-1,nm);
-               PcInterp(dest, crse_patch,fine_box,lrat);
-
-	      bli++;
-            }
-         }
-         fd.clear();
-      }  // finestFillLevel > 0
-   }     // ovlp ok
-
-   // now, overwrite with good data from this level
-   dataGrids[finestFillLevel]->copy(dest, StateNumber(nm), 0, 1);
-*/
-
-
-    int myproc = ParallelDescriptor::MyProc();
-
-    //cout << endl;
-    //cout << myproc << ":  " << "_in AmrData::FillVar(...)" << endl;
-
+    int myproc(ParallelDescriptor::MyProc());
     int stateIndex = StateNumber(nm);
     int srcComp    = 0;
     int destComp   = 0;
@@ -865,9 +820,6 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
     // Do this for all local fab boxes.
     //
     for(int ibox = 0; ibox < localMFBoxes.length(); ++ibox) {
-        //if(levelData.DistributionMap().ProcessorMap()[ibox] != myproc)
-            //continue;  // Not local.
-
         unfilledBoxesOnThisLevel.clear();
         assert(unfilledBoxesOnThisLevel.ixType() == boxType);
         assert(unfilledBoxesOnThisLevel.ixType() == localMFBoxes[ibox].ixType());
@@ -881,8 +833,6 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
             --currentLevel)
         {
             unfillableBoxesOnThisLevel.clear();
-
-            //StateData& currentState   = amrLevels[currentLevel].state[stateIndex];
             const Box &currentPDomain = probDomain[currentLevel];
 
 	    int ufbLength = unfilledBoxesOnThisLevel.length();
@@ -900,8 +850,6 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
                   if(currentLevel == finestFillLevel) {
                     tempCoarseBox = fineTruncDestBox;
                   } else {
-                    //tempCoarseBox = map[currentLevel]->CoarseBox(fineTruncDestBox,
-                                               //cumulativeRefRatios[currentLevel]);
                     tempCoarseBox = fineTruncDestBox;
 		    // check this vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
                     tempCoarseBox.coarsen(cumulativeRefRatios[currentLevel]);
@@ -949,26 +897,11 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
         }
     }
 
-    //cout << myproc << ":  " << "About to CollectData" << endl;
-
     multiFabCopyDesc.CollectData();
 
-    //cout << myproc << ":  " << "After CollectData" << endl;
-// -----------
-
-    // AmrLevel::isValid(bool bDoSync)
-
-    //int myproc = ParallelDescriptor::MyProc();
-    //PArray<AmrLevel> &amrLevels = amrLevel.parent->getAmrLevels();
 
     for(int currentIndex = 0; currentIndex < destBoxes.length(); ++currentIndex) {
-
-      //Box destBox(destBoxes[currentIndex]);
-      //currentFillPatchedFab.resize(destBox, numComps);
-      //currentFillPatchedFab.setVal(1.e30);
-
       for(int currentLevel = 0; currentLevel <= finestFillLevel; ++currentLevel) {
-        //StateData& currentState = amrLevels[currentLevel].state[stateIndex];
         const Box &currentPDomain = probDomain[currentLevel];
 
 	if(myproc != procWithFabs) {
@@ -998,12 +931,6 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
 
             if(intersectDestBox.ok()) {
               if(currentLevel != finestFillLevel) {
-                    //// Get boundary conditions for this patch.
-                    //Array<BCRec> bcCoarse(numComps);
-                    //const StateDescriptor &desc =
-                         //amrLevels[currentLevel].desc_lst[stateIndex];
-                    //setBC(intersectDestBox, currentPDomain, srcComp, 0, numComps,
-                          //desc.getBCs(), bcCoarse);
                     fboxes.refine(cumulativeRefRatios[currentLevel]);
                     // Interpolate up to fine patch.
                     tempCurrentFillPatchedFab.resize(intersectDestBox, numComps);
@@ -1033,9 +960,6 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
         }
       }  // end for(currentLevel...)
     }  // end for(currentIndex...)
-
-
-    //cout << myproc << ":  " << "_out AmrData::FillVar(...)" << endl;
 
 }    // end FillVar for a fab on a single processor
 
@@ -1261,44 +1185,6 @@ void AmrData::ListDeriveFunc(ostream &os) const {
 }
 
 
-/*
-// ---------------------------------------------------------------
-bool AmrData::PointValue(Array<Box> &pointBox, int &intersectLevel,
-		 Box &intersectGrid, aString &dataValue,
-		 int coarseLevel, int fineLevel,
-		 const aString &currentDerived, aString formatString)
-{
-  int lev;
-  Box gridBox;
-  assert(coarseLevel >= 0 && coarseLevel <= finestLevel);
-  assert(fineLevel >= 0 && fineLevel <= finestLevel);
-  for(lev = fineLevel; lev >= coarseLevel; lev--) {
-    for(MultiFabIterator gpli(GetGrids(lev, StateNumber(currentDerived),
-			      pointBox[lev]));
-	gpli.isValid(); ++gpli)
-    {
-      gridBox = gpli.validbox();
-      if(gridBox.intersects(pointBox[lev])) {
-        Box dataBox(gridBox);
-        dataBox &= pointBox[lev];
-        FArrayBox *dataFab = new FArrayBox(dataBox, 1);
-	dataFab->copy(gpli(), StateNumber(currentDerived), 0, 1);
-
-	char tdv[LINELENGTH];
-        sprintf(tdv, formatString.c_str(), (dataFab->dataPtr())[0]);
-	dataValue = tdv;
-	intersectLevel = lev;
-        intersectGrid = gridBox;
-        delete dataFab;
-        return true;
-      }
-    }
-  }
-  return false;
-}  // end PointValue
-*/
-
-
 // ---------------------------------------------------------------
 int AmrData::NIntersectingGrids(int level, const Box &b) const {
   assert(level >=0 && level <= finestLevel);
@@ -1437,14 +1323,9 @@ bool AmrData::MinMax(const Box &onBox, const aString &derived, int level,
           valid = true;
           overlap = onBox;
           overlap &= gpli.validbox();
-          //fabPtr = new FArrayBox(overlap, 1);
-          //fabPtr->copy(gpli(), 0, 0, 1);
-          //min = fabPtr->min(0);
-          //max = fabPtr->max(0);
           min = gpli().min(overlap, 0);
           max = gpli().max(overlap, 0);
 
-          //delete fabPtr;
           dataMin = Min(dataMin, min);
           dataMax = Max(dataMax, max);
         }  // end if(visMFMin...)

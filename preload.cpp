@@ -1,7 +1,7 @@
 
 #ifdef BL_USE_BSP
 //
-// $Id: preload.cpp,v 1.1 1998-02-05 23:08:11 vince Exp $
+// $Id: preload.cpp,v 1.2 1998-03-30 21:09:17 vince Exp $
 //
 
 #ifdef BL_USE_NEW_HFILES
@@ -9,6 +9,8 @@
 #else
 #include <string.h>
 #endif
+
+#include "bsp.h"
 
 #include "ParallelDescriptor.H"
 
@@ -144,7 +146,7 @@ _bsp_preload_init()
    _bsp_opt_fcombine_puts_max=102400;
    _bsp_opt_fcombine_puts_min=5120;
    _bsp_opt_bsmp_buffer_size =-1;
-   _bsp_check_syncs  =1;
+   _bsp_check_syncs  =0;
    _bsp_library_type ='O';
    _bsp_opt_flibrary_level=2;
 

@@ -67,7 +67,7 @@ private:
 public:
 	// created when opening a new file
 	PltApp(XtAppContext, Widget, const aString &filename, 
-	       DataServices *dataservicesptr, bool isAnim);
+	       const Array<DataServices *> &dataservicesptr, bool isAnim);
 
 	// for subregion
 	PltApp(XtAppContext app, Widget w, const Box &region,
@@ -143,17 +143,19 @@ public:
 	static void SetReserveSystemColors(int reservesystemcolors);
 
 	Widget WId()                     { return wAmrVisTopLevel; }
-	aString GetFormatString()          { return formatString; }
-	void SetFormatString(aString str)  { formatString = str; }
+	aString GetFormatString() const  { return formatString; }
+	void SetFormatString(aString str) { formatString = str; }
 	AmrPicture *GetAmrPicturePtr(int plane)
 					 { return amrPicturePtrArray[plane]; }
 	Palette *GetPalettePtr()         { return pltPaletteptr; }
-	DataServices *GetDataServicesPtr()         { return dataServicesPtr; }
+	DataServices *GetDataServicesPtr() { return dataServicesPtr[currentFrame]; }
+	Array<DataServices *> &GetDataServicesPtrArray()
+					 { return dataServicesPtr; }
 	int GetActiveView() const        { return activeView;    }
 	XtAppContext GetAppContext()     { return appContext;    }
 	Widget GetStopButtonWidget()     { return wControls[WCSTOP]; }
-	int IsAnim()        const        { return anim; }
-	int Animating()     const        { return ((int) animating); }
+	bool IsAnim()       const        { return animating2d; }
+	bool Animating()    const        { return ((bool) animationIId); }
 	int CurrentFrame()  const        { return currentFrame; }
 	XImage *CurrentFrameXImage()     { return frameBuffer[currentFrame]; }
 	Real GlobalMin()    const        { return globalMin; }
@@ -164,8 +166,8 @@ public:
 	int MinDrawnLevel() const        { return minDrawnLevel; }
 	int MaxDrawnLevel() const        { return maxDrawnLevel; }
 
-    bool GetShowBoxes() { return showBoxes; }
-    void SetShowBoxes(bool showing) { showBoxes = showing; }
+        bool GetShowBoxes() const        { return showBoxes; }
+        void SetShowBoxes(bool showing)  { showBoxes = showing; }
 	const aString &GetFileName();
 	bool  PaletteDrawn();
 	void  PaletteDrawn(bool trueOrFalse);
@@ -198,11 +200,11 @@ private:
 
 	Arg		args[MAXARGS];
 	Palette	       *pltPaletteptr;
-	DataServices   *dataServicesPtr;
+	Array<DataServices *> dataServicesPtr;
 	AmrPicture     *amrPicturePtrArray[NPLANES];
 	IntVect		ivLowOffsetMAL;  // at maxAllowableLevel
 	Range		rangeType;
-	bool		anim, setRangeShowing, datasetShowing, paletteDrawn;
+	bool		animating2d, setRangeShowing, datasetShowing, paletteDrawn;
         bool            showBoxes;
 	int		minDrawnLevel, maxDrawnLevel;
 	int		minDataLevel,  maxDataLevel;
@@ -224,7 +226,7 @@ private:
 	AnimDirection	animDirection;
 	bool		interfaceReady;
 	Array<bool>	readyFrames;
-	XtIntervalId	animating, multiclickIId;
+	XtIntervalId	animationIId, multiclickIId;
 	Real		globalMin, globalMax;
 	aString		currentDerived;
 	String		trans;
@@ -242,7 +244,6 @@ private:
         unsigned int	inputMask;
         Window		whichRoot, whichChild;
 	Cursor		cursor;
-	bool		cgSmoothing;
 
 
 	static aString	defaultPaletteString;

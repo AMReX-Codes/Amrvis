@@ -77,11 +77,6 @@ class DataServices {
       // DumpSliceBoxAllVars
       bool DumpSlice(const Box &slicebox);
 
-      // create a new plot file with the given components
-      // bool ExtractComponent(const aString &newPlotFileName,
-			       //const Array<aString> &varNames,
-			       // int finestLevel);
-
       // MinMaxRequest
       bool MinMax(const Box &onBox, const aString &derived, int level,
                   Real &dataMin, Real &dataMax, bool &minMaxValid);

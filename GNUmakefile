@@ -6,8 +6,8 @@ PROFILE   = FALSE
 COMP      = KCC
 DEBUG     = FALSE
 DEBUG     = TRUE
-DIM       = 2
 DIM       = 3
+DIM       = 2
 
 USE_ARRAYVIEW = TRUE
 USE_ARRAYVIEW = FALSE
@@ -104,6 +104,7 @@ endif
 
 
 ############################################### volume rendering
+ifeq ($(DIM),3)
 ifeq ($(MACHINE), T3E)
 USE_VOLRENDER = FALSE
 endif
@@ -114,6 +115,7 @@ INCLUDE_LOCATIONS += $(VOLPACKDIR)
 LIBRARY_LOCATIONS += $(VOLPACKDIR)/lib
 LIBRARIES += -lvolpack
 #DEFINES += -DVOLUMEBOXES
+endif
 endif
 
 ############################################### other defines

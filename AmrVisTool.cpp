@@ -100,7 +100,6 @@ void main(int argc, char *argv[]) {
     comlineBox = GetBoxFromCommandLine();
   }
 
-  int pltApps(GetFileCount());
   bool bBatchMode(false);
   if(MakeSWFData() || DumpSlices() || GivenBoxSlice()) {
     bBatchMode = true;
@@ -108,7 +107,9 @@ void main(int argc, char *argv[]) {
   if(bBatchMode && IsAnimation()) {
     ParallelDescriptor::Abort("Batch mode and animation mode are incompatible.");
   }
-
+  if(GivenBox()) {
+    ParallelDescriptor::Abort("Command line subbox not supported yet.");
+  }
 
   if(bBatchMode) {
     DataServices::SetBatchMode();
@@ -120,42 +121,67 @@ void main(int argc, char *argv[]) {
       CreateMainWindow(argc, argv);
     }
 
-    if(IsAnimation() && pltApps > 0) {
-      pltApps = 1; 
-    }
-
-
-    // loop through the command line list of plot files
-    for(int nPlots = 0; nPlots < pltApps; nPlots++) {
-      comlineFileName = GetComlineFilename(nPlots);
-      if(ParallelDescriptor::IOProcessor()) {
-        cout << "FileName = " << comlineFileName << endl;
-      }
+    if(IsAnimation()) {
+      assert(GetFileCount() > 0);
+      bool bAmrDataOk(true);
       FileType fileType = GetDefaultFileType();
       assert(fileType != INVALIDTYPE);
-      DataServices *dataServicesPtr = new DataServices(comlineFileName, fileType);
-
-      if(GivenBox()) {
-        ParallelDescriptor::Abort("Command line subbox not supported yet.");
-      }
-
-
-      if(ParallelDescriptor::IOProcessor()) {
-	if(dataServicesPtr->AmrDataOk()) {
-          PltApp *temp = new PltApp(app, wTopLevel, comlineFileName,
-			            dataServicesPtr, IsAnimation());
-	  if(temp == NULL) {
-	    cerr << "Error:  could not make a new PltApp." << endl;
-	  } else {
-            pltAppList.append(temp);
-            dataServicesPtr->IncrementNumberOfUsers();
-            //cout << ">>>> pltAppList appending " << temp << endl;
-	  }
+      Array<DataServices *> dspArray(GetFileCount());
+      for(int nPlots = 0; nPlots < GetFileCount(); ++nPlots) {
+        comlineFileName = GetComlineFilename(nPlots);
+        dspArray[nPlots] = new DataServices(comlineFileName, fileType);
+        dspArray[nPlots]->IncrementNumberOfUsers();
+	if( ! dspArray[nPlots]->AmrDataOk()) {
+	  bAmrDataOk = false;
 	}
       }
 
-    }  // end for(nPlots...)
+      if(ParallelDescriptor::IOProcessor()) {
+	if(bAmrDataOk) {
+          PltApp *temp = new PltApp(app, wTopLevel, GetComlineFilename(0),
+			            dspArray, IsAnimation());
+	  if(temp == NULL) {
+	    cerr << "Error:  could not make a new PltApp." << endl;
+            for(int nPlots = 0; nPlots < GetFileCount(); ++nPlots) {
+              dspArray[nPlots]->DecrementNumberOfUsers();
+	    }
+	  } else {
+            pltAppList.append(temp);
+            //cout << ">>>> pltAppList appending " << temp << endl;
+	  }
+	} else {
+          for(int nPlots = 0; nPlots < GetFileCount(); ++nPlots) {
+            dspArray[nPlots]->DecrementNumberOfUsers();
+	  }
+	}
+      }
+    } else {
+      // loop through the command line list of plot files
+      FileType fileType = GetDefaultFileType();
+      assert(fileType != INVALIDTYPE);
+      for(int nPlots = 0; nPlots < GetFileCount(); ++nPlots) {
+        comlineFileName = GetComlineFilename(nPlots);
+        if(ParallelDescriptor::IOProcessor()) {
+          cout << "FileName = " << comlineFileName << endl;
+        }
+	Array<DataServices *> dspArray(1);
+	dspArray[0] = new DataServices(comlineFileName, fileType);
 
+        if(ParallelDescriptor::IOProcessor()) {
+	  if(dspArray[0]->AmrDataOk()) {
+            PltApp *temp = new PltApp(app, wTopLevel, comlineFileName,
+			              dspArray, IsAnimation());
+	    if(temp == NULL) {
+	      cerr << "Error:  could not make a new PltApp." << endl;
+	    } else {
+              pltAppList.append(temp);
+              dspArray[0]->IncrementNumberOfUsers();
+              //cout << ">>>> pltAppList appending " << temp << endl;
+	    }
+	  }
+        }
+      }  // end for(nPlots...)
+    }  // end if(IsAnimation())
 
     if(ParallelDescriptor::IOProcessor()) {
       XtAppMainLoop(app);
@@ -442,8 +468,10 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
     for(ListIterator<PltApp *> li(pltAppList); li; ++li) {
       PltApp *obj = pltAppList[li];
       //cout << "<<<< pltAppList removing " << obj << endl;
-      DataServices *dataServicesPtr = obj->GetDataServicesPtr();
-      dataServicesPtr->DecrementNumberOfUsers();
+      Array<DataServices *> dataServicesPtr = obj->GetDataServicesPtrArray();
+      for(int ids = 0; ids < dataServicesPtr.length(); ++ids) {
+        dataServicesPtr[ids]->DecrementNumberOfUsers();
+      }
       delete obj;
     }
     pltAppList.clear();
@@ -498,7 +526,7 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
   //cout << "_in CBOpenPltFile:  filename = " << filename << endl;
   strcpy(path, filename);
   int i = strlen(path) - 1;
-  while(i>-1 && path[i] != '/') {
+  while(i > -1 && path[i] != '/') {
     --i;
   }
   path[i+1] = '\0';
@@ -511,12 +539,15 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
   DataServices *dataServicesPtr = new DataServices(filename, GetDefaultFileType());
   DataServices::Dispatch(DataServices::NewRequest, dataServicesPtr, NULL);
 
-  PltApp *temp = new PltApp(app, wTopLevel, filename, dataServicesPtr, false);
+  Array<DataServices *> dspArray(1);
+  dspArray[0] = dataServicesPtr;
+  bool bIsAnim(false);
+  PltApp *temp = new PltApp(app, wTopLevel, filename, dspArray, bIsAnim);
   if(temp == NULL) {
     cerr << "Error:  could not make a new PltApp." << endl;
   } else {
     pltAppList.append(temp);
-    dataServicesPtr->IncrementNumberOfUsers();
+    dspArray[0]->IncrementNumberOfUsers();
     //cout << ">>>> pltAppList appending " << temp << endl;
   }
 
@@ -536,10 +567,12 @@ void SubregionPltApp(Widget wTopLevel, const Box &trueRegion,
   if(temp == NULL) {
     cerr << "Error in SubregionPltApp:  could not make a new PltApp." << endl;
   } else {
-    DataServices *dataServicesPtr = temp->GetDataServicesPtr();
     pltAppList.append(temp);
-    dataServicesPtr->IncrementNumberOfUsers();
     //cout << ">>>> pltAppList appending " << temp << endl;
+    Array<DataServices *> dataServicesPtr = temp->GetDataServicesPtrArray();
+    for(int ids = 0; ids < dataServicesPtr.length(); ++ids) {
+      dataServicesPtr[ids]->IncrementNumberOfUsers();
+    }
   }
 }
 
@@ -550,9 +583,11 @@ void CBQuitPltApp(Widget ofPltApp, XtPointer client_data, XtPointer) {
   pltAppList.remove(obj);
   //cout << "<<<< pltAppList removing " << obj << endl;
 
-  DataServices *dataServicesPtr = obj->GetDataServicesPtr();
-  dataServicesPtr->DecrementNumberOfUsers();
-  DataServices::Dispatch(DataServices::DeleteRequest, dataServicesPtr, NULL);
+  Array<DataServices *> &dataServicesPtr = obj->GetDataServicesPtrArray();
+  for(int ids = 0; ids < dataServicesPtr.length(); ++ids) {
+    dataServicesPtr[ids]->DecrementNumberOfUsers();
+    DataServices::Dispatch(DataServices::DeleteRequest, dataServicesPtr[ids], NULL);
+  }
 
   delete obj;
 }

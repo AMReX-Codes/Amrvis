@@ -335,7 +335,6 @@ void AmrPicture::SetSlice(int view, int here) {
   gpArray.resize(numberOfLevels);
   maxLevelWithGrids = maxAllowableLevel;
 
-  //Array<int> nGrids(numberOfLevels, 0);
   Array<int> nGrids(numberOfLevels);
   for(lev = minDrawnLevel; lev <= maxAllowableLevel; ++lev) {
     nGrids[lev] = amrData.NIntersectingGrids(lev, sliceBox[lev]);
@@ -405,7 +404,6 @@ void AmrPicture::DrawBoxes(Array< Array<GridPicture> > &gp,
     }
   }
   // draw bounding box
-  //XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->BlackIndex());
   XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->WhiteIndex());
   XDrawRectangle(GAptr->PDisplay(), drawable, GAptr->PGC(), 0, 0,
 			imageSizeH-1, imageSizeV-1);
@@ -658,9 +656,9 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
 	}  // end for(lev...)
       } else {
         dataMinAllGrids = pltAppPtr->GlobalMin();
-       dataMaxAllGrids = pltAppPtr->GlobalMax();
-        dataMinRegion = pltAppPtr->GlobalMin();
-        dataMaxRegion = pltAppPtr->GlobalMax();
+        dataMaxAllGrids = pltAppPtr->GlobalMax();
+        dataMinRegion   = pltAppPtr->GlobalMin();
+        dataMaxRegion   = pltAppPtr->GlobalMax();
       }
       sprintf(buffer, "...");
       printDone = true;
@@ -672,8 +670,8 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
     } else {
       dataMinAllGrids = pltAppPtr->GetAmrPicturePtr(XY)->GetMin();
       dataMaxAllGrids = pltAppPtr->GetAmrPicturePtr(XY)->GetMax();
-      dataMinRegion = pltAppPtr->GetAmrPicturePtr(XY)->GetRegionMin();
-      dataMaxRegion = pltAppPtr->GetAmrPicturePtr(XY)->GetRegionMax();
+      dataMinRegion   = pltAppPtr->GetAmrPicturePtr(XY)->GetRegionMin();
+      dataMaxRegion   = pltAppPtr->GetAmrPicturePtr(XY)->GetRegionMax();
     }
 
   }  // end if( ! maxsFound)

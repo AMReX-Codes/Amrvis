@@ -3,7 +3,6 @@
 // ---------------------------------------------------------------
 #include "AmrvisConstants.H"
 #include "DataServices.H"
-//#include "GlobalUtilities.H"
 #include "ParallelDescriptor.H"
 
 Array<DataServices *> DataServices::dsArray;
@@ -56,7 +55,8 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 
   ParallelDescriptor::ShareVar(&requestType, sizeof(DSRequestType));
   ParallelDescriptor::Synchronize();  // for ShareVar
-  ParallelDescriptor::Broadcast(ioProcNumber, &requestType, &requestType);
+  ParallelDescriptor::Broadcast(ioProcNumber, &requestType, &requestType,
+				sizeof(DSRequestType));
   ParallelDescriptor::UnshareVar(&requestType);
 
 
@@ -76,9 +76,12 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     ParallelDescriptor::ShareVar(&newFileType, sizeof(FileType));
     ParallelDescriptor::ShareVar(&checkArrayIndex, sizeof(int));
     ParallelDescriptor::Synchronize();  // for ShareVar
-    ParallelDescriptor::Broadcast(ioProcNumber, &fileNameLength,  &fileNameLength);
-    ParallelDescriptor::Broadcast(ioProcNumber, &newFileType,     &newFileType);
-    ParallelDescriptor::Broadcast(ioProcNumber, &checkArrayIndex, &checkArrayIndex);
+    ParallelDescriptor::Broadcast(ioProcNumber, &fileNameLength,  &fileNameLength,
+				  sizeof(int));
+    ParallelDescriptor::Broadcast(ioProcNumber, &newFileType,     &newFileType,
+				  sizeof(FileType));
+    ParallelDescriptor::Broadcast(ioProcNumber, &checkArrayIndex, &checkArrayIndex,
+				  sizeof(int));
     ParallelDescriptor::UnshareVar(&checkArrayIndex);
     ParallelDescriptor::UnshareVar(&newFileType);
     ParallelDescriptor::UnshareVar(&fileNameLength);
@@ -129,7 +132,8 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 
   ParallelDescriptor::ShareVar(&whichDSIndex, sizeof(int));
   ParallelDescriptor::Synchronize();  // for ShareVar
-  ParallelDescriptor::Broadcast(ioProcNumber, &whichDSIndex, &whichDSIndex);
+  ParallelDescriptor::Broadcast(ioProcNumber, &whichDSIndex, &whichDSIndex,
+				sizeof(int));
   if( ! ParallelDescriptor::IOProcessor()) {
     ds = DataServices::dsArray[whichDSIndex];
   }
@@ -147,7 +151,8 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       }
       ParallelDescriptor::ShareVar(&bDeleteDS, sizeof(bool));
       ParallelDescriptor::Synchronize();  // for ShareVar
-      ParallelDescriptor::Broadcast(ioProcNumber, &bDeleteDS, &bDeleteDS);
+      ParallelDescriptor::Broadcast(ioProcNumber, &bDeleteDS, &bDeleteDS,
+				    sizeof(bool));
       if(bDeleteDS) {
         delete DataServices::dsArray[whichDSIndex];
       }
@@ -177,9 +182,11 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       ParallelDescriptor::ShareVar(&fineFillLevel, sizeof(int));
       ParallelDescriptor::ShareVar(&derivedLength, sizeof(int));
       ParallelDescriptor::Synchronize();  // for ShareVar
-      ParallelDescriptor::Broadcast(ioProcNumber, &destBox, &destBox);
-      ParallelDescriptor::Broadcast(ioProcNumber, &fineFillLevel, &fineFillLevel);
-      ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength);
+      ParallelDescriptor::Broadcast(ioProcNumber, &destBox, &destBox, sizeof(Box));
+      ParallelDescriptor::Broadcast(ioProcNumber, &fineFillLevel, &fineFillLevel,
+				    sizeof(int));
+      ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength,
+				    sizeof(int));
       ParallelDescriptor::UnshareVar(&derivedLength);
       ParallelDescriptor::UnshareVar(&fineFillLevel);
       ParallelDescriptor::UnshareVar(&destBox);
@@ -234,9 +241,11 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       ParallelDescriptor::ShareVar(&fineFillLevel, sizeof(int));
       ParallelDescriptor::ShareVar(&derivedLength, sizeof(int));
       ParallelDescriptor::Synchronize();  // for ShareVar
-      ParallelDescriptor::Broadcast(ioProcNumber, &destBox, &destBox);
-      ParallelDescriptor::Broadcast(ioProcNumber, &fineFillLevel, &fineFillLevel);
-      ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength);
+      ParallelDescriptor::Broadcast(ioProcNumber, &destBox, &destBox, sizeof(Box));
+      ParallelDescriptor::Broadcast(ioProcNumber, &fineFillLevel, &fineFillLevel,
+				    sizeof(int));
+      ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength,
+				    sizeof(int));
       ParallelDescriptor::UnshareVar(&derivedLength);
       ParallelDescriptor::UnshareVar(&fineFillLevel);
       ParallelDescriptor::UnshareVar(&destBox);
@@ -278,8 +287,9 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       ParallelDescriptor::ShareVar(&destBox, sizeof(Box));
       ParallelDescriptor::ShareVar(&fineFillLevel, sizeof(int));
       ParallelDescriptor::Synchronize();  // for ShareVar
-      ParallelDescriptor::Broadcast(ioProcNumber, &destBox, &destBox);
-      ParallelDescriptor::Broadcast(ioProcNumber, &fineFillLevel, &fineFillLevel);
+      ParallelDescriptor::Broadcast(ioProcNumber, &destBox, &destBox, sizeof(Box));
+      ParallelDescriptor::Broadcast(ioProcNumber, &fineFillLevel, &fineFillLevel,
+				    sizeof(int));
       ParallelDescriptor::UnshareVar(&fineFillLevel);
       ParallelDescriptor::UnshareVar(&destBox);
 
@@ -306,9 +316,12 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       ParallelDescriptor::ShareVar(&slicenum, sizeof(int));
       ParallelDescriptor::ShareVar(&derivedLength, sizeof(int));
       ParallelDescriptor::Synchronize();  // for ShareVar
-      ParallelDescriptor::Broadcast(ioProcNumber, &slicedir, &slicedir);
-      ParallelDescriptor::Broadcast(ioProcNumber, &slicenum, &slicenum);
-      ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength);
+      ParallelDescriptor::Broadcast(ioProcNumber, &slicedir, &slicedir,
+				    sizeof(int));
+      ParallelDescriptor::Broadcast(ioProcNumber, &slicenum, &slicenum,
+				    sizeof(int));
+      ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength,
+				    sizeof(int));
       ParallelDescriptor::UnshareVar(&derivedLength);
       ParallelDescriptor::UnshareVar(&slicenum);
       ParallelDescriptor::UnshareVar(&slicedir);
@@ -344,8 +357,10 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       ParallelDescriptor::ShareVar(&slicedir, sizeof(int));
       ParallelDescriptor::ShareVar(&slicenum, sizeof(int));
       ParallelDescriptor::Synchronize();  // for ShareVar
-      ParallelDescriptor::Broadcast(ioProcNumber, &slicedir, &slicedir);
-      ParallelDescriptor::Broadcast(ioProcNumber, &slicenum, &slicenum);
+      ParallelDescriptor::Broadcast(ioProcNumber, &slicedir, &slicedir,
+				    sizeof(int));
+      ParallelDescriptor::Broadcast(ioProcNumber, &slicenum, &slicenum,
+				    sizeof(int));
       ParallelDescriptor::UnshareVar(&slicenum);
       ParallelDescriptor::UnshareVar(&slicedir);
 
@@ -370,8 +385,9 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       ParallelDescriptor::ShareVar(&box, sizeof(Box));
       ParallelDescriptor::ShareVar(&derivedLength, sizeof(int));
       ParallelDescriptor::Synchronize();  // for ShareVar
-      ParallelDescriptor::Broadcast(ioProcNumber, &box, &box);
-      ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength);
+      ParallelDescriptor::Broadcast(ioProcNumber, &box, &box, sizeof(Box));
+      ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength,
+				    sizeof(int));
       ParallelDescriptor::UnshareVar(&derivedLength);
       ParallelDescriptor::UnshareVar(&box);
 
@@ -403,7 +419,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       }
       ParallelDescriptor::ShareVar(&box, sizeof(Box));
       ParallelDescriptor::Synchronize();  // for ShareVar
-      ParallelDescriptor::Broadcast(ioProcNumber, &box, &box);
+      ParallelDescriptor::Broadcast(ioProcNumber, &box, &box, sizeof(Box));
       ParallelDescriptor::UnshareVar(&box);
 
       ds->DumpSlice(box);
@@ -433,9 +449,10 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       ParallelDescriptor::ShareVar(&derivedLength, sizeof(int));
       ParallelDescriptor::ShareVar(&level, sizeof(int));
       ParallelDescriptor::Synchronize();  // for ShareVar
-      ParallelDescriptor::Broadcast(ioProcNumber, &box, &box);
-      ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength);
-      ParallelDescriptor::Broadcast(ioProcNumber, &level, &level);
+      ParallelDescriptor::Broadcast(ioProcNumber, &box, &box, sizeof(Box));
+      ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength,
+				    sizeof(int));
+      ParallelDescriptor::Broadcast(ioProcNumber, &level, &level, sizeof(int));
       ParallelDescriptor::UnshareVar(&level);
       ParallelDescriptor::UnshareVar(&derivedLength);
       ParallelDescriptor::UnshareVar(&box);
@@ -507,12 +524,16 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       ParallelDescriptor::ShareVar(&finestLevelToSearch, sizeof(int));
       ParallelDescriptor::Synchronize();  // for ShareVar
       ParallelDescriptor::Broadcast(ioProcNumber, &pointBoxArraySize,
-						  &pointBoxArraySize);
-      ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength);
+						  &pointBoxArraySize,
+						  sizeof(int));
+      ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength,
+                                    sizeof(int));
       ParallelDescriptor::Broadcast(ioProcNumber, &coarsestLevelToSearch,
-						  &coarsestLevelToSearch);
+						  &coarsestLevelToSearch,
+						  sizeof(int));
       ParallelDescriptor::Broadcast(ioProcNumber, &finestLevelToSearch,
-						  &finestLevelToSearch);
+						  &finestLevelToSearch,
+						  sizeof(int));
       ParallelDescriptor::UnshareVar(&finestLevelToSearch);
       ParallelDescriptor::UnshareVar(&coarsestLevelToSearch);
       ParallelDescriptor::UnshareVar(&derivedLength);
@@ -926,57 +947,6 @@ void DataServices::PointValue(int pointBoxArraySize, Box *pointBoxArray,
   }
   bPointIsValid = true;
 
-
-/*
-  Box gridBox;
-  int intersectBoxIndex;
-  assert(coarseLevel >= 0 && coarseLevel <= amrData.FinestLevel());
-  assert(fineLevel >= 0 && fineLevel <= amrData.FinestLevel());
-  bool bReturnValue(false);
-  bool bValueFoundLocally(false);
-  bool bValueFoundAnywhere(false);
-  ParallelDescriptor::ShareVar(&dataPointValue, sizeof(Real));
-  ParallelDescriptor::ShareVar(&intersectBoxIndex, sizeof(int));
-  ParallelDescriptor::ShareVar(&intersectLevel, sizeof(int));
-  for(int lev = fineLevel; lev >= coarseLevel; lev--) {
-    for(MultiFabIterator gpli(*grids[lev]); gpli.isValid(); ++gpli) {
-      gridBox = gpli.validbox();
-      if(gridBox.intersects(pointBox[lev])) {
-        Box dataBox(gridBox);
-        dataBox &= pointBox[lev];
-        FArrayBox *dataFab = new FArrayBox(dataBox, 1);
-	dataFab->copy(gpli(), StateNumber(currentDerived), 0, 1);
-	dataPointValue = (dataFab->dataPtr())[0];
-        delete dataFab;
-	bValueFoundLocally  = true;
-	bValueFoundAnywhere = true;
-	intersectBoxIndex = gpli.index();
-	intersectLevel = lev;
-        bReturnValue = true;
-      }
-    }  // end for(gpli...)
-    // the following is so we stop when the value is found on any processor
-    // (the for loop goes from the finest level to the coarsest)
-    ReduceBoolOr(bValueFoundAnywhere);
-    if(bValueFoundAnywhere) {
-      break;  // dont look at coarser levels
-    }
-  }  // end for(lev...)
-
-  if(bValueFoundLocally) {
-    int myproc = ParallelDescriptor::MyProc();
-    ParallelDescriptor::Broadcast(myproc, &dataPointValue, &dataPointValue);
-    ParallelDescriptor::Broadcast(myproc, &intersectBoxIndex, &intersectBoxIndex);
-    ParallelDescriptor::Broadcast(myproc, &intersectLevel, &intersectLevel);
-  }
-  ReduceBoolOr(bReturnValue);
-
-  intersectGrid = *grids[intersectLevel].box(intersectBoxIndex);
-
-  ParallelDescriptor::UnshareVar(&intersectLevel);
-  ParallelDescriptor::UnshareVar(&intersectBoxIndex);
-  ParallelDescriptor::UnshareVar(&dataPointValue);
-*/
 }  // end PointValue
 
 
