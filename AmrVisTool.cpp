@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrVisTool.cpp,v 1.39 1999-05-10 18:54:17 car Exp $
+// $Id: AmrVisTool.cpp,v 1.40 1999-11-30 20:53:20 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -85,7 +85,7 @@ void PrintMessage(char *message) {
 
 
 //--------------------------------------------------------------
-void main(int argc, char *argv[]) {
+int main(int argc, char *argv[]) {
   Box		comlineBox;
   aString	comlineFileName;
 

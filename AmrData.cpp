@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.cpp,v 1.37 1999-07-15 00:21:05 vince Exp $
+// $Id: AmrData.cpp,v 1.38 1999-11-30 20:53:20 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -80,7 +80,7 @@ extern "C" {
 		   const Real *crse, ARLIM_P(clo), ARLIM_P(chi),
 		   const int *cblo, const int *cbhi,
 		   Real *temp, const int &tlo, const int &thi);
-};
+}
 
 
 bool AmrData::verbose = false;
