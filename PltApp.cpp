@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.118 2003-09-09 22:15:51 vince Exp $
+// $Id: PltApp.cpp,v 1.119 2003-09-25 22:34:50 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -2009,22 +2009,23 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   }
 
   infoShowing = true;
-  int xpos, ypos, width, height;
+  Dimension width, height;
+  Position  xpos, ypos;
   XtVaGetValues(wAmrVisTopLevel, XmNx, &xpos, XmNy, &ypos,
 		XmNwidth, &width, XmNheight, &height, NULL);
   
   wInfoTopLevel = 
     XtVaCreatePopupShell("Info",
 			 topLevelShellWidgetClass, wAmrVisTopLevel,
-			 XmNwidth,		400,
-			 XmNheight,		300,
+			 XmNwidth,	400,
+			 XmNheight,	300,
 			 XmNx,		50+xpos+width/2,
 			 XmNy,		ypos-10,
 			 NULL);
   
   AddStaticCallback(wInfoTopLevel, XmNdestroyCallback, &PltApp::DestroyInfoWindow);
   
-  //set visual in case the default isn't 256 pseudocolor
+  // set visual in case the default isn't 256 pseudocolor
   if(gaPtr->PVisual() != XDefaultVisual(display, gaPtr->PScreenNumber())) {
     XtVaSetValues(wInfoTopLevel, XmNvisual, gaPtr->PVisual(), XmNdepth, 8, NULL);
   }
