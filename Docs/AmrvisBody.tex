@@ -53,7 +53,7 @@ amrvis3d
        [-useminmax min max]
        [<filename(s)>]
 
-  file type flags:   -fab, -newplt (-newplt is the default)
+  file type flags:   -fab, -multifab, -newplt (-newplt is the default)
   -v                 verbose.
   -maxpixmapsize n   specify maximum allowed picture size in pixels.
   -skippltlines n    skip n lines at head of the plt file.
@@ -87,11 +87,13 @@ amrvis3d
 
 
 File type flags are as defined as follows.  Once a file type is specified,
-it cannot be changed for that {\em amrvis} process.
+it cannot be changed for that {\em amrvis} process.  For MultiFabs,
+the name can be specified with or without the "_H" in the name.
 
 \begin{verbatim}
 -newplt             The new directory based plotfile format (the default).
 -fab                An FArrayBox.
+-multifab           A MultiFab written with VisMF (multiple files).
 \end{verbatim}
 
 {\em Amrvis} looks for a default definition file named  {\bf amrvis.defaults}
@@ -327,8 +329,8 @@ dataset window will draw a box around the corresponding point in the
 color image view.
 
 \item [File Type]
-Once a file type is specified (-fab, -newplt), it cannot be changed for that
-{\em amrvis} process.
+Once a file type is specified (-fab, -multifab, -newplt), it cannot be
+changed for that {\em amrvis} process.
 
 \item [Animations] During animations, pressing the {\bf O} button
 in the center of the animation controls will stop frame creation.
@@ -501,8 +503,8 @@ the left mouse button) before clicking on {\bf Dataset} or {\bf Subregion.}
 \item If {\em amrvis} hangs trying to read a plot file, make sure the file type
 flag is set correctly for your plot files.
 
-\item Once you pick a file type (-fab, -newplt), you cannot change it for that
-{\em amrvis} process.
+\item Once you pick a file type (-fab, -multifab, -newplt), you cannot
+change it for that {\em amrvis} process.
 
 \item Plot files have a new directory based format.  The old single file
 format is not supported.

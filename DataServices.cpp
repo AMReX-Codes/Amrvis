@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: DataServices.cpp,v 1.18 1998-11-26 00:15:33 vince Exp $
+// $Id: DataServices.cpp,v 1.19 1999-01-07 21:08:56 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -339,7 +339,6 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
         slicedir = va_arg(ap, int);
         slicenum = va_arg(ap, int);
       }
-
       ParallelDescriptor::Broadcast(ioProcNumber, &slicedir, &slicedir,
 				    sizeof(int));
       ParallelDescriptor::Broadcast(ioProcNumber, &slicenum, &slicenum,
@@ -373,7 +372,6 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       if(ParallelDescriptor::IOProcessor()) {
         strcpy(derivedCharPtr, derivedTemp.c_str());
       }
-
       ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
 				    derivedLengthPadded);
 

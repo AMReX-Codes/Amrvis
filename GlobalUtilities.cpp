@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GlobalUtilities.cpp,v 1.25 1998-11-26 00:15:33 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.26 1999-01-07 21:08:57 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -622,8 +622,21 @@ void ParseCommandLine(int argc, char *argv[]) {
     } else if(strcmp(argv[i], "-sliceallvars") == 0) {
       sliceAllVars = true;
     } else if(i < argc) {
-      comlinefilename[fileCount] = argv[i];
-      fileCount++;
+      if(fileType == MULTIFAB) {
+        // delete the _H from the filename if it is there
+        char *tempfilename = new char[strlen(argv[i]) + 1];
+        strcpy(tempfilename, argv[i]);
+        const char *uH = "_H";
+        char *fm2 = tempfilename + (strlen(tempfilename) - 2);
+        if(strcmp(uH, fm2) == 0) {
+          tempfilename[strlen(tempfilename) - 2] = '\0';
+        }
+        comlinefilename[fileCount] = tempfilename;
+	delete tempfilename;
+      } else {
+        comlinefilename[fileCount] = argv[i];
+      }
+      ++fileCount;
       givenFilename = true;
     } else {
       PrintUsage(argv[0]);

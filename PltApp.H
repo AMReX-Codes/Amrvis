@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.H,v 1.27 1998-10-29 23:56:09 vince Exp $
+// $Id: PltApp.H,v 1.28 1999-01-07 21:08:57 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -174,12 +174,10 @@ public:
   Widget GetWTransDA() { return wTransDA; }
   aString GetFormatString() const  { return formatString; }
   void SetFormatString(aString str) { formatString = str; }
-  AmrPicture *GetAmrPicturePtr(int plane)
-  { return amrPicturePtrArray[plane]; }
+  AmrPicture *GetAmrPicturePtr(int plane) { return amrPicturePtrArray[plane]; }
   Palette *GetPalettePtr()         { return pltPaletteptr; }
   DataServices *GetDataServicesPtr() { return dataServicesPtr[currentFrame]; }
-  Array<DataServices *> &GetDataServicesPtrArray()
-  { return dataServicesPtr; }
+  Array<DataServices *> &GetDataServicesPtrArray() { return dataServicesPtr; }
   int GetActiveView() const        { return activeView;    }
   XtAppContext GetAppContext()     { return appContext;    }
   Widget GetStopButtonWidget()     { return wControls[WCSTOP]; }
@@ -207,30 +205,30 @@ public:
   void DoBackStep(int);
   void DoForwardStep(int);
   
-private:
-  Widget 		wTopLevel, wAmrVisTopLevel, wAmrVisMenu;
-  Widget 		wScaleMenu, wScaleOptions;
-  Widget 		wLevelMenu, wLevelOptions;
-  Widget 		wContourMenu, wContourItems[5], wContourOptions;
-  Widget		wDerivedMenu, wDerivedOptions;
-  Widget 		wQuitButton, wSubregionButton;
-  Widget		wPicArea, wPalArea, wPlotArea;
-  Widget		wScrollArea[NPLANES], wPlotPlane[NPLANES];
-  Widget		wBoxesButton, wPaletteButton, wDatasetButton;
-  Widget		wCGSmoothButton, wControlArea, wSetRangeButton;
-  Widget		wRangeRadioButton[NRANGES];
-  Widget		wOutputMenuBar, wOutputMenu, wOutputButton;
-  Widget		wPSFileButton, wFABFileButton, wRGBFileButton;
-  Widget		wSetRangeTopLevel, wAxesPic;
-  Widget		wSetRangeForm, wDoneButton, wCancelButton;
-  Widget		wSetRangeRadioBox, wGlobalRange, wLocalRange;
-  Widget		wUserMin, wUserMax, wMin, wMax;
-  Widget		wSpeedScale, wLabelSlow, wLabelFast, wDetach;
-  Widget		wAnimSpeedScale, wAnimLabelSlow, wAnimLabelFast;
-  Widget		wWhichFileLabel, wWhichFileScale;
-  Widget		wAnimControl, wControlForm, wControls[WCN];
-  Widget		wFrames[NFRAMES];
-  Widget                wNumberContours;
+ private:
+  Widget wTopLevel, wAmrVisTopLevel, wAmrVisMenu;
+  Widget wScaleMenu, wScaleOptions;
+  Widget wLevelMenu, wLevelOptions;
+  Widget wContourMenu, wContourItems[5], wContourOptions;
+  Widget wDerivedMenu, wDerivedOptions;
+  Widget wQuitButton, wSubregionButton;
+  Widget wPicArea, wPalArea, wPlotArea;
+  Widget wScrollArea[NPLANES], wPlotPlane[NPLANES];
+  Widget wBoxesButton, wPaletteButton, wDatasetButton;
+  Widget wCGSmoothButton, wControlArea, wSetRangeButton;
+  Widget wRangeRadioButton[NRANGES];
+  Widget wOutputMenuBar, wOutputMenu, wOutputButton;
+  Widget wPSFileButton, wFABFileButton, wRGBFileButton;
+  Widget wSetRangeTopLevel, wAxesPic;
+  Widget wSetRangeForm, wDoneButton, wCancelButton;
+  Widget wSetRangeRadioBox, wGlobalRange, wLocalRange;
+  Widget wUserMin, wUserMax, wMin, wMax;
+  Widget wSpeedScale, wLabelSlow, wLabelFast, wDetach;
+  Widget wAnimSpeedScale, wAnimLabelSlow, wAnimLabelFast;
+  Widget wWhichFileLabel, wWhichFileScale;
+  Widget wAnimControl, wControlForm, wControls[WCN];
+  Widget wFrames[NFRAMES];
+  Widget wNumberContours;
   Widget wInfoButton, wInfoTopLevel, wInfoForm, wInfoCloseButton;
   Widget wInfoList;
   Array<Widget>	wLevelItems, wScaleItems, wDerivedItems;
@@ -267,8 +265,8 @@ private:
   Array<bool>	readyFrames;
   XtIntervalId	animationIId, multiclickIId;
   Real		globalMin, globalMax;
-  aString		currentDerived;
-  String		trans;
+  aString	currentDerived;
+  String	trans;
   int		multiclickInterval;
   int		currentScale, previousScale, maxAllowableScale;
   int		minAllowableLevel;
@@ -341,10 +339,10 @@ private:
   static void StaticCallback(Widget, XtPointer, XtPointer);
   
   class CBData {  // callback data
-  public:
-    CBData(PltApp *p, memberCB mcb): instance(p), cbFunc(mcb) { }
-    PltApp *instance;
-    memberCB cbFunc;
+    public:
+      CBData(PltApp *p, memberCB mcb): instance(p), cbFunc(mcb) { }
+      PltApp *instance;
+      memberCB cbFunc;
   };
 };
 

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrVisTool.cpp,v 1.33 1998-11-26 00:15:33 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.34 1999-01-07 21:08:56 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -491,7 +491,7 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
     wDialog = XmCreateFileSelectionDialog(wTopLevel, "Open File", args, i);
     XtAddCallback(wDialog, XmNokCallback, CBOpenPltFile,   NULL);
     XtAddCallback(wDialog, XmNcancelCallback, 
-		  (XtCallbackProc)XtUnmanageChild, NULL);
+		  (XtCallbackProc) XtUnmanageChild, NULL);
     XmStringFree(sMask);
     XmStringFree(sNone);
     XtManageChild(wDialog);

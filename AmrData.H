@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.H,v 1.9 1998-11-26 00:15:32 vince Exp $
+// $Id: AmrData.H,v 1.10 1999-01-07 21:08:56 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -18,10 +18,11 @@
 #include "Boolean.H"
 #include "VisMF.H"
 
+class Interpolater;
 
 class AmrData {
   
-protected: 
+ protected: 
   // List of grids at each level, level 0 being coarsest.
   Array<Array<MultiFab *> > dataGrids;    // [level][component]
   Array<Array<Array<bool> > > dataGridsDefined;  // [level][component][index]
@@ -52,7 +53,7 @@ protected:
   
   FileType fileType;
   
-public:
+ public:
   AmrData();
   ~AmrData();
   
@@ -63,8 +64,7 @@ public:
   
   int FinestLevel() const		{ return finestLevel; }
   const Array<int> &RefRatio() const      { return refRatio; }
-  const BoxArray &boxArray(int level) const
-  {
+  const BoxArray &boxArray(int level) const {
     if(fileType == FAB || (fileType == MULTIFAB && level == 0)) {
       return fabBoxArray;
     } else {
@@ -104,7 +104,8 @@ public:
                int finestFillLevel, const aString &varName, int procWithFabs);
   void FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
                int finestFillLevel, const aString &varName, int procWithFabs);
-  void FillVar(MultiFab &destMultiFab, int finestFillLevel, const aString &varName);
+  void FillVar(MultiFab &destMultiFab, int finestFillLevel, const aString &varName,
+	       Interpolater *mapper = NULL);
   
   const aString &GetFileName() const { return fileName; }
   
@@ -135,7 +136,7 @@ public:
   static void SetSkipPltLines(int spl)  { skipPltLines = spl; }
   static void SetStaticBoundaryWidth(int bw)  { sBoundaryWidth = bw; }
   
-private:
+ private:
   aString fileName;
   static FileType defaultFileType;
   static bool verbose;

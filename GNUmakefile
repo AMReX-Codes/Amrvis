@@ -8,8 +8,8 @@ COMP      = mpKCC
 
 COMP      = g++
 COMP      = KCC
-DEBUG     = TRUE
 DEBUG     = FALSE
+DEBUG     = TRUE
 DIM       = 3
 DIM       = 2
 
@@ -33,6 +33,8 @@ HERE = .
 
 INCLUDE_LOCATIONS += $(HERE)
 INCLUDE_LOCATIONS += ../pBoxLib_2
+INCLUDE_LOCATIONS += ../amrlib
+INCLUDE_LOCATIONS += ../bndrylib
 
 ############################################### define vince's home dir
 ifeq ($(MACHINE), OSF1)

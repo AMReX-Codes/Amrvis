@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.H,v 1.22 1998-12-02 00:38:23 vince Exp $
+// $Id: AmrPicture.H,v 1.23 1999-01-07 21:08:56 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -195,8 +195,9 @@ class AmrPicture {
               Display *,Drawable &,GC, int FGColor,
               int xLength, int yLength,
               Real leftEdge, Real bottomEdge, Real rightEdge, Real topEdge);
-  inline bool Between(Real a, Real b, Real c)
-  {   return ( (a<=b)&&(b<=c) || (a>=b)&&(b>=c) ); }
+  inline bool Between(Real a, Real b, Real c) {
+    return ( (a<=b)&&(b<=c) || (a>=b)&&(b>=c) );
+  }
 
   void DrawVectorField(Display *, Drawable &, GC);
   void draw_vector_field(Display *, Drawable &, GC, int, int, int,

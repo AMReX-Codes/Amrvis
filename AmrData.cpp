@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.cpp,v 1.23 1998-11-26 00:15:32 vince Exp $
+// $Id: AmrData.cpp,v 1.24 1999-01-07 21:08:56 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -13,6 +13,7 @@
 #include "Boolean.H"
 #include "Misc.H"
 #include "VisMF.H"
+#include "Interpolater.H"
 
 #ifdef BL_USE_NEW_HFILES
 #include <iostream>
@@ -874,8 +875,215 @@ void AmrData::FillVar(FArrayBox *destFab, const Box &destBox,
 
 // ---------------------------------------------------------------
 void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
-		      const aString &varname)
+		      const aString &varname, Interpolater *mapper)
 {
+/*
+//
+// This function fills the destMultiFab which is defined on
+// the finestFillLevel.
+//
+
+   assert(finestFillLevel >= 0 && finestFillLevel <= finestLevel);
+   BoxArray destBoxes(destMultiFab.boxArray());
+   for(int iIndex = 0; iIndex < destBoxes.length(); ++iIndex) {
+     assert(probDomain[finestFillLevel].contains(destBoxes[iIndex]));
+   }
+
+    int myproc(ParallelDescriptor::MyProc());
+    int stateIndex(StateNumber(varname));
+    int srcComp(0);
+    int destComp(0);
+    int numComps(1);
+
+    int currentLevel;
+    Array<int> cumulativeRefRatios(finestFillLevel + 1, -1);
+
+    cumulativeRefRatios[finestFillLevel] = 1;
+    for(currentLevel = finestFillLevel - 1; currentLevel >= 0; --currentLevel) {
+      cumulativeRefRatios[currentLevel] = cumulativeRefRatios[currentLevel + 1] *
+                                          refRatio[currentLevel];
+    }
+
+    // ensure the required grids are in memory
+    for(currentLevel = 0; currentLevel <= finestFillLevel; ++currentLevel) {
+      for(int iBox = 0; iBox < destBoxes.length(); ++iBox) {
+	Box tempCoarseBox(destBoxes[iBox]);
+        if(currentLevel != finestFillLevel) {
+          tempCoarseBox.coarsen(cumulativeRefRatios[currentLevel]);
+        }
+        GetGrids(currentLevel, stateIndex, tempCoarseBox);
+      }
+    }
+
+    MultiFabCopyDescriptor multiFabCopyDesc;
+    Array<MultiFabId> stateDataMFId(finestFillLevel + 1);
+    for(currentLevel = 0; currentLevel <= finestFillLevel; ++currentLevel) {
+      stateDataMFId[currentLevel] =
+           multiFabCopyDesc.RegisterFabArray(dataGrids[currentLevel][stateIndex]);
+    }
+
+    Array<Box> localMFBoxes;      // These are the ones we want to fillpatch.
+    Array< Array< Array< Array<FillBoxId> > > > fillBoxId;
+			          // [grid][level][fillablesubbox][oldnew]
+			          // oldnew not used here
+    Array< Array< Array<Box> > > savedFineBox;  // [grid][level][fillablesubbox]
+    if(myproc == procWithFabs) {
+      localMFBoxes = destBoxes;
+      fillBoxId.resize(destBoxes.length());
+      savedFineBox.resize(destBoxes.length());
+      for(int iLocal = 0; iLocal < localMFBoxes.length(); ++iLocal) {
+        fillBoxId[iLocal].resize(finestFillLevel + 1);
+        savedFineBox[iLocal].resize(finestFillLevel + 1);
+      }
+    }
+
+    IndexType boxType(destBoxes[0].ixType());
+    BoxList unfilledBoxesOnThisLevel(boxType);
+    BoxList unfillableBoxesOnThisLevel(boxType);
+    // Do this for all local fab boxes.
+    for(int ibox = 0; ibox < localMFBoxes.length(); ++ibox) {
+        unfilledBoxesOnThisLevel.clear();
+        assert(unfilledBoxesOnThisLevel.ixType() == boxType);
+        assert(unfilledBoxesOnThisLevel.ixType() == localMFBoxes[ibox].ixType());
+        unfilledBoxesOnThisLevel.add(localMFBoxes[ibox]);
+        // Find the boxes that can be filled on each level--these are all
+        // defined at their level of refinement.
+        bool needsFilling = true;
+        for(currentLevel = finestFillLevel; currentLevel >= 0 && needsFilling;
+            --currentLevel)
+        {
+            unfillableBoxesOnThisLevel.clear();
+            const Box &currentPDomain = probDomain[currentLevel];
+
+	    int ufbLength = unfilledBoxesOnThisLevel.length();
+            fillBoxId[ibox][currentLevel].resize(ufbLength);
+            savedFineBox[ibox][currentLevel].resize(ufbLength);
+
+            int currentBLI = 0;
+            for(BoxListIterator bli(unfilledBoxesOnThisLevel); bli; ++bli) {
+                assert(bli().ok());
+                Box coarseDestBox(bli());
+                Box fineTruncDestBox(coarseDestBox & currentPDomain);
+                if(fineTruncDestBox.ok()) {
+                  fineTruncDestBox.refine(cumulativeRefRatios[currentLevel]);
+                  Box tempCoarseBox;
+                  if(currentLevel == finestFillLevel) {
+                    tempCoarseBox = fineTruncDestBox;
+                  } else {
+                    tempCoarseBox = fineTruncDestBox;
+		    // check this vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+                    tempCoarseBox.coarsen(cumulativeRefRatios[currentLevel]);
+                  }
+
+                  savedFineBox[ibox][currentLevel][currentBLI] = fineTruncDestBox;
+                  assert(localMFBoxes[ibox].intersects(fineTruncDestBox));
+
+                  BoxList tempUnfillableBoxes(boxType);
+                  fillBoxId[ibox][currentLevel][currentBLI].resize(1);
+                  fillBoxId[ibox][currentLevel][currentBLI][0] = 
+		      multiFabCopyDesc.AddBox(stateDataMFId[currentLevel],
+					      tempCoarseBox, &tempUnfillableBoxes,
+					      srcComp, destComp, numComps);
+
+                  unfillableBoxesOnThisLevel.join(tempUnfillableBoxes);
+                  ++currentBLI;
+                }
+            }
+
+            unfilledBoxesOnThisLevel.clear();
+            unfilledBoxesOnThisLevel =
+                unfillableBoxesOnThisLevel.intersect(currentPDomain);
+
+            if(unfilledBoxesOnThisLevel.isEmpty()) {
+              needsFilling = false;
+            } else {
+              Box coarseLocalMFBox(localMFBoxes[ibox]);
+              coarseLocalMFBox.coarsen(cumulativeRefRatios[currentLevel]);
+              unfilledBoxesOnThisLevel.intersect(coarseLocalMFBox);
+	      // check this vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv
+	      if(currentLevel != 0) {
+                unfilledBoxesOnThisLevel.coarsen(refRatio[currentLevel - 1]);
+	      }
+
+              if(currentLevel == 0) {
+                BoxList unfilledInside =
+                        unfilledBoxesOnThisLevel.intersect(currentPDomain);
+                if( ! unfilledInside.isEmpty()) {
+                  unfilledInside.intersect(coarseLocalMFBox);
+                  assert(unfilledInside.isEmpty());
+                }
+              }
+            }
+        }
+    }
+
+    multiFabCopyDesc.CollectData();
+
+
+    for(int currentIndex = 0; currentIndex < destBoxes.length(); ++currentIndex) {
+      for(int currentLevel = 0; currentLevel <= finestFillLevel; ++currentLevel) {
+        const Box &currentPDomain = probDomain[currentLevel];
+
+	if(myproc != procWithFabs) {
+	  break;
+	}
+        for(int currentBox = 0;
+            currentBox < fillBoxId[currentIndex][currentLevel].length();
+            ++currentBox)
+        {
+            Box tempCoarseBox(
+		       fillBoxId[currentIndex][currentLevel][currentBox][0].box());
+            FArrayBox tempCoarseDestFab(tempCoarseBox, numComps);
+            tempCoarseDestFab.setVal(1.e30);
+            multiFabCopyDesc.FillFab(stateDataMFId[currentLevel],
+			  fillBoxId[currentIndex][currentLevel][currentBox][0],
+			  tempCoarseDestFab);
+
+            Box intersectDestBox(savedFineBox[currentIndex][currentLevel][currentBox]);
+            intersectDestBox &= destFabs[currentIndex]->box();
+
+            const BoxArray &filledBoxes =
+                fillBoxId[currentIndex][currentLevel][currentBox][0].FilledBoxes();
+            BoxArray fboxes(filledBoxes);
+            FArrayBox *copyFromThisFab;
+            const BoxArray *copyFromTheseBoxes;
+            FArrayBox tempCurrentFillPatchedFab;
+
+            if(intersectDestBox.ok()) {
+              if(currentLevel != finestFillLevel) {
+                    fboxes.refine(cumulativeRefRatios[currentLevel]);
+                    // Interpolate up to fine patch.
+                    tempCurrentFillPatchedFab.resize(intersectDestBox, numComps);
+                    tempCurrentFillPatchedFab.setVal(1.e30);
+		    assert(intersectDestBox.ok());
+		    assert( tempCoarseDestFab.box().ok());
+		    PcInterp(tempCurrentFillPatchedFab,
+			     tempCoarseDestFab,
+			     intersectDestBox,
+			     cumulativeRefRatios[currentLevel]);
+                    copyFromThisFab = &tempCurrentFillPatchedFab;
+                    copyFromTheseBoxes = &fboxes;
+              } else {
+                    copyFromThisFab = &tempCoarseDestFab;
+                    copyFromTheseBoxes = &filledBoxes;
+              }
+              for(int iFillBox = 0; iFillBox < copyFromTheseBoxes->length();
+                  ++iFillBox)
+              {
+                    Box srcdestBox((*copyFromTheseBoxes)[iFillBox]);
+                    srcdestBox &= destFabs[currentIndex]->box();
+                    srcdestBox &= intersectDestBox;
+                    if(srcdestBox.ok()) {
+                        destFabs[currentIndex]->copy(*copyFromThisFab,
+                                                   srcdestBox, 0, srcdestBox,
+                                                   destComp, numComps);
+                    }
+              }
+            }
+        }
+      }  // end for(currentLevel...)
+    }  // end for(currentIndex...)
+*/
 }
 
 
