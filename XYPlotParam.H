@@ -9,7 +9,7 @@
 // I N C L U D E S
 /////////////////////////////////////////////
 
-#include <malloc.h>
+//#include <malloc.h>
 #include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -127,7 +127,7 @@ public:
   // Get_Parameter().  If it is already filled, the old value
   // will be reclaimed.
   //
-  void Set_Parameter(char *name, param_types type, char *val);
+  void Set_Parameter(char *name, param_types type, const char *val);
 
   //
   // This routine sets the value of an existing parameter to a new
