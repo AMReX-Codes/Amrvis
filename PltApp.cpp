@@ -563,7 +563,10 @@ void PltApp::PltAppInit() {
   AddStaticCallback(wFABFileButton, XmNactivateCallback, &PltApp::DoOutput);
 
   XtManageChild(wOutputMenuBar);
-// ****************************************** Level Menu
+
+// ****************************************** Lighting Menu
+
+/*
 # if (BL_SPACEDIM == 3)
   i=0;
   wLightOptions = XmCreatePulldownMenu(wAmrVisMenu,"lightingoptions", args, i);
@@ -579,7 +582,7 @@ void PltApp::PltAppInit() {
     wLightItems[j] = XmCreatePushButtonGadget(wLightOptions,
                                               "light", args, 1);
     XtAddCallback(wLightItems[j], XmNactivateCallback,
-		  &PltApp::CBRenderModeMenu, (XtPointer)j);
+                &PltApp::CBRenderModeMenu, (XtPointer)j);
   }
   XmStringFree(LightItems[0]); XmStringFree(LightItems[1]);
   XtManageChildren(wLightItems, 2);
@@ -605,36 +608,9 @@ void PltApp::PltAppInit() {
   XmStringFree(newLtring);
 
 # endif
-// ****************************************** Lighting Menu
-/*
-# if (BL_SPACEDIM == 3)
-  i=0;
-  XmString sLight;
-  sLight = XmStringCreateSimple("Render Mode:");
-  XmString light_mode = XmStringCreateSimple("Light");
-  XmString value_mode = XmStringCreateSimple("Value");
-  wLight = XmVaCreateSimpleOptionMenu(wAmrVisMenu, "lighting",
-                       sLight, 0 , 0, CBRenderModeMenu,
-                       XmVaPUSHBUTTON, light_mode, NULL, NULL, NULL,
-                       XmVaPUSHBUTTON, value_mode, NULL, NULL, NULL,
-                                      XmNtopAttachment, XmATTACH_FORM,
-                                      XmNtopOffset, WOFFSET, 
-                                      XmNbottomAttachment, XmATTACH_FORM, 
-                                      XmNbottomOffset, WOFFSET, 
-                                      XmNleftWidget, wOutputMenu, 
-                                      XmNleftAttachment, XmATTACH_WIDGET, 
-                                      XmNleftOffset, WOFFSET,
-                                      NULL);
-  XtVaSetValues(wLight, XmNuserData, this, NULL);
-     
-  XmStringFree(light_mode);
-  XmStringFree(value_mode);
-  XmStringFree(sLight);
-  
-  XtManageChild(wLight);
-   
-# endif
 */
+
+
 // ****************************************** wPicArea
 
   wPicArea = XtVaCreateWidget("picarea", xmFormWidgetClass, wControlArea,
@@ -882,6 +858,51 @@ void PltApp::PltAppInit() {
     AddStaticCallback(wReadTransfer, XmNactivateCallback,
 		 &PltApp::DoReadTransferFile);
     XtManageChild(wReadTransfer);
+
+    
+// ****************************************** Render Menu
+
+
+  i=0;
+  wLightOptions = XmCreatePulldownMenu(wPlotArea,"lightingoptions", args, i);
+  XtVaSetValues(wLightOptions, XmNuserData, this, NULL);
+  XmString LightItems[2];
+  LightItems[0] = XmStringCreateSimple("Light");
+  LightItems[1] = XmStringCreateSimple("Value");
+  
+
+  for(int j = 0; j<2; j++)
+  {
+    XtSetArg(args[0], XmNlabelString, LightItems[j]);
+    wLightItems[j] = XmCreatePushButtonGadget(wLightOptions,
+                                              "light", args, 1);
+    XtAddCallback(wLightItems[j], XmNactivateCallback,
+		  &PltApp::CBRenderModeMenu, (XtPointer)j);
+  }
+  XmStringFree(LightItems[0]); XmStringFree(LightItems[1]);
+  XtManageChildren(wLightItems, 2);
+  
+  
+
+    i=0;
+    XtSetArg(args[i], XmNsubMenuId, wLightOptions); i++;
+    XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET); i++;
+    XtSetArg(args[i], XmNleftWidget, wReadTransfer); i++;
+    XtSetArg(args[i], XmNleftOffset, WOFFSET); i++;
+    XtSetArg(args[i], XmNtopAttachment, XmATTACH_POSITION); i++;
+    XtSetArg(args[i], XmNtopPosition, 50); i++;
+    XtSetArg(args[i], XmNmenuHistory, wLightItems[0]);  i++;
+    wLight = XmCreateOptionMenu(wPlotArea, "lighting", args, i);
+
+    //set this string to "" for cray
+  XmString newLtring = XmStringCreateSimple("");
+  XtVaSetValues(XmOptionLabelGadget(wLight),
+                XmNlabelString, newLtring,
+                NULL);
+  XmStringFree(newLtring);
+  
+  XtManageChild(wLight);
+  
 #endif
 
     i=0;
@@ -1120,7 +1141,7 @@ void PltApp::PltAppInit() {
   XtManageChild(wPaletteButton);
   XtManageChild(wSetRangeButton);
   XtManageChild(wBoxesButton);
-  XtManageChild(wLight);
+//  XtManageChild(wLight);
   XtManageChild(wPicArea);
   XtManageChild(wPalArea);
   XtManageChild(wPlotArea);
@@ -1357,8 +1378,10 @@ void PltApp::CBChangeScale(Widget w, XtPointer client_data, XtPointer call_data)
     for(np = 0; np < NPLANES; np++) {
       obj->DoChangeScale(np);
     }
+    obj->DoExposeRef();
   }
 }
+
 
 
 // -------------------------------------------------------------------
@@ -1394,7 +1417,9 @@ void PltApp::CBChangeLevel(Widget w, XtPointer client_data,
                             obj, hdir, vdir, sdir);
     obj->datasetPtr->DoExpose(false);
   }
+  obj->DoExposeRef();
 }
+
 
 
 // -------------------------------------------------------------------
@@ -1425,6 +1450,7 @@ void PltApp::CBChangeDerived(Widget w, XtPointer client_data,
     obj->DoChangeDerived(np, w, client_data, call_data);
   }
 }
+
 
 
 // -------------------------------------------------------------------

@@ -88,6 +88,7 @@ public:
 	static void	CBChangePlane(Widget, XtPointer, XtPointer);
 #if (BL_SPACEDIM==3)
         static void     CBRenderModeMenu(Widget, XtPointer, XtPointer);
+//        static void     CBDRenderModeMenu(Widget, XtPointer, XtPointer);
         static void	CBTransResize(Widget, XtPointer, XtPointer);
 	static void	CBTransInput(Widget, XtPointer, XtPointer);
 
@@ -271,7 +272,9 @@ private:
 	Widget		wTransDA, wRender, wLabelAxes, wOrient;
 	Widget		wDetachTopLevel, wDetachForm, wDetachWindowForm;
 	Widget		wAttach, wDRender, wDLabelAxes, wDOrient;
-    Widget		wAutoDraw, wDAutoDraw, wLight, wLightItems[2], wLightOptions;
+    Widget		wAutoDraw, wDAutoDraw;
+    Widget  wLight, wLightItems[2], wLightOptions;
+    Widget  wDLight, wDLightItems[2], wDLightOptions;
 	Widget		wReadTransfer, wDReadTransfer;
 	int		daWidth, daHeight;
 	int		acc, labelAxes, transDetached;

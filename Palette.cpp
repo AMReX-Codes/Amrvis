@@ -79,7 +79,7 @@ Palette::~Palette() {
 
 // -------------------------------------------------------------------
 void Palette::ExposePalette() {
-  XCopyArea(display, palPixmap, palWindow, gc,
+    XCopyArea(display, palPixmap, palWindow, gc,
 	    0, 0, totalPalWidth, totalPalHeight+50, 0, 0);
 }
 

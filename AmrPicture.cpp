@@ -97,10 +97,8 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
                        AmrPicture *parentPicturePtr,
                        PltApp *parentPltAppPtr, PltApp *pltappptr)
 {
-//    cout<<"Entering AmrPicture::AmrPicture..."<<endl;
   int ilev;
   myView = view;
-//  cout<<"My view is "<<myView<<endl;
   minDrawnLevel = mindrawnlevel;
   GAptr = gaptr;
   pltAppPtr = pltappptr;
@@ -175,7 +173,6 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
         + (parentPltAppPtr != NULL ?
            parentPltAppPtr->GetAmrPicturePtr(YZ-myView)->GetSlice():
            0);
-//    cout<<"slice is set to "<<slice<<endl;
     int first = 0;
     for(int i = 0; i<=YZ && parentPltAppPtr != NULL;i++) {
         if ( i == myView ) break;
@@ -200,13 +197,11 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
   sliceBox[maxAllowableLevel] = subDomain[maxAllowableLevel];
 
   AmrPictureInit();
-//  cout<<"Leaving AmrPicture::AmrPicture"<<endl;
 }  // end AmrPicture constructor
 
 
 // ---------------------------------------------------------------------
 void AmrPicture::AmrPictureInit() {
-    //   cout<<"Entering AmrPictureInit, slice is "<<slice<<endl;
   int iLevel;
   if(myView==XZ) {
     sliceBox[maxAllowableLevel].setSmall(YDIR, slice);
@@ -274,8 +269,6 @@ void AmrPicture::AmrPictureInit() {
   pixMapCreated = false;
 
   SetSlice(myView, slice);
-//  cout<<"have set slice to "<<slice<<endl;
-//  cout<<"Leaving AmrPicture::AmrPictureInit"<<endl;
 }  // end AmrPictureInit()
 
 
@@ -500,7 +493,6 @@ void AmrPicture::SetSubCut(int startX, int startY, int endX, int endY) {
 
 // ---------------------------------------------------------------------
 void AmrPicture::DoExposePicture() {
-  pltAppPtr->DoExposeRef();
   if(pltAppPtr->Animating()) {
     XPutImage(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
       pltAppPtr->CurrentFrameXImage(), 0, 0, 0, 0, imageSizeH, imageSizeV);
@@ -622,7 +614,7 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
   assert(palptr != NULL);
   palPtr = palptr;
   AmrData &amrData = dataServicesPtr->AmrDataRef();
-  if(currentDerived != derived || whichRange == USEFILE) {
+  if(/*currentDerived != derived ||*/ whichRange == USEFILE) {
     maxsFound = false;
     pltAppPtr->PaletteDrawn(false);
   }
@@ -1025,8 +1017,14 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
              imageSizeH, imageSizeV);
 
     ShowFrameImage(islice);
-
+    //RubberBandSlice(islice);
 #   if (BL_SPACEDIM == 3)
+    pltAppPtr->GetProjPicturePtr()->ChangeSlice(YZ-sliceDir, islice);
+    pltAppPtr->GetProjPicturePtr()->MakeSlices();
+    XClearWindow(XtDisplay(pltAppPtr->GetWTransDA()),
+                 XtWindow(pltAppPtr->GetWTransDA()));
+    pltAppPtr->DoExposeTransDA();
+    
       XEvent event;
       if(XCheckMaskEvent(GAptr->PDisplay(), ButtonPressMask, &event)) {
         if(event.xany.window == XtWindow(pltAppPtr->GetStopButtonWidget())) {
@@ -1156,7 +1154,7 @@ void AmrPicture::Sweep(AnimDirection direction) {
     DoStop();
   }
   if( ! framesMade) {
-    CreateFrames(direction);
+      CreateFrames(direction);
   }
   if(framesMade) {
     pendingTimeOut = XtAppAddTimeOut(pltAppPtr->GetAppContext(),
@@ -1166,6 +1164,70 @@ void AmrPicture::Sweep(AnimDirection direction) {
   }
 }
 
+
+//----------------------------------------------------------------------
+void AmrPicture::RubberBandSlice(int iSlice) {
+    //ShowFrameImage(iSlice);
+    static int sweepStarted = 0;
+    //static int firstSlice = 0;
+    static int lastSlice = 0;
+    /*AmrPicture *apXY = pltAppPtr->GetAmrPicturePtr(XY);
+  AmrPicture *apXZ = pltAppPtr->GetAmrPicturePtr(XZ);
+  AmrPicture *apYZ = pltAppPtr->GetAmrPicturePtr(YZ);
+  int iRelSlice(iSlice);
+  */
+  if (sweepStarted) {
+      UndrawSlice(lastSlice);
+  } else {
+      sweepStarted = 1;
+  }
+  DrawSlice(iSlice);
+  lastSlice = iSlice;
+  
+}
+  
+void AmrPicture::UndrawSlice(int iSlice) {
+    cout<<iSlice<<endl;
+}
+void AmrPicture::DrawSlice(int iSlice) {
+    cout<<iSlice<<endl;
+  XDrawLine(GAptr->PDisplay(), pictureWindow, GetPltAppPtr()->GetRbgc(),
+            0, 30, imageSizeH, 30);
+
+  //draw rubberbanded "cutting" planes
+//  XSetForeground(GAptr->PDisplay(), GAptr->GetRbgc(), hColor);
+/*  XDrawLine(GAptr->PDisplay(), pictureWindow,
+		pltAppPtr->GetRbgc(), 0, hLine, imageSizeH, hLine); 
+//  XSetForeground(GAptr->PDisplay(), GAptr->GetRbgc(), vColor);
+  XDrawLine(GAptr->PDisplay(), pictureWindow,
+		pltAppPtr->GetRbgc(), vLine, 0, vLine, imageSizeV); 
+//  XSetForeground(GAptr->PDisplay(), GAptr->GetRbgc(), hColor-30);
+  XDrawLine(GAptr->PDisplay(), pictureWindow,
+  	pltAppPtr->GetRbgc(), 0, hLine+1, imageSizeH, hLine+1); 
+//  XSetForeground(GAptr->PDisplay(), GAptr->GetRbgc(), vColor-30);
+  XDrawLine(GAptr->PDisplay(), pictureWindow,
+  	pltAppPtr->GetRbgc(), vLine+1, 0, vLine+1, imageSizeV); 
+        */
+/*  if(sliceDir == XDIR) {
+    apXY->SetVLine(iRelSlice * pltAppPtr->CurrentScale());
+    apXY->DoExposePicture();
+    apXZ->SetVLine(iRelSlice * pltAppPtr->CurrentScale());
+    apXZ->DoExposePicture();
+  }
+  if(sliceDir == YDIR) {
+    apXY->SetHLine(apXY->ImageSizeV() - 1 - iRelSlice * pltAppPtr->CurrentScale());
+    apXY->DoExposePicture();
+    apYZ->SetVLine(iRelSlice * pltAppPtr->CurrentScale());
+    apYZ->DoExposePicture();
+  }
+  if(sliceDir == ZDIR) {
+    apYZ->SetHLine(apYZ->ImageSizeV() - 1 - iRelSlice * pltAppPtr->CurrentScale());
+    apYZ->DoExposePicture();
+    apXZ->SetHLine(apXZ->ImageSizeV() - 1 - iRelSlice * pltAppPtr->CurrentScale());
+    apXZ->DoExposePicture();
+  }
+  */
+}
 
 // ---------------------------------------------------------------------
 void AmrPicture::ShowFrameImage(int iSlice) {

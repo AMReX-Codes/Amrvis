@@ -38,19 +38,16 @@ public:
     { objCenterX = x; objCenterY = y; objCenterZ = z; }
     void SetScreenPosition(int x, int y) 
     { screenPositionX = x; screenPositionY = y; }
-    void SetScale(Real sx, Real sy, Real sz)
-    { scaleX = sx;  scaleY = sy;  scaleZ = sz; }
-    void GetScale(Real &sx, Real &sy, Real &sz)
-    { sx = scaleX;  sy = scaleY;  sz = scaleZ; }
+    void SetScale(Real s) { scale = s; }
+    Real GetScale(void) { return scale; }
     
-    void SetTranslation(Real tx, Real ty, Real tz)
-    { transX = tx;  transY = ty;  transZ = tz; }
-    void GetTranslation(Real &tx, Real &ty, Real &tz)
-			{ tx = transX;  ty = transY;  tz = transZ; }
+    void SetTranslation(Real tx, Real ty)
+    { transX = tx;  transY = ty; }
+    void GetTranslation(Real &tx, Real &ty) { tx = transX;  ty = transY; }
     
     AmrQuaternion Screen2Quat(int, int, int, int, Real);
 private:
-    Real scaleX, scaleY, scaleZ, transX, transY, transZ;
+    Real scale, transX, transY;
     AmrQuaternion rotation, renderRotation;
     int screenPositionX, screenPositionY;
     Real objCenterX, objCenterY, objCenterZ;

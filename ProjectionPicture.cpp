@@ -207,7 +207,7 @@ void ProjectionPicture::MakePicture() {
 #ifdef BL_VOLUMERENDER
   clock_t time0 = clock();
 
-  viewTransformPtr->GetScale(scale[XDIR], scale[YDIR], scale[ZDIR]);
+  scale[XDIR] = scale[YDIR] = scale[ZDIR] = viewTransformPtr->GetScale();
 
 
   Real mvmat[4][4];

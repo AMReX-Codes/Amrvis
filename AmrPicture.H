@@ -45,6 +45,8 @@ class AmrPicture {
 	void	CreatePicture(Window drawPictureHere, Palette *palptr,
 				const aString &derived);
 	void	Draw(int fromLevel, int toLevel);
+        void    DrawSlice(int);
+        void    UndrawSlice(int);
 	void	DoExposePicture();
 	void	ToggleBoxes();
 	void	ChangeDerived(aString derived, Palette *palptr);
@@ -151,6 +153,7 @@ private:
 	void SetSlice(int view, int here);
 	void CoarsenSliceBox();
 	void ShowFrameImage(int iSlice);
+        void RubberBandSlice(int iSlice);
 	void CreateFrames(AnimDirection direction);
 	void AmrPictureInit();
 	void DrawBoxes(Array< Array<GridPicture> > &gp, Drawable &drawable);
