@@ -281,8 +281,19 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
   hDIR = hdir;
   vDIR = vdir;
   sDIR = sdir;
-  hAxisString = "x";
-  vAxisString = "y";
+  if (hDIR == 0)
+    hAxisString = "x";
+  else if (hDIR == 1)     
+    hAxisString = "y";
+  else 
+    hAxisString = "error";
+  if (vDIR == 1)
+    vAxisString = "y";
+  else if (vDIR == 2)
+    vAxisString = "z";
+  else
+    vAxisString = "error";
+
   if( ! stringOk) {
     return;
   }
