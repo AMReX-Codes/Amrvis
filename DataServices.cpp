@@ -121,7 +121,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 	delete DataServices::dsArray[i];
       }
     }
-    EndParallel();
+    ParallelDescriptor::EndParallel();
     exit(0);
   }  // end ExitRequest
 

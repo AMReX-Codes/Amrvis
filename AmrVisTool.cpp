@@ -90,7 +90,7 @@ void main(int argc, char *argv[]) {
   AmrData::SetSkipPltLines(GetSkipPltLines());
   AmrData::SetStaticBoundaryWidth(GetBoundaryWidth());
 
-  StartParallel(NProcs());
+  ParallelDescriptor::StartParallel(NProcs());
 
   if(SleepTime() > 0) {
     sleep(SleepTime());
@@ -114,7 +114,7 @@ void main(int argc, char *argv[]) {
   if(bBatchMode) {
     DataServices::SetBatchMode();
     BatchFunctions();
-    EndParallel();
+    ParallelDescriptor::EndParallel();
   } else {
 
     if(ParallelDescriptor::IOProcessor()) {
@@ -196,7 +196,7 @@ void main(int argc, char *argv[]) {
 
   }  // end if(bBatchMode)
 
-  //EndParallel();
+  //ParallelDescriptor::EndParallel();
 }  // end main()
 
  
