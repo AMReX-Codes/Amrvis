@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.35 2000-10-05 20:03:41 vince Exp $
+// $Id: VolRender.cpp,v 1.36 2000-10-10 00:13:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -181,19 +181,7 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
   int maxDrawnLevel(maxDataLevel);
   Box gbox, grefbox;
 
-  Box swfDataBoxFull(drawnDomain[maxDrawnLevel]);
-  int iMidPoint((swfDataBoxFull.bigEnd(XDIR) - swfDataBoxFull.smallEnd(XDIR)) / 2);  // approx
-  cout << ")))))))  (orig) swfDataBox = " << swfDataBoxFull << endl;
-
-for(int iSubBox(0); iSubBox < 2; ++iSubBox) {
-  Box swfDataBox(swfDataBoxFull);
-  if(iSubBox == 0) {
-    swfDataBox.setBig(XDIR, iMidPoint);
-  } else {
-    swfDataBox.setSmall(XDIR, iMidPoint + 1);
-  }
-  cout << "))))))) iSubBox swfDataBox = " << iSubBox << "  " << swfDataBox << endl;
-
+  Box swfDataBox(drawnDomain[maxDrawnLevel]);
 
   FArrayBox swfFabData;
   if(ParallelDescriptor::IOProcessor()) {
@@ -226,16 +214,16 @@ for(int iSubBox(0); iSubBox < 2; ++iSubBox) {
     Real *dataPoint = swfFabData.dataPtr();
     
     int sindexbase;
-    int srows   = swfDataBoxFull.length(XDIR);
-    int scols   = swfDataBoxFull.length(YDIR);
+    int srows   = swfDataBox.length(XDIR);
+    int scols   = swfDataBox.length(YDIR);
     //int splanes = swfDataBox.length(ZDIR);
     int scolssrowstmp = scols*srows;
-    int sstartr = swfDataBoxFull.smallEnd(XDIR);
-    int sstartc = swfDataBoxFull.smallEnd(YDIR);
-    int sstartp = swfDataBoxFull.smallEnd(ZDIR);
-    int sendr   = swfDataBoxFull.bigEnd(XDIR);
-    int sendc   = swfDataBoxFull.bigEnd(YDIR);
-    int sendp   = swfDataBoxFull.bigEnd(ZDIR);
+    int sstartr = swfDataBox.smallEnd(XDIR);
+    int sstartc = swfDataBox.smallEnd(YDIR);
+    int sstartp = swfDataBox.smallEnd(ZDIR);
+    int sendr   = swfDataBox.bigEnd(XDIR);
+    int sendc   = swfDataBox.bigEnd(YDIR);
+    int sendp   = swfDataBox.bigEnd(ZDIR);
     
     Box gbox(swfDataBox);
     Box goverlap(gbox & drawnDomain[maxDrawnLevel]);
@@ -414,9 +402,6 @@ for(int iSubBox(0); iSubBox < 2; ++iSubBox) {
         }  // end for(iGrid...)
       }  // end for(lev...)
     }  // end if(bDrawVolumeBoxes)
-
-
-}  // end for(iSubBox...)
 
 
     cout << endl;

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.68 2000-10-05 20:37:11 vince Exp $
+// $Id: PltApp.cpp,v 1.69 2000-10-10 00:13:24 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -2285,9 +2285,7 @@ void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
     ResetAnimation();
     DirtyFrames(); 
   }
-  cout << "***************************************** showBoxes = " << (int) showBoxes << endl;
   showBoxes = !showBoxes;
-  cout << "**** after ****************************** showBoxes = " << (int) showBoxes << endl;
   amrPicturePtrArray[ZPLANE]->ToggleBoxes();
 #if (BL_SPACEDIM == 3)
     projPicturePtr->MakeBoxes(); 
