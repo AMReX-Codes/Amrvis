@@ -413,7 +413,7 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
   imageData = new unsigned char[daWidth*daHeight];
   if(imageData == NULL) {
     cout << " SetDrawingAreaDimensions::imageData : new failed" << endl;
-    ParallelDescriptor::Abort("Exiting.");
+    BoxLib::Abort("Exiting.");
   }
   
   viewTransformPtr->SetScreenPosition(daWidth/2, daHeight/2);

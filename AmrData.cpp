@@ -999,7 +999,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
 
 // ---------------------------------------------------------------
 void AmrData::FillInterior(FArrayBox &dest, int level, const Box &subbox) {
-   ParallelDescriptor::Abort("Error:  should not be in AmrData::FillInterior");
+   BoxLib::Abort("Error:  should not be in AmrData::FillInterior");
 }
 
 

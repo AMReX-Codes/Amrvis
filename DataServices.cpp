@@ -196,7 +196,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 
     case FillVarArrayOfFabs:
     {
-      ParallelDescriptor::Abort("FillVarArrayOfFabs not implemented yet.");
+      BoxLib::Abort("FillVarArrayOfFabs not implemented yet.");
     }
     break;
 

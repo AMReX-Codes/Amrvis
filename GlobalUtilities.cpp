@@ -648,7 +648,7 @@ void ParseCommandLine(int argc, char *argv[]) {
 
 
   if(fileType == INVALIDTYPE) {
-    ParallelDescriptor::Abort("Error:  invalid file type.  Exiting.");
+    BoxLib::Abort("Error:  invalid file type.  Exiting.");
   } else {
 #ifdef BL_USE_MPI
     if(ParallelDescriptor::IOProcessor()) {

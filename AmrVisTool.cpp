@@ -114,10 +114,10 @@ void main(int argc, char *argv[]) {
     bBatchMode = true;
   }
   if(bBatchMode && IsAnimation()) {
-    ParallelDescriptor::Abort("Batch mode and animation mode are incompatible.");
+    BoxLib::Abort("Batch mode and animation mode are incompatible.");
   }
   if(GivenBox()) {
-    ParallelDescriptor::Abort("Command line subbox not supported yet.");
+    BoxLib::Abort("Command line subbox not supported yet.");
   }
 
   if(bBatchMode) {
