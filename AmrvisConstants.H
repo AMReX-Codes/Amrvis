@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrvisConstants.H,v 1.4 1998-10-29 23:56:06 vince Exp $
+// $Id: AmrvisConstants.H,v 1.5 1999-04-13 23:39:59 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -57,23 +57,11 @@ static char *FileTypeString[] = {
   "invalidtype", "fab", "multifab", "newplt"
 };
 
-// number of regions in computational domain
-#if(BL_SPACEDIM == 1)
-#error 1D not supported by amrvis
-const int NUM_REGIONS = 3;
-#endif
-#if(BL_SPACEDIM == 2)
-const int NUM_REGIONS = 9;
-#endif
-#if(BL_SPACEDIM == 3)
-const int NUM_REGIONS = 27;
-#endif
-
 #ifdef BL_USE_FLOAT
-  const Real AV_BIG_REAL = FLT_MAX;
+#define AV_BIG_REAL FLT_MAX
 #else
 # ifdef BL_USE_DOUBLE
-    const Real AV_BIG_REAL = DBL_MAX;
+#define AV_BIG_REAL DBL_MAX
 # else
 #   error Must define BL_USE_FLOAT or BL_USE_DOUBLE
 # endif
