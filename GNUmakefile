@@ -12,9 +12,6 @@ DIM       = 3
 USE_ARRAYVIEW = TRUE
 USE_ARRAYVIEW = FALSE
 
-USE_BSP=TRUE
-USE_BSP=FALSE
-
 USE_MPI=TRUE
 USE_MPI=FALSE
 
@@ -46,44 +43,12 @@ VINCEDIR = /home/Cvince
 endif
 endif
 
-############################################### bsp definitions
-ifeq ($(USE_BSP), TRUE)
-DEFINES += -DBL_USE_BSP
-BSP_HOME = $(VINCEDIR)/BSP
-INCLUDE_LOCATIONS += $(BSP_HOME)/include
-LIBRARY_LOCATIONS += $(BSP_HOME)/lib/$(BSP_MACHINE)
-LIBRARY_LOCATIONS += $(BSP_HOME)/lib/$(BSP_MACHINE)/$(BSP_DEVICE)
-
-ifeq ($(MACHINE), T3E)
-DEFINES += -DBL_T3E_$(WHICHT3E)
-endif
-
-ifeq ($(DEBUG), TRUE)
-LIBRARIES += -lbspcore_O0 -lbsplevel1_O0
-else
-ifeq ($(BSP_MACHINE), OSF1)
-LIBRARIES += -lbspcore_O2 -lbsplevel1_O0
-else
-LIBRARIES += -lbspcore_O2 -lbsplevel1_O2
-endif
-endif
-
-# exception library (for newest bsplib)
-ifeq ($(BSP_MACHINE), OSF1)
-LIBRARY_LOCATIONS += /usr/ccs/lib/cmplrs/cc
-LIBRARIES += -lexc
-endif
-
-endif
-# end if(USE_BSP == TRUE)
-
-
 ############################################### mpi definitions
 MPI_HOME =
 
 ifeq ($(USE_MPI), TRUE)
 DEFINES += -DBL_USE_MPI
-ifeq ($(BSP_MACHINE), OSF1)
+ifeq ($(MACHINE), OSF1)
 MPI_HOME = /usr/local/mpi
 endif
 endif

@@ -35,10 +35,6 @@ endif
 
 FEXE_sources += FABUTIL_$(DIM)D.F
 
-ifeq ($(USE_BSP), TRUE)
-CEXE_sources += preload.cpp
-endif
-
 BOXLIB_BASE=EXE
 
 C$(BOXLIB_BASE)_headers += BoxLib.H BLVERSION.H
