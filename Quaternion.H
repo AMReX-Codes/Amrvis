@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Quaternion.H,v 1.4 1998-10-27 18:16:37 lijewski Exp $
+// $Id: Quaternion.H,v 1.5 1998-10-29 23:56:10 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// Quaternion.H
+// ---------------------------------------------------------------
 #ifndef _AMR_QUATERNION_H_
 #define _AMR_QUATERNION_H_
 

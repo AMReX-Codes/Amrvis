@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ArrayView.H,v 1.1 1998-06-09 23:48:46 vince Exp $
+// $Id: ArrayView.H,v 1.2 1998-10-29 23:56:07 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// ArrayView.H
+// ---------------------------------------------------------------
 #ifndef _ARRAYVIEW_H_
 #define _ARRAYVIEW_H_
 

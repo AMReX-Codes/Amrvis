@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.cpp,v 1.31 1998-10-27 18:16:34 lijewski Exp $
+// $Id: AmrPicture.cpp,v 1.32 1998-10-29 23:56:06 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// AmrPicture.cpp
+// ---------------------------------------------------------------
 #include "AmrPicture.H"
 #include "PltApp.H"
 #include "DataServices.H"
@@ -741,8 +744,9 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
 	  bool minMaxValid(false);
           DataServices::Dispatch(DataServices::MinMaxRequest,
 			         dataServicesPtr,
-			         amrData.ProbDomain()[lev], currentDerived, lev,
-			         &dataMin, &dataMax, &minMaxValid);
+			         (void *) (&(amrData.ProbDomain()[lev])),
+				 (void *) &currentDerived,
+				 lev, &dataMin, &dataMax, &minMaxValid);
           dataMinAllGrids = Min(dataMinAllGrids, dataMin);
           dataMaxAllGrids = Max(dataMaxAllGrids, dataMax);
           dataMinFile = Min(dataMinFile, dataMin);
@@ -750,7 +754,8 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
 	  if(findSubRange && lev <= maxAllowableLevel && lev <= maxLevelWithGrids) {
             DataServices::Dispatch(DataServices::MinMaxRequest,
 			           dataServicesPtr,
-                                   subDomain[lev], currentDerived, lev,
+                                   (void *) (&(subDomain[lev])),
+				   (void *) &currentDerived, lev,
 	                           &dataMin, &dataMax, &minMaxValid);
 	    if(minMaxValid) {
               dataMinRegion = Min(dataMinRegion, dataMin);
@@ -806,8 +811,10 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
 
   for(int iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
     DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
-		           sliceFab[iLevel], sliceFab[iLevel]->box(),
-			   iLevel, derived);
+		           (void *) (sliceFab[iLevel]),
+			   (void *) (&(sliceFab[iLevel]->box())),
+			   iLevel,
+			   (void *) &derived);
     CreateImage(*(sliceFab[iLevel]), imageData[iLevel],
  		dataSizeH[iLevel], dataSizeV[iLevel],
  	        minUsing, maxUsing, palPtr);
@@ -1128,8 +1135,10 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
     // get the data for this slice
     FArrayBox imageFab(interBox[maxDrawnLevel], 1);
     DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
-			   &imageFab, imageFab.box(), maxDrawnLevel,
-                           currentDerived);
+			   (void *) &imageFab,
+			   (void *) (&(imageFab.box())),
+			   maxDrawnLevel,
+                           (void *) &currentDerived);
 
     CreateImage(imageFab, frameImageData,
 		dataSizeH[maxDrawnLevel], dataSizeV[maxDrawnLevel],
@@ -1586,21 +1595,21 @@ int AmrPicture::contour(const FArrayBox &fab, Real value,
   for(int j = 0; j < yLength - 1; ++j) {
     for(int i = 0; i < xLength - 1; ++i) {
       if(has_mask) {
-        if(mask[(i)+(j)*xLength] ||
-           mask[(i+1)+(j)*xLength] ||
-           mask[(i+1)+(j+1)*xLength] ||
-           mask[(i)+(j+1)*xLength])
+        if(mask[(i) + (j) * xLength] ||
+           mask[(i+1) + (j) * xLength] ||
+           mask[(i+1) + (j+1) * xLength] ||
+           mask[(i) + (j+1) * xLength])
 	{
           continue;
         }
       }
-      Real left_bottom = data[(i)+(j)*xLength];         // left bottom value
-      Real left_top = data[(i)+(j+1)*xLength];          // left top value
-      Real right_bottom = data[(i+1)+(j)*xLength];      // right bottom value
-      Real right_top = data[(i+1)+(j+1)*xLength];       // right top value
+      Real left_bottom(data[(i) + (j) * xLength]);         // left bottom value
+      Real left_top(data[(i) + (j+1) * xLength]);          // left top value
+      Real right_bottom(data[(i+1) + (j) * xLength]);      // right bottom value
+      Real right_top(data[(i+1) + (j+1) * xLength]);       // right top value
       xLeft = leftEdge + xDiff*(i);
       xRight = xLeft + xDiff;
-      yBottom = bottomEdge + yDiff*(j);
+      yBottom = bottomEdge + yDiff * j;
       yTop = yBottom + yDiff;
       
       left = Between(left_bottom,value,left_top);
@@ -1644,56 +1653,86 @@ int AmrPicture::contour(const FArrayBox &fab, Real value,
       
       XSetForeground(GAptr->PDisplay(), GAptr->PGC(), FGColor);
       
-      Real vReal2X, hReal2X;
-      hReal2X = (Real)imageSizeH /(rightEdge - leftEdge);
-      vReal2X = (Real)imageSizeV /(topEdge - bottomEdge);
+      Real hReal2X = (Real) imageSizeH / (rightEdge - leftEdge);
+      Real vReal2X = (Real) imageSizeV / (topEdge - bottomEdge);
       
       if(left) { 
-        xLeft -= leftEdge; yLeft -= bottomEdge;
-        xLeft *= hReal2X; yLeft *= vReal2X;
+        xLeft -= leftEdge;
+	yLeft -= bottomEdge;
+        xLeft *= hReal2X;
+	yLeft *= vReal2X;
       }
       if(right) {
-        xRight -= leftEdge; yRight -= bottomEdge;
-        xRight *= hReal2X; yRight *= vReal2X;
+        xRight -= leftEdge;
+	yRight -= bottomEdge;
+        xRight *= hReal2X;
+	yRight *= vReal2X;
       }
       if(top) {
-        xTop -= leftEdge; yTop -= bottomEdge;
-        xTop *= hReal2X; yTop *= vReal2X; 
+        xTop -= leftEdge;
+	yTop -= bottomEdge;
+        xTop *= hReal2X;
+	yTop *= vReal2X; 
       }
       if(bottom) {
-        xBottom -= leftEdge; yBottom -= bottomEdge;
-        xBottom *= hReal2X; yBottom *= vReal2X; 
+        xBottom -= leftEdge;
+	yBottom -= bottomEdge;
+        xBottom *= hReal2X;
+	yBottom *= vReal2X; 
       }
       
       // finally, draw contour line
       if(left && right && bottom && top) {
         // intersects all sides, generate saddle point
         XDrawLine(display, dPixMap, gc, 
-                  xLeft, imageSizeV-yLeft,xRight, imageSizeV-yRight);
+                  (int) xLeft,
+		  (int) (imageSizeV - yLeft),
+		  (int) xRight,
+		  (int) (imageSizeV - yRight));
         XDrawLine(display, dPixMap, gc,
-                  xTop, imageSizeV-yTop,xBottom,imageSizeV-yBottom);
-      } else if(top && bottom) {
-        // only intersects top and bottom sides
+                  (int) xTop,
+		  (int) (imageSizeV - yTop),
+		  (int) xBottom,
+		  (int) (imageSizeV - yBottom));
+      } else if(top && bottom) {   // only intersects top and bottom sides
         XDrawLine(display, dPixMap, gc,
-                  xTop,imageSizeV-yTop,xBottom,imageSizeV-yBottom);
+                  (int) xTop,
+		  (int) (imageSizeV - yTop),
+		  (int) xBottom,
+		  (int) (imageSizeV - yBottom));
       } else if(left) {
         if(right) {
           XDrawLine(display, dPixMap, gc,
-                    xLeft,imageSizeV-yLeft,xRight,imageSizeV-yRight);
+                    (int) xLeft,
+		    (int) (imageSizeV - yLeft),
+		    (int) xRight,
+		    (int) (imageSizeV - yRight));
         } else if(top) {
           XDrawLine(display, dPixMap, gc,
-                    xLeft,imageSizeV-yLeft,xTop,imageSizeV-yTop);
+                    (int) xLeft,
+		    (int) (imageSizeV - yLeft),
+		    (int) xTop,
+		    (int) (imageSizeV-yTop));
         } else {
           XDrawLine(display, dPixMap, gc,
-                    xLeft,imageSizeV-yLeft,xBottom,imageSizeV-yBottom);
+                    (int) xLeft,
+		    (int) (imageSizeV - yLeft),
+		    (int) xBottom,
+		    (int) (imageSizeV - yBottom));
         }
       } else if(right) {
         if(top) {
           XDrawLine(display, dPixMap, gc,
-                    xRight,imageSizeV-yRight,xTop,imageSizeV-yTop);
+                    (int) xRight,
+		    (int) (imageSizeV - yRight),
+		    (int) xTop,
+		    (int) (imageSizeV - yTop));
         } else {
           XDrawLine(display, dPixMap, gc,
-                    xRight,imageSizeV-yRight,xBottom,imageSizeV-yBottom);
+                    (int) xRight,
+		    (int) (imageSizeV - yRight),
+		    (int) xBottom,
+		    (int) (imageSizeV - yBottom));
         }
       }
       
@@ -1733,7 +1772,7 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
   FArrayBox vVelocity(DVFSliceBox);
 
   // fill the density and momentum:
-  aString Density("density");
+  aString sDensity("density");
   aString choice[3];
   choice[0] = "xmom";
   choice[1] = "ymom";
@@ -1742,14 +1781,20 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
   aString vMom = choice[vDir];
 
   DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
-                         &density, density.box(),
-                         maxDrawnLevel, Density);
+                         (void *) &density,
+			 (void *) (&(density.box())),
+                         maxDrawnLevel,
+			 (void *) &sDensity);
   DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
-                         &hVelocity, hVelocity.box(),
-                         maxDrawnLevel, hMom);
+                         (void *) &hVelocity,
+			 (void *) (&(hVelocity.box())),
+                         maxDrawnLevel,
+			 (void *) &hMom);
   DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
-                         &vVelocity, vVelocity.box(),
-                         maxDrawnLevel, vMom);
+                         (void *) &vVelocity,
+			 (void *) (&(vVelocity.box())),
+                         maxDrawnLevel,
+			 (void *) &vMom);
 
   // then divide to get velocity
   hVelocity /= density;
@@ -1785,7 +1830,7 @@ void AmrPicture::draw_vector_field(Display *pDisplay, Drawable &pDrawable,
   int maxpoints(numberOfContours);  // partition longest side into 20 parts
   assert(maxpoints > 0);
   Real sight_h(maxLength / maxpoints);
-  int stride(sight_h);
+  int stride((int) sight_h);
   if(stride < 1) {
     stride = 1;
   }
@@ -1815,22 +1860,22 @@ void AmrPicture::draw_vector_field(Display *pDisplay, Drawable &pDrawable,
       }
       Real a(Amax * (x1 / velocityMax));
       Real b(Amax * (y1 / velocityMax));
-      int x2(x + a);
-      int y2(y + b); 
+      int x2((int) (x + a));
+      int y2((int) (y + b)); 
       XDrawLine(pDisplay, pDrawable, pGC, 
-                (x-leftEdge)*dvfFactor, 
-                imageSizeV-((y-bottomEdge)*dvfFactor), 
-                (x2-leftEdge)*dvfFactor, 
-                imageSizeV-((y2-bottomEdge)*dvfFactor));
-      Real p1 = x2 - arrowLength * a;
-      Real p2 = y2 - arrowLength * b;
+                (int) ((x - leftEdge) * dvfFactor),
+                (int) (imageSizeV - ((y - bottomEdge) * dvfFactor)),
+                (int) ((x2 - leftEdge) * dvfFactor),
+                (int) (imageSizeV - ((y2 - bottomEdge) * dvfFactor)));
+      Real p1(x2 - arrowLength * a);
+      Real p2(y2 - arrowLength * b);
       p1 = p1 - (arrowLength / 2.0) * b;
       p2 = p2 + (arrowLength / 2.0) * a;
       XDrawLine(pDisplay, pDrawable, pGC, 
-                (x2-leftEdge)*dvfFactor, 
-                imageSizeV-((y2-bottomEdge)*dvfFactor), 
-                (p1-leftEdge)*dvfFactor, 
-                imageSizeV-((p2-bottomEdge)*dvfFactor));
+                (int) ((x2 - leftEdge) * dvfFactor),
+                (int) (imageSizeV - ((y2 - bottomEdge) * dvfFactor)),
+                (int) ((p1 - leftEdge) * dvfFactor),
+                (int) (imageSizeV - ((p2 - bottomEdge) * dvfFactor)));
     }
   }
 }

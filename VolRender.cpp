@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: VolRender.cpp,v 1.25 1998-10-27 18:16:38 lijewski Exp $
+// $Id: VolRender.cpp,v 1.26 1998-10-29 23:56:11 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// VolRender.cpp
+// ---------------------------------------------------------------
 #include "VolRender.H"
 #include "DataServices.H"
 #include "GlobalUtilities.H"
@@ -191,7 +194,10 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
   }
   
   DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
-                         &swfFabData, swfDataBox, maxDrawnLevel, derivedName);
+                         (void *) &swfFabData,
+			 (void *) &swfDataBox,
+			 maxDrawnLevel,
+			 (void *) &derivedName);
   
   if(ParallelDescriptor::IOProcessor()) {
     Real gmin(rDataMin);

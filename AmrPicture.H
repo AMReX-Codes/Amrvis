@@ -1,8 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.H,v 1.20 1998-10-27 18:16:34 lijewski Exp $
+// $Id: AmrPicture.H,v 1.21 1998-10-29 23:56:06 vince Exp $
 //
+
+// ---------------------------------------------------------------
+// AmrPicture.H
+// ---------------------------------------------------------------
 #ifndef _AMRPICTURE_H
 #define _AMRPICTURE_H
 

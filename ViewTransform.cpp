@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ViewTransform.cpp,v 1.14 1998-10-27 18:16:38 lijewski Exp $
+// $Id: ViewTransform.cpp,v 1.15 1998-10-29 23:56:11 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// ViewTransform.cpp
+// ---------------------------------------------------------------
 #include "ViewTransform.H"
 #include "Trackball.H"
 
@@ -81,7 +84,7 @@ void ViewTransform::TransformPoint(Real x, Real y, Real z,
       // save time -- only the first two numbers, I think
       int temp(0);
       for(int jj = 0; jj < 4; ++jj) {
-        temp += point[jj] * mRotation[ii][jj] * scaleVector[jj];
+        temp += (int) (point[jj] * mRotation[ii][jj] * scaleVector[jj]);
       }
       newPoint[ii] = temp;
     }

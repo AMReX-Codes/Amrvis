@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrvisConstants.H,v 1.3 1998-10-27 18:16:34 lijewski Exp $
+// $Id: AmrvisConstants.H,v 1.4 1998-10-29 23:56:06 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// AmrvisConstants.H
+// ---------------------------------------------------------------
 #ifndef _AMRVISCONSTANTS_H
 #define _AMRVISCONSTANTS_H
 

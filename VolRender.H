@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: VolRender.H,v 1.17 1998-10-27 18:16:38 lijewski Exp $
+// $Id: VolRender.H,v 1.18 1998-10-29 23:56:11 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// VolRender.H
+// ---------------------------------------------------------------
 #ifndef _VOLRENDER_H_
 #define _VOLRENDER_H_
 

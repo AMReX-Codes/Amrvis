@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Quaternion.cpp,v 1.8 1998-10-27 18:16:37 lijewski Exp $
+// $Id: Quaternion.cpp,v 1.9 1998-10-29 23:56:10 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// Quaternion.cpp
+// ---------------------------------------------------------------
 #ifdef BL_USE_NEW_HFILES
 #include <cmath>
 #else

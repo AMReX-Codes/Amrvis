@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltAppOutput.cpp,v 1.13 1998-10-27 18:16:37 lijewski Exp $
+// $Id: PltAppOutput.cpp,v 1.14 1998-10-29 23:56:10 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// PltAppOutput.cpp
+// ---------------------------------------------------------------
 #include "PltApp.H"
 #include "Output.H"
 
@@ -220,8 +223,10 @@ void PltApp::DoCreateFABFile(Widget w, XtPointer, XtPointer call_data) {
   Array<Box> bx = amrPicturePtrArray[0]->GetSubDomain();
   DataServices::Dispatch(DataServices::WriteFabOneVar,
 			 dataServicesPtr[currentFrame],
-                         fabFileName, bx[maxDrawnLevel], maxDrawnLevel,
-			 derivedQuantity);
+                         (void *) &fabFileName,
+			 (void *) &(bx[maxDrawnLevel]),
+			 maxDrawnLevel,
+			 (void *) &derivedQuantity);
   XtDestroyWidget(w);
 }  // end DoCreateFABFile
 

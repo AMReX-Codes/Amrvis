@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: MessageArea.H,v 1.3 1998-10-27 18:16:36 lijewski Exp $
+// $Id: MessageArea.H,v 1.4 1998-10-29 23:56:08 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// MessageArea.H
+// ---------------------------------------------------------------
 #ifndef _MESSAGEAREA_H
 #define _MESSAGEAREA_H
 

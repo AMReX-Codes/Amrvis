@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.cpp,v 1.21 1998-10-27 18:16:34 lijewski Exp $
+// $Id: AmrData.cpp,v 1.22 1998-10-29 23:56:06 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// AmrData.cpp
+// ---------------------------------------------------------------
 #include "AmrData.H"
 #include "ArrayLim.H"
 #include "BoxDomain.H"

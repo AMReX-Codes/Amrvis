@@ -1,10 +1,13 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Point.H,v 1.3 1998-10-27 18:16:37 lijewski Exp $
+// $Id: Point.H,v 1.4 1998-10-29 23:56:10 vince Exp $
 //
 
-#ifndef _AMR_POINT_H_		//  a kludgy way not to include twice
+// ---------------------------------------------------------------
+// Point.H
+// ---------------------------------------------------------------
+#ifndef _AMR_POINT_H_
 #define _AMR_POINT_H_
 
 #ifdef BL_USE_NEW_HFILES

@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.cpp,v 1.49 1998-10-27 18:16:36 lijewski Exp $
+// $Id: PltApp.cpp,v 1.50 1998-10-29 23:56:09 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// PltApp.cpp
+// ---------------------------------------------------------------
 #include "PltApp.H"
 
 #include <MainW.h>
@@ -1361,9 +1364,9 @@ void PltApp::PltAppInit() {
           bool minMaxValid(false);
           DataServices::Dispatch(DataServices::MinMaxRequest,
                                  dataServicesPtr[iFrame],
-                                 amrData.ProbDomain()[lev],
-                                 derivedStrings[cderived], lev,
-                                 &dataMin, &dataMax, &minMaxValid);
+                                 (void *) &(amrData.ProbDomain()[lev]),
+                                 (void *) &(derivedStrings[cderived]),
+				 lev, &dataMin, &dataMax, &minMaxValid);
           if(minMaxValid) {
             globalMin = Min(globalMin, dataMin);
             globalMax = Max(globalMax, dataMax);
@@ -1470,7 +1473,7 @@ void PltApp::DoExposeRef() {
 	int stringOffsetX = 4, stringOffsetY = 20;
 	int yPlanePosX = 80, yPlanePosY = 15;
 	int xPlanePosX = 10;
-	int xPlanePosY = (int) axisLength+zPlanePosY+1.4*stringOffsetY;
+	int xPlanePosY = (int) (axisLength + zPlanePosY + 1.4 * stringOffsetY);
         char temp[LINELENGTH];
 	Dimension width, height;
         XtVaGetValues(wControlForm, XmNwidth, &width, XmNheight, &height, NULL);
@@ -1515,8 +1518,8 @@ void PltApp::DoExposeRef() {
 		  centerX, centerY, centerX+xyzAxisLength, centerY);
 	XDrawLine(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
 		  centerX, centerY,
-		  (int) centerX-0.9*xyzAxisLength,
-		  (int) centerY+0.9*xyzAxisLength);
+		  (int) (centerX - 0.9 * xyzAxisLength),
+		  (int) (centerY + 0.9 * xyzAxisLength));
 #endif
 }
 
@@ -1919,9 +1922,9 @@ void PltApp::DoChangeDerived(int V, Widget, XtPointer client_data, XtPointer) {
           bool minMaxValid(false);
           DataServices::Dispatch(DataServices::MinMaxRequest,
                                  dataServicesPtr[currentFrame],
-                                 amrData.ProbDomain()[lev],
-                                 derivedStrings[derivedNumber], lev,
-                                 &dataMin, &dataMax, &minMaxValid);
+                                 (void *) &(amrData.ProbDomain()[lev]),
+                                 (void *) &(derivedStrings[derivedNumber]),
+				 lev, &dataMin, &dataMax, &minMaxValid);
           if(minMaxValid) {
             globalMin = Min(globalMin, dataMin);
             globalMax = Max(globalMax, dataMax);
@@ -1947,9 +1950,9 @@ void PltApp::DoChangeDerived(int V, Widget, XtPointer client_data, XtPointer) {
             bool minMaxValid(false);
             DataServices::Dispatch(DataServices::MinMaxRequest,
                                    dataServicesPtr[iFrame],
-                                   amrData.ProbDomain()[lev],
-                                   derivedStrings[derivedNumber], lev,
-                                   &dataMin, &dataMax, &minMaxValid);
+                                   (void *) &(amrData.ProbDomain()[lev]),
+                                   (void *) &(derivedStrings[derivedNumber]),
+				   lev, &dataMin, &dataMax, &minMaxValid);
             if(minMaxValid) {
               globalMin = Min(globalMin, dataMin);
               globalMax = Max(globalMax, dataMax);
@@ -2861,8 +2864,9 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 	      Real dataValue;
 	      DataServices::Dispatch(DataServices::PointValueRequest,
 				     dataServicesPtr[currentFrame],
-				     trueRegion.length(), trueRegion.dataPtr(),
-				     currentDerived,
+				     trueRegion.length(),
+				     (void *) (trueRegion.dataPtr()),
+				     (void *) &currentDerived,
 				     minDrawnLevel, maxDrawnLevel,
 				     &intersectedLevel, &intersectedGrid,
 				     &dataValue, &goodIntersect);

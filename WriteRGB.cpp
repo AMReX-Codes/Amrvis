@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: WriteRGB.cpp,v 1.5 1998-10-27 18:16:38 lijewski Exp $
+// $Id: WriteRGB.cpp,v 1.6 1998-10-29 23:56:11 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// WriteRGB.cpp
+// ---------------------------------------------------------------
 #ifdef BL_USE_NEW_HFILES
 #include <cstdio>
 #else

@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GraphicsAttributes.cpp,v 1.7 1998-10-27 18:16:35 lijewski Exp $
+// $Id: GraphicsAttributes.cpp,v 1.8 1998-10-29 23:56:08 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// GraphicsAttributes.cpp
+// ---------------------------------------------------------------
 #ifdef BL_USE_NEW_HFILES
 #include <iostream>
 using std::cerr;

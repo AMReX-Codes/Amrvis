@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Dataset.cpp,v 1.26 1998-10-27 18:16:35 lijewski Exp $
+// $Id: Dataset.cpp,v 1.27 1998-10-29 23:56:07 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// Dataset.cpp
+// ---------------------------------------------------------------
 const int CHARACTERWIDTH  = 13;
 const int CHARACTERHEIGHT = 22;
 const int MAXINDEXCHARS   = 4;
@@ -85,8 +88,8 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
                                            NULL);
    
   GAptr = new GraphicsAttributes(wDatasetTopLevel);
-  if(GAptr->PVisual() !=
-     XDefaultVisual(GAptr->PDisplay(),GAptr->PScreenNumber())) {
+  if(GAptr->PVisual() != XDefaultVisual(GAptr->PDisplay(),GAptr->PScreenNumber()))
+  {
       XtVaSetValues(wDatasetTopLevel, XmNvisual, GAptr->PVisual(),
                     XmNdepth, GAptr->PDepth(), NULL);
   }
@@ -359,8 +362,10 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
   for(lev = 0; lev <= maxAllowableLevel; ++lev) {
     myStringCount[lev] = 0;
     DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
-                           &dataFab[lev], dataFab[lev].box(),
-                           lev, amrPicturePtr->CurrentDerived());
+                           (void *) &dataFab[lev],
+			   (void *) &(dataFab[lev].box()),
+                           lev,
+			   (void *) &(amrPicturePtr->CurrentDerived()));
     for(int iBox = 0; iBox < amrData.boxArray(lev).length(); ++iBox) {
       temp = amrData.boxArray(lev)[iBox];
       if(datasetRegion[lev].intersects(temp)) {
@@ -430,11 +435,11 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
   }
   bDataStringArrayAllocated = true;
 
-  //determine the length of the character labels for the indices
-  Real vItemCount(datasetRegion[maxDrawnLevel].bigEnd(vDIR));
-  int vIndicesWidth(ceil(log10(vItemCount+1)));
-  Real hItemCount(datasetRegion[maxDrawnLevel].bigEnd(hDIR));
-  int hIndicesWidth(ceil(log10(hItemCount+1)));
+  // determine the length of the character labels for the indices
+  Real vItemCount((Real) (datasetRegion[maxDrawnLevel].bigEnd(vDIR)));
+  int vIndicesWidth((int) (ceil(log10(vItemCount+1))));
+  Real hItemCount((Real) (datasetRegion[maxDrawnLevel].bigEnd(hDIR)));
+  int hIndicesWidth((int) (ceil(log10(hItemCount+1))));
 
   largestWidth = Max(largestWidth, hIndicesWidth);  
   indexWidth = Max(MAXINDEXCHARS, vIndicesWidth+1) * CHARACTERWIDTH;
@@ -542,10 +547,11 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
   
   //now load into **StringLoc
   
-  int SC(0);
-  for(lev = minDrawnLevel;lev<=maxDrawnLevel;lev++) {
-    for(stringCount = 0; stringCount<myStringCount[lev]; stringCount++) {
-      myDataStringArray[lev][stringCount] = dataStringArray[SC++];
+  int sCount(0);
+  for(lev = minDrawnLevel; lev <= maxDrawnLevel; ++lev) {
+    for(stringCount = 0; stringCount < myStringCount[lev]; ++stringCount) {
+      myDataStringArray[lev][stringCount] = dataStringArray[sCount];
+      ++sCount;
     }
   }
   
@@ -573,11 +579,13 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
       temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
       temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
       
-      double dBoxSize(CRRBetweenLevels(level, maxDrawnLevel, amrData.RefRatio()));
-      int boxSize = (ceil(dBoxSize)-dBoxSize >= 0.5? 
-                     floor(dBoxSize): ceil(dBoxSize));
-      int vStartPos=fmod(datasetRegion[maxDrawnLevel].bigEnd(vDIR)+1, boxSize);
-      vStartPos = (vStartPos != 0? vStartPos - boxSize:vStartPos);
+      double dBoxSize((double) CRRBetweenLevels(level, maxDrawnLevel,
+						amrData.RefRatio()));
+      int boxSize(((int) (ceil(dBoxSize)-dBoxSize >= 0.5 ?
+                     floor(dBoxSize): ceil(dBoxSize))));
+      int vStartPos((int) (fmod(datasetRegion[maxDrawnLevel].bigEnd(vDIR) + 1,
+				boxSize)));
+      vStartPos = (vStartPos != 0 ? vStartPos - boxSize:vStartPos);
       // fill the box index arrays 
       Box iABox(datasetRegion[level]);
       
@@ -758,10 +766,11 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
                   amrData.RefRatio()));
       int modBy(CRRBetweenLevels(finestCLevel, maxDrawnLevel, amrData.RefRatio()));
       hplot -= pictureBox.smallEnd(HDIR);
-      hplot -= fmod(hplot,modBy);
+      hplot -= (int) fmod(hplot, modBy);
       vplot -= pictureBox.smallEnd(VDIR);
-      vplot -= fmod(vplot,modBy);
-      hplot *= baseRatio;   vplot *= baseRatio;
+      vplot -= (int) fmod(vplot, modBy);
+      hplot *= baseRatio;
+      vplot *= baseRatio;
       vplot += boxSize;
       if(datasetPoint == true) {
         amrPicturePtr->UnDrawDatasetPoint();//box if already drawns...
@@ -1025,9 +1034,10 @@ void Dataset::DrawIndices() {
        temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
        temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR));
 
-       double dBoxSize(CRRBetweenLevels(level, maxDrawnLevel, amrData.RefRatio()));
+       double dBoxSize((double) CRRBetweenLevels(level, maxDrawnLevel,
+						 amrData.RefRatio()));
        int boxSize((ceil(dBoxSize)-dBoxSize >= 0.5 ?
-                      floor(dBoxSize): ceil(dBoxSize)));
+                      (int) floor(dBoxSize): (int) ceil(dBoxSize)));
 
        // draw the horizontal box index grid -- on top of the white background.
        DrawGrid(temp.smallEnd(hDIR) * dataItemWidth, 
@@ -1037,7 +1047,8 @@ void Dataset::DrawIndices() {
                 (boxSize)*dataItemWidth, hIndexAreaHeight, 
                 blackIndex, whiteIndex);
        // draw the vertical box index grid
-       int vStart(fmod(datasetRegion[maxDrawnLevel].bigEnd(vDIR)+1, boxSize));
+       int vStart((int) (fmod(datasetRegion[maxDrawnLevel].bigEnd(vDIR) + 1,
+			      boxSize)));
        vStart = (vStart != 0? vStart - boxSize:vStart);
        DrawGrid(vIndexAreaStart-(count*vIndexAreaWidth)-1,
                 vStart*CHARACTERHEIGHT,

@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.cpp,v 1.17 1998-10-27 18:16:36 lijewski Exp $
+// $Id: Palette.cpp,v 1.18 1998-10-29 23:56:09 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// Palette.cpp
+// ---------------------------------------------------------------
 #include "Palette.H"
 #include "GlobalUtilities.H"
 
@@ -22,7 +25,7 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
   //  transY.resize(totalColorSlots);
   transferArray.resize(totalColorSlots);
   ccells.resize(totalColorSlots);
-  palPixmap = NULL;
+  palPixmap = 0;
   pmin = 0.0;
   pmax = 1.0;
   defaultFormat = "%6.4f";
@@ -77,7 +80,7 @@ Palette::Palette(int datalistlength, int width,
   //  transY.resize(totalColorSlots);
   transferArray.resize(totalColorSlots);
   ccells.resize(totalColorSlots);
-  palPixmap = NULL;
+  palPixmap = 0;
   pmin = 0.0;
   pmax = 1.0;
   defaultFormat = "%6.4f";
@@ -324,15 +327,15 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
 
   if(read(fd, rbuff.dataPtr(), iSeqPalSize) != iSeqPalSize) {
     cout << "palette is not a seq colormap." << endl;
-    return(NULL);
+    return(0);
   }
   if(read(fd, gbuff.dataPtr(), iSeqPalSize) != iSeqPalSize) {
     cout << "file is not a seq colormap." << endl;
-    return(NULL);
+    return(0);
   }
   if(read(fd, bbuff.dataPtr(), iSeqPalSize) != iSeqPalSize) {
     cout << "palette is not a seq colormap." << endl;
-    return(NULL);
+    return(0);
   }
   if(read(fd, abuff.dataPtr(), iSeqPalSize) != iSeqPalSize) {
     if(BL_SPACEDIM == 3) {

@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrVisTool.cpp,v 1.30 1998-10-27 18:16:34 lijewski Exp $
+// $Id: AmrVisTool.cpp,v 1.31 1998-10-29 23:56:06 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// AmrVisTool.cpp
+// ---------------------------------------------------------------
 #ifdef BL_USE_NEW_HFILES
 #include <iostream>
 #include <cstdlib>
@@ -388,11 +391,6 @@ void BatchFunctions() {
       } else {
         amrData.MinMax(drawDomain[maxDrawnLevel], GetInitialDerived(),
                        maxDrawnLevel, dataMin, dataMax);
-	//bool minMaxValid;
-        //DataServices::Dispatch(DataServices::MinMaxRequest,
-		       //&dataServices,
-		       //drawDomain[maxDrawnLevel], GetInitialDerived(),
-                       //maxDrawnLevel, dataMin, dataMax, minMaxValid);
       }
 
       volRender.MakeSWFData(&dataServices, dataMin, dataMax, GetInitialDerived(),
@@ -423,7 +421,8 @@ void BatchFunctions() {
                 int slicenum = li();
                 DataServices::Dispatch(DataServices::DumpSlicePlaneOneVar,
 				       &dataServices,
-                                       slicedir, slicenum, derived);
+                                       slicedir, slicenum,
+				       (void *) &derived);
                 ++li;
               }
             }
@@ -436,11 +435,12 @@ void BatchFunctions() {
         if(SliceAllVars()) {
           DataServices::Dispatch(DataServices::DumpSliceBoxAllVars,
 				 &dataServices,
-				 comLineBox);
+				 (void *) &comLineBox);
         } else {
             DataServices::Dispatch(DataServices::DumpSliceBoxOneVar,
 				   &dataServices,
-                                   comLineBox, derived);
+                                   (void *) &comLineBox,
+				   (void *) &derived);
         }
     }  // end if(GivenBoxSlice())
 

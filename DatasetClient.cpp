@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: DatasetClient.cpp,v 1.1 1998-06-09 23:48:46 vince Exp $
+// $Id: DatasetClient.cpp,v 1.2 1998-10-29 23:56:07 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// DatasetClient.cpp
+// ---------------------------------------------------------------
 #ifdef BL_USE_NEW_HFILES
 #include <climits>
 #include <cstring>

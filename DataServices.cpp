@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: DataServices.cpp,v 1.16 1998-10-27 18:16:35 lijewski Exp $
+// $Id: DataServices.cpp,v 1.17 1998-10-29 23:56:07 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// DataServices.cpp
+// ---------------------------------------------------------------
 #include "AmrvisConstants.H"
 #include "DataServices.H"
 #include "ParallelDescriptor.H"
@@ -176,12 +179,12 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       int derivedLength, derivedLengthPadded;
 
       if(ParallelDescriptor::IOProcessor()) {
-	destFab = va_arg(ap, FArrayBox *);
-        const Box &boxRef = va_arg(ap, const Box);
-	destBox = boxRef;
+	destFab = (FArrayBox *) va_arg(ap, void *);
+        const Box *boxRef = (const Box *) va_arg(ap, void *);
+	destBox = *boxRef;
         fineFillLevel = va_arg(ap, int);
-        const aString &derivedRef = va_arg(ap, const aString);
-        derivedTemp = derivedRef;
+        const aString *derivedRef = (const aString *) va_arg(ap, void *);
+        derivedTemp = *derivedRef;
 	derivedLength = derivedTemp.length();
       }
 
@@ -226,13 +229,13 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       int derivedLength, derivedLengthPadded;
 
       if(ParallelDescriptor::IOProcessor()) {
-        const aString &fabFileNameRef = va_arg(ap, const aString);
-	fabFileName = fabFileNameRef;
-        const Box &boxRef = va_arg(ap, const Box);
-	destBox = boxRef;
+        const aString *fabFileNameRef = (const aString *) va_arg(ap, void *);
+	fabFileName = *fabFileNameRef;
+        const Box *boxRef = (const Box *) va_arg(ap, void *);
+	destBox = *boxRef;
         fineFillLevel = va_arg(ap, int);
-        const aString &derivedRef = va_arg(ap, const aString);
-        derivedTemp = derivedRef;
+        const aString *derivedRef = (const aString *) va_arg(ap, void *);
+        derivedTemp = *derivedRef;
 	derivedLength = derivedTemp.length();
       }
 
@@ -268,10 +271,10 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       aString fabFileName;
 
       if(ParallelDescriptor::IOProcessor()) {
-        const aString &fabFileNameRef = va_arg(ap, const aString);
-	fabFileName = fabFileNameRef;
-        const Box &boxRef = va_arg(ap, const Box);
-	destBox = boxRef;
+        const aString *fabFileNameRef = (const aString *) va_arg(ap, void *);
+	fabFileName = *fabFileNameRef;
+        const Box *boxRef = (const Box *) va_arg(ap, void *);
+	destBox = *boxRef;
         fineFillLevel = va_arg(ap, int);
       }
 
@@ -293,8 +296,8 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       if(ParallelDescriptor::IOProcessor()) {
         slicedir = va_arg(ap, int);
         slicenum = va_arg(ap, int);
-        const aString &derivedRef = va_arg(ap, const aString);
-        derivedTemp = derivedRef;
+        const aString *derivedRef = (const aString *) va_arg(ap, void *);
+        derivedTemp = *derivedRef;
 	derivedLength = derivedTemp.length();
       }
 
@@ -347,10 +350,10 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       char *derivedCharPtr;
       int derivedLength, derivedLengthPadded;
       if(ParallelDescriptor::IOProcessor()) {
-        const Box &boxRef = va_arg(ap, const Box);
-        const aString &derivedRef = va_arg(ap, const aString);
-	box = boxRef;
-	derivedTemp = derivedRef;
+        const Box *boxRef = (const Box *) va_arg(ap, void *);
+	box = *boxRef;
+        const aString *derivedRef = (const aString *) va_arg(ap, void *);
+	derivedTemp = *derivedRef;
 	derivedLength = derivedTemp.length();
       }
 
@@ -379,8 +382,8 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     {
       Box box;
       if(ParallelDescriptor::IOProcessor()) {
-        const Box &boxRef = va_arg(ap, const Box);
-	box = boxRef;
+        const Box *boxRef = (const Box *) va_arg(ap, void *);
+	box = *boxRef;
       }
 
       ParallelDescriptor::Broadcast(ioProcNumber, &box, &box, sizeof(Box));
@@ -400,11 +403,11 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       Real dataMin, dataMax;
       bool minMaxValid;
       if(ParallelDescriptor::IOProcessor()) {
-        const Box &boxRef = va_arg(ap, const Box);
-        const aString &derivedRef = va_arg(ap, const aString);
+        const Box *boxRef = (const Box *) va_arg(ap, void *);
+        const aString *derivedRef = (const aString *) va_arg(ap, void *);
         level = va_arg(ap, int);
-	box = boxRef;
-	derivedTemp = derivedRef;
+	box = *boxRef;
+	derivedTemp = *derivedRef;
 	derivedLength = derivedTemp.length();
       }
 
@@ -463,9 +466,9 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 
       if(ParallelDescriptor::IOProcessor()) {
         pointBoxArraySize = va_arg(ap, int);
-        pointBoxArrayTempPtr = va_arg(ap, Box *);
-        const aString &derivedRef = va_arg(ap, const aString);
-        derivedTemp = derivedRef;
+        pointBoxArrayTempPtr = (Box *) va_arg(ap, void *);
+        const aString *derivedRef = (const aString *) va_arg(ap, void *);
+        derivedTemp = *derivedRef;
 	derivedLength = derivedTemp.length();
         coarsestLevelToSearch = va_arg(ap, int);
         finestLevelToSearch   = va_arg(ap, int);
@@ -520,7 +523,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       // set the return values
       if(ParallelDescriptor::IOProcessor()) {
         int *intersectedLevelRef = va_arg(ap, int *);
-        Box *intersectedBoxRef   = va_arg(ap, Box *);
+        Box *intersectedBoxRef   = (Box *) va_arg(ap, void *);
         Real *dataPointValueRef  = va_arg(ap, Real *);
         bool *bPointIsValidRef   = va_arg(ap, bool *);
 	*intersectedLevelRef     = intersectedLevel;

@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Trackball.cpp,v 1.4 1998-10-27 18:16:38 lijewski Exp $
+// $Id: Trackball.cpp,v 1.5 1998-10-29 23:56:10 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// Trackball.cpp
+// ---------------------------------------------------------------
 #include "Quaternion.H"
 #include "Point.H"
 #include "REAL.H"

@@ -1,9 +1,12 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ProjectionPicture.cpp,v 1.26 1998-10-27 18:16:37 lijewski Exp $
+// $Id: ProjectionPicture.cpp,v 1.27 1998-10-29 23:56:10 vince Exp $
 //
 
+// ---------------------------------------------------------------
+// ProjectionPicture.cpp
+// ---------------------------------------------------------------
 #include "ProjectionPicture.H"
 #include "PltApp.H"
 #include "DataServices.H"

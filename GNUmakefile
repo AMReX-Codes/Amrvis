@@ -6,11 +6,12 @@ PROFILE   = FALSE
 # use mpKCC for the sp
 COMP      = mpKCC
 
+COMP      = g++
 COMP      = KCC
 DEBUG     = TRUE
 DEBUG     = FALSE
-DIM       = 3
 DIM       = 2
+DIM       = 3
 
 USE_ARRAYVIEW = TRUE
 USE_ARRAYVIEW = FALSE
