@@ -1,6 +1,6 @@
 
 //
-// $Id: PltAppOutput.cpp,v 1.28 2001-08-23 20:10:47 vince Exp $
+// $Id: PltAppOutput.cpp,v 1.29 2002-02-07 23:59:02 vince Exp $
 //
 
 #include <Xm/Xm.h>
@@ -209,9 +209,9 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
   WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
 
   // write the iso picture
-#ifdef BL_VOLUMERENDER
   int minDrawnLevel(pltAppState->MinDrawnLevel());
   int maxDrawnLevel(pltAppState->MaxDrawnLevel());
+#ifdef BL_VOLUMERENDER
   if( ! (XmToggleButtonGetState(wAutoDraw) || showing3dRender )) {
     printImage = projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
   } else {

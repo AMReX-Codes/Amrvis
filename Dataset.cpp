@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.40 2001-10-17 17:53:33 lijewski Exp $
+// $Id: Dataset.cpp,v 1.41 2002-02-07 23:59:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -90,11 +90,11 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
                                            XmNheight,	500,
                                            NULL);
    
-  GAptr = new GraphicsAttributes(wDatasetTopLevel);
-  if(GAptr->PVisual() != XDefaultVisual(GAptr->PDisplay(),GAptr->PScreenNumber()))
+  gaPtr = new GraphicsAttributes(wDatasetTopLevel);
+  if(gaPtr->PVisual() != XDefaultVisual(gaPtr->PDisplay(),gaPtr->PScreenNumber()))
   {
-      XtVaSetValues(wDatasetTopLevel, XmNvisual, GAptr->PVisual(),
-                    XmNdepth, GAptr->PDepth(), NULL);
+      XtVaSetValues(wDatasetTopLevel, XmNvisual, gaPtr->PVisual(),
+                    XmNdepth, gaPtr->PDepth(), NULL);
   }
 
   wDatasetForm = XtVaCreateManagedWidget("datasetform",
@@ -249,7 +249,7 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
 
 // -------------------------------------------------------------------
 Dataset::~Dataset() {
-  delete GAptr;
+  delete gaPtr;
   delete [] datasetRegion;
   delete [] dataStringArray;
   if(bDataStringArrayAllocated) {
@@ -547,11 +547,11 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   }
   
   
-  XSetWindowColormap(GAptr->PDisplay(), XtWindow(wDatasetTopLevel),
+  XSetWindowColormap(gaPtr->PDisplay(), XtWindow(wDatasetTopLevel),
                      pltAppPtr->GetPalettePtr()->GetColormap());
-  XSetWindowColormap(GAptr->PDisplay(), XtWindow(wPixArea),
+  XSetWindowColormap(gaPtr->PDisplay(), XtWindow(wPixArea),
                      pltAppPtr->GetPalettePtr()->GetColormap());
-  XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), blackIndex);
+  XSetForeground(XtDisplay(wPixArea), gaPtr->PGC(), blackIndex);
   
   Box tempBox = datasetRegion[maxDrawnLevel];
   tempBox.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
@@ -618,7 +618,7 @@ void Dataset::DrawGrid(int startX, int startY, int finishX, int finishY,
                        int foregroundIndex, int backgroundIndex) {
     int i;
     Display *display = XtDisplay(wPixArea);
-    GC gc = GAptr->PGC();
+    GC gc = gaPtr->PGC();
     Window dataWindow = XtWindow(wPixArea);
 
     XSetBackground(display, gc, backgroundIndex);
@@ -645,7 +645,7 @@ void Dataset::DrawGrid(int startX, int startY, int finishX, int finishY,
 {
     int i;
     Display *display = XtDisplay(wPixArea);
-    GC gc = GAptr->PGC();
+    GC gc = gaPtr->PGC();
     Window dataWindow = XtWindow(wPixArea);
 
     XSetBackground(display, gc, backgroundIndex);
@@ -821,9 +821,9 @@ void Dataset::DoExpose(int fromExpose) {
     const AmrData &amrData = dataServicesPtr->AmrDataRef();
     if(noData) {
         cout << "_in Dataset::DoExpose:  noData" << endl;
-        XSetBackground(XtDisplay(wPixArea), GAptr->PGC(), blackIndex);
-        XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), whiteIndex);
-        XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea), GAptr->PGC(),
+        XSetBackground(XtDisplay(wPixArea), gaPtr->PGC(), blackIndex);
+        XSetForeground(XtDisplay(wPixArea), gaPtr->PGC(), whiteIndex);
+        XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea), gaPtr->PGC(),
                     2, pixSizeY-5, dataString, strlen(dataString));
     } else {
         unsigned int lev, stringCount;
@@ -875,7 +875,7 @@ void Dataset::DoExpose(int fromExpose) {
         
         XtVaGetValues(wScrollArea, XmNwidth, &wdth, XmNheight, &hght, NULL);
         
-        XClearWindow(GAptr->PDisplay(), XtWindow(wPixArea));
+        XClearWindow(gaPtr->PDisplay(), XtWindow(wPixArea));
         
         int min_level(minDrawnLevel);
         int max_level(maxDrawnLevel);
@@ -929,17 +929,17 @@ void Dataset::DoExpose(int fromExpose) {
 #endif
               { 
 		// FIXME:??
-                XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), 
+                XSetForeground(XtDisplay(wPixArea), gaPtr->PGC(), 
                                myDataStringArray[lvl][stringCount].color); 
                 XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea),
-                            GAptr->PGC(), xloc, yloc,
+                            gaPtr->PGC(), xloc, yloc,
                             myDataStringArray[lvl][stringCount].ds,
                             myDataStringArray[lvl][stringCount].dslen);
               }
             }  // end for
           }  // end for
         } else {
-            XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), whiteIndex);
+            XSetForeground(XtDisplay(wPixArea), gaPtr->PGC(), whiteIndex);
             for(int lvl = minDrawnLevel; lvl<=maxDrawnLevel; lvl++) {
               for(stringCount=0; stringCount<myStringCount[lvl]; stringCount++) {
                 xloc = myDataStringArray[lvl][stringCount].xloc;
@@ -954,7 +954,7 @@ void Dataset::DoExpose(int fromExpose) {
 #endif
                 {
                         XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea),
-                                    GAptr->PGC(), xloc, yloc,
+                                    gaPtr->PGC(), xloc, yloc,
                                     myDataStringArray[lvl][stringCount].ds,
                                     myDataStringArray[lvl][stringCount].dslen);
                 }
@@ -970,7 +970,7 @@ void Dataset::DoExpose(int fromExpose) {
 void Dataset::DrawIndices() {
   int xloc, yloc;
   unsigned int stringCount;
-  GC gc = GAptr->PGC();
+  GC gc = gaPtr->PGC();
   Display *display = XtDisplay(wPixArea);
   Window dataWindow = XtWindow(wPixArea);
   int levelRange(maxDrawnLevel - minDrawnLevel);
@@ -1076,7 +1076,7 @@ void Dataset::CBDoExposeDataset(Widget, XtPointer client_data, XEvent *, Boolean
 {
   XEvent nextEvent;
   Dataset *dset = (Dataset *) client_data;
-  while(XCheckTypedWindowEvent(dset->GAptr->PDisplay(),
+  while(XCheckTypedWindowEvent(dset->gaPtr->PDisplay(),
                                XtWindow(dset->wPixArea), Expose, &nextEvent))
   {
     if(dset->drags) {

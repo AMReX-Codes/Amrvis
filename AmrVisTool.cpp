@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.54 2001-08-22 00:22:32 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.55 2002-02-07 23:59:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -222,15 +222,15 @@ void CreateMainWindow(int argc, char *argv[]) {
                         XmNwidth,	500,
 			XmNheight,	150,
 			NULL);
-  GraphicsAttributes *TheGAptr = new GraphicsAttributes(wTopLevel);
-  if(TheGAptr->PVisual() != XDefaultVisual(TheGAptr->PDisplay(), 
-                                        TheGAptr->PScreenNumber()))
+  GraphicsAttributes *theGAPtr = new GraphicsAttributes(wTopLevel);
+  if(theGAPtr->PVisual() != XDefaultVisual(theGAPtr->PDisplay(), 
+                                        theGAPtr->PScreenNumber()))
   {
-      Colormap colormap = XCreateColormap(TheGAptr->PDisplay(), 
-                                          RootWindow(TheGAptr->PDisplay(),
-                                                     TheGAptr->PScreenNumber()),
-                                          TheGAptr->PVisual(), AllocNone);
-      XtVaSetValues(wTopLevel, XmNvisual, TheGAptr->PVisual(), XmNdepth, 8,
+      Colormap colormap = XCreateColormap(theGAPtr->PDisplay(), 
+                                          RootWindow(theGAPtr->PDisplay(),
+                                                     theGAPtr->PScreenNumber()),
+                                          theGAPtr->PVisual(), AllocNone);
+      XtVaSetValues(wTopLevel, XmNvisual, theGAPtr->PVisual(), XmNdepth, 8,
                     XmNcolormap, colormap, NULL);
   }
   wMainWindow = XtVaCreateManagedWidget ("mainWindow", 

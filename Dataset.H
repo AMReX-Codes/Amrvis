@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.H,v 1.28 2001-08-22 00:22:32 vince Exp $
+// $Id: Dataset.H,v 1.29 2002-02-07 23:59:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -71,7 +71,7 @@ class Dataset {
   DataServices	*dataServicesPtr;
   PltApp	*pltAppPtr;
   PltAppState	*pltAppStatePtr;
-  GraphicsAttributes	*GAptr;
+  GraphicsAttributes	*gaPtr;
   int 		dragging, drags;
   int		hStringOffset, vStringOffset;
   string 	hAxisString, vAxisString;

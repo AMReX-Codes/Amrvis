@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.40 2001-10-17 17:53:33 lijewski Exp $
+// $Id: VolRender.cpp,v 1.41 2002-02-07 23:59:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -32,19 +32,11 @@ extern Real DegToRad(Real angle);
 
 
 // -------------------------------------------------------------------
-/*
-VolRender::VolRender()
-          : bVolRenderDefined(false)
-{
-}
-*/
-
-
-// -------------------------------------------------------------------
 VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
 		     int maxdrawnlevel, Palette *PalettePtr,
                      const string &asLightFileName)
 {
+  bDrawAllBoxes = false;
   minDrawnLevel = mindrawnlevel;
   maxDataLevel = maxdrawnlevel;
   drawnDomain = drawdomain;
@@ -310,6 +302,7 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
       int sindex;
       AmrData &amrData = dataServicesPtr->AmrDataRef();
 
+     if(bDrawAllBoxes) {
       for(int lev = minDrawnLevel; lev <= maxDrawnLevel; ++lev) {
         int crr(CRRBetweenLevels(lev, maxDrawnLevel, amrData.RefRatio()));
 	const BoxArray &gridBoxes = amrData.boxArray(lev);
@@ -435,6 +428,142 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
 
         }  // end for(iGrid...)
       }  // end for(lev...)
+
+     } else {  // only draw the boundingbox
+
+
+//==============================================
+      //for(int lev = minDrawnLevel; lev <= maxDrawnLevel; ++lev) {
+int lev = minDrawnLevel;
+        int crr(CRRBetweenLevels(lev, maxDrawnLevel, amrData.RefRatio()));
+cout << "+++++ _here 0:  crr = " << crr << endl;
+        const BoxArray &gridBoxes = amrData.boxArray(lev);
+//        for(int iGrid = 0; iGrid < gridBoxes.size(); ++iGrid) {
+          gbox = drawnDomain[lev];
+          Box goverlap(gbox & drawnDomain[lev]);
+          grefbox = goverlap;
+          grefbox.refine(crr);
+
+          int gstartr(gbox.smallEnd(XDIR));
+          int gstartc(gbox.smallEnd(YDIR));
+          int gstartp(gbox.smallEnd(ZDIR));
+
+          int gostartr(goverlap.smallEnd(XDIR) - gstartr);
+          int gostartc(goverlap.smallEnd(YDIR) - gstartc);
+          int gostartp(goverlap.smallEnd(ZDIR) - gstartp);
+          int goendr(goverlap.bigEnd(XDIR)   - gstartr);
+          int goendc(goverlap.bigEnd(YDIR)   - gstartc);
+          int goendp(goverlap.bigEnd(ZDIR)   - gstartp);
+
+          grows = gbox.length(XDIR);
+          gcols = gbox.length(YDIR);
+
+        if(crr != 1) {
+          int gcolsgrowstmp(gcols * grows);
+          for(gp = gostartp; gp <= goendp; ++gp) {
+            if(gp == gostartp || gp == goendp) {
+              edgep = 1;
+            } else {
+              edgep = 0;
+            }
+            gpgcgrtmp = gp * gcolsgrowstmp;
+            for(gc = gostartc; gc <= goendc; ++gc) {
+              if(gc == gostartc || gc == goendc) {
+                edgec = 1;
+              } else {
+                edgec = 0;
+              }
+              for(gr=gostartr; gr <= goendr; ++gr) {
+                if(gr == gostartr || gr == goendr) {
+                  edger = 1;
+                } else {
+                  edger = 0;
+                }
+                sindexbase = (((gp + gstartp) * crr - sstartp) * scolssrowstmp) +
+                             ((sendc - ((gc + gstartc) * crr)) * srows) +
+                             ((gr + gstartr) * crr - sstartr);
+
+              if((edger + edgec + edgep) > 1) {
+                // (possibly) draw boxes into dataset
+                int onEdger, onEdgec, onEdgep;
+
+                for(sp = 0; sp < crr; ++sp) {
+                  if((gp==gostartp && sp==0) || (gp==goendp && sp == (crr-1))) {
+                    onEdgep = 1;
+                  } else {
+                    onEdgep = 0;
+                  }
+                  for(sc = 0; sc < crr; ++sc) {
+                    if((gc==gostartc && sc==0) || (gc==goendc && sc == (crr-1))) {
+                      onEdgec = 1;
+                    } else {
+                      onEdgec = 0;
+                    }
+                    for(sr = 0; sr < crr; ++sr) {
+                      if((gr==gostartr && sr==0) || (gr==goendr && sr == (crr-1))) {
+                        onEdger = 1;
+                      } else {
+                        onEdger = 0;
+                      }
+                      if((onEdger + onEdgec + onEdgep) > 1) {
+                        sindex = sindexbase + ((sp * scolssrowstmp) -
+                                               (sc * srows) + sr);
+                        swfData[sindex] = volumeBoxColor;
+                      }
+
+                    }
+                  }
+                }  // end for(sp...)
+              }
+              }
+            }
+          }  // end for(gp...)
+
+        } else {  // crr == 1
+
+          int gcolsgrowstmp(gcols * grows);
+          for(gp = gostartp; gp <= goendp; ++gp) {
+            if(gp == gostartp || gp == goendp) {
+              edgep = 1;
+            } else {
+              edgep = 0;
+            }
+            gpgcgrtmp = gp * gcolsgrowstmp;
+            for(gc = gostartc; gc <= goendc; ++gc) {
+              if(gc == gostartc || gc == goendc) {
+                edgec = 1;
+              } else {
+                edgec = 0;
+              }
+              for(gr = gostartr; gr <= goendr; ++gr) {
+                if(gr == gostartr || gr == goendr) {
+                  edger = 1;
+                } else {
+                  edger = 0;
+                }
+                if((edger + edgec + edgep) > 1) {
+                  sindexbase =
+                      (((gp + gstartp) - sstartp) * scolssrowstmp) +
+                      ((sendc - ((gc + gstartc))) * srows) +
+                      ((gr + gstartr) - sstartr);
+                  swfData[sindexbase] = volumeBoxColor;
+                }
+              }
+            }
+          }  // end for(gp...)
+        }  // end if(crr...)
+
+//        }  // end for(iGrid...)
+//      }  // end for(lev...)
+
+
+//==============================================
+
+
+
+
+     }
+
     }  // end if(bDrawVolumeBoxes)
 
 

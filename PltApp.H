@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.57 2001-11-16 01:48:08 vince Exp $
+// $Id: PltApp.H,v 1.58 2002-02-07 23:59:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -111,7 +111,7 @@ public:
   bool Animating()    const        { return ((bool) animationIId); }
   int CurrentFrame()  const        { return currentFrame; }
   XImage *CurrentFrameXImage()     { return frameBuffer[currentFrame]; }
-  GraphicsAttributes *GetGAptr() const  { return GAptr; }
+  GraphicsAttributes *GetGAptr() const  { return gaPtr; }
   PltAppState *GetPltAppState() const { return pltAppState; }
 
   const string &GetFileName();
@@ -194,7 +194,7 @@ private:
   char buffer[BUFSIZ];
   Box trueRegion, selectionBox;
   Dataset *datasetPtr;
-  GraphicsAttributes	*GAptr;
+  GraphicsAttributes	*gaPtr;
   Array<DataServices *> dataServicesPtr;
   Array<string> fileNames;
   Array<XImage *> frameBuffer;

@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.H,v 1.27 2001-10-17 17:53:33 lijewski Exp $
+// $Id: VolRender.H,v 1.28 2002-02-07 23:59:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -104,6 +104,7 @@ class VolRender {
     Real diffuseMat, shinyMat, specularMat, ambientMat;
     Real vpLen, vpAspect;
     bool lightingModel, preClassify;
+    bool bDrawAllBoxes;
     int  voxelFields;
     int  normalField, normalOffset, normalSize, normalMax;
     int  densityField, densityOffset, densitySize, densityMax;

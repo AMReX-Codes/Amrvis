@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.99 2001-10-17 17:53:33 lijewski Exp $
+// $Id: PltApp.cpp,v 1.100 2002-02-07 23:59:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -78,7 +78,7 @@ PltApp::~PltApp() {
 #endif
   delete XYplotparameters;
   delete pltPaletteptr;
-  delete GAptr;
+  delete gaPtr;
   delete pltAppState;
   if(datasetShowing) {
     delete datasetPtr;
@@ -160,12 +160,12 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 			 XmNdeleteResponse, XmDO_NOTHING,
 			 NULL);
 
-  GAptr = new GraphicsAttributes(wAmrVisTopLevel);
-  display = GAptr->PDisplay();
-  xgc = GAptr->PGC();
-  if(GAptr->PVisual() != XDefaultVisual(display, GAptr->PScreenNumber())) {
-    XtVaSetValues(wAmrVisTopLevel, XmNvisual, GAptr->PVisual(),
-		  XmNdepth, GAptr->PDepth(), NULL);
+  gaPtr = new GraphicsAttributes(wAmrVisTopLevel);
+  display = gaPtr->PDisplay();
+  xgc = gaPtr->PGC();
+  if(gaPtr->PVisual() != XDefaultVisual(display, gaPtr->PScreenNumber())) {
+    XtVaSetValues(wAmrVisTopLevel, XmNvisual, gaPtr->PVisual(),
+		  XmNdepth, gaPtr->PDepth(), NULL);
   }
 
   if( ! dataServicesPtr[currentFrame]->CanDerive(PltApp::initialDerived)) {
@@ -260,17 +260,17 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 // ---------------
 
 
-  amrPicturePtrArray[ZPLANE] = new AmrPicture(GAptr, this, pltAppState,
+  amrPicturePtrArray[ZPLANE] = new AmrPicture(gaPtr, this, pltAppState,
 					dataServicesPtr[currentFrame],
 					bCartGridSmoothing);
 #if (BL_SPACEDIM == 3)
-  amrPicturePtrArray[YPLANE] = new AmrPicture(YPLANE, GAptr,
+  amrPicturePtrArray[YPLANE] = new AmrPicture(YPLANE, gaPtr,
 					amrData.ProbDomain()[finestLevel],
 		                        //amrPicturePtrArray[ZPLANE],
 					NULL, this,
 					pltAppState,
 					bCartGridSmoothing);
-  amrPicturePtrArray[XPLANE] = new AmrPicture(XPLANE, GAptr,
+  amrPicturePtrArray[XPLANE] = new AmrPicture(XPLANE, gaPtr,
 					amrData.ProbDomain()[finestLevel],
 		                        //amrPicturePtrArray[ZPLANE],
 					NULL, this,
@@ -420,17 +420,17 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     pltAppState->PrintSetMap();  cout << endl;
   }
 
-  GAptr = new GraphicsAttributes(wAmrVisTopLevel);
-  display = GAptr->PDisplay();
-  xgc = GAptr->PGC();
+  gaPtr = new GraphicsAttributes(wAmrVisTopLevel);
+  display = gaPtr->PDisplay();
+  xgc = gaPtr->PGC();
 
-  if(GAptr->PVisual() != XDefaultVisual(display, GAptr->PScreenNumber())) {
-      XtVaSetValues(wAmrVisTopLevel, XmNvisual, GAptr->PVisual(),
+  if(gaPtr->PVisual() != XDefaultVisual(display, gaPtr->PScreenNumber())) {
+      XtVaSetValues(wAmrVisTopLevel, XmNvisual, gaPtr->PVisual(),
                     XmNdepth, 8, NULL);
   }
   pltAppState->SetMinDrawnLevel(minAllowableLevel);
   for(int np(0); np < NPLANES; ++np) {
-    amrPicturePtrArray[np] = new AmrPicture(np, GAptr, region,
+    amrPicturePtrArray[np] = new AmrPicture(np, gaPtr, region,
 					    //parentPtr,
 					    pltParent, this,
 					    pltAppState,
@@ -524,7 +524,7 @@ void PltApp::PltAppInit() {
 			      reserveSystemColors);
   
   // gc for gxxor rubber band line drawing
-  rbgc = XCreateGC(display, GAptr->PRoot(), 0, NULL);
+  rbgc = XCreateGC(display, gaPtr->PRoot(), 0, NULL);
   XSetFunction(display, rbgc, GXxor);
   cursor = XCreateFontCursor(display, XC_left_ptr);
 
@@ -1291,7 +1291,7 @@ void PltApp::PltAppInit() {
 
   char plottertitle[50];
   sprintf(plottertitle, "XYPlot%dd", BL_SPACEDIM);
-  XYplotparameters = new XYPlotParameters(pltPaletteptr, GAptr, plottertitle);
+  XYplotparameters = new XYPlotParameters(pltPaletteptr, gaPtr, plottertitle);
 
   for(np = 0; np < NPLANES; ++np) {
     amrPicturePtrArray[np]->CreatePicture(XtWindow(wPlotPlane[np]),
@@ -2003,8 +2003,8 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   AddStaticCallback(wInfoTopLevel, XmNdestroyCallback, &PltApp::DestroyInfoWindow);
   
   //set visual in case the default isn't 256 pseudocolor
-  if(GAptr->PVisual() != XDefaultVisual(display, GAptr->PScreenNumber())) {
-    XtVaSetValues(wInfoTopLevel, XmNvisual, GAptr->PVisual(), XmNdepth, 8, NULL);
+  if(gaPtr->PVisual() != XDefaultVisual(display, gaPtr->PScreenNumber())) {
+    XtVaSetValues(wInfoTopLevel, XmNvisual, gaPtr->PVisual(), XmNdepth, 8, NULL);
   }
   
   Widget wInfoForm =
@@ -2143,8 +2143,8 @@ void PltApp::DoContoursButton(Widget, XtPointer, XtPointer) {
 		    &PltApp::DestroyContoursWindow);
   
   //set visual in case the default isn't 256 pseudocolor
-  if(GAptr->PVisual() != XDefaultVisual(display, GAptr->PScreenNumber())) {
-    XtVaSetValues(wContoursTopLevel, XmNvisual, GAptr->PVisual(), XmNdepth, 8,NULL);
+  if(gaPtr->PVisual() != XDefaultVisual(display, gaPtr->PScreenNumber())) {
+    XtVaSetValues(wContoursTopLevel, XmNvisual, gaPtr->PVisual(), XmNdepth, 8,NULL);
   }
         
     
@@ -2310,8 +2310,8 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 		    &PltApp::DestroySetRangeWindow);
   
   //set visual in case the default isn't 256 pseudocolor
-  if(GAptr->PVisual() != XDefaultVisual(display, GAptr->PScreenNumber())) {
-    XtVaSetValues(wSetRangeTopLevel, XmNvisual, GAptr->PVisual(),
+  if(gaPtr->PVisual() != XDefaultVisual(display, gaPtr->PScreenNumber())) {
+    XtVaSetValues(wSetRangeTopLevel, XmNvisual, gaPtr->PVisual(),
 		  XmNdepth, 8, NULL);
   }
         
@@ -2546,8 +2546,8 @@ void PltApp::DoNumberFormatButton(Widget, XtPointer, XtPointer) {
 		    &PltApp::DestroyNumberFormatWindow);
   
   //set visual in case the default isn't 256 pseudocolor
-  if(GAptr->PVisual() != XDefaultVisual(display, GAptr->PScreenNumber())) {
-    XtVaSetValues(wNumberFormatTopLevel, XmNvisual, GAptr->PVisual(),
+  if(gaPtr->PVisual() != XDefaultVisual(display, gaPtr->PScreenNumber())) {
+    XtVaSetValues(wNumberFormatTopLevel, XmNvisual, gaPtr->PVisual(),
 		  XmNdepth, 8, NULL);
   }
         
@@ -3960,7 +3960,7 @@ void PltApp::ResetAnimation() {
     const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
     fineDomain.refine(CRRBetweenLevels(maLev, amrData.FinestLevel(),
                                        amrData.RefRatio()));
-    amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, GAptr, fineDomain, 
+    amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, gaPtr, fineDomain, 
 						NULL, this,
 						pltAppState,
 						bCartGridSmoothing);
@@ -4071,7 +4071,7 @@ void PltApp::ShowFrame() {
     Box fineDomain(domain[pltAppState->MaxAllowableLevel()]);
     fineDomain.refine(CRRBetweenLevels(pltAppState->MaxAllowableLevel(),
 				       finestLevel, amrData.RefRatio()));
-    amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, GAptr, fineDomain, 
+    amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, gaPtr, fineDomain, 
 						NULL, this,
 						pltAppState,
 						bCartGridSmoothing);

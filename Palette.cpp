@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.40 2001-10-17 17:53:33 lijewski Exp $
+// $Id: Palette.cpp,v 1.41 2002-02-07 23:59:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -37,7 +37,7 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
   pmax = 1.0;
   defaultFormat = "%6.4f";
 
-  GAptr = new GraphicsAttributes(w);
+  gaPtr = new GraphicsAttributes(w);
 
 /*
   display = XtDisplay(w);
@@ -79,19 +79,19 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
   palWidth  = width;
   totalPalHeight = totalheight;
   dataList.resize(datalistlength);
-  if(GAptr->IsTrueColor()) {
-    colmap = DefaultColormap(GAptr->PDisplay(), GAptr->PScreenNumber());
+  if(gaPtr->IsTrueColor()) {
+    colmap = DefaultColormap(gaPtr->PDisplay(), gaPtr->PScreenNumber());
   } else {
-    colmap = XCreateColormap(GAptr->PDisplay(), GAptr->PRoot(),
-			     GAptr->PVisual(), AllocAll);
+    colmap = XCreateColormap(gaPtr->PDisplay(), gaPtr->PRoot(),
+			     gaPtr->PVisual(), AllocAll);
   }
   transSet = false;
-  systemColmap = DefaultColormap(GAptr->PDisplay(), GAptr->PScreenNumber());
+  systemColmap = DefaultColormap(gaPtr->PDisplay(), gaPtr->PScreenNumber());
   for(int ii(0); ii < totalColorSlots; ++ii) {
     sysccells[ii].pixel = ii;
   }
-  XQueryColors(GAptr->PDisplay(), systemColmap, sysccells.dataPtr(), totalColorSlots);
-  if(GAptr->IsTrueColor()) {
+  XQueryColors(gaPtr->PDisplay(), systemColmap, sysccells.dataPtr(), totalColorSlots);
+  if(gaPtr->IsTrueColor()) {
     reserveSystemColors = 0;
     colorOffset = 0;
     colorSlots = 253;
@@ -122,7 +122,7 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
 Palette::Palette(int datalistlength, int width,
 		 int totalwidth, int totalheight, int reservesystemcolors)
 {
-  GAptr = 0;
+  gaPtr = 0;
   //  bool visTrueColor = false;
   totalColorSlots = MaxPaletteIndex() + 1;
   sysccells.resize(totalColorSlots);
@@ -164,13 +164,13 @@ Palette::Palette(int datalistlength, int width,
 // -------------------------------------------------------------------
 Palette::~Palette() {
   delete [] remapTable;
-  delete GAptr;
+  delete gaPtr;
 }
 
 
 // -------------------------------------------------------------------
 void Palette::ExposePalette() {
-    XCopyArea(GAptr->PDisplay(), palPixmap, palWindow, GAptr->PGC(),
+    XCopyArea(gaPtr->PDisplay(), palPixmap, palWindow, gaPtr->PGC(),
 	    0, 0, totalPalWidth, totalPalHeight+50, 0, 0);
 }
 
@@ -202,16 +202,16 @@ void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
   pmin = palMin;
   pmax = palMax;
   defaultFormat = numberFormat;
-  XClearWindow(GAptr->PDisplay(), palWindow);
+  XClearWindow(gaPtr->PDisplay(), palWindow);
 
   if(palPixmap == 0) {
-    palPixmap = XCreatePixmap(GAptr->PDisplay(), palWindow, totalPalWidth,
-			      totalPalHeight + 50, GAptr->PDepth());
+    palPixmap = XCreatePixmap(gaPtr->PDisplay(), palWindow, totalPalWidth,
+			      totalPalHeight + 50, gaPtr->PDepth());
   }
-  XGetWindowAttributes(GAptr->PDisplay(), palWindow, &winAttribs);
-  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), BlackIndex());
+  XGetWindowAttributes(gaPtr->PDisplay(), palWindow, &winAttribs);
+  XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), BlackIndex());
 // ERROR here for 24 bit color pc
-  XFillRectangle(GAptr->PDisplay(), palPixmap, GAptr->PGC(), 0, 0, totalPalWidth, totalPalHeight + 50);
+  XFillRectangle(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), 0, 0, totalPalWidth, totalPalHeight + 50);
 
   if(transSet) {    // show transfers in palette
     int transpnt, zerolinex = palWidth - 5;
@@ -219,39 +219,39 @@ void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
       cy = ((totalColorSlots - 1) - i) + 14;
       // draw transparency as black
       // FIXME:
-      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), ccells[blackIndex].pixel);
+      XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), ccells[blackIndex].pixel);
       transpnt = (int) (zerolinex*(1.0-transferArray[i]));
-      XDrawLine(GAptr->PDisplay(), palPixmap, GAptr->PGC(), 0, cy, transpnt, cy);
+      XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), 0, cy, transpnt, cy);
 
       // draw color part of line
       // FIXME:
-      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), ccells[i].pixel);
-      XDrawLine(GAptr->PDisplay(), palPixmap, GAptr->PGC(), transpnt, cy, palWidth, cy);
+      XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), ccells[i].pixel);
+      XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), transpnt, cy, palWidth, cy);
     }
     
     // draw black line represening zero opacity
       // FIXME:
-    XSetForeground(GAptr->PDisplay(), GAptr->PGC(), ccells[blackIndex].pixel);
-    XDrawLine(GAptr->PDisplay(), palPixmap, GAptr->PGC(), zerolinex, 14, zerolinex, colorSlots + 14);
+    XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), ccells[blackIndex].pixel);
+    XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), zerolinex, 14, zerolinex, colorSlots + 14);
 
   } else {
     for(i = paletteStart; i < totalColorSlots; ++i) {
-      XSetForeground(GAptr->PDisplay(), GAptr->PGC(), ccells[i].pixel);
+      XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), ccells[i].pixel);
       cy = ((totalColorSlots - 1) - i) + 14;
-      XDrawLine(GAptr->PDisplay(), palPixmap, GAptr->PGC(), 0, cy, palWidth, cy);
+      XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), 0, cy, palWidth, cy);
     }
   }
 
   char palString[64];
   for(i = 0; i < dataList.size(); ++i) {
-    XSetForeground(GAptr->PDisplay(), GAptr->PGC(), WhiteIndex());
+    XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), WhiteIndex());
     dataList[i] = palMin + (dataList.size()-1-i) *
 			   (palMax - palMin)/(dataList.size() - 1);
     if(i == 0) {
       dataList[i] = palMax;  // to avoid roundoff
     }
     sprintf(palString, numberFormat.c_str(), dataList[i]);
-    XDrawString(GAptr->PDisplay(), palPixmap, GAptr->PGC(), palWidth + 4,
+    XDrawString(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), palWidth + 4,
 		(i * colorSlots / (dataList.size() - 1)) + 20,
 		palString, strlen(palString));
   }
@@ -270,7 +270,7 @@ void Palette::SetWindowPalette(const string &palName, Window newPalWindow,
 			       bool bRedraw)
 {
   ReadPalette(palName, bRedraw);
-  XSetWindowColormap(GAptr->PDisplay(), newPalWindow, colmap);
+  XSetWindowColormap(gaPtr->PDisplay(), newPalWindow, colmap);
 }
 
 
@@ -282,13 +282,13 @@ void Palette::ChangeWindowPalette(const string &palName, Window newPalWindow) {
 
 // -------------------------------------------------------------------
 void Palette::ReadPalette(const string &palName, bool bRedraw) {
-  BL_ASSERT(GAptr != 0);
+  BL_ASSERT(gaPtr != 0);
   ReadSeqPalette(palName, bRedraw);
-  if(GAptr->IsTrueColor()) {
+  if(gaPtr->IsTrueColor()) {
     return;
   }
-  XStoreColors(GAptr->PDisplay(), colmap, ccells.dataPtr(), totalColorSlots);
-  XStoreColors(GAptr->PDisplay(), colmap, sysccells.dataPtr(), reserveSystemColors);
+  XStoreColors(gaPtr->PDisplay(), colmap, ccells.dataPtr(), totalColorSlots);
+  XStoreColors(gaPtr->PDisplay(), colmap, sysccells.dataPtr(), reserveSystemColors);
 }
 
 
@@ -302,16 +302,16 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
   Array<int> indexArray(iSeqPalSize);
   int i, fd;
 
-  //BL_ASSERT(GAptr != 0);
+  //BL_ASSERT(gaPtr != 0);
 
   bool bTrueColor;
   unsigned long bprgb;
-  if(GAptr == 0) {
+  if(gaPtr == 0) {
     bTrueColor = false;
     bprgb = 8;
   } else {
-    bTrueColor = GAptr->IsTrueColor();
-    bprgb = GAptr->PBitsPerRGB();
+    bTrueColor = gaPtr->IsTrueColor();
+    bprgb = gaPtr->PBitsPerRGB();
   } 
  
 
@@ -446,15 +446,15 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
 
 // -------------------------------------------------------------------
 XImage *Palette::GetPictureXImage() {
-  return (XGetImage(GAptr->PDisplay(), palPixmap, 0, 0,
+  return (XGetImage(gaPtr->PDisplay(), palPixmap, 0, 0,
                 totalPalWidth, totalPalHeight, AllPlanes, ZPixmap));
 }
 
 
 // -------------------------------------------------------------------
 Pixel Palette::BlackIndex() const {
-  if(GAptr->IsTrueColor()) {
-    return BlackPixel(GAptr->PDisplay(), GAptr->PScreenNumber());
+  if(gaPtr->IsTrueColor()) {
+    return BlackPixel(gaPtr->PDisplay(), gaPtr->PScreenNumber());
   } else {
     return blackIndex;
   }
@@ -463,8 +463,8 @@ Pixel Palette::BlackIndex() const {
 
 // -------------------------------------------------------------------
 Pixel Palette::WhiteIndex() const {
-  if(GAptr->IsTrueColor()) {
-    return WhitePixel(GAptr->PDisplay(), GAptr->PScreenNumber());
+  if(gaPtr->IsTrueColor()) {
+    return WhitePixel(gaPtr->PDisplay(), gaPtr->PScreenNumber());
   } else {
     return whiteIndex;
   }
@@ -485,14 +485,14 @@ Pixel Palette::pixelate(int i) const {
 
 // -------------------------------------------------------------------
 Pixel Palette::makePixel(unsigned char ind) const {
-  if(GAptr->IsTrueColor()) {
-    assert( GAptr->PBitsPerRGB() <= 8 );
-    Pixel r = rbuff[ind] >> (8-GAptr->PBitsPerRGB());
-    Pixel g = gbuff[ind] >> (8-GAptr->PBitsPerRGB());
-    Pixel b = bbuff[ind] >> (8-GAptr->PBitsPerRGB());
-    return((  r << GAptr->PRedShift()   )
-	      | (g << GAptr->PGreenShift() )
-	      | (b << GAptr->PBlueShift()  ));
+  if(gaPtr->IsTrueColor()) {
+    assert( gaPtr->PBitsPerRGB() <= 8 );
+    Pixel r = rbuff[ind] >> (8 - gaPtr->PBitsPerRGB());
+    Pixel g = gbuff[ind] >> (8 - gaPtr->PBitsPerRGB());
+    Pixel b = bbuff[ind] >> (8 - gaPtr->PBitsPerRGB());
+    return((  r << gaPtr->PRedShift()   )
+	      | (g << gaPtr->PGreenShift() )
+	      | (b << gaPtr->PBlueShift()  ));
   } else {
     return Pixel(ind);
   }
@@ -503,7 +503,7 @@ Pixel Palette::makePixel(unsigned char ind) const {
 void Palette::unpixelate(Pixel index, unsigned char& r,
 			 unsigned char& g, unsigned char& b) const
 {
-  if(GAptr->IsTrueColor()) {
+  if(gaPtr->IsTrueColor()) {
     map<Pixel, XColor>::const_iterator mi = mcells.find(index);
     if(mi != mcells.end()) {
       r = mi->second.red   >> 8;
@@ -512,9 +512,9 @@ void Palette::unpixelate(Pixel index, unsigned char& r,
       return;
     }
     cout << "Hmm, not found index = " << index << endl;
-    r = (index&GAptr->PRedMask()) >> GAptr->PRedShift();
-    g = (index&GAptr->PGreenMask()) >> GAptr->PGreenShift();
-    b = (index&GAptr->PBlueMask()) >> GAptr->PBlueShift();
+    r = (index&gaPtr->PRedMask()) >> gaPtr->PRedShift();
+    g = (index&gaPtr->PGreenMask()) >> gaPtr->PGreenShift();
+    b = (index&gaPtr->PBlueMask()) >> gaPtr->PBlueShift();
   } else {
     r = ccells[index].red   >> 8;
     g = ccells[index].green >> 8;

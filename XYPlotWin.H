@@ -103,7 +103,7 @@ private:
 
   Widget                  wXYPlotTopLevel;
 
-  GraphicsAttributes	 *GAptr;
+  GraphicsAttributes	 *gaPtr;
   Display                *disp;
   Visual                 *vis;
   Cursor	          cursor,

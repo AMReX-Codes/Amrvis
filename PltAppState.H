@@ -121,7 +121,7 @@ public:
   int FinestLevel()   const { Cnsy(finestLevel);    return finestLevel; }
 
 
-  //GraphicsAttributes *GetGAptr() const  { return GAptr; }
+  //GraphicsAttributes *GetGAptr() const  { return gaPtr; }
 
 private:
 
@@ -150,7 +150,7 @@ private:
   //int activeView;
   string contourNumString, fileName, palFilename;
   //Array<string> fileNames, derivedStrings;
-  //GraphicsAttributes	*GAptr;
+  //GraphicsAttributes	*gaPtr;
 
 
 

@@ -12,7 +12,7 @@
 #include <cstring>
 
 #define DEF(name, typ, def_name) \
- if((def_str = XGetDefault(GAptr->PDisplay(), title, (name)))) \
+ if((def_str = XGetDefault(gaPtr->PDisplay(), title, (name)))) \
    { Set_Parameter((name), (typ), def_str); } \
  else { Set_Parameter((name), (typ), (def_name)); }
 
@@ -31,7 +31,7 @@ static char *negative[] = {"off", "no", "false", "0", "negative", NULL};
 // -------------------------------------------------------------------
 XYPlotParameters::XYPlotParameters(Palette *palPtr, GraphicsAttributes *gaptr,
 				   char *name)
-  : param_palette(palPtr), GAptr(gaptr)
+  : param_palette(palPtr), gaPtr(gaptr)
 {
   title = new char[strlen(name) + 1];
   strcpy(title, name);
@@ -210,7 +210,7 @@ void XYPlotParameters::free_resource(params *val) {
       // No reclaiming necessary
     break;
     case FONT:
-      XFreeFont(GAptr->PDisplay(), val->fontv.value);
+      XFreeFont(gaPtr->PDisplay(), val->fontv.value);
     break;
     case STYLE:
       delete val->stylev.dash_list;
@@ -276,20 +276,20 @@ params * XYPlotParameters::resolve_entry(char *name, param_types type,
 // -------------------------------------------------------------------
 int XYPlotParameters::do_color(char *name, XColor *color) {
   Colormap cmap = param_palette->GetColormap();
-  if( ! XParseColor(GAptr->PDisplay(),
-		   DefaultColormap(GAptr->PDisplay(), GAptr->PScreenNumber()),
+  if( ! XParseColor(gaPtr->PDisplay(),
+		   DefaultColormap(gaPtr->PDisplay(), gaPtr->PScreenNumber()),
 		   name, color))
   {
     return 0;
   }
   if(string_compare(name, "black") == 0) {
-    color->pixel = BlackPixel(GAptr->PDisplay(), GAptr->PScreenNumber());
-    XQueryColor(GAptr->PDisplay(), cmap, color);
+    color->pixel = BlackPixel(gaPtr->PDisplay(), gaPtr->PScreenNumber());
+    XQueryColor(gaPtr->PDisplay(), cmap, color);
     return 1;
   }
   if(string_compare(name, "white") == 0) {
-    color->pixel = WhitePixel(GAptr->PDisplay(), GAptr->PScreenNumber());
-    XQueryColor(GAptr->PDisplay(), cmap, color);
+    color->pixel = WhitePixel(gaPtr->PDisplay(), gaPtr->PScreenNumber());
+    XQueryColor(gaPtr->PDisplay(), cmap, color);
     return 1;
   }
 
@@ -298,7 +298,7 @@ int XYPlotParameters::do_color(char *name, XColor *color) {
 
   double red(color->red), green(color->green), blue(color->blue);
   double best(DBL_MAX);
-  unsigned long best_pix = WhitePixel(GAptr->PDisplay(), GAptr->PScreenNumber());
+  unsigned long best_pix = WhitePixel(gaPtr->PDisplay(), gaPtr->PScreenNumber());
   int end(param_palette->PaletteEnd());
   for(int ii(param_palette->PaletteStart()); ii <= end; ++ii) {
     const XColor *newcolor = &param_palette->GetColorCells()[ii];
@@ -312,7 +312,7 @@ int XYPlotParameters::do_color(char *name, XColor *color) {
     }
   }
   color->pixel = best_pix;
-  XQueryColor(GAptr->PDisplay(), cmap, color);
+  XQueryColor(gaPtr->PDisplay(), cmap, color);
   
   return 1;
 
@@ -335,12 +335,12 @@ int XYPlotParameters::do_font(char *name, XFontStruct **font_info) {
     if(font_size_value > 0) {
       // Still a little iffy -- what about weight and roman vs. other
       sprintf(query_spec, ISO_FONT, font_family, font_size_value * 10);
-      font_list = XListFonts(GAptr->PDisplay(), query_spec,
+      font_list = XListFonts(gaPtr->PDisplay(), query_spec,
 			     DEF_MAX_NAMES, &font_count);
       
       // Load first one that you can
       for(i = 0; i < font_count; ++i) {
-	if((*font_info = XLoadQueryFont(GAptr->PDisplay(), font_list[i]))) {
+	if((*font_info = XLoadQueryFont(gaPtr->PDisplay(), font_list[i]))) {
 	  break;
 	}
       }
@@ -350,8 +350,8 @@ int XYPlotParameters::do_font(char *name, XFontStruct **font_info) {
     }
   }
   // Assume normal font name
-  *font_info = XLoadQueryFont(GAptr->PDisplay(), name);
-  if((*font_info = XLoadQueryFont(GAptr->PDisplay(), name)) != NULL) {
+  *font_info = XLoadQueryFont(gaPtr->PDisplay(), name);
+  if((*font_info = XLoadQueryFont(gaPtr->PDisplay(), name)) != NULL) {
     return 1;
   }
   return 0;

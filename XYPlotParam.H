@@ -143,7 +143,7 @@ private:
   int param_ok;
   st_table param_table;
   Palette *param_palette;
-  GraphicsAttributes *GAptr;
+  GraphicsAttributes *gaPtr;
   char *title;
 
   //

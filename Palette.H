@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.H,v 1.24 2001-11-16 01:48:08 vince Exp $
+// $Id: Palette.H,v 1.25 2002-02-07 23:59:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -48,7 +48,7 @@ class Palette {
     int		transSet;
     Array<float>  transferArray;
     unsigned char *remapTable; // for remapping to a smaller color index set
-    GraphicsAttributes *GAptr;
+    GraphicsAttributes *gaPtr;
     Array<XColor> sysccells;
   
     static Colormap systemColmap;

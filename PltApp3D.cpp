@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.43 2001-08-22 00:22:32 vince Exp $
+// $Id: PltApp3D.cpp,v 1.44 2002-02-07 23:59:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -234,8 +234,8 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   
   AddStaticCallback(wDetachTopLevel, XmNdestroyCallback, &PltApp::DoAttach);
 
-  if(GAptr->PVisual() != XDefaultVisual(display, GAptr->PScreenNumber())) {
-    XtVaSetValues(wDetachTopLevel, XmNvisual, GAptr->PVisual(), XmNdepth, 8, NULL);
+  if(gaPtr->PVisual() != XDefaultVisual(display, gaPtr->PScreenNumber())) {
+    XtVaSetValues(wDetachTopLevel, XmNvisual, gaPtr->PVisual(), XmNdepth, 8, NULL);
   }
 
   Widget wDetachForm, wAttach, wDOrient, wDLabelAxes;
@@ -534,8 +534,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   AddStaticCallback(wLWTopLevel, XmNdestroyCallback,
 		    &PltApp::DestroyLightingWindow);
   
-  if(GAptr->PVisual() != XDefaultVisual(display, GAptr->PScreenNumber())) {
-    XtVaSetValues(wLWTopLevel, XmNvisual, GAptr->PVisual(), XmNdepth, 8, NULL);
+  if(gaPtr->PVisual() != XDefaultVisual(display, gaPtr->PScreenNumber())) {
+    XtVaSetValues(wLWTopLevel, XmNvisual, gaPtr->PVisual(), XmNdepth, 8, NULL);
   }
   
   wLWForm = XtVaCreateManagedWidget("detachform",

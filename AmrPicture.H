@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.H,v 1.42 2001-11-16 01:48:08 vince Exp $
+// $Id: AmrPicture.H,v 1.43 2002-02-07 23:59:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -120,7 +120,7 @@ class AmrPicture {
   Array<unsigned char *>  imageData, scaledImageData;
   Array<XImage *>       xImageArray;
   Array<bool>           xImageCreated;
-  GraphicsAttributes	*GAptr;
+  GraphicsAttributes	*gaPtr;
   PltApp	        *pltAppPtr;
   PltAppState	        *pltAppStatePtr;
   DataServices		*dataServicesPtr;

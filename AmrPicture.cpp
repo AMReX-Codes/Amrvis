@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.72 2001-12-03 18:42:15 lijewski Exp $
+// $Id: AmrPicture.cpp,v 1.73 2002-02-07 23:59:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -40,7 +40,7 @@ AmrPicture::AmrPicture(GraphicsAttributes *gaptr,
 		       PltApp *pltappptr, PltAppState *pltappstateptr,
 		       DataServices *dataservicesptr,
 		       bool bcartgridsmoothing)
-           : GAptr(gaptr),
+           : gaPtr(gaptr),
              pltAppPtr(pltappptr),
              pltAppStatePtr(pltappstateptr),
              dataServicesPtr(dataservicesptr),
@@ -112,7 +112,7 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
                        PltApp *parentPltAppPtr,
 		       PltApp *pltappptr, PltAppState *pltappstateptr,
 		       bool bcartgridsmoothing)
-	   : GAptr(gaptr),
+	   : gaPtr(gaptr),
              pltAppPtr(pltappptr),
              pltAppStatePtr(pltappstateptr),
              myView(view),
@@ -235,16 +235,16 @@ void AmrPicture::AmrPictureInit() {
   }
   xImageArray.resize(numberOfLevels);
 
-  display = GAptr->PDisplay();
-  xgc = GAptr->PGC();
+  display = gaPtr->PDisplay();
+  xgc = gaPtr->PGC();
 
   // use maxAllowableLevel because all imageSizes are the same
   // regardless of which level is showing
   // dont use imageBox.length() because of node centered boxes
   imageSizeH = pltAppStatePtr->CurrentScale() * dataSizeH[maxAllowableLevel];
   imageSizeV = pltAppStatePtr->CurrentScale() * dataSizeV[maxAllowableLevel];
-  int widthpad = GAptr->PBitmapPaddedWidth(imageSizeH);
-  imageSize = imageSizeV * widthpad * GAptr->PBytesPerPixel();
+  int widthpad = gaPtr->PBitmapPaddedWidth(imageSizeH);
+  imageSize = imageSizeV * widthpad * gaPtr->PBytesPerPixel();
 
   imageData.resize(numberOfLevels);
   scaledImageData.resize(numberOfLevels);
@@ -606,7 +606,7 @@ void AmrPicture::DrawTerrBoxes(int level, bool bIsWindow, bool bIsPixmap) {
 void AmrPicture::APDraw(int fromLevel, int toLevel) {
   if( ! pixMapCreated) {
     pixMap = XCreatePixmap(display, pictureWindow,
-			   imageSizeH, imageSizeV, GAptr->PDepth());
+			   imageSizeH, imageSizeV, gaPtr->PDepth());
     pixMapCreated = true;
   }  
  
@@ -625,7 +625,7 @@ void AmrPicture::APDraw(int fromLevel, int toLevel) {
 //XFontStruct *fontInfo;
 //fontInfo = XLoadQueryFont(display, fontName);
 
-//GC fontGC = XCreateGC(display, GAptr->PRoot(), 0, NULL);
+//GC fontGC = XCreateGC(display, gaPtr->PRoot(), 0, NULL);
 //XSetFont(display, fontGC, fontInfo->fid);
 
 //XSetForeground(display, fontGC, palPtr->WhiteIndex());
@@ -887,11 +887,11 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 				   int datasizeh, int datasizev,
 				   int imagesizeh, int imagesizev)
 { 
-  int widthpad = GAptr->PBitmapPaddedWidth(imagesizeh);
-  *ximage = XCreateImage(display, GAptr->PVisual(),
-		GAptr->PDepth(), ZPixmap, 0, (char *) scaledimagedata,
+  int widthpad = gaPtr->PBitmapPaddedWidth(imagesizeh);
+  *ximage = XCreateImage(display, gaPtr->PVisual(),
+		gaPtr->PDepth(), ZPixmap, 0, (char *) scaledimagedata,
 		widthpad, imagesizev,
-		XBitmapPad(display), widthpad * GAptr->PBytesPerPixel());
+		XBitmapPad(display), widthpad * gaPtr->PBytesPerPixel());
 
   if( ! bCartGridSmoothing) {
     if(true) {
@@ -1325,15 +1325,15 @@ void AmrPicture::APChangeScale(int newScale, int previousScale) {
   }
   imageSizeH = newScale   * dataSizeH[maxAllowableLevel];
   imageSizeV = newScale   * dataSizeV[maxAllowableLevel];
-  int widthpad = GAptr->PBitmapPaddedWidth(imageSizeH);
-  imageSize  = widthpad * imageSizeV * GAptr->PBytesPerPixel();
+  int widthpad = gaPtr->PBitmapPaddedWidth(imageSizeH);
+  imageSize  = widthpad * imageSizeV * gaPtr->PBytesPerPixel();
   XClearWindow(display, pictureWindow);
 
   if(pixMapCreated) {
     XFreePixmap(display, pixMap);
   }  
   pixMap = XCreatePixmap(display, pictureWindow,
-			   imageSizeH, imageSizeV, GAptr->PDepth());
+			   imageSizeH, imageSizeV, gaPtr->PDepth());
   pixMapCreated = true;
 
   for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
@@ -1416,7 +1416,7 @@ XImage *AmrPicture::GetPictureXImage(const bool bdrawboxesintoimage) {
     XFreePixmap(display, pixMap);
   }  
   pixMap = XCreatePixmap(display, pictureWindow,
-			   imageSizeH, imageSizeV, GAptr->PDepth());
+			   imageSizeH, imageSizeV, gaPtr->PDepth());
   pixMapCreated = true;
   APDraw(minDrawnLevel, maxDrawnLevel);
   return ximage;

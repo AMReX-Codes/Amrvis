@@ -99,7 +99,7 @@ XYPlotWin::~XYPlotWin() {
     XtDestroyWidget(wExportFileDialog);
   }
   XtDestroyWidget(wXYPlotTopLevel);
-  delete GAptr;
+  delete gaPtr;
   delete [] Xsegs[0];
   delete [] Xsegs[1];
   delete [] XUnitText;
@@ -351,10 +351,10 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
   XtPopup(wXYPlotTopLevel, XtGrabNone);
   pWindow = XtWindow(wPlotWin);
   SetPalette();
-  GAptr = new GraphicsAttributes(wXYPlotTopLevel);
-  disp = GAptr->PDisplay();
-  vis  = GAptr->PVisual();
-  if(vis != XDefaultVisual(disp, GAptr->PScreenNumber())) {
+  gaPtr = new GraphicsAttributes(wXYPlotTopLevel);
+  disp = gaPtr->PDisplay();
+  vis  = gaPtr->PVisual();
+  if(vis != XDefaultVisual(disp, gaPtr->PScreenNumber())) {
     XtVaSetValues(wXYPlotTopLevel, XmNvisual, vis, XmNdepth, 8, NULL);
   }
   cursor = XCreateFontCursor(disp, XC_left_ptr);
@@ -377,9 +377,9 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
   gcvals.font = titletextFont->fid;
   titletextGC = XCreateGC(disp, pWindow, GCFont | GCForeground, &gcvals);
   gcvals.function = GXxor;
-  rbGC  = XCreateGC(disp, GAptr->PRoot(), GCFunction, &gcvals);
-  segGC = XCreateGC(disp, GAptr->PRoot(), 0, NULL);
-  dotGC = XCreateGC(disp, GAptr->PRoot(), 0, NULL);
+  rbGC  = XCreateGC(disp, gaPtr->PRoot(), GCFunction, &gcvals);
+  segGC = XCreateGC(disp, gaPtr->PRoot(), 0, NULL);
+  dotGC = XCreateGC(disp, gaPtr->PRoot(), 0, NULL);
 
   // Allocate space for XSegment's
   numXsegs = NUM_INIT_XSEGS;

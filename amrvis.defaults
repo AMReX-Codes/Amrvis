@@ -1,4 +1,5 @@
 palette               Pal8.new
+palette               Palette
 initialderived        tracer
 initialscale          4
 initialscale          1
