@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.cpp,v 1.50 2003-02-12 23:02:23 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.51 2003-02-28 02:01:38 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -78,7 +78,7 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
     if(lev == minDrawnLevel) {
       boxColors[lev] = pltAppPtr->GetPalettePtr()->WhiteIndex();
     } else {
-      boxColors[lev] = AVGlobals::MaxPaletteIndex() - 80 * (lev - 1);
+      boxColors[lev] = palettePtr->SafePaletteIndex(lev);
     }
     boxColors[lev] = max(0, min(AVGlobals::MaxPaletteIndex(), boxColors[lev]));
     for(int iBox(0); iBox < amrData.boxArray(lev).size(); ++iBox) {

@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.H,v 1.28 2003-02-12 23:02:23 vince Exp $
+// $Id: Palette.H,v 1.29 2003-02-28 02:01:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -89,6 +89,7 @@ class Palette {
     int  PaletteSize()   const    { return totalColorSlots;     }
     int  PaletteWidth()  const    { return totalPalWidth;  }
     int  PaletteHeight() const    { return totalPalHeight; }
+    unsigned int SafePaletteIndex(unsigned int atlevel = 0) const;
     Real PaletteMin()    const    { return pmin; }
     Real PaletteMax()    const    { return pmax; }
     const Array<Real> &PaletteDataList() const { return dataList; }

@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.45 2003-02-12 23:02:23 vince Exp $
+// $Id: Palette.cpp,v 1.46 2003-02-28 02:01:38 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -487,10 +487,22 @@ Pixel Palette::WhiteIndex() const {
 
 
 // -------------------------------------------------------------------
+unsigned int Palette::SafePaletteIndex(unsigned int atlevel) const {
+  // return a number in [PaletteStart(), PaletteEnd()]
+  unsigned int cslots((atlevel * ((colorSlots / 8) )) % colorSlots);
+  cslots = colorSlots - cslots - 1;
+  unsigned int indexRet(paletteStart + cslots);
+  unsigned int pSt(PaletteStart()), pEnd(PaletteEnd());
+  indexRet = std::max(pSt, std::min(indexRet, pEnd));
+  return indexRet;
+}
+
+
+// -------------------------------------------------------------------
 Pixel Palette::pixelate(int i) const {
   if(i < 0) {
     return BlackIndex();
-  } else if( i > 255 ) {
+  } else if( i > (totalColorSlots - 1) ) {
     return WhiteIndex();
   } else {
     return ccells[i].pixel;
@@ -518,8 +530,10 @@ Pixel Palette::makePixel(unsigned char ind) const {
 void Palette::unpixelate(Pixel index, unsigned char &r,
 			 unsigned char &g, unsigned char &b) const
 {
+  int vIndex;
+  vIndex = std::max(0, std::min(static_cast<int> (index), (totalColorSlots - 1)));
   if(gaPtr->IsTrueColor()) {
-    map<Pixel, XColor>::const_iterator mi = mcells.find(index);
+    map<Pixel, XColor>::const_iterator mi = mcells.find(vIndex);
     if(mi != mcells.end()) {
       r = mi->second.red   >> 8;
       g = mi->second.green >> 8;
@@ -527,13 +541,13 @@ void Palette::unpixelate(Pixel index, unsigned char &r,
       return;
     }
     cout << "bad index = " << index << endl;
-    r = (index&gaPtr->PRedMask()) >> gaPtr->PRedShift();
-    g = (index&gaPtr->PGreenMask()) >> gaPtr->PGreenShift();
-    b = (index&gaPtr->PBlueMask()) >> gaPtr->PBlueShift();
+    r = (vIndex&gaPtr->PRedMask()) >> gaPtr->PRedShift();
+    g = (vIndex&gaPtr->PGreenMask()) >> gaPtr->PGreenShift();
+    b = (vIndex&gaPtr->PBlueMask()) >> gaPtr->PBlueShift();
   } else {
-    r = ccells[index].red   >> 8;
-    g = ccells[index].green >> 8;
-    b = ccells[index].blue  >> 8;
+    r = ccells[vIndex].red   >> 8;
+    g = ccells[vIndex].green >> 8;
+    b = ccells[vIndex].blue  >> 8;
   }
 }
 // -------------------------------------------------------------------

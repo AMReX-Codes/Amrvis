@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.37 2002-12-10 20:12:23 vince Exp $
+// $Id: DataServices.cpp,v 1.38 2003-02-28 02:01:38 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1052,10 +1052,10 @@ void DataServices::PointValue(int pointBoxArraySize, Box *pointBoxArray,
   }
 
   Box destBox(pointBoxArray[intersectedLevel]);
-  if(destBox.volume() != 1) {
+  if(destBox.numPts() != 1) {
     cout << "Error in DS::PointValue:bad destBox:  " << destBox << endl;
   }
-  BL_ASSERT(destBox.volume() == 1);
+  BL_ASSERT(destBox.numPts() == 1);
 
   const BoxArray &intersectedBA = amrData.boxArray(intersectedLevel);
   for(int iGrid = 0; iGrid < intersectedBA.size(); ++iGrid) {

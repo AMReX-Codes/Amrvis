@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.cpp,v 1.30 2002-10-22 17:53:51 vince Exp $
+// $Id: Output.cpp,v 1.31 2003-02-28 02:01:38 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -83,7 +83,7 @@ void WriteNewPSFile(const char *filename, XImage *image,
     if(iblev == minlev) {
       fout << "/boxcolor" << iblev << " {1.0 1.0 1.0} def  % white\n";
     } else {
-      palette.unpixelate(AVGlobals::MaxPaletteIndex() - 80 * iblev, r, g, b);
+      palette.unpixelate(palette.SafePaletteIndex(iblev), r, g, b);
       fout << "/boxcolor" << iblev << " {"
            << rgb[(int) r] << " " << rgb[(int) g] << " " << rgb[(int) b]
            << "} def\n";

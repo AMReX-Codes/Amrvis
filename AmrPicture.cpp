@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.80 2003-02-12 23:02:23 vince Exp $
+// $Id: AmrPicture.cpp,v 1.81 2003-02-28 02:01:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -492,7 +492,7 @@ void AmrPicture::DrawBoxes(Array< Array<GridPicture> > &gp, Drawable &drawable) 
         XSetForeground(display, xgc, palPtr->WhiteIndex());
       } else {
         XSetForeground(display, xgc,
-	  palPtr->pixelate(AVGlobals::MaxPaletteIndex() - 80 * (level - 1)));
+	               palPtr->pixelate(palPtr->SafePaletteIndex(level)));
       }
       if(amrData.Terrain()) {
 	DrawTerrBoxes(level, bIsWindow, bIsPixmap);
@@ -1482,7 +1482,7 @@ XImage *AmrPicture::GetPictureXImage(const bool bdrawboxesintoimage) {
         XSetForeground(display, xgc, palPtr->WhiteIndex());
       } else {
         XSetForeground(display, xgc,
-		       palPtr->pixelate(AVGlobals::MaxPaletteIndex() - 80 * level));
+		       palPtr->pixelate(palPtr->SafePaletteIndex(level)));
       }
       for(int i(0); i < gpArray[level].size(); ++i) {
 	xbox = gpArray[level][i].HPositionInPicture();
