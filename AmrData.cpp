@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.cpp,v 1.30 1999-04-28 23:42:46 vince Exp $
+// $Id: AmrData.cpp,v 1.31 1999-04-30 20:18:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -878,8 +878,21 @@ void AmrData::FillVar(FArrayBox *destFab, const Box &destBox,
 
 // ---------------------------------------------------------------
 void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
-		      const aString &varname,
-		      int srcComp, int destComp, int numComps)
+		      const aString &varname, int destcomp)
+{
+  int numFillComps(1);
+  Array<aString> varNames(numFillComps);
+  Array<int> destComps(numFillComps);
+  varNames[0]  = varname;
+  destComps[0] = destcomp;
+  FillVar(destMultiFab, finestFillLevel, varNames, destComps);
+}
+
+
+// ---------------------------------------------------------------
+void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
+		      const Array<aString> &varNames,
+		      const Array<int> &destFillComps)
 {
 // This function fills the destMultiFab which is defined on
 // the finestFillLevel.
@@ -891,9 +904,10 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
    }
 
     int myProc(ParallelDescriptor::MyProc());
-    int stateIndex(StateNumber(varname));
-
+    int srcComp(0);     // always 0 since AmrData uses single component MultiFabs
+    int nFillComps(1);  // always
     int currentLevel;
+
     Array<int> cumulativeRefRatios(finestFillLevel + 1, -1);
 
     cumulativeRefRatios[finestFillLevel] = 1;
@@ -901,6 +915,14 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
       cumulativeRefRatios[currentLevel] = cumulativeRefRatios[currentLevel + 1] *
                                           refRatio[currentLevel];
     }
+
+    assert(varNames.length() == destFillComps.length());
+    int nFillVars(varNames.length());
+
+for(int currentFillIndex(0); currentFillIndex < nFillVars; ++currentFillIndex) {
+
+    int destComp(destFillComps[currentFillIndex]);
+    int stateIndex(StateNumber(varNames[currentFillIndex]));
 
     // ensure the required grids are in memory
     for(currentLevel = 0; currentLevel <= finestFillLevel; ++currentLevel) {
@@ -986,7 +1008,7 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
                   fillBoxId[ibox][currentLevel][currentBLI][0] = 
 		      multiFabCopyDesc.AddBox(stateDataMFId[currentLevel],
 					      tempCoarseBox, &tempUnfillableBoxes,
-					      srcComp, destComp, numComps);
+					      srcComp, destComp, nFillComps);
 
                   unfillableBoxesOnThisLevel.join(tempUnfillableBoxes);
                   ++currentBLI;
@@ -1036,7 +1058,7 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
         {
             Box tempCoarseBox(
 		       fillBoxId[currentIndex][currentLevel][currentBox][0].box());
-            FArrayBox tempCoarseDestFab(tempCoarseBox, numComps);
+            FArrayBox tempCoarseDestFab(tempCoarseBox, nFillComps);
             tempCoarseDestFab.setVal(1.e30);
             multiFabCopyDesc.FillFab(stateDataMFId[currentLevel],
 			  fillBoxId[currentIndex][currentLevel][currentBox][0],
@@ -1056,7 +1078,7 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
               if(currentLevel != finestFillLevel) {
                     fboxes.refine(cumulativeRefRatios[currentLevel]);
                     // Interpolate up to fine patch.
-                    tempCurrentFillPatchedFab.resize(intersectDestBox, numComps);
+                    tempCurrentFillPatchedFab.resize(intersectDestBox, nFillComps);
                     tempCurrentFillPatchedFab.setVal(1.e30);
 		    assert(intersectDestBox.ok());
 		    assert( tempCoarseDestFab.box().ok());
@@ -1079,13 +1101,18 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
                     if(srcdestBox.ok()) {
                         destMultiFab[currentIndex].copy(*copyFromThisFab,
                                                         srcdestBox, 0, srcdestBox,
-                                                        destComp, numComps);
+                                                        destComp, nFillComps);
                     }
               }
             }
         }
       }  // end for(currentLevel...)
     }  // end for(currentIndex...)
+
+
+}  // end for(currentFillIndex...)
+
+
 }
 
 
@@ -1109,7 +1136,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
     int stateIndex(StateNumber(varname));
     int srcComp(0);
     int destComp(0);
-    int numComps(1);
+    int numFillComps(1);
 
     int currentLevel;
     Array<int> cumulativeRefRatios(finestFillLevel + 1, -1);
@@ -1199,7 +1226,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
                   fillBoxId[ibox][currentLevel][currentBLI][0] = 
 		      multiFabCopyDesc.AddBox(stateDataMFId[currentLevel],
 					      tempCoarseBox, &tempUnfillableBoxes,
-					      srcComp, destComp, numComps);
+					      srcComp, destComp, numFillComps);
 
                   unfillableBoxesOnThisLevel.join(tempUnfillableBoxes);
                   ++currentBLI;
@@ -1249,7 +1276,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
         {
             Box tempCoarseBox(
 		       fillBoxId[currentIndex][currentLevel][currentBox][0].box());
-            FArrayBox tempCoarseDestFab(tempCoarseBox, numComps);
+            FArrayBox tempCoarseDestFab(tempCoarseBox, numFillComps);
             tempCoarseDestFab.setVal(1.e30);
             multiFabCopyDesc.FillFab(stateDataMFId[currentLevel],
 			  fillBoxId[currentIndex][currentLevel][currentBox][0],
@@ -1269,7 +1296,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
               if(currentLevel != finestFillLevel) {
                     fboxes.refine(cumulativeRefRatios[currentLevel]);
                     // Interpolate up to fine patch.
-                    tempCurrentFillPatchedFab.resize(intersectDestBox, numComps);
+                    tempCurrentFillPatchedFab.resize(intersectDestBox, numFillComps);
                     tempCurrentFillPatchedFab.setVal(1.e30);
 		    assert(intersectDestBox.ok());
 		    assert( tempCoarseDestFab.box().ok());
@@ -1292,7 +1319,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
                     if(srcdestBox.ok()) {
                         destFabs[currentIndex]->copy(*copyFromThisFab,
                                                    srcdestBox, 0, srcdestBox,
-                                                   destComp, numComps);
+                                                   destComp, numFillComps);
                     }
               }
             }

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.H,v 1.14 1999-04-28 23:42:46 vince Exp $
+// $Id: AmrData.H,v 1.15 1999-04-30 20:18:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -104,8 +104,10 @@ class AmrData {
                int finestFillLevel, const aString &varName, int procWithFabs);
   void FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
                int finestFillLevel, const aString &varName, int procWithFabs);
-  void FillVar(MultiFab &destMultiFab, int finestFillLevel, const aString &varName,
-	       int srcComp = 0, int destComp = 0, int numComps = 1);
+  void FillVar(MultiFab &destMultiFab, int finestFillLevel,
+	       const Array<aString> &varNames, const Array<int> &destFillComps);
+  void FillVar(MultiFab &destMultiFab, int finestFillLevel,
+	       const aString &varname, int destcomp = 0);
   
   const aString &GetFileName() const { return fileName; }
   
