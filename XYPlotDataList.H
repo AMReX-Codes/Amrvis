@@ -91,8 +91,8 @@ private:
   XYPlotDataList *list;
   //Array <ListIterator <int> *> XiLI;
   //Array <ListIterator <XYPlotDataListLink *> *> linkLI;
-  Array <std::list<int>::iterator *> XiLI;
-  Array <std::list<XYPlotDataListLink *>::iterator *> linkLI;
+  Array <std::list<int>::iterator> XiLI;
+  Array <std::list<XYPlotDataListLink *>::iterator> linkLI;
   XYPlotDataListLink *curLink, *nextLink;
   int curXi, nextXi, curLevel, maxLevel;
   Real *data;
