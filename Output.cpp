@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.cpp,v 1.18 2000-10-02 20:53:08 lijewski Exp $
+// $Id: Output.cpp,v 1.19 2001-02-01 00:48:30 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -192,6 +192,12 @@ void WriteRGBFile(const char *filename, XImage *ximage,
 }
 
 #ifdef BL_Linux
+#define _IOWRT 0002
+#define _IOERR 0040
+#define _IORW  0400
+#endif
+
+#ifdef BL_CYGWIN_NT
 #define _IOWRT 0002
 #define _IOERR 0040
 #define _IORW  0400

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.51 2000-10-09 23:55:53 vince Exp $
+// $Id: AmrPicture.cpp,v 1.52 2001-02-01 00:48:29 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -23,18 +23,18 @@
 AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
 		       PltApp *pltappptr, DataServices *dataservicesptr,
 		       bool bcartgridsmoothing)
-           : contours(false),
+           : GAptr(gaptr),
+             pltAppPtr(pltappptr),
+             dataServicesPtr(dataservicesptr),
+             myView(XY),
+             minDrawnLevel(mindrawnlevel),
+             contours(false),
              raster(true),
              colContour(false),
              vectorField(false),
-             minDrawnLevel(mindrawnlevel),
-             GAptr(gaptr),
-             pltAppPtr(pltappptr),
-             myView(XY),
+             bCartGridSmoothing(bcartgridsmoothing),
              isSubDomain(false),
-             findSubRange(false),
-             dataServicesPtr(dataservicesptr),
-             bCartGridSmoothing(bcartgridsmoothing)
+             findSubRange(false)
 {
   int i, ilev;
 
@@ -111,12 +111,12 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
                        AmrPicture *parentPicturePtr,
                        PltApp *parentPltAppPtr, PltApp *pltappptr,
 		       bool bcartgridsmoothing)
-	   : myView(view),
-             minDrawnLevel(mindrawnlevel),
-             GAptr(gaptr),
+	   : GAptr(gaptr),
              pltAppPtr(pltappptr),
-             isSubDomain(true),
-             bCartGridSmoothing(bcartgridsmoothing)
+             myView(view),
+             minDrawnLevel(mindrawnlevel),
+             bCartGridSmoothing(bcartgridsmoothing),
+             isSubDomain(true)
 {
   BL_ASSERT(parentPicturePtr != NULL);
   BL_ASSERT(pltappptr != NULL);

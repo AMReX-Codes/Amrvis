@@ -6,17 +6,17 @@ PROFILE   = FALSE
 # use mpKCC for the sp
 COMP      = mpKCC
 
-COMP      = g++
 COMP      = KCC
+COMP      = g++
 DEBUG     = FALSE
 DEBUG     = TRUE
-DIM       = 3
 DIM       = 2
+DIM       = 3
 NAMESPACE = TRUE
 NAMESPACE = FALSE
 
-STRICTLY  = FALSE
 STRICTLY  = TRUE
+STRICTLY  = FALSE
 
 USE_ARRAYVIEW = TRUE
 USE_ARRAYVIEW = FALSE
@@ -110,6 +110,13 @@ ifeq ($(MACHINE), T3E)
   endif
 endif
 
+ifeq ($(MACHINE), CYGWIN_NT)
+  INCLUDE_LOCATIONS += /cygdrive/c/usr/X11R6.4/include
+  LIBRARY_LOCATIONS += /cygdrive/c/usr/X11R6.4/lib
+  CXXFLAGS += -fpermissive
+#  LDFLAGS += -noinhibit-exec
+  LIBRARIES += -lXm -lXt -lSM -lICE -lXpm -lX11
+endif
 
 ############################################### arrayview
 ifeq (USE_ARRAYVIEW, TRUE)

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.H,v 1.30 2000-10-02 20:53:07 lijewski Exp $
+// $Id: AmrPicture.H,v 1.31 2001-02-01 00:48:29 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -137,23 +137,16 @@ class AmrPicture {
   Real			dataMinFile, dataMaxFile;
   Real			minUsing, maxUsing;
   Range			whichRange;
-  int			myView, hLine, vLine;
-  int			hColor, vColor, myColor, slice, sliceDir;
   Array<unsigned long>  dataSize, dataSizeH, dataSizeV;
   unsigned int   	imageSize, imageSizeH, imageSizeV;
   aString		currentDerived;
   bool			showBoxes;
-  int			minDrawnLevel, maxDrawnLevel, maxAllowableLevel;
-  int			maxLevelWithGrids, maxsFound;
   int			hdspoint, vdspoint, dsBoxSize;
   int			datasetPointShowing, datasetPointColor;
   Pixmap 		pixMap;
   char			buffer[BUFSIZ];
-  bool			pixMapCreated, isSubDomain, findSubRange;
   Array< Array<GridPicture> > gpArray;
   Array< Array< Array<GridPicture> > > frameGrids;
-  PltApp	        *pltAppPtr;
-  DataServices		*dataServicesPtr;
   int			regionX, regionY, region2ndX, region2ndY;
   int			subCutShowing;
   int			subcutX, subcutY, subcut2ndX, subcut2ndY;
@@ -163,13 +156,21 @@ class AmrPicture {
   int			frameSpeed;
   AnimDirection		sweepDirection;
   XtIntervalId		pendingTimeOut;
-  GraphicsAttributes	*GAptr;
   Palette		*palPtr;
   Array<FArrayBox *>	sliceFab;
   Array<unsigned char *>  imageData, scaledImageData;
   Array<XImage *>       xImageArray;
   Array<bool >           xImageCreated;
-  bool contours, raster, colContour, vectorField, bCartGridSmoothing;
+  GraphicsAttributes	*GAptr;
+  PltApp	        *pltAppPtr;
+  DataServices		*dataServicesPtr;
+  int			myView, hLine, vLine;
+  int			minDrawnLevel, maxDrawnLevel, maxAllowableLevel;
+  int			maxLevelWithGrids, maxsFound;
+  int			hColor, vColor, myColor, slice, sliceDir;
+  bool                  contours, raster, colContour, vectorField;
+  bool                  bCartGridSmoothing;
+  bool                  pixMapCreated, isSubDomain, findSubRange;
   
   
   // private functions
