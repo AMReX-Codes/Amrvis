@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.48 2003-02-12 23:01:48 vince Exp $
+// $Id: Dataset.cpp,v 1.49 2003-03-05 20:57:26 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -308,7 +308,8 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
     vAxisString = "error";
   }
 
-  const char *fstring = pltAppStatePtr->GetFormatString().c_str();
+  char fstring[BUFSIZ];
+  strcpy(fstring, pltAppStatePtr->GetFormatString().c_str());
   if( ! stringOk) {
     return;
   }
@@ -361,6 +362,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
 			   (void *) &(dataFab[lev]->box()),
                            lev,
 			   (void *) &(pltAppStatePtr->CurrentDerived()));
+
     for(int iBox(0); iBox < amrData.boxArray(lev).size(); ++iBox) {
       temp = amrData.boxArray(lev)[iBox];
       if(datasetRegion[lev].intersects(temp)) {
@@ -373,7 +375,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
         stringCount += dataBox.length(vDIR) * dataBox.length(hDIR);
         myStringCount[lev] +=  dataBox.length(vDIR) * dataBox.length(hDIR);
         for(d = 0; d < dataBox.length(vDIR); ++d) {
-          ddl = d*dataBox.length(hDIR);
+          ddl = d * dataBox.length(hDIR);
           for(c = 0; c < dataBox.length(hDIR); ++c) {
             sprintf(dataString, fstring, dataPoint[c+ddl]);
             largestWidth = max((int) strlen(dataString), largestWidth);
@@ -382,7 +384,6 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
       }
     }
   }
-
   char levelInfo[15], maxInfo[20], minInfo[20], maxInfoV[25], minInfoV[25];
   
   sprintf(levelInfo, "Level: %i", maxDrawnLevel);
