@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.57 2001-10-01 22:12:20 vince Exp $
+// $Id: AmrData.cpp,v 1.58 2001-10-16 19:54:52 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -42,16 +42,11 @@ using std::max;
 
 #endif
 
-//#ifdef BL_USE_NEW_HFILES
 #include <iostream>
 #include <fstream>
 #include <cstdio>
 using std::ios;
 using std::ifstream;
-//#else
-//#include <iostream.h>
-//#include <stdio.h>
-//#endif
 
 #ifdef SHOWVAL
 #undef SHOWVAL
@@ -873,10 +868,6 @@ bool AmrData::ReadNonPlotfileData(const string &filename, FileType filetype) {
         ++currentVisMF;
       }  // end while
 
-
-
-
-
   }  // end if(fileType...)
 
   return true;
@@ -919,8 +910,6 @@ void AmrData::IntVectFromLocation(const int finestFillLevel,
    BL_ASSERT(location.size() == BL_SPACEDIM);
    BL_ASSERT(finestFillLevel <= finestLevel);
 
-   //Box ivbox;
-   //ivLevel = 
    int ffl(finestFillLevel);
 
    for(int i(0); i < BL_SPACEDIM; ++i) {
@@ -1019,7 +1008,7 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
     fillBoxId.resize(destBoxes.size());
     fillBoxIdBAs.resize(destBoxes.size());
     savedFineBox.resize(destBoxes.size());
-    for(int iBox = 0; iBox < destBoxes.size(); ++iBox) {
+    for(int iBox(0); iBox < destBoxes.size(); ++iBox) {
       if(destMultiFab.DistributionMap()[iBox] == myProc) {
 	localMFBoxes.set(iBox, destBoxes[iBox]);
         fillBoxId[iBox].resize(finestFillLevel + 1);
@@ -1032,7 +1021,7 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
     BoxList unfilledBoxesOnThisLevel(boxType);
     BoxList unfillableBoxesOnThisLevel(boxType);
     // Do this for all local fab boxes.
-    for(int ibox = 0; ibox < localMFBoxes.size(); ++ibox) {
+    for(int ibox(0); ibox < localMFBoxes.size(); ++ibox) {
       if(destMultiFab.DistributionMap()[ibox] != myProc) {
 	continue;
       }
@@ -1042,19 +1031,19 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
         unfilledBoxesOnThisLevel.push_back(localMFBoxes[ibox]);
         // Find the boxes that can be filled on each level--these are all
         // defined at their level of refinement.
-        bool needsFilling = true;
+        bool needsFilling(true);
         for(currentLevel = finestFillLevel; currentLevel >= 0 && needsFilling;
             --currentLevel)
         {
             unfillableBoxesOnThisLevel.clear();
             const Box &currentPDomain = probDomain[currentLevel];
 
-	    int ufbLength = unfilledBoxesOnThisLevel.size();
+	    int ufbLength(unfilledBoxesOnThisLevel.size());
             fillBoxId[ibox][currentLevel].resize(ufbLength);
             fillBoxIdBAs[ibox][currentLevel].resize(ufbLength);
             savedFineBox[ibox][currentLevel].resize(ufbLength);
 
-            int currentBLI = 0;
+            int currentBLI(0);
             for(BoxList::iterator bli = unfilledBoxesOnThisLevel.begin();
 	        bli != unfilledBoxesOnThisLevel.end(); ++bli)
 	    {
@@ -1127,10 +1116,8 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
       if(destMultiFab.DistributionMap()[currentIndex] != myProc) {
 	continue;
       }
-      for(int currentLevel = 0; currentLevel <= finestFillLevel; ++currentLevel) {
-        //const Box &currentPDomain = probDomain[currentLevel];
-
-        for(int currentBox = 0;
+      for(int currentLevel(0); currentLevel <= finestFillLevel; ++currentLevel) {
+        for(int currentBox(0);
             currentBox < fillBoxId[currentIndex][currentLevel].size();
             ++currentBox)
         {
@@ -1154,43 +1141,39 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
 
             if(intersectDestBox.ok()) {
               if(currentLevel != finestFillLevel) {
-                    fboxes.refine(cumulativeRefRatios[currentLevel]);
-                    // Interpolate up to fine patch.
-                    tempCurrentFillPatchedFab.resize(intersectDestBox, nFillComps);
-                    tempCurrentFillPatchedFab.setVal(1.e30);
-		    BL_ASSERT(intersectDestBox.ok());
-		    BL_ASSERT( tempCoarseDestFab.box().ok());
-		    PcInterp(tempCurrentFillPatchedFab,
-			     tempCoarseDestFab,
-			     intersectDestBox,
-			     cumulativeRefRatios[currentLevel]);
-                    copyFromThisFab = &tempCurrentFillPatchedFab;
-                    copyFromTheseBoxes = &fboxes;
+                fboxes.refine(cumulativeRefRatios[currentLevel]);
+                // Interpolate up to fine patch.
+                tempCurrentFillPatchedFab.resize(intersectDestBox, nFillComps);
+                tempCurrentFillPatchedFab.setVal(1.e30);
+		BL_ASSERT(intersectDestBox.ok());
+		BL_ASSERT( tempCoarseDestFab.box().ok());
+		PcInterp(tempCurrentFillPatchedFab,
+			 tempCoarseDestFab, intersectDestBox,
+			 cumulativeRefRatios[currentLevel]);
+                copyFromThisFab = &tempCurrentFillPatchedFab;
+                copyFromTheseBoxes = &fboxes;
               } else {
-                    copyFromThisFab = &tempCoarseDestFab;
-                    copyFromTheseBoxes = &filledBoxes;
+                copyFromThisFab = &tempCoarseDestFab;
+                copyFromTheseBoxes = &filledBoxes;
               }
               for(int iFillBox(0); iFillBox < copyFromTheseBoxes->size();
                   ++iFillBox)
               {
-                    Box srcdestBox((*copyFromTheseBoxes)[iFillBox]);
-                    srcdestBox &= destMultiFab[currentIndex].box();
-                    srcdestBox &= intersectDestBox;
-                    if(srcdestBox.ok()) {
-                      destMultiFab[currentIndex].copy(*copyFromThisFab,
-                                                      srcdestBox, 0, srcdestBox,
-                                                      destComp, nFillComps);
-                    }
+                Box srcdestBox((*copyFromTheseBoxes)[iFillBox]);
+                srcdestBox &= destMultiFab[currentIndex].box();
+                srcdestBox &= intersectDestBox;
+                if(srcdestBox.ok()) {
+                  destMultiFab[currentIndex].copy(*copyFromThisFab,
+                                                  srcdestBox, 0, srcdestBox,
+                                                  destComp, nFillComps);
+                }
               }
             }
         }
       }  // end for(currentLevel...)
     }  // end for(currentIndex...)
 
-
   }  // end for(currentFillIndex...)
-
-
 }
 
 
@@ -1206,7 +1189,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
 //
 
    BL_ASSERT(finestFillLevel >= 0 && finestFillLevel <= finestLevel);
-   for(int iIndex = 0; iIndex < destBoxes.size(); ++iIndex) {
+   for(int iIndex(0); iIndex < destBoxes.size(); ++iIndex) {
      BL_ASSERT(probDomain[finestFillLevel].contains(destBoxes[iIndex]));
    }
 
@@ -1284,7 +1267,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
             fillBoxIdBAs[ibox][currentLevel].resize(ufbLength);
             savedFineBox[ibox][currentLevel].resize(ufbLength);
 
-            int currentBLI = 0;
+            int currentBLI(0);
             for(BoxList::iterator bli = unfilledBoxesOnThisLevel.begin();
 	        bli != unfilledBoxesOnThisLevel.end(); ++bli)
 	    {
@@ -1355,12 +1338,10 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
 
     for(int currentIndex = 0; currentIndex < destBoxes.size(); ++currentIndex) {
       for(int currentLevel = 0; currentLevel <= finestFillLevel; ++currentLevel) {
-        //const Box &currentPDomain = probDomain[currentLevel];
-
 	if(myproc != procWithFabs) {
 	  break;
 	}
-        for(int currentBox = 0;
+        for(int currentBox(0);
             currentBox < fillBoxId[currentIndex][currentLevel].size();
             ++currentBox)
         {
@@ -1434,6 +1415,7 @@ int AmrData::NumDeriveFunc() const {
 // ---------------------------------------------------------------
 // return true if the given name is the name of a plot variable
 // that can be derived from what is known.
+// ---------------------------------------------------------------
 bool AmrData::CanDerive(const string &name) const {
    for(int i(0); i < plotVars.size(); ++i) {
      if(plotVars[i] == name) {
@@ -1446,6 +1428,7 @@ bool AmrData::CanDerive(const string &name) const {
 
 // ---------------------------------------------------------------
 // output the list of variables that can be derived
+// ---------------------------------------------------------------
 void AmrData::ListDeriveFunc(ostream &os) const {
    for(int i(0); i < plotVars.size(); ++i) {
      os << plotVars[i] << endl;
@@ -1503,12 +1486,14 @@ int AmrData::FinestIntersectingLevel(const Box &b, int startLevel) const {
     return 0;
   } else {
     Box levelBox(b);
-    for(int level = startLevel; level > 0; --level) {
+    for(int level(startLevel); level > 0; --level) {
       const BoxArray &visMFBA = visMF[level][0]->boxArray();
 
-      for (int box = 0; box < visMFBA.size(); box++)
-        if(visMFBA[box].intersects(levelBox)) {
-          return level;}
+      for(int iBox(0); iBox < visMFBA.size(); ++iBox) {
+        if(visMFBA[iBox].intersects(levelBox)) {
+          return level;
+	}
+      }
 
       levelBox.coarsen(refRatio[level - 1]);
     }
@@ -1519,13 +1504,9 @@ int AmrData::FinestIntersectingLevel(const Box &b, int startLevel) const {
 
 // ---------------------------------------------------------------
 MultiFab &AmrData::GetGrids(int level, int componentIndex) {
-
-  for(MFIter mfi(*dataGrids[level][componentIndex]);
-      mfi.isValid(); ++mfi)
-  {
+  for(MFIter mfi(*dataGrids[level][componentIndex]); mfi.isValid(); ++mfi) {
     DefineFab(level, componentIndex, mfi.index());
   }
-
   return *dataGrids[level][componentIndex];
 }
 
@@ -1584,25 +1565,21 @@ bool AmrData::MinMax(const Box &onBox, const string &derived, int level,
   BL_ASSERT(onBox.ok());
 
   bool valid(false);  // does onBox intersect any grids (are minmax valid)
-  //FArrayBox *fabPtr;
   Real minVal, maxVal;
   dataMin =  AV_BIG_REAL;
   dataMax = -AV_BIG_REAL;
   Box overlap;
 
-  //
   //  our strategy here is to use the VisMF min and maxes if possible
   //  first, test if onBox completely contains each multifab box
   //  if so, use VisMF min and max
   //  if not, test if VisMF min and max are within dataMin and dataMax
   //  if so, use VisMF min and max
-  //
 
   int compIndex(StateNumber(derived));
 
   if(fileType == FAB || (fileType == MULTIFAB && level == 0)) {
-    for(MFIter gpli(*dataGrids[level][compIndex]);
-	gpli.isValid(); ++gpli)
+    for(MFIter gpli(*dataGrids[level][compIndex]); gpli.isValid(); ++gpli)
     {
       if(onBox.intersects(dataGrids[level][compIndex]->boxArray()[gpli.index()])) {
           valid = true;
@@ -1618,11 +1595,8 @@ bool AmrData::MinMax(const Box &onBox, const string &derived, int level,
       }
     }
   } else if(bCartGrid && (compIndex != StateNumber("vol_frac"))) {
-    for(MFIter gpli(*dataGrids[level][compIndex]);
-	gpli.isValid(); ++gpli)
+    for(MFIter gpli(*dataGrids[level][compIndex]); gpli.isValid(); ++gpli)
     {
-      //DependentMultiFabIterator vfdmfi(gpli,
-				    //*dataGrids[level][StateNumber("vol_frac")]);
       int whichVisMF(compIndexToVisMFMap[compIndex]);
       int whichVisMFComponent(compIndexToVisMFComponentMap[compIndex]);
       Real visMFMin(visMF[level][whichVisMF]->min(gpli.index(),
@@ -1650,8 +1624,7 @@ bool AmrData::MinMax(const Box &onBox, const string &derived, int level,
       }
     }
   } else {
-    for(MFIter gpli(*dataGrids[level][compIndex]);
-	gpli.isValid(); ++gpli)
+    for(MFIter gpli(*dataGrids[level][compIndex]); gpli.isValid(); ++gpli)
     {
       int whichVisMF(compIndexToVisMFMap[compIndex]);
       int whichVisMFComponent(compIndexToVisMFComponentMap[compIndex]);
@@ -1826,7 +1799,7 @@ FArrayBox *AmrData::ReadGrid(istream &is, int numVar) {
      }
    }
    while (is.get() != '\n') {
-     ;
+     ;  // do nothing
    }
 
    FArrayBox *fabPtr = new FArrayBox(gbox, numVar);
