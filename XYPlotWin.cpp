@@ -351,7 +351,7 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
   XtPopup(wXYPlotTopLevel, XtGrabNone);
   pWindow = XtWindow(wPlotWin);
   SetPalette();
-  cout << "_here 400" << endl;
+  //cout << "_here 400" << endl;
   gaPtr = new GraphicsAttributes(wXYPlotTopLevel);
   disp = gaPtr->PDisplay();
   vis  = gaPtr->PVisual();
@@ -756,6 +756,7 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
   new_item->pixel = AllAttrs[j].pixelValue;
 
   // Append this new list to our data set list.
+  cout << "+++++++++++++++++++++++++++++++ numItems = " << numItems << endl;
   new_item->frame =
     XtVaCreateManagedWidget("frame", xmFrameWidgetClass,
 			    wLegendButtons,
@@ -763,7 +764,9 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
 			    XmNhighlightPixmap,   NULL,
 			    XmNtopShadowColor,    foregroundPix,
 			    XmNbottomShadowColor, foregroundPix,
-			    XmNtopAttachment,     XmATTACH_WIDGET,
+			    //XmNtopAttachment,     XmATTACH_WIDGET,
+			    //XmNtopAttachment,     ((numItems == 1) ?
+			                          //XmATTACH_FORM : XmATTACH_WIDGET),
 			    XmNtopOffset,         0,
 			    NULL);
 
@@ -845,10 +848,16 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
     new_item->next = NULL;
     if((new_item->prev = legendTail) != NULL) {
       legendTail = legendTail->next = new_item;
-      XtVaSetValues(new_item->frame, XmNtopWidget, new_item->prev->frame, NULL);
+      XtVaSetValues(new_item->frame,
+		    XmNtopAttachment, XmATTACH_WIDGET,
+                    XmNtopWidget, new_item->prev->frame,
+                    NULL);
     } else {
       legendTail = legendHead = new_item;
-      XtVaSetValues(new_item->frame, XmNtopWidget, wLegendMenu, NULL);
+      XtVaSetValues(new_item->frame,
+		    XmNtopAttachment, XmATTACH_WIDGET,
+                    XmNtopWidget, wLegendMenu,
+		    NULL);
     }
   } else {
     new_item->drawQ = insert_after->drawQ;
@@ -862,11 +871,17 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
     }
 
     new_item->prev = insert_after;
-    XtVaSetValues(new_item->frame, XmNtopWidget, insert_after->frame, NULL);
+    XtVaSetValues(new_item->frame,
+		  XmNtopAttachment, XmATTACH_WIDGET,
+                  XmNtopWidget, insert_after->frame,
+		  NULL);
 
     if((new_item->next = insert_after->next) != NULL) {
       new_item->next->prev = new_item;
-      XtVaSetValues(new_item->next->frame, XmNtopWidget, new_item->frame, NULL);
+      XtVaSetValues(new_item->next->frame,
+		    XmNtopAttachment, XmATTACH_WIDGET,
+                    XmNtopWidget, new_item->frame,
+		    NULL);
     } else {
       legendTail = new_item;
     }
