@@ -1927,10 +1927,16 @@ void XYPlotWin::CBdoRemoveDataList(Widget, XtPointer client_data,
   if((ptr = item->next) != NULL) {
     if((ptr->prev = item->prev) != NULL) {
       item->prev->next = ptr;
-      XtVaSetValues(ptr->frame, XmNtopWidget, item->prev->frame, NULL);
+      XtVaSetValues(ptr->frame,
+		    XmNtopAttachment,   XmATTACH_WIDGET,
+                    XmNtopWidget, item->prev->frame,
+		    NULL);
     } else {
       legendHead = ptr;
-      XtVaSetValues(ptr->frame, XmNtopWidget, wLegendMenu, NULL);
+      XtVaSetValues(ptr->frame,
+		    XmNtopAttachment,   XmATTACH_WIDGET,
+                    XmNtopWidget, wLegendMenu,
+		    NULL);
     }
     if(item->XYPLIlist->copied_from == NULL && ptr->XYPLIlist->copied_from == item->XYPLIlist) {
       ptr->XYPLIlist->copied_from = NULL;
