@@ -8,20 +8,20 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-XColor   Palette::sysccells[COLORSLOTS];
 Colormap Palette::systemColmap;
 
 
 // -------------------------------------------------------------------
-Palette::Palette(Widget &w) {
-  cerr << "Bad Palette constructor" << endl;
-  exit(-1);
-}
-
-// -------------------------------------------------------------------
-Palette::Palette(Widget &w,  int datalistlength, int width, int
-		 height, int totalwidth, int totalheight, int reservesystemcolors)
+Palette::Palette(Widget &w,  int datalistlength, int width,
+		 int totalwidth, int totalheight, int reservesystemcolors)
 {
+  totalColorSlots = MaxPaletteIndex() + 1;
+  //cout << endl;
+  //cout << "************** totalColorSlots = " << totalColorSlots << endl;
+  //cout << endl;
+  sysccells.resize(totalColorSlots);
+  transY.resize(totalColorSlots);
+  ccells.resize(totalColorSlots);
   palPixmap = NULL;
   pmin = 0.0;
   pmax = 1.0;
@@ -39,33 +39,30 @@ Palette::Palette(Widget &w,  int datalistlength, int width, int
 
   totalPalWidth = totalwidth;
   palWidth  = width;
-  palHeight = height;
   totalPalHeight = totalheight;
-  dataListLength = datalistlength;
-  dataList = new Real[dataListLength];
+  dataList.resize(datalistlength);
   colmap = XCreateColormap(display, root, visual, AllocAll);
 
   transSet = false;
 
   systemColmap = DefaultColormap(display, screenNumber);
-  for(int ii=0; ii<COLORSLOTS; ii++) {
+  for(int ii = 0; ii < totalColorSlots; ++ii) {
     sysccells[ii].pixel = ii;
   }
-  XQueryColors(display, systemColmap, sysccells, COLORSLOTS);
+  XQueryColors(display, systemColmap, sysccells.dataPtr(), totalColorSlots);
   reserveSystemColors = reservesystemcolors;
   colorOffset = reserveSystemColors;  // start our allocated palette here
 
-  colorSlots   = COLORSLOTS - reserveSystemColors - 2;
-  blackIndex   = colorOffset+1;
+  colorSlots   = totalColorSlots - reserveSystemColors - 2;
+  blackIndex   = colorOffset + 1;
   whiteIndex   = colorOffset;
   paletteStart = colorOffset + 2;  // skip 2 for black and white
 				   // the data colors start here
 
-  remapTable = new unsigned char[COLORSLOTS];  // this is faster than Array<uc>
-  int itab;
-  float sizeRatio = ((float) colorSlots) / ((float) COLORSLOTS);
-  float mapLow = ((float) paletteStart) + 0.5;
-  for(itab = 0; itab < COLORSLOTS; itab++) {
+  remapTable = new unsigned char[totalColorSlots];  // this is faster than Array<uc>
+  float sizeRatio(((float) colorSlots) / ((float) totalColorSlots));
+  float mapLow(((float) paletteStart) + 0.5);
+  for(int itab = 0; itab < totalColorSlots; ++itab) {
     remapTable[itab] = (int) ((((float) itab) * sizeRatio) + mapLow);
   }
 }  // end constructor
@@ -73,7 +70,7 @@ Palette::Palette(Widget &w,  int datalistlength, int width, int
 
 // -------------------------------------------------------------------
 Palette::~Palette() {
-  delete [] dataList;
+  delete [] remapTable;
   // XFreeColormap(...);
 }
 
@@ -127,8 +124,8 @@ void Palette::Draw(Real palMin, Real palMax, const aString &numberFormat) {
 
   if(transSet) {    // show transfers in palette
     int transpnt, zerolinex = palWidth - 5;
-    for(i = paletteStart; i < COLORSLOTS; i++) {
-      cy = ((COLORSLOTS - 1) - i) + 14;
+    for(i = paletteStart; i < totalColorSlots; i++) {
+      cy = ((totalColorSlots - 1) - i) + 14;
       // draw transparency as black
       XSetForeground(display, gc, ccells[blackIndex].pixel);
       transpnt = (int) (zerolinex*(1.0-transY[i]));
@@ -144,24 +141,24 @@ void Palette::Draw(Real palMin, Real palMax, const aString &numberFormat) {
     XDrawLine(display, palPixmap, gc, zerolinex, 14, zerolinex, colorSlots + 14);
 
   } else {
-    for(i = paletteStart; i < COLORSLOTS; i++) {
+    for(i = paletteStart; i < totalColorSlots; i++) {
       XSetForeground(display, gc, ccells[i].pixel);
-      cy = ((COLORSLOTS - 1) - i) + 14;
+      cy = ((totalColorSlots - 1) - i) + 14;
       XDrawLine(display, palPixmap, gc, 0, cy, palWidth, cy);
     }
   }
 
   char palString[64];
-  for(i = 0; i < dataListLength; i++) {
+  for(i = 0; i < dataList.length(); ++i) {
     XSetForeground(display, gc, whiteIndex);
-    dataList[i] = palMin + (dataListLength-1-i) *
-			   (palMax - palMin)/(dataListLength - 1);
+    dataList[i] = palMin + (dataList.length()-1-i) *
+			   (palMax - palMin)/(dataList.length() - 1);
     if(i == 0) {
       dataList[i] = palMax;  // to avoid roundoff
     }
     sprintf(palString, numberFormat.c_str(), dataList[i]);
     XDrawString(display, palPixmap, gc, palWidth + 4,
-		(i * colorSlots / (dataListLength - 1)) + 20,
+		(i * colorSlots / (dataList.length() - 1)) + 20,
 		palString, strlen(palString));
   }
   ExposePalette();
@@ -169,26 +166,25 @@ void Palette::Draw(Real palMin, Real palMax, const aString &numberFormat) {
 
 
 // -------------------------------------------------------------------
-void Palette::SetTransfers(int ntranspts, int *transx, float *transy) {
+void Palette::SetTransfers(const Array<int> &transx, const Array<float> &transy) {
   // interpolate between points
+  assert(transx.length() == transy.length());
+  int ntranspts(transx.length());
   int n, ntrans, leftx, rightx;
   float lefty, righty, m, x;
   transSet = true;
   ntrans = 0;  // where we are in transx
 
-  if(transx[0] != 0) {
-    //exit(-5);
-  }
+  assert(transx[0] == 0);
 
-  for(n=0; n < COLORSLOTS; n++) {
+  for(n=0; n < totalColorSlots; n++) {
 
     if((ntrans+1) > ntranspts) {
-	cout << (ntrans+1) << " > " << ntranspts << endl;
-      //exit(-5);
+	cerr << (ntrans+1) << " > " << ntranspts << endl;
     }
 
     if(transx[ntrans] == n) {
-      if(n != (COLORSLOTS - 1)) {
+      if(n != (totalColorSlots - 1)) {
         leftx = transx[ntrans];
         lefty = transy[ntrans];
         rightx = transx[ntrans+1];
@@ -215,8 +211,8 @@ void Palette::SetWindow(Window drawPaletteHere) {
 // -------------------------------------------------------------------
 void Palette::SetWindowPalette(const aString &palName, Window newPalWindow) {
   ReadSeqPalette(palName);
-  XStoreColors(display, colmap, ccells, COLORSLOTS);
-  XStoreColors(display, colmap, sysccells, reserveSystemColors);
+  XStoreColors(display, colmap, ccells.dataPtr(), totalColorSlots);
+  XStoreColors(display, colmap, sysccells.dataPtr(), reserveSystemColors);
   XSetWindowColormap(display, newPalWindow, colmap);
 }
 
@@ -224,21 +220,22 @@ void Palette::SetWindowPalette(const aString &palName, Window newPalWindow) {
 // -------------------------------------------------------------------
 void Palette::ChangeWindowPalette(const aString &palName, Window newPalWindow) {
   ReadSeqPalette(palName);
-  XStoreColors(display, colmap, ccells, COLORSLOTS);
-  XStoreColors(display, colmap, sysccells, reserveSystemColors);
+  XStoreColors(display, colmap, ccells.dataPtr(), totalColorSlots);
+  XStoreColors(display, colmap, sysccells.dataPtr(), reserveSystemColors);
 }
 
 
 // -------------------------------------------------------------------
 int Palette::ReadSeqPalette(const aString &fileName) {
-  unsigned char	rbuff[COLORSLOTS];
-  unsigned char	gbuff[COLORSLOTS];
-  unsigned char	bbuff[COLORSLOTS];
+  int iSeqPalSize(256);  // this must be 256 (size of sequential palettes).
+  Array<unsigned char> rbuff(iSeqPalSize);
+  Array<unsigned char> gbuff(iSeqPalSize);
+  Array<unsigned char> bbuff(iSeqPalSize);
   int	i, fd;		/* file descriptor */
 
   if((fd = open(fileName.c_str(), O_RDONLY, NULL)) < 0) {
     cout << "Can't open colormap file:  " << fileName << endl;
-    for(i = 0; i < COLORSLOTS; i++) {    // make a default grayscale colormap.
+    for(i = 0; i < totalColorSlots; i++) {    // make a default grayscale colormap.
       ccells[i].pixel = i;
       ccells[i].red   = (unsigned short) i*256;
       ccells[i].green = (unsigned short) i*256;
@@ -260,15 +257,15 @@ int Palette::ReadSeqPalette(const aString &fileName) {
     return(1);
   }
 
-  if(read(fd, rbuff, COLORSLOTS) != COLORSLOTS) {
+  if(read(fd, rbuff.dataPtr(), iSeqPalSize) != iSeqPalSize) {
     cout << "palette is not a seq colormap." << endl;
     return(NULL);
   }
-  if(read(fd, gbuff, COLORSLOTS) != COLORSLOTS) {
+  if(read(fd, gbuff.dataPtr(), iSeqPalSize) != iSeqPalSize) {
     cout << "file is not a seq colormap." << endl;
     return(NULL);
   }
-  if(read(fd, bbuff, COLORSLOTS) != COLORSLOTS) {
+  if(read(fd, bbuff.dataPtr(), iSeqPalSize) != iSeqPalSize) {
     cout << "palette is not a seq colormap." << endl;
     return(NULL);
   }
@@ -283,7 +280,7 @@ int Palette::ReadSeqPalette(const aString &fileName) {
     bbuff[paletteStart] = 0;
   }
 
-  for(i = 0; i < COLORSLOTS; i++) {
+  for(i = 0; i < totalColorSlots; ++i) {
     ccells[i].pixel = i;
     ccells[i].red   = (unsigned short) rbuff[i] * 256;
     ccells[i].green = (unsigned short) gbuff[i] * 256;
@@ -303,10 +300,3 @@ XImage *Palette::GetPictureXImage() {
 
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
-
-
-
-
-
-
-

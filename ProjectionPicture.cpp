@@ -560,14 +560,12 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
 void ProjectionPicture::ReadTransferFile(const aString &rampFileName) {
 #ifdef BL_VOLUMERENDER
   volRender->ReadTransferFile(rampFileName);
-  pltAppPtr->GetPalettePtr()->SetTransfers(volRender->NDenRampPts(),
-					   volRender->DensityRampX(),
+  pltAppPtr->GetPalettePtr()->SetTransfers(volRender->DensityRampX(),
 					   volRender->DensityRampY());
 #endif
 #ifdef BL_PARALLELVOLUMERENDER
   volRender->ReadTransferFile(rampFileName);
-  pltAppPtr->GetPalettePtr()->SetTransfers(volRender->NDenRampPts(),
-					   volRender->DensityRampX(),
+  pltAppPtr->GetPalettePtr()->SetTransfers(volRender->DensityRampX(),
 					   volRender->DensityRampY());
 #endif
 }  // end ReadTransferFile

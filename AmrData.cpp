@@ -25,26 +25,26 @@
 #ifdef CRAY
 #     if (BL_SPACEDIM == 2)
 #	   define   FORT_CNTRP     CNTRP2D
-#	   define   FORT_PCNTRP    PCNTRP2D
+#	   define   FORT_PCINTRP    PCINTRP2D
 
 #     elif (BL_SPACEDIM == 3)
-#	   define   FORT_CNTRP     CNTRP3D
-#	   define   FORT_PCNTRP    PCNTRP3D
+#	   define   FORT_CINTRP     CINTRP3D
+#	   define   FORT_PCINTRP    PCINTRP3D
 #     endif
 #else
 #     if (BL_SPACEDIM == 2)
-#	   define   FORT_CNTRP     cntrp2d_
-#	   define   FORT_PCNTRP    pcntrp2d_
+#	   define   FORT_CINTRP     cintrp2d_
+#	   define   FORT_PCINTRP    pcintrp2d_
 
 #     elif (BL_SPACEDIM == 3)
-#	   define   FORT_CNTRP     cntrp3d_
-#	   define   FORT_PCNTRP    pcntrp3d_
+#	   define   FORT_CINTRP     cintrp3d_
+#	   define   FORT_PCINTRP    pcintrp3d_
 #     endif
 #endif
 
 
 extern "C" {
-  void FORT_CNTRP(Real *fine, ARLIM_P(flo), ARLIM_P(fhi),
+  void FORT_CINTRP(Real *fine, ARLIM_P(flo), ARLIM_P(fhi),
                   const int *fblo, const int *fbhi,
                   const int &nvar, const int &lratio,
 		  const Real *crse, const int &clo, const int &chi,
@@ -54,7 +54,7 @@ extern "C" {
 		  Real *fslope, Real *fdat, const int &f_len,
 		  Real *foff);
 
-  void FORT_PCNTRP(Real *fine, ARLIM_P(flo), ARLIM_P(fhi),
+  void FORT_PCINTRP(Real *fine, ARLIM_P(flo), ARLIM_P(fhi),
                    const int *fblo, const int *fbhi,
 		   const int &lrat, const int &nvar,
 		   const Real *crse, ARLIM_P(clo), ARLIM_P(chi),
@@ -806,8 +806,8 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
 
     Array<Box> localMFBoxes;      // These are the ones we want to fillpatch.
     Array< Array< Array< Array<FillBoxId> > > > fillBoxId;
-			   // [grid][level][fillablesubbox][oldnew]
-			   // oldnew not used here
+			          // [grid][level][fillablesubbox][oldnew]
+			          // oldnew not used here
     Array< Array< Array<Box> > > savedFineBox;  // [grid][level][fillablesubbox]
     if(myproc == procWithFabs) {
       localMFBoxes = destBoxes;
@@ -940,6 +940,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
                     fboxes.refine(cumulativeRefRatios[currentLevel]);
                     // Interpolate up to fine patch.
                     tempCurrentFillPatchedFab.resize(intersectDestBox, numComps);
+                    tempCurrentFillPatchedFab.setVal(1.e30);
 		    PcInterp(tempCurrentFillPatchedFab,
 			     tempCoarseDestFab,
 			     intersectDestBox,
@@ -1394,10 +1395,10 @@ void AmrData::Interp(FArrayBox &fine, FArrayBox &crse,
    const int *fslo = fslope_bx.loVect();
    const int *fshi = fslope_bx.hiVect();
 
-   FORT_CNTRP(fine.dataPtr(0),ARLIM(fine.loVect()),ARLIM(fine.hiVect()),
-              fblo,fbhi,fine.nComp(),lrat,
-              crse.dataPtr(0),clo,chi,cblo,cbhi,fslo,fshi,
-              cslope,cLen,fslope,fdat,fLen,foff);
+   FORT_CINTRP(fine.dataPtr(0),ARLIM(fine.loVect()),ARLIM(fine.hiVect()),
+               fblo,fbhi,fine.nComp(),lrat,
+               crse.dataPtr(0),clo,chi,cblo,cbhi,fslo,fshi,
+               cslope,cLen,fslope,fdat,fLen,foff);
 
    delete [] fdat;
    delete [] cslope;
@@ -1426,10 +1427,10 @@ void AmrData::PcInterp(FArrayBox &fine, const FArrayBox &crse,
       int tlo = fine_temp.smallEnd()[0];
       int thi = fine_temp.bigEnd()[0];
       Real *tempSpace = new Real[thi-tlo+1];
-      FORT_PCNTRP(fine.dataPtr(0),ARLIM(fine.loVect()),ARLIM(fine.hiVect()),
-                  fblo,fbhi, lrat,fine.nComp(),
-                  crse.dataPtr(),ARLIM(crse.loVect()),ARLIM(crse.hiVect()),
-                  cblo,cbhi, tempSpace,tlo,thi);
+      FORT_PCINTRP(fine.dataPtr(0),ARLIM(fine.loVect()),ARLIM(fine.hiVect()),
+                   fblo,fbhi, lrat,fine.nComp(),
+                   crse.dataPtr(),ARLIM(crse.loVect()),ARLIM(crse.hiVect()),
+                   cblo,cbhi, tempSpace,tlo,thi);
 
       delete [] tempSpace;
    }

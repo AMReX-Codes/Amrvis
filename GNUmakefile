@@ -4,13 +4,13 @@ PROFILE   = TRUE
 PROFILE   = FALSE
 
 COMP      = KCC
-DEBUG     = TRUE
 DEBUG     = FALSE
+DEBUG     = TRUE
 DIM       = 2
 DIM       = 3
 
-USE_ARRAYVIEW = TRUE
 USE_ARRAYVIEW = FALSE
+USE_ARRAYVIEW = TRUE
 
 USE_BSP=FALSE
 USE_BSP=TRUE
@@ -169,6 +169,8 @@ FDEBF += -C -fpe2
 FOPTF  = -fast -O5 -tune ev5
 endif
 endif
+
+FDEBF += -C -fpe0
 
 ############################################### 3rd analyzer
 #CXXDEBF = +K0 --link_command_prefix 3rd

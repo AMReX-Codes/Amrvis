@@ -25,7 +25,7 @@ void cvtimage(long *buffer);
 // -------------------------------------------------------------------
 void WritePSFile(char *filename, XImage *image,
 		 int imagesizehoriz, int imagesizevert,
-		 XColor *colorcells, int colorcellsize)
+		 const Array<XColor> &colorcells)
 {
   int i, j, index;
   XColor color;
@@ -72,9 +72,9 @@ void WritePSFile(char *filename, XImage *image,
 // -------------------------------------------------------------------
 void WritePSPaletteFile(char *filename, XImage *image,
                         int imagesizehoriz, int imagesizevert,
-                        XColor *colorcells, int colorcellsize, 
-                        Real *palValueList, const aString &palNumFormat,
-                        int palDataLength)
+                        const Array<XColor> &colorcells,
+                        const Array<Real> &palValueList,
+			const aString &palNumFormat)
 {
     int i, j, index;
     XColor color;
@@ -95,8 +95,8 @@ void WritePSPaletteFile(char *filename, XImage *image,
     
     fout << hex;
     char buf[256];
-    for(j = 0; j < imagesizevert; j++) {
-        for(i = 0; i < imagesizehoriz; i++) {
+    for(j = 0; j < imagesizevert; ++j) {
+        for(i = 0; i < imagesizehoriz; ++i) {
             index = (int) XGetPixel(image, i, j);
             color = colorcells[index];
             if(i % 10 == 0) {
@@ -112,25 +112,25 @@ void WritePSPaletteFile(char *filename, XImage *image,
             fout << buf;
         }
     }
-    fout<<dec;
-    fout << "grestore" << '\n';
-    fout<<"0 setgray"<<'\n';
-    fout<<"30 0"<<'\n';
-    fout<<"120 280"<<'\n';
-    fout<<"rectfill"<<'\n';
-    int paletteHeight = 216;
-    int topOfPalette = 256;
-    double pSpacing = (double)paletteHeight/(double)(palDataLength-1);
-    int palSpacing = ceil(pSpacing)+1;
-//( (pSpacing-floor(pSpacing)) >= .5 ? ceil(pSpacing) : floor(pSpacing));
-    fout<<"/Palatino-Roman findfont"<<'\n'<<"20 scalefont"
-        <<'\n'<<"setfont\n1 setgray"<<'\n';
-    for (int j = 0; j<palDataLength ; j++) {
-        fout<<"40 "<<topOfPalette - ( j * palSpacing)<<" moveto"<<'\n';
-        fout<<"(";
+    fout << dec;
+    fout << "grestore"  << '\n';
+    fout << "0 setgray" << '\n';
+    fout << "30 0"      << '\n';
+    fout << "120 280"   << '\n';
+    fout << "rectfill"  << '\n';
+    int paletteHeight(216);
+    int topOfPalette(256);
+    double pSpacing((double) paletteHeight / (double) (palValueList.length() - 1));
+    int palSpacing(ceil(pSpacing) + 1);
+//( (pSpacing-floor(pSpacing)) >= 0.5 ? ceil(pSpacing) : floor(pSpacing));
+    fout << "/Palatino-Roman findfont" << '\n' << "20 scalefont"
+        << '\n' << "setfont\n1 setgray" << '\n';
+    for (int j = 0; j < palValueList.length() ; ++j) {
+        fout << "40 " << topOfPalette - ( j * palSpacing) << " moveto" << '\n';
+        fout << "(";
         char dummyString[50];//should be big enough
         sprintf(dummyString, palNumFormat.c_str(), palValueList[j]);
-        fout<<dummyString<<") show"<<'\n';
+        fout << dummyString << ") show" << '\n';
     }
 
     fout << "showpage" << '\n';
@@ -141,7 +141,7 @@ void WritePSPaletteFile(char *filename, XImage *image,
 // -------------------------------------------------------------------
 void WriteRGBFile(char *filename, XImage *ximage,
 		   int imagesizehoriz, int imagesizevert,
-		   XColor *colorcells, int colorcellsize)
+		   const Array<XColor> &colorcells)
 {
   unsigned short rbuf[8192];
   unsigned short gbuf[8192];

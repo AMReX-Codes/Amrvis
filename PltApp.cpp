@@ -228,13 +228,13 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 
   GAptr = new GraphicsAttributes(wAmrVisTopLevel);
 
-  if (GAptr->PVisual() 
-      != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber())) {
+  if(GAptr->PVisual() != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber()))
+  {
       XtVaSetValues(wAmrVisTopLevel, XmNvisual, GAptr->PVisual(),
                     XmNdepth, 8, NULL);
   }
-  int np;
-  for(np = 0; np < NPLANES; np++) {
+//cout << "------ _in PltApp(subregion):  region = " << region << endl;
+  for(int np = 0; np < NPLANES; np++) {
     amrPicturePtrArray[np] = new AmrPicture(np, minAllowableLevel, 
                                             GAptr, region,
 					    parentPtr, pltParent,
@@ -1187,13 +1187,12 @@ void PltApp::PltAppInit() {
   XtManageChild(wPalArea);
   XtManageChild(wPlotArea);
   XtPopup(wAmrVisTopLevel, XtGrabNone);
-//  XSync(XtDisplay(wTopLevel), false);
+
   int palListLength = PALLISTLENGTH;
   int palWidth = PALWIDTH;
-  int palHeight = PALHEIGHT;
   int totalPalWidth = TOTALPALWIDTH;
   int totalPalHeight = TOTALPALHEIGHT;
-  pltPaletteptr = new Palette(wTopLevel, palListLength, palWidth, palHeight,
+  pltPaletteptr = new Palette(wTopLevel, palListLength, palWidth,
 			      totalPalWidth, totalPalHeight, 
 			      reserveSystemColors);
 
@@ -1579,7 +1578,7 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
     subregionBox.coarsen(CRRBetweenLevels(newMinAllowableLevel,
 			 maxAllowableLevel, amrData.RefRatio()));
 
-    Box subregionBoxMAL = subregionBox;
+    Box subregionBoxMAL(subregionBox);
 
     // refine to the finestLevel
     subregionBox.refine(CRRBetweenLevels(newMinAllowableLevel, finestLevel,
@@ -1590,13 +1589,19 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
     subregionBoxMAL.refine(CRRBetweenLevels(newMinAllowableLevel,
 			   maxAllowableLevel, amrData.RefRatio()));
 
-    IntVect ivOffset = subregionBoxMAL.smallEnd();
+    IntVect ivOffset(subregionBoxMAL.smallEnd());
 
     // get the old slices and check if they will be within the new subregion.
     // if not -- choose the limit
 
     // then pass the slices to the subregion constructor below...
 
+//cout << "++++++++ _in  PltApp::DoSubregion:  about to SubregionPltApp." << endl;
+//cout << "         subregionBox         = " << subregionBox << endl;
+//cout << "         subregionBoxMAL      = " << subregionBoxMAL << endl;
+//cout << "         maxAllowableLevel    = " << maxAllowableLevel << endl;
+//cout << "         newMinAllowableLevel = " << newMinAllowableLevel << endl;
+//cout << endl;
     SubregionPltApp(wTopLevel, subregionBox, ivOffset, amrPicturePtrArray[ZPLANE],
 		    this, palFilename, animating2d, currentDerived, fileName);
   }

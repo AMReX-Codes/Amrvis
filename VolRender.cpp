@@ -48,13 +48,13 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
   densityField = 1;
   densityOffset = vpFieldOffset(dummy_voxel, density);
   densitySize = sizeof(unsigned char);
-  densityMax = MaxPaletteIndex();
+  densityMax = 255;
 
 
   gradientField = 2;
   gradientOffset = vpFieldOffset(dummy_voxel, gradient);
   gradientSize = sizeof(unsigned char);
-  gradientMax = MaxPaletteIndex();
+  gradientMax = 255;
 
   lightingModel = true;
   paletteSize = 256;
@@ -65,17 +65,12 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
 
     maxDenRampPts   = densityMax  + 1;
     maxShadeRampPts = normalMax   + 1;
-    density_ramp    = new float[maxDenRampPts];
-    shade_table     = new float[maxShadeRampPts];
-    value_shade_table = new float[paletteSize];
-    
-    maxGradRampPts = gradientMax + 1;
-    gradient_ramp  = new float[maxGradRampPts];
-    gradientRampX  = NULL;
-    gradientRampY  = NULL;
+    density_ramp.resize(maxDenRampPts);
+    shade_table.resize(maxShadeRampPts);
+    value_shade_table.resize(paletteSize);
 
-    densityRampX  = NULL;
-    densityRampY  = NULL;
+    maxGradRampPts = gradientMax + 1;
+    gradient_ramp.resize(maxGradRampPts);
 
     aString rampFileName("vpramps.dat");
     ReadTransferFile(rampFileName);
@@ -98,15 +93,9 @@ VolRender::~VolRender() {
   assert(bVolRenderDefined);
   if(ParallelDescriptor::IOProcessor()) {
     vpDestroyContext(vpc);
-    //cout << endl << "~~~~~~~~~~ volData = " << volData << endl << endl;
-    //delete [] volData;
     if(swfDataAllocated) {
       delete [] swfData;
     }
-    delete [] density_ramp;
-    delete [] gradient_ramp;
-    delete [] shade_table;
-    delete [] value_shade_table;
   }
 }
 
@@ -667,41 +656,41 @@ void VolRender::MakeVPData() {
     // --- set the shading parameters
     
     if (lightingModel) {
-      vpret = vpSetLookupShader(vpc, 1, 1, normalField, shade_table,
-                                maxShadeRampPts * sizeof(float), 0, NULL, 0);
+      vpret = vpSetLookupShader(vpc, 1, 1, normalField, shade_table.dataPtr(),
+                              maxShadeRampPts * sizeof(float), 0, NULL, 0);
       CheckVP(vpret, 7);
       vpSetMaterial(vpc, VP_MATERIAL0, VP_AMBIENT, VP_BOTH_SIDES, 0.28, 0.28, 0.28);
       vpSetMaterial(vpc, VP_MATERIAL0, VP_DIFFUSE, VP_BOTH_SIDES, 0.35, 0.35, 0.35);
       vpSetMaterial(vpc, VP_MATERIAL0, VP_SPECULAR, VP_BOTH_SIDES, 0.39, 0.39, 0.39);
       vpSetMaterial(vpc, VP_MATERIAL0, VP_SHINYNESS, VP_BOTH_SIDES, 10.0,  0.0, 0.0);
-      
+        
       vpSetLight(vpc, VP_LIGHT0, VP_DIRECTION, 0.3, 0.3, 1.0);
       vpSetLight(vpc, VP_LIGHT0, VP_COLOR, 1.0, 1.0, 1.0);
       vpEnable(vpc, VP_LIGHT0, 1);
-      
+        
       vpSeti(vpc, VP_CONCAT_MODE, VP_CONCAT_LEFT);
-      
+        
       // --- compute shading lookup table
       vpret = vpShadeTable(vpc);
       CheckVP(vpret, 8);
-      
+
     } else {
       assert(palettePtr != NULL);
-      for(int sn=0; sn<paletteSize/*maxShadeRampPts*/; sn++) {
-        value_shade_table[sn] = (float)sn; //the correct old version
+      for(int sn = 0; sn < paletteSize /* maxShadeRampPts */; ++sn) {
+        value_shade_table[sn] = (float) sn; //the correct old version
       }
-      value_shade_table[0] = (Real) MaxPaletteIndex();
+      value_shade_table[0] = (float) MaxPaletteIndex();
      
       float maxf = 0.0;
       float minf = 1000000.0;
-      for(int ijk = 0; ijk < paletteSize/*maxShadeRampPts*/; ijk++) {
+      for(int ijk = 0; ijk < paletteSize /* maxShadeRampPts */; ++ijk) {
         maxf = Max(maxf, value_shade_table[ijk]);
         minf = Min(minf, value_shade_table[ijk]);
       }
       SHOWVAL(minf);
       SHOWVAL(maxf);
       
-      vpret = vpSetLookupShader(vpc, 1, 1, normalField, value_shade_table,
+      vpret = vpSetLookupShader(vpc, 1, 1, normalField, value_shade_table.dataPtr(),
                                 paletteSize * sizeof(float), 0, NULL, 0);
       CheckVP(vpret, 9);
       
@@ -724,10 +713,7 @@ void VolRender::MakeVPData() {
 // -------------------------------------------------------------------
 void VolRender::ReadTransferFile(const aString &rampFileName) {
   int n;
-  if(densityRampX  != NULL) { delete [] densityRampX;  }
-  if(densityRampY  != NULL) { delete [] densityRampY;  }
-  if(gradientRampX != NULL) { delete [] gradientRampX; }
-  if(gradientRampY != NULL) { delete [] gradientRampY; }
+  float fZero(0.0), fOne(1.0);  // for whiny templates
 
   ifstream istrans;
   istrans.open(rampFileName.c_str());
@@ -735,23 +721,7 @@ void VolRender::ReadTransferFile(const aString &rampFileName) {
     cerr << "Error in ReadTransferFile:  cannot open file = "
 	 << rampFileName << endl;
 
-    // make default transfer functions
-    classifyFields = 2;
-    shadeFields = 2;
-    nDenRampPts = 2;
-    densityRampX  = new int[nDenRampPts];
-    densityRampY  = new float[nDenRampPts];
-    nGradRampPts = 2;
-    gradientRampX = new int[nDenRampPts];
-    gradientRampY = new float[nDenRampPts];
-    densityRampX[0] = 0;    densityRampX[1] = MaxPaletteIndex();;
-    densityRampY[0] = 0.0;  densityRampY[1] = 1.0;
-
-    gradientRampX[0] = 0;    gradientRampX[1] = MaxPaletteIndex();;
-    gradientRampY[0] = 0.0;  gradientRampY[1] = 1.0;
-
-    minRayOpacity = 0.05;
-    maxRayOpacity = 0.95;
+    MakeDefaultTransProperties();
 
   } else {
 
@@ -761,33 +731,95 @@ void VolRender::ReadTransferFile(const aString &rampFileName) {
     istrans >> shadeFields;
 
     istrans >> nDenRampPts;
-    densityRampX = new int[nDenRampPts];
-    densityRampY = new float[nDenRampPts];
+    if(nDenRampPts < 2) {
+      cerr << "Error in  VolRender::ReadTransferFile:  Number of Density"
+	   << " ramp points must be at least 2." << endl;
+      MakeDefaultTransProperties();
+      SetTransProperties();
+      return;
+    }
+    densityRampX.resize(nDenRampPts);
+    densityRampY.resize(nDenRampPts);
 
-    for(n=0; n<nDenRampPts; n++) {
+    for(n = 0; n < nDenRampPts; ++n) {
       istrans >> densityRampX[n];
     }
 
-    for(n=0; n<nDenRampPts; n++) {
+    if(densityRampX[0] != 0 || densityRampX[nDenRampPts - 1] != 255) {
+      cerr << "Error in  VolRender::ReadTransferFile:  Density"
+	   << " ramp points must start at 0 and end at 255." << endl;
+      MakeDefaultTransProperties();
+      SetTransProperties();
+      return;
+    }
+
+    for(n = 0; n < nDenRampPts; ++n) {
       istrans >> densityRampY[n];
+      densityRampY[n] = Max(fZero, Min(fOne, densityRampY[n]));  // clip
     }
 
     istrans >> nGradRampPts;
+    if(nGradRampPts < 2) {
+      cerr << "Error in  VolRender::ReadTransferFile:  Number of Gradient"
+	   << " ramp points must be at least 2." << endl;
+      MakeDefaultTransProperties();
+      SetTransProperties();
+      return;
+    }
 
-    gradientRampX = new int[nGradRampPts];
-    gradientRampY = new float[nGradRampPts];
+    gradientRampX.resize(nGradRampPts);
+    gradientRampY.resize(nGradRampPts);
 
-    for(n=0; n<nGradRampPts; n++) {
+    for(n = 0; n < nGradRampPts; ++n) {
       istrans >> gradientRampX[n];
     }
-    for(n=0; n<nGradRampPts; n++) {
+    if(gradientRampX[0] != 0 || gradientRampX[nGradRampPts - 1] != 255) {
+      cerr << "Error in  VolRender::ReadTransferFile:  Gradient"
+	   << " ramp points must start at 0 and end at 255." << endl;
+      MakeDefaultTransProperties();
+      SetTransProperties();
+      return;
+    }
+
+    for(n = 0; n < nGradRampPts; ++n) {
       istrans >> gradientRampY[n];
+      gradientRampY[n] = Max(fZero, Min(fOne, gradientRampY[n]));  // clip
     }
     istrans >> minRayOpacity;
+    minRayOpacity = Max(fZero, Min(fOne, minRayOpacity));  // clip
     istrans >> maxRayOpacity;
-    }
+    maxRayOpacity = Max(fZero, Min(fOne, maxRayOpacity));  // clip
+  }
+
+  SetTransProperties();
+
+}  // end ReadTransferFile
 
 
+
+// -------------------------------------------------------------------
+void VolRender::MakeDefaultTransProperties() {
+    classifyFields = 2;
+    shadeFields = 2;
+    nDenRampPts = 2;
+    densityRampX.resize(nDenRampPts);
+    densityRampY.resize(nDenRampPts);
+    nGradRampPts = 2;
+    gradientRampX.resize(nGradRampPts);
+    gradientRampY.resize(nGradRampPts);
+    densityRampX[0] = 0;    densityRampX[1] = 255;
+    densityRampY[0] = 0.0;  densityRampY[1] = 1.0;
+
+    gradientRampX[0] = 0;    gradientRampX[1] = 255;
+    gradientRampY[0] = 0.0;  gradientRampY[1] = 1.0;
+
+    minRayOpacity = 0.05;
+    maxRayOpacity = 0.95;
+}
+
+
+// -------------------------------------------------------------------
+void VolRender::SetTransProperties() {
   vpResult vpret = vpSetVoxelSize(vpc, BYTES_PER_VOXEL, voxelFields,
                         shadeFields, classifyFields);
   CheckVP(vpret, 14);
@@ -796,7 +828,7 @@ void VolRender::ReadTransferFile(const aString &rampFileName) {
                   maxShadeRampPts-1);
   } else {
     vpSetVoxelField(vpc,  normalField, normalSize, normalOffset,
-                    paletteSize-1);
+                    paletteSize - 1);
   }
   vpSetVoxelField(vpc, densityField, densitySize, densityOffset,
                   densityMax);
@@ -804,28 +836,24 @@ void VolRender::ReadTransferFile(const aString &rampFileName) {
   vpSetVoxelField(vpc, gradientField, gradientSize, gradientOffset,
                   gradientMax);
 
-  vpRamp(density_ramp, sizeof(float), nDenRampPts, densityRampX, densityRampY);
+  vpRamp(density_ramp.dataPtr(), sizeof(float),
+	 densityRampX.length(), densityRampX.dataPtr(), densityRampY.dataPtr());
   vpSetClassifierTable(vpc, DENSITY_PARAM, densityField,
-                         density_ramp, maxDenRampPts * sizeof(float));
+                       density_ramp.dataPtr(),
+		       density_ramp.length() * sizeof(float));
 
   if(classifyFields == 2) {
-    vpRamp(gradient_ramp, sizeof(float), nGradRampPts,
-           gradientRampX, gradientRampY);
+    vpRamp(gradient_ramp.dataPtr(), sizeof(float), gradientRampX.length(),
+	   gradientRampX.dataPtr(), gradientRampY.dataPtr());
     vpSetClassifierTable(vpc, GRADIENT_PARAM, gradientField,
-                         gradient_ramp, maxGradRampPts * sizeof(float));
+                         gradient_ramp.dataPtr(),
+			 gradient_ramp.length() * sizeof(float));
   }
 
   vpSetd(vpc, VP_MIN_VOXEL_OPACITY, minRayOpacity);
   vpSetd(vpc, VP_MAX_RAY_OPACITY,   maxRayOpacity);
+}
 
-}  // end ReadTransferFile
 
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
-
-
-
-
-
-
-

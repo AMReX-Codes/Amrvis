@@ -735,6 +735,9 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
   VSHOWVAL(Verbose(), maxUsing)
 
   for(int iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
+  //cout << "_here 1:  iLevel = " << iLevel << endl;
+  //cout << "  sliceFab[iLevel]->box() = " << sliceFab[iLevel]->box() << endl;
+  //cout << endl;
     DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
 		           sliceFab[iLevel], sliceFab[iLevel]->box(),
 			   iLevel, derived);
@@ -805,6 +808,9 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
              ((((dPoint - globalMin) * oneOverGDiff) * csm1) );
            //    ^^^^^^^^^^^^^^^^^ Real data
           imagedata[iIndex] += paletteStart;
+//if((unsigned int) (imagedata[iIndex]) > 252) {
+//cout << "============ imageData = " << (unsigned int) (imagedata[iIndex]) << endl;
+//}
         }
       }
     }

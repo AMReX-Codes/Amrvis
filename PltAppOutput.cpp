@@ -77,8 +77,7 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   char *fileNameBase;
   int imageSizeX, imageSizeY;
   XImage *printImage;
-  XColor *colors = pltPaletteptr->GetColorCells();
-  int palSize = pltPaletteptr->PaletteSize();
+  const Array<XColor> colors(pltPaletteptr->GetColorCells());
 
   if(animating2d) {
     ResetAnimation();
@@ -91,7 +90,7 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   printImage = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[ZPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[ZPLANE]->ImageSizeV();
-  WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
+  WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, colors);
 
 #if (BL_SPACEDIM==3)
   // write the YPLANE picture
@@ -99,14 +98,14 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   printImage = amrPicturePtrArray[YPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[YPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[YPLANE]->ImageSizeV();
-  WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
+  WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, colors);
 
   // write the XPLANE picture
   sprintf(psfilename, "%s.YZ.ps", fileNameBase);
   printImage = amrPicturePtrArray[XPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[XPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[XPLANE]->ImageSizeV();
-  WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
+  WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, colors);
 
   // write the iso picture
 #ifdef BL_VOLUMERENDER
@@ -121,7 +120,7 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   sprintf(psfilename, "%s.XYZ.ps", fileNameBase);
   imageSizeX = projPicturePtr->ImageSizeH();
   imageSizeY = projPicturePtr->ImageSizeV();
-  WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
+  WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, colors);
 # endif
 
   // write the palette
@@ -129,11 +128,10 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   printImage = pltPaletteptr->GetPictureXImage();
   imageSizeX = pltPaletteptr->PaletteWidth();
   imageSizeY = pltPaletteptr->PaletteHeight();
-  Real *pValueList = pltPaletteptr->PaletteDataList();
-  aString pNumFormat = pltPaletteptr->PaletteNumberFormat();
-  int pDataLength = pltPaletteptr->PaletteDataListLength();
+  const Array<Real> &pValueList = pltPaletteptr->PaletteDataList();
+  aString pNumFormat(pltPaletteptr->PaletteNumberFormat());
   WritePSPaletteFile(psfilename, printImage, imageSizeX, imageSizeY, colors, 
-                     palSize, pValueList, pNumFormat, pDataLength);
+                     pValueList, pNumFormat);
 
   XtDestroyWidget(w);
 
@@ -147,8 +145,7 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
   char *fileNameBase;
   int imageSizeX, imageSizeY;
   XImage *printImage;
-  XColor *colors = pltPaletteptr->GetColorCells();
-  int palSize = pltPaletteptr->PaletteSize();
+  const Array<XColor> &colors = pltPaletteptr->GetColorCells();
 
   if(animating2d) {
     ResetAnimation();
@@ -161,7 +158,7 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
   printImage = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[ZPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[ZPLANE]->ImageSizeV();
-  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
+  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, colors);
 
 #if (BL_SPACEDIM==3)
   // write the YPLANE picture
@@ -169,14 +166,14 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
   printImage = amrPicturePtrArray[YPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[YPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[YPLANE]->ImageSizeV();
-  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
+  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, colors);
 
   // write the XPLANE picture
   sprintf(rgbfilename, "%s.YZ.rgb", fileNameBase);
   printImage = amrPicturePtrArray[XPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[XPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[XPLANE]->ImageSizeV();
-  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
+  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, colors);
 
   // write the iso picture
 #ifdef BL_VOLUMERENDER
@@ -191,7 +188,7 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
   sprintf(rgbfilename, "%s.XYZ.rgb", fileNameBase);
   imageSizeX = projPicturePtr->ImageSizeH();
   imageSizeY = projPicturePtr->ImageSizeV();
-  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
+  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, colors);
 # endif
 
   // write the palette
@@ -199,7 +196,7 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
   printImage = pltPaletteptr->GetPictureXImage();
   imageSizeX = pltPaletteptr->PaletteWidth();
   imageSizeY = pltPaletteptr->PaletteHeight();
-  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
+  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, colors);
 
   XtDestroyWidget(w);
 
@@ -232,8 +229,7 @@ void PltApp::DoCreateAnimRGBFile() {
   char rgbfilename[BUFSIZ];
   int imageSizeX, imageSizeY;
   XImage *printImage;
-  XColor *colors = pltPaletteptr->GetColorCells();
-  int palSize(pltPaletteptr->PaletteSize());
+  const Array<XColor> &colors = pltPaletteptr->GetColorCells();
   char tempstr[BUFSIZ], timestep[BUFSIZ];
   char tempfilename[BUFSIZ];
   char cder[BUFSIZ];
@@ -269,7 +265,7 @@ void PltApp::DoCreateAnimRGBFile() {
   printImage = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[ZPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[ZPLANE]->ImageSizeV();
-  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, colors, palSize);
+  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, colors);
 }  // end DoCreateAnimRGBFile
 
 

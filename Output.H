@@ -9,6 +9,7 @@
 #include <Intrinsic.h>
 
 #include "REAL.H"
+#include "Array.H"
 #include "aString.H"
 
 // the following is support for writing rgb files.
@@ -58,17 +59,17 @@ typedef struct {
 
 void WritePSFile(char *filename, XImage *image,
                  int imagesizehoriz, int imagesizevert,
-                 XColor *colorcells, int colorcellsize);
+                 const Array<XColor> &colorcells);
 
 void WritePSPaletteFile(char *filename, XImage *image,
                         int imagesizehoriz, int imagesizevert,
-                        XColor *colorcells, int colorcellsize,
-                        Real *palValuesList, const aString &palNumFormat,
-                        int palDataLength);
+                        const Array<XColor> &colorcells,
+                        const Array<Real> &palValuesList,
+			const aString &palNumFormat);
 
 void WriteRGBFile(char *filename, XImage *image,
 		   int imagesizehoriz, int imagesizevert,
-                  XColor *colorcells, int colorcellsize);
+                   const Array<XColor> &colorcells);
 
 #endif
 

@@ -125,7 +125,7 @@ void GetDefaults(const aString &defaultsFile) {
   maxPictureSize = DEFAULTMAXPICTURESIZE;
   boundaryWidth = 0;
   skipPltLines = 0;
-  maxPaletteIndex = 254;  // dont uset the top value (255)
+  maxPaletteIndex = 255;  // dont clip the top palette index (default)
   boxColor = maxPaletteIndex;
   fileType = NEWPLT;  // default
 
@@ -256,6 +256,9 @@ void GetDefaults(const aString &defaultsFile) {
 	       << tempString << endl;
 	}
       }
+      else if(strcmp(defaultString, "cliptoppalette") == 0) {
+        maxPaletteIndex = 254;  // clip the top palette index
+      }
       else {
         cout << "bad default argument:  " << defaultString << endl;
       }
@@ -287,6 +290,7 @@ void PrintUsage(char *exname) {
   cout << "       [-palette palname] [-initialderived dername]" << endl;
   cout << "       [-initialscale n] [-showboxes tf] [-numberformat fmt]" << endl;
   cout << "       [-lowblack]"<< endl;
+  cout << "       [-cliptoppalette]"<< endl;
 # if (BL_SPACEDIM == 3)
     cout << "       [-makeswf_light]" << endl;
     cout << "       [-makeswf_value]" << endl;
@@ -328,6 +332,7 @@ void PrintUsage(char *exname) {
   cout << "  -showboxes tf      show boxes (the value of tf is true or false)." << endl; 
   cout << "  -numberformat fmt  set the initial format to fmt (ex:  %4.2f)." << endl; 
   cout << "  -lowblack          sets the lowest color in the palette to black."<<endl;
+  cout << "  -cliptoppalette    dont use the top palette index (for exceed)."<<endl;
 # if (BL_SPACEDIM == 3)
   cout << "  -makeswf_light     make volume rendering data using the" << endl;
   cout << "                     current transfer function and write data" << endl;
@@ -582,6 +587,8 @@ void ParseCommandLine(int argc, char *argv[]) {
         PrintUsage(argv[0]);
       }
       i++;
+    } else if(strcmp(argv[i], "-cliptoppalette") == 0) {
+      maxPaletteIndex = 254;  // clip the top palette index
     } else if(strcmp(argv[i], "-sliceallvars") == 0) {
       sliceAllVars = true;
     } else if(i < argc) {
@@ -719,8 +726,8 @@ int DetermineMaxAllowableLevel(const Box &finestbox, int finestlevel,
   assert(maxpoints >= 0);
   assert(finestbox.ok());
 
-  Box levelDomain = finestbox;
-  int maxallowablelevel = finestlevel;
+  Box levelDomain(finestbox);
+  int maxallowablelevel(finestlevel);
   unsigned long boxpoints;
   while(maxallowablelevel > 0) {
 #   if (BL_SPACEDIM == 2)
