@@ -1,7 +1,8 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <iostream.h>
+#ifdef BL_USE_NEW_HFILES
+#include <cmath>
+#else
 #include <math.h>
+#endif
 
 #include "Quaternion.H"
 

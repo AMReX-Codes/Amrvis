@@ -3,10 +3,9 @@
 // -------------------------------------------------------------------
 #include "Palette.H"
 #include "GlobalUtilities.H"
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
+
 #include <fcntl.h>
+#include <unistd.h>
 
 Colormap Palette::systemColmap;
 

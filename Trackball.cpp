@@ -1,7 +1,3 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <iostream.h>
-#include <math.h>
 #include "Quaternion.H"
 #include "Point.H"
 #include "REAL.H"

@@ -6,14 +6,6 @@
 
 #include <Xm.h>
 #include <Intrinsic.h>
-#include <ctype.h>
-#include <iostream.h>
-#include <fcntl.h>
-#include <stddef.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-#include <strstream.h>
 
 #include "AmrvisConstants.H"
 #include "AmrPicture.H"

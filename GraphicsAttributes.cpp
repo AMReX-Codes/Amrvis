@@ -1,8 +1,17 @@
 // -------------------------------------------------------------------
 // GraphicsAttributes.cpp
 // -------------------------------------------------------------------
+#ifdef BL_USE_NEW_HFILES
+#include <iostream>
+using std::cerr;
+using std::endl;
+#else
+#include <iostream.h>
+#endif
+
 #include "GraphicsAttributes.H"
 #include <Xlibint.h>
+
 
 // -------------------------------------------------------------------
 GraphicsAttributes::GraphicsAttributes(Widget topLevel) {

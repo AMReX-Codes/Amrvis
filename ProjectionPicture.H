@@ -4,10 +4,6 @@
 #ifndef _PROJECTIONPICTURE_H_
 #define _PROJECTIONPICTURE_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <iostream.h>
 #include <Xm.h>
 #include <DrawingA.h>
 

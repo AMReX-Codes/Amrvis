@@ -4,8 +4,6 @@
 #ifndef _OUTPUT_H_
 #define _OUTPUT_H_
 
-#include <stdio.h>
-#include <iostream.h>
 #include <Intrinsic.h>
 
 #include "REAL.H"

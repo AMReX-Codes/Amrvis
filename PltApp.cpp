@@ -28,6 +28,15 @@
 #include <PVolRender.H>
 #endif
 
+#ifdef BL_USE_NEW_HFILES
+#include <strstream>
+using std::ostrstream;
+using std::ends;
+using std::endl;
+#else
+#include <strstream.h>
+#endif
+
 const int MAXSCALE       = 32;
 const int MENUFRAME      = 0;
 const int PALETTEFRAME   = 1;

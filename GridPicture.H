@@ -4,11 +4,6 @@
 #ifndef _GRIDPICTURE_H
 #define _GRIDPICTURE_H
 
-#include <fcntl.h>
-#include <iostream.h>
-#include <fstream.h>
-#include <stdio.h>
-
 #include "AmrvisConstants.H"
 #include "Box.H"
 

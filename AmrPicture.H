@@ -4,11 +4,11 @@
 #ifndef _AMRPICTURE_H
 #define _AMRPICTURE_H
 
-#include <fcntl.h>
-#include <iostream.h>
-#include <stream.h>
-#include <fstream.h>
+#ifdef BL_USE_NEW_HFILES
+#include <cstdio>
+#else
 #include <stdio.h>
+#endif
 
 #include "REAL.H"
 #include "Box.H"

@@ -5,6 +5,15 @@
 #include "DataServices.H"
 #include "ParallelDescriptor.H"
 
+#ifdef BL_USE_NEW_HFILES
+#include <iostream>
+#include <cstdio>
+using std::ios;
+#else
+#include <iostream.h>
+#include <stdio.h>
+#endif
+
 Array<DataServices *> DataServices::dsArray;
 int DataServices::dsArrayIndexCounter = 0;
 bool DataServices::dsBatchMode = false;

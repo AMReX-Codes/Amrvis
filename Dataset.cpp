@@ -10,7 +10,14 @@ const int MAXINDEXCHARS   = 4;
 #include "PltApp.H"
 #include "DataServices.H"
 #include "GlobalUtilities.H"
+
+#ifdef BL_USE_NEW_HFILES
+#include <strstream>
+using std::ostrstream;
+using std::ends;
+#else
 #include <float.h>
+#endif
 
 
 // -------------------------------------------------------------------

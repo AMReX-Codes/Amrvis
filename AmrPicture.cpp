@@ -5,7 +5,11 @@
 #include "AmrPicture.H"
 #include "PltApp.H"
 #include "DataServices.H"
+#ifdef BL_USE_NEW_HFILES
+#include <ctime>
+#else
 #include <time.h>
+#endif
 
 #ifdef BL_USE_ARRAYVIEW
 #include "ArrayView.H"

@@ -5,8 +5,11 @@
 #define _AMRVISCONSTANTS_H
 
 #include "REAL.H"
+#ifdef BL_USE_NEW_HFILES
+#include <cfloat>
+#else
 #include <float.h>
-#include <stdio.h>
+#endif
 
 const int LINELENGTH = 160;
 const int MAXARGS = 50;

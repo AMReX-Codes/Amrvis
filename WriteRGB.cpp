@@ -1,6 +1,10 @@
 // -------------------------------------------------------------
 // image.h
+#ifdef BL_USE_NEW_HFILES
+#include <cstdio>
+#else
 #include <stdio.h>
+#endif
 
 #define IMAGIC  0732
 

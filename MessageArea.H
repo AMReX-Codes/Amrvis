@@ -5,9 +5,6 @@
 #define _MESSAGEAREA_H
 
 #include <Text.h>
-#include <iostream.h>
-#include <strstream.h>
-#include <stdio.h>
 
 class cMessageArea {
   private:

@@ -6,7 +6,12 @@
 #include "GlobalUtilities.H"
 #include "ParallelDescriptor.H"
 
+#ifdef BL_USE_NEW_HFILES
+#include <ctime>
+#else
 #include <time.h>
+#endif
+
 #include <unistd.h>
 #include <fcntl.h>
 

@@ -3,7 +3,11 @@
 // -------------------------------------------------------------------
 #include "GlobalUtilities.H"
 #include "FArrayBox.H"
+#ifdef BL_USE_NEW_HFILES
+#include <fstream>
+#else
 #include <fstream.h>
+#endif
 
 #include "PltApp.H"
 

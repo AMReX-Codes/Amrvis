@@ -1,11 +1,19 @@
 //--------------------------------------------------------------
 // AmrVisTool.cpp
 //--------------------------------------------------------------
+#ifdef BL_USE_NEW_HFILES
+#include <strstream>
+#include <iostream>
+#include <cstdlib>
+#include <cstdio>
+#include <cerrno>
+#else
 #include <strstream.h>
 #include <iostream.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <errno.h>
+#endif
 
 // X/Motif headers
 #include <Xm.h>

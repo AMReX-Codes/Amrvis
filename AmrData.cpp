@@ -8,6 +8,13 @@
 #include "Misc.H"
 #include "VisMF.H"
 
+#ifdef BL_USE_NEW_HFILES
+#include <iostream>
+using std::ios;
+#else
+#include <iostream.h>
+#endif
+
 #ifdef SHOWVAL
 #undef SHOWVAL
 #endif
@@ -813,7 +820,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
     }
 
 
-    MultiFabCopyDescriptor multiFabCopyDesc = MultiFabCopyDescriptor();
+    MultiFabCopyDescriptor multiFabCopyDesc;
     Array<MultiFabId> stateDataMFId(finestFillLevel + 1);
     for(currentLevel = 0; currentLevel <= finestFillLevel; ++currentLevel) {
       stateDataMFId[currentLevel] =

@@ -4,11 +4,6 @@
 #ifndef _VOLRENDER_H_
 #define _VOLRENDER_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
-#include <iostream.h>
-
 #include "aString.H" 
 #include "Array.H" 
 #include "REAL.H" 

@@ -3,7 +3,16 @@
 // -------------------------------------------------------------------
 #include "ViewTransform.H"
 #include "Trackball.H"
+
+#ifdef BL_USE_NEW_HFILES
+#include <iostream>
+#include <cassert>
+using std::endl;
+using std::cout;
+#else
+#include <iostream.h>
 #include <assert.h>
+#endif
 
 // -------------------------------------------------------------------
 ViewTransform::ViewTransform() {

@@ -2,11 +2,23 @@
 // Output.cpp
 // -------------------------------------------------------------------
 #include "Output.H"
-#include <fstream.h>
-#include <iomanip.h>
+
 #include <fcntl.h>
 #include <unistd.h>
+#ifdef BL_USE_NEW_HFILES
+#include <fstream>
+#include <iomanip>
+#include <cmath>
+#include <cstdio>
+using std::hex;
+using std::dec;
+using std::ofstream;
+#else
+#include <fstream.h>
+#include <iomanip.h>
 #include <math.h>
+#include <stdio.h>
+#endif
 
 
 IMAGE *iopen(char *file, unsigned int type, unsigned int dim,

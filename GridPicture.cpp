@@ -3,8 +3,13 @@
 // -------------------------------------------------------------------
 #include "GridPicture.H"
 #include "GlobalUtilities.H"
+#ifdef BL_USE_NEW_HFILES
+#include <climits>
+#include <cfloat>
+#else
 #include <limits.h>
 #include <float.h>
+#endif
 
 // -------------------------------------------------------------------
 GridPicture::GridPicture() {

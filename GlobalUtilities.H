@@ -4,14 +4,6 @@
 #ifndef _GLOBALUTILITIES_H_
 #define _GLOBALUTILITIES_H_
 
-#include <fcntl.h>
-#include <iostream.h>
-#include <strstream.h>
-#include <ctype.h>
-#include <stddef.h>
-#include <string.h>
-#include <ctype.h>
-
 #include "AmrvisConstants.H"
 #include "Box.H"
 #include "Array.H"

@@ -4,10 +4,13 @@
 #ifndef _VIEWTRANSFORM_H_
 #define _VIEWTRANSFORM_H_
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <math.h>
+#ifdef BL_USE_NEW_HFILES
+#include <iostream>
+using std::iostream;
+#else
 #include <iostream.h>
+#endif
+
 #include "REAL.H" 
 #include "Quaternion.H"
 

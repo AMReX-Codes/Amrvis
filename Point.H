@@ -1,7 +1,13 @@
 #ifndef _AMR_POINT_H_		//  a kludgy way not to include twice
 #define _AMR_POINT_H_
- 
-#include <math.h>
+
+#ifdef BL_USE_NEW_HFILES
+#include <iostream>
+using std::ostream;
+#else
+#include <iostream.h>
+#endif
+
 #include "REAL.H"
 
 class AmrQuaternion;

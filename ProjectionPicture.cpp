@@ -6,8 +6,14 @@
 #include "DataServices.H"
 #include "Volume.H"
 #include "List.H"
+
+#ifdef BL_USE_NEW_HFILES
+#include <cmath>
+#include <ctime>
+#else
 #include <math.h>
 #include <time.h>
+#endif
 
 #define VOLUMEBOXES 0
 

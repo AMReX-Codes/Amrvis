@@ -4,11 +4,6 @@
 #ifndef _GRAPHICSATTRIBUTES_H
 #define _GRAPHICSATTRIBUTES_H
 
-#include <fcntl.h>
-#include <iostream.h>
-#include <fstream.h>
-#include <stdio.h>
-
 #include "AmrvisConstants.H"
 
 #include <X.h>

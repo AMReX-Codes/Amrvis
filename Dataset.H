@@ -21,12 +21,6 @@
 #include <Form.h>
 #include <Label.h>
 
-#include <iostream.h>
-#include <strstream.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <unistd.h>
-
 #include "GraphicsAttributes.H"
 #include "AmrPicture.H"
 #include "Box.H"
