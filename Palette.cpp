@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.46 2003-02-28 02:01:38 vince Exp $
+// $Id: Palette.cpp,v 1.47 2003-03-14 20:24:19 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -331,7 +331,8 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
 
       //ccells[bodyIndex].red   = (unsigned short) 32000;
       ccells[bodyIndex].red   = (unsigned short) 0;
-      ccells[bodyIndex].green = (unsigned short) 32000;
+      //ccells[bodyIndex].green = (unsigned short) 32000;
+      ccells[bodyIndex].green = (unsigned short) 0;
       //ccells[bodyIndex].blue  = (unsigned short) 32000;
       ccells[bodyIndex].blue  = (unsigned short) 0;
       ccells[blackIndex].red   = (unsigned short) 0;
@@ -357,7 +358,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
       //gbuff[bodyIndex] = 127;
       //bbuff[bodyIndex] = 127;
       rbuff[bodyIndex] = 0;
-      gbuff[bodyIndex] = 127;
+      gbuff[bodyIndex] = 0;
       bbuff[bodyIndex] = 0;
       rbuff[blackIndex] = 0;
       gbuff[blackIndex] = 0;
@@ -398,7 +399,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
   //gbuff[bodyIndex] = 127;
   //bbuff[bodyIndex] = 127;
   rbuff[bodyIndex] = 0;
-  gbuff[bodyIndex] = 127;
+  gbuff[bodyIndex] = 0;
   bbuff[bodyIndex] = 0;
   rbuff[blackIndex] = 0;
   gbuff[blackIndex] = 0;
@@ -530,10 +531,8 @@ Pixel Palette::makePixel(unsigned char ind) const {
 void Palette::unpixelate(Pixel index, unsigned char &r,
 			 unsigned char &g, unsigned char &b) const
 {
-  int vIndex;
-  vIndex = std::max(0, std::min(static_cast<int> (index), (totalColorSlots - 1)));
   if(gaPtr->IsTrueColor()) {
-    map<Pixel, XColor>::const_iterator mi = mcells.find(vIndex);
+    map<Pixel, XColor>::const_iterator mi = mcells.find(index);
     if(mi != mcells.end()) {
       r = mi->second.red   >> 8;
       g = mi->second.green >> 8;
@@ -541,10 +540,12 @@ void Palette::unpixelate(Pixel index, unsigned char &r,
       return;
     }
     cout << "bad index = " << index << endl;
-    r = (vIndex&gaPtr->PRedMask()) >> gaPtr->PRedShift();
-    g = (vIndex&gaPtr->PGreenMask()) >> gaPtr->PGreenShift();
-    b = (vIndex&gaPtr->PBlueMask()) >> gaPtr->PBlueShift();
+    r = (index&gaPtr->PRedMask()) >> gaPtr->PRedShift();
+    g = (index&gaPtr->PGreenMask()) >> gaPtr->PGreenShift();
+    b = (index&gaPtr->PBlueMask()) >> gaPtr->PBlueShift();
   } else {
+    int vIndex = std::max(0, std::min(static_cast<int> (index),
+                                      (totalColorSlots - 1)));
     r = ccells[vIndex].red   >> 8;
     g = ccells[vIndex].green >> 8;
     b = ccells[vIndex].blue  >> 8;
