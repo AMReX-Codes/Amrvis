@@ -45,9 +45,12 @@ amrvis3d
        [-fabiosize nbits]
        [-maxlev n]
        [-palette palname] [-initialderived dername]
+       [-lightingfile name]
        [-initialscale n] [-showboxes tf] [-numberformat fmt]
        [-lowblack]
        [-cliptoppalette]
+       [-fixdenormals]
+       [-boxcolor n]
        [-makeswf_light]
        [-makeswf_value]
        [-useminmax min max]
@@ -67,15 +70,17 @@ amrvis3d
                      example:  -boxslice 0 0 0 120 42 200.
                      Note:  slices are written in batch mode.
   -fabiosize nbits   write fabs with nbits (valid values are 8 and 32.
-		     the default is native (usually 64).
+                     the default is native (usually 64).
   -maxlev n          specify the maximum drawn level.
   -palette palname   set the initial palette.
+  -lightingfile name set the initial lighting parameter file.
   -initialderived dername   set the initial derived to dername.
   -initialscale n    set the initial scale to n.
   -showboxes tf      show boxes (the value of tf is true or false).
   -numberformat fmt  set the initial format to fmt (ex:  %4.2f).
   -lowblack          sets the lowest color in the palette to black.
   -cliptoppalette    do not use the top palette index (for exceed).
+  -fixdenormals      always fix denormals when reading fabs.
   -makeswf_light     make volume rendering data using the
                      current transfer function and write data
                      to a file, using the lighting model.
@@ -374,7 +379,7 @@ a default will be used.
 
 
 \item [Number Format] The format for numbers (which is set in the
-{\bf Dataset} window) affects numbers in the dataset, the set range
+{\bf Number Format} window) affects numbers in the dataset, the set range
 dialog box, and the palette.  The format value can be any valid {\bf printf}
 string.  Hit the {\bf return} key after editing the string to apply.
 
@@ -442,6 +447,20 @@ The search path for {\bf amrvis.defaults} is (in this order):
 \end{verbatim}
 
 
+{\em Amrvis} also looks for the file {\bf amrvis.lighting} in the
+current directory to set default lighting values for volume rendering.  If
+this file does not exist, {\em amrvis} will use standard default
+values.  The name of this file can be specified on the command line.  An example
+file might look like the following.
+
+\begin{verbatim}
+ambient 0.42
+diffuse 0.41
+specular 0.40
+shiny 12.0
+minRayOpacity 0.04
+maxRayOpacity 0.96
+\end{verbatim}
 
 Note:  For volume rendering, the {\em VolPack} library from Stanford University
 must be linked with {\em amrvis}.  It currently can be obtained from
@@ -520,6 +539,10 @@ change it for that {\em amrvis} process.
 format is not supported.
 
 \item Names in the quantiy list (density, xmom, etc.) must be unique.
+
+\item If you change the user defined min or max values in the range
+window, you must also select the {\bf User} radio button before you
+press the {\bf Apply} button or the user range will not be set.
 
 \item {\em amrvis} takes background and lettering colors from
 the {\bf .Xdefaults} file.
