@@ -862,7 +862,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
                   fillBoxId[ibox][currentLevel][currentBLI].resize(1);
                   fillBoxId[ibox][currentLevel][currentBLI][0] = 
 		      multiFabCopyDesc.AddBox(stateDataMFId[currentLevel],
-					      tempCoarseBox, tempUnfillableBoxes,
+					      tempCoarseBox, &tempUnfillableBoxes,
 					      srcComp, destComp, numComps);
 
                   unfillableBoxesOnThisLevel.join(tempUnfillableBoxes);
