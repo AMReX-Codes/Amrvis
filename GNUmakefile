@@ -6,8 +6,8 @@ PROFILE   = FALSE
 # use mpKCC for the sp
 COMP      = mpKCC
 
-COMP      = g++
 COMP      = KCC
+COMP      = g++
 DEBUG     = FALSE
 DEBUG     = TRUE
 DIM       = 2
@@ -50,31 +50,17 @@ ifeq ($(MACHINE), T3E)
 endif
 
 ############################################### mpi definitions
-MPI_HOME =
 
 ifeq ($(USE_MPI), TRUE)
   ifeq ($(MACHINE), OSF1)
     MPI_HOME = /usr/local/mpi
-  endif
-  ifeq ($(MACHINE), AIX)
-    MPI_HOME = /usr/lpp/ppe.poe
-  endif
-endif
-
-ifeq ($(USE_MPI), TRUE)
-  ifeq ($(MACHINE), OSF1)
     INCLUDE_LOCATIONS += $(MPI_HOME)/include
     LIBRARY_LOCATIONS += $(MPI_HOME)/lib/alpha/ch_p4
   endif
   ifeq ($(MACHINE), AIX)
+    MPI_HOME = /usr/lpp/ppe.poe
     INCLUDE_LOCATIONS += $(MPI_HOME)/include
     LIBRARY_LOCATIONS += $(MPI_HOME)/lib
-  endif
-endif
-
-ifeq ($(USE_MPI), TRUE)
-  ifeq ($(USE_UPSHOT), TRUE)
-    LIBRARIES += -llmpi -lpmpi
   endif
   ifeq ($(MACHINE), Linux)
     LIBRARIES += -lmpich
@@ -85,21 +71,17 @@ endif
 
 DEFINES += -DBL_PARALLEL_IO
 ifeq ($(COMP),KCC)
-  #DEFINES += -DBL_USE_NEW_HFILES
   ifeq ($(KCC_VERSION),3.3)
-    CXXFLAGS+= --diag_suppress 837
-    CXXOPTF += -Olimit 2400
+    CXXFLAGS += --diag_suppress 837
+    CXXOPTF  += -Olimit 2400
   endif
 endif
 
-ifeq ($(COMP),g++)
-  DEFINES += -DBL_USE_NEW_HFILES
-endif
-
-
 ############################################### x includes and libraries
 ifeq ($(MACHINE), OSF1)
-  INCLUDE_LOCATIONS += /usr/include/X11 /usr/include/Xm /usr/include/X11/Xaw
+  INCLUDE_LOCATIONS += /usr/include/X11
+  INCLUDE_LOCATIONS += /usr/include/Xm 
+  INCLUDE_LOCATIONS += /usr/include/X11/Xaw
   LIBRARIES += -lXm -lXt -lX11
 endif
 
@@ -113,8 +95,9 @@ ifeq ($(MACHINE), Linux)
 endif
 
 ifeq ($(MACHINE), AIX)
-  #INCLUDE_LOCATIONS += /usr/include/X11 /usr/include/Xm /usr/include/X11/Xaw
-  INCLUDE_LOCATIONS += /usr/include/X11 /usr/include/Xm
+  INCLUDE_LOCATIONS += /usr/include/X11
+  INCLUDE_LOCATIONS += /usr/include/Xm
+  #INCLUDE_LOCATIONS += /usr/include/X11/Xaw
   LIBRARIES += -lXm -lXt -lX11
   DEFINES += -D_ALL_SOURCE
 endif
@@ -174,8 +157,9 @@ endif
 # if we are using float override FOPTF which sets -real_size 64
 ifeq ($(PRECISION), FLOAT)
   ifeq ($(MACHINE), OSF1)
-    FDEBF += -C -fpe2
-    #FDEBF += -C -fpe0
+    FDEBF += -C 
+    FDEBF += -fpe2
+    #FDEBF += -fpe0
     FOPTF  = -fast -O5 -tune ev5
   endif
 endif
@@ -193,6 +177,7 @@ include $(HERE)/Make.package
 include $(TOP)/pBoxLib_2/Make.package
 
 vpath %.cpp $(HERE) ../pBoxLib_2
+vpath %.H $(HERE) ../pBoxLib_2
 vpath %.F $(HERE)
 vpath %.a $(LIBRARY_LOCATIONS)
 

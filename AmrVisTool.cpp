@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrVisTool.cpp,v 1.35 1999-03-31 22:52:28 car Exp $
+// $Id: AmrVisTool.cpp,v 1.36 1999-04-19 00:42:11 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -231,8 +231,7 @@ void CreateMainWindow(int argc, char *argv[]) {
      fallbacks[4] = "*foreground:white";
      fallbacks[5] = NULL;
 
-#  endif
-#  if (BL_SPACEDIM == 3)
+#  elif (BL_SPACEDIM == 3)
      //String fallbacks[6];
      String fallbacks[4];
      fallbacks[0] = "*fontList:7x13=charset";
@@ -256,8 +255,7 @@ void CreateMainWindow(int argc, char *argv[]) {
   String fallbacks[] = {"*fontList:7x13=charset", "*background:black",
 			"*foreground:white", "*bottomShadowColor:yellow",
 			"*topShadowColor:gray", NULL };
-#endif
-#if (BL_SPACEDIM == 3)
+#elif (BL_SPACEDIM == 3)
   String fallbacks[] = {"*fontList:7x13=charset",
 			"*bottomShadowColor:black",
 			"*topShadowColor:gray",

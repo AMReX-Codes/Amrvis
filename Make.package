@@ -1,41 +1,40 @@
-CEXE_headers += AmrPicture.H AmrData.H AmrvisConstants.H \
-                DataServices.H Dataset.H \
-		GlobalUtilities.H GraphicsAttributes.H \
-                GridPicture.H MessageArea.H \
-                Palette.H PltApp.H Output.H Quaternion.H Point.H \
+CEXE_headers += AmrPicture.H AmrData.H AmrvisConstants.H		\
+                DataServices.H Dataset.H				\
+		GlobalUtilities.H GraphicsAttributes.H			\
+                GridPicture.H MessageArea.H				\
+                Palette.H PltApp.H Output.H Quaternion.H Point.H	\
                 Trackball.H
 
-CEXE_sources += AmrPicture.cpp AmrData.cpp AmrVisTool.cpp \
-                DataServices.cpp Dataset.cpp \
-		GraphicsAttributes.cpp GridPicture.cpp \
-                MessageArea.cpp PltApp.cpp \
-                GlobalUtilities.cpp Palette.cpp PltAppOutput.cpp \
+CEXE_sources += AmrPicture.cpp AmrData.cpp AmrVisTool.cpp		\
+                DataServices.cpp Dataset.cpp				\
+		GraphicsAttributes.cpp GridPicture.cpp			\
+                MessageArea.cpp PltApp.cpp				\
+                GlobalUtilities.cpp Palette.cpp PltAppOutput.cpp	\
 		Output.cpp Quaternion.cpp Point.cpp Trackball.cpp
 
 
 ifeq ($(DIM),3)
-ifeq ($(USE_VOLRENDER), TRUE)
-CEXE_headers += VolRender.H
-CEXE_sources += VolRender.cpp
-endif
+  ifeq ($(USE_VOLRENDER), TRUE)
+    CEXE_headers += VolRender.H
+    CEXE_sources += VolRender.cpp
+  endif
 endif
 
 ifeq ($(DIM),3)
-ifeq ($(USE_PARALLELVOLRENDER), TRUE)
-CEXE_headers += PVolRender.H
-CEXE_sources += PVolRender.cpp
-cEXE_sources += matrix.c twopass.c shearwarp.c sw.c window.c
-endif
+  ifeq ($(USE_PARALLELVOLRENDER), TRUE)
+    CEXE_headers += PVolRender.H
+    CEXE_sources += PVolRender.cpp
+    cEXE_sources += matrix.c twopass.c shearwarp.c sw.c window.c
+  endif
 endif
 
 
 ifeq ($(DIM),3)
-	CEXE_sources += ProjectionPicture.cpp ViewTransform.cpp PltApp3D.cpp
+  CEXE_sources += ProjectionPicture.cpp ViewTransform.cpp PltApp3D.cpp
 endif
 
 FEXE_sources += FABUTIL_$(DIM)D.F
 
 ifeq ($(USE_ARRAYVIEW),TRUE)
-CEXE_sources += DatasetClient.cpp
+  CEXE_sources += DatasetClient.cpp
 endif
-

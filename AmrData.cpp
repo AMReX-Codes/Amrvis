@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.cpp,v 1.28 1999-04-05 17:39:21 car Exp $
+// $Id: AmrData.cpp,v 1.29 1999-04-19 00:42:11 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -36,31 +36,29 @@ using std::ios;
                  cout << #val << " = " << val << endl; } }
 
 
-#ifdef CRAY
-#     if (BL_SPACEDIM == 2)
-#	   define   FORT_CINTERP     CINTERP2D
-#	   define   FORT_PCINTERP    PCINTERP2D
-#     elif (BL_SPACEDIM == 3)
-#	   define   FORT_CINTERP     CINTERP3D
-#	   define   FORT_PCINTERP    PCINTERP3D
-#     endif
+#if defined( BL_FORT_USE_UPPERCASE )
+#  if (BL_SPACEDIM == 2)
+#    define   FORT_CINTERP     CINTERP2D
+#    define   FORT_PCINTERP    PCINTERP2D
+#  elif (BL_SPACEDIM == 3)
+#    define   FORT_CINTERP     CINTERP3D
+#    define   FORT_PCINTERP    PCINTERP3D
+#  endif
+#elif defined( BL_FORT_USE_LOWERCASE )
+#  if (BL_SPACEDIM == 2)
+#    define   FORT_CINTERP     cinterp2d
+#    define   FORT_PCINTERP    pcinterp2d
+#  elif (BL_SPACEDIM == 3)
+#    define   FORT_CINTERP     cinterp3d
+#    define   FORT_PCINTERP    pcinterp3d
+#  endif
 #else
-#  ifdef BL_FORT_USE_LOWERCASE
-#     if (BL_SPACEDIM == 2)
-#          define   FORT_CINTERP     cinterp2d
-#          define   FORT_PCINTERP    pcinterp2d
-#     elif (BL_SPACEDIM == 3)
-#          define   FORT_CINTERP     cinterp3d
-#          define   FORT_PCINTERP    pcinterp3d
-#     endif
-#  else
-#     if (BL_SPACEDIM == 2)
-#          define   FORT_CINTERP     cinterp2d_
-#          define   FORT_PCINTERP    pcinterp2d_
-#     elif (BL_SPACEDIM == 3)
-#          define   FORT_CINTERP     cinterp3d_
-#          define   FORT_PCINTERP    pcinterp3d_
-#     endif
+#  if (BL_SPACEDIM == 2)
+#    define   FORT_CINTERP     cinterp2d_
+#    define   FORT_PCINTERP    pcinterp2d_
+#  elif (BL_SPACEDIM == 3)
+#    define   FORT_CINTERP     cinterp3d_
+#    define   FORT_PCINTERP    pcinterp3d_
 #  endif
 #endif
 
