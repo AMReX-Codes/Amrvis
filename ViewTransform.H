@@ -1,6 +1,6 @@
 
 //
-// $Id: ViewTransform.H,v 1.15 2004-05-05 20:44:31 vince Exp $
+// $Id: ViewTransform.H,v 1.16 2005-02-23 23:41:46 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -50,8 +50,8 @@ class ViewTransform {
   
     void MakeTranslation(int x1, int y1, int x2, int y2, Real bS);
     void ResetTranslation() { boxTransX = renTransX = boxTransY = renTransY = 0.0; }
-    Real GetRenTransX() const { return boxTransX; }
-    Real GetRenTransY() const { return boxTransY; }
+    Real GetRenTransX() const { return renTransX; }
+    Real GetRenTransY() const { return renTransY; }
     void SetRenTransX(Real newRenTransX) { renTransX = newRenTransX; }
     void SetRenTransY(Real newRenTransY) { renTransY = newRenTransY; }
   
