@@ -1,6 +1,6 @@
 
 //
-// $Id: GraphicsAttributes.cpp,v 1.17 2003-05-21 23:06:57 vince Exp $
+// $Id: GraphicsAttributes.cpp,v 1.18 2003-07-11 22:37:55 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -69,7 +69,7 @@ GraphicsAttributes::GraphicsAttributes(Widget topLevel)
 			    DefaultDepth(display, screennumber),
 			    TrueColor, &visual_info);
   if(status != 0) {
-    cout << "***************** using TrueColor visual" << endl;
+    //cout << "***************** using TrueColor visual" << endl;
     visual = visual_info.visual;
     depth = DefaultDepth(display, screennumber);
     red_shift = buildShift(visual_info.red_mask);
@@ -79,7 +79,7 @@ GraphicsAttributes::GraphicsAttributes(Widget topLevel)
     status = XMatchVisualInfo(display, DefaultScreen(display),
 			      8, PseudoColor, &visual_info);
     if(status != 0) {
-      cout << "***************** using PseudoColor visual" << endl;
+      //cout << "***************** using PseudoColor visual" << endl;
       visual = visual_info.visual;
       depth = 8;
       red_shift   = 0;
@@ -93,7 +93,6 @@ GraphicsAttributes::GraphicsAttributes(Widget topLevel)
   gc = screen->default_gc;
   root = RootWindow(display, DefaultScreen(display));
   bytesPerPixel = CalculateNBP();
-cout << "___________XtGetMultiClickTime = " << XtGetMultiClickTime(display) << endl;
 }
 
 

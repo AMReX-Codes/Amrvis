@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.48 2003-05-21 23:02:25 vince Exp $
+// $Id: Palette.cpp,v 1.49 2003-07-11 22:37:55 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -541,7 +541,7 @@ void Palette::unpixelate(Pixel index, unsigned char &r,
       b = mi->second.blue  >> 8;
       return;
     }
-    cout << "bad index = " << index << endl;
+    //cout << "bad index = " << index << endl;
     r = (index&gaPtr->PRedMask()) >> gaPtr->PRedShift();
     g = (index&gaPtr->PGreenMask()) >> gaPtr->PGreenShift();
     b = (index&gaPtr->PBlueMask()) >> gaPtr->PBlueShift();

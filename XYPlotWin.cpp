@@ -756,7 +756,6 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
   new_item->pixel = AllAttrs[j].pixelValue;
 
   // Append this new list to our data set list.
-  cout << "+++++++++++++++++++++++++++++++ numItems = " << numItems << endl;
   new_item->frame =
     XtVaCreateManagedWidget("frame", xmFrameWidgetClass,
 			    wLegendButtons,
@@ -765,8 +764,6 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
 			    XmNtopShadowColor,    foregroundPix,
 			    XmNbottomShadowColor, foregroundPix,
 			    //XmNtopAttachment,     XmATTACH_WIDGET,
-			    //XmNtopAttachment,     ((numItems == 1) ?
-			                          //XmATTACH_FORM : XmATTACH_WIDGET),
 			    XmNtopOffset,         0,
 			    NULL);
 
