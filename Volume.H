@@ -8,16 +8,21 @@
 
 #define SWF_HEADER	62			/* bytes of header in file */
 
-#define LIGHTING 0
+//#define LIGHTING 0
 //#define LIGHTING 1
 
-#if LIGHTING
+//#if LIGHTING
 
   typedef struct {		/* contents of a voxel */
     short normal;			/*   encoded surface normal vector */
+      //the short is unused in the non-lighting model
     unsigned char density;	/*   original density */
     unsigned char gradient;	/*   original gradient */
+      //gradient becomes the normal in the non-lighting model
   } RawVoxel;
+
+
+
 
 # define VOXEL_FIELDS	3	/* number of fields in voxel */
 
@@ -37,26 +42,33 @@
 //# define GRADIENT_MAX	VP_GRAD_MAX
 # define GRADIENT_MAX	255
 
-#else
+// #else
 
-  typedef struct {
-    unsigned char normal;
-    unsigned char density;
-  } RawVoxel;
+//   typedef struct {		/* contents of a voxel */
+//     short normal;			/*   encoded surface normal vector */
+//     unsigned char density;	/*   original density */
+//     unsigned char gradient;	/*   original gradient */
+//   } RawVoxel;
 
-# define VOXEL_FIELDS	2
 
-# define NORMAL_FIELD	0
-# define NORMAL_OFFSET	vpFieldOffset(dummy_voxel, normal)
-# define NORMAL_SIZE	sizeof(unsigned char)
-# define NORMAL_MAX	255
+// typedef struct {
+//     unsigned char normal;
+//     unsigned char density;
+//   } RawVoxel;
 
-# define DENSITY_FIELD	1
-# define DENSITY_OFFSET	vpFieldOffset(dummy_voxel, density)
-# define DENSITY_SIZE	sizeof(unsigned char)
-# define DENSITY_MAX	255
+// # define VOXEL_FIELDS	2
 
-#endif
+// # define NORMAL_FIELD	0
+// # define NORMAL_OFFSET	vpFieldOffset(dummy_voxel, normal)
+// # define NORMAL_SIZE	sizeof(unsigned char)
+// # define NORMAL_MAX	255
+
+// # define DENSITY_FIELD	1
+// # define DENSITY_OFFSET	vpFieldOffset(dummy_voxel, density)
+// # define DENSITY_SIZE	sizeof(unsigned char)
+// # define DENSITY_MAX	255
+
+// #endif
 
 
 #define DENSITY_PARAM		0		/* classification parameters */

@@ -31,6 +31,8 @@ const int SETRANGEFRAME  = 2;
 const int PLOTFRAME      = 3;
 const int CONTROLSFRAME  = 4;
 
+
+
 // -------------------------------------------------------------------
 PltApp::~PltApp() {
 
@@ -176,7 +178,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 	animating2d(isAnim),
 	currentFrame(pltParent->currentFrame),
         palFilename(palfile)
-//>>>>>>> 1.16
 {
   char header[BUFSIZ];
 
@@ -274,7 +275,8 @@ void PltApp::PltAppInit() {
   for(np = 0; np < NPLANES; np++) {
     amrPicturePtrArray[np]->SetRegion(startX, startY, endX, endY);
   }
-
+  lightingModel = true;
+  showing3dRender = false;
   char tempFormat[32];
   strcpy(tempFormat, PltApp::initialFormatString.c_str());
   XmString sFormatString = XmStringCreateSimple(tempFormat);
@@ -395,34 +397,42 @@ void PltApp::PltAppInit() {
 
 // ****************************************** Derive Menu
 
-  int derived;
-  numberOfDerived = dataServicesPtr[currentFrame]->NumDeriveFunc();
+  int numberOfDerived = dataServicesPtr[currentFrame]->NumDeriveFunc();
+  //numberOfDerived++;
   derivedStrings  = dataServicesPtr[currentFrame]->PlotVarNames();
 
   XmStringTable derivedStringList;
   derivedStringList = (XmStringTable)
 			XtMalloc(numberOfDerived * sizeof (XmString *));
 
-  i=0;
-  wDerivedOptions = XmCreatePulldownMenu(wAmrVisMenu, "derivedoptions", args, i);
+  wDerivedOptions = XmCreatePulldownMenu(wAmrVisMenu, "derivedoptions",args,0);
   XtVaSetValues(wDerivedOptions, XmNuserData, this, NULL);
 
   wDerivedItems.resize(numberOfDerived);
   int cderived = 0;
-  for(derived=0; derived<numberOfDerived; derived++) {
+  for(int derived=0; derived<numberOfDerived; derived++) {
     if(derivedStrings[derived] == currentDerived) {
       cderived = derived;
     }
     char tempDerived[256];
     strcpy(tempDerived, derivedStrings[derived].c_str());
     derivedStringList[derived] = XmStringCreateSimple(tempDerived);
-    i=0;
-    XtSetArg(args[i], XmNlabelString, derivedStringList[derived]);  i++;
+    XtSetArg(args[0], XmNlabelString, derivedStringList[derived]);
     wDerivedItems[derived] = XmCreatePushButtonGadget(wDerivedOptions,
-			                  tempDerived, args, i);
+			                  tempDerived, args, 1);
     XtAddCallback(wDerivedItems[derived], XmNactivateCallback,
 		      &PltApp::CBChangeDerived, (XtPointer) derived);
   }
+
+ //    char tempDerived[256];
+//     strcpy(tempDerived, "more...");
+//     derivedStringList[derived] = XmStringCreateSimple(tempDerived);
+//     XtSetArg(args[0], XmNlabelString, derivedStringList[derived]);
+//     wDerivedItems[derived] = XmCreateCascadeButton(wDerivedOptions,
+  //		                  tempDerived, args, 1);
+//    XtAddCallback(wDerivedItems[derived], XmNactivateCallback,
+//		      &PltApp::CBChangeDerived, (XtPointer) derived);
+
   XtManageChildren(wDerivedItems.dataPtr(), numberOfDerived);
 
   i=0;
@@ -512,7 +522,6 @@ void PltApp::PltAppInit() {
   AddStaticCallback(wBoxesButton, XmNvalueChangedCallback, &PltApp::DoBoxesButton);
   XmToggleButtonSetState(wBoxesButton, GetShowBoxes(), false);
   
-
 // ****************************************** Output Menu 
   i=0;
   XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
@@ -554,7 +563,78 @@ void PltApp::PltAppInit() {
   AddStaticCallback(wFABFileButton, XmNactivateCallback, &PltApp::DoOutput);
 
   XtManageChild(wOutputMenuBar);
+// ****************************************** Level Menu
+# if (BL_SPACEDIM == 3)
+  i=0;
+  wLightOptions = XmCreatePulldownMenu(wAmrVisMenu,"lightingoptions", args, i);
+  XtVaSetValues(wLightOptions, XmNuserData, this, NULL);
+  XmString LightItems[2];
+  LightItems[0] = XmStringCreateSimple("Light");
+  LightItems[1] = XmStringCreateSimple("Value");
+  
 
+  for(int j = 0; j<2; j++)
+  {
+    XtSetArg(args[0], XmNlabelString, LightItems[j]);
+    wLightItems[j] = XmCreatePushButtonGadget(wLightOptions,
+                                              "light", args, 1);
+    XtAddCallback(wLightItems[j], XmNactivateCallback,
+		  &PltApp::CBRenderModeMenu, (XtPointer)j);
+  }
+  XmStringFree(LightItems[0]); XmStringFree(LightItems[1]);
+  XtManageChildren(wLightItems, 2);
+  
+
+
+  i=0;
+  XtSetArg(args[i], XmNsubMenuId, wLightOptions); i++;
+  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
+  XtSetArg(args[i], XmNtopOffset, 2);      i++;
+  XtSetArg(args[i], XmNleftWidget, wOutputMenu);      i++;
+  XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET);      i++;
+  XtSetArg(args[i], XmNleftOffset, 0);      i++;
+  XtSetArg(args[i], XmNmenuHistory, wLightItems[0]);  i++;
+  wLight = XmCreateOptionMenu(wAmrVisMenu, "Lightmenu", args, i);
+
+
+  // set this string to "" for cray
+  XmString newLtring = XmStringCreateSimple("");
+  XtVaSetValues(XmOptionLabelGadget(wLight),
+                XmNlabelString, newLtring,
+                NULL);
+  XmStringFree(newLtring);
+
+# endif
+// ****************************************** Lighting Menu
+/*
+# if (BL_SPACEDIM == 3)
+  i=0;
+  XmString sLight;
+  sLight = XmStringCreateSimple("Render Mode:");
+  XmString light_mode = XmStringCreateSimple("Light");
+  XmString value_mode = XmStringCreateSimple("Value");
+  wLight = XmVaCreateSimpleOptionMenu(wAmrVisMenu, "lighting",
+                       sLight, 0 , 0, CBRenderModeMenu,
+                       XmVaPUSHBUTTON, light_mode, NULL, NULL, NULL,
+                       XmVaPUSHBUTTON, value_mode, NULL, NULL, NULL,
+                                      XmNtopAttachment, XmATTACH_FORM,
+                                      XmNtopOffset, WOFFSET, 
+                                      XmNbottomAttachment, XmATTACH_FORM, 
+                                      XmNbottomOffset, WOFFSET, 
+                                      XmNleftWidget, wOutputMenu, 
+                                      XmNleftAttachment, XmATTACH_WIDGET, 
+                                      XmNleftOffset, WOFFSET,
+                                      NULL);
+  XtVaSetValues(wLight, XmNuserData, this, NULL);
+     
+  XmStringFree(light_mode);
+  XmStringFree(value_mode);
+  XmStringFree(sLight);
+  
+  XtManageChild(wLight);
+   
+# endif
+*/
 // ****************************************** wPicArea
 
   wPicArea = XtVaCreateWidget("picarea", xmFormWidgetClass, wControlArea,
@@ -760,6 +840,7 @@ void PltApp::PltAppInit() {
     XtManageChild(wLabelAxes);
 
 #ifdef BL_VOLUMERENDER
+
     i=0;
     XmString sRender = XmStringCreateSimple("Draw");
     XtSetArg(args[i], XmNlabelString, sRender); i++;
@@ -770,7 +851,6 @@ void PltApp::PltAppInit() {
     XtSetArg(args[i], XmNtopPosition, 50); i++;
     wRender = XmCreatePushButton(wPlotArea, "render", args, i);
     XmStringFree(sRender);
-
     AddStaticCallback(wRender, XmNactivateCallback, &PltApp::DoRender);
     XtManageChild(wRender);
 
@@ -787,6 +867,7 @@ void PltApp::PltAppInit() {
     XmStringFree(sAutoDraw);
     AddStaticCallback(wAutoDraw, XmNvalueChangedCallback, &PltApp::DoAutoDraw);
     XtManageChild(wAutoDraw);
+
 
     i=0;
     XmString sReadTrans = XmStringCreateSimple("Trans");
@@ -1029,7 +1110,7 @@ void PltApp::PltAppInit() {
 
 
 // ***************************************************************** 
-    
+
   XtManageChild(wScaleMenu);
   XtManageChild(wLevelMenu);
   XtManageChild(wDerivedMenu);
@@ -1039,17 +1120,17 @@ void PltApp::PltAppInit() {
   XtManageChild(wPaletteButton);
   XtManageChild(wSetRangeButton);
   XtManageChild(wBoxesButton);
+  XtManageChild(wLight);
   XtManageChild(wPicArea);
   XtManageChild(wPalArea);
   XtManageChild(wPlotArea);
   XtPopup(wAmrVisTopLevel, XtGrabNone);
-  XSync(XtDisplay(wTopLevel), false);
+//  XSync(XtDisplay(wTopLevel), false);
   int palListLength = PALLISTLENGTH;
   int palWidth = PALWIDTH;
   int palHeight = PALHEIGHT;
   int totalPalWidth = TOTALPALWIDTH;
   int totalPalHeight = TOTALPALHEIGHT;
-
   pltPaletteptr = new Palette(wTopLevel, palListLength, palWidth, palHeight,
 			      totalPalWidth, totalPalHeight, 
 			      reserveSystemColors);
@@ -1065,7 +1146,6 @@ void PltApp::PltAppInit() {
 #if (BL_SPACEDIM == 3)
     pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wTransDA));
 #endif
-
 #if (BL_SPACEDIM == 2)
   if(animating2d) {
     if(strcmp(derivedStrings[cderived].c_str(), "vol_frac") == 0) {
@@ -1147,7 +1227,6 @@ void PltApp::PltAppInit() {
 		(XtPointer) this);
     DoTransResize(wTransDA, NULL, NULL);
 #endif
-
   XtAddEventHandler(wPalArea, ExposureMask, false,
 	(XtEventHandler) CBDoExposePalette, (XtPointer) pltPaletteptr);
 
@@ -1155,7 +1234,6 @@ void PltApp::PltAppInit() {
         pltPaletteptr->GetColormap());
 
   interfaceReady = true;
-
     // gc for gxxor rubber band line drawing
     rbgc = XCreateGC(GAptr->PDisplay(), GAptr->PRoot(), 0, NULL);
     cursor = XCreateFontCursor(GAptr->PDisplay(), XC_left_ptr);
@@ -3235,5 +3313,6 @@ void PltApp::SetInitialWindowWidth(int initWindowWidth) {
 void PltApp::SetReserveSystemColors(int reservesystemcolors) {
   PltApp::reserveSystemColors = reservesystemcolors;
 }
+
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------

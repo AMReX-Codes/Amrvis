@@ -205,7 +205,7 @@ void ProjectionPicture::MakeSlices() {
 // -------------------------------------------------------------------
 void ProjectionPicture::MakePicture() {
 #ifdef BL_VOLUMERENDER
-  vpContext *vpc = volRender->GetVPContext();
+    vpContext *vpc = volRender->GetVPContext();
   vpResult        vpret;
   clock_t time0 = clock();
 
@@ -236,15 +236,18 @@ void ProjectionPicture::MakePicture() {
 			       -vpLen, vpLen);
   }
 
-# if LIGHTING
+//# if LIGHTING
+  if(volRender->GetLightingModel()) {
   vpret = vpShadeTable(vpc);
   CheckVP(vpret, 12);
   vpret = vpRenderClassifiedVolume(vpc);   // --- render
   CheckVP(vpret, 13);
-#else
+  } else {
+//#else
   vpret = vpRenderRawVolume(vpc);    // --- render
   CheckVP(vpret, 11);
-#endif
+  }
+//#endif
 
   // map imageData colors to colormap range
   Palette *palPtr = pltAppPtr->GetPalettePtr();

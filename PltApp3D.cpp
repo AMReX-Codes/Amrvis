@@ -30,7 +30,7 @@ void PltApp::DoExposeTransDA() {
 
 // -------------------------------------------------------------------
 void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
-  Real temp;
+    Real temp;
   AmrQuaternion quatRotation, quatRotation2;
   AmrQuaternion newRotation, newRotation2;
 #ifdef BL_VOLUMERENDER
@@ -70,8 +70,9 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
     if(XmToggleButtonGetState(currentAutoDraw)) {
       DoRender(w, NULL, NULL);
     } else {
-      projPicturePtr->MakeBoxes();
-      XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
+        if (showing3dRender) showing3dRender = false;
+        projPicturePtr->MakeBoxes();
+        XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
     }
 #else
       projPicturePtr->MakeBoxes();
@@ -105,6 +106,7 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
     if(XmToggleButtonGetState(currentAutoDraw)) {
       DoRender(w, NULL, NULL);
     } else {
+        if (showing3dRender) showing3dRender = false;
       projPicturePtr->MakeBoxes();
       XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
     }
@@ -137,6 +139,7 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
     if(XmToggleButtonGetState(currentAutoDraw)) {
       DoRender(w, NULL, NULL);
     } else {
+        if (showing3dRender) showing3dRender = false;
       projPicturePtr->MakeBoxes();
       XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
     }
@@ -399,6 +402,7 @@ void PltApp::DoTransResize(Widget w, XtPointer, XtPointer) {
   if(XmToggleButtonGetState(currentAutoDraw)) {
     DoRender(w, NULL, NULL);
   } else {
+        if (showing3dRender) showing3dRender = false;
     projPicturePtr->MakeBoxes();
   }
 #else
@@ -421,6 +425,7 @@ void PltApp::DoReadTransferFile(Widget, XtPointer, XtPointer) {
     return;
   }
   if(volRender->VPDataValid()) {
+      cout<<"\thave valid VPData"<<endl;
     volRender->MakeVPData();    // reclassify the data
   }
   projPicturePtr->MakePicture();
@@ -447,25 +452,19 @@ void PltApp::Clear() {
 void PltApp::DoAutoDraw(Widget w, XtPointer, XtPointer) {
 #ifdef BL_VOLUMERENDER
     Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
-  /*  if (transDetached) 
-        XmToggleButtonSetState(wAutoDraw,
-                               XmToggleButtonGetState(wDAutoDraw),
-                               false);
-    else
-        XmToggleButtonSetState(wDAutoDraw,
-                               XmToggleButtonGetState(wAutoDraw),
-                               false);                               */
     if(XmToggleButtonGetState(currentAutoDraw)) {
         DoRender(w, NULL, NULL);
     } else {
+        if (showing3dRender) showing3dRender = false;
         projPicturePtr->MakeBoxes();
     }
-    XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
-    DoExposeTransDA();
+    // XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
+    // DoExposeTransDA();
 #endif
 }
 
 // -------------------------------------------------------------------
+
 void PltApp::DoOrient(Widget w, XtPointer, XtPointer) {
     viewTrans.SetRotation(AmrQuaternion());
     viewTrans.SetRenderRotation(AmrQuaternion());
@@ -475,7 +474,8 @@ void PltApp::DoOrient(Widget w, XtPointer, XtPointer) {
   if(XmToggleButtonGetState(currentAutoDraw)) {
     DoRender(w, NULL, NULL);
   } else {
-    projPicturePtr->MakeBoxes();
+        if (showing3dRender) showing3dRender = false;
+        projPicturePtr->MakeBoxes();
   }
 #else
     projPicturePtr->MakeBoxes();
@@ -486,11 +486,44 @@ void PltApp::DoOrient(Widget w, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
+void PltApp::SetLightingModel() {
+    lightingModel = true;
+    projPicturePtr->GetVolRenderPtr()->SetLightingModel(true);
+}
+
+void PltApp::SetValueModel() {
+    lightingModel = false;
+    projPicturePtr->GetVolRenderPtr()->SetLightingModel(false);
+}
+
 void PltApp::CBTransInput(Widget w, XtPointer client_data, XtPointer call_data) {
   PltApp *obj = (PltApp *) client_data;
   obj->DoTransInput(w, client_data, (XmDrawingAreaCallbackStruct *) call_data);
 }
 
+void PltApp::CBRenderModeMenu(Widget w, XtPointer item_no, XtPointer client_data) {
+    unsigned long getobj;
+    XtVaGetValues(XtParent(w), XmNuserData, &getobj, NULL);
+    PltApp *obj = (PltApp *) getobj;
+    
+    obj->DoRenderModeMenu(w, item_no, client_data);
+}
+
+void PltApp::DoRenderModeMenu(Widget w, XtPointer item_no, XtPointer client_data) {
+    if(item_no == (XtPointer)0) { //Use Lighting model
+        if (lightingModel)
+            return;
+        SetLightingModel();
+    } else if (item_no == (XtPointer)1) { //Use Value model
+        if (!lightingModel)
+            return;
+        SetValueModel();
+    }
+    projPicturePtr->GetVolRenderPtr()->InvalidateVPData();
+    if (XmToggleButtonGetState(wAutoDraw)||showing3dRender) {
+        DoRender(w, NULL, NULL);
+    }
+}
 
 // -------------------------------------------------------------------
 void PltApp::DoLabelAxes(Widget, XtPointer, XtPointer) {
@@ -529,6 +562,7 @@ void PltApp::DoRender(Widget w, XtPointer, XtPointer) {
   //if( ! projPicturePtr->SWFDataAllocated()) {
     //projPicturePtr->AllocateSWFData();
   //}
+  if (!showing3dRender) showing3dRender = true;
   Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
   VolRender *volRender = projPicturePtr->GetVolRenderPtr();
   if( ! volRender->SWFDataValid()) {
@@ -550,7 +584,7 @@ void PltApp::DoRender(Widget w, XtPointer, XtPointer) {
     volRender->MakeVPData();
   }
   if( ! XmToggleButtonGetState(currentAutoDraw)) {
-    projPicturePtr->MakeBoxes();
+//    projPicturePtr->MakeBoxes();
   }
   projPicturePtr->MakePicture();
   projPicturePtr->DrawPicture();

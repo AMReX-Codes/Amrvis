@@ -41,21 +41,44 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
   swfDataValid    = false;
   swfDataAllocated = false;
 
+
+  voxelFields = 3;
+
+  //LightingModel variables:
+  normalField = 0;
+  normalOffset = vpFieldOffset(dummy_voxel, normal);
+  normalSize = sizeof(short);
+  normalMax = VP_NORM_MAX;
+
+  densityField = 1;
+  densityOffset = vpFieldOffset(dummy_voxel, density);
+  densitySize = sizeof(unsigned char);
+  densityMax = 255;
+
+  gradientField = 2;
+  gradientOffset = vpFieldOffset(dummy_voxel, gradient);
+  gradientSize = sizeof(unsigned char);
+  gradientMax = 255;
+
+  lightingModel = true;
+
   if(ParallelDescriptor::IOProcessor()) {
     // must initialize vpc before calling ReadTransferFile
     vpc = vpCreateContext();
 
-    maxDenRampPts   = DENSITY_MAX  + 1;
-    maxShadeRampPts = NORMAL_MAX   + 1;
+    maxDenRampPts   = densityMax  + 1;
+    maxShadeRampPts = normalMax   + 1;
     density_ramp    = new float[maxDenRampPts];
     shade_table     = new float[maxShadeRampPts];
 
-#if LIGHTING
-    maxGradRampPts = GRADIENT_MAX + 1;
+//#if LIGHTING
+    if (lightingModel) {
+    maxGradRampPts = gradientMax + 1;
     gradient_ramp  = new float[maxGradRampPts];
     gradientRampX  = NULL;
     gradientRampY  = NULL;
-#endif
+    }
+//#endif
 
     densityRampX  = NULL;
     densityRampY  = NULL;
@@ -449,15 +472,18 @@ void VolRender::WriteSWFData(const aString &filenamebase) {
   if(ParallelDescriptor::IOProcessor()) {
     cout << "vpClassifyScalars..." << endl;           // --- classify
     clock_t time0 = clock();
-#if LIGHTING
+//#if LIGHTING
+    if (lightingModel) {
     vpret = vpClassifyScalars(vpc, swfData, swfDataSize,
-                      DENSITY_FIELD, GRADIENT_FIELD, NORMAL_FIELD);
+                      densityField, gradientField, normalField);
     CheckVP(vpret, 3);
-#else
+    } else {
+//#else
     MakeVPData();
     vpret = vpClassifyVolume(vpc);
     CheckVP(vpret, 9.501);
-#endif
+    }
+//#endif
 
     cout << "----- make vp data time = " << ((clock()-time0)/1000000.0) << endl;
     aString filename = "swf.";
@@ -493,6 +519,32 @@ void VolRender::InvalidateVPData() {
     vpDataValid = false;
 }
 
+void VolRender::SetLightingModel(bool lightOn) {
+    if (lightingModel == lightOn)
+        return;
+    lightingModel = lightOn;
+    if (lightingModel) {
+        normalField = 0;
+        normalOffset = vpFieldOffset(dummy_voxel, normal);
+        normalSize = sizeof(short);
+        normalMax = VP_NORM_MAX;
+        /*gradientField = 2;
+        gradientOffset = vpFieldOffset(dummy_voxel, gradient);
+        gradientSize = sizeof(unsigned char);
+        gradientMax = 255;*/
+    } else {    
+        normalField = 2;
+        normalOffset = vpFieldOffset(dummy_voxel, normal);
+        normalSize = sizeof(unsigned char);
+        normalMax = 255;
+        /* gradientField = 0;   // this will be unused
+        gradientOffset = vpFieldOffset(dummy_voxel, gradient);
+        gradientSize = sizeof(short);
+        gradientMax = VP_NORM_MAX;      */
+    }
+    //MakeVPData();
+    //call make picture, or whatever draw does
+}
 
 // -------------------------------------------------------------------
 void VolRender::MakeVPData() {
@@ -505,21 +557,21 @@ void VolRender::MakeVPData() {
 
     cout << "vpClassifyScalars..." << endl;           // --- classify
 
-# if LIGHTING
+    if (lightingModel) {
     vpret = vpClassifyScalars(vpc, swfData, swfDataSize,
-                      DENSITY_FIELD, GRADIENT_FIELD, NORMAL_FIELD);
+                      densityField, gradientField, normalField);
     CheckVP(vpret, 6);
-# endif
+    }
 
     // --- set the shading parameters
 
-#if LIGHTING
-    vpret = vpSetLookupShader(vpc, 1, 1, NORMAL_FIELD, shade_table,
+    if (lightingModel) {
+    vpret = vpSetLookupShader(vpc, 1, 1, normalField, shade_table,
                               maxShadeRampPts * sizeof(float), 0, NULL, 0);
     CheckVP(vpret, 7);
-    vpSetMaterial(vpc, VP_MATERIAL0, VP_AMBIENT,   VP_BOTH_SIDES, 0.28, 0.28, 0.28);
-    vpSetMaterial(vpc, VP_MATERIAL0, VP_DIFFUSE,   VP_BOTH_SIDES, 0.35, 0.35, 0.35);
-    vpSetMaterial(vpc, VP_MATERIAL0, VP_SPECULAR,  VP_BOTH_SIDES, 0.39, 0.39, 0.39);
+    vpSetMaterial(vpc, VP_MATERIAL0, VP_AMBIENT, VP_BOTH_SIDES, 0.28, 0.28, 0.28);
+    vpSetMaterial(vpc, VP_MATERIAL0, VP_DIFFUSE, VP_BOTH_SIDES, 0.35, 0.35, 0.35);
+    vpSetMaterial(vpc, VP_MATERIAL0, VP_SPECULAR, VP_BOTH_SIDES, 0.39, 0.39, 0.39);
     vpSetMaterial(vpc, VP_MATERIAL0, VP_SHINYNESS, VP_BOTH_SIDES, 10.0,  0.0, 0.0);
 
     vpSetLight(vpc, VP_LIGHT0, VP_DIRECTION, 0.3, 0.3, 1.0);
@@ -533,11 +585,11 @@ void VolRender::MakeVPData() {
     // --- compute shading lookup table
     vpret = vpShadeTable(vpc);
     CheckVP(vpret, 8);
-
-#else
+    } else {
+//#else
     for(int sn=0; sn<maxShadeRampPts; sn++) {
       //shade_table[sn] = (float)sn;
-      //shade_table[sn] = (float)(sn*((float)DENSITY_MAX/(float)NORMAL_MAX));
+      //shade_table[sn] = (float)(sn*((float)densityMAX/(float)normalMAX));
       shade_table[sn] = 140.0;
     }
     //shade_table[0] = 255.0;
@@ -550,7 +602,7 @@ void VolRender::MakeVPData() {
     SHOWVAL(minf);
     SHOWVAL(maxf);
 
-    //vpret = vpSetLookupShader(vpc, 1, 1, NORMAL_FIELD, shade_table,
+    //vpret = vpSetLookupShader(vpc, 1, 1, normalField, shade_table,
                               //maxShadeRampPts * sizeof(float), 0, NULL, 0);
     //CheckVP(vpret, 9);
     vpret = vpSetCallback(vpc, VP_GRAY_SHADE_FUNC, ShadeFunc);
@@ -568,13 +620,13 @@ void VolRender::MakeVPData() {
     vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
 			   xStride, yStride, zStride);
     CheckVP(vpret, 9.4);
+
     for(int vindex = 0; vindex<swfDataSize; vindex++) {
       volData[vindex].normal  = swfData[vindex];
       volData[vindex].density = swfData[vindex];
     }
     vpret = vpClassifyVolume(vpc);
-    CheckVP(vpret, 9.5);
-
+   CheckVP(vpret, 9.5);
     vpSetMaterial(vpc, VP_MATERIAL0, VP_AMBIENT, VP_BOTH_SIDES, 1.00, 1.00, 1.00);
     //vpSetMaterial(vpc, VP_MATERIAL0, VP_AMBIENT,   VP_BOTH_SIDES, 0.28, 0.28, 0.28);
     //vpSetMaterial(vpc, VP_MATERIAL0, VP_DIFFUSE,   VP_BOTH_SIDES, 0.35, 0.35, 0.35);
@@ -584,8 +636,8 @@ void VolRender::MakeVPData() {
     //vpEnable(vpc, VP_LIGHT0, 1);
 
     vpSeti(vpc, VP_CONCAT_MODE, VP_CONCAT_LEFT);
-#endif
-
+//#endif
+    }
     cout << "----- make vp data time = " << ((clock()-time0)/1000000.0) << endl;
   }
 
@@ -595,13 +647,15 @@ void VolRender::MakeVPData() {
 // -------------------------------------------------------------------
 void VolRender::ReadTransferFile(const aString &rampFileName) {
   int n;
-
+  bool savedLightModel = lightingModel;
+  if ( ! savedLightModel)
+      SetLightingModel(true);
   if(densityRampX  != NULL) { delete [] densityRampX;  }
   if(densityRampY  != NULL) { delete [] densityRampY;  }
-#if LIGHTING
+  if (lightingModel) {
   if(gradientRampX != NULL) { delete [] gradientRampX; }
   if(gradientRampY != NULL) { delete [] gradientRampY; }
-#endif
+  }
 
   ifstream istrans;
   istrans.open(rampFileName.c_str());
@@ -615,19 +669,18 @@ void VolRender::ReadTransferFile(const aString &rampFileName) {
     nDenRampPts = 2;
     densityRampX  = new int[nDenRampPts];
     densityRampY  = new float[nDenRampPts];
-#if LIGHTING
+    if (lightingModel) {
     nGradRampPts = 2;
     gradientRampX = new int[nDenRampPts];
     gradientRampY = new float[nDenRampPts];
-#endif
-
+    }
     densityRampX[0] = 0;    densityRampX[1] = 255;
     densityRampY[0] = 0.0;  densityRampY[1] = 1.0;
 
-#if LIGHTING
+    if (lightingModel) {
     gradientRampX[0] = 0;    gradientRampX[1] = 255;
     gradientRampY[0] = 0.0;  gradientRampY[1] = 1.0;
-#endif
+    }
 
     minRayOpacity = 0.05;
     maxRayOpacity = 0.95;
@@ -652,7 +705,8 @@ void VolRender::ReadTransferFile(const aString &rampFileName) {
     }
 
     istrans >> nGradRampPts;
-#if LIGHTING
+
+    if (lightingModel) {
     gradientRampX = new int[nGradRampPts];
     gradientRampY = new float[nGradRampPts];
 
@@ -664,42 +718,46 @@ void VolRender::ReadTransferFile(const aString &rampFileName) {
     }
     istrans >> minRayOpacity;
     istrans >> maxRayOpacity;
-#endif
+    }
   }
 
-#if ( ! LIGHTING)
+  if (! lightingModel) {
   classifyFields = 1;
   shadeFields    = 1;
   minRayOpacity = 0.05;
   maxRayOpacity = 0.95;
-#endif
-
-  vpret = vpSetVoxelSize(vpc, BYTES_PER_VOXEL, VOXEL_FIELDS,
+  }
+  vpret = vpSetVoxelSize(vpc, BYTES_PER_VOXEL, voxelFields,
                         shadeFields, classifyFields);
   CheckVP(vpret, 14);
-  vpSetVoxelField(vpc, NORMAL_FIELD, NORMAL_SIZE, NORMAL_OFFSET, maxShadeRampPts-1);
-  vpSetVoxelField(vpc, DENSITY_FIELD, DENSITY_SIZE, DENSITY_OFFSET, DENSITY_MAX);
-#if LIGHTING
-  vpSetVoxelField(vpc, GRADIENT_FIELD, GRADIENT_SIZE, GRADIENT_OFFSET,
-                  GRADIENT_MAX);
-#endif
+  vpSetVoxelField(vpc,  normalField, normalSize, normalOffset,
+                  maxShadeRampPts-1);
+  vpSetVoxelField(vpc, densityField, densitySize, densityOffset,
+                  densityMax);
+
+  if (lightingModel) {
+  vpSetVoxelField(vpc, gradientField, gradientSize, gradientOffset,
+                  gradientMax);
+  }
 
   vpRamp(density_ramp, sizeof(float), nDenRampPts, densityRampX, densityRampY);
-  vpSetClassifierTable(vpc, DENSITY_PARAM, DENSITY_FIELD,
+  vpSetClassifierTable(vpc, DENSITY_PARAM, densityField,
                          density_ramp, maxDenRampPts * sizeof(float));
 
-#if LIGHTING
+  if (lightingModel) {
   if(classifyFields == 2) {
     vpRamp(gradient_ramp, sizeof(float), nGradRampPts,
            gradientRampX, gradientRampY);
-    vpSetClassifierTable(vpc, GRADIENT_PARAM, GRADIENT_FIELD,
+    vpSetClassifierTable(vpc, GRADIENT_PARAM, gradientField,
                          gradient_ramp, maxGradRampPts * sizeof(float));
   }
-#endif
+  }
 
   vpSetd(vpc, VP_MIN_VOXEL_OPACITY, minRayOpacity);
   vpSetd(vpc, VP_MAX_RAY_OPACITY,   maxRayOpacity);
 
+  if ( ! savedLightModel)
+      SetLightingModel(false);
 }  // end ReadTransferFile
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------

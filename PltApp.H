@@ -86,11 +86,14 @@ public:
 	static void	CBUpdateFrame(XtPointer, XtIntervalId *);
 	static void	CBToggleRange(Widget, XtPointer, XtPointer);
 	static void	CBChangePlane(Widget, XtPointer, XtPointer);
-
 #if (BL_SPACEDIM==3)
-	static void	CBTransResize(Widget, XtPointer, XtPointer);
+        static void     CBRenderModeMenu(Widget, XtPointer, XtPointer);
+        static void	CBTransResize(Widget, XtPointer, XtPointer);
 	static void	CBTransInput(Widget, XtPointer, XtPointer);
 
+        void            DoRenderModeMenu(Widget, XtPointer, XtPointer);
+        void            SetLightingModel();
+        void            SetValueModel();
 	void		DoAutoDraw(Widget, XtPointer, XtPointer);
 	void		DoExposeTransDA();
 	void		DoReadTransferFile(Widget, XtPointer, XtPointer);
@@ -103,6 +106,7 @@ public:
 	void		DoDetach(Widget, XtPointer, XtPointer);
 	void		Clear();
 #endif
+
 
 	void		DoUpdateFrame();
 	void		DoSpeedScale(XmScaleCallbackStruct *);
@@ -209,13 +213,13 @@ private:
 	Range		rangeType;
 	bool		animating2d, setRangeShowing, datasetShowing, paletteDrawn;
         bool            showBoxes;
+        bool            lightingModel, showing3dRender;
 	int		minDrawnLevel, maxDrawnLevel;
 	int		minDataLevel,  maxDataLevel;
 	aString		fileName, palFilename;
 	Array<aString>	fileNames, derivedStrings;
 	char		buffer[BUFSIZ];
 	aString		formatString;
-	int		numberOfDerived;
 	int		XYyz, XYxz, XZxy, XZyz, YZxz, YZxy;
 	int		servingButton, activeView;
 	int		startX, startY, endX, endY;
@@ -267,7 +271,7 @@ private:
 	Widget		wTransDA, wRender, wLabelAxes, wOrient;
 	Widget		wDetachTopLevel, wDetachForm, wDetachWindowForm;
 	Widget		wAttach, wDRender, wDLabelAxes, wDOrient;
-	Widget		wAutoDraw, wDAutoDraw;
+    Widget		wAutoDraw, wDAutoDraw, wLight, wLightItems[2], wLightOptions;
 	Widget		wReadTransfer, wDReadTransfer;
 	int		daWidth, daHeight;
 	int		acc, labelAxes, transDetached;
