@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.50 2000-10-05 20:03:40 vince Exp $
+// $Id: AmrPicture.cpp,v 1.51 2000-10-09 23:55:53 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -50,7 +50,6 @@ AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
   }
   showBoxes = PltApp::GetDefaultShowBoxes();
 
-cout << "+++++++++++++++++++++++++++++++++++++++ in ap::ap:  showBoxes = " << (int) showBoxes << endl;
   finestLevel = amrData.FinestLevel();
   maxAllowableLevel =
           DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
@@ -725,9 +724,7 @@ void AmrPicture::SyncPicture() {
 
 // ---------------------------------------------------------------------
 void AmrPicture::ToggleBoxes() {
-cout << "+++++++++++++++++++++++++++++++++++++++ in ap::togbox:  showBoxes = " << (int) showBoxes << endl;
   showBoxes = ! showBoxes;
-cout << "+++++ after +++++++++++++++++++++++++++ in ap::togbox:  showBoxes = " << (int) showBoxes << endl;
   DoExposePicture();
 }
 
