@@ -72,7 +72,7 @@ AmrQuaternion::AmrQuaternion(Real x1,Real y1,Real z1,Real x2,Real y2,Real z2)
 void AmrQuaternion::tomatrix( Real m[4][4] ) const
 {
     Real wx=w*x, wy=w*y, wz=w*z, xz=x*z, yz=y*z, xy=x*y;
-    Real ww=w*w, xx=x*x, yy=y*y, zz=z*z;
+    Real xx=x*x, yy=y*y, zz=z*z;
 
     m[0][0] = 1.-2.*(yy+zz);  m[0][1] = 2.*(xy-wz);    m[0][2] = 2.*(xz+wy);
     m[1][0] = 2.*(xy+wz);     m[1][1]= 1.-2.*(zz+xx);  m[1][2] = 2.*(yz-wx);

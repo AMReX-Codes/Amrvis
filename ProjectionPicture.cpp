@@ -205,8 +205,6 @@ void ProjectionPicture::MakeSlices() {
 // -------------------------------------------------------------------
 void ProjectionPicture::MakePicture() {
 #ifdef BL_VOLUMERENDER
-    vpContext *vpc = volRender->GetVPContext();
-  vpResult        vpret;
   clock_t time0 = clock();
 
   viewTransformPtr->GetScale(scale[XDIR], scale[YDIR], scale[ZDIR]);
@@ -214,41 +212,10 @@ void ProjectionPicture::MakePicture() {
 
   Real mvmat[4][4];
   viewTransformPtr->GetRenderRotationMat(mvmat);
-  vpCurrentMatrix(vpc, VP_MODEL);
-  vpIdentityMatrix(vpc);
-  //viewTransformPtr->ViewRotationMat();
-  vpSetMatrix(vpc, mvmat);
-
-
-
-  vpCurrentMatrix(vpc, VP_PROJECT);
-  vpIdentityMatrix(vpc);
-
-  lenRatio = longestWindowLength/(scale[longestBoxSideDir]*longestBoxSide);
-  vpLen = 0.5*lenRatio;
-  if(daWidth < daHeight) {    // undoes volpacks aspect ratio scaling
-    vpWindow(vpc, VP_PARALLEL, -vpLen*aspect, vpLen*aspect,
-			       -vpLen, vpLen,
-			       -vpLen, vpLen);
-  } else {
-    vpWindow(vpc, VP_PARALLEL, -vpLen, vpLen,
-			       -vpLen*aspect, vpLen*aspect,
-			       -vpLen, vpLen);
-  }
-
-//# if LIGHTING
-  if(volRender->GetLightingModel()) {
-  vpret = vpShadeTable(vpc);
-  CheckVP(vpret, 12);
-  vpret = vpRenderClassifiedVolume(vpc);   // --- render
-  CheckVP(vpret, 13);
-  } else {
-//#else
-  vpret = vpRenderRawVolume(vpc);    // --- render
-  CheckVP(vpret, 11);
-  }
-//#endif
-
+  volRender->MakePicture(mvmat, aspect, longestWindowLength,
+                         scale, longestBoxSideDir, longestBoxSide,
+                         daWidth, daHeight);
+ 
   // map imageData colors to colormap range
   Palette *palPtr = pltAppPtr->GetPalettePtr();
   if(palPtr->ColorSlots() != palPtr->PaletteSize()) {
@@ -441,9 +408,8 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
 
 #ifdef BL_VOLUMERENDER
   // --- set the image buffer
-  vpContext *vpc = volRender->GetVPContext();
-  vpSetImage(vpc, (unsigned char *)imageData, daWidth, daHeight,
-             daWidth, VP_LUMINANCE);
+  volRender->SetImage( (unsigned char *)imageData, daWidth, daHeight,
+                       VP_LUMINANCE);
 #endif
 
   longestWindowLength  = (Real) Max(daWidth, daHeight);

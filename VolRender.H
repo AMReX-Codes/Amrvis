@@ -35,7 +35,6 @@ private:
     int		minDrawnLevel, maxDataLevel;
     Array<Box>      drawnDomain;
     char		buffer[BUFSIZ];
-    Real 		scale[3], aspect, lenRatio, vpLen;
     int		nDenRampPts, nGradRampPts, nShadeRampPts;
     int		maxDenRampPts, maxGradRampPts, maxShadeRampPts;
     bool		bVolRenderDefined;
@@ -43,7 +42,6 @@ private:
     
 private:
     vpContext      *vpc;
-    vpResult	vpret;
     float *density_ramp;    // opacity as a function of density
     float *gradient_ramp;   // opacity as a function of grad magnitude
     float *shade_table;     // shading lookup table
@@ -51,7 +49,6 @@ private:
     unsigned char  *swfData;
     int             swfDataSize;
     bool		swfDataAllocated, vpDataValid, swfDataValid, vpCreated;
-    Real		xrotang, yrotang, zrotang;
     int		classifyFields, shadeFields;
     int		*densityRampX, *gradientRampX;
     float		*densityRampY, *gradientRampY;
@@ -67,6 +64,13 @@ public:
                                 int iPaletteStart, int iPaletteEnd,
                                 int iBlackIndex, int iWhiteIndex,
                                 int iColorSlots);
+    
+    void MakePicture(Real mvmat[4][4], Real Aspect, Real longWinLen,
+                     Real *scalePtr, int longBoxSideDir, 
+                     Real longBoxSide, int width, int height);
+    
+    void SetImage(unsigned char *image_data, int width, int height,
+                         int pixel_type);
     void            WriteSWFData(const aString &filenamebase);
     unsigned char  *GetSWFData()               { return swfData; }
     int             GetSWFDataSize()   const   { return swfDataSize; }
