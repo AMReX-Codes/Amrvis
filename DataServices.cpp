@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.38 2003-02-28 02:01:38 vince Exp $
+// $Id: DataServices.cpp,v 1.39 2003-03-12 07:40:56 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1014,7 +1014,7 @@ bool DataServices::CanDerive(const string &name) const {
 
 // ---------------------------------------------------------------
 // output the list of variables that can be derived
-void DataServices::ListDeriveFunc(ostream &os) const {
+void DataServices::ListDeriveFunc(std::ostream &os) const {
   if( ! bAmrDataOk) {
     return;
   }

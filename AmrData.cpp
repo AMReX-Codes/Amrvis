@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.64 2002-12-10 20:12:23 vince Exp $
+// $Id: AmrData.cpp,v 1.65 2003-03-12 07:40:56 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1464,7 +1464,7 @@ bool AmrData::CanDerive(const string &name) const {
 // ---------------------------------------------------------------
 // output the list of variables that can be derived
 // ---------------------------------------------------------------
-void AmrData::ListDeriveFunc(ostream &os) const {
+void AmrData::ListDeriveFunc(std::ostream &os) const {
    for(int i(0); i < plotVars.size(); ++i) {
      os << plotVars[i] << endl;
    }
@@ -1826,7 +1826,7 @@ void AmrData::PcInterp(FArrayBox &fine, const FArrayBox &crse,
 
 
 // ---------------------------------------------------------------
-FArrayBox *AmrData::ReadGrid(istream &is, int numVar) {
+FArrayBox *AmrData::ReadGrid(std::istream &is, int numVar) {
    long i, gstep;
    Real time;
    static int gridCount(0);
