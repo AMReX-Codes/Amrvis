@@ -121,12 +121,6 @@ endif
 
 ############################################### volume rendering
 ifeq ($(DIM),3)
-  ifeq ($(MACHINE), T3E)
-    USE_VOLRENDER = FALSE
-  endif
-  ifeq ($(MACHINE), AIX)
-    USE_VOLRENDER = FALSE
-  endif
   ifeq ($(USE_VOLRENDER), TRUE)
     DEFINES += -DBL_VOLUMERENDER
     #VOLPACKDIR = ../../volpack-1.0b3
