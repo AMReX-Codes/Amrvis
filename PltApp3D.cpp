@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.37 2001-04-16 16:41:22 vince Exp $
+// $Id: PltApp3D.cpp,v 1.38 2001-05-09 20:03:38 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -270,30 +270,30 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   Widget wDRender;
   wDRender = XtVaCreateManagedWidget("Draw", xmPushButtonWidgetClass,
-				     wDetachForm,
-				     XmNleftAttachment, XmATTACH_WIDGET,
-				     XmNleftWidget, wDLabelAxes,
-				     XmNleftOffset, WOFFSET,
-				     XmNtopAttachment, XmATTACH_FORM,
-				     XmNtopOffset, WOFFSET,
-				     NULL);
+			     wDetachForm,
+			     XmNleftAttachment, XmATTACH_WIDGET,
+			     XmNleftWidget, wDLabelAxes,
+			     XmNleftOffset, WOFFSET,
+			     XmNtopAttachment, XmATTACH_FORM,
+			     XmNtopOffset, WOFFSET,
+			     NULL);
   AddStaticCallback(wDRender, XmNactivateCallback, &PltApp::DoRender);
   XtManageChild(wDRender);
 #endif
 
   wTransDA = XtVaCreateManagedWidget("detachDA", xmDrawingAreaWidgetClass,
-				     wDetachForm,
-				     XmNtranslations, XtParseTranslationTable(trans),
-				     XmNleftAttachment,   XmATTACH_FORM,
-				     XmNleftOffset,	  WOFFSET,
-				     XmNtopAttachment,	  XmATTACH_WIDGET,
-				     XmNtopWidget,	  wDOrient,
-				     XmNtopOffset,	  WOFFSET,
-				     XmNrightAttachment,  XmATTACH_FORM,
-				     XmNrightOffset,	  WOFFSET,
-				     XmNbottomAttachment, XmATTACH_FORM,
-				     XmNbottomOffset,	  WOFFSET,
-				     NULL);
+			     wDetachForm,
+			     XmNtranslations, XtParseTranslationTable(trans),
+			     XmNleftAttachment,   XmATTACH_FORM,
+			     XmNleftOffset,	  WOFFSET,
+			     XmNtopAttachment,	  XmATTACH_WIDGET,
+			     XmNtopWidget,	  wDOrient,
+			     XmNtopOffset,	  WOFFSET,
+			     XmNrightAttachment,  XmATTACH_FORM,
+			     XmNrightOffset,	  WOFFSET,
+			     XmNbottomAttachment, XmATTACH_FORM,
+			     XmNbottomOffset,	  WOFFSET,
+			     NULL);
   projPicturePtr->SetDrawingArea(wTransDA);
 
   XtPopup(wDetachTopLevel, XtGrabNone);
@@ -320,19 +320,19 @@ void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
 #endif
   XtManageChild(wDetach);
   wTransDA = XtVaCreateManagedWidget("transDA", xmDrawingAreaWidgetClass,
-				     wPlotArea,
-				     XmNtranslations,	XtParseTranslationTable(trans),
-				     XmNleftAttachment,	XmATTACH_WIDGET,
-				     XmNleftWidget,	wScrollArea[XPLANE],
-				     XmNleftOffset,	WOFFSET,
-				     XmNtopAttachment,	XmATTACH_WIDGET,
-				     XmNtopWidget,		wOrient,
-				     XmNtopOffset,		WOFFSET,
-				     XmNrightAttachment,	XmATTACH_FORM,
-				     XmNrightOffset,		WOFFSET,
-				     XmNbottomAttachment,	XmATTACH_FORM,
-				     XmNbottomOffset,	WOFFSET,
-				     NULL);
+			     wPlotArea,
+			     XmNtranslations,	XtParseTranslationTable(trans),
+			     XmNleftAttachment,	XmATTACH_WIDGET,
+			     XmNleftWidget,	wScrollArea[XPLANE],
+			     XmNleftOffset,	WOFFSET,
+			     XmNtopAttachment,	XmATTACH_WIDGET,
+			     XmNtopWidget,		wOrient,
+			     XmNtopOffset,		WOFFSET,
+			     XmNrightAttachment,	XmATTACH_FORM,
+			     XmNrightOffset,		WOFFSET,
+			     XmNbottomAttachment,	XmATTACH_FORM,
+			     XmNbottomOffset,	WOFFSET,
+			     NULL);
   AddStaticCallback(wTransDA, XmNinputCallback, &PltApp::DoTransInput);
   AddStaticCallback(wTransDA, XmNresizeCallback, &PltApp::DoTransResize);
   AddStaticEventHandler(wTransDA, ExposureMask, &PltApp::DoExposeTransDA);
@@ -353,6 +353,22 @@ void PltApp::DoApplyLightingWindow(Widget, XtPointer, XtPointer) {
   Real minray = atof(XmTextFieldGetString(wLWminOpacity));
   Real maxray = atof(XmTextFieldGetString(wLWmaxOpacity));
   
+  if(0.0 > ambient || ambient > 1.0) {
+    cerr << "Error:  ambient value must be in the range (0.0, 1.0)." << endl;
+  }
+  if(0.0 > diffuse || diffuse > 1.0) {
+    cerr << "Error:  diffuse value must be in the range (0.0, 1.0)." << endl;
+  }
+  if(0.0 > specular || specular > 1.0) {
+    cerr << "Error:  specular value must be in the range (0.0, 1.0)." << endl;
+  }
+  if(0.0 > minray || minray > 1.0) {
+    cerr << "Error:  minray value must be in the range (0.0, 1.0)." << endl;
+  }
+  if(0.0 > maxray || maxray > 1.0) {
+    cerr << "Error:  maxray value must be in the range (0.0, 1.0)." << endl;
+  }
+
   if(0.0 > ambient || ambient > 1.0   || 0.0 > diffuse || diffuse > 1.0 ||
      0.0 > specular || specular > 1.0 || 0.0 > minray || minray > 1.0 ||
      0.0 > maxray || maxray > 1.0 )
@@ -399,6 +415,29 @@ void PltApp::DoCancelLightingWindow(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
+void PltApp::DoOpenLightingFile(Widget w, XtPointer, XtPointer call_data)
+{
+  char *lightingfile;
+  if( ! XmStringGetLtoR(((XmFileSelectionBoxCallbackStruct *) call_data)->value,
+                        XmSTRING_DEFAULT_CHARSET, &lightingfile))
+  {
+    cerr << "PltApp::DoOpenLightingFile:: system error" << endl;
+    return;
+  }
+  XtPopdown(XtParent(w));
+# ifdef BL_VOLUMERENDER
+  projPicturePtr->GetVolRenderPtr()->SetTransferProperties();
+  projPicturePtr->GetVolRenderPtr()->InvalidateVPData();
+  showing3dRender = false;
+  if(XmToggleButtonGetState(wAutoDraw)) {
+    DoRender(wAutoDraw, NULL, NULL);
+  }
+# endif
+  lightingFilename = lightingfile;
+}
+
+
+// -------------------------------------------------------------------
 void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   Position xpos, ypos;
   Dimension wdth, hght;
@@ -408,7 +447,6 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   }
 
   lightingWindowExists = true;
-  //create lighting window
   XtVaGetValues(wAmrVisTopLevel, XmNx, &xpos, XmNy, &ypos,
 		XmNwidth, &wdth, XmNheight, &hght, NULL);
   
@@ -443,7 +481,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNbottomAttachment, XmATTACH_FORM,
 			    XmNbottomOffset, WOFFSET,
 			    XmNleftAttachment, XmATTACH_FORM,
-			    XmNleftOffset, WOFFSET, NULL);
+			    XmNleftOffset, WOFFSET,
+			    NULL);
   AddStaticCallback(wLWDoneButton, XmNactivateCallback,
 		    &PltApp::DoDoneLightingWindow);
   
@@ -453,12 +492,29 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNtopPosition, 87,
 			    XmNbottomAttachment, XmATTACH_FORM,
 			    XmNbottomOffset, WOFFSET,
-			    XmNleftAttachment, XmATTACH_POSITION,
-			    XmNleftPosition, 35,
-			    XmNrightAttachment, XmATTACH_POSITION,
-			    XmNrightPosition, 65, NULL);
+			    XmNleftAttachment, XmATTACH_WIDGET,
+			    XmNleftWidget,     wLWDoneButton,
+			    //XmNleftAttachment, XmATTACH_POSITION,
+			    //XmNleftPosition, 35,
+			    //XmNrightAttachment, XmATTACH_POSITION,
+			    //XmNrightPosition, 65,
+			    NULL);
   AddStaticCallback(wLWApplyButton, XmNactivateCallback,
 		    &PltApp::DoApplyLightingWindow);
+  
+  Widget wLWOpenButton = XtVaCreateManagedWidget("Open...",
+			    xmPushButtonGadgetClass, wLWForm,
+			    XmNtopAttachment, XmATTACH_POSITION,
+			    XmNtopPosition, 87,
+			    XmNbottomAttachment, XmATTACH_FORM,
+			    XmNbottomOffset, WOFFSET,
+			    XmNleftAttachment, XmATTACH_WIDGET,
+			    XmNleftWidget,     wLWApplyButton,
+			    //XmNrightAttachment, XmATTACH_POSITION,
+			    //XmNrightPosition, 65,
+			    NULL);
+  //AddStaticCallback(wLWApplyButton, XmNactivateCallback,
+		    //&PltApp::DoApplyLightingWindow);
   
   Widget wLWCancelButton = XtVaCreateManagedWidget("Cancel",
 			    xmPushButtonGadgetClass, wLWForm,
@@ -481,7 +537,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNbottomAttachment, XmATTACH_POSITION,
 			    XmNbottomPosition, 12,
 			    XmNleftAttachment, XmATTACH_FORM,
-			    XmNleftOffset, WOFFSET, NULL);
+			    XmNleftOffset, WOFFSET,
+			    NULL);
   
   char cNbuff[64];
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetAmbient());
@@ -494,7 +551,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNrightAttachment, XmATTACH_FORM,
 			    XmNrightOffset, WOFFSET,
 			    XmNvalue, cNbuff,
-			    XmNcolumns, 6, NULL);
+			    XmNcolumns, 6,
+			    NULL);
     
   Widget wLWdiffuseLabel = XtVaCreateManagedWidget("diffuse: ",
 			    xmLabelGadgetClass, wLWForm,
@@ -504,8 +562,10 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNbottomAttachment, XmATTACH_POSITION,
 			    XmNbottomPosition, 25,
 			    XmNleftAttachment, XmATTACH_FORM,
-			    XmNleftOffset, WOFFSET, NULL);
+			    XmNleftOffset, WOFFSET,
+			    NULL);
   
+  sprintf(cNbuff, "%3.2f", volRenderPtr->GetDiffuse());
   wLWdiffuse = XtVaCreateManagedWidget("variable",
 			    xmTextFieldWidgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
@@ -516,7 +576,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNrightAttachment, XmATTACH_FORM,
 			    XmNrightOffset, WOFFSET, 
 			    XmNvalue, cNbuff,
-			    XmNcolumns, 6, NULL);
+			    XmNcolumns, 6,
+			    NULL);
   
   Widget wLWspecularLabel = XtVaCreateManagedWidget("specular: ",
 			    xmLabelGadgetClass, wLWForm,
@@ -526,7 +587,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNbottomAttachment, XmATTACH_POSITION,
 			    XmNbottomPosition, 37,
 			    XmNleftAttachment, XmATTACH_FORM,
-			    XmNleftOffset, WOFFSET, NULL);
+			    XmNleftOffset, WOFFSET,
+			    NULL);
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetSpecular());
   wLWspecular = XtVaCreateManagedWidget("variable",
@@ -539,7 +601,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNrightAttachment, XmATTACH_FORM,
 			    XmNrightOffset, WOFFSET,
 			    XmNvalue, cNbuff,
-			    XmNcolumns, 6, NULL);
+			    XmNcolumns, 6,
+			    NULL);
   
   Widget wLWshinyLabel = XtVaCreateManagedWidget("shiny: ",
 			    xmLabelGadgetClass, wLWForm,
@@ -549,7 +612,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNbottomAttachment, XmATTACH_POSITION,
 			    XmNbottomPosition, 50,
 			    XmNleftAttachment, XmATTACH_FORM,
-			    XmNleftOffset, WOFFSET, NULL);
+			    XmNleftOffset, WOFFSET,
+			    NULL);
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetShiny());
   wLWshiny = XtVaCreateManagedWidget("variable",
@@ -562,7 +626,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNrightAttachment, XmATTACH_FORM,
 			    XmNrightOffset, WOFFSET,
 			    XmNvalue, cNbuff,
-			    XmNcolumns, 6, NULL);
+			    XmNcolumns, 6,
+			    NULL);
 
   
   Widget wLWminOpacityLabel = XtVaCreateManagedWidget("minRayOpacity: ",
@@ -574,7 +639,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNbottomAttachment, XmATTACH_POSITION,
 			    XmNbottomPosition, 62,
 			    XmNleftAttachment, XmATTACH_FORM,
-			    XmNleftOffset, WOFFSET, NULL);
+			    XmNleftOffset, WOFFSET,
+			    NULL);
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetMinRayOpacity());
   wLWminOpacity = XtVaCreateManagedWidget("minray",
@@ -587,7 +653,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNrightAttachment, XmATTACH_FORM,
 			    XmNrightOffset, WOFFSET,
 			    XmNvalue, cNbuff,
-			    XmNcolumns, 6, NULL);
+			    XmNcolumns, 6,
+			    NULL);
   
   Widget wLWmaxOpacityLabel = XtVaCreateManagedWidget("maxRayOpacity: ",
 			    xmLabelGadgetClass, wLWForm,
@@ -597,7 +664,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNbottomAttachment, XmATTACH_POSITION,
 			    XmNbottomPosition, 75,
 			    XmNleftAttachment, XmATTACH_FORM,
-			    XmNleftOffset, WOFFSET, NULL);
+			    XmNleftOffset, WOFFSET,
+			    NULL);
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetMaxRayOpacity());
   wLWmaxOpacity = XtVaCreateManagedWidget("variable", xmTextFieldWidgetClass,

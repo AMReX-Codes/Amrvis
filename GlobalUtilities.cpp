@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.35 2001-03-14 00:41:53 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.36 2001-05-09 20:03:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -119,6 +119,83 @@ void AddSlices(int dir, char *sliceset) {
     }
     if( ! dumpSliceList[dir].includes(slice)) {  // add unique
       dumpSliceList[dir].append(slice);
+    }
+  }
+}
+
+
+// -------------------------------------------------------------------
+void ReadLightingFile(const aString &lightdefaultsFile,
+                      Real &ambientDef, Real &diffuseDef, Real &specularDef,
+                      Real &shinyDef,
+                      Real &minRayOpacityDef, Real &maxRayOpacityDef)
+{
+  char defaultString[LINELENGTH];
+  // try to find the defaultsFile
+  aString fullDefaultsFile;
+  char buffer[BUFSIZ];
+  Real tempReal;
+
+  fullDefaultsFile = "./" + lightdefaultsFile;     // try dot first
+  ifstream defs;
+  defs.open(fullDefaultsFile.c_str());
+
+  if(defs.fail()) {  // try ~ (tilde)
+    cout << "Cannot find lighting defaults file:  " << fullDefaultsFile << endl;
+    fullDefaultsFile  = getenv("HOME");
+    fullDefaultsFile += "/";
+    fullDefaultsFile += lightdefaultsFile;
+    defs.clear();  // must do this to clear the fail bit
+    defs.open(fullDefaultsFile.c_str());
+    if(defs.fail()) {  // try ~/.  (hidden file)
+      cout << "Cannot find lighting defaults file:  " << fullDefaultsFile << endl;
+      fullDefaultsFile  = getenv("HOME");
+      fullDefaultsFile += "/.";
+      fullDefaultsFile += lightdefaultsFile;
+      defs.clear();  // must do this to clear the fail bit
+      defs.open(fullDefaultsFile.c_str());
+      if(defs.fail()) {  // punt
+        cout << "Cannot find lighting defaults file:  " << fullDefaultsFile << endl;
+        cout << "Using standard defaults." << endl;
+        return;
+      }
+    }
+  }
+  if(ParallelDescriptor::IOProcessor()) {
+    cout << "Reading lighting defaults from:  " << fullDefaultsFile << endl;
+  }
+
+  ws(defs);
+  defs.getline(buffer, BUFSIZ, '\n');
+  
+  while( ! defs.eof()) {
+    sscanf(buffer,"%s", defaultString);
+    
+    if(defaultString[0] != '#') {  // a comment starts with #
+      if(strcmp(defaultString,"ambient") == 0) {
+        sscanf(buffer, "%s%f", defaultString, &tempReal);
+        ambientDef = tempReal;
+      }
+      else if(strcmp(defaultString, "diffuse") == 0) {
+        sscanf(buffer, "%s%f", defaultString, &tempReal);
+        diffuseDef = tempReal;
+      }
+      else if(strcmp(defaultString, "specular") == 0) {
+        sscanf(buffer, "%s%f", defaultString, &tempReal);
+        specularDef = tempReal;
+      }
+      else if(strcmp(defaultString, "shiny") == 0) {
+        sscanf(buffer, "%s%f", defaultString, &tempReal);
+        shinyDef = tempReal;
+      }
+      else if(strcmp(defaultString, "minRayOpacity") == 0) {
+        sscanf(buffer, "%s%f", defaultString, &tempReal);
+        minRayOpacityDef = tempReal;
+      }
+      else if(strcmp(defaultString, "maxRayOpacity") == 0) {
+        sscanf(buffer, "%s%f", defaultString, &tempReal);
+        maxRayOpacityDef = tempReal;
+      }
     }
   }
 }

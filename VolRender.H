@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.H,v 1.23 2000-10-05 20:03:40 vince Exp $
+// $Id: VolRender.H,v 1.24 2001-05-09 20:03:38 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -95,13 +95,15 @@ public:
   bool            GetPreClassifyAlgorithm() const { return preClassify; }
   void SetAspect( Real newAspect) { vpAspect = newAspect; }
   void SetTransferProperties();
-  void SetLighting(Real, Real, Real, Real, Real, Real);
+  void SetLighting(Real ambient, Real diffuse, Real specular, Real shiny,
+		   Real minRay, Real maxRay);
   Real GetDiffuse() { return diffuseMat; }
   Real GetAmbient() { return ambientMat; }
   Real GetSpecular() { return specularMat; }
   Real GetShiny() { return shinyMat; }
   Real GetMinRayOpacity() { return minRayOpacity; }
   Real GetMaxRayOpacity() { return maxRayOpacity; }
+
 private:
   Real diffuseMat, shinyMat, specularMat, ambientMat;
   Real vpLen, vpAspect;

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.49 2001-04-16 16:41:21 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.50 2001-05-09 20:03:36 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -82,7 +82,9 @@ int main(int argc, char *argv[]) {
 
   ParmParse pp(0, argv, NULL, NULL);
 
+
   GetDefaults("amrvis.defaults");
+  //GetLightingDefaults("amrvis.lighting");
 
   ParseCommandLine(argc, argv);
 

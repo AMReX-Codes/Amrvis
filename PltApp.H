@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.48 2001-05-04 00:16:34 vince Exp $
+// $Id: PltApp.H,v 1.49 2001-05-09 20:03:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -193,7 +193,7 @@ private:
   int startX, startY, endX, endY;
   int maxAllowableScale;
   bool bCartGridSmoothing;
-  aString contourNumString, fileName, palFilename;
+  aString contourNumString, fileName, palFilename, lightingFilename;
   char buffer[BUFSIZ];
   Box trueRegion, selectionBox;
   Dataset *datasetPtr;
@@ -281,6 +281,7 @@ private:
   void DoCreateRGBFile(Widget, XtPointer, XtPointer);
   void DoCreateFABFile(Widget, XtPointer, XtPointer);
   void DoCreateAnimRGBFile();
+  void DoOpenLightingFile(Widget w, XtPointer, XtPointer call_data);
 
   void ToggleRange(Widget, XtPointer, XtPointer);
   void ReadContourString(Widget, XtPointer, XtPointer);

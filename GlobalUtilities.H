@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.H,v 1.11 2000-10-02 20:53:08 lijewski Exp $
+// $Id: GlobalUtilities.H,v 1.12 2001-05-09 20:03:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -23,6 +23,10 @@ void SetVerbose();
 bool Verbose();
 void ParseCommandLine(int, char **);
 void GetDefaults(const aString &defaultsfilename);
+void ReadLightingFile(const aString &lightdefaultsfilename,
+		      Real &ambientDef, Real &diffuseDef, Real &specularDef,
+		      Real &shinyDef,
+		      Real &minRayOpacityDef, Real &maxRayOpacityDef);
 void SetAnimation();
 bool IsAnimation();
 int GetFileCount();

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.88 2001-05-04 01:03:08 vince Exp $
+// $Id: PltApp.cpp,v 1.89 2001-05-09 20:03:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -2802,7 +2802,7 @@ void PltApp::DoOpenPalFile(Widget w, XtPointer, XtPointer call_data) {
   if( ! XmStringGetLtoR(((XmFileSelectionBoxCallbackStruct *) call_data)->value,
 		        XmSTRING_DEFAULT_CHARSET, &palfile))
   {
-    cerr << "CBOpenPalFile : system error" << endl;
+    cerr << "PltApp::DoOpenPalFile : system error" << endl;
     return;
   }
   XtPopdown(XtParent(w));
@@ -2819,7 +2819,9 @@ void PltApp::DoOpenPalFile(Widget w, XtPointer, XtPointer call_data) {
   
   XYplotparameters->ResetPalette(pltPaletteptr);
   for(int np(0); np != BL_SPACEDIM; ++np) {
-    if(XYplotwin[np]) XYplotwin[np]->SetPalette();
+    if(XYplotwin[np]) {
+      XYplotwin[np]->SetPalette();
+    }
   }
 }
 
