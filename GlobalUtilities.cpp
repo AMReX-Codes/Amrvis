@@ -158,7 +158,9 @@ void GetDefaults(const aString &defaultsFile) {
       }
     }
   }
-  cout << "Reading defaults from:  " << fullDefaultsFile << endl;
+  if(ParallelDescriptor::IOProcessor()) {
+    cout << "Reading defaults from:  " << fullDefaultsFile << endl;
+  }
 
   ws(defs);
   defs.getline(buffer, BUFSIZ, '\n');
@@ -639,8 +641,10 @@ void ParseCommandLine(int argc, char *argv[]) {
   if(fileType == INVALIDTYPE) {
     ParallelDescriptor::Abort("Error:  invalid file type.  Exiting.");
   } else {
-    cout << ">>>>>>> Setting file type to "
-         << FileTypeString[fileType] << "." << endl << endl;
+    if(ParallelDescriptor::IOProcessor()) {
+      cout << ">>>>>>> Setting file type to "
+           << FileTypeString[fileType] << "." << endl << endl;
+    }
   }
 
   if(fileType == FAB) {
