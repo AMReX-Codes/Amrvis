@@ -1934,11 +1934,12 @@ void XYPlotWin::CBdoRemoveDataList(Widget, XtPointer client_data,
     } else {
       legendHead = ptr;
       XtVaSetValues(ptr->frame,
-		    XmNtopAttachment,   XmATTACH_WIDGET,
-                    XmNtopWidget, wLegendMenu,
+		    XmNtopAttachment,   XmATTACH_FORM,
 		    NULL);
     }
-    if(item->XYPLIlist->copied_from == NULL && ptr->XYPLIlist->copied_from == item->XYPLIlist) {
+    if(item->XYPLIlist->copied_from == NULL &&
+       ptr->XYPLIlist->copied_from == item->XYPLIlist)
+    {
       ptr->XYPLIlist->copied_from = NULL;
       item->XYPLIlist->copied_from = ptr->XYPLIlist;
       for(XYPlotLegendItem *ptr2 = ptr->next;
