@@ -537,11 +537,13 @@ void VolRender::MakePicture(Real mvmat[4][4], Real Length,
 
     vpLen = Length;
     if(width < height) {    // undoes volpacks aspect ratio scaling
-        vpWindow(vpc, VP_PARALLEL, -Length*vpAspect, Length*vpAspect,
+        vpWindow(vpc, VP_PARALLEL, 
+                 -Length*vpAspect, Length*vpAspect,
                  -Length, Length,
                  -Length, Length);
     } else {
-        vpWindow(vpc, VP_PARALLEL, -Length, Length,
+        vpWindow(vpc, VP_PARALLEL, 
+                 -Length, Length,
                  -Length*vpAspect, Length*vpAspect,
                  -Length, Length);
     }
