@@ -685,7 +685,7 @@ void Dataset::CBPixInput(Widget, XtPointer client_data, XtPointer call_data)
 
 // -------------------------------------------------------------------
 void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
-    //Palette *palptr = pltAppPtr->GetPalettePtr();
+  //Palette *palptr = pltAppPtr->GetPalettePtr();
   int hplot, vplot;
   int HDIR, VDIR, DEPTHDIR;
   static int serverControlOK = 0;
@@ -693,34 +693,39 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
   int ycell((int) (cbs->event->xbutton.y) / CHARACTERHEIGHT);
   Box pictureBox(amrPicturePtr->GetSubDomain()[maxDrawnLevel]);
   Box regionBox(datasetRegion[maxDrawnLevel]);
-
+  
   if(cbs->event->xany.type == ButtonPress) {
-      serverControlOK++;
+    serverControlOK++;
   }
- 
+  
   if(xcell >= 0 && xcell < pixSizeX/dataItemWidth &&
      ycell >= 0 && ycell < pixSizeY/CHARACTERHEIGHT)
-  {
+    {
       if(amrPicturePtr->GetMyView() == XY) {
-          HDIR = XDIR; VDIR = YDIR; DEPTHDIR = ZDIR;
+        HDIR = XDIR; VDIR = YDIR; DEPTHDIR = ZDIR;
       } else if(amrPicturePtr->GetMyView() == XZ) {
-          HDIR = XDIR; VDIR = ZDIR; DEPTHDIR = YDIR;
+        HDIR = XDIR; VDIR = ZDIR; DEPTHDIR = YDIR;
       } else if(amrPicturePtr->GetMyView() == YZ) {
-          HDIR = YDIR; VDIR = ZDIR; DEPTHDIR = XDIR;
+        HDIR = YDIR; VDIR = ZDIR; DEPTHDIR = XDIR;
       }
       
       if ( xcell > regionBox.bigEnd(HDIR)-regionBox.smallEnd(HDIR))  
-          xcell = regionBox.bigEnd(HDIR)-regionBox.smallEnd(HDIR);
+        xcell = regionBox.bigEnd(HDIR)-regionBox.smallEnd(HDIR);
       if ( ycell > regionBox.bigEnd(VDIR)-regionBox.smallEnd(VDIR))  
-          ycell = regionBox.bigEnd(VDIR)-regionBox.smallEnd(VDIR);
-      hplot = regionBox.smallEnd(HDIR) - pictureBox.smallEnd(HDIR) + xcell;
-      vplot = regionBox.smallEnd(VDIR) - pictureBox.smallEnd(VDIR) +
-          regionBox.length(VDIR)-1 - ycell;
-// needs adjusting for 2d...
+        ycell = regionBox.bigEnd(VDIR)-regionBox.smallEnd(VDIR);
+      hplot = regionBox.smallEnd(HDIR) + xcell;
+      vplot = regionBox.smallEnd(VDIR) + regionBox.length(VDIR)-1 - ycell;
+
+      const AmrData &amrData = dataServicesPtr->AmrDataRef();
+      int baseRatio = CRRBetweenLevels(maxDrawnLevel, 
+                                       maxAllowableLevel, 
+                                       amrData.RefRatio());
+
 # if (BL_SPACEDIM == 3)
       int boxCoor[3];
       boxCoor[HDIR] = hplot; boxCoor[VDIR] = vplot; 
-      boxCoor[DEPTHDIR] = pltAppPtr->GetAmrPicturePtr(2-DEPTHDIR)->GetSlice();
+      boxCoor[DEPTHDIR] = pltAppPtr->GetAmrPicturePtr(YZ-DEPTHDIR)->GetSlice();
+      boxCoor[DEPTHDIR] /= baseRatio;
       IntVect boxLocation(boxCoor[0], boxCoor[1], boxCoor[2]);
 # endif
 # if (BL_SPACEDIM == 2)
@@ -728,40 +733,38 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
       boxCoor[HDIR] = hplot; boxCoor[VDIR] = vplot; 
       IntVect boxLocation(boxCoor[0], boxCoor[1]);
 # endif
-      Box ourBox(boxLocation, boxLocation);
-      const AmrData &amrData = dataServicesPtr->AmrDataRef();
-      int finestLevel = amrData.FinestContainingLevel(ourBox, maxDrawnLevel);
-      finestLevel = 
-          ( finestLevel >= minDrawnLevel ? finestLevel : minDrawnLevel );
-      int boxSize = CRRBetweenLevels(finestLevel, 
+      Box chosenBox(boxLocation, boxLocation);
+      int finestCLevel = amrData.FinestContainingLevel(chosenBox, maxDrawnLevel);
+      finestCLevel = 
+        ( finestCLevel >= minDrawnLevel ? finestCLevel : minDrawnLevel );
+      int boxSize = CRRBetweenLevels(finestCLevel, 
                                      maxAllowableLevel, 
                                      amrData.RefRatio());
-      int baseRatio = CRRBetweenLevels(maxDrawnLevel, 
-                                       maxAllowableLevel, 
-                                       amrData.RefRatio());
-      int modBy = CRRBetweenLevels(finestLevel, 
+      int modBy = CRRBetweenLevels(finestCLevel, 
                                    maxDrawnLevel, 
                                    amrData.RefRatio());
-      hplot = hplot - fmod(hplot,modBy);
-      vplot = vplot - fmod(vplot,modBy);
+      hplot -= pictureBox.smallEnd(HDIR);
+      hplot -= fmod(hplot,modBy);
+      vplot -= pictureBox.smallEnd(VDIR);
+      vplot -= fmod(vplot,modBy);
       hplot *= baseRatio;   vplot *= baseRatio;
       vplot += boxSize;
       if (datasetPoint == true)
-          amrPicturePtr->UnDrawDatasetPoint();//box if already drawns...
+        amrPicturePtr->UnDrawDatasetPoint();//box if already drawns...
       else
-          datasetPoint = true; //if we just started...
+        datasetPoint = true; //if we just started...
       amrPicturePtr->DrawDatasetPoint(hplot, vplot, boxSize);
-  }
+    }
   
   if(cbs->event->xany.type == ButtonRelease) {
-      amrPicturePtr->UnDrawDatasetPoint();
-      serverControlOK--;
-      datasetPoint = false;
-      if (serverControlOK != 0)
-          cerr<<"incorrect server control balance -- serverControlOK: "
-              <<serverControlOK<<endl;
-      amrPicturePtr->DoExposePicture();// redraw this once to 
-      // protect from incorrect bit manipulation (didn't grab the server)
+    amrPicturePtr->UnDrawDatasetPoint();
+    serverControlOK--;
+    datasetPoint = false;
+    if (serverControlOK != 0)
+      cerr<<"incorrect server control balance -- serverControlOK: "
+          <<serverControlOK<<endl;
+    amrPicturePtr->DoExposePicture();// redraw this once to 
+    // protect from incorrect bit manipulation (didn't grab the server)
   }
 } // end DoPixInput
 
