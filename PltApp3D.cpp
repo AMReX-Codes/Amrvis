@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.54 2002-12-10 20:12:23 vince Exp $
+// $Id: PltApp3D.cpp,v 1.55 2003-02-12 23:02:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -610,8 +610,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   VolRender *volRenderPtr = projPicturePtr->GetVolRenderPtr();
 
   //make the input forms
-/*
-  Widget wLWambientLabel = XtVaCreateManagedWidget("ambient: ",
+  Widget wTempLabel;
+  wTempLabel = XtVaCreateManagedWidget("ambient: ",
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_FORM,
 			    XmNtopOffset, WOFFSET,
@@ -620,7 +620,6 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftAttachment, XmATTACH_FORM,
 			    XmNleftOffset, WOFFSET,
 			    NULL);
-*/
   
   char cNbuff[64];
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetAmbient());
@@ -635,8 +634,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNvalue, cNbuff,
 			    XmNcolumns, 6,
 			    NULL);
-/*
-  Widget wLWdiffuseLabel = XtVaCreateManagedWidget("diffuse: ",
+  wTempLabel = XtVaCreateManagedWidget("diffuse: ",
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
 			    XmNtopWidget, wLWambient,
@@ -646,7 +644,6 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftAttachment, XmATTACH_FORM,
 			    XmNleftOffset, WOFFSET,
 			    NULL);
-*/    
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetDiffuse());
   wLWdiffuse = XtVaCreateManagedWidget("variable",
@@ -661,8 +658,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNvalue, cNbuff,
 			    XmNcolumns, 6,
 			    NULL);
-/*
-  Widget wLWspecularLabel = XtVaCreateManagedWidget("specular: ",
+  wTempLabel = XtVaCreateManagedWidget("specular: ",
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
 			    XmNtopWidget, wLWdiffuse,
@@ -672,7 +668,6 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftAttachment, XmATTACH_FORM,
 			    XmNleftOffset, WOFFSET,
 			    NULL);
-*/  
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetSpecular());
   wLWspecular = XtVaCreateManagedWidget("variable",
@@ -687,8 +682,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNvalue, cNbuff,
 			    XmNcolumns, 6,
 			    NULL);
-/*
-  Widget wLWshinyLabel = XtVaCreateManagedWidget("shiny: ",
+  wTempLabel = XtVaCreateManagedWidget("shiny: ",
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
 			    XmNtopWidget, wLWspecular,
@@ -698,7 +692,6 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftAttachment, XmATTACH_FORM,
 			    XmNleftOffset, WOFFSET,
 			    NULL);
-*/  
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetShiny());
   wLWshiny = XtVaCreateManagedWidget("variable",
@@ -714,8 +707,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNcolumns, 6,
 			    NULL);
 
-/*
-  Widget wLWminOpacityLabel = XtVaCreateManagedWidget("minRayOpacity: ",
+  wTempLabel = XtVaCreateManagedWidget("minRayOpacity: ",
 			    xmLabelGadgetClass, wLWForm,
 			    xmTextFieldWidgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
@@ -726,7 +718,6 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftAttachment, XmATTACH_FORM,
 			    XmNleftOffset, WOFFSET,
 			    NULL);
-*/  
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetMinRayOpacity());
   wLWminOpacity = XtVaCreateManagedWidget("minray",
@@ -742,8 +733,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNcolumns, 6,
 			    NULL);
   
-/*
-  Widget wLWmaxOpacityLabel = XtVaCreateManagedWidget("maxRayOpacity: ",
+  wTempLabel = XtVaCreateManagedWidget("maxRayOpacity: ",
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
 			    XmNtopOffset, WOFFSET,
@@ -753,7 +743,6 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftAttachment, XmATTACH_FORM,
 			    XmNleftOffset, WOFFSET,
 			    NULL);
-*/
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetMaxRayOpacity());
   wLWmaxOpacity = XtVaCreateManagedWidget("variable", xmTextFieldWidgetClass,
@@ -922,8 +911,8 @@ void PltApp::Clear() {
 
 // -------------------------------------------------------------------
 void PltApp::DoOrient(Widget w, XtPointer client_data, XtPointer) {
-  Real rW, rX, rY, rZ;
-  Real rW2, rX2, rY2, rZ2;
+  Real rW(1.0), rX(0.0), rY(0.0), rZ(0.0);
+  Real rW2(1.0), rX2(0.0), rY2(0.0), rZ2(0.0);
   int iOrientation((int) client_data);
   switch(iOrientation) {
     case OXY:

@@ -1522,7 +1522,7 @@ void XYPlotWin::CBdoASCIIDump(Widget, XtPointer client_data, XtPointer data) {
       continue;
     }
     XYPlotDataList *list = item->XYPLIlist;
-    fprintf(fs, "\"%s %lf Level %d/%d\n",
+    fprintf(fs, "\"%s %s Level %d/%d\n",
 	    list->derived.c_str(),
 	    list->intersectPoint[list->curLevel],
 	    list->curLevel, list->maxLevel);
@@ -1588,15 +1588,34 @@ void XYPlotWin::CBdoOptions(Widget, XtPointer, XtPointer) {
     
     int ii;
     Widget wid;
-    char buffer[20], *str;
-    for(ii = 0; ii != 6; ++ii) {
+    char buffer[20], *str = 0;
+    for(ii = 0; ii < 6; ++ii) {
       switch(ii) {
-        case 0: sprintf(buffer, "%d", gridW); str = buffer; break;
-        case 1: sprintf(buffer, "%d", lineW); str = buffer; break;
-        case 2: str = XUnitText; break;
-        case 3: str = YUnitText; break;
-        case 4: str = formatX; break;
-        case 5: str = formatY; break;
+        case 0:
+	  sprintf(buffer, "%d", gridW);
+	  str = buffer;
+	break;
+
+        case 1:
+	  sprintf(buffer, "%d", lineW);
+	  str = buffer;
+	break;
+
+        case 2:
+	  str = XUnitText;
+	break;
+
+        case 3:
+	  str = YUnitText;
+	break;
+
+        case 4:
+	  str = formatX;
+	break;
+
+        case 5:
+	  str = formatY;
+	break;
       }
       wOptionsWidgets[ii] = wid = 
 	XtVaCreateManagedWidget(firstColumnText[ii],

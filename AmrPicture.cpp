@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.79 2002-12-10 20:12:23 vince Exp $
+// $Id: AmrPicture.cpp,v 1.80 2003-02-12 23:02:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -885,7 +885,7 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
   }
   const Real *dataPoint = fab.dataPtr();
   bool bCartGrid(dataServicesPtr->AmrDataRef().CartGrid());
-  const Real *vfDataPoint;
+  const Real *vfDataPoint = 0;
   if(bCartGrid) {
     BL_ASSERT(vfracFab != NULL);
     vfDataPoint = vfracFab->dataPtr();

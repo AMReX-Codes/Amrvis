@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.44 2002-09-20 20:01:02 vince Exp $
+// $Id: Palette.cpp,v 1.45 2003-02-12 23:02:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -60,25 +60,35 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
     reserveSystemColors = 0;
     colorOffset = 0;
     colorSlots = 253;
+    bodyIndex  = 2;
     blackIndex = 1;
     whiteIndex = 0;
-    paletteStart = 2;
+    paletteStart = 3;
   } else {
     reserveSystemColors = reservesystemcolors;
     colorOffset = reserveSystemColors;  // start our allocated palette here
 
-    colorSlots   = totalColorSlots - reserveSystemColors - 2;
+    colorSlots   = totalColorSlots - reserveSystemColors - 3;
+    bodyIndex    = colorOffset + 2;
     blackIndex   = colorOffset + 1;
     whiteIndex   = colorOffset;
-    paletteStart = colorOffset + 2;  // skip 2 for black and white
+    paletteStart = colorOffset + 3;  // skip 3 for black, white, and body
                                      // the data colors start here
   }
   
+//colorSlots += 1;
+//paletteStart -= 1;
   remapTable = new unsigned char[totalColorSlots];  // this is faster than Array<uc>
   float sizeRatio(((float) colorSlots) / ((float) totalColorSlots));
   float mapLow(((float) paletteStart) + 0.5);
+//cout << "))))))))))))) totalColorSlots = " << totalColorSlots << endl;
+//cout << "))))))))))))) colorSlots      = " << colorSlots << endl;
+//cout << "))))))))))))) sizeRatio       = " << sizeRatio       << endl;
+//cout << "))))))))))))) mapLow          = " << mapLow          << endl;
   for(int itab(0); itab < totalColorSlots; ++itab) {
     remapTable[itab] = (int) ((((float) itab) * sizeRatio) + mapLow);
+//cout << "))))))))))))) remapTable[" << itab << "]  = "
+//     << (unsigned int) remapTable[itab]          << endl;
   }
 }  // end constructor
 
@@ -110,12 +120,15 @@ Palette::Palette(int datalistlength, int width, int totalwidth,
   reserveSystemColors = reservesystemcolors;
   colorOffset = reserveSystemColors;  // start our allocated palette here
 
-  colorSlots   = totalColorSlots - reserveSystemColors - 2;
+  colorSlots   = totalColorSlots - reserveSystemColors - 3;
+  bodyIndex    = colorOffset + 2;
   blackIndex   = colorOffset + 1;
   whiteIndex   = colorOffset;
-  paletteStart = colorOffset + 2;  // skip 2 for black and white
+  paletteStart = colorOffset + 3;  // skip 3 for black, white, and body
 				   // the data colors start here
 
+//colorSlots += 1;
+//paletteStart -= 1;
   remapTable = new unsigned char[totalColorSlots];  // this is faster than Array<uc>
   float sizeRatio(((float) colorSlots) / ((float) totalColorSlots));
   float mapLow(((float) paletteStart) + 0.5);
@@ -182,7 +195,7 @@ void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
 
 # if (BL_SPACEDIM == 3)
   // show transfers in palette
-    int transpnt, zerolinex = palWidth - 5;
+    int transpnt, zerolinex(palWidth - 5);
     for(i = paletteStart; i < totalColorSlots; ++i) {
       cy = ((totalColorSlots - 1) - i) + 14;
       // draw transparency as black
@@ -316,6 +329,11 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
       ccells[paletteStart].green = 0;
       ccells[paletteStart].blue  = 0;
 
+      //ccells[bodyIndex].red   = (unsigned short) 32000;
+      ccells[bodyIndex].red   = (unsigned short) 0;
+      ccells[bodyIndex].green = (unsigned short) 32000;
+      //ccells[bodyIndex].blue  = (unsigned short) 32000;
+      ccells[bodyIndex].blue  = (unsigned short) 0;
       ccells[blackIndex].red   = (unsigned short) 0;
       ccells[blackIndex].green = (unsigned short) 0;
       ccells[blackIndex].blue  = (unsigned short) 0;
@@ -328,13 +346,19 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
       transferArray.resize(iSeqPalSize);
       for(int j(0); j < iSeqPalSize; ++j) {
         indexArray[j] = j; 
-        transferArray[j] = (float) j / (float) (iSeqPalSize - 1);
+        //transferArray[j] = (float) j / (float) (iSeqPalSize - 1);
         rbuff[j] = j;
         gbuff[j] = j;
         bbuff[j] = j;
-        abuff[j] = j;
-        abuff[j] = 128;
+        abuff[j] = static_cast<unsigned char> (100.0 *
+	                           ((float) j / (float) (iSeqPalSize - 1)));
       }
+      //rbuff[bodyIndex] = 127;
+      //gbuff[bodyIndex] = 127;
+      //bbuff[bodyIndex] = 127;
+      rbuff[bodyIndex] = 0;
+      gbuff[bodyIndex] = 127;
+      bbuff[bodyIndex] = 0;
       rbuff[blackIndex] = 0;
       gbuff[blackIndex] = 0;
       bbuff[blackIndex] = 0;
@@ -365,13 +389,17 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
       } else {
         paletteType = ALPHA;
       }
-
       (void) close(fd);
-
     }
 
   }  // end if(bReadPalette)
 
+  //rbuff[bodyIndex] = 127;
+  //gbuff[bodyIndex] = 127;
+  //bbuff[bodyIndex] = 127;
+  rbuff[bodyIndex] = 0;
+  gbuff[bodyIndex] = 127;
+  bbuff[bodyIndex] = 0;
   rbuff[blackIndex] = 0;
   gbuff[blackIndex] = 0;
   bbuff[blackIndex] = 0;
@@ -383,7 +411,6 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
     rbuff[paletteStart] = 0;
     gbuff[paletteStart] = 0;
     bbuff[paletteStart] = 0;
-    //abuff[paletteStart] = 0;
   }
 
   for(i = 0; i < totalColorSlots; ++i) {
@@ -430,6 +457,12 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
 XImage *Palette::GetPictureXImage() {
   return (XGetImage(gaPtr->PDisplay(), palPixmap, 0, 0, totalPalWidth,
                     totalPalHeight, AllPlanes, ZPixmap));
+}
+
+
+// -------------------------------------------------------------------
+Pixel Palette::BodyIndex() const {
+  return bodyIndex;
 }
 
 

@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.H,v 1.27 2002-09-20 20:01:02 vince Exp $
+// $Id: Palette.H,v 1.28 2003-02-12 23:02:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -43,7 +43,7 @@ class Palette {
     Colormap    colmap;
     int         totalColorSlots, colorSlots;
     int         reserveSystemColors, colorOffset, paletteStart;
-    Pixel 	blackIndex, whiteIndex;
+    Pixel 	blackIndex, whiteIndex, bodyIndex;
     Real	pmin, pmax;
     string	defaultFormat;
     Array<float>  transferArray;
@@ -82,6 +82,7 @@ class Palette {
     const map<Pixel, XColor> &GetColorCellsMap() const { return mcells; }
     Pixel BlackIndex()   const;
     Pixel WhiteIndex()   const;
+    Pixel BodyIndex()   const;
     int  ColorSlots()    const    { return colorSlots;     }
     int  PaletteStart()  const    { return paletteStart;   }
     int  PaletteEnd()    const    { return totalColorSlots - 1; }

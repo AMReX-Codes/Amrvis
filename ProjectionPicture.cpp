@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.cpp,v 1.49 2002-12-10 20:12:23 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.50 2003-02-12 23:02:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -228,7 +228,9 @@ void ProjectionPicture::MakePicture() {
 #ifdef BL_VOLUMERENDER
   clock_t time0 = clock();
 
-  scale[XDIR] = scale[YDIR] = scale[ZDIR] = viewTransformPtr->GetScale();
+  scale[XDIR] = viewTransformPtr->GetScale();
+  scale[YDIR] = viewTransformPtr->GetScale();
+  scale[ZDIR] = viewTransformPtr->GetScale();
 
   Real mvmat[4][4];
 
@@ -242,6 +244,7 @@ void ProjectionPicture::MakePicture() {
 
   // map imageData colors to colormap range
   Palette *palPtr = pltAppPtr->GetPalettePtr();
+cout << "&&&&&&&&&&&&&&& colorslots palsize = " << palPtr->ColorSlots() << "  " << palPtr->PaletteSize() << endl;
   if(palPtr->ColorSlots() != palPtr->PaletteSize()) {
     const unsigned char *remapTable = palPtr->RemapTable();
     for(int idat(0); idat < daWidth * daHeight; ++idat) {

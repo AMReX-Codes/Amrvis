@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.47 2003-01-15 01:17:39 vince Exp $
+// $Id: VolRender.cpp,v 1.48 2003-02-12 23:02:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -36,7 +36,7 @@ extern Real DegToRad(Real angle);
 
 // -------------------------------------------------------------------
 VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
-		     int maxdrawnlevel, Palette *PalettePtr,
+		     int maxdrawnlevel, Palette *paletteptr,
                      const string &asLightFileName)
 {
   bDrawAllBoxes = false;
@@ -46,7 +46,7 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
   vpDataValid     = false;
   swfDataValid    = false;
   swfDataAllocated = false;
-  palettePtr = PalettePtr;
+  palettePtr = paletteptr;
   preClassify = true;
 
   // these are the defaults
@@ -210,7 +210,6 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
   clock_t time0 = clock();
   
   int maxDrawnLevel(maxDataLevel);
-  //Box gbox;
   Box grefbox;
 
   Box swfDataBox(drawnDomain[maxDrawnLevel]);
@@ -446,15 +445,9 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
 
      } else {  // only draw the boundingbox
 
-
-//==============================================
-      //for(int lev = minDrawnLevel; lev <= maxDrawnLevel; ++lev) {
-int lev = minDrawnLevel;
+        int lev = minDrawnLevel;
         int crr(AVGlobals::CRRBetweenLevels(lev, maxDrawnLevel,
 	        amrData.RefRatio()));
-cout << "+++++ _here 0:  crr = " << crr << endl;
-//        const BoxArray &gridBoxes = amrData.boxArray(lev);
-//        for(int iGrid(0); iGrid < gridBoxes.size(); ++iGrid) {
           gbox = drawnDomain[lev];
           Box goverlap(gbox & drawnDomain[lev]);
           grefbox = goverlap;
@@ -569,21 +562,14 @@ cout << "+++++ _here 0:  crr = " << crr << endl;
           }  // end for(gp...)
         }  // end if(crr...)
 
-//        }  // end for(iGrid...)
-//      }  // end for(lev...)
-
-//==============================================
-
-
-     }
+     }  // end if(bDrawAllBoxes)
 
     }  // end if(bDrawVolumeBoxes)
 
 
-    cout << endl;
-    cout << "--------------- make swfData time = "
-         << ((clock()-time0)/1000000.0) << endl;
-  }
+  }  // end if(ParallelDescriptor::IOProcessor())
+
+
   
   // fix up cartgrid body
   AmrData &amrData = dataServicesPtr->AmrDataRef();
@@ -597,15 +583,9 @@ cout << "+++++ _here 0:  crr = " << crr << endl;
 			   (void *) &vfracName);
 
     if(ParallelDescriptor::IOProcessor()) {
-      char bodyColor = (char) iBlackIndex;
+      char bodyColor = (char) palettePtr->BodyIndex();
       Real *dataPoint = swfFabData.dataPtr();
       Real vfeps = amrData.VfEps(maxDrawnLevel);
-      //for(int i(0); i < swfFabData.box().numPts(); ++i) {
-        //if(dataPoint[i] < vfeps) {
-          //swfData[i] = bodyColor;
-	//}
-      //}
-    
       int sindexbase;
       int srows   = swfDataBox.length(XDIR);
       int scols   = swfDataBox.length(YDIR);
@@ -640,7 +620,7 @@ cout << "+++++ _here 0:  crr = " << crr << endl;
           gcgrowstmp = gpgcgrtmp + gc*grows;
           for(int gr(gostartr); gr <= goendr; ++gr) {
             //dat = dataPoint[(gp*gcols*grows)+(gc*grows)+gr];  // works
-            if(dataPoint[gcgrowstmp + gr] < vfeps) {
+            if(dataPoint[gcgrowstmp + gr] < vfeps) {  // body
 	      gprev = gostartp + goendp - gp;
               sindexbase =
                 (((gprev+gstartp)-sstartp) * scolssrowstmp) +
@@ -654,9 +634,13 @@ cout << "+++++ _here 0:  crr = " << crr << endl;
       }  // end for(gp...)
 
     }  // end if(ioproc)
-  
   }
 
+  if(ParallelDescriptor::IOProcessor()) {
+    cout << endl;
+    cout << "--------------- make swfData time = "
+         << ((clock()-time0)/1000000.0) << endl;
+  }
 
 }  // end MakeSWFData(...)
 
@@ -968,6 +952,7 @@ void VolRender::MakeDefaultTransProperties() {
 void VolRender::SetTransferProperties() {
   BL_ASSERT(palettePtr != NULL);
   density_ramp = palettePtr->GetTransferArray();
+  density_ramp[palettePtr->BodyIndex()] = 0.08;
   vpSetClassifierTable(vpc, DENSITY_PARAM, densityField,
                        density_ramp.dataPtr(),
 		       density_ramp.size() * sizeof(float));
