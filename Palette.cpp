@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.38 2001-08-23 20:10:47 vince Exp $
+// $Id: Palette.cpp,v 1.39 2001-10-05 23:01:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -287,6 +287,7 @@ void Palette::ChangeWindowPalette(const string &palName, Window newPalWindow) {
 
 // -------------------------------------------------------------------
 void Palette::ReadPalette(const string &palName, bool bRedraw) {
+  BL_ASSERT(GAptr != 0);
   ReadSeqPalette(palName, bRedraw);
   if(GAptr->IsTrueColor()) {
     return;
@@ -306,11 +307,23 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
   Array<int> indexArray(iSeqPalSize);
   int i, fd;
 
-  const unsigned long bprgb = GAptr->PBitsPerRGB();
+  //BL_ASSERT(GAptr != 0);
+
+  bool bTrueColor;
+  unsigned long bprgb;
+  if(GAptr == 0) {
+    bTrueColor = false;
+    bprgb = 8;
+  } else {
+    bTrueColor = GAptr->IsTrueColor();
+    bprgb = GAptr->PBitsPerRGB();
+  } 
+ 
+
   if((fd = open(fileName.c_str(), O_RDONLY, NULL)) < 0) {
     cout << "Can't open colormap file:  " << fileName << endl;
     for(i = 0; i < totalColorSlots; ++i) {    // make a default grayscale colormap.
-      if(GAptr->IsTrueColor()) {
+      if(bTrueColor) {
 	// FIXME: not 24 bit!
 	ccells[i].pixel = (((rbuff[i] >> (8 - bprgb)) << 2 * bprgb)
 			 | ((gbuff[i] >> (8 - bprgb)) << bprgb)
@@ -394,7 +407,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
   }
 
   for(i = 0; i < totalColorSlots; ++i) {
-    if(GAptr->IsTrueColor()) {
+    if(bTrueColor) {
       // FIXME: not 24 bit!
       ccells[i].pixel = (((rbuff[i] >> (8 - bprgb)) << 2 * bprgb)
 		       | ((gbuff[i] >> (8 - bprgb)) << bprgb)
