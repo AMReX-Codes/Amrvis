@@ -1,7 +1,6 @@
 // ---------------------------------------------------------------
 // XYPlotWin.cpp
 // ---------------------------------------------------------------
-
 #include <Xm/AtomMgr.h>
 #include <Xm/Protocols.h>
 #include <Xm/Form.h>
@@ -57,7 +56,8 @@ static char markBits[8][8] = {
   {0x00, 0x08, 0x14, 0x22, 0x14, 0x08, 0x00, 0x00},
   {0x00, 0x1c, 0x14, 0x1c, 0x14, 0x1c, 0x00, 0x00},
   {0x00, 0x1c, 0x2a, 0x36, 0x2a, 0x1c, 0x00, 0x00},
-  {0x00, 0x3e, 0x1c, 0x08, 0x1c, 0x3e, 0x00, 0x00}};
+  {0x00, 0x3e, 0x1c, 0x08, 0x1c, 0x3e, 0x00, 0x00}
+};
 
 static param_style param_null_style = {STYLE, 0, (char *) 0};
 
@@ -193,10 +193,9 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
     wAllButton, wNoneButton, wClearButton;
   XmString label_str1, label_str2, label_str3;
 
-  wControlArea =
-    XtVaCreateManagedWidget("controlArea", xmFormWidgetClass,
-			    wXYPlotTopLevel,
-			    NULL);
+  wControlArea = XtVaCreateManagedWidget("controlArea", xmFormWidgetClass,
+			                 wXYPlotTopLevel,
+			                 NULL);
 
   // --------------------------------------------------------  legend
   wLegendArea = XtVaCreateManagedWidget("legendarea", xmFormWidgetClass,
@@ -411,15 +410,15 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
   XUnitText = new char[strlen(str) + 1];
   strcpy(XUnitText, str);
 
-  str       = PM_STR("YUnitText");
+  str = PM_STR("YUnitText");
   YUnitText = new char[strlen(str) + 1];
   strcpy(YUnitText, str);
 
-  str       = PM_STR("FormatX");
+  str = PM_STR("FormatX");
   formatX = new char[strlen(str) + 1];
   strcpy(formatX, str);
 
-  str       = PM_STR("FormatY");
+  str = PM_STR("FormatY");
   formatY = new char[strlen(str) + 1];
   strcpy(formatY, str);
 
@@ -456,9 +455,7 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
 }
 
 
-
 #if (BL_SPACEDIM == 2)
-
 // -------------------------------------------------------------------
 void XYPlotWin::InitializeAnimation(int curr_frame, int num_frames) {
   if(animatingQ) {
@@ -572,7 +569,6 @@ void XYPlotWin::StopAnimation(void) {
     CBdoRedrawPlot(None, NULL, NULL);
   }
 }
-
 #endif
 
 
@@ -586,8 +582,8 @@ void XYPlotWin::StopAnimation(void) {
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::setBoundingBox (double lowX,  double lowY,
-				double highX, double highY)
+void XYPlotWin::setBoundingBox(double lowX,  double lowY,
+			       double highX, double highY)
 {
   double pad;
   if(highX > lowX) {
@@ -661,7 +657,7 @@ void XYPlotWin::CalculateBox() {
   // have the Y axis grid labels.
 
   // Here we make an arbitrary label to find out how big an offset we need
-  char buff[40];
+  char buff[128];
   sprintf(buff, formatY, -200.0);
   XCharStruct bb;
   int dir, ascent, descent;
@@ -708,7 +704,6 @@ void XYPlotWin::CalculateBox() {
 
 // -------------------------------------------------------------------
 void XYPlotWin::CBdoDrawPlot(Widget, XtPointer, XtPointer) {
-
   CalculateBox();
   // Everything is defined so we can now use the SCREENX and SCREENY
   // transformations.
@@ -862,9 +857,9 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
       ++numDrawnItems;
     } else {
       XtVaSetValues(new_item->frame,
-		       XmNtopShadowColor, backgroundPix,
-		       XmNbottomShadowColor, backgroundPix,
-		       NULL);
+		    XmNtopShadowColor, backgroundPix,
+		    XmNbottomShadowColor, backgroundPix,
+		    NULL);
     }
 
     new_item->prev = insert_after;
@@ -937,7 +932,6 @@ double XYPlotWin::initGrid(double low, double high, double step) {
     }
     step *= 1.2;
   }
-
   dGridBase = (floor(low / dGridStep) + 1.0) * dGridStep;
   return dGridBase;
 }
@@ -980,14 +974,13 @@ double XYPlotWin::roundUp(double val) {
 
 // -------------------------------------------------------------------
 void XYPlotWin::writeValue(char *str, char *fmt, double val, int expv) {
-  int idx;
   if(expv < 0) {
-    for(idx = expv; idx < 0; ++idx) {
+    for(int idx(expv); idx < 0; ++idx) {
       val *= 10.0;
     }
   } else {
-    for(idx = expv; idx > 0; --idx) {
-      val /= 10.0;
+    for(int idx(expv); idx > 0; --idx) {
+      val *= 0.10;
     }
   }
   if(strchr(fmt, 'd') || strchr(fmt, 'x')) {
@@ -1147,16 +1140,14 @@ void XYPlotWin::drawGridAndAxis(void) {
 
 // -------------------------------------------------------------------
 void XYPlotWin::clearData(void) {
-  XClearArea(disp, pWindow, iXOrgX+1, iXOrgY+1,
-	     (iXOppX - iXOrgX - 2),
-	     (iXOppY - iXOrgY - 2), false);
+  XClearArea(disp, pWindow, iXOrgX + 1, iXOrgY + 1,
+	     (iXOppX - iXOrgX - 2), (iXOppY - iXOrgY - 2), false);
 }
 
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::drawData(void){
-
+void XYPlotWin::drawData(void) {
   double sx1, sy1, sx2, sy2, ssx1, ssx2, ssy1, ssy2, tx(0.0), ty(0.0);
   int code1, code2, cd, mark_inside;
   unsigned int X_idx;
@@ -1376,7 +1367,6 @@ void XYPlotWin::segX(Widget win, int ns, XSegment *segs, int width,
 // -------------------------------------------------------------------
 void XYPlotWin::dotX(Widget win, int x, int y, int style, int color) {
   XGCValues gcvals;
-
   gcvals.foreground = color;
   gcvals.clip_mask = AllAttrs[style].markStyle;
   gcvals.clip_x_origin = (int) (x - (dotW >> 1));
@@ -1404,7 +1394,7 @@ void XYPlotWin::CBdoClearData(Widget, XtPointer, XtPointer) {
     delete ptr;
   }
 
-  for(int idx = 0; idx != 8; ++idx) {
+  for(int idx(0); idx != 8; ++idx) {
     lineFormats[idx] = 0x0;
   }
   legendHead = NULL;
@@ -1416,7 +1406,6 @@ void XYPlotWin::CBdoClearData(Widget, XtPointer, XtPointer) {
   setBoundingBox();
 
   CBdoRedrawPlot(None, NULL, NULL);
-
 }
 
 

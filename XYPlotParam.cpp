@@ -11,8 +11,7 @@
 #include <cstdlib>
 #include <cstring>
 #ifdef BL_IRIX64
-#include <strings.h>
-// for index ^^^^^
+#include <strings.h>  // for index
 #endif
 
 #define DEF(name, typ, def_name) \
@@ -33,8 +32,8 @@ static char *negative[] = {"off", "no", "false", "0", "negative", NULL};
 
 
 // -------------------------------------------------------------------
-XYPlotParameters::XYPlotParameters(Palette *palPtr, GraphicsAttributes *gaptr,
-				   char *name)
+XYPlotParameters::XYPlotParameters(Palette *palPtr,
+                                   GraphicsAttributes *gaptr, char *name)
   : param_palette(palPtr), gaPtr(gaptr)
 {
   title = new char[strlen(name) + 1];
@@ -51,7 +50,6 @@ XYPlotParameters::XYPlotParameters(Palette *palPtr, GraphicsAttributes *gaptr,
   for(int idx(0); idx != param_table.num_bins; ++idx) {
     param_table.bins[idx] = NULL;
   }
-
   GetHardWiredDefaults();
   ReadFromFile("~/.XYPlot.Defaults"); // First read "global" defaults
   ReadFromFile(".XYPlot.Defaults");   // Then read "local" defaults
