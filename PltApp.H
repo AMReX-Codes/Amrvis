@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.46 2001-04-24 23:42:28 vince Exp $
+// $Id: PltApp.H,v 1.47 2001-04-26 00:41:13 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -25,7 +25,6 @@ class ProjectionPicture;
 #endif
 
 class DataServices;
-
 class AmrPicture;
 class Dataset;
 class GraphicsAttributes;
@@ -113,16 +112,7 @@ public:
   bool Animating()    const        { return ((bool) animationIId); }
   int CurrentFrame()  const        { return currentFrame; }
   XImage *CurrentFrameXImage()     { return frameBuffer[currentFrame]; }
-  Real GlobalMin()    const        { return globalMin; }
-  Real GlobalMax()    const        { return globalMax; }
-  //int CurrentScale()  const        { return currentScale; }
-  //int MinAllowableLevel() const    { return minAllowableLevel; }
-  //int MinDrawnLevel() const        { return minDrawnLevel; }
-  //int MaxDrawnLevel() const        { return maxDrawnLevel; }
-  //bool GetShowBoxes() const        { return showBoxes; }
-  //void SetShowBoxes(bool showing)  { showBoxes = showing; }
   GraphicsAttributes *GetGAptr() const  { return GAptr; }
-  //const aString &CurrentDerived() const { return currentDerived; }
   PltAppState *GetPltAppState() const { return pltAppState; }
 
   const aString &GetFileName();
@@ -194,17 +184,13 @@ private:
   bool datasetShowing, paletteDrawn, writingRGB, interfaceReady;
   bool paletteCBQ;
   int servingButton;
-  //int numContours;
   int minDrawnLevel, maxDrawnLevel, maxDataLevel;
   int currentFrame, animFrames, frameSpeed;
   int activeView;
   int startX, startY, endX, endY;
-  //int currentScale;
   int maxAllowableScale;
-  //int minAllowableLevel;
   bool bCartGridSmoothing;
   aString contourNumString, formatString, fileName, palFilename;
-  //aString currentDerived;
   char buffer[BUFSIZ];
   Box trueRegion, selectionBox;
   Dataset *datasetPtr;
@@ -215,9 +201,7 @@ private:
   Array<bool>	readyFrames;
   AnimDirection	animDirection;
   XtIntervalId	animationIId, multiclickIId;
-  Real		globalMin, globalMax;
-  Real finestDx[BL_SPACEDIM],
-    gridOffset[BL_SPACEDIM];
+  Real finestDx[BL_SPACEDIM], gridOffset[BL_SPACEDIM];
   String trans;
   int startcutX[3], startcutY[3], finishcutX[3], finishcutY[3];
   PltApp *pltParent;
@@ -257,7 +241,6 @@ private:
   void ChangeDerived(Widget, XtPointer, XtPointer);
   void ChangeContour(Widget, XtPointer, XtPointer);
   void ChangePlane(Widget, XtPointer, XtPointer);
-  void SetNumContours(bool bRedrawAmrPicture = true);
 
   void DrawAxes(Widget, int, int, int, char *, char *, int);
   void ResetAnimation();

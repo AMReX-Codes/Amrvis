@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.H,v 1.37 2001-04-16 16:41:20 vince Exp $
+// $Id: AmrPicture.H,v 1.38 2001-04-26 00:41:13 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -61,10 +61,9 @@ class AmrPicture {
   void	APDraw(int fromLevel, int toLevel);
   void  DrawSlice(int);
   void	DoExposePicture();
-  //void ToggleBoxes();
   void	APMakeImages(Palette *palptr);
   void	APChangeScale(int newScale, int previousScale);
-  void	APChangeLevel(int lowLevel, int hiLevel);
+  void	APChangeLevel();
   XImage *GetPictureXImage();
   void	APChangeSlice(int here);
   
@@ -79,57 +78,24 @@ class AmrPicture {
   int	GetHLine() const    { return hLine; }
   int	GetVLine() const    { return vLine; }
   int	GetSlice() const    { return slice; }
-  //const aString &CurrentDerived() const { return currentDerived; }
-  //int	NumberOfLevels()    const { return numberOfLevels; }
-  //int	FinestLevel()       const { return numberOfLevels - 1; }
-  //int	MaxAllowableLevel() const { return maxAllowableLevel; }
-  //bool	ShowingBoxes()      const { return showBoxes; }
   unsigned int ImageSizeH() const { return imageSizeH; }
   unsigned int ImageSizeV() const { return imageSizeV; }
   void	SetDataServicesPtr(DataServices *tothis) { dataServicesPtr = tothis; } 
-  //void	SetDataMin(Real min) { /* cout << "_here 00: setting dms" << endl; */  dataMinSpecified[currDerivedNumber] = min; }
-  //void	SetDataMax(Real max) { dataMaxSpecified[currDerivedNumber] = max; }
-  //Real	GetSpecifiedMin() const { return dataMinSpecified[currDerivedNumber]; }
-  //Real	GetSpecifiedMax() const { return dataMaxSpecified[currDerivedNumber]; }
-  //Real	GetGlobalMin() const       { return dataMinAllGrids; }
-  //Real	GetGlobalMax() const       { return dataMaxAllGrids; }
-  //Real	GetRegionMin() const { return dataMinRegion; }
-  //Real	GetRegionMax() const { return dataMaxRegion; }
-  //void  SetContourNumber(int nContours) { numberOfContours = nContours; }
-  //int   GetContourNumber() const { return numberOfContours; }
-  //int   MinDrawnLevel() const { return minDrawnLevel; }
-  //int   MaxDrawnLevel() const { return maxDrawnLevel; }
-  //Real	GetWhichMin();
-  //Real	GetWhichMax();
   void	SetHColor(int c)          { hColor = c; }
   void	SetVColor(int c)          { vColor = c; }
   const Box &GetSliceBox(int level) const { return sliceBox[level]; }
   int	GetMyView() const         { return myView; }
   const Array<Box> &GetSubDomain() const { return subDomain; }
   void	SetFrameSpeed(int toThis) { frameSpeed = toThis; }
-  //Real	MinUsing() const          { return minUsing; }
-  //Real	MaxUsing() const          { return maxUsing; }
   Window PictureWindow()          { return pictureWindow; }
-  //void	SetMaxDrawnLevel(int lev) { maxDrawnLevel = lev; }
   void  SetCartGridSmoothing(bool tf) { bCartGridSmoothing = tf; }
   void APChangeContour(ContourType prevCType);
 
  private:
   Window 		pictureWindow;
   int			numberOfLevels;
-  //int			finestLevel;
-  //int			numberOfContours;
-  //Real			dataMinAllGrids, dataMaxAllGrids;
-  //Real			dataMinRegion, dataMaxRegion;
-  //Array<Real>		dataMinSpecified, dataMaxSpecified;
-  //Array<bool>		dataMinSpecifiedSet, dataMaxSpecifiedSet;
-  //Real			dataMinFile, dataMaxFile;
-  //Real			minUsing, maxUsing;
   Array<unsigned long>  dataSize, dataSizeH, dataSizeV;
   unsigned int   	imageSize, imageSizeH, imageSizeV;
-  //aString		currentDerived;
-  //int    		currDerivedNumber;
-  //bool			showBoxes;
   int			hdspoint, vdspoint, dsBoxSize;
   int			datasetPointShowing, datasetPointColor;
   Pixmap 		pixMap;
@@ -157,8 +123,8 @@ class AmrPicture {
   Display		*display;
   GC			xgc;
   int			myView, hLine, vLine;
-  //int			minDrawnLevel, maxDrawnLevel, maxAllowableLevel;
-  int			maxLevelWithGrids; //maxsFound;
+  int			maxLevelWithGrids;
+  //bool		maxsFound;
   int			hColor, vColor, myColor, slice, sliceDir;
   bool                  bCartGridSmoothing;
   bool                  pixMapCreated, isSubDomain, findSubRange;

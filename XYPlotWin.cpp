@@ -29,6 +29,7 @@
 
 #include "XYPlotWin.H"
 #include "PltApp.H"
+#include "PltAppState.H"
 #include "GraphicsAttributes.H"
 
 #ifdef BL_USE_NEW_HFILES
@@ -457,8 +458,7 @@ void XYPlotWin::InitializeAnimation(int curr_frame, int num_frames) {
     ptr->anim_lists = new Array<XYPlotDataList *>(numFrames);
     ptr->ready_list = new Array<char>(numFrames, 0);
   }
-  lloY = pltParent->GlobalMin();
-  hhiY = pltParent->GlobalMax();
+  pltParent->GetPltAppState()->GetMinMax(lloY, hhiY);
   if( ! zoomedInQ) {
     setBoundingBox();
     CBdoRedrawPlot(None, NULL, NULL);

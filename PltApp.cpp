@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.83 2001-04-24 23:42:28 vince Exp $
+// $Id: PltApp.cpp,v 1.84 2001-04-26 00:41:13 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -264,12 +264,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     ivLowOffsetMAL.setVal(i, amrData.ProbDomain()[maxlev].smallEnd(i));
   }
 
-  //numContours = 5;
-  contourNumString = aString("5");
-  pltAppState->SetNumContours(5);
-  //for(i = 0; i != NPLANES; ++i) {
-  //  amrPicturePtrArray[i]->SetContourNumber(5);
-  //}
+  contourNumString = aString("10");
+  pltAppState->SetNumContours(10);
 
   palFilename = PltApp::defaultPaletteString;
   PltAppInit();
@@ -418,10 +414,6 @@ pltAppState->PrintSetMap();  cout << endl;
 					    pltAppState,
 					    bCartGridSmoothing);
   }
-  
-  //for(int j(0); j < NPLANES; ++j) {
-  //  amrPicturePtrArray[j]->SetContourNumber(numContours);
-  //}
   
 #if (BL_SPACEDIM == 3)
   for(int i(0); i < 3; ++i) {
@@ -1265,41 +1257,6 @@ void PltApp::PltAppInit() {
   sprintf(plottertitle, "XYPlot%dd", BL_SPACEDIM);
   XYplotparameters = new XYPlotParameters(pltPaletteptr, GAptr, plottertitle);
 
-#if (BL_SPACEDIM == 2)
-  if(animating2d) {
-    if(pltAppState->CurrentDerived() == "vol_frac") {
-      globalMin = 0.0;
-      globalMax = 1.0;
-    } else {
-      aString outbuf("Finding global min & max values for ");
-      outbuf += pltAppState->CurrentDerived();
-      outbuf += "...\n";
-      strcpy(buffer, outbuf.c_str());
-      PrintMessage(buffer);
-      
-      Real dataMin, dataMax;
-      globalMin =  AV_BIG_REAL;
-      globalMax = -AV_BIG_REAL;
-      for(int iFrame(0); iFrame < animFrames; ++iFrame) {
-	int coarseLevel(0);
-	int fineLevel(pltAppState->FinestLevel());
-        for(int lev(coarseLevel); lev <= fineLevel; ++lev) {
-          bool minMaxValid(false);
-          DataServices::Dispatch(DataServices::MinMaxRequest,
-                                 dataServicesPtr[iFrame],
-                                 (void *) &(amrData.ProbDomain()[lev]),
-                                 (void *) &(pltAppState->CurrentDerived()),
-				 lev, &dataMin, &dataMax, &minMaxValid);
-          if(minMaxValid) {
-            globalMin = Min(globalMin, dataMin);
-            globalMax = Max(globalMax, dataMax);
-          }
-	}
-      }
-    } 
-  }
-#endif
-
   for(np = 0; np < NPLANES; ++np) {
     amrPicturePtrArray[np]->CreatePicture(XtWindow(wPlotPlane[np]),
 					  pltPaletteptr);
@@ -1324,11 +1281,6 @@ void PltApp::PltAppInit() {
 
   interfaceReady = true;
   
-  //for(np = 0; np < NPLANES; ++np) {
-  //  amrPicturePtrArray[np]->SetDataMin(amrPicturePtrArray[np]->GetRegionMin());
-  //  amrPicturePtrArray[np]->SetDataMax(amrPicturePtrArray[np]->GetRegionMax());
-  //}  
-
 }  // end PltAppInit()
 
 
@@ -1342,8 +1294,8 @@ void PltApp::FindAndSetMinMax(const MinMaxRangeType mmrangetype,
 		              const bool resetIfSet)
 {
   Real rMin, rMax, levMin, levMax;
-  bool isset(pltAppState->IsSet(mmrangetype, framenumber, derivednumber));
-  if(isset == false || resetIfSet) {  // find and set the mins and maxes
+  bool isSet(pltAppState->IsSet(mmrangetype, framenumber, derivednumber));
+  if(isSet == false || resetIfSet) {  // find and set the mins and maxes
     rMin =  AV_BIG_REAL;
     rMax = -AV_BIG_REAL;
     for(int lev(coarselevel); lev <= finelevel; ++lev) {
@@ -1522,7 +1474,7 @@ void PltApp::ChangeLevel(Widget w, XtPointer client_data, XtPointer) {
   pltAppState->SetMinDrawnLevel(minDrawnLevel);
   pltAppState->SetMaxDrawnLevel(maxDrawnLevel);
   for(int whichView(0); whichView < NPLANES; ++whichView) {
-    amrPicturePtrArray[whichView]->APChangeLevel(minDrawnLevel, maxDrawnLevel);
+    amrPicturePtrArray[whichView]->APChangeLevel();
     
 #if (BL_SPACEDIM == 3)
     if(whichView == ZPLANE) {
@@ -1647,8 +1599,8 @@ pltAppState->PrintSetMap();  cout << endl;
     DirtyFrames();
     if(UsingFileRange(currentRangeType)) {
       Real dataMin, dataMax;
-      globalMin =  AV_BIG_REAL;
-      globalMax = -AV_BIG_REAL;
+      //globalMin =  AV_BIG_REAL;
+      //globalMax = -AV_BIG_REAL;
       int coarseLevel(0);
       int fineLevel(maxDrawnLevel);
       for(int lev(coarseLevel); lev <= fineLevel; ++lev) {
@@ -1661,12 +1613,12 @@ pltAppState->PrintSetMap();  cout << endl;
 	if( ! minMaxValid) {
 	  continue;
 	}
-	globalMin = Min(globalMin, dataMin);
-	globalMax = Max(globalMax, dataMax);
+	//globalMin = Min(globalMin, dataMin);
+	//globalMax = Max(globalMax, dataMax);
       }
     } else if(strcmp(pltAppState->CurrentDerived().c_str(),"vol_frac") == 0) {
-      globalMin = 0.0;
-      globalMax = 1.0;
+      //globalMin = 0.0;
+      //globalMax = 1.0;
     } else {
       aString outbuf("Finding global min & max values for ");
       outbuf += pltAppState->CurrentDerived();
@@ -1675,8 +1627,8 @@ pltAppState->PrintSetMap();  cout << endl;
       PrintMessage(buffer);
       
       Real dataMin, dataMax;
-      globalMin =  AV_BIG_REAL;
-      globalMax = -AV_BIG_REAL;
+      //globalMin =  AV_BIG_REAL;
+      //globalMax = -AV_BIG_REAL;
       int coarseLevel(0);
       int fineLevel(maxDrawnLevel);
       for(int iFrame(0); iFrame < animFrames; ++iFrame) {
@@ -1690,8 +1642,8 @@ pltAppState->PrintSetMap();  cout << endl;
 	  if( ! minMaxValid) {
 	    continue;
 	  }
-	  globalMin = Min(globalMin, dataMin);
-	  globalMax = Max(globalMax, dataMax);
+	  //globalMin = Min(globalMin, dataMin);
+	  //globalMax = Max(globalMax, dataMax);
 	}
       }
     } 
@@ -1704,7 +1656,6 @@ pltAppState->PrintSetMap();  cout << endl;
 
   pltAppState->SetMaxDrawnLevel(maxDrawnLevel);
   for(int iv(0); iv < NPLANES; ++iv) {
-    //amrPicturePtrArray[iv]->SetMaxDrawnLevel(maxDrawnLevel);
     amrPicturePtrArray[iv]->APMakeImages(pltPaletteptr);
   }
   
@@ -1776,6 +1727,7 @@ void PltApp::ReadContourString(Widget w, XtPointer, XtPointer) {
   //check to make sure the input is an integer, and its length < 3.
   if(tmpContourNumString.length() >= 3) {
     stringOk = false;
+    cerr << "Bad contour number string, must be less than 100." << endl;
   } else {
     for(int i(0); i < tmpContourNumString.length(); ++i) {
       if( ! isdigit(tmpContourNumString[i])) {
@@ -1786,25 +1738,16 @@ void PltApp::ReadContourString(Widget w, XtPointer, XtPointer) {
 
   if(stringOk) {
     contourNumString = tmpContourNumString;
-    //numContours = atoi(contourNumString.c_str());
     pltAppState->SetNumContours(atoi(contourNumString.c_str()));
-    SetNumContours();
+    for(int ii(0); ii < NPLANES; ++ii) {
+        amrPicturePtrArray[ii]->APDraw(pltAppState->MinDrawnLevel(), 
+				       pltAppState->MaxDrawnLevel());
+    }
   }
 
   XtVaSetValues(w, XmNvalue, contourNumString.c_str(), NULL);
 }
 
-
-// -------------------------------------------------------------------
-void PltApp::SetNumContours(bool bRedrawAmrPicture) {
-  for(int ii(0); ii < NPLANES; ++ii) {
-    //amrPicturePtrArray[ii]->SetContourNumber(numContours);
-    if(bRedrawAmrPicture)
-      amrPicturePtrArray[ii]->APDraw(pltAppState->MinDrawnLevel(), 
-				     pltAppState->MaxDrawnLevel());
-  }
-}
-  
 
 // -------------------------------------------------------------------
 void PltApp::ToggleRange(Widget w, XtPointer client_data, XtPointer call_data) {
@@ -3778,7 +3721,6 @@ void PltApp::ResetAnimation() {
 						bCartGridSmoothing);
     amrPicturePtrArray[ZPLANE]->SetRegion(startX, startY, endX, endY);
     pltAppState->SetMaxDrawnLevel(maxDrawnLevel);
-    //amrPicturePtrArray[ZPLANE]->SetMaxDrawnLevel(maxDrawnLevel);
     //SetNumContours(false);
     //XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
 			 //(XtEventHandler) &PltApp::StaticEvent,
