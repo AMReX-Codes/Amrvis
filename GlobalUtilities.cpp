@@ -158,9 +158,13 @@ void GetDefaults(const aString &defaultsFile) {
       }
     }
   }
+#ifdef BL_USE_MPI
   if(ParallelDescriptor::IOProcessor()) {
     cout << "Reading defaults from:  " << fullDefaultsFile << endl;
   }
+#else
+    cout << "Reading defaults from:  " << fullDefaultsFile << endl;
+#endif
 
   ws(defs);
   defs.getline(buffer, BUFSIZ, '\n');
@@ -641,10 +645,15 @@ void ParseCommandLine(int argc, char *argv[]) {
   if(fileType == INVALIDTYPE) {
     ParallelDescriptor::Abort("Error:  invalid file type.  Exiting.");
   } else {
+#ifdef BL_USE_MPI
     if(ParallelDescriptor::IOProcessor()) {
       cout << ">>>>>>> Setting file type to "
            << FileTypeString[fileType] << "." << endl << endl;
     }
+#else
+      cout << ">>>>>>> Setting file type to "
+           << FileTypeString[fileType] << "." << endl << endl;
+#endif
   }
 
   if(fileType == FAB) {
