@@ -36,6 +36,11 @@
 #include <iostream>
 #include <iomanip>
 using std::setw;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
 #else
 #include <iostream.h>
 #include <iomanip.h>

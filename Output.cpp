@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.cpp,v 1.24 2001-08-14 00:57:54 vince Exp $
+// $Id: Output.cpp,v 1.25 2001-08-21 20:37:55 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -25,6 +25,11 @@ using std::hex;
 using std::dec;
 using std::ofstream;
 using std::ostrstream;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
 #else
 #include <fstream.h>
 #include <iomanip.h>

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.53 2001-08-14 00:57:54 vince Exp $
+// $Id: PltApp.H,v 1.54 2001-08-21 20:37:55 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -23,6 +23,9 @@
 # include "ViewTransform.H"
 class ProjectionPicture;
 #endif
+
+#include <vector>
+using std::vector;
 
 class DataServices;
 class AmrPicture;

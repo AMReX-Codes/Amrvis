@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.52 2001-08-14 00:57:54 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.53 2001-08-21 20:37:55 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -33,6 +33,12 @@
 #ifdef BL_USE_ARRAYVIEW
 #include "ArrayView.H"
 #endif
+
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
 
 const int OPENITEM = 0;
 const int QUITITEM = 1;

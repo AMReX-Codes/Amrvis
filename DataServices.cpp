@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.26 2001-08-14 00:57:54 vince Exp $
+// $Id: DataServices.cpp,v 1.27 2001-08-21 20:37:55 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -17,6 +17,12 @@
 #include <cstdio>
 using std::ios;
 using std::ofstream;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+
 #else
 #include <iostream.h>
 #include <stdio.h>

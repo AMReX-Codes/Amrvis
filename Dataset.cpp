@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.38 2001-08-14 00:57:54 vince Exp $
+// $Id: Dataset.cpp,v 1.39 2001-08-21 20:37:55 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -33,6 +33,12 @@ const int MAXINDEXCHARS   = 4;
 #include <cfloat>
 using std::ostrstream;
 using std::ends;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+
 # else
 #include <strstream.h>
 #include <float.h>

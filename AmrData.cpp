@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.52 2001-08-14 00:57:54 vince Exp $
+// $Id: AmrData.cpp,v 1.53 2001-08-21 20:37:55 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -12,6 +12,12 @@
 #include "aString.H"
 //#include "Misc.H"
 #include "VisMF.H"
+
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
 
 #if ! (defined(BL_Linux) || defined(BL_AIX) || defined(BL_IRIX64) || defined(WIN32) || defined(BL_CYGWIN_NT))
 #define BL_ALWAYS_FIX_DENORMALS

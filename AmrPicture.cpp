@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.67 2001-08-14 00:57:54 vince Exp $
+// $Id: AmrPicture.cpp,v 1.68 2001-08-21 20:37:55 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -12,6 +12,11 @@
 #include "Palette.H"
 #include "DataServices.H"
 #include "ProjectionPicture.H"
+
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::max;
 
 #ifdef BL_USE_NEW_HFILES
 #include <ctime>

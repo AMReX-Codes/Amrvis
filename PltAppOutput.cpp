@@ -1,6 +1,6 @@
 
 //
-// $Id: PltAppOutput.cpp,v 1.25 2001-06-13 00:40:38 vince Exp $
+// $Id: PltAppOutput.cpp,v 1.26 2001-08-21 20:37:55 vince Exp $
 //
 
 #include <Xm/Xm.h>
@@ -16,6 +16,13 @@
 #include "DataServices.H"
 #include "ProjectionPicture.H"
 #include "Output.H"
+
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
+
 
 // -------------------------------------------------------------------
 void PltApp::DoOutput(Widget w, XtPointer data, XtPointer) {

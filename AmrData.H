@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.H,v 1.20 2001-08-14 00:57:54 vince Exp $
+// $Id: AmrData.H,v 1.21 2001-08-21 20:37:55 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -15,6 +15,12 @@
 #include "MultiFab.H"
 #include "aString.H"
 #include "VisMF.H"
+
+#include <vector>
+#include <fstream>
+using std::vector;
+using std::istream;
+using std::ostream;
 
 class Interpolater;
 

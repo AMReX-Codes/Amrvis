@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.39 2001-08-16 00:19:39 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.40 2001-08-21 20:37:55 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -11,8 +11,14 @@
 #include "FabConv.H"
 #ifdef BL_USE_NEW_HFILES
 #include <fstream>
+#include <iostream>
 using std::ifstream;
 using std::ofstream;
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
 #else
 #include <fstream.h>
 #endif

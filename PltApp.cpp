@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.94 2001-08-14 00:57:54 vince Exp $
+// $Id: PltApp.cpp,v 1.95 2001-08-21 20:37:55 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -46,7 +46,12 @@
 #include <strstream>
 using std::ostrstream;
 using std::ends;
+using std::cout;
+using std::cerr;
 using std::endl;
+using std::min;
+using std::max;
+
 #else
 #include <ctype.h>
 #include <strstream.h>

@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.35 2001-08-14 00:57:54 vince Exp $
+// $Id: Palette.cpp,v 1.36 2001-08-21 20:37:55 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -16,6 +16,11 @@
 #ifdef BL_USE_NEW_HFILES
 #include <cassert>
 #include <cstdio>
+using std::cout;
+using std::cerr;
+using std::endl;
+using std::min;
+using std::max;
 #else
 #include <stdio.h>
 #include <assert.h>
