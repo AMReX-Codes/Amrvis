@@ -157,7 +157,6 @@ void main(int argc, char *argv[]) {
 	    }
 	  } else {
             pltAppList.append(temp);
-            //cout << ">>>> pltAppList appending " << temp << endl;
 	  }
 	} else {
           if(ParallelDescriptor::IOProcessor()) {
@@ -188,7 +187,6 @@ void main(int argc, char *argv[]) {
 	    } else {
               pltAppList.append(temp);
               dspArray[0]->IncrementNumberOfUsers();
-              //cout << ">>>> pltAppList appending " << temp << endl;
 	    }
 	  }
         }
@@ -275,8 +273,8 @@ void CreateMainWindow(int argc, char *argv[]) {
   GraphicsAttributes *TheGAptr = new GraphicsAttributes(wTopLevel);
   if(TheGAptr->PVisual() != XDefaultVisual(TheGAptr->PDisplay(), 
                                         TheGAptr->PScreenNumber() ) ){
-      cout<<"Setting visualid to 0x"<<hex
-          <<TheGAptr->PVisual()->visualid<<dec<<"in main window"<<endl;
+      //cout<<"Setting visualid to 0x"<<hex
+      //    <<TheGAptr->PVisual()->visualid<<dec<<"in main window"<<endl;
       Colormap colormap = XCreateColormap(TheGAptr->PDisplay(), 
                                           RootWindow(TheGAptr->PDisplay(),
                                                      TheGAptr->PScreenNumber()),
@@ -479,7 +477,6 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
   if(item == QUITITEM) {
     for(ListIterator<PltApp *> li(pltAppList); li; ++li) {
       PltApp *obj = pltAppList[li];
-      //cout << "<<<< pltAppList removing " << obj << endl;
       Array<DataServices *> dataServicesPtr = obj->GetDataServicesPtrArray();
       for(int ids = 0; ids < dataServicesPtr.length(); ++ids) {
         dataServicesPtr[ids]->DecrementNumberOfUsers();
@@ -533,16 +530,13 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
     cerr << "CBOpenPltFile : system error" << endl;
     return;
   }
-  cout<<filename<<endl;
   char path[BUFSIZ];
-  //cout << "_in CBOpenPltFile:  filename = " << filename << endl;
   strcpy(path, filename);
   int i = strlen(path) - 1;
   while(i > -1 && path[i] != '/') {
     --i;
   }
   path[i+1] = '\0';
-  //cout << "_in CBOpenPltFile:  path = " << path << endl;
   sDirectory = XmStringCreateSimple(path);
 
   sprintf(buffer, "Selected file = %s\n", filename);
@@ -560,7 +554,6 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
   } else {
     pltAppList.append(temp);
     dspArray[0]->IncrementNumberOfUsers();
-    //cout << ">>>> pltAppList appending " << temp << endl;
   }
 
   XtPopdown(XtParent(w));
@@ -580,7 +573,6 @@ void SubregionPltApp(Widget wTopLevel, const Box &trueRegion,
     cerr << "Error in SubregionPltApp:  could not make a new PltApp." << endl;
   } else {
     pltAppList.append(temp);
-    //cout << ">>>> pltAppList appending " << temp << endl;
     Array<DataServices *> dataServicesPtr = temp->GetDataServicesPtrArray();
     for(int ids = 0; ids < dataServicesPtr.length(); ++ids) {
       dataServicesPtr[ids]->IncrementNumberOfUsers();
@@ -593,7 +585,6 @@ void SubregionPltApp(Widget wTopLevel, const Box &trueRegion,
 void CBQuitPltApp(Widget ofPltApp, XtPointer client_data, XtPointer) {
   PltApp *obj = (PltApp *) client_data;
   pltAppList.remove(obj);
-  //cout << "<<<< pltAppList removing " << obj << endl;
 
   Array<DataServices *> &dataServicesPtr = obj->GetDataServicesPtrArray();
   for(int ids = 0; ids < dataServicesPtr.length(); ++ids) {

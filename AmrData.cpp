@@ -26,7 +26,6 @@
 #     if (BL_SPACEDIM == 2)
 #	   define   FORT_CNTRP     CNTRP2D
 #	   define   FORT_PCINTRP    PCINTRP2D
-
 #     elif (BL_SPACEDIM == 3)
 #	   define   FORT_CINTRP     CINTRP3D
 #	   define   FORT_PCINTRP    PCINTRP3D
@@ -35,7 +34,6 @@
 #     if (BL_SPACEDIM == 2)
 #	   define   FORT_CINTRP     cintrp2d_
 #	   define   FORT_PCINTRP    pcintrp2d_
-
 #     elif (BL_SPACEDIM == 3)
 #	   define   FORT_CINTRP     cintrp3d_
 #	   define   FORT_PCINTRP    pcintrp3d_
@@ -342,8 +340,8 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 
    int lev;
    boundaryWidth = Max(width, sBoundaryWidth);
-   int Restrict = maxDomain[0].ok();  // cap R: restrict is a cray keyword
-   if(Restrict) {
+   bool bRestrictDomain(maxDomain[0].ok());
+   if(bRestrictDomain) {
       for(lev = 1; lev <= finestLevel; lev++) {
         maxDomain[lev] = refine(maxDomain[lev-1],refRatio[lev-1]);
       }
@@ -353,7 +351,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
    regions.resize(finestLevel + 1);
    for(lev = 0; lev <= finestLevel; ++lev) {
       restrictDomain[lev] = probDomain[lev];
-      if(Restrict) {
+      if(bRestrictDomain) {
         restrictDomain[lev] = maxDomain[lev];
       }
       extendRestrictDomain[lev] = grow(restrictDomain[lev],boundaryWidth);
@@ -388,6 +386,8 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
    // read all grids but only save those inside the restricted region
 
     visMF.resize(finestLevel + 1);
+    compIndexToVisMFMap.resize(nComp);
+    compIndexToVisMFComponentMap.resize(nComp);
     gridLocLo.resize(finestLevel + 1);
     gridLocHi.resize(finestLevel + 1);
 
@@ -431,26 +431,44 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 	}
       }
 
-      aString mfNameRelative;
-      is >> mfNameRelative;
-      aString mfName(fileName);
-#ifdef BL_PARALLEL_IO
-      mfName += '/';
-      mfName += mfNameRelative;
-      VSHOWVAL(verbose, mfName);
-      VSHOWVAL(verbose, mfNameRelative);
-#endif /* BL_PARALLEL_IO */
-
-      visMF[i] = new VisMF(mfName);
+      // here we account for multiple multifabs in a plot file
+      int currentIndexComp(0);
+      int currentVisMF(0);
       dataGrids[i].resize(nComp);
       dataGridsDefined[i].resize(nComp);
-      for(int iComp = 0; iComp < nComp; ++iComp) {
-        // make single component multifabs
-        // defer reading the MultiFab data
-        dataGrids[i][iComp] = new MultiFab(visMF[i]->boxArray(), 1,
-			                   visMF[i]->nGrow(), Fab_noallocate);
-        dataGridsDefined[i][iComp].resize(visMF[i]->length(), false);
-      }
+
+      while(currentIndexComp < nComp) {
+
+        aString mfNameRelative;
+        is >> mfNameRelative;
+        aString mfName(fileName);
+#ifdef BL_PARALLEL_IO
+        mfName += '/';
+        mfName += mfNameRelative;
+        VSHOWVAL(verbose, mfName);
+        VSHOWVAL(verbose, mfNameRelative);
+#endif /* BL_PARALLEL_IO */
+
+        visMF[i].resize(currentVisMF + 1);  // this preserves previouse ones
+        visMF[i][currentVisMF] = new VisMF(mfName);
+	int iComp(currentIndexComp);
+        currentIndexComp += visMF[i][currentVisMF]->nComp();
+	int currentVisMFComponent(0);
+        for( ; iComp < currentIndexComp; ++iComp) {
+          // make single component multifabs
+          // defer reading the MultiFab data
+          dataGrids[i][iComp] = new MultiFab(visMF[i][currentVisMF]->boxArray(), 1,
+			                     visMF[i][currentVisMF]->nGrow(),
+					     Fab_noallocate);
+          dataGridsDefined[i][iComp].resize(visMF[i][currentVisMF]->length(),
+					    false);
+          compIndexToVisMFMap[iComp] = currentVisMF;
+          compIndexToVisMFComponentMap[iComp] = currentVisMFComponent;
+          ++currentVisMFComponent;
+        }
+
+        ++currentVisMF;
+      }  // end while
 
     }  // end for(i...finestLevel)
 
@@ -460,8 +478,8 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
    // get better data from interior or input bndry regions
    for(lev = 0; lev <= finestLevel; lev++) {
       Box inbox(restrictDomain[lev]);
-      Box reg1 = grow(restrictDomain[lev],boundaryWidth);
-      Box reg2 = grow(probDomain[lev],width);
+      Box reg1(grow(restrictDomain[lev],boundaryWidth));
+      Box reg2(grow(probDomain[lev],width));
       BoxList outside = boxDiff(reg1,reg2);
       if(outside.length() > 0) {
          // parts of the bndry have not been filled from the input
@@ -600,7 +618,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 
    }  // end for(lev...)
 
-   if(Restrict) {
+   if(bRestrictDomain) {
       Array<Real> p_lo(BL_SPACEDIM), p_hi(BL_SPACEDIM);
       LoNodeLoc(0,maxDomain[0].smallEnd(),p_lo);
       HiNodeLoc(0,maxDomain[0].bigEnd(),p_hi);
@@ -771,10 +789,10 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
    }
 
     int myproc(ParallelDescriptor::MyProc());
-    int stateIndex = StateNumber(nm);
-    int srcComp    = 0;
-    int destComp   = 0;
-    int numComps   = 1;
+    int stateIndex(StateNumber(nm));
+    int srcComp(0);
+    int destComp(0);
+    int numComps(1);
 
     int currentLevel;
     Array<int> cumulativeRefRatios(finestFillLevel + 1, -1);
@@ -941,6 +959,8 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
                     // Interpolate up to fine patch.
                     tempCurrentFillPatchedFab.resize(intersectDestBox, numComps);
                     tempCurrentFillPatchedFab.setVal(1.e30);
+		    assert(intersectDestBox.ok());
+		    assert( tempCoarseDestFab.box().ok());
 		    PcInterp(tempCurrentFillPatchedFab,
 			     tempCoarseDestFab,
 			     intersectDestBox,
@@ -967,7 +987,6 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
         }
       }  // end for(currentLevel...)
     }  // end for(currentIndex...)
-
 }    // end FillVar for a fab on a single processor
 
 
@@ -1201,7 +1220,7 @@ int AmrData::NIntersectingGrids(int level, const Box &b) const {
   if(fileType == FAB) {
     nGrids = 1;
   } else {
-    const BoxArray &visMFBA = visMF[level]->boxArray();
+    const BoxArray &visMFBA = visMF[level][0]->boxArray();
     for(int boxIndex = 0; boxIndex < visMFBA.length(); ++boxIndex) {
       if(b.intersects(visMFBA[boxIndex])) {
         ++nGrids;
@@ -1221,7 +1240,7 @@ int AmrData::FinestContainingLevel(const Box &b, int startLevel) const {
   } else {
     Box levelBox(b);
     for(int level = startLevel; level > 0; --level) {
-      const BoxArray &visMFBA = visMF[level]->boxArray();
+      const BoxArray &visMFBA = visMF[level][0]->boxArray();
       if(visMFBA.contains(levelBox)) {
         return level;
       }
@@ -1250,10 +1269,11 @@ MultiFab &AmrData::GetGrids(int level, int componentIndex, const Box &onBox) {
 
   if(fileType == FAB) {
   } else {
+    int whichVisMF(compIndexToVisMFMap[componentIndex]);
     for(MultiFabIterator mfi(*dataGrids[level][componentIndex]);
         mfi.isValid(); ++mfi)
     {
-      if(onBox.intersects(visMF[level]->boxArray()[mfi.index()])) {
+      if(onBox.intersects(visMF[level][whichVisMF]->boxArray()[mfi.index()])) {
         DefineFab(level, componentIndex, mfi.index());
       }
     }
@@ -1267,8 +1287,10 @@ MultiFab &AmrData::GetGrids(int level, int componentIndex, const Box &onBox) {
 bool AmrData::DefineFab(int level, int componentIndex, int fabIndex) {
 
   if( ! dataGridsDefined[level][componentIndex][fabIndex]) {
+    int whichVisMF(compIndexToVisMFMap[componentIndex]);
+    int whichVisMFComponent(compIndexToVisMFComponentMap[componentIndex]);
     dataGrids[level][componentIndex]->setFab(fabIndex,
-			  visMF[level]->readFAB(fabIndex, componentIndex));
+                visMF[level][whichVisMF]->readFAB(fabIndex, whichVisMFComponent));
     dataGridsDefined[level][componentIndex][fabIndex] = true;
   }
   return true;
@@ -1318,13 +1340,19 @@ bool AmrData::MinMax(const Box &onBox, const aString &derived, int level,
     for(MultiFabIterator gpli(*dataGrids[level][compIndex]);
 	gpli.isValid(); ++gpli)
     {
-      Real visMFMin(visMF[level]->min(gpli.index(), compIndex));
-      Real visMFMax(visMF[level]->max(gpli.index(), compIndex));
+      int whichVisMF(compIndexToVisMFMap[compIndex]);
+      int whichVisMFComponent(compIndexToVisMFComponentMap[compIndex]);
+      Real visMFMin(visMF[level][whichVisMF]->min(gpli.index(),
+		    whichVisMFComponent));
+      Real visMFMax(visMF[level][whichVisMF]->max(gpli.index(),
+		    whichVisMFComponent));
       if(onBox.contains(gpli.validbox())) {
         dataMin = Min(dataMin, visMFMin);
         dataMax = Max(dataMax, visMFMax);
         valid = true;
-      } else if(onBox.intersects(visMF[level]->boxArray()[gpli.index()])) {
+      } else if(onBox.intersects(visMF[level][whichVisMF]->
+				 boxArray()[gpli.index()]))
+      {
         if(visMFMin < dataMin || visMFMax > dataMax) {  // do it the hard way
 	  DefineFab(level, compIndex, gpli.index());
           valid = true;

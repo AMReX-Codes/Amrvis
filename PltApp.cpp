@@ -230,7 +230,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
       XtVaSetValues(wAmrVisTopLevel, XmNvisual, GAptr->PVisual(),
                     XmNdepth, 8, NULL);
   }
-//cout << "------ _in PltApp(subregion):  region = " << region << endl;
   for(int np = 0; np < NPLANES; np++) {
     amrPicturePtrArray[np] = new AmrPicture(np, minAllowableLevel, 
                                             GAptr, region,
@@ -1590,12 +1589,6 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
 
     // then pass the slices to the subregion constructor below...
 
-//cout << "++++++++ _in  PltApp::DoSubregion:  about to SubregionPltApp." << endl;
-//cout << "         subregionBox         = " << subregionBox << endl;
-//cout << "         subregionBoxMAL      = " << subregionBoxMAL << endl;
-//cout << "         maxAllowableLevel    = " << maxAllowableLevel << endl;
-//cout << "         newMinAllowableLevel = " << newMinAllowableLevel << endl;
-//cout << endl;
     SubregionPltApp(wTopLevel, subregionBox, ivOffset, amrPicturePtrArray[ZPLANE],
 		    this, palFilename, animating2d, currentDerived, fileName);
   }

@@ -1,7 +1,7 @@
 c ::: SCCS stuff "@(#)FABUTIL_2D.F	3.1\t6/25/93"
 
-#define   FORT_CINTERP       cntrp2d
-#define   FORT_PCINTERP      pcntrp2d
+#define   FORT_CINTERP       cintrp2d
+#define   FORT_PCINTERP      pcintrp2d
 
 #include "REAL.H"
 #include "CONSTANTS.H"

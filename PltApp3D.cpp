@@ -562,7 +562,6 @@ void PltApp::DoReadTransferFile(Widget, XtPointer, XtPointer) {
     return;
   }
   if(volRender->VPDataValid()) {
-      cout<<"\thave valid VPData"<<endl;
     volRender->MakeVPData();    // reclassify the data
   }
   projPicturePtr->MakePicture();
@@ -720,33 +719,6 @@ void PltApp::DoLabelAxes(Widget, XtPointer, XtPointer) {
   XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
   DoExposeTransDA();
 }
-
-
-/*
-// -------------------------------------------------------------------
-void PltApp::WriteSWFData(const aString &filenamebase) {
-  cout << "_in WriteSWFData:  filenamebase = " << filenamebase << endl;
-#if defined(BL_VOLUMERENDER)
-  VolRender *volRender = projPicturePtr->GetVolRenderPtr();
-#endif
-#if defined(BL_PARALLELVOLUMERENDER)
-  PVolRender *volRender = projPicturePtr->GetVolRenderPtr();
-#endif
-  //projPicturePtr->AllocateSWFData();
-  int iPaletteStart = pltPaletteptr->PaletteStart();
-  int iPaletteEnd   = pltPaletteptr->PaletteEnd();
-  int iBlackIndex   = pltPaletteptr->BlackIndex();
-  int iWhiteIndex   = pltPaletteptr->WhiteIndex();
-  int iColorSlots   = pltPaletteptr->ColorSlots();
-  volRender->MakeSWFData(dataServicesPtr,
-			 globalMin, globalMax,
-			 currentDerived, 
-			 iPaletteStart, iPaletteEnd,
-			 iBlackIndex, iWhiteIndex,
-			 iColorSlots);
-  volRender->WriteSWFData(filenamebase);
-}
-*/
 
 
 // -------------------------------------------------------------------

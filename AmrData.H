@@ -19,7 +19,9 @@ class AmrData {
 	// List of grids at each level, level 0 being coarsest.
 	Array<Array<MultiFab *> > dataGrids;    // [level][component]
 	Array<Array<Array<bool> > > dataGridsDefined;  // [level][component][index]
-	Array<VisMF *> visMF;    // [level]
+	Array<Array<VisMF *> > visMF;    // [level][whichMultiFab]
+	Array<int> compIndexToVisMFMap;  // [nComp]
+	Array<int> compIndexToVisMFComponentMap;  // [nComp]
 
 	int finestLevel;   // most refined level available
 	Array<int> refRatio; // refinement ratio between level L and L+1
@@ -58,7 +60,9 @@ class AmrData {
 				     if(fileType == FAB) {
 				       return fabBoxArray;
 				     } else {
-				     return visMF[level]->boxArray();
+				     // use visMF[][0]:  all boxArrays are
+				     // guaranteed to be the same for each MultiFab
+				     return visMF[level][0]->boxArray();
 				     }
 				   }
 
