@@ -29,7 +29,7 @@ class CMinMax {
     void GetMinMax(Real &rmin, Real &rmax);
     bool IsSet() const { return bMinMaxSet; }
 
-    // no is set checking on these
+    // no is_set checking on these
     Real Min() const { return rMin; }
     Real Max() const { return rMax; }
 
@@ -61,6 +61,8 @@ public:
   */
   
   ~PltAppState();
+
+  PltAppState &operator=(const PltAppState &rhs);
   
   // ------------------------ scale
   int  CurrentScale()  const          { Cnsy(currentScale);  return currentScale; }

@@ -78,6 +78,42 @@ PltAppState::~PltAppState() {
 
 
 // -------------------------------------------------------------------
+PltAppState &PltAppState::operator=(const PltAppState &rhs) {
+  if(this == &rhs) {
+    return *this;
+  }
+  currentScale = rhs.currentScale;
+  maxScale = rhs.maxScale;
+  currentFrame = rhs.currentFrame;
+  currentDerived = rhs.currentDerived;
+  currentDerivedNumber = rhs.currentDerivedNumber;
+  showBoxes = rhs.showBoxes;
+  currentContourType = rhs.currentContourType;
+  nContours = rhs.nContours;
+  currentMinMaxType = rhs.currentMinMaxType;
+
+  // mins and maxes
+  //Array<Array<Array<CMinMax> > > minMax;   // minMax [frame] [derived] [RangeType]
+  minMax = rhs.minMax;   // minMax [frame] [derived] [RangeType]
+
+  //Array<Box> subDomains;
+  subDomains = rhs.subDomains;
+
+  minDrawnLevel = rhs.minDrawnLevel;
+  maxDrawnLevel = rhs.maxDrawnLevel;
+  minAllowableLevel = rhs.minAllowableLevel;
+  maxAllowableLevel = rhs.maxAllowableLevel;
+  finestLevel = rhs.finestLevel;
+  contourNumString = rhs.contourNumString;
+  formatString = rhs.formatString;
+  fileName = rhs.fileName;
+  palFilename = rhs.palFilename;
+
+  return *this;
+}
+
+
+// -------------------------------------------------------------------
 void PltAppState::SetMinMax(const MinMaxRangeType mmrangetype,
 			    const int framenumber,
 			    const int derivednumber,
@@ -128,7 +164,9 @@ void PltAppState::PrintSetMap() {
 	cout << minMax[iframe][ider][immrt].Min() << "   "
 	     << minMax[iframe][ider][immrt].Max() << endl;
       }
+      cout << endl;
     }
+    cout << endl;
   }
 }
 

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.82 2001-04-18 17:56:51 car Exp $
+// $Id: PltApp.cpp,v 1.83 2001-04-24 23:42:28 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -196,29 +196,37 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
   pltAppState->SetCurrentScale(currentScale);
   pltAppState->SetMaxScale(maxAllowableScale);
 
-//_here 0  
 // ---------------
   pltAppState->SetMinMaxRangeType(GLOBALMINMAX);
-  Real levDataMin, levDataMax;
   Real rGlobalMin, rGlobalMax;
   rGlobalMin =  AV_BIG_REAL;
   rGlobalMax = -AV_BIG_REAL;
   int coarseLevel(0);
+  int iCDerNum(pltAppState->CurrentDerivedNumber());
+  aString asCDer(pltAppState->CurrentDerived());
   int fineLevel(pltAppState->MaxAllowableLevel());
+  const Array<Box> &onBox(amrData.ProbDomain());
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
-    for(int lev(coarseLevel); lev <= fineLevel; ++lev) {
-      bool minMaxValid(false);
-      Box onBox(amrData.ProbDomain()[lev]);
-      DataServices::Dispatch(DataServices::MinMaxRequest,
-                             dataServicesPtr[iFrame],
-                             (void *) &(onBox),
-                             (void *) &(pltAppState->CurrentDerived()),
-                             lev, &levDataMin, &levDataMax, &minMaxValid);
-      if(minMaxValid) {
-        rGlobalMin = Min(rGlobalMin, levDataMin);
-        rGlobalMax = Max(rGlobalMax, levDataMax);
-      }
-    }
+    Real rFileMin, rFileMax;
+
+    FindAndSetMinMax(FILEGLOBALMINMAX, iFrame, asCDer, iCDerNum,
+		     onBox, coarseLevel, fineLevel, false);  // dont reset if set
+    pltAppState->GetMinMax(FILEGLOBALMINMAX, iFrame, iCDerNum,
+			   rFileMin, rFileMax);
+    rGlobalMin = Min(rFileMin, rGlobalMin);
+    rGlobalMax = Max(rFileMax, rGlobalMax);
+
+    // also set FILESUBREGIONMINMAXs and FILEUSERMINMAXs to the global values
+    pltAppState->SetMinMax(FILESUBREGIONMINMAX, iFrame,
+			   pltAppState->CurrentDerivedNumber(),
+			   rFileMin, rFileMax);
+    pltAppState->SetMinMax(FILEUSERMINMAX, iFrame,
+			   pltAppState->CurrentDerivedNumber(),
+			   rFileMin, rFileMax);
+  }  // end for(iFrame...)
+
+  // now set global values for each file in the animation
+  for(int iFrame(0); iFrame < animFrames; ++iFrame) {
     // set GLOBALMINMAXs
     pltAppState->SetMinMax(GLOBALMINMAX, iFrame,
 			   pltAppState->CurrentDerivedNumber(),
@@ -230,8 +238,9 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     pltAppState->SetMinMax(USERMINMAX, iFrame,
 			   pltAppState->CurrentDerivedNumber(),
 			   rGlobalMin, rGlobalMax);
-  }
+  }  // end for(iFrame...)
 // ---------------
+
 
   amrPicturePtrArray[ZPLANE] = new AmrPicture(GAptr, this, pltAppState,
 					dataServicesPtr[currentFrame],
@@ -281,20 +290,14 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     animFrames(pltParent->animFrames),
     dataServicesPtr(pltParent->dataServicesPtr),
     animating2d(isAnim),
-    //showBoxes(pltParent->showBoxes),
     currentFrame(pltParent->currentFrame),
-    //numContours(pltParent->GetPltAppState()->GetNumContours()),
     palFilename(palfile)
 {
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   bFileRangeButtonSet = pltParent->bFileRangeButtonSet;
 
   pltAppState = new PltAppState(animFrames, amrData.NumDeriveFunc());
-  pltAppState->SetCurrentDerived(newderived, amrData.StateNumber(newderived));
-  pltAppState->SetCurrentFrame(currentFrame);
-
-  currentRangeType = pltParent->GetPltAppState()->GetMinMaxRangeType();
-  pltAppState->SetMinMaxRangeType(currentRangeType);
+  *pltAppState = *pltParent->GetPltAppState();
 
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   lightingWindowExists = false;
@@ -302,8 +305,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   contourNumString = pltParent->contourNumString.c_str();
 
   char header[BUFSIZ];
-
-  pltAppState->SetShowingBoxes(pltParent->GetPltAppState()->GetShowingBoxes());
 
   bCartGridSmoothing = pltParent->bCartGridSmoothing;
   int finestLevel(amrData.FinestLevel());
@@ -314,7 +315,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 
   pltAppState->SetMinAllowableLevel(minAllowableLevel);
   pltAppState->SetMaxAllowableLevel(maxlev);
-  pltAppState->SetMaxDrawnLevel(pltParent->GetPltAppState()->MaxDrawnLevel());
 
   Box maxDomain(region);
   if(maxlev < finestLevel) {
@@ -331,8 +331,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   int currentScale = Min(maxAllowableScale,
 			 pltParent->GetPltAppState()->CurrentScale());
   pltAppState->SetCurrentScale(currentScale);
-  pltAppState->SetContourType(pltParent->GetPltAppState()->GetContourType());
-  pltAppState->SetNumContours(pltParent->GetPltAppState()->GetNumContours());
   
 // ---------------
   Array<Box> onBox(pltAppState->MaxAllowableLevel() + 1);
@@ -346,57 +344,31 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   const aString asCDer(pltAppState->CurrentDerived());
   int coarseLevel(0);
   int fineLevel(pltAppState->MaxAllowableLevel());
-  Real rPMin, rPMax;
+  Real rSMin, rSMax;
+  rSMin = AV_BIG_REAL;
+  rSMax = -AV_BIG_REAL;
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
-    // set GLOBALMINMAX to parent's values
-    pltParent->GetPltAppState()->GetMinMax(GLOBALMINMAX, iFrame, iCDerNum,
-			                   rPMin, rPMax);
-    pltAppState->SetMinMax(GLOBALMINMAX, iFrame, iCDerNum, rPMin, rPMax);
+    // GLOBALMINMAX is already set to parent's values
+    // USERMINMAX is already set to parent's values
+    // FILEGLOBALMINMAX is already set to parent's values
+    // FILEUSERMINMAX is already set to parent's values
+    // these do not change for a subregion
 
-    // also set SUBREGIONMINMAX
-    SetMinMax(SUBREGIONMINMAX, iFrame, asCDer, iCDerNum, onBox,
-	      coarseLevel, fineLevel, true);
+    // set FILESUBREGIONMINMAX
+    FindAndSetMinMax(FILESUBREGIONMINMAX, iFrame, asCDer, iCDerNum, onBox,
+	             coarseLevel, fineLevel, true);  // reset if already set
 
-    // set USERMINMAX to parent's values
-    pltParent->GetPltAppState()->GetMinMax(USERMINMAX, iFrame, iCDerNum,
-			                   rPMin, rPMax);
-    pltAppState->SetMinMax(USERMINMAX, iFrame, iCDerNum, rPMin, rPMax);
+    Real rTempMin, rTempMax;
+    pltAppState->GetMinMax(FILESUBREGIONMINMAX, iFrame, iCDerNum,
+			   rTempMin, rTempMax);
+    // collect file values
+    rSMin = Min(rSMin, rTempMin);
+    rSMax = Max(rSMax, rTempMax);
   }
-/*
-  Real levDataMin, levDataMax;
-  Real rGlobalMin, rGlobalMax;
-  Real rSubregMin, rSubregMax;
-  rSubregMin =  AV_BIG_REAL;
-  rSubregMax = -AV_BIG_REAL;
-  int coarseLevel(0);
-  int fineLevel(pltAppState->MaxAllowableLevel());
+  // now set each frame's SUBREGIONMINMAX to the overall subregion minmax
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
-    for(int lev(coarseLevel); lev <= fineLevel; ++lev) {
-      bool minMaxValid(false);
-      DataServices::Dispatch(DataServices::MinMaxRequest,
-                             dataServicesPtr[iFrame],
-                             (void *) &(maxDomain),
-                             (void *) &(pltAppState->CurrentDerived()),
-                             lev, &levDataMin, &levDataMax, &minMaxValid);
-      if(minMaxValid) {
-        rSubregMin = Min(rSubregMin, levDataMin);
-        rSubregMax = Max(rSubregMax, levDataMax);
-      }
-    }
-    // set GLOBALMINMAXs
-    pltParent->GetPltAppState()->GetMinMax(GLOBALMINMAX, iFrame, iCDerNum,
-			                   rGlobalMin, rGlobalMax);
-    pltAppState->SetMinMax(GLOBALMINMAX, iFrame, iCDerNum,
-			   rGlobalMin, rGlobalMax);
-    // also set SUBREGIONMINMAXs and USERMINMAXs to the global values
-    pltAppState->SetMinMax(SUBREGIONMINMAX, iFrame, iCDerNum,
-			   rSubregMin, rSubregMax);
-    pltParent->GetPltAppState()->GetMinMax(USERMINMAX, iFrame, iCDerNum,
-			                   rGlobalMin, rGlobalMax);
-    pltAppState->SetMinMax(USERMINMAX, iFrame, iCDerNum,
-			   rGlobalMin, rGlobalMax);
+    pltAppState->SetMinMax(FILEUSERMINMAX, iFrame, iCDerNum, rSMin, rSMax);
   }
-*/
 // ---------------
 
   int fnl(fileName.length() - 1);
@@ -467,6 +439,7 @@ void PltApp::PltAppInit() {
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   int minAllowableLevel(pltAppState->MinAllowableLevel());
   int maxAllowableLevel(pltAppState->MaxAllowableLevel());
+  wRangeRadioButton.resize(BNUMBEROFMINMAX);
 
   // User defined widget destroy callback -- will free all memory used to create
   // window.
@@ -1059,7 +1032,7 @@ void PltApp::PltAppInit() {
     XtVaGetValues(wSpeedLabel, XmNwidth, &slw, NULL);
     XtVaSetValues(wSpeedLabel, XmNx, wcfWidth-slw, NULL);
      
-  }  // end if(animating2d || BL_SPACEDIM == 3)
+  }
 
   // ************************** Plot frame and area
 
@@ -1293,7 +1266,6 @@ void PltApp::PltAppInit() {
   XYplotparameters = new XYPlotParameters(pltPaletteptr, GAptr, plottertitle);
 
 #if (BL_SPACEDIM == 2)
-
   if(animating2d) {
     if(pltAppState->CurrentDerived() == "vol_frac") {
       globalMin = 0.0;
@@ -1361,29 +1333,31 @@ void PltApp::PltAppInit() {
 
 
 // -------------------------------------------------------------------
-void PltApp::SetMinMax(const MinMaxRangeType mmrangetype, const int framenumber,
-		       const aString &currentderived, const int derivednumber,
-		       const Array<Box> &onBox,
-		       const int coarselevel, const int finelevel,
-		       const bool resetIfSet)
+void PltApp::FindAndSetMinMax(const MinMaxRangeType mmrangetype,
+			      const int framenumber,
+		              const aString &currentderived,
+			      const int derivednumber,
+		              const Array<Box> &onBox,
+		              const int coarselevel, const int finelevel,
+		              const bool resetIfSet)
 {
   Real rMin, rMax, levMin, levMax;
-  rMin =  AV_BIG_REAL;
-  rMax = -AV_BIG_REAL;
-  for(int lev(coarselevel); lev <= finelevel; ++lev) {
-    bool minMaxValid(false);
-    DataServices::Dispatch(DataServices::MinMaxRequest,
-                           dataServicesPtr[framenumber],
-                           (void *) &(onBox[lev]),
-                           (void *) &(currentderived),
-                           lev, &levMin, &levMax, &minMaxValid);
-    if(minMaxValid) {
-      rMin = Min(rMin, levMin);
-      rMax = Max(rMax, levMax);
-    }
-  }
   bool isset(pltAppState->IsSet(mmrangetype, framenumber, derivednumber));
-  if(isset == false || resetIfSet) {
+  if(isset == false || resetIfSet) {  // find and set the mins and maxes
+    rMin =  AV_BIG_REAL;
+    rMax = -AV_BIG_REAL;
+    for(int lev(coarselevel); lev <= finelevel; ++lev) {
+      bool minMaxValid(false);
+      DataServices::Dispatch(DataServices::MinMaxRequest,
+                             dataServicesPtr[framenumber],
+                             (void *) &(onBox[lev]),
+                             (void *) &(currentderived),
+                             lev, &levMin, &levMax, &minMaxValid);
+      if(minMaxValid) {
+        rMin = Min(rMin, levMin);
+        rMax = Max(rMax, levMax);
+      }
+    }
     pltAppState->SetMinMax(mmrangetype, framenumber, derivednumber, rMin, rMax);
   }
 }
@@ -1598,25 +1572,60 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
 
 // ---------------
-  //Array<Box> onBox(pltAppState->MaxAllowableLevel() + 1);
-  const Array<Box> &onBox = amrPicturePtrArray[ZPLANE]->GetSubDomain();
+  // possibly set all six minmax types here
+  const Array<Box> &onSubregionBox = amrPicturePtrArray[ZPLANE]->GetSubDomain();
+  const Array<Box> &onBox(amrData.ProbDomain());
   int iCDerNum(pltAppState->CurrentDerivedNumber());
   int coarseLevel(pltAppState->MinAllowableLevel());
   int fineLevel(pltAppState->MaxAllowableLevel());
-  //Real rPMin, rPMax;
+  Real rGlobalMin, rGlobalMax;
+  Real rSubregionMin, rSubregionMax;
+  rGlobalMin    =  AV_BIG_REAL;
+  rGlobalMax    = -AV_BIG_REAL;
+  rSubregionMin =  AV_BIG_REAL;
+  rSubregionMax = -AV_BIG_REAL;
   const aString asCDer(pltAppState->CurrentDerived());
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
-    // set GLOBALMINMAX  dont reset if already set
-    SetMinMax(GLOBALMINMAX, iFrame, asCDer, iCDerNum, onBox,
-	      coarseLevel, fineLevel, false);
+    // set FILEGLOBALMINMAX  dont reset if already set
+    FindAndSetMinMax(FILEGLOBALMINMAX, iFrame, asCDer, iCDerNum, onBox,
+	             coarseLevel, fineLevel, false);
 
-    // set SUBREGIONMINMAX  dont reset if already set
-    SetMinMax(SUBREGIONMINMAX, iFrame, asCDer, iCDerNum, onBox,
-	      coarseLevel, fineLevel, false);
+    // set FILESUBREGIONMINMAX  dont reset if already set
+    FindAndSetMinMax(FILESUBREGIONMINMAX, iFrame, asCDer, iCDerNum, onSubregionBox,
+	             coarseLevel, fineLevel, false);
 
-    // set USERMINMAX  dont reset if already set
-    SetMinMax(USERMINMAX, iFrame, asCDer, iCDerNum, onBox,
-	      coarseLevel, fineLevel, false);
+    // collect file values
+    Real rTempMin, rTempMax;
+	       
+    pltAppState->GetMinMax(FILEGLOBALMINMAX, iFrame, iCDerNum,
+			   rTempMin, rTempMax);
+    rGlobalMin = Min(rGlobalMin, rTempMin);
+    rGlobalMax = Max(rGlobalMax, rTempMax);
+
+    pltAppState->GetMinMax(FILESUBREGIONMINMAX, iFrame, iCDerNum,
+			   rTempMin, rTempMax);
+    rSubregionMin = Min(rSubregionMin, rTempMin);
+    rSubregionMax = Max(rSubregionMax, rTempMax);
+
+    // set FILEUSERMINMAX  dont reset if already set
+    // this sets values to FILESUBREGIONMINMAX values if the user has not set them
+    bool isSet(pltAppState->IsSet(FILEUSERMINMAX, iFrame, iCDerNum));
+    if( ! isSet) {
+      pltAppState->SetMinMax(FILEUSERMINMAX, iFrame, iCDerNum, rTempMin, rTempMax);
+    }
+  }
+
+  for(int iFrame(0); iFrame < animFrames; ++iFrame) {
+    pltAppState->SetMinMax(GLOBALMINMAX, iFrame, iCDerNum, rGlobalMin, rGlobalMax);
+    pltAppState->SetMinMax(SUBREGIONMINMAX, iFrame, iCDerNum,
+			   rSubregionMin, rSubregionMax);
+    // set FILEUSERMINMAX  dont reset if already set
+    // this sets values to FILESUBREGIONMINMAX values if the user has not set them
+    bool isSet(pltAppState->IsSet(USERMINMAX, iFrame, iCDerNum));
+    if( ! isSet) {
+      pltAppState->SetMinMax(USERMINMAX, iFrame, iCDerNum,
+			     rSubregionMin, rSubregionMax);
+    }
   }
 // ---------------
 cout << "_in PltApp::ChangeDerived" << endl;
@@ -2348,19 +2357,19 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   XtVaSetValues(wSetRangeRadioBox, XmNmarginWidth, 4, NULL);
   XtVaSetValues(wSetRangeRadioBox, XmNspacing, 14, NULL);
   
-  wRangeRadioButton[GLOBALMINMAX] = XtVaCreateManagedWidget("Global",
+  wRangeRadioButton[BGLOBALMINMAX] = XtVaCreateManagedWidget("Global",
 			    xmToggleButtonWidgetClass, wSetRangeRadioBox, NULL);
-  AddStaticCallback(wRangeRadioButton[GLOBALMINMAX], XmNvalueChangedCallback,
-		    &PltApp::ToggleRange, (XtPointer) GLOBALMINMAX);
-  wRangeRadioButton[SUBREGIONMINMAX] = XtVaCreateManagedWidget("Local",
+  AddStaticCallback(wRangeRadioButton[BGLOBALMINMAX], XmNvalueChangedCallback,
+		    &PltApp::ToggleRange, (XtPointer) BGLOBALMINMAX);
+  wRangeRadioButton[BSUBREGIONMINMAX] = XtVaCreateManagedWidget("Local",
 			    xmToggleButtonWidgetClass, wSetRangeRadioBox,
 			    NULL);
-  AddStaticCallback(wRangeRadioButton[SUBREGIONMINMAX], XmNvalueChangedCallback,
-		    &PltApp::ToggleRange, (XtPointer) SUBREGIONMINMAX);
-  wRangeRadioButton[USERMINMAX] = XtVaCreateManagedWidget("User",
+  AddStaticCallback(wRangeRadioButton[BSUBREGIONMINMAX], XmNvalueChangedCallback,
+		    &PltApp::ToggleRange, (XtPointer) BSUBREGIONMINMAX);
+  wRangeRadioButton[BUSERMINMAX] = XtVaCreateManagedWidget("User",
 			    xmToggleButtonWidgetClass, wSetRangeRadioBox, NULL);
-  AddStaticCallback(wRangeRadioButton[USERMINMAX], XmNvalueChangedCallback,
-		    &PltApp::ToggleRange, (XtPointer) USERMINMAX);
+  AddStaticCallback(wRangeRadioButton[BUSERMINMAX], XmNvalueChangedCallback,
+		    &PltApp::ToggleRange, (XtPointer) BUSERMINMAX);
   if(animating2d) {
     int i(0);
     XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);  ++i;
@@ -2376,7 +2385,19 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   }
     
   currentRangeType = pltAppState->GetMinMaxRangeType();
-  XtVaSetValues(wRangeRadioButton[currentRangeType], XmNset, true, NULL);
+  MinMaxRangeTypeForButtons mmButton(BINVALIDMINMAX);
+  if(currentRangeType == GLOBALMINMAX || currentRangeType == FILEGLOBALMINMAX) {
+    mmButton = BGLOBALMINMAX;
+  } else if(currentRangeType == SUBREGIONMINMAX ||
+	    currentRangeType == FILESUBREGIONMINMAX)
+  {
+    mmButton = BSUBREGIONMINMAX;
+  } else if(currentRangeType == USERMINMAX || currentRangeType == FILEUSERMINMAX) {
+    mmButton = BUSERMINMAX;
+  } else {
+    BoxLib::Abort("Bad button range type.");
+  }
+  XtVaSetValues(wRangeRadioButton[mmButton], XmNset, true, NULL);
   
   wRangeRC = XtVaCreateManagedWidget("rangeRC", xmRowColumnWidgetClass,
 			    wSetRangeForm,
@@ -2472,10 +2493,6 @@ void PltApp::DoDoneSetRange(Widget, XtPointer client_data, XtPointer) {
 			   pltAppState->CurrentDerivedNumber(),
 			   umin, umax);
   }
-  //for(np = 0; np < NPLANES; ++np) {
-  //  amrPicturePtrArray[np]->SetDataMin(umin);
-  //  amrPicturePtrArray[np]->SetDataMax(umax);
-  //}
 
   if(currentRangeType != pltAppState->GetMinMaxRangeType() ||
      currentRangeType == USERMINMAX)
@@ -2546,11 +2563,20 @@ void PltApp::DestroySetRangeWindow(Widget, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void PltApp::DoUserMin(Widget, XtPointer, XtPointer) {
-  if(currentRangeType != USERMINMAX) {
-    XtVaSetValues(wRangeRadioButton[currentRangeType], XmNset, false, NULL);
+  if(currentRangeType == GLOBALMINMAX || currentRangeType == FILEGLOBALMINMAX) {
+    XtVaSetValues(wRangeRadioButton[BGLOBALMINMAX], XmNset, false, NULL);
   }
-  XtVaSetValues(wRangeRadioButton[USERMINMAX], XmNset, true, NULL);
-  currentRangeType = USERMINMAX;
+  if(currentRangeType == SUBREGIONMINMAX ||
+     currentRangeType == FILESUBREGIONMINMAX)
+  {
+    XtVaSetValues(wRangeRadioButton[BSUBREGIONMINMAX], XmNset, false, NULL);
+  }
+  XtVaSetValues(wRangeRadioButton[BUSERMINMAX], XmNset, true, NULL);
+  if(UsingFileRange(currentRangeType)) {
+    currentRangeType = FILEUSERMINMAX;
+  } else {
+    currentRangeType = USERMINMAX;
+  }
   bool bKillSRWindow(true);
   DoDoneSetRange(NULL, (XtPointer) bKillSRWindow, NULL);
 }
@@ -2558,11 +2584,20 @@ void PltApp::DoUserMin(Widget, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void PltApp::DoUserMax(Widget, XtPointer, XtPointer) {
-  if(currentRangeType != USERMINMAX) {
-    XtVaSetValues(wRangeRadioButton[currentRangeType], XmNset, false, NULL);
+  if(currentRangeType == GLOBALMINMAX || currentRangeType == FILEGLOBALMINMAX) {
+    XtVaSetValues(wRangeRadioButton[BGLOBALMINMAX], XmNset, false, NULL);
   }
-  XtVaSetValues(wRangeRadioButton[USERMINMAX], XmNset, true, NULL);
-  currentRangeType = USERMINMAX;
+  if(currentRangeType == SUBREGIONMINMAX ||
+     currentRangeType == FILESUBREGIONMINMAX)
+  {
+    XtVaSetValues(wRangeRadioButton[BSUBREGIONMINMAX], XmNset, false, NULL);
+  }
+  XtVaSetValues(wRangeRadioButton[BUSERMINMAX], XmNset, true, NULL);
+  if(UsingFileRange(currentRangeType)) {
+    currentRangeType = FILEUSERMINMAX;
+  } else {
+    currentRangeType = USERMINMAX;
+  }
   bool bKillSRWindow(true);
   DoDoneSetRange(NULL, (XtPointer) bKillSRWindow, NULL);
 }
@@ -3925,19 +3960,6 @@ void PltApp::ShowFrame() {
   }
 #endif
 }  // end ShowFrame
-
-
-// -------------------------------------------------------------------
-/*
-void PltApp::SetGlobalMinMax(Real specifiedMin, Real specifiedMax) {
-  BL_ASSERT(specifiedMax > specifiedMin);
-  pltAppState->SetMinMaxRangeType(USERMINMAX);
-  for(int np(0); np < NPLANES; ++np) {
-    amrPicturePtrArray[np]->SetDataMin(specifiedMin);
-    amrPicturePtrArray[np]->SetDataMax(specifiedMax);
-  }
-}
-*/
 
 
 // -------------------------------------------------------------------

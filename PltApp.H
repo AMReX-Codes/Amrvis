@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.45 2001-04-17 23:45:39 vince Exp $
+// $Id: PltApp.H,v 1.46 2001-04-24 23:42:28 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -156,7 +156,7 @@ public:
 private:
   Widget wTopLevel, wAmrVisTopLevel;
   Widget wScrollArea[NPLANES], wPlotPlane[NPLANES];
-  Widget wRangeRadioButton[NUMBEROFMINMAX];
+  Array<Widget> wRangeRadioButton;
   Widget wFileRangeCheckBox;
   Widget wUserMin, wUserMax;
   Widget wWhichFileLabel, wWhichFileScale, wWhichTimeLabel;
@@ -324,11 +324,11 @@ private:
   void Clear();
 #endif
 
-  void SetMinMax(const MinMaxRangeType mmrangetype, const int framenumber,
-		 const aString &currentderived, const int derivednumber,
-		 const Array<Box> &onBox,
-		 const int coarselevel, const int finelevel,
-		 const bool resetIfSet);
+  void FindAndSetMinMax(const MinMaxRangeType mmrangetype, const int framenumber,
+		        const aString &currentderived, const int derivednumber,
+		        const Array<Box> &onBox,
+		        const int coarselevel, const int finelevel,
+		        const bool resetIfSet);
 
   void AddStaticCallback(Widget w, String whichcb, memberCB whichf, void *d = NULL);
   void AddStaticEventHandler(Widget w, EventMask mask, memberCB cbf, void *d = NULL);
