@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.57 2001-04-16 16:41:21 vince Exp $
+// $Id: AmrPicture.cpp,v 1.58 2001-04-16 22:47:41 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -59,12 +59,10 @@ AmrPicture::AmrPicture(GraphicsAttributes *gaptr,
   //currDerivedNumber = pltAppStatePtr->CurrentDerivedNumber();
   //if(UseSpecifiedMinMax()) {
     //whichRange = USESPECIFIED;
-    //cout << "_here 1:  setting specifiedminmax to GetSpecMM" << endl;
     //GetSpecifiedMinMax(dataMinSpecified[currDerivedNumber],
 		       //dataMaxSpecified[currDerivedNumber]);
   //} else {
     //whichRange = USEGLOBAL;
-    //cout << "_here 2:  setting specifiedminmax to 0.0" << endl;
     //dataMinSpecified[currDerivedNumber] = 0.0;
     //dataMaxSpecified[currDerivedNumber] = 0.0;
   //}
@@ -739,8 +737,8 @@ void AmrPicture::SetSubCut(int startX, int startY, int endX, int endY) {
 // ---------------------------------------------------------------------
 void AmrPicture::DoExposePicture() {
   if(pltAppPtr->Animating()) {
-    XPutImage(display, pictureWindow, xgc,
-      pltAppPtr->CurrentFrameXImage(), 0, 0, 0, 0, imageSizeH, imageSizeV);
+    XPutImage(display, pictureWindow, xgc, pltAppPtr->CurrentFrameXImage(),
+              0, 0, 0, 0, imageSizeH, imageSizeV);
   } else {
     if(pendingTimeOut == 0) {
       XCopyArea(display, pixMap, pictureWindow, 
@@ -748,9 +746,7 @@ void AmrPicture::DoExposePicture() {
 
       DrawBoxes(gpArray, pictureWindow);
 
-      //cout << "_here before scs" << endl;
-      if( ! subCutShowing) {   // draw selected region
-      //cout << "_here ! scs" << endl;
+      if( ! subCutShowing) {  // draw selected region
         XSetForeground(display, xgc, palPtr->pixelate(60));
         XDrawLine(display, pictureWindow, xgc,
 		  regionX+1, regionY+1, region2ndX+1, regionY+1); 
@@ -784,8 +780,7 @@ void AmrPicture::DoExposePicture() {
       XSetForeground(display, xgc, palPtr->pixelate(vColor-30));
       XDrawLine(display, pictureWindow, xgc, vLine+1, 0, vLine+1, imageSizeV); 
       
-      if(subCutShowing) {
-        // draw subvolume cutting border 
+      if(subCutShowing) {  // draw subvolume cutting border 
         XSetForeground(display, xgc, palPtr->pixelate(90));
         XDrawLine(display, pictureWindow, xgc,
 		  subcutX+1, subcutY+1, subcut2ndX+1, subcutY+1); 
@@ -845,7 +840,7 @@ void AmrPicture::APMakeImages(Palette *palptr) {
   BL_ASSERT(palptr != NULL);
   palPtr = palptr;
   AmrData &amrData = dataServicesPtr->AmrDataRef();
-  //if(currentDerived != derived || whichRange == USEFILE)
+  //if(currentDerived != derived || whichRange == FILEMINMAX)
   if(pltAppStatePtr->GetMinMaxRangeType() == FILEMINMAX) {
     //maxsFound = false;
     pltAppPtr->PaletteDrawn(false);
@@ -875,7 +870,7 @@ void AmrPicture::APMakeImages(Palette *palptr) {
       outbuf += " ...";
       strcpy(buffer, outbuf.c_str());
       PrintMessage(buffer);
-      if( ! pltAppPtr->IsAnim() || whichRange == USEFILE) {
+      if( ! pltAppPtr->IsAnim() || whichRange == FILEMINMAX) {
         dataMinAllGrids =  AV_BIG_REAL;
         dataMaxAllGrids = -AV_BIG_REAL;
         dataMinRegion   =  AV_BIG_REAL;
@@ -958,7 +953,7 @@ void AmrPicture::APMakeImages(Palette *palptr) {
     		minUsing = dataMinSpecified[currDerivedNumber];
     		maxUsing = dataMaxSpecified[currDerivedNumber];
 	break;
-	case USEFILE:
+	case FILEMINMAX:
     		minUsing = dataMinFile;
     		maxUsing = dataMaxFile;
 	break;
@@ -1977,7 +1972,7 @@ Real AmrPicture::GetWhichMin() {
   } else if(whichRange == USESPECIFIED) {
     BL_ASSERT(dataMinSpecifiedSet[currDerivedNumber]);
     return dataMinSpecified[currDerivedNumber];
-  } else if(whichRange == USEFILE) {
+  } else if(whichRange == FILEMINMAX) {
     return dataMinFile;
   } else {
     BoxLib::Abort("Error in AmrPicture::GetWhichMin:  bad range.");
@@ -1995,7 +1990,7 @@ Real AmrPicture::GetWhichMax() {
   } else if(whichRange == USESPECIFIED) {
     BL_ASSERT(dataMaxSpecifiedSet[currDerivedNumber]);
     return dataMaxSpecified[currDerivedNumber];
-  } else if(whichRange == USEFILE) {
+  } else if(whichRange == FILEMINMAX) {
     return dataMaxFile;
   } else {
     BoxLib::Abort("Error in AmrPicture::GetWhichMax:  bad range.");
