@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.69 2000-10-10 00:13:24 vince Exp $
+// $Id: PltApp.cpp,v 1.70 2000-10-26 21:31:18 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -2149,7 +2149,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   sprintf(fMax, format, amrPicturePtrArray[ZPLANE]->GetRegionMax());
   sprintf(range, "Min: %s", fMin);
   XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
-  sprintf(range, "Max: %s", fMin, fMax);
+  sprintf(range, "Max: %s", fMax);
   XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
 
   wid =
