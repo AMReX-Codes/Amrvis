@@ -1,6 +1,6 @@
 
 //
-// $Id: GraphicsAttributes.cpp,v 1.16 2003-05-21 23:02:25 vince Exp $
+// $Id: GraphicsAttributes.cpp,v 1.17 2003-05-21 23:06:57 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,6 +9,7 @@
 #include <BoxLib.H>
 
 #include <iostream>
+using std::cout;
 using std::cerr;
 using std::endl;
 
