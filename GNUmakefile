@@ -10,8 +10,8 @@ COMP      = KCC
 COMP      = g++
 DEBUG     = FALSE
 DEBUG     = TRUE
-DIM       = 2
 DIM       = 3
+DIM       = 2
 NAMESPACE = FALSE
 NAMESPACE = TRUE
 
@@ -179,7 +179,8 @@ include $(PBOXLIB_HOME)/BoxLib/Make.package
 #vpath %.H $(HERE) ../pBoxLib_2
 vpath %.cpp $(HERE) ../BoxLib
 vpath %.H $(HERE) ../BoxLib
-vpath %.F $(HERE)
+vpath %.F $(HERE) ../BoxLib
+vpath %.f $(HERE) ../BoxLib
 vpath %.a $(LIBRARY_LOCATIONS)
 
 all: $(executable)
