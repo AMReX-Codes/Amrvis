@@ -81,8 +81,10 @@ public:
   static void	CBToggleRange(Widget, XtPointer, XtPointer);
   static void	CBChangePlane(Widget, XtPointer, XtPointer);
   static void CBReadContourString(Widget, XtPointer, XtPointer);
+  static void CBDestroySetRangeWindow(Widget, XtPointer, XtPointer);
   void DoChangeContour(int, int);
   void SetLightingWindow(bool lWE);
+  void SetRangeShowing(bool sRS);
 
 #if (BL_SPACEDIM==3)
   static void CBDestroyDetachWindow(Widget, XtPointer, XtPointer);

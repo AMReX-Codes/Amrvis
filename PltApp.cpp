@@ -2082,6 +2082,10 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			XmNx,			xpos+width/2,
 			XmNy,			ypos,
 			NULL);
+
+        XtAddCallback(wSetRangeTopLevel, XmNdestroyCallback,
+                &PltApp::CBDestroySetRangeWindow, this);
+
         //set visual in case the default isn't 256 pseudocolor
         if(GAptr->PVisual() 
            != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber())) {
@@ -2263,7 +2267,7 @@ void PltApp::DoDoneSetRange(Widget, XtPointer, XtPointer) {
     }
   }
   XtDestroyWidget(wSetRangeTopLevel);
-  setRangeShowing = false;
+  //  setRangeShowing = false;
 
   if(datasetShowing) {
     datasetPtr->DoRaise();
@@ -2293,9 +2297,17 @@ void PltApp::DoDoneSetRange(Widget, XtPointer, XtPointer) {
 // -------------------------------------------------------------------
 void PltApp::DoCancelSetRange(Widget, XtPointer, XtPointer) {
   XtDestroyWidget(wSetRangeTopLevel);
-  setRangeShowing = false;
+  //setRangeShowing = false;
 }
 
+void PltApp::CBDestroySetRangeWindow(Widget, XtPointer xp, XtPointer) {
+  PltApp *obj =(PltApp *)xp;
+  obj->SetRangeShowing(false);
+}
+
+void PltApp::SetRangeShowing(bool sRS) {
+  setRangeShowing = sRS;
+}
 
 // -------------------------------------------------------------------
 void PltApp::DoToggleRange(Widget, Range which, XmToggleButtonCallbackStruct *state)
