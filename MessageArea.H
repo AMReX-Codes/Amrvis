@@ -1,6 +1,6 @@
 
 //
-// $Id: MessageArea.H,v 1.8 2001-11-16 01:48:08 vince Exp $
+// $Id: MessageArea.H,v 1.9 2002-04-03 01:03:47 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -11,6 +11,7 @@
 
 #include <Xm/Xm.h>
 #include <Xm/Text.h>
+#include "AmrvisConstants.H"
 
 class cMessageArea {
   private:
