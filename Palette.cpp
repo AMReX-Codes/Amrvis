@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.cpp,v 1.24 2000-06-14 00:53:20 car Exp $
+// $Id: Palette.cpp,v 1.25 2000-06-14 13:55:10 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -460,6 +460,10 @@ Palette::WhiteIndex()    const
 unsigned long
 Palette::pixelate(int i) const
 {
-  if ( i < 0 || i > 255 ) return WhitePixel(display, screenNumber);
-  return ccells[i].pixel;
+  if ( i < 0 )
+    return BlackIndex();
+  else if ( i > 255 )
+    return WhiteIndex();
+  else
+    return ccells[i].pixel;
 }
