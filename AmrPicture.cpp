@@ -169,21 +169,23 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
 		pltAppPtr->CurrentScale();
       vLine = 0;
     }
-    slice = subDomain[maxAllowableLevel].smallEnd(YZ - myView)
-        + (parentPltAppPtr != NULL ?
-           parentPltAppPtr->GetAmrPicturePtr(YZ-myView)->GetSlice():
-           0);
+    
+    slice = subDomain[maxAllowableLevel].smallEnd(YZ - myView);
+    //  + (parentPltAppPtr != NULL ?
+    //      parentPltAppPtr->GetAmrPicturePtr(YZ-myView)->GetSlice():
+    //       0);
+    
     int first = 0;
     for(int i = 0; i<=YZ && parentPltAppPtr != NULL;i++) {
         if ( i == myView ) break;
         if (first == 0) {
-            hLine = parentPltAppPtr->GetAmrPicturePtr(YZ-i)->GetSlice()
-                * pltAppPtr->CurrentScale();
+            hLine = 0;//parentPltAppPtr->GetAmrPicturePtr(YZ-i)->GetSlice()
+            //      * pltAppPtr->CurrentScale();
             first = 1;
         }
         else
-            vLine = parentPltAppPtr->GetAmrPicturePtr(YZ-i)->GetSlice()
-                * pltAppPtr->CurrentScale();
+            vLine = 0;//parentPltAppPtr->GetAmrPicturePtr(YZ-i)->GetSlice()
+        //             * pltAppPtr->CurrentScale();
     }
 # else
     vLine = 0;
@@ -1121,12 +1123,15 @@ void AmrPicture::DoFrameUpdate() {
         ++slice;
     } else {
         slice = subDomain[maxAllowableLevel].smallEnd(sliceDir);
+    
+
     }
   } else {
     if(slice > subDomain[maxAllowableLevel].smallEnd(sliceDir)) {
         --slice;
     } else {
         slice = subDomain[maxAllowableLevel].bigEnd(sliceDir);
+    
     }
   } 
   int iRelSlice(slice - subDomain[maxAllowableLevel].smallEnd(sliceDir));
@@ -1187,10 +1192,8 @@ void AmrPicture::RubberBandSlice(int iSlice) {
 }
   
 void AmrPicture::UndrawSlice(int iSlice) {
-    cout<<iSlice<<endl;
 }
 void AmrPicture::DrawSlice(int iSlice) {
-    cout<<iSlice<<endl;
   XDrawLine(GAptr->PDisplay(), pictureWindow, GetPltAppPtr()->GetRbgc(),
             0, 30, imageSizeH, 30);
 

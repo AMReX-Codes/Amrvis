@@ -306,6 +306,7 @@ void PltApp::PltAppInit() {
 		wFrames[MENUFRAME],
 		NULL);
 
+
 // ****************************************** Scale Menu
   unsigned long scale;
   char scaleItem[LINELENGTH];
@@ -1206,11 +1207,7 @@ void PltApp::PltAppInit() {
     daHeight = height;
     projPicturePtr = new ProjectionPicture(this, &viewTrans,
 				   wTransDA, daWidth, daHeight);
-    //set the slices on the new isoview
-    //for ( int ii = 0; ii<3 ; ii++) 
-    //    projPicturePtr->ChangeSlice(amrPicturePtrArray[ii]->GetSlice(), ii);
-    //projPicturePtr->MakeSlices();
-  
+
 #endif
     for(np = 0; np < NPLANES; np++) {
         amrPicturePtrArray[np]->CreatePicture(XtWindow(wPlotPlane[np]),
@@ -1308,25 +1305,29 @@ void PltApp::DoExposeRef() {
 	DrawAxes(wControlForm, yPlanePosX, yPlanePosY, 0, sX, sZ, ypColor);
 	DrawAxes(wControlForm, xPlanePosX, xPlanePosY, 0, sY, sZ, xpColor);
 
-	sprintf(temp, "Z=%i", (amrPicturePtrArray[YPLANE]->
-		ImageSizeV()-1 - amrPicturePtrArray[YPLANE]->GetHLine())/
-		currentScale + ivLowOffsetMAL[ZDIR]);
+	sprintf(temp, "Z=%i", amrPicturePtrArray[ZPLANE]->GetSlice());
+                
+//                (amrPicturePtrArray[YPLANE]->
+//		ImageSizeV()-1 - amrPicturePtrArray[YPLANE]->GetHLine())/
+//		currentScale + ivLowOffsetMAL[ZDIR]);
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(), zpColor);
 	XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
 		    centerX-xyzAxisLength+12,
 		    centerY+xyzAxisLength+4,
 		    temp, strlen(temp));
 
-	sprintf(temp, "Y=%i", amrPicturePtrArray[XPLANE]->GetVLine()/
-		currentScale + ivLowOffsetMAL[YDIR]);
+	sprintf(temp, "Y=%i", amrPicturePtrArray[YPLANE]->GetSlice());
+//amrPicturePtrArray[XPLANE]->GetVLine()/
+//		currentScale + ivLowOffsetMAL[YDIR]);
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(), ypColor);
 	XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
 		    centerX+stringOffsetX,
 		    centerY-xyzAxisLength+4,
 		    temp, strlen(temp));
 
-	sprintf(temp, "X=%i", amrPicturePtrArray[ZPLANE]->GetVLine()/
-		currentScale + ivLowOffsetMAL[XDIR]);
+	sprintf(temp, "X=%i", amrPicturePtrArray[XPLANE]->GetSlice());
+                //amrPicturePtrArray[ZPLANE]->GetVLine()/
+		//currentScale + ivLowOffsetMAL[XDIR]);
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(), xpColor);
 	XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
 		    centerX+4*stringOffsetX,
