@@ -68,9 +68,6 @@ endif
 
 ############################################### x includes and libraries
 ifeq ($(MACHINE), OSF1)
-  INCLUDE_LOCATIONS += /usr/include/X11
-  INCLUDE_LOCATIONS += /usr/include/Xm 
-  INCLUDE_LOCATIONS += /usr/include/X11/Xaw
   LIBRARIES += -lXm -lXt -lX11
 endif
 
