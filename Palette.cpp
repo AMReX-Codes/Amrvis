@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.cpp,v 1.18 1998-10-29 23:56:09 vince Exp $
+// $Id: Palette.cpp,v 1.19 1998-10-30 18:43:06 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -12,6 +12,12 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+
+#ifdef BL_USE_NEW_HFILES
+#include <cstdio>
+#else
+#include <stdio.h>
+#endif
 
 Colormap Palette::systemColmap;
 

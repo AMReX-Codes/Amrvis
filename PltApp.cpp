@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.cpp,v 1.50 1998-10-29 23:56:09 vince Exp $
+// $Id: PltApp.cpp,v 1.51 1998-10-30 18:43:06 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -31,20 +31,18 @@
 #include <CascadeB.h>
 #include <Frame.h>
 
-#ifdef BL_T3E
-#include <ctype.h>
-#endif
-
 #if defined(BL_PARALLELVOLUMERENDER)
 #include <PVolRender.H>
 #endif
 
 #ifdef BL_USE_NEW_HFILES
+#include <cctype>
 #include <strstream>
 using std::ostrstream;
 using std::ends;
 using std::endl;
 #else
+#include <ctype.h>
 #include <strstream.h>
 #endif
 

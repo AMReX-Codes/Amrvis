@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Output.cpp,v 1.11 1998-10-29 23:56:09 vince Exp $
+// $Id: Output.cpp,v 1.12 1998-10-30 18:43:06 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -144,7 +144,7 @@ void WritePSPaletteFile(char *filename, XImage *image,
     int paletteHeight(216);
     int topOfPalette(256);
     double pSpacing((double) paletteHeight / (double) (palValueList.length() - 1));
-    int palSpacing(ceil(pSpacing) + 1);
+    int palSpacing = int(ceil(pSpacing)) + 1;
     fout << "/Palatino-Roman findfont" << '\n' << "20 scalefont"
         << '\n' << "setfont\n1 setgray" << '\n';
     for(int j = 0; j < palValueList.length(); ++j) {

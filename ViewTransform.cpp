@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ViewTransform.cpp,v 1.15 1998-10-29 23:56:11 vince Exp $
+// $Id: ViewTransform.cpp,v 1.16 1998-10-30 18:43:06 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -13,11 +13,13 @@
 #ifdef BL_USE_NEW_HFILES
 #include <iostream>
 #include <cassert>
+#include <cmath>
 using std::endl;
 using std::cout;
 #else
 #include <iostream.h>
 #include <assert.h>
+#include <math.h>
 #endif
 
 
