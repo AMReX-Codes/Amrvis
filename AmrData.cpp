@@ -220,10 +220,16 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
       }
       if(verbose) {
         if(ParallelDescriptor::IOProcessor()) {
-	  cout << "Resizing refRatio to size = " << finestLevel << endl;
+	  if(finestLevel > 0) {
+	    cout << "Resizing refRatio to size = " << finestLevel << endl;
+	  }
 	}
       }
-      refRatio.resize(finestLevel, -1);
+      if(finestLevel == 0) {
+        refRatio.resize(1, 1);
+      } else {
+        refRatio.resize(finestLevel, -1);
+      }
       while(is.get() != '\n');
       bool bIVRefRatio(false);
       if(is.peek() == '(') {  // it is an IntVect

@@ -45,8 +45,9 @@ const int WCZPOS = 6;
 const int WCATNEG = 7;
 const int WCASTOP = 8;
 const int WCATPOS = 9;
+const int WCARGB  = 10;
 
-const int WCN     = 10;  // number of control widget
+const int WCN     = 11;  // number of control widget
 
 const int NFRAMES = 20;
 const int MAXDERIVED = 64;
@@ -134,6 +135,7 @@ public:
     void		DoCreatePSFile(Widget, XtPointer, XtPointer);
     void		DoCreateRGBFile(Widget, XtPointer, XtPointer);
     void		DoCreateFABFile(Widget, XtPointer, XtPointer);
+    void		DoCreateAnimRGBFile();
     void		QuitDataset();
     void		DoExposeRef(); // RefArea (axis pictures) 
     
@@ -217,6 +219,7 @@ private:
     Range		rangeType;
     bool animating2d, setRangeShowing, datasetShowing, paletteDrawn;
     bool showBoxes, lightingModel, showing3dRender, preClassify;
+    bool writingRGB;
     int minDrawnLevel, maxDrawnLevel;
     int	minDataLevel,  maxDataLevel;
     aString fileName, palFilename;

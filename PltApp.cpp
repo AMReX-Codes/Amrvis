@@ -24,6 +24,10 @@
 #include <CascadeB.h>
 #include <Frame.h>
 
+#if defined(BL_PARALLELVOLUMERENDER)
+#include <PVolRender.H>
+#endif
+
 const int MAXSCALE       = 32;
 const int MENUFRAME      = 0;
 const int PALETTEFRAME   = 1;
@@ -289,6 +293,7 @@ void PltApp::PltAppInit() {
 
   setRangeShowing = false;
   datasetShowing = false;
+  writingRGB = false;
   
   wControlArea = XtVaCreateManagedWidget("controlarea", xmFormWidgetClass,
 		        wAmrVisTopLevel,
@@ -770,8 +775,7 @@ void PltApp::PltAppInit() {
     AddStaticCallback(wLabelAxes, XmNactivateCallback, &PltApp::DoLabelAxes);
     XtManageChild(wLabelAxes);
 
-#ifdef BL_VOLUMERENDER
-
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
     i=0;
     XmString sRender = XmStringCreateSimple("Draw");
     XtSetArg(args[i], XmNlabelString, sRender); i++;
@@ -1046,6 +1050,22 @@ void PltApp::PltAppInit() {
 		      XmNy, wcfHeight-2*halfbutton-adjustHeight2D,
 		      NULL); 
       }
+      i=0;
+      XmString sControlswcargb = XmStringCreateSimple("rgb >");
+      XtSetArg(args[i], XmNlabelString, sControlswcargb); i++;
+      XtSetArg(args[i], XmNx, centerX-3*halfbutton); i++;
+      XtSetArg(args[i], XmCMarginBottom, 2); i++;
+      wControls[WCARGB] = XmCreatePushButton(wControlForm, "wcargb", args, i);
+      XmStringFree(sControlswcargb);
+      XtManageChild(wControls[WCARGB]);
+      XtVaSetValues(wControls[WCARGB],
+		      XmNwidth,  3*controlSize,
+		      XmNheight, controlSize,
+		      XmNborderWidth, 0,
+		      XmNhighlightThickness, 0,
+		      XmNy, wcfHeight-adjustHeight2D,
+		      NULL); 
+
     }  // end if(animating2d)
 
 #if (BL_SPACEDIM == 3)
@@ -1117,6 +1137,8 @@ void PltApp::PltAppInit() {
          XtAddCallback(wControls[wc], XmNactivateCallback,
 		       &PltApp::CBChangePlane, (XtPointer) this);
        }
+       XtAddCallback(wControls[WCARGB], XmNactivateCallback,
+		     &PltApp::CBChangePlane, (XtPointer) this);
 
    }  // end if(animating2d)
 
@@ -1205,6 +1227,7 @@ void PltApp::PltAppInit() {
     XtVaGetValues(wTransDA, XmNwidth, &width, XmNheight, &height, NULL);
     daWidth  = width;
     daHeight = height;
+
     projPicturePtr = new ProjectionPicture(this, &viewTrans,
 				   wTransDA, daWidth, daHeight);
 
@@ -1220,7 +1243,7 @@ void PltApp::PltAppInit() {
   }
 #if (BL_SPACEDIM == 3)
     viewTrans.MakeTransform();
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
     XmToggleButtonSetState(wAutoDraw, false, false);
 #endif
     labelAxes = false;
@@ -1382,6 +1405,7 @@ void PltApp::CBChangeScale(Widget w, XtPointer client_data, XtPointer call_data)
       obj->DoChangeScale(np);
     }
     obj->DoExposeRef();
+    obj->writingRGB = false;
   }
 }
 
@@ -1433,7 +1457,7 @@ void PltApp::CBChangeDerived(Widget w, XtPointer client_data,
   XtVaGetValues(XtParent(w), XmNuserData, &getobj, NULL);
   PltApp *obj = (PltApp *) getobj;
 #if (BL_SPACEDIM == 3)
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   // ------------------------- swf
   obj->projPicturePtr->GetVolRenderPtr()->InvalidateSWFData();
   obj->projPicturePtr->GetVolRenderPtr()->InvalidateVPData();
@@ -1448,6 +1472,7 @@ void PltApp::CBChangeDerived(Widget w, XtPointer client_data,
   // ------------------------- end swf
   obj->Clear();
 #endif
+  obj->writingRGB = false;
   obj->paletteDrawn = false;
   for(int np = 0; np < NPLANES; ++np) {
     obj->DoChangeDerived(np, w, client_data, call_data);
@@ -1606,7 +1631,7 @@ void PltApp::DoChangeLevel(int V, Widget, XtPointer client_data, XtPointer) {
 
 #if (BL_SPACEDIM == 3)
   if(V == ZPLANE) {
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
     if(! XmToggleButtonGetState(wAutoDraw)) {
       projPicturePtr->MakeBoxes(); 
       XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
@@ -2108,7 +2133,7 @@ void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
   amrPicturePtrArray[ZPLANE]->ToggleBoxes();
 # if (BL_SPACEDIM == 3)
     projPicturePtr->MakeBoxes(); 
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
     if(! XmToggleButtonGetState(wAutoDraw)) {
       XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
       DoExposeTransDA();
@@ -2326,7 +2351,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 			     abs(finishcutX[YPLANE]-startcutX[YPLANE]), rHeight);
 	        }
 
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
                 if( ! XmToggleButtonGetState(wAutoDraw)) {
 #else
                 {  // scope
@@ -3023,6 +3048,9 @@ void PltApp::DoChangePlane(XtPointer cd, XtIntervalId *) {
       obj->Animate(ANIMNEGDIR);
     } else if(cbw == obj->wControls[WCATPOS]) {
       obj->Animate(ANIMPOSDIR);
+    } else if(cbw == obj->wControls[WCARGB]) {
+      obj->writingRGB = true;
+      obj->Animate(ANIMPOSDIR); // write rgb file
     }
   } else {  // single click
     if(cbw == obj->wControls[WCXNEG]) {
@@ -3041,6 +3069,9 @@ void PltApp::DoChangePlane(XtPointer cd, XtIntervalId *) {
       obj->DoAnimBackStep();
     } else if(cbw == obj->wControls[WCATPOS]) {
       obj->DoAnimForwardStep();
+    } else if(cbw == obj->wControls[WCARGB]) {
+      obj->writingRGB = true;
+      obj->DoAnimForwardStep();  // write rgb file
     }
   }
 }
@@ -3057,6 +3088,7 @@ void PltApp::CBChangePlane(Widget w, XtPointer client_data, XtPointer cbs) {
     return;
   }
   if(w == obj->wControls[WCASTOP]) {
+    obj->writingRGB = false;
     obj->StopAnimation();
     return;
   }
@@ -3093,6 +3125,10 @@ void PltApp::DoAnimBackStep() {
 // -------------------------------------------------------------------
 void PltApp::DoAnimForwardStep() {
   StopAnimation();
+  if(writingRGB) {
+    DoCreateAnimRGBFile();
+    writingRGB = false;
+  }
   currentFrame++;
   if(currentFrame==animFrames) {
     currentFrame = 0;
@@ -3164,9 +3200,8 @@ void PltApp::Animate(AnimDirection direction) {
 
 // -------------------------------------------------------------------
 void PltApp::DirtyFrames() {
-  int i;
   paletteDrawn = false;
-  for(i = 0; i < animFrames; i++) {
+  for(int i = 0; i < animFrames; i++) {
     if(readyFrames[i]) {
       XDestroyImage(frameBuffer[i]);
     }
@@ -3184,6 +3219,9 @@ void PltApp::CBUpdateFrame(XtPointer client_data, XtIntervalId *) {
 // -------------------------------------------------------------------
 void PltApp::DoUpdateFrame() {
   if(animDirection == ANIMPOSDIR) {
+    if(writingRGB) {
+      DoCreateAnimRGBFile();
+    }
     currentFrame++;
     if(currentFrame == animFrames) {
       currentFrame = 0;

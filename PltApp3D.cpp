@@ -2,11 +2,15 @@
 // PltApp3D.C 
 // -------------------------------------------------------------------
 #include "PltApp.H"
+#if defined(BL_PARALLELVOLUMERENDER)
+#include <PVolRender.H>
+#endif
+
 #include "Quaternion.H"
 
 // -------------------------------------------------------------------
 void PltApp::DoExposeTransDA() {
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
   if(XmToggleButtonGetState(currentAutoDraw)) {
       projPicturePtr->DrawPicture();
@@ -33,7 +37,7 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
     Real temp;
   AmrQuaternion quatRotation, quatRotation2;
   AmrQuaternion newRotation, newRotation2;
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
     Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
 #endif
   XmDrawingAreaCallbackStruct* cbs =
@@ -73,7 +77,7 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
       }
       viewTrans.MakeTransform();
       
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
       if(XmToggleButtonGetState(currentAutoDraw)) {
           DoRender(w, NULL, NULL);
       } else {
@@ -112,7 +116,7 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
       viewTrans.SetRenderRotation(quatRotation2);
       viewTrans.MakeTransform();
       
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
       if(XmToggleButtonGetState(currentAutoDraw)) {
           DoRender(w, NULL, NULL);
       } else {
@@ -144,7 +148,7 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
       viewTrans.SetScale(temp);
       viewTrans.MakeTransform();
       
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
       if(XmToggleButtonGetState(currentAutoDraw)) {
           DoRender(w, NULL, NULL);
       } else {
@@ -201,7 +205,7 @@ void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
 
   XtManageChild(wOrient);
   XtManageChild(wLabelAxes);
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   XtManageChild(wRender);
   XtManageChild(wAutoDraw);
   XtManageChild(wReadTransfer);
@@ -237,7 +241,7 @@ void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
   	(XtEventHandler) CBExposeTransDA,
 	(XtPointer) this);
   projPicturePtr->SetDrawingArea(wTransDA);
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
     XmString sAutoDraw = XmStringCreateSimple("Autodraw");
     XtVaSetValues(wAutoDraw, XmNlabelString, sAutoDraw, NULL);
     XmStringFree(sAutoDraw);
@@ -268,7 +272,7 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   XtUnmanageChild(wTransDA);
   XtUnmanageChild(wOrient);
   XtUnmanageChild(wLabelAxes);
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   XtUnmanageChild(wRender);
   XtUnmanageChild(wAutoDraw);
   XtUnmanageChild(wReadTransfer);
@@ -344,7 +348,7 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   AddStaticCallback(wDLabelAxes, XmNactivateCallback, &PltApp::DoLabelAxes);
   XtManageChild(wDLabelAxes);
 
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   i=0;
   XmString sRender = XmStringCreateSimple("Draw");
   XtSetArg(args[i], XmNlabelString, sRender); i++;
@@ -519,7 +523,7 @@ void PltApp::DoTransResize(Widget w, XtPointer, XtPointer) {
   daWidth = wdth;
   daHeight = hght;
   projPicturePtr->SetDrawingAreaDimensions(daWidth, daHeight);
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
   if(XmToggleButtonGetState(currentAutoDraw)) {
     DoRender(w, NULL, NULL);
@@ -536,8 +540,13 @@ void PltApp::DoTransResize(Widget w, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void PltApp::DoReadTransferFile(Widget, XtPointer, XtPointer) {
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
+#if defined(BL_VOLUMERENDER)
   VolRender *volRender = projPicturePtr->GetVolRenderPtr();
+#endif
+#if defined(BL_PARALLELVOLUMERENDER)
+  PVolRender *volRender = projPicturePtr->GetVolRenderPtr();
+#endif
   projPicturePtr->ReadTransferFile("vpramps.dat");
 
   if( ! volRender->SWFDataAllocated()) {
@@ -560,7 +569,7 @@ void PltApp::DoReadTransferFile(Widget, XtPointer, XtPointer) {
 // -------------------------------------------------------------------
 void PltApp::Clear() {
   XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
   XmToggleButtonSetState(currentAutoDraw, false, false);
 #endif
@@ -572,7 +581,7 @@ void PltApp::Clear() {
 
 // -------------------------------------------------------------------
 void PltApp::DoAutoDraw(Widget w, XtPointer, XtPointer) {
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
     Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
     if(XmToggleButtonGetState(currentAutoDraw)) {
         DoRender(w, NULL, NULL);
@@ -592,7 +601,7 @@ void PltApp::DoOrient(Widget w, XtPointer, XtPointer) {
     viewTrans.SetRenderRotation(AmrQuaternion());
     viewTrans.SetTranslation(0., 0.);
   viewTrans.MakeTransform();
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
   if(XmToggleButtonGetState(currentAutoDraw)) {
     DoRender(w, NULL, NULL);
@@ -610,13 +619,17 @@ void PltApp::DoOrient(Widget w, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void PltApp::SetLightingModel() {
+#if defined(BL_VOLUMERENDER)
     lightingModel = true;
     projPicturePtr->GetVolRenderPtr()->SetLightingModel(true);
+#endif
 }
 
 void PltApp::SetValueModel() {
+#if defined(BL_VOLUMERENDER)
     lightingModel = false;
     projPicturePtr->GetVolRenderPtr()->SetLightingModel(false);
+#endif
 }
 
 void PltApp::SetOctreeAlgorithm() {
@@ -697,7 +710,12 @@ void PltApp::DoLabelAxes(Widget, XtPointer, XtPointer) {
 // -------------------------------------------------------------------
 void PltApp::WriteSWFData(const aString &filenamebase) {
   cout << "_in WriteSWFData:  filenamebase = " << filenamebase << endl;
+#if defined(BL_VOLUMERENDER)
   VolRender *volRender = projPicturePtr->GetVolRenderPtr();
+#endif
+#if defined(BL_PARALLELVOLUMERENDER)
+  PVolRender *volRender = projPicturePtr->GetVolRenderPtr();
+#endif
   //projPicturePtr->AllocateSWFData();
   int iPaletteStart = pltPaletteptr->PaletteStart();
   int iPaletteEnd   = pltPaletteptr->PaletteEnd();
@@ -717,14 +735,19 @@ void PltApp::WriteSWFData(const aString &filenamebase) {
 
 // -------------------------------------------------------------------
 void PltApp::DoRender(Widget w, XtPointer, XtPointer) {
-#ifdef BL_VOLUMERENDER
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   //XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
   //if( ! projPicturePtr->SWFDataAllocated()) {
     //projPicturePtr->AllocateSWFData();
   //}
   if (!showing3dRender) showing3dRender = true;
   Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
+#if defined(BL_VOLUMERENDER)
   VolRender *volRender = projPicturePtr->GetVolRenderPtr();
+#endif
+#if defined(BL_PARALLELVOLUMERENDER)
+  PVolRender *volRender = projPicturePtr->GetVolRenderPtr();
+#endif
   if( ! volRender->SWFDataValid()) {
     int iPaletteStart = pltPaletteptr->PaletteStart();
     int iPaletteEnd   = pltPaletteptr->PaletteEnd();

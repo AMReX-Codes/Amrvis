@@ -28,6 +28,7 @@ public:
     void GetRotationMat(MatrixFour m);
     void ViewRotationMat() const;
     void GetRenderRotationMat(MatrixFour m);
+    void ViewRenderRotationMat() const;
     
     AmrQuaternion GetRotation() { return rotation; }
     void SetRotation(AmrQuaternion quat) { rotation = quat; }
@@ -35,7 +36,7 @@ public:
     void SetRenderRotation(AmrQuaternion quat) { renderRotation = quat; }
 
     void SetObjCenter(Real x, Real y, Real z) 
-    { objCenterX = x; objCenterY = y; objCenterZ = z; }
+            { objCenterX = x; objCenterY = y; objCenterZ = z; }
     void SetScreenPosition(int x, int y) 
     { screenPositionX = x; screenPositionY = y; }
     void SetScale(Real s) { scale = s; }

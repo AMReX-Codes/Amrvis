@@ -5,12 +5,26 @@
 #include "PltApp.H"
 #include "DataServices.H"
 #include "Volume.H"
+#ifdef BL_PARALLELVOLUMERENDER
+#include "PVolRender.H"
+#endif
 #include "List.H"
 #include <math.h>
 #include <time.h>
 
 #define VOLUMEBOXES 0
 //#define VOLUMEBOXES 1
+
+#ifdef BL_PARALLELVOLUMERENDER
+  extern "C" {
+    void SetDrawable(Window w);
+    void set_width(int w);
+    void set_height(int w);
+    void shearwarp(unsigned char *imagedata, int imageWidth, int imageHeight,
+		   Real m4Model[4][4], Real m4Proj[4][4], Real m4Comp[4][4]);
+  };
+#endif
+
 // -------------------------------------------------------------------
 ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
 				Widget da, int w, int h)
@@ -36,6 +50,9 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
 
 #ifdef BL_VOLUMERENDER
   volRender = new VolRender(theDomain, minDrawnLevel, maxDrawnLevel);
+#endif
+#ifdef BL_PARALLELVOLUMERENDER
+  volRender = new PVolRender(theDomain, minDrawnLevel, maxDrawnLevel);
 #endif
 
   SetDrawingAreaDimensions(daWidth, daHeight);
@@ -102,6 +119,9 @@ ProjectionPicture::~ProjectionPicture() {
 #ifdef BL_VOLUMERENDER
   delete volRender;
 #endif
+#ifdef BL_PARALLELVOLUMERENDER
+  delete volRender;
+#endif
 }
 
 
@@ -127,8 +147,6 @@ void ProjectionPicture::TransformBoxPoints(int iLevel, int iBoxIndex) {
 }
 
 
-
-
 // -------------------------------------------------------------------
 void ProjectionPicture::MakeBoxes() {
   minDrawnLevel = pltAppPtr->MinDrawnLevel();
@@ -148,13 +166,16 @@ void ProjectionPicture::MakeBoxes() {
 }
 
 
+// -------------------------------------------------------------------
 void ProjectionPicture::MakeAuxiliaries() {
-    if (showSubCut)
+    if(showSubCut) {
         MakeSubCutBox();
+    }
     MakeBoundingBox();
     MakeSlices();
 }
 
+// -------------------------------------------------------------------
 void ProjectionPicture::MakeBoundingBox() {
 Real px, py, pz;
     for(int i = 0; i < NVERTICIES; ++i) {
@@ -169,7 +190,8 @@ Real px, py, pz;
 } 
 
 
-void ProjectionPicture::MakeSubCutBox(){
+// -------------------------------------------------------------------
+void ProjectionPicture::MakeSubCutBox() {
     Real px, py, pz;
     minDrawnLevel = pltAppPtr->MinDrawnLevel();
     maxDrawnLevel = pltAppPtr->MaxDrawnLevel();
@@ -187,6 +209,7 @@ void ProjectionPicture::MakeSubCutBox(){
 }   
 
 
+// -------------------------------------------------------------------
 void ProjectionPicture::MakeSlices() {
     Real px, py, pz;
     for(int j = 0; j< 3 ; j++) {
@@ -209,7 +232,6 @@ void ProjectionPicture::MakePicture() {
 
   scale[XDIR] = scale[YDIR] = scale[ZDIR] = viewTransformPtr->GetScale();
 
-
   Real mvmat[4][4];
   viewTransformPtr->GetRenderRotationMat(mvmat);
   volRender->MakePicture(mvmat, aspect, longestWindowLength,
@@ -231,18 +253,75 @@ void ProjectionPicture::MakePicture() {
 
   cout << "----- make picture time = " << ((clock()-time0)/1000000.0) << endl;
 
-
-/*
-// write out the volumetric image as a 2d boxchar file
-ofstream imageout("imageData.boxchar");
-// fake a 2d Box
-imageout << "((0,0)(" << daWidth-1 << "," << daHeight-1 << ") (0,0)) 1" << endl;
-imageout.write((unsigned char *)imageData, daWidth*daHeight*sizeof(char));
-imageout.close();
-*/
-
 #endif
 
+#ifdef BL_PARALLELVOLUMERENDER
+  clock_t time0 = clock();
+
+  viewTransformPtr->GetScale(scale[XDIR], scale[YDIR], scale[ZDIR]);
+
+  //vpCurrentMatrix(vpc, VP_MODEL);
+  //vpIdentityMatrix(vpc);
+  //vpRotate(vpc, VP_X_AXIS, radToDeg * (viewTransformPtr->GetRho()));
+  //vpRotate(vpc, VP_Y_AXIS, radToDeg * (viewTransformPtr->GetTheta()));
+  //vpRotate(vpc, VP_Z_AXIS, radToDeg * (viewTransformPtr->GetPhi()));
+  //vpCurrentMatrix(vpc, VP_PROJECT);
+  //vpIdentityMatrix(vpc);
+
+  //lenRatio = longestWindowLength/(scale[longestBoxSideDir]*longestBoxSide);
+  //vpLen = 0.5*lenRatio;
+  //if(daWidth < daHeight) {    // undoes volpacks aspect ratio scaling
+    //vpWindow(vpc, VP_PARALLEL, -vpLen*aspect, vpLen*aspect,
+			       //-vpLen, vpLen, -vpLen, vpLen);
+  //} else {
+    //vpWindow(vpc, VP_PARALLEL, -vpLen, vpLen, -vpLen*aspect, vpLen*aspect,
+			       //-vpLen, vpLen);
+  //}
+  //vpret = vpRenderRawVolume(vpc);    // --- render
+
+  SetDrawable(XtWindow(drawingArea));
+cout << endl;
+cout << "viewTransform rotation matrix = " << endl;
+viewTransformPtr->ViewRotationMat();
+cout << endl;
+cout << "viewTransform render rotation matrix = " << endl;
+viewTransformPtr->ViewRenderRotationMat();
+cout << endl;
+  MatrixFour m4Model, m4Proj, m4Comp;
+  viewTransformPtr->GetRotationMat(m4Model);
+  //viewTransformPtr->GetRenderRotationMat(m4Proj);
+  for(int ii = 0; ii < 4; ++ii) {
+    for(int jj = 0; jj < 4; ++jj) {
+      if(ii == jj) {
+        m4Proj[ii][jj] = 2.0;
+      } else {
+        m4Proj[ii][jj] = 0.0;
+      }
+    }
+  }
+  m4Proj[2][2] = -2.0;
+  m4Proj[3][0] = -1.0;
+  m4Proj[3][1] = -1.0;
+  m4Proj[3][2] =  7.0;
+  viewTransformPtr->GetRenderRotationMat(m4Comp);
+  shearwarp(imageData, daWidth, daHeight, m4Model, m4Proj, m4Comp);
+
+  // map imageData colors to colormap range
+  Palette *palPtr = pltAppPtr->GetPalettePtr();
+  if(palPtr->ColorSlots() != palPtr->PaletteSize()) {
+    const unsigned char *remapTable = palPtr->RemapTable();
+    int idat;
+    for(idat=0; idat<daWidth*daHeight; idat++) {
+      imageData[idat] = remapTable[(unsigned char)imageData[idat]];
+    }
+  }
+
+  XPutImage(XtDisplay(drawingArea), pixMap, XtScreen(drawingArea)->
+        default_gc, image, 0, 0, 0, 0, daWidth, daHeight);
+
+  cout << "----- make picture time = " << ((clock()-time0)/1000000.0) << endl;
+
+#endif
 }  // end MakePicture()
 
 
@@ -276,6 +355,8 @@ void ProjectionPicture::DrawBoxesIntoDrawable(const Drawable &drawable,
                    boxColors[minDrawnLevel]);
 }
 
+
+// -------------------------------------------------------------------
 void ProjectionPicture::DrawAuxiliaries(const Drawable &drawable)
 {
     if (showSubCut) {
@@ -292,6 +373,8 @@ void ProjectionPicture::DrawAuxiliaries(const Drawable &drawable)
     DrawSlices(drawable);
 }
 
+
+// -------------------------------------------------------------------
 void ProjectionPicture::DrawSlices(const Drawable &drawable)
 {
     XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
@@ -301,22 +384,28 @@ void ProjectionPicture::DrawSlices(const Drawable &drawable)
                               XtScreen(drawingArea)->default_gc);
 }    
 
+
+// -------------------------------------------------------------------
 void ProjectionPicture::LoadSlices(const Box &surroundingBox) {
     for(int j = 0; j<3 ; j++) {
         int slice = pltAppPtr->GetAmrPicturePtr(j)->GetSlice();
         realSlice[j] = RealSlice(j,slice,surroundingBox);
     }
 }
+
+
+// -------------------------------------------------------------------
 void ProjectionPicture::ChangeSlice(int Dir, int newSlice) {
     for(int j = 0; j<3;j++) {
         if (Dir == j)
             realSlice[j].ChangeSlice(newSlice);
     }
 }
+
         
 // -------------------------------------------------------------------
 void ProjectionPicture::DrawBoxesIntoPixmap(int iFromLevel, int iToLevel) {
-    XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc, 0);
+  XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc, 0);
   XFillRectangle(XtDisplay(drawingArea),  pixMap,
 		 XtScreen(drawingArea)->default_gc, 0, 0, daWidth, daHeight);
   DrawBoxesIntoDrawable(pixMap, iFromLevel, iToLevel);
@@ -386,7 +475,7 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
   imageData = new unsigned char[daWidth*daHeight];
   if(imageData==NULL) {
     cout << " SetDrawingAreaDimensions::imageData : new failed" << endl;
-    exit(1);
+    ParallelDescriptor::Abort("Exiting.");
   }
 
   viewTransformPtr->SetScreenPosition(daWidth/2, daHeight/2);
@@ -411,6 +500,14 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
   volRender->SetImage( (unsigned char *)imageData, daWidth, daHeight,
                        VP_LUMINANCE);
 #endif
+#ifdef BL_PARALLELVOLUMERENDER
+  // --- set the image buffer
+  //vpContext *vpc = volRender->GetVPContext();
+  //vpSetImage(vpc, (unsigned char *)imageData, daWidth, daHeight,
+             //daWidth, VP_LUMINANCE);
+  set_width(daWidth);
+  set_height(daHeight);
+#endif
 
   longestWindowLength  = (Real) Max(daWidth, daHeight);
   shortestWindowLength = (Real) Min(daWidth, daHeight);
@@ -427,6 +524,12 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
 // -------------------------------------------------------------------
 void ProjectionPicture::ReadTransferFile(const aString &rampFileName) {
 #ifdef BL_VOLUMERENDER
+  volRender->ReadTransferFile(rampFileName);
+  pltAppPtr->GetPalettePtr()->SetTransfers(volRender->NDenRampPts(),
+					   volRender->DensityRampX(),
+					   volRender->DensityRampY());
+#endif
+#ifdef BL_PARALLELVOLUMERENDER
   volRender->ReadTransferFile(rampFileName);
   pltAppPtr->GetPalettePtr()->SetTransfers(volRender->NDenRampPts(),
 					   volRender->DensityRampX(),
@@ -454,6 +557,8 @@ RealBox::RealBox(RealPoint p1, RealPoint p2, RealPoint p3, RealPoint p4,
     vertices[4] = p5; vertices[5] = p6; vertices[6] = p7; vertices[7] = p8;
 }
 
+
+//--------------------------------------------------------------------
 RealBox::RealBox(const Box& theBox) {
     Real dimensions[6] = { theBox.smallEnd(XDIR), theBox.smallEnd(YDIR),
                            theBox.smallEnd(ZDIR), theBox.bigEnd(XDIR)+1,
@@ -469,12 +574,15 @@ RealBox::RealBox(const Box& theBox) {
 }
 
 
+//--------------------------------------------------------------------
 TransBox::TransBox() {
     TransPoint zero(0,0);
     for (int i = 0; i < 8 ; i++)
         vertices[i] = zero;
 }
 
+
+//--------------------------------------------------------------------
 TransBox::TransBox(TransPoint p1, TransPoint p2, TransPoint p3, TransPoint p4, 
                    TransPoint p5, TransPoint p6, TransPoint p7, TransPoint p8)
 {
@@ -482,6 +590,8 @@ TransBox::TransBox(TransPoint p1, TransPoint p2, TransPoint p3, TransPoint p4,
     vertices[4] = p5; vertices[5] = p6; vertices[6] = p7; vertices[7] = p8;
 }
 
+
+//--------------------------------------------------------------------
 void TransBox::Draw(Display *display, Window window, GC gc)
 {
     for(int j = 0; j<2;j++) {
@@ -501,17 +611,23 @@ void TransBox::Draw(Display *display, Window window, GC gc)
             
 }
 
+
+//--------------------------------------------------------------------
 RealSlice::RealSlice() {
     RealPoint zero(0,0,0);
     for(int i=0; i<4; i++)
         edges[i] = zero;
 }
 
+
+//--------------------------------------------------------------------
 RealSlice::RealSlice(RealPoint p1, RealPoint p2,
                      RealPoint p3, RealPoint p4) {
         edges[0] = p1; edges[1] = p2; edges[2] = p3; edges[3] = p4;
 }
 
+
+//--------------------------------------------------------------------
 RealSlice::RealSlice(int count, int slice, const Box &worldBox) {
     Real dimensions[6] = { worldBox.smallEnd(XDIR), worldBox.smallEnd(YDIR),
                            worldBox.smallEnd(ZDIR), worldBox.bigEnd(XDIR)+1,
@@ -537,23 +653,31 @@ RealSlice::RealSlice(int count, int slice, const Box &worldBox) {
     }
 }
 
+
+//--------------------------------------------------------------------
 void RealSlice::ChangeSlice(int NewSlice) {
     for(int k = 0; k<4; k++)
         edges[k].component[2-dirOfFreedom] = NewSlice;
 }
 
+
+//--------------------------------------------------------------------
 TransSlice::TransSlice() {
     TransPoint zero(0,0);
     for(int i = 0; i< 4; i++)
         edges[i] = zero;
 }
 
+
+//--------------------------------------------------------------------
 TransSlice::TransSlice(TransPoint p1, TransPoint p2,
                        TransPoint p3, TransPoint p4)
 {
     edges[0] = p1; edges[1] = p2; edges[2] = p3; edges[3] = p4;
 }
 
+
+//--------------------------------------------------------------------
 void TransSlice::Draw(Display *display, Window window, GC gc)
 {
     for(int j = 0; j<3;j++) {
@@ -564,6 +688,4 @@ void TransSlice::Draw(Display *display, Window window, GC gc)
     XDrawLine(display, window, gc, edges[0].x, edges[0].y, 
               edges[3].x, edges[3].y);
 }
-
-
 //--------------------------------------------------------------------

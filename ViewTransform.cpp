@@ -64,9 +64,12 @@ void ViewTransform::TransformPoint(Real x, Real y, Real z,
 //    pZ = newPoint[2];
 }
 
+
+// -------------------------------------------------------------------
 void ViewTransform::Print()const {
     cout<<"ViewTransform::Print() does nothing now"<<endl;
 }
+
 
 // -------------------------------------------------------------------
 void ViewTransform::MakeTransform() {//ugh  full of hacks
@@ -78,6 +81,7 @@ void ViewTransform::MakeTransform() {//ugh  full of hacks
   mRenderRotation[1][3] = -transY*0.003/scale;
 }
 
+
 // -------------------------------------------------------------------
 void ViewTransform::GetRotationMat(MatrixFour m) {
     for(int i = 0; i< 4; i++) {
@@ -87,6 +91,8 @@ void ViewTransform::GetRotationMat(MatrixFour m) {
     }
 }
     
+
+// -------------------------------------------------------------------
 void ViewTransform::GetRenderRotationMat(MatrixFour m) {
     for(int i = 0; i< 4; i++) {
         for (int j = 0; j<4 ; j++) {
@@ -96,9 +102,10 @@ void ViewTransform::GetRenderRotationMat(MatrixFour m) {
 }
     
 
+// -------------------------------------------------------------------
 void ViewTransform::ViewRotationMat() const {
   int i, j;
-  printf("%s\n", "Rotation matrix");
+  printf("%s\n", "Rotation matrix:");
   for (i=0; i<4; i++) {
     for (j=0; j<4; j++) {
       printf("%7.2f", mRotation[i][j]);
@@ -106,6 +113,20 @@ void ViewTransform::ViewRotationMat() const {
     printf("\n");
   }
 }
+
+
+// -------------------------------------------------------------------
+void ViewTransform::ViewRenderRotationMat() const {
+  int i, j;
+  printf("%s\n", "Render Rotation matrix:");
+  for (i=0; i<4; i++) {
+    for (j=0; j<4; j++) {
+      printf("%7.2f", mRenderRotation[i][j]);
+    }
+    printf("\n");
+  }
+}
+
 
 // -------------------------------------------------------------------
 ostream& operator << (ostream &o, const ViewTransform &v) {

@@ -222,5 +222,52 @@ void PltApp::DoCreateFABFile(Widget w, XtPointer, XtPointer call_data) {
 			 derivedQuantity);
   XtDestroyWidget(w);
 }  // end DoCreateFABFile
+
+
+
+// -------------------------------------------------------------------
+void PltApp::DoCreateAnimRGBFile() {
+  char rgbfilename[BUFSIZ];
+  int imageSizeX, imageSizeY;
+  XImage *image;
+  XColor *colors = pltPaletteptr->GetColorCells();
+  int palSize(pltPaletteptr->PaletteSize());
+  char tempstr[BUFSIZ], timestep[BUFSIZ];
+  char tempfilename[BUFSIZ];
+  char cder[BUFSIZ];
+  int i;
+
+  ResetAnimation();
+
+  strcpy(tempfilename, fileNames[currentFrame].c_str());
+  i = strlen(tempfilename) - 1;
+  while(i > -1 && tempfilename[i] != '/') {
+    --i;
+  }
+  ++i;  // skip first (bogus) character
+
+  FileType fileType = dataServicesPtr[currentFrame]->GetFileType();
+  assert(fileType != INVALIDTYPE);
+  if(fileType == FAB || fileType == MULTIFAB) {
+    strcpy(timestep, &tempfilename[i]);
+  } else {  // plt file
+    strcpy(timestep, &tempfilename[i+3]);  // skip plt
+  }
+  i = 0;
+  while(timestep[i] != '\0' && timestep[i] != '.') {
+    ++i;
+  }
+  timestep[i] = '\0';
+  strcpy(cder, currentDerived.c_str());
+  sprintf(tempstr, "%s.%s", cder, timestep);
+  sprintf(rgbfilename, "%s.rgb", tempstr);
+
+  cout << "******* Creating file:  " << rgbfilename << endl;
+  // write the picture
+  image = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
+  imageSizeX = amrPicturePtrArray[ZPLANE]->ImageSizeH();
+  imageSizeY = amrPicturePtrArray[ZPLANE]->ImageSizeV();
+  WriteRGBFile(rgbfilename, image, imageSizeX, imageSizeY, colors, palSize);
+}  // end DoCreateAnimRGBFile
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------

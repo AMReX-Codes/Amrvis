@@ -4,10 +4,10 @@ PROFILE   = TRUE
 PROFILE   = FALSE
 
 COMP      = KCC
-DEBUG     = FALSE
 DEBUG     = TRUE
-DIM       = 2
+DEBUG     = FALSE
 DIM       = 3
+DIM       = 2
 
 USE_ARRAYVIEW = TRUE
 USE_ARRAYVIEW = FALSE
@@ -17,6 +17,9 @@ USE_BSP=TRUE
 
 USE_VOLRENDER = FALSE
 USE_VOLRENDER = TRUE
+
+USE_PARALLELVOLRENDER = TRUE
+USE_PARALLELVOLRENDER = FALSE
 
 PBOXLIB_HOME = ..
 include ../mk/Make.defs
@@ -118,6 +121,13 @@ LIBRARIES += -lvolpack
 endif
 endif
 
+############################################### parallel volume rendering
+ifeq ($(DIM),3)
+ifeq ($(USE_PARALLELVOLRENDER), TRUE)
+DEFINES += -DBL_PARALLELVOLUMERENDER
+endif
+endif
+
 ############################################### other defines
 #DEFINES += -DSCROLLBARERROR
 #DEFINES += -DFIXDENORMALS
@@ -135,6 +145,7 @@ endif
 #CXXDEBF = +K0 --link_command_prefix 3rd
 #LIBRARIES += -ldnet_stub
 
+CFLAGS += -g
 
 XTRALIBS +=
 

@@ -6,6 +6,12 @@
 
 #include <stdio.h>
 
+#ifdef BL_VOLUMERENDER
+#include <volpack.h>
+#else
+#define VP_NORM_MAX             7923    /* maximum value of a 13 bit normal */
+#endif
+
 #define SWF_HEADER	62			/* bytes of header in file */
 
   typedef struct {		/* contents of a voxel */

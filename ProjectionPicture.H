@@ -18,6 +18,11 @@
 #include "VolRender.H" 
 #endif
 
+#ifdef BL_PARALLELVOLUMERENDER
+//#include "PVolRender.H" 
+class PVolRender;
+#endif
+
 class PltApp;
 
 // represents data points in physical space that connect lines to other points
@@ -87,7 +92,10 @@ public:
     ~ProjectionPicture();
     
 #ifdef BL_VOLUMERENDER
-    VolRender *GetVolRenderPtr() const { return volRender; }
+	VolRender *GetVolRenderPtr() const { return volRender; }
+#endif
+#ifdef BL_PARALLELVOLUMERENDER
+	PVolRender *GetVolRenderPtr() const { return volRender; }
 #endif
     void    ReadTransferFile(const aString &rampFileName);
     void	MakeBoxes();
@@ -148,7 +156,10 @@ private:
     char		rampfilename[LINELENGTH];
     unsigned char	volumeBoxColor;
 #ifdef BL_VOLUMERENDER
-    VolRender       *volRender;
+	VolRender       *volRender;
+#endif
+#ifdef BL_PARALLELVOLUMERENDER
+	PVolRender      *volRender;
 #endif
     void MakeAuxiliaries();
     void MakeBoundingBox();
