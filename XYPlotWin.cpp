@@ -1243,9 +1243,10 @@ void XYPlotWin::CBdoExportFile(Widget, XtPointer client_data, XtPointer data) {
       !(*filename)) {
     XmString label_str;
     Arg args[1];
-    label_str = XmStringCreateSimple(animatingQ ?
-				     "Cannot create export file while animating." :
-				     "Invalid file name.");
+    label_str = XmStringCreateSimple((char*)
+				     (animatingQ ?
+				      "Cannot create export file while animating." :
+				      "Invalid file name."));
     XtSetArg(args[0], XmNmessageString, label_str);
     Widget wid = XmCreateErrorDialog(wXYPlotTopLevel, "error", args, 1);
     XmStringFree(label_str);
@@ -1725,7 +1726,7 @@ void XYPlotWin::CBdoInitializeListColorChange(Widget, XtPointer data, XtPointer)
     XtRemoveCallback(wPalArea, XmNinputCallback, XYPlotWin::StaticCallback, NULL);
   pltParent->SetPaletteCBQ();
   colorChangeItem = item;
-  AddStaticCallback(wPalArea, XmNinputCallback, XYPlotWin::CBdoSetListColor);
+  AddStaticCallback(wPalArea, XmNinputCallback, &XYPlotWin::CBdoSetListColor);
   XtPopup(pltParent->WId(), XtGrabNone);
 }
 
