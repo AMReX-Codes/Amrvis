@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.39 2001-02-23 22:47:33 vince Exp $
+// $Id: PltApp.H,v 1.40 2001-02-28 02:03:42 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -188,7 +188,7 @@ private:
   Palette *pltPaletteptr;
   AmrPicture *amrPicturePtrArray[NPLANES];
   IntVect ivLowOffsetMAL;  // at maxAllowableLevel
-  Range rangeType;
+  RangeType rangeType;
   bool animating2d, setRangeShowing, contoursShowing, infoShowing,
     datasetShowing, paletteDrawn, showBoxes,  writingRGB, interfaceReady,
     paletteCBQ;

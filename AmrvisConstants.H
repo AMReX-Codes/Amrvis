@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrvisConstants.H,v 1.8 2001-02-07 01:40:43 vince Exp $
+// $Id: AmrvisConstants.H,v 1.9 2001-02-28 02:03:42 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -47,7 +47,14 @@ const int PALETTEVIEW = 4;
 const int WOFFSET = 4;
 
 enum AnimDirection { ANIMPOSDIR = 0, ANIMNEGDIR };
-enum Range { USEGLOBAL = 0, USELOCAL, USESPECIFIED, USEFILE, NRANGES };
+enum RangeType {
+    USEGLOBAL = 0, USELOCAL, USESPECIFIED, USEFILE, NRANGES, INVALIDRANGE
+};
+
+static char *RangeTypeString[] = {
+    "useglobal", "uselocal", "usespecified", "usefile", "nranges", "invalidrange"
+};
+
 enum FileType { INVALIDTYPE = 0, FAB, MULTIFAB, NEWPLT, NUMDBPTYPES };
 
 static char *FileTypeString[] = {

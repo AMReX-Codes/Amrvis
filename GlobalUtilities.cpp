@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.33 2000-10-02 20:53:08 lijewski Exp $
+// $Id: GlobalUtilities.cpp,v 1.34 2001-02-28 02:03:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -84,12 +84,11 @@ const aString &GetPaletteName() {
 
 // -------------------------------------------------------------------
 void AddSlices(int dir, char *sliceset) {
-  int slice, ipos;
-  bool rangeSpecified = false;
+  int rangeStart, rangeEnd, slice;
+  bool rangeSpecified(false);
   dumpSlices = true;
-  int rangeStart, rangeEnd;
 
-  for(ipos = 1; ipos <= strlen(sliceset); ipos++) { // skip first char for negative
+  for(int ipos(1); ipos <= strlen(sliceset); ++ipos) { // skip first char for neg
     if(sliceset[ipos] == '-') {  // we have a range of values specified
       rangeSpecified = true;
       rangeStart = atoi(sliceset);
@@ -106,7 +105,7 @@ void AddSlices(int dir, char *sliceset) {
         dumpSliceList[dir].append(slice);
       }
     } else {
-      for(slice = rangeStart; slice <= rangeEnd; slice++) {
+      for(slice = rangeStart; slice <= rangeEnd; ++slice) {
         if( ! dumpSliceList[dir].includes(slice)) {  // add unique
           dumpSliceList[dir].append(slice);
         }
