@@ -34,6 +34,7 @@ typedef struct params_str_defn { // STR
 typedef struct params_pix_defn { // PIXEL
   param_types type;
   XColor  value;
+  int iColorMapSlot;
 } param_pix;
 
 typedef struct params_font_defn { // FONT
@@ -169,7 +170,7 @@ private:
   // Translates name into a color and attempts to get the pixel
   // for the color using XAllocColor().
   //
-  int do_color(char *name, XColor *color);
+  int do_color(char *name, XColor *color, int &cmSlot);
 
   //
   // This routine translates a font name into a font structure.  The

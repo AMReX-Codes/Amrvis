@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.124 2004-07-09 22:05:42 vince Exp $
+// $Id: PltApp.cpp,v 1.125 2004-07-19 21:05:12 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1426,7 +1426,7 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   //                (amrPicturePtrArray[YPLANE]->
   //		ImageSizeV()-1 - amrPicturePtrArray[YPLANE]->GetHLine())/
   //		currentScale + ivLowOffsetMAL[ZDIR]);
-  XSetForeground(display, xgc, pltPaletteptr->pixelate(zpColor));
+  XSetForeground(display, xgc, pltPaletteptr->makePixel(zpColor));
   XDrawString(display, XtWindow(wControlForm), xgc,
 	      centerX-xyzAxisLength+12, centerY+xyzAxisLength+4,
 	      temp, strlen(temp));
@@ -1434,7 +1434,7 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   sprintf(temp, "Y=%i", amrPicturePtrArray[YPLANE]->GetSlice());
   //amrPicturePtrArray[XPLANE]->GetVLine()/
   //		currentScale + ivLowOffsetMAL[YDIR]);
-  XSetForeground(display, xgc, pltPaletteptr->pixelate(ypColor));
+  XSetForeground(display, xgc, pltPaletteptr->makePixel(ypColor));
   XDrawString(display, XtWindow(wControlForm), xgc,
 	      centerX+stringOffsetX, centerY-xyzAxisLength+4,
 	      temp, strlen(temp));
@@ -1442,13 +1442,13 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   sprintf(temp, "X=%i", amrPicturePtrArray[XPLANE]->GetSlice());
   //amrPicturePtrArray[ZPLANE]->GetVLine()/
   //currentScale + ivLowOffsetMAL[XDIR]);
-  XSetForeground(display, xgc, pltPaletteptr->pixelate(xpColor));
+  XSetForeground(display, xgc, pltPaletteptr->makePixel(xpColor));
   XDrawString(display, XtWindow(wControlForm), xgc,
 	      centerX+4*stringOffsetX, centerY+stringOffsetY+2,
 	      temp, strlen(temp));
   
   XSetForeground(XtDisplay(wControlForm), xgc,
-		 pltPaletteptr->pixelate(ypColor));
+		 pltPaletteptr->makePixel(ypColor));
   XDrawLine(display, XtWindow(wControlForm), xgc,
 	    centerX, centerY, centerX, centerY-xyzAxisLength);
   XDrawLine(display, XtWindow(wControlForm), xgc,
@@ -1469,7 +1469,7 @@ void PltApp::DrawAxes(Widget wArea, int xpos, int ypos, int /* orientation */ ,
   char hLabel[LINELENGTH], vLabel[LINELENGTH];
   strcpy(hLabel, hlabel);
   strcpy(vLabel, vlabel);
-  XSetForeground(XtDisplay(wArea), xgc, pltPaletteptr->pixelate(color));
+  XSetForeground(XtDisplay(wArea), xgc, pltPaletteptr->makePixel(color));
   XDrawLine(XtDisplay(wArea), XtWindow(wArea), xgc,
 	    xpos+5, ypos, xpos+5, ypos+axisLength);
   XDrawLine(XtDisplay(wArea), XtWindow(wArea), xgc,

@@ -78,8 +78,6 @@ using std::endl;
    param_temp.strv.value : (BL_ASSERT(0), (char *) 0))
 #define PM_COLOR(name) ((parameters->Get_Parameter(name, &param_temp)) ? \
    param_temp.pixv.value : (BL_ASSERT(0), param_null_color))
-#define PM_PIXEL(name) ((parameters->Get_Parameter(name, &param_temp)) ? \
-   param_temp.pixv.value.pixel : (BL_ASSERT(0), (Pixel) 0))
 #define PM_FONT(name) ((parameters->Get_Parameter(name, &param_temp)) ? \
    param_temp.fontv.value : (BL_ASSERT(0), (XFontStruct *) 0))
 #define PM_STYLE(name) ((parameters->Get_Parameter(name, &param_temp)) ? \
@@ -88,6 +86,8 @@ using std::endl;
    param_temp.boolv.value : (BL_ASSERT(0), 0))
 #define PM_DBL(name) ((parameters->Get_Parameter(name, &param_temp)) ? \
    param_temp.dblv.value : (BL_ASSERT(0), 0.0))
+#define PM_PIXEL(name) ((parameters->Get_Parameter(name, &param_temp)) ? \
+   pal->makePixel(param_temp.pixv.iColorMapSlot) : (BL_ASSERT(0), (Pixel) 0))
 
 
 // -------------------------------------------------------------------
@@ -364,6 +364,7 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
 		XmNforeground, &foregroundPix,
 		XmNbackground, &backgroundPix,
 		NULL);
+  Palette *pal = pltParent->GetPalettePtr();
   gridPix = PM_PIXEL("GridColor");
   textPix = PM_PIXEL("TextColor");
 
@@ -1335,6 +1336,7 @@ void XYPlotWin::textX (Widget win, int x, int y, char *text,
     case T_BOTTOM:     rx = x - (width / 2); ry = y - height;       break;
     case T_LOWERLEFT:  rx = x;               ry = y - height;       break;
   }
+  //XSetForeground(disp, textGC, pltParent->GetPalettePtr()->makePixel(120));
   XDrawString(disp, XtWindow(win), textGC, rx, ry + bb.ascent, text, len);
 }
 

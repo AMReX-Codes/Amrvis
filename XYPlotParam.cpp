@@ -251,9 +251,9 @@ params * XYPlotParameters::resolve_entry(char *name, param_types type,
     break;
 
     case PIXEL:
-      if( ! do_color(form, &result->pixv.value)) {
+      if( ! do_color(form, &result->pixv.value, result->pixv.iColorMapSlot)) {
         fprintf(stderr, paramstr, name, form, "color", DEF_PIXEL);
-        do_color(DEF_PIXEL, &result->pixv.value);
+        do_color(DEF_PIXEL, &result->pixv.value, result->pixv.iColorMapSlot);
       }
     break;
 
@@ -290,7 +290,7 @@ params * XYPlotParameters::resolve_entry(char *name, param_types type,
 
 
 // -------------------------------------------------------------------
-int XYPlotParameters::do_color(char *name, XColor *color) {
+int XYPlotParameters::do_color(char *name, XColor *color, int &cmSlot) {
   Colormap cmap = param_palette->GetColormap();
   if( ! XParseColor(gaPtr->PDisplay(),
 		    DefaultColormap(gaPtr->PDisplay(), gaPtr->PScreenNumber()),
@@ -300,11 +300,13 @@ int XYPlotParameters::do_color(char *name, XColor *color) {
   }
   if(string_compare(name, "black") == 0) {
     color->pixel = BlackPixel(gaPtr->PDisplay(), gaPtr->PScreenNumber());
+    cmSlot = param_palette->BlackIndex();;
     XQueryColor(gaPtr->PDisplay(), cmap, color);
     return 1;
   }
   if(string_compare(name, "white") == 0) {
     color->pixel = WhitePixel(gaPtr->PDisplay(), gaPtr->PScreenNumber());
+    cmSlot = param_palette->WhiteIndex();;
     XQueryColor(gaPtr->PDisplay(), cmap, color);
     return 1;
   }
@@ -316,6 +318,7 @@ int XYPlotParameters::do_color(char *name, XColor *color) {
   double best(std::numeric_limits<Real>::max());
   unsigned long best_pix = WhitePixel(gaPtr->PDisplay(), gaPtr->PScreenNumber());
   int end(param_palette->PaletteEnd());
+  int iBestPalEntry(param_palette->PaletteStart());
   for(int ii(param_palette->PaletteStart()); ii <= end; ++ii) {
     const XColor *newcolor = &param_palette->GetColorCells()[ii];
     double dred(newcolor->red - red);
@@ -325,9 +328,11 @@ int XYPlotParameters::do_color(char *name, XColor *color) {
     if(temp < best) {
       best = temp;
       best_pix = newcolor->pixel;
+      iBestPalEntry = ii;
     }
   }
   color->pixel = best_pix;
+  cmSlot = iBestPalEntry;
   XQueryColor(gaPtr->PDisplay(), cmap, color);
   
   return 1;
