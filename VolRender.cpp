@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.50 2003-12-13 00:35:31 vince Exp $
+// $Id: VolRender.cpp,v 1.51 2004-09-30 20:03:38 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -952,7 +952,8 @@ void VolRender::MakeDefaultTransProperties() {
 void VolRender::SetTransferProperties() {
   BL_ASSERT(palettePtr != NULL);
   density_ramp = palettePtr->GetTransferArray();
-  density_ramp[palettePtr->BodyIndex()] = 0.08;
+  //density_ramp[palettePtr->BodyIndex()] = 0.08;
+  density_ramp[palettePtr->BodyIndex()] = AVGlobals::GetBodyOpacity();
   vpSetClassifierTable(vpc, DENSITY_PARAM, densityField,
                        density_ramp.dataPtr(),
 		       density_ramp.size() * sizeof(float));

@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.H,v 1.21 2004-04-16 23:50:43 vince Exp $
+// $Id: GlobalUtilities.H,v 1.22 2004-09-30 20:03:38 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -86,6 +86,7 @@ namespace AVGlobals {
   // -------------------- cartGrid functions
   void SetShowBody(const bool btf);
   bool GetShowBody();
+  Real GetBodyOpacity();
 
   #define SHOWVAL(val) { cout << #val << " = " << val << endl; }  // Jensens device
   #define VSHOWVAL(verbose, val) { if(verbose) { \

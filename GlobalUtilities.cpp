@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.56 2004-05-27 15:34:05 car Exp $
+// $Id: GlobalUtilities.cpp,v 1.57 2004-09-30 20:03:38 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -57,6 +57,7 @@ int  maxPaletteIndex;
 bool SGIrgbfile(true);
 int  fabIOSize;
 bool bShowBody(true);
+Real bodyOpacity(0.05);
 bool givenInitialPlanes(false);
 IntVect ivInitialPlanes;
 
@@ -798,6 +799,14 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
         PrintUsage(argv[0]);
       }
       ++i;
+    } else if(strcmp(argv[i], "-bodyopacity") == 0) {
+      if(argc-1<i+1) {
+        PrintUsage(argv[0]);
+      } else {
+        bodyOpacity = atof(argv[i+1]);
+	cout << "******* using bodyOpacity = " << bodyOpacity << endl;
+      }
+      ++i;
     } else if(strcmp(argv[i], "-cliptoppalette") == 0) {
       maxPaletteIndex = 254;  // clip the top palette index
     } else if(strcmp(argv[i], "-fixdenormals") == 0) {
@@ -909,6 +918,7 @@ bool AVGlobals::UseMaxLevel() { return useMaxLevel; }
 
 void AVGlobals::SetShowBody(const bool bsb) { bShowBody = bsb; }
 bool AVGlobals::GetShowBody()  { return bShowBody; }
+Real AVGlobals::GetBodyOpacity()  { return bodyOpacity; }
 
 const string &AVGlobals::GetComlineFilename(int i) { return comlinefilename[i]; }
 FileType AVGlobals::GetDefaultFileType()   { return fileType;    }
