@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.51 2003-12-11 01:48:51 vince Exp $
+// $Id: Dataset.cpp,v 1.52 2003-12-18 23:32:53 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -63,8 +63,6 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
   hStringOffset = 12;
   vStringOffset = -4;
 
-  //whiteIndex = int(pltAppPtr->GetPalettePtr()->WhiteIndex());
-  //blackIndex = int(pltAppPtr->GetPalettePtr()->BlackIndex());
   whiteIndex = int(pltAppPtr->GetPalettePtr()->AVWhitePixel());
   blackIndex = int(pltAppPtr->GetPalettePtr()->AVBlackPixel());
 
@@ -897,7 +895,7 @@ void Dataset::DoExpose(int fromExpose) {
         
         // draw grid structure for entire region 
         for(lev = minDrawnLevel; lev <= maxDrawnLevel; ++lev) {
-            for(int iBox = 0; iBox < amrData.boxArray(lev).size(); ++iBox) {
+            for(int iBox(0); iBox < amrData.boxArray(lev).size(); ++iBox) {
                 temp = amrData.boxArray(lev)[iBox];
                 if(datasetRegion[lev].intersects(temp)) {
                     temp &= datasetRegion[lev];
@@ -954,8 +952,8 @@ void Dataset::DoExpose(int fromExpose) {
           }  // end for
         } else {
             XSetForeground(XtDisplay(wPixArea), gaPtr->PGC(), whiteIndex);
-            for(int lvl = minDrawnLevel; lvl<=maxDrawnLevel; lvl++) {
-              for(stringCount=0; stringCount<myStringCount[lvl]; stringCount++) {
+            for(int lvl(minDrawnLevel); lvl <= maxDrawnLevel; ++lvl) {
+              for(stringCount=0; stringCount < myStringCount[lvl]; ++stringCount) {
                 xloc = myDataStringArray[lvl][stringCount].xloc;
                 yloc = myDataStringArray[lvl][stringCount].yloc -
 		       ((max_level-min_level+1)*hIndexAreaHeight);

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.82 2003-12-11 01:48:51 vince Exp $
+// $Id: AmrPicture.cpp,v 1.83 2003-12-18 23:32:53 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -719,7 +719,7 @@ void AmrPicture::DoExposePicture() {
       DrawBoxes(gpArray, pictureWindow);
 
       if( ! subCutShowing) {  // draw selected region
-        XSetForeground(display, xgc, palPtr->pixelate(60));
+        XSetForeground(display, xgc, palPtr->makePixel(60));
         XDrawLine(display, pictureWindow, xgc,
 		  regionX+1, regionY+1, region2ndX+1, regionY+1); 
         XDrawLine(display, pictureWindow, xgc,
@@ -729,7 +729,7 @@ void AmrPicture::DoExposePicture() {
         XDrawLine(display, pictureWindow, xgc,
 		  region2ndX+1, regionY+1, region2ndX+1, region2ndY+1);
 
-        XSetForeground(display, xgc, palPtr->pixelate(175));
+        XSetForeground(display, xgc, palPtr->makePixel(175));
         XDrawLine(display, pictureWindow, xgc,
 		  regionX, regionY, region2ndX, regionY); 
         XDrawLine(display, pictureWindow, xgc,
@@ -742,18 +742,18 @@ void AmrPicture::DoExposePicture() {
 
 #if (BL_SPACEDIM == 3)
       // draw plane "cutting" lines
-      XSetForeground(display, xgc, palPtr->pixelate(hColor));
+      XSetForeground(display, xgc, palPtr->makePixel(hColor));
       XDrawLine(display, pictureWindow, xgc, 0, hLine, imageSizeH - 1, hLine); 
-      XSetForeground(display, xgc, palPtr->pixelate(vColor));
+      XSetForeground(display, xgc, palPtr->makePixel(vColor));
       XDrawLine(display, pictureWindow, xgc, vLine, 0, vLine, imageSizeV - 1); 
       
-      XSetForeground(display, xgc, palPtr->pixelate(hColor-30));
+      XSetForeground(display, xgc, palPtr->makePixel(hColor-30));
       XDrawLine(display, pictureWindow, xgc, 0, hLine+1, imageSizeH - 1, hLine+1); 
-      XSetForeground(display, xgc, palPtr->pixelate(vColor-30));
+      XSetForeground(display, xgc, palPtr->makePixel(vColor-30));
       XDrawLine(display, pictureWindow, xgc, vLine+1, 0, vLine+1, imageSizeV - 1); 
       
       if(subCutShowing) {  // draw subvolume cutting border 
-        XSetForeground(display, xgc, palPtr->pixelate(90));
+        XSetForeground(display, xgc, palPtr->makePixel(90));
         XDrawLine(display, pictureWindow, xgc,
 		  subcutX+1, subcutY+1, subcut2ndX+1, subcutY+1); 
         XDrawLine(display, pictureWindow, xgc,
@@ -763,7 +763,7 @@ void AmrPicture::DoExposePicture() {
         XDrawLine(display, pictureWindow, xgc,
 		  subcut2ndX+1, subcutY+1, subcut2ndX+1, subcut2ndY+1);
           
-        XSetForeground(display, xgc, palPtr->pixelate(155));
+        XSetForeground(display, xgc, palPtr->makePixel(155));
         XDrawLine(display, pictureWindow, xgc,
 		  subcutX, subcutY, subcut2ndX, subcutY); 
         XDrawLine(display, pictureWindow, xgc,
@@ -1859,13 +1859,13 @@ void AmrPicture::ShowFrameImage(int iSlice) {
 
 
   // draw plane "cutting" lines
-  XSetForeground(display, xgc, palPtr->pixelate(hColor));
+  XSetForeground(display, xgc, palPtr->makePixel(hColor));
   XDrawLine(display, pictureWindow, xgc, 0, hLine, imageSizeH, hLine); 
-  XSetForeground(display, xgc, palPtr->pixelate(vColor));
+  XSetForeground(display, xgc, palPtr->makePixel(vColor));
   XDrawLine(display, pictureWindow, xgc, vLine, 0, vLine, imageSizeV); 
-  XSetForeground(display, xgc, palPtr->pixelate(hColor-30));
+  XSetForeground(display, xgc, palPtr->makePixel(hColor-30));
   XDrawLine(display, pictureWindow, xgc, 0, hLine+1, imageSizeH, hLine+1); 
-  XSetForeground(display, xgc, palPtr->pixelate(vColor-30));
+  XSetForeground(display, xgc, palPtr->makePixel(vColor-30));
   XDrawLine(display, pictureWindow, xgc, vLine+1, 0, vLine+1, imageSizeV); 
   
   if(sliceDir == XDIR) {
@@ -1909,8 +1909,6 @@ void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
                              Drawable &passedPixMap, 
                              const GC &passedGC)
 {
-  //Real v_min(GetWhichMin());
-  //Real v_max(GetWhichMax());
   Real v_min, v_max;
   pltAppStatePtr->GetMinMax(v_min, v_max);
   Real v_off;
@@ -2107,7 +2105,7 @@ bool AmrPicture::DrawContour(const FArrayBox &fab, Real value,
         }
       }
       
-      XSetForeground(display, xgc, palPtr->pixelate(FGColor));
+      XSetForeground(display, xgc, palPtr->makePixel(FGColor));
       
       Real hReal2X((Real) imageSizeH / (rightEdge - leftEdge));
       Real vReal2X((Real) imageSizeV / (topEdge - bottomEdge));

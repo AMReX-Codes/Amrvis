@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.120 2003-12-11 01:48:51 vince Exp $
+// $Id: PltApp.cpp,v 1.121 2003-12-18 23:32:53 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -2881,6 +2881,13 @@ void PltApp::DoOpenPalFile(Widget w, XtPointer, XtPointer call_data) {
     if(XYplotwin[np]) {
       XYplotwin[np]->SetPalette();
     }
+  }
+  for(int npp(0); npp < NPLANES; ++npp) {
+    amrPicturePtrArray[npp]->CreatePicture(XtWindow(wPlotPlane[npp]),
+					  pltPaletteptr);
+  }
+  if(datasetShowing) {
+    datasetPtr->DoExpose(false);
   }
 }
 
