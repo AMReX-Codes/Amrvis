@@ -325,7 +325,7 @@ c ::: --------------------------------------------------------------
       integer lrat, nvar, tloi, thii
       REAL_T fine(floi1 :fhii1 ,floi2 :fhii2 ,floi3 :fhii3, nvar)
       REAL_T crse(cloi1 :chii1 ,cloi2 :chii2 ,cloi3 :chii3, nvar)
-      REAL_T temp(tloi:thii)
+      REAL_T temp(tloi:thii + 1)
 c ::: ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 c ::: pcinterp:  use piecewise constant interpolation to define
 c ::: values on the subregion of the fine FAB defined
