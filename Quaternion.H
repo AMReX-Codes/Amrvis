@@ -1,6 +1,6 @@
 
 //
-// $Id: Quaternion.H,v 1.6 2000-10-02 20:53:10 lijewski Exp $
+// $Id: Quaternion.H,v 1.7 2000-11-22 00:23:45 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -49,6 +49,11 @@ public:
   
   Real InfNorm() const;
   void tomatrix( Real m[4][4] ) const;
+
+  Real QW() const { return w; }
+  Real QX() const { return x; }
+  Real QY() const { return y; }
+  Real QZ() const { return z; }
   
   friend ostream& operator<<( ostream &s, const AmrQuaternion &q);
 };
