@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.H,v 1.22 2001-08-22 00:22:32 vince Exp $
+// $Id: AmrData.H,v 1.23 2002-02-26 01:00:01 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -45,14 +45,11 @@ class AmrData {
   Array< Array< Array<Real> > > gridLocLo, gridLocHi;
   Array<Box>  probDomain;
   Array<Box>  maxDomain;        // max problem domain size
-  Array<Real> probSize;
-  Array<Real> probLo;
-  Array<Real> probHi;
+  Array<Real> probSize, probLo, probHi;
   Real time;
   Array<string> plotVars;
   Array<Real> vfEps, afEps;
-  int nComp;
-  int nGrow;
+  int nComp, nGrow;
   int nRegions;         // number of boundary regions
   int boundaryWidth;    // number of zones in the boundary regions
   int coordSys;

@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.41 2002-02-07 23:59:02 vince Exp $
+// $Id: Palette.cpp,v 1.42 2002-02-26 01:00:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -90,7 +90,8 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
   for(int ii(0); ii < totalColorSlots; ++ii) {
     sysccells[ii].pixel = ii;
   }
-  XQueryColors(gaPtr->PDisplay(), systemColmap, sysccells.dataPtr(), totalColorSlots);
+  XQueryColors(gaPtr->PDisplay(), systemColmap, sysccells.dataPtr(),
+               totalColorSlots);
   if(gaPtr->IsTrueColor()) {
     reserveSystemColors = 0;
     colorOffset = 0;
@@ -119,8 +120,8 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
 
 
 // -------------------------------------------------------------------
-Palette::Palette(int datalistlength, int width,
-		 int totalwidth, int totalheight, int reservesystemcolors)
+Palette::Palette(int datalistlength, int width, int totalwidth,
+                 int totalheight, int reservesystemcolors)
 {
   gaPtr = 0;
   //  bool visTrueColor = false;
@@ -140,7 +141,7 @@ Palette::Palette(int datalistlength, int width,
 
   transSet = false;
 
-  for(int ii = 0; ii < totalColorSlots; ++ii) {
+  for(int ii(0); ii < totalColorSlots; ++ii) {
     sysccells[ii].pixel = ii;
   }
   reserveSystemColors = reservesystemcolors;
@@ -155,7 +156,7 @@ Palette::Palette(int datalistlength, int width,
   remapTable = new unsigned char[totalColorSlots];  // this is faster than Array<uc>
   float sizeRatio(((float) colorSlots) / ((float) totalColorSlots));
   float mapLow(((float) paletteStart) + 0.5);
-  for(int itab = 0; itab < totalColorSlots; ++itab) {
+  for(int itab(0); itab < totalColorSlots; ++itab) {
     remapTable[itab] = (int) ((((float) itab) * sizeRatio) + mapLow);
   }
 }  // end constructor
@@ -171,7 +172,7 @@ Palette::~Palette() {
 // -------------------------------------------------------------------
 void Palette::ExposePalette() {
     XCopyArea(gaPtr->PDisplay(), palPixmap, palWindow, gaPtr->PGC(),
-	    0, 0, totalPalWidth, totalPalHeight+50, 0, 0);
+	    0, 0, totalPalWidth, totalPalHeight + 50, 0, 0);
 }
 
 
@@ -211,7 +212,8 @@ void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
   XGetWindowAttributes(gaPtr->PDisplay(), palWindow, &winAttribs);
   XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), BlackIndex());
 // ERROR here for 24 bit color pc
-  XFillRectangle(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), 0, 0, totalPalWidth, totalPalHeight + 50);
+  XFillRectangle(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), 0, 0,
+                 totalPalWidth, totalPalHeight + 50);
 
   if(transSet) {    // show transfers in palette
     int transpnt, zerolinex = palWidth - 5;
@@ -226,13 +228,15 @@ void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
       // draw color part of line
       // FIXME:
       XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), ccells[i].pixel);
-      XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), transpnt, cy, palWidth, cy);
+      XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), transpnt,
+                cy, palWidth, cy);
     }
     
     // draw black line represening zero opacity
       // FIXME:
     XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), ccells[blackIndex].pixel);
-    XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), zerolinex, 14, zerolinex, colorSlots + 14);
+    XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), zerolinex, 14,
+              zerolinex, colorSlots + 14);
 
   } else {
     for(i = paletteStart; i < totalColorSlots; ++i) {
@@ -275,7 +279,9 @@ void Palette::SetWindowPalette(const string &palName, Window newPalWindow,
 
 
 // -------------------------------------------------------------------
-void Palette::ChangeWindowPalette(const string &palName, Window newPalWindow) {
+void Palette::ChangeWindowPalette(const string &palName,
+                                  Window newPalWindow)
+{
   ReadPalette(palName);
 }
 
@@ -301,8 +307,6 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
   abuff.resize(iSeqPalSize);
   Array<int> indexArray(iSeqPalSize);
   int i, fd;
-
-  //BL_ASSERT(gaPtr != 0);
 
   bool bTrueColor;
   unsigned long bprgb;
@@ -348,7 +352,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
     transferArray.resize(iSeqPalSize);
     for(int j(0); j < iSeqPalSize; ++j) {
       indexArray[j] = j; 
-      transferArray[j] = (float) j / (float)(iSeqPalSize-1);
+      transferArray[j] = (float) j / (float)(iSeqPalSize - 1);
       rbuff[j] = j;
       gbuff[j] = j;
       bbuff[j] = j;
@@ -446,8 +450,8 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
 
 // -------------------------------------------------------------------
 XImage *Palette::GetPictureXImage() {
-  return (XGetImage(gaPtr->PDisplay(), palPixmap, 0, 0,
-                totalPalWidth, totalPalHeight, AllPlanes, ZPixmap));
+  return (XGetImage(gaPtr->PDisplay(), palPixmap, 0, 0, totalPalWidth,
+                    totalPalHeight, AllPlanes, ZPixmap));
 }
 
 
@@ -475,7 +479,7 @@ Pixel Palette::WhiteIndex() const {
 Pixel Palette::pixelate(int i) const {
   if(i < 0) {
     return BlackIndex();
-  } else if ( i > 255 ) {
+  } else if( i > 255 ) {
     return WhiteIndex();
   } else {
     return ccells[i].pixel;
@@ -490,9 +494,9 @@ Pixel Palette::makePixel(unsigned char ind) const {
     Pixel r = rbuff[ind] >> (8 - gaPtr->PBitsPerRGB());
     Pixel g = gbuff[ind] >> (8 - gaPtr->PBitsPerRGB());
     Pixel b = bbuff[ind] >> (8 - gaPtr->PBitsPerRGB());
-    return((  r << gaPtr->PRedShift()   )
-	      | (g << gaPtr->PGreenShift() )
-	      | (b << gaPtr->PBlueShift()  ));
+    return(( r << gaPtr->PRedShift())
+	     | (g << gaPtr->PGreenShift())
+	     | (b << gaPtr->PBlueShift()));
   } else {
     return Pixel(ind);
   }
@@ -500,8 +504,8 @@ Pixel Palette::makePixel(unsigned char ind) const {
 
 
 // -------------------------------------------------------------------
-void Palette::unpixelate(Pixel index, unsigned char& r,
-			 unsigned char& g, unsigned char& b) const
+void Palette::unpixelate(Pixel index, unsigned char &r,
+			 unsigned char &g, unsigned char &b) const
 {
   if(gaPtr->IsTrueColor()) {
     map<Pixel, XColor>::const_iterator mi = mcells.find(index);

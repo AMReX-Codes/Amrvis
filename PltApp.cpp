@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.101 2002-02-19 20:39:41 vince Exp $
+// $Id: PltApp.cpp,v 1.102 2002-02-26 01:00:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -58,6 +58,12 @@ using std::max;
 
 const int MAXSCALE = 32;
 #define MARK fprintf(stderr, "Mark at file %s, line %d.\n", __FILE__, __LINE__)
+
+static bool UsingFileRange(const MinMaxRangeType rt) {
+  return(rt == FILEGLOBALMINMAX    ||
+         rt == FILESUBREGIONMINMAX ||
+         rt == FILEUSERMINMAX);
+}
 
 // -------------------------------------------------------------------
 PltApp::~PltApp() {
@@ -2477,10 +2483,14 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wSetRangeTopLevel));
   setRangeShowing = true;
 
-  int isrw, iwidw;
+  int isrw, iwidw, itotalwidth, maxwidth(600);
   XtVaGetValues(wSetRangeRadioBox, XmNwidth, &isrw, NULL);
   XtVaGetValues(wid, XmNwidth, &iwidw, NULL);
-  XtVaSetValues(wSetRangeTopLevel, XmNwidth, isrw + (2 * iwidw) + 10, NULL);
+  cout << "============ _here 00:" << endl;
+  cout << "iw.. = " << isrw + (2 * iwidw) + 10 << endl;
+  cout << "isrw = " << isrw << "  iwidw = " << iwidw << endl;
+  itotalwidth = min(isrw + (2 * iwidw) + 10, maxwidth);
+  XtVaSetValues(wSetRangeTopLevel, XmNwidth, itotalwidth, NULL);
 }
 
 
@@ -2491,9 +2501,9 @@ void PltApp::SetNewFormatString(const string &newformatstring) {
   pltPaletteptr->Redraw();
   if(datasetShowing) {
     int hdir, vdir, sdir;
-    if(activeView==ZPLANE) { hdir = XDIR; vdir = YDIR; sdir = ZDIR; }
-    if(activeView==YPLANE) { hdir = XDIR; vdir = ZDIR; sdir = YDIR; }
-    if(activeView==XPLANE) { hdir = YDIR; vdir = ZDIR; sdir = XDIR; }
+    if(activeView == ZPLANE) { hdir = XDIR; vdir = YDIR; sdir = ZDIR; }
+    if(activeView == YPLANE) { hdir = XDIR; vdir = ZDIR; sdir = YDIR; }
+    if(activeView == XPLANE) { hdir = YDIR; vdir = ZDIR; sdir = XDIR; }
     datasetPtr->DatasetRender(trueRegion, amrPicturePtrArray[activeView],
 		              this, pltAppState, hdir, vdir, sdir);
     datasetPtr->DoExpose(false);

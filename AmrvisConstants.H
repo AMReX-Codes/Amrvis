@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrvisConstants.H,v 1.18 2001-11-16 01:48:08 vince Exp $
+// $Id: AmrvisConstants.H,v 1.19 2002-02-26 01:00:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -71,12 +71,6 @@ enum MinMaxRangeType {
     INVALIDMINMAX
 };
 
-static bool UsingFileRange(const MinMaxRangeType rt) {
-  return(rt == FILEGLOBALMINMAX    ||
-         rt == FILESUBREGIONMINMAX ||
-	 rt == FILEUSERMINMAX);
-}
-
 enum ContourType {
   RASTERONLY     = 0,
   RASTERCONTOURS = 1,
@@ -88,10 +82,6 @@ enum ContourType {
 };
 
 enum FileType { INVALIDTYPE = 0, FAB, MULTIFAB, NEWPLT, NUMDBPTYPES };
-
-static char *FileTypeString[] = {
-  "invalidtype", "fab", "multifab", "newplt"
-};
 
 
 #ifdef BL_USE_FLOAT

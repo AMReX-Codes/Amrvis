@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.41 2002-02-07 23:59:02 vince Exp $
+// $Id: VolRender.cpp,v 1.42 2002-02-26 01:00:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -205,7 +205,8 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
   clock_t time0 = clock();
   
   int maxDrawnLevel(maxDataLevel);
-  Box gbox, grefbox;
+  //Box gbox;
+  Box grefbox;
 
   Box swfDataBox(drawnDomain[maxDrawnLevel]);
 
@@ -245,11 +246,11 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
     //int splanes = swfDataBox.length(ZDIR);
     int scolssrowstmp = scols*srows;
     int sstartr = swfDataBox.smallEnd(XDIR);
-    int sstartc = swfDataBox.smallEnd(YDIR);
+    //int sstartc = swfDataBox.smallEnd(YDIR);
     int sstartp = swfDataBox.smallEnd(ZDIR);
-    int sendr   = swfDataBox.bigEnd(XDIR);
+    //int sendr   = swfDataBox.bigEnd(XDIR);
     int sendc   = swfDataBox.bigEnd(YDIR);
-    int sendp   = swfDataBox.bigEnd(ZDIR);
+    //int sendp   = swfDataBox.bigEnd(ZDIR);
     
     Box gbox(swfDataBox);
     Box goverlap(gbox & drawnDomain[maxDrawnLevel]);
@@ -269,9 +270,8 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
     int gcols   = gbox.length(YDIR);
     //int gplanes = gbox.length(ZDIR);
     
-    int gcolsgrowstmp = gcols*grows;
+    int gcolsgrowstmp(gcols * grows);
     int gpgcgrtmp, gcgrowstmp;
-    //    unsigned int outputvalue = 0;
     for(int gp(gostartp); gp <= goendp; ++gp) {
       gpgcgrtmp = gp*gcolsgrowstmp;
       for(int gc(gostartc); gc <= goendc; ++gc) {
@@ -298,15 +298,14 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
     if(bDrawVolumeBoxes) {
       int edger, edgec, edgep;
       int volumeBoxColor(GetBoxColor());
-      int gr, gc, gp, sr, sc, sp;
-      int sindex;
+      int gr, gc, gp, sr, sc, sp, sindex;
       AmrData &amrData = dataServicesPtr->AmrDataRef();
 
      if(bDrawAllBoxes) {
-      for(int lev = minDrawnLevel; lev <= maxDrawnLevel; ++lev) {
+      for(int lev(minDrawnLevel); lev <= maxDrawnLevel; ++lev) {
         int crr(CRRBetweenLevels(lev, maxDrawnLevel, amrData.RefRatio()));
 	const BoxArray &gridBoxes = amrData.boxArray(lev);
-	for(int iGrid = 0; iGrid < gridBoxes.size(); ++iGrid) {
+	for(int iGrid(0); iGrid < gridBoxes.size(); ++iGrid) {
           gbox = gridBoxes[iGrid];
 	  // grow high end by one to eliminate overlap
 	  //gbox.growHi(XDIR, 1);
@@ -346,7 +345,7 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
 	      } else {
                 edgec = 0;
 	      }
-              for(gr=gostartr; gr <= goendr; ++gr) {
+              for(gr = gostartr; gr <= goendr; ++gr) {
 		if(gr == gostartr || gr == goendr) {
                   edger = 1;
 		} else {
@@ -437,8 +436,8 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
 int lev = minDrawnLevel;
         int crr(CRRBetweenLevels(lev, maxDrawnLevel, amrData.RefRatio()));
 cout << "+++++ _here 0:  crr = " << crr << endl;
-        const BoxArray &gridBoxes = amrData.boxArray(lev);
-//        for(int iGrid = 0; iGrid < gridBoxes.size(); ++iGrid) {
+//        const BoxArray &gridBoxes = amrData.boxArray(lev);
+//        for(int iGrid(0); iGrid < gridBoxes.size(); ++iGrid) {
           gbox = drawnDomain[lev];
           Box goverlap(gbox & drawnDomain[lev]);
           grefbox = goverlap;
@@ -473,7 +472,7 @@ cout << "+++++ _here 0:  crr = " << crr << endl;
               } else {
                 edgec = 0;
               }
-              for(gr=gostartr; gr <= goendr; ++gr) {
+              for(gr = gostartr; gr <= goendr; ++gr) {
                 if(gr == gostartr || gr == goendr) {
                   edger = 1;
                 } else {
@@ -556,10 +555,7 @@ cout << "+++++ _here 0:  crr = " << crr << endl;
 //        }  // end for(iGrid...)
 //      }  // end for(lev...)
 
-
 //==============================================
-
-
 
 
      }
@@ -595,7 +591,7 @@ void VolRender::WriteSWFData(const string &filenamebase, bool SWFLight) {
         lightingModel = bLMtemp;
    
 
-  cout << "----- make vp data time = " << ((clock()-time0)/1000000.0) << endl;
+  cout << "----- make vp data time = " << ((clock() - time0)/1000000.0) << endl;
   string filename = "swf.";
   filename += filenamebase;
   filename += (SWFLight ? ".lt" : ".val" );
@@ -660,8 +656,8 @@ void VolRender::SetImage(unsigned char *image_data, int width, int height,
 
 
 // -------------------------------------------------------------------
-void VolRender::MakePicture(Real mvmat[4][4], Real Length,
-                            int width, int height)
+void VolRender::MakePicture(Real mvmat[4][4], Real Length, int width,
+                            int height)
 {
     vpCurrentMatrix(vpc, VP_MODEL);
     vpIdentityMatrix(vpc);
@@ -738,7 +734,7 @@ void VolRender::MakeVPData() {
         vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
                                xStride, yStride, zStride);
         CheckVP(vpret, 9.4);
-        for(int vindex = 0; vindex < swfDataSize; ++vindex) {
+        for(int vindex(0); vindex < swfDataSize; ++vindex) {
           volData[vindex].normal  = swfData[vindex];
           volData[vindex].density = swfData[vindex];
         }
@@ -772,7 +768,7 @@ void VolRender::MakeVPData() {
         vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
                                xStride, yStride, zStride);
         CheckVP(vpret, 9.4);
-        for(int vindex = 0; vindex < swfDataSize; ++vindex) {
+        for(int vindex(0); vindex < swfDataSize; ++vindex) {
           volData[vindex].normal  = swfData[vindex];
           volData[vindex].density = swfData[vindex];
         }
@@ -819,14 +815,14 @@ void VolRender::MakeVPData() {
 
     } else {  // value model
       BL_ASSERT(palettePtr != NULL);
-      for(int sn = 0; sn < paletteSize; ++sn) {
+      for(int sn(0); sn < paletteSize; ++sn) {
         value_shade_table[sn] = (float) sn;
       }
       value_shade_table[0] = (float) MaxPaletteIndex();
      
       float maxf(0.0);
       float minf(1000000.0);
-      for(int ijk = 0; ijk < paletteSize; ++ijk) {
+      for(int ijk(0); ijk < paletteSize; ++ijk) {
         maxf = max(maxf, value_shade_table[ijk]);
         minf = min(minf, value_shade_table[ijk]);
       }

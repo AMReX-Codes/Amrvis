@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.45 2002-02-19 20:39:41 vince Exp $
+// $Id: PltApp3D.cpp,v 1.46 2002-02-26 01:00:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -27,6 +27,8 @@ const unsigned long openingLW(100);
 const unsigned long savingLW(101);
 
 #define MARK fprintf(stderr, "Mark: file %s, line %d.\n", __FILE__, __LINE__)
+
+
 // -------------------------------------------------------------------
 void PltApp::DoExposeTransDA(Widget, XtPointer, XtPointer) {
   int minDrawnLevel(pltAppState->MinDrawnLevel());

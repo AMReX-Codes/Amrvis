@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.73 2002-02-07 23:59:02 vince Exp $
+// $Id: AmrPicture.cpp,v 1.74 2002-02-26 01:00:01 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -32,6 +32,12 @@ bool DrawRaster(ContourType cType) {
 
 bool DrawContours(ContourType cType) {
   return (cType == RASTERCONTOURS || cType == COLORCONTOURS || cType == BWCONTOURS);
+}
+
+static bool UsingFileRange(const MinMaxRangeType rt) {
+  return(rt == FILEGLOBALMINMAX    ||
+         rt == FILESUBREGIONMINMAX ||
+         rt == FILEUSERMINMAX);
 }
 
 

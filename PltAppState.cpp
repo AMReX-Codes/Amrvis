@@ -115,8 +115,7 @@ PltAppState &PltAppState::operator=(const PltAppState &rhs) {
 
 // -------------------------------------------------------------------
 void PltAppState::SetMinMax(const MinMaxRangeType mmrangetype,
-			    const int framenumber,
-			    const int derivednumber,
+			    const int framenumber, const int derivednumber,
 		            const Real rmin, const Real rmax)
 {
   minMax[framenumber][derivednumber][mmrangetype].SetMinMax(rmin, rmax);
@@ -125,8 +124,7 @@ void PltAppState::SetMinMax(const MinMaxRangeType mmrangetype,
 
 // -------------------------------------------------------------------
 void PltAppState::GetMinMax(const MinMaxRangeType mmrangetype,
-			    const int framenumber,
-			    const int derivednumber,
+			    const int framenumber, const int derivednumber,
 		            Real &rmin, Real &rmax)
 {
   minMax[framenumber][derivednumber][mmrangetype].GetMinMax(rmin, rmax);
@@ -142,8 +140,7 @@ void PltAppState::GetMinMax(Real &rmin, Real &rmax) {
 
 // -------------------------------------------------------------------
 bool PltAppState::IsSet(const MinMaxRangeType mmrangetype,
-			const int framenumber,
-	                const int derivednumber)
+			const int framenumber, const int derivednumber)
 {
   return (minMax[framenumber][derivednumber][mmrangetype].IsSet());
 }

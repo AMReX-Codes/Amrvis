@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.43 2001-10-17 17:53:33 lijewski Exp $
+// $Id: GlobalUtilities.cpp,v 1.44 2002-02-26 01:00:02 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -56,6 +56,9 @@ int  maxLevel;
 int  maxPaletteIndex;
 int  fabIOSize;
 
+char *FileTypeString[] = {
+  "invalidtype", "fab", "multifab", "newplt"
+};
 
 // -------------------------------------------------------------------
 const string &GetInitialDerived() {
