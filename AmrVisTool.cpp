@@ -1,7 +1,6 @@
 //--------------------------------------------------------------
 // AmrVisTool.cpp
 //--------------------------------------------------------------
-#include <stream.h>
 #include <strstream.h>
 #include <iostream.h>
 #include <stdlib.h>
