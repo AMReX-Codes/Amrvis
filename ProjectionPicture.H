@@ -23,9 +23,10 @@ class PltApp;
 // represents data points in physical space that connect lines to other points
 class RealPoint {
 public:
-    RealPoint() { x = y = z = 0.; }
-    Real x, y, z;
-    RealPoint(Real r1, Real r2, Real r3) { x = r1; y = r2; z = r3; }
+    RealPoint() { component[0] = component[1] = component[2] = 0.; }
+    Real component[3];
+    RealPoint(Real r1, Real r2, Real r3) { component[0] = r1; 
+    component[1] = r2; component[2] = r3; }
 };
 
 // represents box points in screen space with color values
@@ -41,6 +42,7 @@ class RealBox {
 public:
     RealBox();
     ~RealBox() {}
+    RealBox(const Box& theBox);
     RealBox(RealPoint p1, RealPoint p2, RealPoint p3, RealPoint p4, 
             RealPoint p5, RealPoint p6, RealPoint p7, RealPoint p8);
     RealPoint vertices[8];
@@ -56,6 +58,26 @@ public:
     TransPoint vertices[8];
 };
 
+class RealSlice {
+public:
+    RealSlice();
+    ~RealSlice() {}
+    RealSlice(int count, int slice, const Box &worldBox);
+    RealSlice(RealPoint p1, RealPoint p2, RealPoint p3, RealPoint p4);
+    void ChangeSlice(int NewSlice);
+    RealPoint edges[4];
+    int dirOfFreedom; // [0, 2]
+};
+
+class TransSlice {
+public:
+    TransSlice();
+    ~TransSlice() {}
+    TransSlice(TransPoint p1, TransPoint p2, TransPoint p3, TransPoint p4);
+    void Draw(Display *display, Window window, GC gc);
+    TransPoint edges[4];
+};
+
 //-----------------------------------------------------------------
 
 class ProjectionPicture {
@@ -69,6 +91,7 @@ public:
 #endif
     void    ReadTransferFile(const aString &rampFileName);
     void	MakeBoxes();
+    void MakeSlices();
     void	MakePicture();
     void	DrawBoxesIntoDrawable(const Drawable &drawable,
 				      int iFromLevel, int iToLevel);
@@ -83,7 +106,8 @@ public:
     XImage *GetPictureXImage() const { return image; }
     int ImageSizeH() const { return daWidth; }
     int ImageSizeV() const { return daHeight; }
-    
+    void ChangeSlice(int Dir, int newSlice);
+
 private:
     enum { NVERTICIES = 8 };
     
@@ -92,16 +116,20 @@ private:
     ViewTransform  *viewTransformPtr;
     Array<Array<RealBox> > boxReal;
     Array<Array<TransBox> > boxTrans;
+
     RealBox realBoundingBox;
     TransBox transBoundingBox;
+
     RealBox realSubCutBox;
     TransBox transSubCutBox;
-    
+
+    RealSlice realSlice[3];
+    TransSlice transSlice[3];
+
     Array<int>	boxPoints;
     Array<int>	boxColors;
-    int subCutColor, daWidth, daHeight;
+    int subCutColor, sliceColor, daWidth, daHeight;
     bool showSubCut, pixCreated;
-    int iSubCutBoxIndex, iBoundingBoxIndex;
     int	minDrawnLevel, maxDrawnLevel, maxDataLevel;
     Real xcenter, ycenter, zcenter;
     Pixmap pixMap;
@@ -121,12 +149,19 @@ private:
 #ifdef BL_VOLUMERENDER
     VolRender       *volRender;
 #endif
-
+    void MakeAuxiliaries();
+    void MakeBoundingBox();
+    void MakeSubCutBox();
+    void DrawAuxiliaries(const Drawable &drawable);
+    void DrawSlices(const Drawable &drawable);
+    void LoadSlices(const Box &surroundingBox);
     // converts a Box to eight BoxRealPoints at the specified level
     void		AddBox(const Box &theBox, int index, int level);
-    void            MakeSubCutBox();
     void            TransformBoxPoints(int iLevel, int iBoxIndex);
 
 };
 
 #endif
+
+
+

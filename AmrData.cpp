@@ -791,7 +791,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
     }
 
 
-    MultiFabCopyDescriptor multiFabCopyDesc(true);
+    MultiFabCopyDescriptor multiFabCopyDesc = MultiFabCopyDescriptor();
     Array<MultiFabId> stateDataMFId(finestFillLevel + 1);
     for(currentLevel = 0; currentLevel <= finestFillLevel; ++currentLevel) {
       stateDataMFId[currentLevel] =

@@ -2507,7 +2507,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 	      YZxy = XZxy;
 	      amrPicturePtrArray[V]->SetHLine(XZxy);
 	      amrPicturePtrArray[XPLANE]->SetHLine(YZxy);
-	      amrPicturePtrArray[ZPLANE]->
+              amrPicturePtrArray[ZPLANE]->
 		  ChangeSlice((imageHeight - XZxy)/scale + ivLowOffsetMAL[ZDIR]);
 	    }
 	    if(V==XPLANE) {
@@ -2522,6 +2522,14 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
               amrPicturePtrArray[np]->DoExposePicture();
             }
 
+#           if (BL_SPACEDIM == 3)
+            for(int nP = 0; nP < 3; nP++)
+                projPicturePtr->
+                    ChangeSlice(nP, amrPicturePtrArray[nP]->GetSlice());
+            projPicturePtr->MakeSlices();
+            XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
+            DoExposeTransDA();
+#           endif
 	    DoExposeRef();
 
 	    return;
@@ -2645,6 +2653,14 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
               amrPicturePtrArray[np]->DoExposePicture();
             }
 
+#           if (BL_SPACEDIM == 3)
+            for(int nP = 0; nP < 3; nP++)
+                projPicturePtr->
+                    ChangeSlice(nP, amrPicturePtrArray[nP]->GetSlice());
+            projPicturePtr->MakeSlices();
+            XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
+            DoExposeTransDA();
+#           endif
 	    DoExposeRef();
 
 	    return;
@@ -2737,52 +2753,58 @@ void PltApp::DoBackStep(int plane) {
     }
   }
   if(plane == YPLANE) {
-    if(amrPicturePtrArray[plane]->GetSlice() > amrPicturePtrArray[plane]->
-    				GetSubDomain()[amrPicturePtrArray[plane]->
-   				MaxAllowableLevel()].smallEnd(YDIR))
-    {
-      amrPicturePtrArray[XPLANE]->SetVLine(amrPicturePtrArray[XPLANE]->
-				GetVLine()-1* currentScale);
-      amrPicturePtrArray[XPLANE]->DoExposePicture();
-      amrPicturePtrArray[ZPLANE]->SetHLine(amrPicturePtrArray[ZPLANE]->
-				GetHLine()+1* currentScale);
-      amrPicturePtrArray[ZPLANE]->DoExposePicture();
-      amrPicturePtrArray[plane]->ChangeSlice(amrPicturePtrArray[plane]->
-				GetSlice()-1);
-    } else {
-      amrPicturePtrArray[XPLANE]->SetVLine(amrPicturePtrArray[XPLANE]->
-				ImageSizeH()-1);
-      amrPicturePtrArray[XPLANE]->DoExposePicture();
-      amrPicturePtrArray[ZPLANE]->SetHLine(0);
-      amrPicturePtrArray[ZPLANE]->DoExposePicture();
-      amrPicturePtrArray[plane]->ChangeSlice(amrPicturePtrArray[plane]->
-				GetSubDomain()[amrPicturePtrArray[plane]->
-				MaxAllowableLevel()].bigEnd(YDIR));
-    }
+      if(amrPicturePtrArray[plane]->GetSlice() > amrPicturePtrArray[plane]->
+         GetSubDomain()[amrPicturePtrArray[plane]->
+                       MaxAllowableLevel()].smallEnd(YDIR))
+      {
+          amrPicturePtrArray[XPLANE]->SetVLine(amrPicturePtrArray[XPLANE]->
+                                               GetVLine()-1* currentScale);
+          amrPicturePtrArray[XPLANE]->DoExposePicture();
+          amrPicturePtrArray[ZPLANE]->SetHLine(amrPicturePtrArray[ZPLANE]->
+                                               GetHLine()+1* currentScale);
+          amrPicturePtrArray[ZPLANE]->DoExposePicture();
+          amrPicturePtrArray[plane]->ChangeSlice(amrPicturePtrArray[plane]->
+                                                 GetSlice()-1);
+      } else {
+          amrPicturePtrArray[XPLANE]->SetVLine(amrPicturePtrArray[XPLANE]->
+                                               ImageSizeH()-1);
+          amrPicturePtrArray[XPLANE]->DoExposePicture();
+          amrPicturePtrArray[ZPLANE]->SetHLine(0);
+          amrPicturePtrArray[ZPLANE]->DoExposePicture();
+          amrPicturePtrArray[plane]->ChangeSlice(amrPicturePtrArray[plane]->
+                                                 GetSubDomain()[amrPicturePtrArray[plane]->
+                                                               MaxAllowableLevel()].bigEnd(YDIR));
+      }
   }
   if(plane == ZPLANE) {
-    if(amrPicturePtrArray[plane]->GetSlice() > amrPicturePtrArray[plane]->
-    				GetSubDomain()[amrPicturePtrArray[plane]->
-   				MaxAllowableLevel()].smallEnd(ZDIR))
-    {
-      amrPicturePtrArray[XPLANE]->SetHLine(amrPicturePtrArray[XPLANE]->
-				GetHLine()+1* currentScale);
-      amrPicturePtrArray[XPLANE]->DoExposePicture();
-      amrPicturePtrArray[YPLANE]->SetHLine(amrPicturePtrArray[YPLANE]->
-				GetHLine()+1* currentScale);
-      amrPicturePtrArray[YPLANE]->DoExposePicture();
-      amrPicturePtrArray[plane]->ChangeSlice(amrPicturePtrArray[plane]->
-				GetSlice()-1);
-    } else {
-      amrPicturePtrArray[XPLANE]->SetHLine(0);
-      amrPicturePtrArray[XPLANE]->DoExposePicture();
-      amrPicturePtrArray[YPLANE]->SetHLine(0);
-      amrPicturePtrArray[YPLANE]->DoExposePicture();
-      amrPicturePtrArray[plane]->ChangeSlice(amrPicturePtrArray[plane]->
-				GetSubDomain()[amrPicturePtrArray[plane]->
-				MaxAllowableLevel()].bigEnd(ZDIR));
-    }
+      if(amrPicturePtrArray[plane]->GetSlice() > amrPicturePtrArray[plane]->
+         GetSubDomain()[amrPicturePtrArray[plane]->
+                       MaxAllowableLevel()].smallEnd(ZDIR))
+      {
+          amrPicturePtrArray[XPLANE]->SetHLine(amrPicturePtrArray[XPLANE]->
+                                               GetHLine()+1* currentScale);
+          amrPicturePtrArray[XPLANE]->DoExposePicture();
+          amrPicturePtrArray[YPLANE]->SetHLine(amrPicturePtrArray[YPLANE]->
+                                               GetHLine()+1* currentScale);
+          amrPicturePtrArray[YPLANE]->DoExposePicture();
+          amrPicturePtrArray[plane]->ChangeSlice(amrPicturePtrArray[plane]->
+                                                 GetSlice()-1);
+      } else {
+          amrPicturePtrArray[XPLANE]->SetHLine(0);
+          amrPicturePtrArray[XPLANE]->DoExposePicture();
+          amrPicturePtrArray[YPLANE]->SetHLine(0);
+          amrPicturePtrArray[YPLANE]->DoExposePicture();
+          amrPicturePtrArray[plane]->ChangeSlice(amrPicturePtrArray[plane]->
+                                                 GetSubDomain()[amrPicturePtrArray[plane]->
+                                                               MaxAllowableLevel()].bigEnd(ZDIR));
+      }
   }
+#if (BL_SPACEDIM == 3)
+  projPicturePtr->ChangeSlice(plane, amrPicturePtrArray[plane]->GetSlice());
+  projPicturePtr->MakeSlices();
+  XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
+  DoExposeTransDA();
+#endif
   DoExposeRef();
 }
 
@@ -2861,6 +2883,13 @@ void PltApp::DoForwardStep(int plane) {
 				MaxAllowableLevel()].smallEnd(ZDIR));
     }
   }
+# if (BL_SPACEDIM == 3)
+  //what about voume rendering?
+  projPicturePtr->ChangeSlice(plane, amrPicturePtrArray[plane]->GetSlice());
+  projPicturePtr->MakeSlices();
+  XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
+  DoExposeTransDA();
+# endif
   DoExposeRef();
 }
 

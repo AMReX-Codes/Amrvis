@@ -604,7 +604,6 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
   Box regionBox(datasetRegion[maxDrawnLevel]);
 
   if(cbs->event->xany.type == ButtonPress) {
-      //XGrabServer(GAptr->PDisplay());
       serverControlOK++;
   }
  
@@ -647,12 +646,13 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
   
   if(cbs->event->xany.type == ButtonRelease) {
       amrPicturePtr->UnDrawDatasetPoint();
-      //XUngrabServer(GAptr->PDisplay());
-    serverControlOK--;
-    datasetPoint = false;
-    if (serverControlOK != 0)
-        cerr<<"incorrect server control balance -- serverControlOK: "
-            <<serverControlOK<<endl;
+      serverControlOK--;
+      datasetPoint = false;
+      if (serverControlOK != 0)
+          cerr<<"incorrect server control balance -- serverControlOK: "
+              <<serverControlOK<<endl;
+      amrPicturePtr->DoExposePicture();// redraw this once to 
+      // protect from incorrect bit manipulation (didn't grab the server)
   }
 }
 

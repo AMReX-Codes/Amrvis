@@ -46,15 +46,11 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
   boxTrans.resize(maxDataLevel + 1);
   for(lev = minDrawnLevel; lev <= maxDataLevel; ++lev) {
     int nBoxes(amrData.NIntersectingGrids(lev, theDomain[lev]));
-    if(lev == minDrawnLevel) {
-      iSubCutBoxIndex = nBoxes;
-      iBoundingBoxIndex = iSubCutBoxIndex + 1;
-      nBoxes += 2;  // for the bounding box and subcut box
-    }
     boxReal[lev].resize(nBoxes);
     boxTrans[lev].resize(nBoxes);
   }
   subCutColor = 160;
+  sliceColor = 100;
   boxColors.resize(maxDataLevel + 1);
   for(lev = minDrawnLevel; lev <= maxDataLevel; ++lev) {
     int iBoxIndex(0);
@@ -77,10 +73,9 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
   Box alignedBox(theDomain[minDrawnLevel]);
   alignedBox.refine(CRRBetweenLevels(minDrawnLevel, maxDataLevel,
 		     amrData.RefRatio()));
-  AddBox(alignedBox, iBoundingBoxIndex, minDrawnLevel);  // the bounding box
+  realBoundingBox = RealBox(alignedBox);
 
-
-  AddBox(alignedBox, iSubCutBoxIndex, minDrawnLevel);	// the sub cut box
+  LoadSlices(alignedBox);
 
   xcenter = (theDomain[maxDataLevel].bigEnd(XDIR) -
 		theDomain[maxDataLevel].smallEnd(XDIR)) / 2 +
@@ -112,19 +107,7 @@ ProjectionPicture::~ProjectionPicture() {
 
 // -------------------------------------------------------------------
 void ProjectionPicture::AddBox(const Box &theBox, int index, int level) {
-    RealBox newBox;
-    Real dimensions[6] = { theBox.smallEnd(XDIR), theBox.smallEnd(YDIR),
-                           theBox.smallEnd(ZDIR), theBox.bigEnd(XDIR)+1,
-                           theBox.bigEnd(YDIR)+1, theBox.bigEnd(ZDIR)+1 };
-    newBox.vertices[0] = RealPoint(dimensions[0], dimensions[1], dimensions[2]);
-    newBox.vertices[1] = RealPoint(dimensions[3], dimensions[1], dimensions[2]);
-    newBox.vertices[2] = RealPoint(dimensions[3], dimensions[4], dimensions[2]);
-    newBox.vertices[3] = RealPoint(dimensions[0], dimensions[4], dimensions[2]);
-    newBox.vertices[4] = RealPoint(dimensions[0], dimensions[1], dimensions[5]);
-    newBox.vertices[5] = RealPoint(dimensions[3], dimensions[1], dimensions[5]);
-    newBox.vertices[6] = RealPoint(dimensions[3], dimensions[4], dimensions[5]);
-    newBox.vertices[7] = RealPoint(dimensions[0], dimensions[4], dimensions[5]);
-
+    RealBox newBox(theBox);
     boxReal[level][index] = newBox;
 }
 
@@ -135,9 +118,9 @@ void ProjectionPicture::TransformBoxPoints(int iLevel, int iBoxIndex) {
 
   for(int i = 0; i < NVERTICIES; ++i) {
     viewTransformPtr->
-	   TransformPoint(boxReal[iLevel][iBoxIndex].vertices[i].x,
-			  boxReal[iLevel][iBoxIndex].vertices[i].y,
-			  boxReal[iLevel][iBoxIndex].vertices[i].z,
+	   TransformPoint(boxReal[iLevel][iBoxIndex].vertices[i].component[0],
+			  boxReal[iLevel][iBoxIndex].vertices[i].component[1],
+			  boxReal[iLevel][iBoxIndex].vertices[i].component[2],
 			  px, py, pz);
     boxTrans[iLevel][iBoxIndex].vertices[i]=TransPoint((int)(px+.5), daHeight-(int)(py+.5));
   }
@@ -147,58 +130,77 @@ void ProjectionPicture::TransformBoxPoints(int iLevel, int iBoxIndex) {
 
 
 // -------------------------------------------------------------------
-void ProjectionPicture::MakeSubCutBox() {
-  Real px, py, pz;
-
-  minDrawnLevel = pltAppPtr->MinDrawnLevel();
-  maxDrawnLevel = pltAppPtr->MaxDrawnLevel();
-
-  if(showSubCut) {
-    for(int i = 0; i < NVERTICIES; ++i) {
-      viewTransformPtr->
-	   TransformPoint(boxReal[minDrawnLevel][iSubCutBoxIndex].vertices[i].x,
-			  boxReal[minDrawnLevel][iSubCutBoxIndex].vertices[i].y,
-			  boxReal[minDrawnLevel][iSubCutBoxIndex].vertices[i].z,
-			  px, py, pz);
-      boxTrans[minDrawnLevel][iSubCutBoxIndex].vertices[i]=TransPoint((int)(px+.5), daHeight-(int)(py+.5));
-    }
-  }
-}
-
-
-// -------------------------------------------------------------------
 void ProjectionPicture::MakeBoxes() {
-  Real px, py, pz;
-
   minDrawnLevel = pltAppPtr->MinDrawnLevel();
   maxDrawnLevel = pltAppPtr->MaxDrawnLevel();
 
   if(amrPicturePtr->ShowingBoxes()) {
     for(int iLevel = minDrawnLevel; iLevel <= maxDrawnLevel; ++iLevel) {
       int nBoxes(boxTrans[iLevel].length());
-      if(iLevel == minDrawnLevel) {
-        nBoxes -= 2;  // for sub cut and bounding box
-      }
       for(int iBox = 0; iBox < nBoxes; ++iBox) {
         TransformBoxPoints(iLevel, iBox);
       }
     }
   }
 
-  MakeSubCutBox();
+  MakeAuxiliaries(); // make subcut, boundingbox, slices
 
-  // bounding box
-  for(int i = 0; i < NVERTICIES; ++i) {
-//      cout<<"int "<<i<<"\ttransformpoints:"<<endl;
-      viewTransformPtr->
-	 TransformPoint(boxReal[minDrawnLevel][iBoundingBoxIndex].vertices[i].x,
-			boxReal[minDrawnLevel][iBoundingBoxIndex].vertices[i].y,
-			boxReal[minDrawnLevel][iBoundingBoxIndex].vertices[i].z,
-			px, py, pz);
-    boxTrans[minDrawnLevel][iBoundingBoxIndex].vertices[i]=TransPoint((int)(px+.5), daHeight-(int)(py+.5));
-  }
 }
 
+
+void ProjectionPicture::MakeAuxiliaries() {
+    if (showSubCut)
+        MakeSubCutBox();
+    MakeBoundingBox();
+    MakeSlices();
+}
+
+void ProjectionPicture::MakeBoundingBox() {
+Real px, py, pz;
+    for(int i = 0; i < NVERTICIES; ++i) {
+        viewTransformPtr->
+            TransformPoint(realBoundingBox.vertices[i].component[0],
+                           realBoundingBox.vertices[i].component[1],
+                           realBoundingBox.vertices[i].component[2],
+                           px, py, pz);
+        transBoundingBox.vertices[i] = TransPoint((int)(px+.5), 
+                                                  daHeight-(int)(py+.5));
+    }
+} 
+
+
+void ProjectionPicture::MakeSubCutBox(){
+    Real px, py, pz;
+    minDrawnLevel = pltAppPtr->MinDrawnLevel();
+    maxDrawnLevel = pltAppPtr->MaxDrawnLevel();
+    
+    for(int i = 0; i < NVERTICIES; ++i) {
+        viewTransformPtr->
+            TransformPoint(realSubCutBox.vertices[i].component[0],
+                           realSubCutBox.vertices[i].component[1],
+                           realSubCutBox.vertices[i].component[2],
+                           px, py, pz);
+        transSubCutBox.vertices[i] = TransPoint((int)(px+.5), 
+                                                daHeight-(int)(py+.5));
+   
+    }
+}   
+
+
+void ProjectionPicture::MakeSlices() {
+    Real px, py, pz;
+    for(int j = 0; j< 3 ; j++) {
+        for(int i = 0; i < 4; ++i) {
+            viewTransformPtr->
+                TransformPoint(realSlice[j].edges[i].component[0],
+                               realSlice[j].edges[i].component[1],
+                               realSlice[j].edges[i].component[2],
+                               px, py, pz);
+            transSlice[j].edges[i] = TransPoint((int)(px+.5), 
+                                                daHeight-(int)(py+.5));
+        }
+    }
+}
 
 // -------------------------------------------------------------------
 void ProjectionPicture::MakePicture() {
@@ -292,9 +294,6 @@ void ProjectionPicture::DrawBoxesIntoDrawable(const Drawable &drawable,
         XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
                        boxColors[iLevel]);
         int nBoxes(boxTrans[iLevel].length());
-        if(iLevel == minDrawnLevel) {
-	  nBoxes -= 2;  // for subcut and bounding box
-        }
 	for(int iBox = 0; iBox < nBoxes; ++iBox) {
             boxTrans[iLevel][iBox].Draw(XtDisplay(drawingArea), drawable,
                                         XtScreen(drawingArea)->default_gc);
@@ -302,25 +301,49 @@ void ProjectionPicture::DrawBoxesIntoDrawable(const Drawable &drawable,
 	}
       }
     }
-
-    if(showSubCut) {
-      XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
-                     subCutColor);
-      //DrawBox(boxTransPoints[minDrawnLevel][iSubCutBoxIndex]);
-      //
-      boxTrans[minDrawnLevel][iSubCutBoxIndex].Draw(XtDisplay(drawingArea), drawable,
-                                                    XtScreen(drawingArea)->default_gc);
-
-    }
-    // draw bounding box
+    DrawAuxiliaries(drawable);
     XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
                    boxColors[minDrawnLevel]);
-    
-    boxTrans[minDrawnLevel][iBoundingBoxIndex].Draw(XtDisplay(drawingArea), drawable,
-                                                    XtScreen(drawingArea)->default_gc);
 }
 
+void ProjectionPicture::DrawAuxiliaries(const Drawable &drawable)
+{
+    if (showSubCut) {
+        XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
+                       subCutColor);
+        transSubCutBox.Draw(XtDisplay(drawingArea),drawable,
+                            XtScreen(drawingArea)->default_gc);
+    }    
+    //bounding box
+    XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
+                   boxColors[minDrawnLevel]);
+    transBoundingBox.Draw(XtDisplay(drawingArea), drawable,
+                          XtScreen(drawingArea)->default_gc);
+    DrawSlices(drawable);
+}
 
+void ProjectionPicture::DrawSlices(const Drawable &drawable)
+{
+    XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
+                   sliceColor);
+    for(int k = 0; k < 3; k++)
+        transSlice[k].Draw(XtDisplay(drawingArea), drawable,
+                              XtScreen(drawingArea)->default_gc);
+}    
+
+void ProjectionPicture::LoadSlices(const Box &surroundingBox) {
+    for(int j = 0; j<3 ; j++) {
+        int slice = pltAppPtr->GetAmrPicturePtr(j)->GetSlice();
+        realSlice[j] = RealSlice(j,slice,surroundingBox);
+    }
+}
+void ProjectionPicture::ChangeSlice(int Dir, int newSlice) {
+    for(int j = 0; j<3;j++) {
+        if (Dir == j)
+            realSlice[j].ChangeSlice(newSlice);
+    }
+}
+        
 // -------------------------------------------------------------------
 void ProjectionPicture::DrawBoxesIntoPixmap(int iFromLevel, int iToLevel) {
     XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc, 0);
@@ -349,18 +372,18 @@ void ProjectionPicture::LabelAxes() {
   maxDrawnLevel = pltAppPtr->MaxDrawnLevel();
   XDrawString(XtDisplay(drawingArea), XtWindow(drawingArea),
               XtScreen(drawingArea)->default_gc,
-              boxTrans[minDrawnLevel][iBoundingBoxIndex].vertices[xHere].x,
-              boxTrans[minDrawnLevel][iBoundingBoxIndex].vertices[xHere].y,
+              transBoundingBox.vertices[xHere].x,
+              transBoundingBox.vertices[xHere].y,
               "X", 1);
   XDrawString(XtDisplay(drawingArea), XtWindow(drawingArea),
               XtScreen(drawingArea)->default_gc,
-              boxTrans[minDrawnLevel][iBoundingBoxIndex].vertices[yHere].x,
-              boxTrans[minDrawnLevel][iBoundingBoxIndex].vertices[yHere].y,
+              transBoundingBox.vertices[yHere].x,
+              transBoundingBox.vertices[yHere].y,
               "Y", 1);
   XDrawString(XtDisplay(drawingArea), XtWindow(drawingArea),
               XtScreen(drawingArea)->default_gc,
-              boxTrans[minDrawnLevel][iBoundingBoxIndex].vertices[zHere].x,
-              boxTrans[minDrawnLevel][iBoundingBoxIndex].vertices[zHere].y,
+              transBoundingBox.vertices[zHere].x,
+              transBoundingBox.vertices[zHere].y,
               "Z", 1);
               
 }
@@ -374,8 +397,8 @@ void ProjectionPicture::ToggleShowSubCut() {
 
 // -------------------------------------------------------------------
 void ProjectionPicture::SetSubCut(const Box &newbox) {
-  AddBox(newbox, iSubCutBoxIndex, minDrawnLevel);
-  MakeSubCutBox();
+    realSubCutBox = RealBox(newbox);
+    MakeSubCutBox();
 }
 
 
@@ -462,6 +485,21 @@ RealBox::RealBox(RealPoint p1, RealPoint p2, RealPoint p3, RealPoint p4,
     vertices[4] = p5; vertices[5] = p6; vertices[6] = p7; vertices[7] = p8;
 }
 
+RealBox::RealBox(const Box& theBox) {
+    Real dimensions[6] = { theBox.smallEnd(XDIR), theBox.smallEnd(YDIR),
+                           theBox.smallEnd(ZDIR), theBox.bigEnd(XDIR)+1,
+                           theBox.bigEnd(YDIR)+1, theBox.bigEnd(ZDIR)+1 };
+    vertices[0] = RealPoint(dimensions[0], dimensions[1], dimensions[2]);
+    vertices[1] = RealPoint(dimensions[3], dimensions[1], dimensions[2]);
+    vertices[2] = RealPoint(dimensions[3], dimensions[4], dimensions[2]);
+    vertices[3] = RealPoint(dimensions[0], dimensions[4], dimensions[2]);
+    vertices[4] = RealPoint(dimensions[0], dimensions[1], dimensions[5]);
+    vertices[5] = RealPoint(dimensions[3], dimensions[1], dimensions[5]);
+    vertices[6] = RealPoint(dimensions[3], dimensions[4], dimensions[5]);
+    vertices[7] = RealPoint(dimensions[0], dimensions[4], dimensions[5]);
+}
+
+
 TransBox::TransBox() {
     TransPoint zero(0,0);
     for (int i = 0; i < 8 ; i++)
@@ -481,7 +519,7 @@ void TransBox::Draw(Display *display, Window window, GC gc)
         for(int i = 0; i<3;i++){
             XDrawLine(display, window, gc,
                       vertices[j*4+i].x, vertices[j*4+i].y,
-                      vertices[j*4+i+1].x,vertices[j*4+i+1].y);
+                      vertices[j*4+i+1].x, vertices[j*4+i+1].y);
         }
         XDrawLine(display, window, gc, vertices[j*4].x, vertices[j*4].y, 
                   vertices[j*4+3].x, vertices[j*4+3].y);
@@ -493,5 +531,70 @@ void TransBox::Draw(Display *display, Window window, GC gc)
     }
             
 }
+
+RealSlice::RealSlice() {
+    RealPoint zero(0,0,0);
+    for(int i=0; i<4; i++)
+        edges[i] = zero;
+}
+
+RealSlice::RealSlice(RealPoint p1, RealPoint p2,
+                     RealPoint p3, RealPoint p4) {
+        edges[0] = p1; edges[1] = p2; edges[2] = p3; edges[3] = p4;
+}
+
+RealSlice::RealSlice(int count, int slice, const Box &worldBox) {
+    Real dimensions[6] = { worldBox.smallEnd(XDIR), worldBox.smallEnd(YDIR),
+                           worldBox.smallEnd(ZDIR), worldBox.bigEnd(XDIR)+1,
+                           worldBox.bigEnd(YDIR)+1, worldBox.bigEnd(ZDIR)+1 };
+    dirOfFreedom = count;
+    if (dirOfFreedom == 0) {
+        edges[0] = RealPoint(dimensions[0], dimensions[1], slice);
+        edges[1] = RealPoint(dimensions[3], dimensions[1], slice);
+        edges[2] = RealPoint(dimensions[3], dimensions[4], slice);
+        edges[3] = RealPoint(dimensions[0], dimensions[4], slice);
+    }
+    if (dirOfFreedom == 1) {
+        edges[0] = RealPoint(dimensions[0], slice, dimensions[2]);
+        edges[1] = RealPoint(dimensions[3], slice, dimensions[2]);
+        edges[2] = RealPoint(dimensions[3], slice, dimensions[5]);
+        edges[3] = RealPoint(dimensions[0], slice, dimensions[5]);
+    }
+    if (dirOfFreedom == 2) {
+        edges[0] = RealPoint(slice, dimensions[1], dimensions[2]);
+        edges[1] = RealPoint(slice, dimensions[4], dimensions[2]);
+        edges[2] = RealPoint(slice, dimensions[4], dimensions[5]);
+        edges[3] = RealPoint(slice, dimensions[1], dimensions[5]);
+    }
+}
+
+void RealSlice::ChangeSlice(int NewSlice) {
+    for(int k = 0; k<4; k++)
+        edges[k].component[2-dirOfFreedom] = NewSlice;
+}
+
+TransSlice::TransSlice() {
+    TransPoint zero(0,0);
+    for(int i = 0; i< 4; i++)
+        edges[i] = zero;
+}
+
+TransSlice::TransSlice(TransPoint p1, TransPoint p2,
+                       TransPoint p3, TransPoint p4)
+{
+    edges[0] = p1; edges[1] = p2; edges[2] = p3; edges[3] = p4;
+}
+
+void TransSlice::Draw(Display *display, Window window, GC gc)
+{
+    for(int j = 0; j<3;j++) {
+        XDrawLine(display, window, gc,
+                  edges[j].x, edges[j].y,
+                  edges[j+1].x,edges[j+1].y);
+    }
+    XDrawLine(display, window, gc, edges[0].x, edges[0].y, 
+              edges[3].x, edges[3].y);
+}
+
 
 //--------------------------------------------------------------------
