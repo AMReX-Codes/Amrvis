@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.47 2002-11-14 22:59:30 car Exp $
+// $Id: Dataset.cpp,v 1.48 2003-02-12 23:01:48 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -20,6 +20,8 @@ const int MAXINDEXCHARS   = 4;
 #include <Xm/TextF.h>
 #include <Xm/Form.h>
 #include <Xm/Label.h>
+#include <Xm/AtomMgr.h>
+#include <Xm/Protocols.h>
 #undef index
 
 #include "Dataset.H"
@@ -72,6 +74,10 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
   pixSizeX = 1;
   pixSizeY = 1;
 
+  WM_DELETE_WINDOW = XmInternAtom(XtDisplay(pltAppPtr->WId()),
+                                  "WM_DELETE_WINDOW", false);
+
+
   // ************************************************ Dataset Window 
    char header[BUFSIZ];
    ostrstream outstr(header, sizeof(header));
@@ -83,12 +89,17 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
                                            XmNwidth,	800,
                                            XmNheight,	500,
                                            NULL);
+
+  XmAddWMProtocolCallback(wDatasetTopLevel, WM_DELETE_WINDOW,
+                          (XtCallbackProc) &Dataset::CBQuitButton,
+                          (XtPointer) this);
+
    
   gaPtr = new GraphicsAttributes(wDatasetTopLevel);
-  if(gaPtr->PVisual() != XDefaultVisual(gaPtr->PDisplay(),gaPtr->PScreenNumber()))
+  if(gaPtr->PVisual() != XDefaultVisual(gaPtr->PDisplay(), gaPtr->PScreenNumber()))
   {
-      XtVaSetValues(wDatasetTopLevel, XmNvisual, gaPtr->PVisual(),
-                    XmNdepth, gaPtr->PDepth(), NULL);
+    XtVaSetValues(wDatasetTopLevel, XmNvisual, gaPtr->PVisual(),
+                  XmNdepth, gaPtr->PDepth(), NULL);
   }
 
   wDatasetForm = XtVaCreateManagedWidget("datasetform",

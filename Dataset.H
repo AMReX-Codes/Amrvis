@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.H,v 1.29 2002-02-07 23:59:02 vince Exp $
+// $Id: Dataset.H,v 1.30 2003-02-12 23:01:48 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -83,6 +83,8 @@ class Dataset {
   Dimension	width, height;
   StringLoc    **hIndexArray, **vIndexArray;    
   bool datasetPoint;
+  Atom          WM_DELETE_WINDOW;
+
   
   Pixel blackIndex, whiteIndex;
   
