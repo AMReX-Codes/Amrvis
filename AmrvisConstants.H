@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrvisConstants.H,v 1.15 2001-08-22 01:05:50 vince Exp $
+// $Id: AmrvisConstants.H,v 1.16 2001-08-23 20:10:47 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -55,7 +55,7 @@ const int WOFFSET = 4;
 
 enum AnimDirection { ANIMPOSDIR = 0, ANIMNEGDIR };
 
-// these are for PltApp's wRangeRadioButton
+// these are for PltApps wRangeRadioButton
 enum MinMaxRangeTypeForButtons {
     BGLOBALMINMAX        = 0,
     BSUBREGIONMINMAX     = 1,

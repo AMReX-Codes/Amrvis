@@ -1,6 +1,6 @@
 
 //
-// $Id: PltAppOutput.cpp,v 1.27 2001-08-22 00:22:32 vince Exp $
+// $Id: PltAppOutput.cpp,v 1.28 2001-08-23 20:10:47 vince Exp $
 //
 
 #include <Xm/Xm.h>
@@ -179,8 +179,6 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
   char *fileNameBase;
   int imageSizeX, imageSizeY;
   XImage *printImage;
-  int minDrawnLevel(pltAppState->MinDrawnLevel());
-  int maxDrawnLevel(pltAppState->MaxDrawnLevel());
 
   if(animating2d) {
     ResetAnimation();
@@ -212,6 +210,8 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
 
   // write the iso picture
 #ifdef BL_VOLUMERENDER
+  int minDrawnLevel(pltAppState->MinDrawnLevel());
+  int maxDrawnLevel(pltAppState->MaxDrawnLevel());
   if( ! (XmToggleButtonGetState(wAutoDraw) || showing3dRender )) {
     printImage = projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
   } else {

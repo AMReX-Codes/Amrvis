@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.55 2001-08-22 00:22:32 vince Exp $
+// $Id: PltApp.H,v 1.56 2001-08-23 20:10:47 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -57,13 +57,6 @@ const int WCN     = 11;  // number of control widget
 
 const int NFRAMES = 19;
 
-#if 0
-struct ClientDataStruct {   // for passing information through client_data
-    Widget w;
-    XtPointer object, data;
-    unsigned long tempint1, tempint2;
-};
-#endif
 
 class PltApp;
 typedef void (PltApp::*memberCB)(Widget, XtPointer, XtPointer);

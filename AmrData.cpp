@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.55 2001-08-22 01:05:50 vince Exp $
+// $Id: AmrData.cpp,v 1.56 2001-08-23 20:10:47 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1128,7 +1128,7 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
 	continue;
       }
       for(int currentLevel = 0; currentLevel <= finestFillLevel; ++currentLevel) {
-        const Box &currentPDomain = probDomain[currentLevel];
+        //const Box &currentPDomain = probDomain[currentLevel];
 
         for(int currentBox = 0;
             currentBox < fillBoxId[currentIndex][currentLevel].size();

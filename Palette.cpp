@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.37 2001-08-22 00:22:32 vince Exp $
+// $Id: Palette.cpp,v 1.38 2001-08-23 20:10:47 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -43,45 +43,42 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
   defaultFormat = "%6.4f";
 
   GAptr = new GraphicsAttributes(w);
-#if 0
+
+/*
   display = XtDisplay(w);
   root = RootWindow(display, DefaultScreen(display));
   screen = XtScreen(w);
   screenNumber = DefaultScreen(display);
   int status = XMatchVisualInfo(display, DefaultScreen(display),
-                                8, PseudoColor, &visualInfo);  // fills visualInfo
-  if ( status != 0 )
-    {
+                                8, PseudoColor, &visualInfo);
+                               // fills visualInfo
+  if( status != 0 ) {
       visual = visualInfo.visual;
       bits_per_rgb = visualInfo.bits_per_rgb;
       palDepth = 8;
-    }
-  else
-    {
+  } else {
       int status = XMatchVisualInfo(display, DefaultScreen(display),
-				    DefaultDepth(display, screenNumber), TrueColor, &visualInfo);
-      if ( status != 0 )
-	{
+				    DefaultDepth(display, screenNumber),
+                                    TrueColor, &visualInfo);
+      if( status != 0 ) {
 	  isTrueColor=true;
 	  visual = visualInfo.visual;
 	  bits_per_rgb = visualInfo.bits_per_rgb;
 	  palDepth = DefaultDepth(display, screenNumber);
-	}
-      else
-      {
-	cerr << "Error: bad XMatchVisualInfo: no PseudoColor Visual" << endl;
+      } else {
+	cerr << "Error: bad XMatchVisualInfo: no PseudoColor Visual"
+             << endl;
 	exit(1);
       }
     }
-/*
-  cout << endl;
-  cout << "_in Palette:  screen  DefaultScreen(display) visualInfo.screen = "
-       << screen << "  " << DefaultScreen(display) << "  " << visualInfo.screen
-       << endl;
-  cout << endl;
-*/
+  //cout << endl;
+  //cout << "_in Palette: screen DefScreen(display) visualInfo.screen = "
+       //<< screen << "  " << DefaultScreen(display)
+       //<< "  " << visualInfo.screen
+       //<< endl;
+  //cout << endl;
   gc = screen->default_gc;
-#endif
+*/
 
   totalPalWidth = totalwidth;
   palWidth  = width;

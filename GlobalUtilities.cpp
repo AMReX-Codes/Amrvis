@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.41 2001-08-22 00:22:32 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.42 2001-08-23 20:10:47 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -51,7 +51,7 @@ bool sliceAllVars;
 bool givenFilename;
 Box comlinebox;
 bool verbose;
-Array<list<int> > dumpSliceList;
+Array< std::list<int> > dumpSliceList;
 bool specifiedMinMax;
 Real specifiedMin;
 Real specifiedMax;

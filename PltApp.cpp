@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.97 2001-08-22 01:05:50 vince Exp $
+// $Id: PltApp.cpp,v 1.98 2001-08-23 20:10:47 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -607,7 +607,8 @@ void PltApp::PltAppInit() {
   wCascade = XmCreatePulldownMenu(wMenuPulldown, "scalemenu", NULL, 0);
   XtVaCreateManagedWidget("Scale", xmCascadeButtonWidgetClass, wMenuPulldown,
 			  XmNmnemonic, 'S', XmNsubMenuId, wCascade, NULL);
-  for(unsigned long scale(1); scale <= maxallow; ++scale) {
+  //for(unsigned long scale(1); scale <= maxallow; ++scale) {
+  for(int scale(1); scale <= maxallow; ++scale) {
     sprintf(selectText, "%ix", scale);
     wid = XtVaCreateManagedWidget(selectText, xmToggleButtonGadgetClass, wCascade,
 				  XmNset, false, NULL);
@@ -1199,7 +1200,7 @@ void PltApp::PltAppInit() {
   AddStaticCallback(wOrient, XmNactivateCallback, &PltApp::DoOrient);
   XtManageChild(wOrient);
   
-  int whiteColor(pltPaletteptr->WhiteIndex());
+  //int whiteColor(pltPaletteptr->WhiteIndex());
   //XSetForeground(display, xgc, pltPaletteptr->pixelate(whiteColor));
   //XSetForeground(display, xgc, pltPaletteptr->pixelate(100));
   wLabelAxes = XtVaCreateManagedWidget("XYZ",
@@ -4073,7 +4074,6 @@ void PltApp::ShowFrame() {
 					  amrData.RefRatio()));
     
     pltAppState->SetMaxAllowableLevel(maxlev);
-    int minAllowableLevel(pltAppState->MinAllowableLevel());
     Box fineDomain(domain[pltAppState->MaxAllowableLevel()]);
     fineDomain.refine(CRRBetweenLevels(pltAppState->MaxAllowableLevel(),
 				       finestLevel, amrData.RefRatio()));

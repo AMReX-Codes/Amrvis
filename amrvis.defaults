@@ -1,4 +1,4 @@
-palette               Pal8lb
+palette               Pal8.new
 initialderived        tracer
 initialscale          4
 initialscale          1
@@ -13,4 +13,5 @@ showboxes             TRUE
 windowheight          550
 windowwidth           800
 filetype              newplt
+lowblack
 cliptoppalette

@@ -106,7 +106,7 @@ public:
 
   //
   // Sets the parameter with the given name to have the type
-  // `type' and the text value `value'.  This will be evaluated
+  // _type_ and the text value _value_.  This will be evaluated
   // to its full form the first time it is referenced using
   // Get_Parameter().  If it is already filled, the old value
   // will be reclaimed.
@@ -122,7 +122,7 @@ public:
 
   //
   // Retrieves a value from the parameter table.  The value
-  // is placed in `val'.  If successful, the routine will
+  // is placed in val.  If successful, the routine will
   // return 1.  Otherwise, it will return 0.
   //
   int Get_Parameter(char *name, params *val);
@@ -163,14 +163,14 @@ private:
 
   //
   // Allocates and returns an appropriate parameter structure
-  // by translating `form' into its native type as given by `type'.
-  // If it can't translate the given form, it will fall back onto
+  // by translating form into its native type as given by type.
+  // If it cant translate the given form, it will fall back onto
   // the default.
   //
   params *resolve_entry(char *name, param_types type, char *form);
 
   //
-  // Translates `name' into a color and attempts to get the pixel
+  // Translates name into a color and attempts to get the pixel
   // for the color using XAllocColor().
   //
   int do_color(char *name, XColor *color);
@@ -187,7 +187,7 @@ private:
 
   //
   // Translates a string representation of a dash specification into
-  // a form suitable for use in XSetDashes().  Assumes `list'
+  // a form suitable for use in XSetDashes().  Assumes list
   // is a null terminated string of ones and zeros.
   //
   int do_style(char *list, param_style *val);

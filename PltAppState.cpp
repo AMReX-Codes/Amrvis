@@ -22,9 +22,9 @@ using std::max;
 
 // -------------------------------------------------------------------
 CMinMax::CMinMax()
-        : bMinMaxSet(false),
-	  rMin(AV_BIG_REAL),
-	  rMax(-AV_BIG_REAL)
+	: rMin(AV_BIG_REAL),
+	  rMax(-AV_BIG_REAL),
+          bMinMaxSet(false)
 {
 }
 
