@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.78 2002-09-25 23:19:52 vince Exp $
+// $Id: AmrPicture.cpp,v 1.79 2002-12-10 20:12:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -240,6 +240,12 @@ void AmrPicture::AmrPictureInit() {
   for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
     sliceFab[iLevel] = new FArrayBox(sliceBox[iLevel], 1);
   }
+  vfSliceFab.resize(numberOfLevels);  // always resize this
+  if(dataServicesPtr->AmrDataRef().CartGrid()) {
+    for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
+      vfSliceFab[iLevel] = new FArrayBox(sliceBox[iLevel], 1);
+    }
+  }
   xImageArray.resize(numberOfLevels);
 
   display = gaPtr->PDisplay();
@@ -331,6 +337,9 @@ AmrPicture::~AmrPicture() {
     delete [] imageData[iLevel];
     free(scaledImageData[iLevel]);
     delete sliceFab[iLevel];
+    if(dataServicesPtr->AmrDataRef().CartGrid()) {
+      delete vfSliceFab[iLevel];
+    }
   }
 
   if(pixMapCreated) {
@@ -367,6 +376,9 @@ void AmrPicture::SetSlice(int view, int here) {
           imageData[lev] = new unsigned char[sliceBox[lev].numPts()];
         }
         sliceFab[lev]->resize(sliceBox[lev], 1);
+        if(dataServicesPtr->AmrDataRef().CartGrid()) {
+          vfSliceFab[lev]->resize(sliceBox[lev], 1);
+	}
       }
     }
 # endif
@@ -430,13 +442,23 @@ void AmrPicture::APChangeContour(ContourType prevCType) {
   pltAppStatePtr->GetMinMax(minUsing, maxUsing);
   int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
   int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
+  FArrayBox *vffp;
+  Real vfeps(0.0);
 
   if(DrawRaster(cType) != DrawRaster(prevCType)) {  // recreate the raster image
     AmrData &amrData = dataServicesPtr->AmrDataRef();
     for(int iLevel(minDrawnLevel); iLevel <= maxAllowableLevel; ++iLevel) {
+      if(dataServicesPtr->AmrDataRef().CartGrid()) {
+        vfeps = dataServicesPtr->AmrDataRef().VfEps(iLevel);
+	vffp = vfSliceFab[iLevel];
+      } else {
+        vfeps = 0.0;
+	vffp  = NULL;
+      }
       CreateImage(*(sliceFab[iLevel]), imageData[iLevel],
  		  dataSizeH[iLevel], dataSizeV[iLevel],
- 	          minUsing, maxUsing, palPtr);
+ 	          minUsing, maxUsing, palPtr,
+		  vffp, vfeps);
       CreateScaledImage(&(xImageArray[iLevel]), pltAppStatePtr->CurrentScale() *
                  AVGlobals::CRRBetweenLevels(iLevel, maxAllowableLevel,
 		                             amrData.RefRatio()),
@@ -796,6 +818,8 @@ void AmrPicture::APMakeImages(Palette *palptr) {
     DoStop();
   }
 
+  FArrayBox *vffp;
+  Real vfeps(0.0);
   Real minUsing, maxUsing;
   pltAppStatePtr->GetMinMax(minUsing, maxUsing);
   VSHOWVAL(AVGlobals::Verbose(), minUsing)
@@ -804,15 +828,29 @@ void AmrPicture::APMakeImages(Palette *palptr) {
   VSHOWVAL(AVGlobals::Verbose(), maxAllowableLevel)
 
   const string currentDerived(pltAppStatePtr->CurrentDerived());
+  const string vfracDerived("vfrac");
   for(int iLevel(minDrawnLevel); iLevel <= maxAllowableLevel; ++iLevel) {
     DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
 		           (void *) (sliceFab[iLevel]),
 			   (void *) (&(sliceFab[iLevel]->box())),
 			   iLevel,
 			   (void *) &currentDerived);
+    if(amrData.CartGrid()) {
+      BL_ASSERT(vfSliceFab[iLevel]->box() == sliceFab[iLevel]->box());
+      DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
+		             (void *) (vfSliceFab[iLevel]),
+			     (void *) (&(vfSliceFab[iLevel]->box())),
+			     iLevel,
+			     (void *) &vfracDerived);
+      vfeps = dataServicesPtr->AmrDataRef().VfEps(iLevel);
+      vffp = vfSliceFab[iLevel];
+    } else {
+      vfeps = 0.0;
+      vffp  = NULL;
+    }
     CreateImage(*(sliceFab[iLevel]), imageData[iLevel],
  		dataSizeH[iLevel], dataSizeV[iLevel],
- 	        minUsing, maxUsing, palPtr);
+ 	        minUsing, maxUsing, palPtr, vffp, vfeps);
     CreateScaledImage(&(xImageArray[iLevel]), pltAppStatePtr->CurrentScale() *
                 AVGlobals::CRRBetweenLevels(iLevel, maxAllowableLevel,
 		amrData.RefRatio()),
@@ -834,7 +872,8 @@ void AmrPicture::APMakeImages(Palette *palptr) {
 // convert Real to char in imagedata from fab
 void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
 			     int datasizeh, int datasizev,
-			     Real globalMin, Real globalMax, Palette *palptr)
+			     Real globalMin, Real globalMax, Palette *palptr,
+			     const FArrayBox *vfracFab, const Real vfeps)
 {
   int jdsh, jtmp1;
   int dIndex, iIndex;
@@ -845,6 +884,13 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
     oneOverGDiff = 1.0 / (globalMax - globalMin);
   }
   const Real *dataPoint = fab.dataPtr();
+  bool bCartGrid(dataServicesPtr->AmrDataRef().CartGrid());
+  const Real *vfDataPoint;
+  if(bCartGrid) {
+    BL_ASSERT(vfracFab != NULL);
+    vfDataPoint = vfracFab->dataPtr();
+  }
+      
   
   // flips the image in Vert dir: j => datasizev-j-1
   if(DrawRaster(pltAppStatePtr->GetContourType())) {
@@ -853,23 +899,51 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
     int paletteEnd(palptr->PaletteEnd());
     int colorSlots(palptr->ColorSlots());
     int csm1(colorSlots - 1);
-    for(int j(0); j < datasizev; ++j) {
-      jdsh = j * datasizeh;
-      jtmp1 = (datasizev-j-1) * datasizeh;
-      for(int i(0); i < datasizeh; ++i) {
-        dIndex = i + jtmp1;
-        dPoint = dataPoint[dIndex];
-        iIndex = i + jdsh;
-        if(dPoint > globalMax) {  // clip
-          imagedata[iIndex] = paletteEnd;
-        } else if(dPoint < globalMin) {  // clip
-          imagedata[iIndex] = paletteStart;
-        } else {
-          imagedata[iIndex] = (unsigned char)
-            ((((dPoint - globalMin) * oneOverGDiff) * csm1) );
-            //  ^^^^^^^^^^^^^^^^^^ Real data
-          imagedata[iIndex] += paletteStart;
-        } 
+    if(bCartGrid == false) {
+      for(int j(0); j < datasizev; ++j) {
+        jdsh = j * datasizeh;
+        jtmp1 = (datasizev-j-1) * datasizeh;
+        for(int i(0); i < datasizeh; ++i) {
+          dIndex = i + jtmp1;
+          dPoint = dataPoint[dIndex];
+          iIndex = i + jdsh;
+          if(dPoint > globalMax) {  // clip
+            imagedata[iIndex] = paletteEnd;
+          } else if(dPoint < globalMin) {  // clip
+            imagedata[iIndex] = paletteStart;
+          } else {
+            imagedata[iIndex] = (unsigned char)
+              ((((dPoint - globalMin) * oneOverGDiff) * csm1) );
+              //  ^^^^^^^^^^^^^^^^^^ Real data
+            imagedata[iIndex] += paletteStart;
+          } 
+        }
+      }
+    } else {  // mask the body
+      Pixel bodyColor(palptr->BlackIndex());
+      Real dVFPoint;
+      for(int j(0); j < datasizev; ++j) {
+        jdsh = j * datasizeh;
+        jtmp1 = (datasizev-j-1) * datasizeh;
+        for(int i(0); i < datasizeh; ++i) {
+          dIndex = i + jtmp1;
+          dPoint = dataPoint[dIndex];
+          dVFPoint = vfDataPoint[dIndex];
+          iIndex = i + jdsh;
+          if(dPoint > globalMax) {  // clip
+            imagedata[iIndex] = paletteEnd;
+          } else if(dPoint < globalMin) {  // clip
+            imagedata[iIndex] = paletteStart;
+          } else {
+            imagedata[iIndex] = (unsigned char)
+              ((((dPoint - globalMin) * oneOverGDiff) * csm1) );
+              //  ^^^^^^^^^^^^^^^^^^ Real data
+            imagedata[iIndex] += paletteStart;
+          } 
+          if(dVFPoint < vfeps) {  // set to body color
+            imagedata[iIndex] = bodyColor;
+	  }
+        }
       }
     }
 
@@ -1541,7 +1615,7 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
     }   // end for(lev...)
 
     // get the data for this slice
-    string currentDerived(pltAppStatePtr->CurrentDerived());
+    const string currentDerived(pltAppStatePtr->CurrentDerived());
     FArrayBox imageFab(interBox[maxDrawnLevel], 1);
     DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
 			   (void *) &imageFab,
@@ -1551,9 +1625,25 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
 
     Real minUsing, maxUsing;
     pltAppStatePtr->GetMinMax(minUsing, maxUsing);
+
+    FArrayBox *vffp = NULL;
+    Real vfeps(0.0);
+    const string vfracDerived("vfrac");
+    if(amrData.CartGrid()) {
+      vffp = new FArrayBox(interBox[maxDrawnLevel], 1);
+      DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
+		             (void *) (vffp),
+			     (void *) (&(vffp->box())),
+			     maxDrawnLevel,
+			     (void *) &vfracDerived);
+      vfeps = dataServicesPtr->AmrDataRef().VfEps(maxDrawnLevel);
+    } else {
+      vfeps = 0.0;
+      vffp  = NULL;
+    }
     CreateImage(imageFab, frameImageData,
 		dataSizeH[maxDrawnLevel], dataSizeV[maxDrawnLevel],
-                minUsing, maxUsing, palPtr);
+                minUsing, maxUsing, palPtr, vffp, vfeps);
 
     // this cannot be deleted because it belongs to the XImage
     unsigned char *frameScaledImageData;

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.H,v 1.43 2002-02-07 23:59:02 vince Exp $
+// $Id: AmrPicture.H,v 1.44 2002-12-10 20:12:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -117,6 +117,7 @@ class AmrPicture {
   XtIntervalId		pendingTimeOut;
   Palette		*palPtr;
   Array<FArrayBox *>	sliceFab;
+  Array<FArrayBox *>	vfSliceFab;
   Array<unsigned char *>  imageData, scaledImageData;
   Array<XImage *>       xImageArray;
   Array<bool>           xImageCreated;
@@ -143,7 +144,8 @@ class AmrPicture {
   void DrawTerrBoxes(int level, bool bIsWindow, bool bIsPixmap);
   void CreateImage(const FArrayBox &fab, unsigned char *imagedata,
                    int datasizeh, int datasizev,
-                   Real globalMin, Real globalMax, Palette *palptr);
+                   Real globalMin, Real globalMax, Palette *palptr,
+		   const FArrayBox *vfracFab, const Real vfeps);
   void CreateScaledImage(XImage **ximage, int scale,
                          unsigned char *imagedata,
                          unsigned char *scaledimagedata,

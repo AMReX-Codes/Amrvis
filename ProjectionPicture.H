@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.H,v 1.21 2002-10-22 17:53:51 vince Exp $
+// $Id: ProjectionPicture.H,v 1.22 2002-12-10 20:12:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -46,19 +46,15 @@ class TransPoint {
 class RealBox {
   public:
     RealBox();
-    ~RealBox() {}
-    RealBox(const Box& theBox);
-    RealBox(RealPoint p1, RealPoint p2, RealPoint p3, RealPoint p4, 
-            RealPoint p5, RealPoint p6, RealPoint p7, RealPoint p8);
+    ~RealBox() { }
+    RealBox(const Box &theBox);
     RealPoint vertices[8];
 };
 
 class TransBox {
   public:
     TransBox();
-    ~TransBox() {}
-    TransBox(TransPoint p1, TransPoint p2, TransPoint p3, TransPoint p4, 
-             TransPoint p5, TransPoint p6, TransPoint p7, TransPoint p8);
+    ~TransBox() { }
     void Draw(Display *display, Window window, GC gc);
     TransPoint vertices[8];
 };
@@ -113,7 +109,6 @@ public:
   void ChangeSlice(int Dir, int newSlice);
   Real LongestBoxSide() const { return longestBoxSide; }
   
-  Real longestBoxSide;
   
 private:
   enum { NVERTICIES = 8 };
@@ -123,6 +118,7 @@ private:
   ViewTransform  *viewTransformPtr;
   Array<Array<RealBox> > boxReal;
   Array<Array<TransBox> > boxTrans;
+  Real longestBoxSide;
   
   RealBox realBoundingBox;
   TransBox transBoundingBox;

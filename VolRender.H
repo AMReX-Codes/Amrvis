@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.H,v 1.28 2002-02-07 23:59:02 vince Exp $
+// $Id: VolRender.H,v 1.29 2002-12-10 20:12:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -70,7 +70,8 @@ class VolRender {
     void MakeSWFData(DataServices *dataServicesPtr, Real rDataMin, Real rDataMax,
                      const string &derivedName,
                      int iPaletteStart, int iPaletteEnd,
-                     int iBlackIndex, int iWhiteIndex, int iColorSlots);
+                     int iBlackIndex, int iWhiteIndex, int iColorSlots,
+		     const bool bdrawboxes);
   
     void MakePicture(Real mvmat[4][4], Real Length, int width, int height);
 

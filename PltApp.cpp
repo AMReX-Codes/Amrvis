@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.116 2002-11-27 00:42:37 vince Exp $
+// $Id: PltApp.cpp,v 1.117 2002-12-10 20:12:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -57,7 +57,8 @@ using std::flush;
 #define FALSE false
 #endif
 
-const int MAXSCALE = 32;
+const int MAXSCALE(32);
+
 #define MARK fprintf(stderr, "Mark at file %s, line %d.\n", __FILE__, __LINE__)
 
 static bool UsingFileRange(const MinMaxRangeType rt) {
@@ -1207,7 +1208,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   
   // ****************************************** Transform Area & buttons
   
-  wOrient = XtVaCreateManagedWidget("0",
+  wOrientXY = XtVaCreateManagedWidget("XY",
 				    xmPushButtonGadgetClass, wPlotArea,
 				    XmNleftAttachment, XmATTACH_WIDGET,
 				    XmNleftWidget, wScrollArea[XPLANE],
@@ -1215,21 +1216,41 @@ void PltApp::PltAppInit(bool bSubVolume) {
 				    XmNtopAttachment, XmATTACH_POSITION,
 				    XmNtopPosition, 50,
 				    NULL);
-  AddStaticCallback(wOrient, XmNactivateCallback, &PltApp::DoOrient);
-  XtManageChild(wOrient);
+  AddStaticCallback(wOrientXY, XmNactivateCallback, &PltApp::DoOrient,
+                    (XtPointer) OXY);
+  XtManageChild(wOrientXY);
   
-  //int whiteColor(pltPaletteptr->WhiteIndex());
-  //XSetForeground(display, xgc, pltPaletteptr->pixelate(whiteColor));
-  //XSetForeground(display, xgc, pltPaletteptr->pixelate(100));
+  wOrientYZ = XtVaCreateManagedWidget("YZ",
+				    xmPushButtonGadgetClass, wPlotArea,
+				    XmNleftAttachment, XmATTACH_WIDGET,
+				    XmNleftWidget, wOrientXY,
+				    XmNleftOffset, WOFFSET,
+				    XmNtopAttachment, XmATTACH_POSITION,
+				    XmNtopPosition, 50,
+				    NULL);
+  AddStaticCallback(wOrientYZ, XmNactivateCallback, &PltApp::DoOrient,
+                    (XtPointer) OYZ);
+  XtManageChild(wOrientYZ);
+  
+  wOrientXZ = XtVaCreateManagedWidget("XZ",
+				    xmPushButtonGadgetClass, wPlotArea,
+				    XmNleftAttachment, XmATTACH_WIDGET,
+				    XmNleftWidget, wOrientYZ,
+				    XmNleftOffset, WOFFSET,
+				    XmNtopAttachment, XmATTACH_POSITION,
+				    XmNtopPosition, 50,
+				    NULL);
+  AddStaticCallback(wOrientXZ, XmNactivateCallback, &PltApp::DoOrient,
+                    (XtPointer) OXZ);
+  XtManageChild(wOrientXZ);
+  
   wLabelAxes = XtVaCreateManagedWidget("XYZ",
 				       xmPushButtonGadgetClass, wPlotArea,
 				       XmNleftAttachment, XmATTACH_WIDGET,
-				       XmNleftWidget, wOrient,
+				       XmNleftWidget, wOrientXZ,
 				       XmNleftOffset, WOFFSET,
 				       XmNtopAttachment, XmATTACH_POSITION,
 				       XmNtopPosition, 50,
-				       //XmNforeground, 42,
-				       //XmNbackground, 100,
 				       NULL);
   AddStaticCallback(wLabelAxes, XmNactivateCallback, &PltApp::DoLabelAxes);
   XtManageChild(wLabelAxes);
@@ -1266,7 +1287,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			     XmNleftAttachment,	        XmATTACH_WIDGET,
 			     XmNleftWidget,		wScrollArea[XPLANE],
 			     XmNtopAttachment,	        XmATTACH_WIDGET,
-			     XmNtopWidget,		wOrient,
+			     XmNtopWidget,		wOrientXY,
 			     XmNrightAttachment,	XmATTACH_FORM,
 			     XmNbottomAttachment,	XmATTACH_FORM,
 			     NULL);
@@ -1683,7 +1704,7 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
 	  continue;
 	}
       }
-    } else if(strcmp(pltAppState->CurrentDerived().c_str(),"vol_frac") == 0) {
+    } else if(strcmp(pltAppState->CurrentDerived().c_str(),"vfrac") == 0) {
     } else {
       string outbuf("Finding global min & max values for ");
       outbuf += pltAppState->CurrentDerived();
@@ -3238,7 +3259,6 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	    trueRegion[y].setBig(XDIR, trueRegion[y].smallEnd(XDIR));
 	    trueRegion[y].setBig(YDIR, trueRegion[y].smallEnd(YDIR));
 	  }
-	  
 	  bool goodIntersect;
 	  Real dataValue;
 	  DataServices::Dispatch(DataServices::PointValueRequest,
@@ -3250,8 +3270,26 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 				 &intersectedLevel, &intersectedGrid,
 				 &dataValue, &goodIntersect);
 	  char dataValueCharString[LINELENGTH];
-	  sprintf(dataValueCharString, pltAppState->GetFormatString().c_str(), dataValue);
+	  sprintf(dataValueCharString, pltAppState->GetFormatString().c_str(),
+	          dataValue);
 	  string dataValueString(dataValueCharString);
+
+	  const string vfDerived("vfrac");
+	  if(amrData.CartGrid() && pltAppState->CurrentDerived() != vfDerived) {
+	    DataServices::Dispatch(DataServices::PointValueRequest,
+				   dataServicesPtr[currentFrame],
+				   trueRegion.size(),
+				   (void *) (trueRegion.dataPtr()),
+				   (void *) &vfDerived,
+				   minDrawnLevel, maxDrawnLevel,
+				   &intersectedLevel, &intersectedGrid,
+				   &dataValue, &goodIntersect);
+	    Real vfeps(amrData.VfEps(intersectedLevel));
+	    if(dataValue < vfeps) {
+	      dataValueString = "body";
+	    }
+	  }
+
 	  ostrstream buffout(buffer, BUFSIZ);
 	  if(goodIntersect) {
 	    buffout << '\n';

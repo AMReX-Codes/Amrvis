@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.cpp,v 1.48 2002-10-22 17:53:51 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.49 2002-12-10 20:12:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -128,8 +128,7 @@ ProjectionPicture::~ProjectionPicture() {
 
 // -------------------------------------------------------------------
 void ProjectionPicture::AddBox(const Box &theBox, int index, int level) {
-    RealBox newBox(theBox);
-    boxReal[level][index] = newBox;
+    boxReal[level][index] = RealBox(theBox);
 }
 
 
@@ -203,8 +202,8 @@ void ProjectionPicture::MakeSubCutBox() {
                          realSubCutBox.vertices[i].component[1],
                          realSubCutBox.vertices[i].component[2],
                          px, py, pz);
-    transSubCutBox.vertices[i] = TransPoint((int)(px + 0.5), 
-                                            daHeight - (int)(py + 0.5));
+    transSubCutBox.vertices[i] = TransPoint((int) (px + 0.5), 
+                                            daHeight - (int) (py + 0.5));
   }
 }   
 
@@ -214,12 +213,12 @@ void ProjectionPicture::MakeSlices() {
   Real px, py, pz;
   for(int j(0); j < 3 ; ++j) {
     for(int i(0); i < 4; ++i) {
-      viewTransformPtr-> TransformPoint(realSlice[j].edges[i].component[0],
-                                        realSlice[j].edges[i].component[1],
-                                        realSlice[j].edges[i].component[2],
-                                        px, py, pz);
-      transSlice[j].edges[i] = TransPoint((int)(px + 0.5), 
-                                          daHeight - (int)(py + 0.5));
+      viewTransformPtr->TransformPoint(realSlice[j].edges[i].component[0],
+                                       realSlice[j].edges[i].component[1],
+                                       realSlice[j].edges[i].component[2],
+                                       px, py, pz);
+      transSlice[j].edges[i] = TransPoint((int) (px + 0.5), 
+                                          daHeight - (int) (py + 0.5));
     }
   }
 }
@@ -298,6 +297,9 @@ void ProjectionPicture::DrawBoxesIntoDrawable(const Drawable &drawable,
   // FIXME:
   XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
                  boxColors[minDrawnLevel]);
+
+//viewTransformPtr->ViewRotationMat();
+
 }
 
 
@@ -343,7 +345,7 @@ void ProjectionPicture::LoadSlices(const Box &surroundingBox) {
 
 // -------------------------------------------------------------------
 void ProjectionPicture::ChangeSlice(int Dir, int newSlice) {
-  for(int j = 0; j < 3; ++j) {
+  for(int j(0); j < 3; ++j) {
     if(Dir == j) {
       realSlice[j].ChangeSlice(newSlice);
     }
@@ -374,9 +376,9 @@ void ProjectionPicture::DrawPicture() {
 
 // -------------------------------------------------------------------
 void ProjectionPicture::LabelAxes() {
-  int xHere(1);	// Where to label axes with X, Y, and Z
-  int yHere(3);
-  int zHere(4);
+  const int xHere(1);  // Where to label axes with X, Y, and Z
+  const int yHere(3);
+  const int zHere(4);
   minDrawnLevel = pltAppPtr->GetPltAppState()->MinDrawnLevel();
   maxDrawnLevel = pltAppPtr->GetPltAppState()->MaxDrawnLevel();
   XDrawString(XtDisplay(drawingArea), XtWindow(drawingArea),
@@ -426,13 +428,14 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
     delete [] volpackImageData;
   }
   volpackImageData = new unsigned char[daWidth*daHeight];
-  imageData = static_cast<unsigned char*>(malloc(widthpad*daHeight*XBitmapPad(XtDisplay(drawingArea))/8));
+  imageData = static_cast<unsigned char *> (malloc(widthpad * daHeight *
+                                        XBitmapPad(XtDisplay(drawingArea)) / 8));
   if(imageData == NULL || volpackImageData == NULL ) {
     cout << " SetDrawingAreaDimensions::imageData : new failed" << endl;
     BoxLib::Abort("Exiting.");
   }
   
-  viewTransformPtr->SetScreenPosition(daWidth/2, daHeight/2);
+  viewTransformPtr->SetScreenPosition(daWidth / 2, daHeight / 2);
   
   PPXImage = XCreateImage(XtDisplay(drawingArea),
 			  XDefaultVisual(XtDisplay(drawingArea),
@@ -483,32 +486,15 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
 
 //--------------------------------------------------------------------
 RealBox::RealBox() {
-  RealPoint zero(0., 0., 0.);
-  for(int i = 0; i < 8 ; ++i) {
-    vertices[i] = zero;
-  }
-}
-
-//--------------------------------------------------------------------
-RealBox::RealBox(RealPoint p1, RealPoint p2, RealPoint p3, RealPoint p4, 
-                 RealPoint p5, RealPoint p6, RealPoint p7, RealPoint p8)
-{
-    vertices[0] = p1;
-    vertices[1] = p2;
-    vertices[2] = p3;
-    vertices[3] = p4;
-    vertices[4] = p5;
-    vertices[5] = p6;
-    vertices[6] = p7;
-    vertices[7] = p8;
 }
 
 
 //--------------------------------------------------------------------
-RealBox::RealBox(const Box& theBox) {
+RealBox::RealBox(const Box &theBox) {
     Real dimensions[6] = { theBox.smallEnd(XDIR), theBox.smallEnd(YDIR),
                            theBox.smallEnd(ZDIR), theBox.bigEnd(XDIR)+1,
                            theBox.bigEnd(YDIR)+1, theBox.bigEnd(ZDIR)+1 };
+
     vertices[0] = RealPoint(dimensions[0], dimensions[1], dimensions[2]);
     vertices[1] = RealPoint(dimensions[3], dimensions[1], dimensions[2]);
     vertices[2] = RealPoint(dimensions[3], dimensions[4], dimensions[2]);
@@ -523,32 +509,16 @@ RealBox::RealBox(const Box& theBox) {
 //--------------------------------------------------------------------
 TransBox::TransBox() {
   TransPoint zero(0,0);
-  for(int i = 0; i < 8 ; ++i) {
+  for(int i(0); i < 8 ; ++i) {
     vertices[i] = zero;
   }
 }
 
 
 //--------------------------------------------------------------------
-TransBox::TransBox(TransPoint p1, TransPoint p2, TransPoint p3, TransPoint p4, 
-                   TransPoint p5, TransPoint p6, TransPoint p7, TransPoint p8)
-{
-  vertices[0] = p1;
-  vertices[1] = p2;
-  vertices[2] = p3;
-  vertices[3] = p4;
-  vertices[4] = p5;
-  vertices[5] = p6;
-  vertices[6] = p7;
-  vertices[7] = p8;
-}
-
-
-//--------------------------------------------------------------------
-void TransBox::Draw(Display *display, Window window, GC gc)
-{
-  for(int j = 0; j < 2; ++j) {
-    for(int i = 0; i < 3; ++i){
+void TransBox::Draw(Display *display, Window window, GC gc) {
+  for(int j(0); j < 2; ++j) {
+    for(int i(0); i < 3; ++i) {
       XDrawLine(display, window, gc,
                 vertices[j*4+i].x, vertices[j*4+i].y,
                 vertices[j*4+i+1].x, vertices[j*4+i+1].y);
@@ -556,7 +526,7 @@ void TransBox::Draw(Display *display, Window window, GC gc)
     XDrawLine(display, window, gc, vertices[j*4].x, vertices[j*4].y, 
               vertices[j*4+3].x, vertices[j*4+3].y);
   }
-  for(int k = 0; k < 4; ++k) {
+  for(int k(0); k < 4; ++k) {
     XDrawLine(display, window, gc, vertices[k].x, vertices[k].y,
               vertices[k+4].x, vertices[k+4].y);
   }
@@ -566,7 +536,7 @@ void TransBox::Draw(Display *display, Window window, GC gc)
 
 //--------------------------------------------------------------------
 RealSlice::RealSlice() {
-  RealPoint zero(0,0,0);
+  RealPoint zero(0.0, 0.0, 0.0);
   for(int i = 0; i < 4; ++i) {
     edges[i] = zero;
   }

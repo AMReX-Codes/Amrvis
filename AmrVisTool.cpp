@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.60 2002-10-22 17:53:51 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.61 2002-12-10 20:12:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -359,7 +359,8 @@ void BatchFunctions() {
       volRender.MakeSWFData(&dataServices, dataMin, dataMax,
                             AVGlobals::GetInitialDerived(),
                             iPaletteStart, iPaletteEnd,
-                            iBlackIndex, iWhiteIndex, iColorSlots);
+                            iBlackIndex, iWhiteIndex, iColorSlots,
+			    PltApp::GetDefaultShowBoxes());
       volRender.WriteSWFData(comlineFileName, AVGlobals::MakeSWFLight());
 
     } 

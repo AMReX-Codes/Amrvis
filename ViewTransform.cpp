@@ -1,6 +1,6 @@
 
 //
-// $Id: ViewTransform.cpp,v 1.22 2002-10-22 17:53:51 vince Exp $
+// $Id: ViewTransform.cpp,v 1.23 2002-12-10 20:12:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -40,15 +40,16 @@ ViewTransform::~ViewTransform() {
 
 
 //--------------------------------------------------------------------
-AmrQuaternion ViewTransform::Screen2Quat(int start_X, int start_Y, 
-                                         int end_X, int end_Y, Real box_size)
+AmrQuaternion ViewTransform::Screen2Quat(int startX, int startY, 
+                                         int endX, int endY, Real boxSize)
 {
-  Real xWorldStart((Real)(start_X - screenPositionX) / (screenPositionX * scale));
-  Real yWorldStart((Real)(start_Y - screenPositionY) / (screenPositionY * scale));
-  Real xWorldEnd((Real)(end_X - screenPositionX) / (screenPositionX * scale));
-  Real yWorldEnd((Real)(end_Y - screenPositionY) / (screenPositionY * scale));
-  return trackball(xWorldEnd/box_size, yWorldEnd / box_size,
-                   xWorldStart / box_size, yWorldStart / box_size);
+  Real xWorldStart((Real)(startX - screenPositionX) / (screenPositionX * scale));
+  Real yWorldStart((Real)(startY - screenPositionY) / (screenPositionY * scale));
+  Real xWorldEnd((Real)(endX     - screenPositionX) / (screenPositionX * scale));
+  Real yWorldEnd((Real)(endY     - screenPositionY) / (screenPositionY * scale));
+  Real oobs(1.0 / boxSize);
+  return trackball(xWorldStart * oobs, yWorldStart * oobs,
+                   xWorldEnd   * oobs, yWorldEnd   * oobs);
 }
 
 //--------------------------------------------------------------------
@@ -90,7 +91,7 @@ void ViewTransform::TransformPoint(Real x, Real y, Real z,
 
 
 // -------------------------------------------------------------------
-void ViewTransform::Print()const {
+void ViewTransform::Print() const {
     cout << "ViewTransform::Print() does nothing now." << endl;
 }
 

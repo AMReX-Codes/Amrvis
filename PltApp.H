@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.61 2002-11-27 00:42:37 vince Exp $
+// $Id: PltApp.H,v 1.62 2002-12-10 20:12:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -57,6 +57,9 @@ const int WCN     = 11;  // number of control widget
 
 const int NFRAMES = 19;
 
+const int OXY(0);
+const int OYZ(1);
+const int OXZ(2);
 
 class PltApp;
 typedef void (PltApp::*memberCB)(Widget, XtPointer, XtPointer);
@@ -157,7 +160,8 @@ private:
   Widget wPalArea;
 
 #if (BL_SPACEDIM == 3)
-  Widget wTransDA, wRender, wLabelAxes, wOrient, wDetach;
+  Widget wTransDA, wRender, wLabelAxes, wDetach;
+  Widget wOrientXY, wOrientYZ, wOrientXZ;
   Widget wLWTopLevel, wLWForm;
   Widget wAttach, wDetachTopLevel;
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)

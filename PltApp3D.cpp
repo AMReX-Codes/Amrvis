@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.53 2002-09-26 23:20:06 vince Exp $
+// $Id: PltApp3D.cpp,v 1.54 2002-12-10 20:12:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -25,6 +25,7 @@
 
 const unsigned long openingLW(100);
 const unsigned long savingLW(101);
+const Real oo64(1.0 / 64.0);
 
 using std::max;
 using std::cout;
@@ -64,7 +65,7 @@ void PltApp::DoExposeTransDA(Widget, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
-  Real temp;
+  Real temp, scaledLBS(projPicturePtr->LongestBoxSide() * oo64);
   AmrQuaternion quatRotation, quatRotation2;
   AmrQuaternion newRotation, newRotation2;
 
@@ -79,22 +80,17 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
     endX = cbs->event->xbutton.x;
     endY = cbs->event->xbutton.y;
     if(cbs->event->xbutton.state & ShiftMask) {
-      viewTrans.MakeTranslation(startX, startY, endX, endY, 
-				projPicturePtr->longestBoxSide / 64.0);
+      viewTrans.MakeTranslation(startX, startY, endX, endY, scaledLBS);
     } else {
       quatRotation = viewTrans.GetRotation();
       quatRotation2 = viewTrans.GetRenderRotation();
       newRotation = viewTrans.Screen2Quat(projPicturePtr->ImageSizeH()-startX,
-					  startY,
-					  projPicturePtr->ImageSizeH()-endX,
-					  endY,
-					  projPicturePtr->longestBoxSide / 64.0);
-      // this last number scales the rotations correctly
-      newRotation2 = viewTrans.Screen2Quat(projPicturePtr->ImageSizeH()-startX,
-					   projPicturePtr->ImageSizeV()-startY,
-					   projPicturePtr->ImageSizeH()-endX,
-					   projPicturePtr->ImageSizeV()-endY,
-					   projPicturePtr->longestBoxSide / 64.0);
+                                          startY,
+                                          projPicturePtr->ImageSizeH()-endX,
+                                          endY,
+                                          scaledLBS);
+      newRotation2 = viewTrans.Screen2Quat(startX, startY, endX, endY, scaledLBS);
+                                // the last number scales the rotations correctly
       quatRotation = newRotation * quatRotation;
       viewTrans.SetRotation(quatRotation);
       quatRotation2 = newRotation2 * quatRotation2;
@@ -129,7 +125,7 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
   if(servingButton == 2) {
     endX = cbs->event->xbutton.x;
     endY = cbs->event->xbutton.y;
-    Real change = (startY-endY)*0.003;
+    Real change((startY - endY) * 0.003);
     quatRotation = viewTrans.GetRotation();
     quatRotation2 = viewTrans.GetRenderRotation();
     // should replace the trigonometric equations...
@@ -211,7 +207,9 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   Dimension wdth, hght;
 
   transDetached = true;
-  XtUnmanageChild(wOrient);
+  XtUnmanageChild(wOrientXY);
+  XtUnmanageChild(wOrientYZ);
+  XtUnmanageChild(wOrientXZ);
   XtUnmanageChild(wLabelAxes);
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   XtUnmanageChild(wRender);
@@ -240,7 +238,8 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
     XtVaSetValues(wDetachTopLevel, XmNvisual, gaPtr->PVisual(), XmNdepth, 8, NULL);
   }
 
-  Widget wDetachForm, wAttach, wDOrient, wDLabelAxes;
+  Widget wDetachForm, wAttach, wDLabelAxes;
+  Widget wDOrientXY, wDOrientYZ, wDOrientXZ;
 
   wDetachForm = XtVaCreateManagedWidget("detachform",
 					xmFormWidgetClass, wDetachTopLevel,
@@ -256,19 +255,42 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   AddStaticCallback(wAttach, XmNactivateCallback, &PltApp::DoAttach);
   XtManageChild(wAttach);
 
-  wDOrient = XtVaCreateManagedWidget("0", xmPushButtonWidgetClass,
+  wDOrientXY = XtVaCreateManagedWidget("XY", xmPushButtonWidgetClass,
 				     wDetachForm,
 				     XmNleftAttachment, XmATTACH_FORM,
 				     XmNleftOffset, WOFFSET,
 				     XmNtopAttachment, XmATTACH_FORM,
 				     XmNtopOffset, WOFFSET, NULL);
-  AddStaticCallback(wDOrient, XmNactivateCallback, &PltApp::DoOrient);
-  XtManageChild(wDOrient);
+  AddStaticCallback(wDOrientXY, XmNactivateCallback, &PltApp::DoOrient,
+                    (XtPointer) OXY);
+  XtManageChild(wDOrientXY);
+
+  wDOrientYZ = XtVaCreateManagedWidget("YZ", xmPushButtonWidgetClass,
+				     wDetachForm,
+			             XmNleftAttachment, XmATTACH_WIDGET,
+			             XmNleftWidget, wDOrientXY,
+				     XmNleftOffset, WOFFSET,
+				     XmNtopAttachment, XmATTACH_FORM,
+				     XmNtopOffset, WOFFSET, NULL);
+  AddStaticCallback(wDOrientYZ, XmNactivateCallback, &PltApp::DoOrient,
+                    (XtPointer) OYZ);
+  XtManageChild(wDOrientYZ);
+
+  wDOrientXZ = XtVaCreateManagedWidget("XZ", xmPushButtonWidgetClass,
+				     wDetachForm,
+			             XmNleftAttachment, XmATTACH_WIDGET,
+			             XmNleftWidget, wDOrientYZ,
+				     XmNleftOffset, WOFFSET,
+				     XmNtopAttachment, XmATTACH_FORM,
+				     XmNtopOffset, WOFFSET, NULL);
+  AddStaticCallback(wDOrientXZ, XmNactivateCallback, &PltApp::DoOrient,
+                    (XtPointer) OXZ);
+  XtManageChild(wDOrientXZ);
 
   wDLabelAxes = XtVaCreateManagedWidget("XYZ", xmPushButtonWidgetClass,
 					wDetachForm,
 					XmNleftAttachment, XmATTACH_WIDGET,
-					XmNleftWidget, wDOrient,
+					XmNleftWidget, wDOrientXZ,
 					XmNleftOffset, WOFFSET,
 					XmNtopAttachment, XmATTACH_FORM,
 					XmNtopOffset, WOFFSET, NULL);
@@ -295,7 +317,7 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
 			     XmNleftAttachment,   XmATTACH_FORM,
 			     XmNleftOffset,	  WOFFSET,
 			     XmNtopAttachment,	  XmATTACH_WIDGET,
-			     XmNtopWidget,	  wDOrient,
+			     XmNtopWidget,	  wDOrientXY,
 			     XmNtopOffset,	  WOFFSET,
 			     XmNrightAttachment,  XmATTACH_FORM,
 			     XmNrightOffset,	  WOFFSET,
@@ -321,7 +343,9 @@ void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
   transDetached = false;
   XtDestroyWidget(wDetachTopLevel);
 
-  XtManageChild(wOrient);
+  XtManageChild(wOrientXY);
+  XtManageChild(wOrientYZ);
+  XtManageChild(wOrientXZ);
   XtManageChild(wLabelAxes);
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   XtManageChild(wRender);
@@ -334,7 +358,7 @@ void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
 			     XmNleftWidget,	wScrollArea[XPLANE],
 			     XmNleftOffset,	WOFFSET,
 			     XmNtopAttachment,	XmATTACH_WIDGET,
-			     XmNtopWidget,		wOrient,
+			     XmNtopWidget,		wOrientXY,
 			     XmNtopOffset,		WOFFSET,
 			     XmNrightAttachment,	XmATTACH_FORM,
 			     XmNrightOffset,		WOFFSET,
@@ -842,7 +866,7 @@ void PltApp::DoRender(Widget, XtPointer, XtPointer) {
 			   pltAppState->CurrentDerived(), 
 			   iPaletteStart, iPaletteEnd,
 			   iBlackIndex, iWhiteIndex,
-			   iColorSlots);
+			   iColorSlots, pltAppState->GetShowingBoxes());
   }
   if( ! volRender->VPDataValid()) {
     volRender->MakeVPData();
@@ -897,9 +921,46 @@ void PltApp::Clear() {
 
 
 // -------------------------------------------------------------------
-void PltApp::DoOrient(Widget w, XtPointer, XtPointer) {
-  viewTrans.SetRotation(AmrQuaternion());
-  viewTrans.SetRenderRotation(AmrQuaternion());
+void PltApp::DoOrient(Widget w, XtPointer client_data, XtPointer) {
+  Real rW, rX, rY, rZ;
+  Real rW2, rX2, rY2, rZ2;
+  int iOrientation((int) client_data);
+  switch(iOrientation) {
+    case OXY:
+      rW  =  1.0;
+      rX  =  0.0;
+      rY  =  0.0;
+      rZ  =  0.0;
+      rW2 =  1.0;
+      rX2 =  0.0;
+      rY2 =  0.0;
+      rZ2 =  0.0;
+    break;
+
+    case OYZ:
+      rW  =  0.5;
+      rX  = -0.5;
+      rY  = -0.5;
+      rZ  = -0.5;
+      rW2 =  0.5;
+      rX2 = -0.5;
+      rY2 =  0.5;
+      rZ2 =  0.5;
+    break;
+
+    case OXZ:
+      rW  = -0.5;
+      rX  = -0.5;
+      rY  = -0.5;
+      rZ  = -0.5;
+      rW2 = -0.5;
+      rX2 = -0.5;
+      rY2 =  0.5;
+      rZ2 =  0.5;
+    break;
+  }
+  viewTrans.SetRotation(AmrQuaternion(rW, rX, rY, rZ));
+  viewTrans.SetRenderRotation(AmrQuaternion(rW2, rX2, rY2, rZ2));
   viewTrans.ResetTranslation();
   viewTrans.MakeTransform();
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)

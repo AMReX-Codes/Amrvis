@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.49 2002-10-02 16:51:36 car Exp $
+// $Id: GlobalUtilities.cpp,v 1.50 2002-12-10 20:12:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -54,8 +54,9 @@ Real specifiedMax;
 bool useMaxLevel;
 int  maxLevel;
 int  maxPaletteIndex;
-bool SGIrgbfile = true;
+bool SGIrgbfile(true);
 int  fabIOSize;
+bool bShowBody(true);
 
 char *FileTypeString[] = {
   "invalidtype", "fab", "multifab", "newplt"
@@ -243,6 +244,7 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
   fileType = NEWPLT;  // default
   fabIOSize = 0;
   lowBlack = false;
+  bShowBody = true;
 
   // try to find the defaultsFile
   string fullDefaultsFile;
@@ -328,6 +330,12 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
           PltApp::SetDefaultShowBoxes(true);
         } else {
           PltApp::SetDefaultShowBoxes(false);
+        }
+      }
+      else if(strcmp(defaultString, "showbody") == 0) {
+        sscanf(buffer, "%s%s", defaultString, tempString);
+        if(*tempString == 'f' || *tempString == 'F') {
+          bShowBody = false;
         }
       }
       else if(strcmp(defaultString, "ppm") == 0) {
@@ -417,7 +425,7 @@ void PrintUsage(char *exname) {
   cout << "       [-palette palname] [-initialderived dername]" << endl;
   cout << "       [-lightingfile name]" << endl;
   cout << "       [-initialscale n] [-showboxes tf] [-numberformat fmt]" << endl;
-  cout << "       [-lowblack]"<< endl;
+  cout << "       [-lowblack] [-showbody tf]"<< endl;
   cout << "       [-cliptoppalette]"<< endl;
   cout << "       [-fixdenormals]"<< endl;
   cout << "       [-ppm]" << endl;
@@ -467,6 +475,7 @@ void PrintUsage(char *exname) {
   cout << "  -initialderived dername   set the initial derived to dername." << endl; 
   cout << "  -initialscale n    set the initial scale to n." << endl; 
   cout << "  -showboxes tf      show boxes (the value of tf is true or false)." << endl; 
+  cout << "  -showbody tf       show cartGrid body as body cells (def is true)." << endl; 
   cout << "  -numberformat fmt  set the initial format to fmt (ex:  %4.2f)." << endl; 
   cout << "  -lowblack          sets the lowest color in the palette to black."<<endl;
   cout << "  -cliptoppalette    do not use the top palette index (for exceed)."<<endl;
@@ -729,6 +738,15 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
         PltApp::SetDefaultShowBoxes(true);
       } else if(*argv[i+1] == 'f' || *argv[i+1] == 'F') {
         PltApp::SetDefaultShowBoxes(false);
+      } else {
+        PrintUsage(argv[0]);
+      }
+      ++i;
+    } else if(strcmp(argv[i], "-showbody") == 0) {
+      if(*argv[i+1] == 't' || *argv[i+1] == 'T') {
+        bShowBody = true;
+      } else if(*argv[i+1] == 'f' || *argv[i+1] == 'F') {
+        bShowBody = false;
       } else {
         PrintUsage(argv[0]);
       }

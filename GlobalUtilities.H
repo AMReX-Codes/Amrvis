@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.H,v 1.19 2002-10-02 16:51:36 car Exp $
+// $Id: GlobalUtilities.H,v 1.20 2002-12-10 20:12:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -80,6 +80,10 @@ namespace AVGlobals {
   bool SliceAllVars();
   Array< list<int> > &GetDumpSlices();
   int  GetFabOutFormat();
+
+  // -------------------- cartGrid functions
+  void SetShowBody(const bool btf);
+  bool GetShowBody();
 
   #define SHOWVAL(val) { cout << #val << " = " << val << endl; }  // Jensens device
   #define VSHOWVAL(verbose, val) { if(verbose) { \

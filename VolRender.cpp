@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.44 2002-08-16 00:22:33 vince Exp $
+// $Id: VolRender.cpp,v 1.45 2002-12-10 20:12:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -188,7 +188,7 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
 			    const string &derivedName,
 			    int iPaletteStart, int iPaletteEnd,
 			    int iBlackIndex, int iWhiteIndex,
-			    int iColorSlots)
+			    int iColorSlots, const bool bdrawboxes)
 {
   BL_ASSERT(bVolRenderDefined);
   
@@ -196,6 +196,8 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
     return;
   }
   
+  bDrawAllBoxes = bdrawboxes;
+
   if( ! swfDataAllocated) {
     if(ParallelDescriptor::IOProcessor()) {
       swfDataAllocated = AllocateSWFData();
@@ -275,6 +277,7 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
     
     int gcolsgrowstmp(gcols * grows);
     int gpgcgrtmp, gcgrowstmp;
+    int gprev;
     for(int gp(gostartp); gp <= goendp; ++gp) {
       gpgcgrtmp = gp*gcolsgrowstmp;
       for(int gc(gostartc); gc <= goendc; ++gc) {
@@ -286,8 +289,10 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
           dat = min(dat,gmax);
           chardat = (char)(((dat-gmin)*oneOverGDiff)*cSlotsAvail);
           chardat += (char)iPaletteStart;
+	  gprev = gostartp + goendp - gp;
           sindexbase =
-            (((gp+gstartp)-sstartp) * scolssrowstmp) +
+            //(((gp+gstartp)-sstartp) * scolssrowstmp) +
+            (((gprev+gstartp)-sstartp) * scolssrowstmp) +
             ((sendc-((gc+gstartc))) * srows) +  // check this
             ((gr+gstartr)-sstartr);
           
@@ -321,6 +326,7 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
           grefbox = goverlap;
           grefbox.refine(crr);
 
+	  int gprev;
           int gstartr(gbox.smallEnd(XDIR));
           int gstartc(gbox.smallEnd(YDIR));
           int gstartp(gbox.smallEnd(ZDIR));
@@ -337,7 +343,10 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
 
         if(crr != 1) {
           int gcolsgrowstmp(gcols * grows);
+	  int ddsez(drawnDomain[lev].smallEnd(ZDIR));
+	  int ddbez(drawnDomain[lev].bigEnd(ZDIR));
           for(gp = gostartp; gp <= goendp; ++gp) {
+            gprev = ddsez + ddbez - (gp + gstartp);
 	    if(gp == gostartp || gp == goendp) {
               edgep = 1;
 	    } else {
@@ -356,7 +365,8 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
 		} else {
                   edger = 0;
 		}
-                sindexbase = (((gp + gstartp) * crr - sstartp) * scolssrowstmp) +
+                //sindexbase = (((gp + gstartp) * crr - sstartp) * scolssrowstmp) +
+                sindexbase = (((gprev) * crr - sstartp) * scolssrowstmp) +
                              ((sendc - ((gc + gstartc) * crr)) * srows) +
                              ((gr + gstartr) * crr - sstartr);
 
@@ -397,15 +407,15 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
           }  // end for(gp...)
 
         } else {  // crr == 1
-
-          int gcolsgrowstmp(gcols * grows);
+	  int ddsez(drawnDomain[lev].smallEnd(ZDIR));
+	  int ddbez(drawnDomain[lev].bigEnd(ZDIR));
           for(gp = gostartp; gp <= goendp; ++gp) {
+            gprev = ddsez + ddbez - (gp + gstartp);
 	    if(gp == gostartp || gp == goendp) {
               edgep = 1;
 	    } else {
               edgep = 0;
 	    }
-            gpgcgrtmp = gp * gcolsgrowstmp;
             for(gc = gostartc; gc <= goendc; ++gc) {
 	      if(gc == gostartc || gc == goendc) {
                 edgec = 1;
@@ -420,7 +430,8 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
 		}
                 if((edger + edgec + edgep) > 1) {
                   sindexbase =
-                      (((gp + gstartp) - sstartp) * scolssrowstmp) +
+                      //(((gp + gstartp) - sstartp) * scolssrowstmp) +
+                      ((gprev - sstartp) * scolssrowstmp) +
                       ((sendc - ((gc + gstartc))) * srows) +
                       ((gr + gstartr) - sstartr);
                   swfData[sindexbase] = volumeBoxColor;

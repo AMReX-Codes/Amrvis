@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.63 2002-10-23 22:03:05 vince Exp $
+// $Id: AmrData.cpp,v 1.64 2002-12-10 20:12:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -75,25 +75,31 @@ using std::ifstream;
 #  if (BL_SPACEDIM == 2)
 #    define   FORT_CINTERP     CINTERP2D
 #    define   FORT_PCINTERP    PCINTERP2D
+#    define   FORT_CARTGRIDMINMAX CARTGRIDMINMAX2D
 #  elif (BL_SPACEDIM == 3)
 #    define   FORT_CINTERP     CINTERP3D
 #    define   FORT_PCINTERP    PCINTERP3D
+#    define   FORT_CARTGRIDMINMAX CARTGRIDMINMAX3D
 #  endif
 #elif defined( BL_FORT_USE_LOWERCASE )
 #  if (BL_SPACEDIM == 2)
 #    define   FORT_CINTERP     cinterp2d
 #    define   FORT_PCINTERP    pcinterp2d
+#    define   FORT_CARTGRIDMINMAX cartgridminmax2d
 #  elif (BL_SPACEDIM == 3)
 #    define   FORT_CINTERP     cinterp3d
 #    define   FORT_PCINTERP    pcinterp3d
+#    define   FORT_CARTGRIDMINMAX cartgridminmax3d
 #  endif
 #else
 #  if (BL_SPACEDIM == 2)
 #    define   FORT_CINTERP     cinterp2d_
 #    define   FORT_PCINTERP    pcinterp2d_
+#    define   FORT_CARTGRIDMINMAX cartgridminmax2d_
 #  elif (BL_SPACEDIM == 3)
 #    define   FORT_CINTERP     cinterp3d_
 #    define   FORT_PCINTERP    pcinterp3d_
+#    define   FORT_CARTGRIDMINMAX cartgridminmax3d_
 #  endif
 #endif
 
@@ -115,6 +121,10 @@ extern "C" {
 		   const Real *crse, ARLIM_P(clo), ARLIM_P(chi),
 		   const int *cblo, const int *cbhi,
 		   Real *temp, const int &tlo, const int &thi);
+
+  void FORT_CARTGRIDMINMAX (Real *data, ARLIM_P(dlo), ARLIM_P(dhi),
+		            const Real *vfrac, const Real &vfeps,
+		            Real &dmin, Real &dmax);
 }
 
 
@@ -135,30 +145,31 @@ AmrData::AmrData() {
 
 // ---------------------------------------------------------------
 AmrData::~AmrData() {
-   for(int i = 0; i < nRegions; ++i) {
-     for(int lev = 0; lev <= finestLevel; ++lev) {
+   for(int i(0); i < nRegions; ++i) {
+     for(int lev(0); lev <= finestLevel; ++lev) {
        delete regions[lev][i];
      }
    }
 
-   for(int lev = 0; lev <= finestLevel; ++lev) {
-     for(int iComp = 0; iComp < nComp; ++iComp) {
+   for(int lev(0); lev <= finestLevel; ++lev) {
+     for(int iComp(0); iComp < nComp; ++iComp) {
        delete dataGrids[lev][iComp];
      }
    }
 }
 
-namespace
-{
-void mytrim(char* str)
-{
-    int i = std::strlen(str);
-    for ( int n = i-1; n >= 0; n-- )
-    {
-	if ( str[n] > ' ' ) break;
-	str[n] = 0;
+
+// ---------------------------------------------------------------
+namespace {
+  void mytrim(char *str) {
+    int i(std::strlen(str));
+    for(int n(i - 1); n >= 0; n--) {
+      if( str[n] > ' ' ) {
+        break;
+      }
+      str[n] = 0;
     }
-}
+  }
 }
 
 
@@ -562,7 +573,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
    // restricted domain by extension from interior data
    // only use this data in bndry regions that did not
    // get better data from interior or input bndry regions
-   for(lev = 0; lev <= finestLevel; lev++) {
+   for(lev = 0; lev <= finestLevel; ++lev) {
       Box inbox(restrictDomain[lev]);
       Box reg1(BoxLib::grow(restrictDomain[lev],boundaryWidth));
       Box reg2(BoxLib::grow(probDomain[lev],width));
@@ -571,10 +582,10 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
          // parts of the bndry have not been filled from the input
 	 // data, must extending from interior regions
 
-         for(int idir = 0; idir < BL_SPACEDIM; idir++) {
+         for(int idir(0); idir < BL_SPACEDIM; ++idir) {
             Box bx(BoxLib::adjCellLo(inbox,idir,boundaryWidth));
 	    Box br(bx);
-	    for(k = 0; k < BL_SPACEDIM; k++) {
+	    for(k = 0; k < BL_SPACEDIM; ++k) {
 	      if(k != idir) {
 	        br.grow(k,boundaryWidth);
 	      }
@@ -591,9 +602,9 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
 
             // now fill out tmp region along idir direction
 	    Box b_lo(BoxLib::adjCellLo(inbox,idir,1));
-	    for(k = 1; k < boundaryWidth; k++) {
+	    for(k = 1; k < boundaryWidth; ++k) {
 	       Box btmp(b_lo);
-	       btmp.shift(idir,-k);
+	       btmp.shift(idir, -k);
 	       tmpreg_lo.copy(tmpreg_lo,b_lo,0,btmp,0,nComp);
 	    }
 
@@ -621,7 +632,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
 	    }
 
 	    // now copy into real bndry regions
-	    for(j = 0; j < nRegions; j++) {
+	    for(j = 0; j < nRegions; ++j) {
 	       FArrayBox *p = regions[lev][j];
 	       Box p_box = p->box();
 	       BoxList::iterator bli = outside.begin();
@@ -639,7 +650,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
             // now work on the high side of the bndry region
             bx = BoxLib::adjCellHi(inbox,idir,boundaryWidth);
 	    br = bx;
-	    for(k = 0; k < BL_SPACEDIM; k++) {
+	    for(k = 0; k < BL_SPACEDIM; ++k) {
 	      if(k != idir) br.grow(k, boundaryWidth);
 	    }
 
@@ -654,19 +665,19 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
 
             // now fill out tmp region along idir direction
 	    Box b_hi(BoxLib::adjCellHi(inbox,idir,1));
-	    for(k = 1; k < boundaryWidth; k++) {
+	    for(k = 1; k < boundaryWidth; ++k) {
 	       Box btmp(b_hi);
 	       btmp.shift(idir,k);
 	       tmpreg_hi.copy(tmpreg_hi,b_hi,0,btmp,0,nComp);
 	    }
 
 	    // now fill out temp bndry region
-	    for(k = 1; k < BL_SPACEDIM; k++) {
+	    for(k = 1; k < BL_SPACEDIM; ++k) {
 	       int kdir = (idir + k) % BL_SPACEDIM;
 	       b_dest = BoxLib::adjCellLo(bx, kdir, 1);
 	       b_src  = b_dest;
 	       b_src.shift(kdir, 1);
-               for(n = 1; n <= boundaryWidth; n++) {
+               for(n = 1; n <= boundaryWidth; ++n) {
 	          tmpreg_hi.copy(tmpreg_hi, b_src, 0, b_dest, 0, nComp);
 	          b_dest.shift(kdir,-1);
 	       }
@@ -674,7 +685,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
 	       b_dest = BoxLib::adjCellHi(bx, kdir, 1);
 	       b_src  = b_dest;
 	       b_src.shift(kdir, -1);
-               for(n = 1; n <= boundaryWidth; n++) {
+               for(n = 1; n <= boundaryWidth; ++n) {
 	          tmpreg_hi.copy(tmpreg_hi, b_src, 0, b_dest, 0, nComp);
 	          b_dest.shift(kdir, 1);
 	       }
@@ -682,7 +693,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
 	    }
 
 	    // now copy into real bndry regions
-	    for(j = 0; j < nRegions; j++) {
+	    for(j = 0; j < nRegions; ++j) {
 	       FArrayBox *p = regions[lev][j];
 	       Box p_box = p->box();
 	       BoxList::iterator bli = outside.begin();
@@ -727,7 +738,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
 bool AmrData::ReadNonPlotfileData(const string &filename, FileType filetype) {
   int i;
   if(verbose) {
-     cout << "AmrPlot::opening file = " << filename << endl;
+    cout << "AmrPlot::opening file = " << filename << endl;
   }
 
   fileName = filename;
@@ -883,8 +894,7 @@ bool AmrData::ReadNonPlotfileData(const string &filename, FileType filetype) {
           dataGrids[1][iComp] = new MultiFab(visMF[1][currentVisMF]->boxArray(), 1,
                                              visMF[1][currentVisMF]->nGrow(),
                                              Fab_noallocate);
-          dataGridsDefined[1][iComp].resize(visMF[1][currentVisMF]->size(),
-                                            false);
+          dataGridsDefined[1][iComp].resize(visMF[1][currentVisMF]->size(), false);
           compIndexToVisMFMap[iComp] = currentVisMF;
           compIndexToVisMFComponentMap[iComp] = currentVisMFComponent;
           ++currentVisMFComponent;
@@ -1616,8 +1626,9 @@ bool AmrData::MinMax(const Box &onBox, const string &derived, int level,
           dataMax = max(dataMax, maxVal);
       }
     }
-  } else if(bCartGrid && (compIndex != StateNumber("vol_frac"))) {
+  } else if(bCartGrid && (compIndex != StateNumber("vfrac"))) {
     for(MFIter gpli(*dataGrids[level][compIndex]); gpli.isValid(); ++gpli) {
+    /*
       int whichVisMF(compIndexToVisMFMap[compIndex]);
       int whichVisMFComponent(compIndexToVisMFComponentMap[compIndex]);
       Real visMFMin(visMF[level][whichVisMF]->min(gpli.index(),
@@ -1642,6 +1653,28 @@ bool AmrData::MinMax(const Box &onBox, const string &derived, int level,
           dataMin = min(dataMin, minVal);
           dataMax = max(dataMax, maxVal);
         }  // end if(visMFMin...)
+      }
+    */
+      if(onBox.intersects(gpli.validbox())) {
+        int vfIndex(StateNumber("vfrac"));
+        DefineFab(level, compIndex, gpli.index());
+        DefineFab(level, vfIndex, gpli.index());
+        Real *ddat = (*dataGrids[level][compIndex])[gpli].dataPtr();
+        Real *vdat = (*dataGrids[level][vfIndex])[gpli].dataPtr();
+        const int *dlo = (*dataGrids[level][compIndex])[gpli].loVect();
+        const int *dhi = (*dataGrids[level][compIndex])[gpli].hiVect();
+
+        overlap = onBox;
+        overlap &= gpli.validbox();
+        Real vfMaxVal = (*dataGrids[level][vfIndex])[gpli].max(overlap, 0);
+        if(vfMaxVal >= vfEps[level]) {
+          valid = true;
+
+          FORT_CARTGRIDMINMAX(ddat, ARLIM(dlo), ARLIM(dhi), vdat, vfEps[level],
+                            minVal, maxVal);
+          dataMin = min(dataMin, minVal);
+          dataMax = max(dataMax, maxVal);
+        }
       }
     }
   } else {
