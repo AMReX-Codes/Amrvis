@@ -19,8 +19,8 @@ ViewTransform::ViewTransform()
   scale = 1.0;
   boxTransX = renTransX = 0.0;
   boxTransY = renTransY = 0.0;
-  MakeTransform();
   txAdjust = tyAdjust = 1.;
+  MakeTransform();
 }
 
 
