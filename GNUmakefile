@@ -6,8 +6,8 @@ PROFILE   = FALSE
 # use mpKCC for the sp
 COMP      = mpKCC
 
-COMP      = KCC
 COMP      = g++
+COMP      = KCC
 DEBUG     = FALSE
 DEBUG     = TRUE
 DIM       = 3

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.80 2001-04-17 17:11:04 vince Exp $
+// $Id: PltApp.cpp,v 1.81 2001-04-17 23:45:40 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -109,6 +109,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     return;
   }
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+  bFileRangeButtonSet = false;
 
   int i;
 
@@ -286,6 +287,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     palFilename(palfile)
 {
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+  bFileRangeButtonSet = pltParent->bFileRangeButtonSet;
 
   pltAppState = new PltAppState(animFrames, amrData.NumDeriveFunc());
   pltAppState->SetCurrentDerived(newderived, amrData.StateNumber(newderived));
@@ -2245,6 +2247,14 @@ void PltApp::CloseContoursWindow(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
+void PltApp::DoToggleFileRangeButton(Widget w, XtPointer client_data,
+				     XtPointer call_data)
+{
+  bFileRangeButtonSet = XmToggleButtonGetState(wFileRangeCheckBox);
+}
+
+
+// -------------------------------------------------------------------
 void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   Position xpos, ypos;
   Dimension width, height;
@@ -2352,10 +2362,17 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   AddStaticCallback(wRangeRadioButton[USERMINMAX], XmNvalueChangedCallback,
 		    &PltApp::ToggleRange, (XtPointer) USERMINMAX);
   if(animating2d) {
-    wRangeRadioButton[FILEMINMAX] = XtVaCreateManagedWidget("File",
-			      xmToggleButtonWidgetClass, wSetRangeRadioBox, NULL);
-    AddStaticCallback(wRangeRadioButton[FILEMINMAX], XmNvalueChangedCallback,
-		      &PltApp::ToggleRange, (XtPointer) FILEMINMAX);
+    int i(0);
+    XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);  ++i;
+    XtSetArg(args[i], XmNleftOffset, WOFFSET);            ++i;
+    XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET); ++i;
+    XtSetArg(args[i], XmNtopWidget, wSetRangeRadioBox); ++i;
+    XtSetArg(args[i], XmNtopOffset, WOFFSET); ++i;
+    XtSetArg(args[i], XmNset, bFileRangeButtonSet); ++i;
+    wFileRangeCheckBox = XmCreateToggleButton(wSetRangeForm, "File_Range",
+			      args, i);
+    AddStaticCallback(wFileRangeCheckBox, XmNvalueChangedCallback,
+		      DoToggleFileRangeButton, NULL);
   }
     
   currentRangeType = pltAppState->GetMinMaxRangeType();
@@ -2432,6 +2449,9 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   XtManageChild(wRangeRC);
   XtManageChild(wDoneButton);
   XtManageChild(wCancelButton);
+  if(animating2d) {
+    XtManageChild(wFileRangeCheckBox);
+  }
   XtPopup(wSetRangeTopLevel, XtGrabNone);
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wSetRangeTopLevel));
   setRangeShowing = true;
@@ -3810,7 +3830,7 @@ void PltApp::ShowFrame() {
   interfaceReady = false;
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   if( ! readyFrames[currentFrame] || datasetShowing ||
-      UsingFileRange(currentRangeType)
+      UsingFileRange(currentRangeType))
   {
 #   if(BL_SPACEDIM == 2)
     AmrPicture *tempapSF = amrPicturePtrArray[ZPLANE];

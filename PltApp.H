@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.44 2001-04-16 16:41:21 vince Exp $
+// $Id: PltApp.H,v 1.45 2001-04-17 23:45:39 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -157,6 +157,7 @@ private:
   Widget wTopLevel, wAmrVisTopLevel;
   Widget wScrollArea[NPLANES], wPlotPlane[NPLANES];
   Widget wRangeRadioButton[NUMBEROFMINMAX];
+  Widget wFileRangeCheckBox;
   Widget wUserMin, wUserMax;
   Widget wWhichFileLabel, wWhichFileScale, wWhichTimeLabel;
   Widget wControlForm;
@@ -223,6 +224,8 @@ private:
   PltAppState *pltAppState;
   Display *display;
   GC xgc;
+  bool bFileRangeButtonSet;
+  void DoToggleFileRangeButton(Widget, XtPointer, XtPointer);
   
   // baggage for fast rubber banding
   GC		rbgc;
