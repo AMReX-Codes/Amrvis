@@ -130,7 +130,9 @@ void main(int argc, char *argv[]) {
       for(int nPlots = 0; nPlots < GetFileCount(); ++nPlots) {
         comlineFileName = GetComlineFilename(nPlots);
         dspArray[nPlots] = new DataServices(comlineFileName, fileType);
-        dspArray[nPlots]->IncrementNumberOfUsers();
+        if(ParallelDescriptor::IOProcessor()) {
+          dspArray[nPlots]->IncrementNumberOfUsers();
+	}
 	if( ! dspArray[nPlots]->AmrDataOk()) {
 	  bAmrDataOk = false;
 	}
@@ -150,8 +152,10 @@ void main(int argc, char *argv[]) {
             //cout << ">>>> pltAppList appending " << temp << endl;
 	  }
 	} else {
-          for(int nPlots = 0; nPlots < GetFileCount(); ++nPlots) {
-            dspArray[nPlots]->DecrementNumberOfUsers();
+          if(ParallelDescriptor::IOProcessor()) {
+            for(int nPlots = 0; nPlots < GetFileCount(); ++nPlots) {
+              dspArray[nPlots]->DecrementNumberOfUsers();
+	    }
 	  }
 	}
       }
