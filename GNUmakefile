@@ -8,6 +8,8 @@ COMP      = mpKCC
 
 COMP      = KCC
 COMP      = g++
+FCOMP	  = Intel
+FCOMP     = f77
 DEBUG     = FALSE
 DEBUG     = TRUE
 DIM       = 2
