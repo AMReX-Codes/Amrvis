@@ -115,10 +115,10 @@ private:
 	int			hColor, vColor, myColor, slice, sliceDir;
 	Array<unsigned long>   	dataSize, dataSizeH, dataSizeV;
 	unsigned int   		imageSize, imageSizeH, imageSizeV;
-	int			currentLevel;
-	aString			currentDerived;
-	bool			showBoxes;
-	int			minDrawnLevel, maxDrawnLevel, maxAllowableLevel;
+    //int			current_Level;
+        aString			currentDerived;
+        bool			showBoxes;
+        int			minDrawnLevel, maxDrawnLevel, maxAllowableLevel;
 	int			maxLevelWithGrids, maxsFound;
 	int			hdspoint, vdspoint, dsBoxSize;
 	int			datasetPointShowing, datasetPointColor;

@@ -33,15 +33,15 @@ ViewTransform::~ViewTransform() {
 
 //--------------------------------------------------------------------
 AmrQuaternion ViewTransform::Screen2Quat(int start_X, int start_Y, 
-                                         int end_X, int end_Y) {
+                                         int end_X, int end_Y, Real box_size) {
     Real xWorldStart = (Real)(start_X-screenPositionX)/
         (screenPositionX*scaleX);
     Real yWorldStart = (Real)(start_Y-screenPositionY)/
         (screenPositionY*scaleX);
     Real xWorldEnd = (Real)(end_X-screenPositionX)/(screenPositionX*scaleX);
     Real yWorldEnd = (Real)(end_Y-screenPositionY)/(screenPositionY*scaleX);
-    
-    return trackball(xWorldEnd, yWorldEnd, xWorldStart, yWorldStart);
+    return trackball(xWorldEnd/box_size, yWorldEnd/box_size,
+                     xWorldStart/box_size, yWorldStart/box_size);
 }
 
 

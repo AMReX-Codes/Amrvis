@@ -48,7 +48,7 @@ public:
     void GetTranslation(Real &tx, Real &ty, Real &tz)
 			{ tx = transX;  ty = transY;  tz = transZ; }
     
-    AmrQuaternion Screen2Quat(int, int, int, int);
+    AmrQuaternion Screen2Quat(int, int, int, int, Real);
 private:
     Real scaleX, scaleY, scaleZ, transX, transY, transZ;
     AmrQuaternion rotation, renderRotation;
@@ -60,3 +60,4 @@ private:
 ostream& operator << (ostream &, const ViewTransform &);
 
 #endif
+

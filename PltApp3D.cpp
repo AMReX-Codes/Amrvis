@@ -52,11 +52,14 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
     newRotation = viewTrans.Screen2Quat(projPicturePtr->ImageSizeH()-startX,
                                         startY,
                                         projPicturePtr->ImageSizeH()-endX,
-                                        endY);
+                                        endY,
+                                        projPicturePtr->longestBoxSide/64.);
+// this last number scales the rotations correctly
     newRotation2 = viewTrans.Screen2Quat(projPicturePtr->ImageSizeH()-startX,
                                          projPicturePtr->ImageSizeV()-startY,
                                          projPicturePtr->ImageSizeH()-endX,
-                                         projPicturePtr->ImageSizeV()-endY);
+                                         projPicturePtr->ImageSizeV()-endY,
+                                         projPicturePtr->longestBoxSide/64.);
     quatRotation = newRotation * quatRotation;
     viewTrans.SetRotation(quatRotation);
     quatRotation2 = newRotation2 * quatRotation2;

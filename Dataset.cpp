@@ -625,7 +625,6 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
       hplot = regionBox.smallEnd(HDIR) - pictureBox.smallEnd(HDIR) + xcell;
       vplot = regionBox.smallEnd(VDIR) - pictureBox.smallEnd(VDIR) +
           regionBox.length(VDIR)-1 - ycell;
-      
       int boxCoor[3];
       boxCoor[HDIR] = hplot; boxCoor[VDIR] = vplot; 
       boxCoor[DEPTHDIR] = pltAppPtr->GetAmrPicturePtr(2-DEPTHDIR)->GetSlice();
@@ -634,11 +633,21 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
       Box ourBox(boxLocation, boxLocation);
       const AmrData &amrData = dataServicesPtr->AmrDataRef();
       int finestLevel = amrData.FinestContainingLevel(ourBox, maxDrawnLevel);
-      int boxSize = CRRBetweenLevels(finestLevel, maxDrawnLevel, amrData.RefRatio());
-      hplot = hplot - fmod(hplot,boxSize);
-      vplot = vplot - fmod(vplot,boxSize) + boxSize - 1;
+      int boxSize = CRRBetweenLevels(finestLevel, 
+                                     maxAllowableLevel, 
+                                     amrData.RefRatio());
+      int baseRatio = CRRBetweenLevels(maxDrawnLevel, 
+                                       maxAllowableLevel, 
+                                       amrData.RefRatio());
+      int modBy = CRRBetweenLevels(finestLevel, 
+                                   maxDrawnLevel, 
+                                   amrData.RefRatio());
+      hplot = hplot - fmod(hplot,modBy);
+      vplot = vplot - fmod(vplot,modBy);
+      hplot *= baseRatio;   vplot *= baseRatio;
+      vplot += boxSize;
       if (datasetPoint == true)
-          amrPicturePtr->UnDrawDatasetPoint();//if box already drawns...
+          amrPicturePtr->UnDrawDatasetPoint();//box if already drawns...
       else
           datasetPoint = true; //if we just started...
       amrPicturePtr->DrawDatasetPoint(hplot, vplot, boxSize);

@@ -108,6 +108,8 @@ public:
     int ImageSizeV() const { return daHeight; }
     void ChangeSlice(int Dir, int newSlice);
 
+    Real longestBoxSide;
+
 private:
     enum { NVERTICIES = 8 };
     
@@ -139,7 +141,6 @@ private:
     char buffer[BUFSIZ];
     PltApp *pltAppPtr;
     Real scale[3], aspect, lenRatio, vpLen;
-    Real longestBoxSide;
     Real longestWindowLength, shortestWindowLength;
     int		longestBoxSideDir;
     int		nDenRampPts, nGradRampPts, nShadeRampPts;
@@ -162,6 +163,3 @@ private:
 };
 
 #endif
-
-
-

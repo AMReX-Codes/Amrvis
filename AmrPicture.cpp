@@ -1214,13 +1214,17 @@ void AmrPicture::ShowFrameImage(int iSlice) {
   }
 
 # if (BL_SPACEDIM == 3)
-  for(int nP = 0; nP < 3; nP++)
-      pltAppPtr->GetProjPicturePtr()->
-          ChangeSlice(nP, pltAppPtr->GetAmrPicturePtr(nP)->GetSlice());
-  pltAppPtr->GetProjPicturePtr()->MakeSlices();
-  XClearWindow(XtDisplay(pltAppPtr->GetWTransDA()), 
-               XtWindow(pltAppPtr->GetWTransDA()));
-  pltAppPtr->DoExposeTransDA();
+  if (framesMade) {
+      for(int nP = 0; nP < 3; nP++)
+          pltAppPtr->GetProjPicturePtr()->
+              ChangeSlice(nP, pltAppPtr->GetAmrPicturePtr(nP)->GetSlice());
+      pltAppPtr->GetProjPicturePtr()->MakeSlices();
+      XClearWindow(XtDisplay(pltAppPtr->GetWTransDA()), 
+                   XtWindow(pltAppPtr->GetWTransDA()));
+      pltAppPtr->DoExposeTransDA();
+  } else {
+      //do some rubberbanding
+  }
 # endif
 
   pltAppPtr->DoExposeRef();
