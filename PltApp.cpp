@@ -237,8 +237,9 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 					    parentPtr, pltParent,
                                             this);
   }
+# if (BL_SPACE_DIM == 3)
   SetHVLine(amrPicturePtrArray);
-
+# endif
   ivLowOffsetMAL = offset;
   currentDerived = newderived;
   PltAppInit();
