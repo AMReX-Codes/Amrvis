@@ -250,8 +250,8 @@ void AmrPicture::AmrPictureInit() {
     scaledImageData[iLevel] = NULL;
   }
   for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
-    imageData[iLevel]       = new unsigned char[dataSize[iLevel]];
-    scaledImageData[iLevel] = new unsigned char[imageSize];
+    imageData[iLevel] = new unsigned char[dataSize[iLevel]];
+    scaledImageData[iLevel] = (unsigned char *)malloc(imageSize);
   }
 
   pendingTimeOut = 0;
@@ -300,19 +300,19 @@ void AmrPicture::SetHVLine() {
 
 // ---------------------------------------------------------------------
 AmrPicture::~AmrPicture() {
-  int iLevel;
   if(framesMade) {
-    for(iLevel = minDrawnLevel;
-        iLevel < subDomain[maxAllowableLevel].length(sliceDir); ++iLevel)
+    for(int iSlice = 0;
+        iSlice < subDomain[maxAllowableLevel].length(sliceDir); ++iSlice)
+      {
+        XDestroyImage(frameBuffer[iSlice]);
+      }
+  }
+  for(int iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) 
     {
-      XDestroyImage(frameBuffer[iLevel]);
+      delete [] imageData[iLevel];
+      free(scaledImageData[iLevel]);
+      delete sliceFab[iLevel];
     }
-  }
-  for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
-    delete [] imageData[iLevel];
-    delete [] scaledImageData[iLevel];
-    delete sliceFab[iLevel];
-  }
 
   if(pixMapCreated) {
     XFreePixmap(GAptr->PDisplay(), pixMap);
@@ -666,7 +666,13 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
   }
 
   if( ! maxsFound) {
-    framesMade = false;
+    if (framesMade) {
+      for(int i=0;i<subDomain[maxAllowableLevel].length(sliceDir);++i)
+        {
+          XDestroyImage(frameBuffer[i]);
+        }
+      framesMade = false;
+    }
     if(pendingTimeOut != 0) {
       DoStop();
     }
@@ -893,7 +899,13 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 // ---------------------------------------------------------------------
 void AmrPicture::ChangeScale(int newScale) { 
   int iLevel;
-  framesMade = false;
+  if (framesMade) {
+    for(int i=0;i<subDomain[maxAllowableLevel].length(sliceDir);++i)
+      {
+        XDestroyImage(frameBuffer[i]);
+      }
+    framesMade = false;
+  }
   if(pendingTimeOut != 0) {
     DoStop();
   }
@@ -917,8 +929,8 @@ void AmrPicture::ChangeScale(int newScale) {
 
   AmrData &amrData = dataServicesPtr->AmrDataRef();
   for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
-    delete [] scaledImageData[iLevel];
-    scaledImageData[iLevel] = new unsigned char[imageSize];
+    free(scaledImageData[iLevel]);
+    scaledImageData[iLevel] = (unsigned char *)malloc(imageSize);
     //if(xImageCreated[iLevel]) {
       //XDestroyImage(xImageArray[iLevel]);
       //xImageCreated[iLevel] = false;
@@ -941,7 +953,13 @@ void AmrPicture::ChangeScale(int newScale) {
 void AmrPicture::ChangeLevel(int lowLevel, int hiLevel) { 
   minDrawnLevel = lowLevel;
   maxDrawnLevel = hiLevel;
-  framesMade = false;
+  if (framesMade) {
+    for(int i=0;i<subDomain[maxAllowableLevel].length(sliceDir);++i)
+      {
+        XDestroyImage(frameBuffer[i]);
+      }
+    framesMade = false;
+  }
   if(pendingTimeOut != 0) {
     DoStop();
   }
@@ -1029,7 +1047,7 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
   frameGrids.resize(length); 
   frameBuffer.resize(length);
   unsigned char *frameImageData = new unsigned char[dataSize[maxDrawnLevel]];
-
+  int iEnd;
   for(i = 0; i < length; ++i) {
     islice = (((slice - start + (posneg * i)) + length) % length);
 			          // ^^^^^^^^ + length for negative values
@@ -1080,13 +1098,13 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
                 minUsing, maxUsing, palPtr);
 
     // this cannot be deleted because it belongs to the XImage
-    unsigned char *frameScaledImageData = new unsigned char[imageSize];
+    unsigned char *frameScaledImageData;
+    frameScaledImageData = (unsigned char *)malloc(imageSize);
     CreateScaledImage(&(frameBuffer[islice]), pltAppPtr->CurrentScale() *
            CRRBetweenLevels(maxDrawnLevel, maxAllowableLevel, amrData.RefRatio()),
            frameImageData, frameScaledImageData,
            dataSizeH[maxDrawnLevel], dataSizeV[maxDrawnLevel],
            imageSizeH, imageSizeV);
-
     ShowFrameImage(islice);
 #   if (BL_SPACEDIM == 3)
     
@@ -1102,6 +1120,7 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
         if(event.xany.window == XtWindow(pltAppPtr->GetStopButtonWidget())) {
             XPutBackEvent(GAptr->PDisplay(), &event);
             cancelled = true;
+            iEnd = i;
             break;
 	}
     }
@@ -1111,6 +1130,11 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
   delete [] frameImageData;
 
   if(cancelled) {
+    for(int i=0;i<=iEnd;++i)
+      {
+        int iDestroySlice=(((slice - start + (posneg * i)) + length) % length);
+        XDestroyImage(frameBuffer[iDestroySlice]);
+      }
     framesMade = false;
     sprintf(buffer, "Cancelled.\n"); 
     PrintMessage(buffer);
@@ -1153,6 +1177,7 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
     PrintMessage(buffer);
   }
   DoExposePicture();
+
 }  // end CreateFrames
 
 
@@ -1365,7 +1390,13 @@ Real AmrPicture::GetWhichMax() {
 // ---------------------------------------------------------------------
 void AmrPicture::SetWhichRange(Range newRange) {
   whichRange = newRange;
-  framesMade = false;
+  if (framesMade) {
+    for(int i=0;i<subDomain[maxAllowableLevel].length(sliceDir);++i)
+      {
+        XDestroyImage(frameBuffer[i]);
+      }
+    framesMade = false;
+  }
   DoStop();
 }
 
@@ -1632,8 +1663,7 @@ int AmrPicture::contour(const FArrayBox &fab, Real value,
   return failure_status;
 }
 
-
-/* 
+/*
 void AmrPicture::DrawVectorField(const ContFrame& r, Real time)
 {
   int lev, i, j;
@@ -1695,8 +1725,7 @@ void AmrPicture::DrawVectorField(const ContFrame& r, Real time)
   if (smax < 1.0e-8) {
     cout << "CONTOUR: zero velocity field" << endl;
   } else {
-  */   
-    // set color of vectors
+  */  // set color of vectors
     /*
       const Real* dx0 = amrptr->Geom(0).CellSize();
       int  percent = 10;
@@ -1791,6 +1820,5 @@ void AmrPicture::DrawVectorField(const ContFrame& r, Real time)
   
 }
 */
-
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
