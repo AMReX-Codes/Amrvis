@@ -2045,7 +2045,7 @@ void XYPlotWin::AddStaticWMCallback(Widget w, Atom cbtype, memberXYCB cbf,
 void XYPlotWin::AddStaticEventHandler(Widget w, EventMask mask,
 				      memberXYCB cbf, void *data) {
   XYCBData *cbs = new XYCBData(this, data, cbf);
-  XtAddEventHandler(w, mask, false, &XYPlotWin::StaticEvent,
+  XtAddEventHandler(w, mask, false, (XtEventHandler) &XYPlotWin::StaticEvent,
 		    (XtPointer) cbs);
 }
 

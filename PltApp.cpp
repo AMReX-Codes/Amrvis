@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.cpp,v 1.59 2000-04-04 00:18:23 vince Exp $
+// $Id: PltApp.cpp,v 1.60 2000-04-19 20:43:08 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -3666,7 +3666,7 @@ void PltApp::AddStaticCallback(Widget w, String cbtype, memberCB cbf, void *d) {
 void PltApp::AddStaticEventHandler(Widget w, EventMask mask, memberCB cbf, void *d)
 {
   CBData *cbs = new CBData(this, d, cbf);
-  XtAddEventHandler(w, mask, false, &PltApp::StaticEvent, (XtPointer) cbs);
+  XtAddEventHandler(w, mask, false, (XtEventHandler) &PltApp::StaticEvent, (XtPointer) cbs);
 }
  
  
