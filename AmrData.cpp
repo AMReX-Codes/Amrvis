@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.cpp,v 1.39 2000-04-04 00:18:22 vince Exp $
+// $Id: AmrData.cpp,v 1.40 2000-04-19 18:15:40 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1615,6 +1615,16 @@ bool AmrData::MinMax(const Box &onBox, const aString &derived, int level,
       Real visMFMax(visMF[level][whichVisMF]->max(gpli.index(),
 		    whichVisMFComponent));
 #ifdef BL_ALWAYS_FIX_DENORMALS
+# if defined(BL_T3E)
+      int dsFpClassMin(DS_FP_CLASS(visMFMin));
+      if(dsFpClassMin == FP_SUBNORMAL) {
+	visMFMin = 0.0;
+      }
+      int dsFpClassMax(DS_FP_CLASS(visMFMax));
+      if(dsFpClassMax == FP_SUBNORMAL) {
+	visMFMax = 0.0;
+      }
+# else
       int dsFpClassMin(DS_FP_CLASS(visMFMin));
       if(dsFpClassMin == FP_POS_DENORM || dsFpClassMin == FP_NEG_DENORM) {
 	visMFMin = 0.0;
@@ -1623,6 +1633,7 @@ bool AmrData::MinMax(const Box &onBox, const aString &derived, int level,
       if(dsFpClassMax == FP_POS_DENORM || dsFpClassMax == FP_NEG_DENORM) {
 	visMFMax = 0.0;
       }
+# endif
 #endif
       if(onBox.contains(gpli.validbox())) {
         dataMin = Min(dataMin, visMFMin);
