@@ -1,0 +1,52 @@
+CEXE_headers += AmrPicture.H AmrData.H AmrvisConstants.H \
+                DataServices.H Dataset.H \
+		GlobalUtilities.H GraphicsAttributes.H \
+                GridPicture.H MessageArea.H \
+                Palette.H PltApp.H Output.H VolRender.H
+
+CEXE_sources += AmrPicture.cpp AmrData.cpp AmrVisTool.cpp \
+                DataServices.cpp Dataset.cpp \
+		GraphicsAttributes.cpp GridPicture.cpp \
+                MessageArea.cpp PltApp.cpp \
+                GlobalUtilities.cpp Palette.cpp PltAppOutput.cpp \
+		Output.cpp VolRender.cpp
+
+
+ifeq ($(DIM),3)
+	CEXE_sources += ProjectionPicture.cpp ViewTransform.cpp PltApp3D.cpp
+endif
+
+FEXE_sources += FABUTIL_$(DIM)D.F
+
+ifeq ($(USE_BSP), TRUE)
+CEXE_sources += preload.cpp
+endif
+
+BOXLIB_BASE=EXE
+
+C$(BOXLIB_BASE)_headers += BoxLib.H BLVERSION.H
+C$(BOXLIB_BASE)_headers += ParmParse.H Utility.H Assert.H aString.H
+C$(BOXLIB_BASE)_headers += DistributionMapping.H ParallelDescriptor.H
+C$(BOXLIB_BASE)_headers += ArrayLim.H REAL.H Boolean.H
+C$(BOXLIB_BASE)_headers += CONSTANTS.H SPACE.H SPACE_F.H VisMF.H
+C$(BOXLIB_BASE)_headers += BArena.H Arena.H UseCount.H FabConv.H FPC.H
+C$(BOXLIB_BASE)_headers += Box.H IntVect.H IndexType.H Orientation.H
+C$(BOXLIB_BASE)_headers += BoxList.H BoxArray.H BoxDomain.H
+C$(BOXLIB_BASE)_headers += BoxAssoc.H FArrayBox.H Looping.H MultiFab.H
+C$(BOXLIB_BASE)_headers += RunStats.H
+
+C$(BOXLIB_BASE)_sources += ParmParse.cpp Utility.cpp aString.cpp BArena.cpp
+C$(BOXLIB_BASE)_sources += DistributionMapping.cpp ParallelDescriptor.cpp
+C${BOXLIB_BASE}_sources += FabConv.cpp FPC.cpp BoxLib.cpp VisMF.cpp
+C$(BOXLIB_BASE)_sources += Box.cpp IntVect.cpp IndexType.cpp Orientation.cpp
+C$(BOXLIB_BASE)_sources += BoxList.cpp BoxArray.cpp BoxDomain.cpp
+C$(BOXLIB_BASE)_sources += BoxAssoc.cpp FArrayBox.cpp MultiFab.cpp
+C$(BOXLIB_BASE)_sources += RunStats.cpp
+
+T_headers += Array.H PArray.H List.H Pointers.H Misc.H Tuple.H
+T_headers += BaseFab.H ArithFab.H OrderedFab.H NormedFab.H FabArray.H
+
+ifeq ($(USE_ARRAYVIEW),TRUE)
+CEXE_sources += DatasetClient.cpp
+endif
+

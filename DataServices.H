@@ -1,0 +1,120 @@
+// -------------------------------------------------------------------
+// DataServices.H
+// -------------------------------------------------------------------
+#ifndef _DATASERVICES_H_
+#define _DATASERVICES_H_
+
+#include "Array.H"
+#include "aString.H"
+#include "AmrData.H"
+
+//#include <cstdarg>
+#include <stdarg.h>
+
+
+
+class DataServices {
+
+  public:
+
+    enum DSRequestType {
+      InvalidRequestType = 0,
+      ExitRequest,
+      NewRequest,
+      FillVarOneFab,
+      FillVarArrayOfFabs,
+      WriteFabOneVar,
+      WriteFabAllVars,
+      DumpSlicePlaneOneVar,
+      DumpSlicePlaneAllVars,
+      DumpSliceBoxOneVar,
+      DumpSliceBoxAllVars,
+      MinMaxRequest,
+      PointValueRequest
+    };
+
+    DataServices(const aString &filename, const FileType &filetype);
+    ~DataServices();
+
+    static void Dispatch(DSRequestType requestType, DataServices *ds, ...);
+
+
+  private:
+
+    // Dispatchable functions
+
+      // FillVarOneFab
+      bool FillVar(FArrayBox *destFab, const Box &destBox,
+                   int finestFillLevel, const aString &varname,
+                   int procWithFab);
+
+      // FillVarArrayOfFabs
+      //FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
+              //int finestFillLevel, const aString &varname,
+              //int procWithFab);
+
+      // WriteFabOneVar:  write a single variable to one fab
+      bool WriteFab(const aString &fabfilename, const Box &region, int lev,
+                    const aString &varname);
+
+      // WriteFabAllVars:  write all vars in one fab
+      bool WriteFab(const aString &fabfilename, const Box &region, int lev);
+
+      // DumpSlicePlaneOneVar
+      bool DumpSlice(int slicedir, int slicenum, const aString &varname);
+
+      // DumpSlicePlaneAllVars
+      bool DumpSlice(int slicedir, int slicenum);
+
+      // DumpSliceBoxOneVar
+      bool DumpSlice(const Box &slicebox, const aString &varname);
+
+      // DumpSliceBoxAllVars
+      bool DumpSlice(const Box &slicebox);
+
+      // create a new plot file with the given components
+      // bool ExtractComponent(const aString &newPlotFileName,
+			       //const Array<aString> &varNames,
+			       // int finestLevel);
+
+      // MinMaxRequest
+      bool MinMax(const Box &onBox, const aString &derived, int level,
+                  Real &dataMin, Real &dataMax, bool &minMaxValid);
+
+      // PointValueRequest
+      bool PointValue(Array<Box> &pointBox, int &intersectLevel,
+                      Box &intersectGrid, aString &dataValue,
+                      int coarseLevel, int fineLevel,
+                      const aString &currentDerived, aString formatString);
+
+
+  public:
+
+    // information functions
+    const aString &GetFileName() const { return fileName; }
+    FileType GetFileType()       const { return fileType; }
+    bool CanDerive(const aString &name) const;
+    int  NumDeriveFunc() const;
+    void ListDeriveFunc(ostream &os) const;
+    const Array<aString> &PlotVarNames() const { return amrData.PlotVarNames(); }
+    AmrData &AmrDataRef() { return amrData; }
+
+    // other functions
+    int GetNumberOfUsers() const  { return numberOfUsers; }
+    void IncrementNumberOfUsers() { ++numberOfUsers; }
+    void DecrementNumberOfUsers() { --numberOfUsers; }
+
+
+  private:
+    const aString  fileName;
+    const FileType fileType;
+    AmrData amrData;
+    bool bAmrDataOk;
+    int dsArrayIndex;
+    int numberOfUsers;
+
+    static Array<DataServices *> dsArray;
+    static int dsArrayIndexCounter;
+};
+
+#endif

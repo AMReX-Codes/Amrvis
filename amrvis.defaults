@@ -1,0 +1,13 @@
+palette               grayscale
+palette               Palette
+initialderived        density
+initialscale          1
+numberformat          %8.5f
+maxpixmapsize         200000
+reservesystemcolors   24
+showboxes             TRUE
+windowheight          650
+windowwidth           700
+filetype              newplt
+fabordering           alpha
+fabordering           sgi
