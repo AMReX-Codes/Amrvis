@@ -1206,6 +1206,11 @@ void PltApp::PltAppInit() {
     daHeight = height;
     projPicturePtr = new ProjectionPicture(this, &viewTrans,
 				   wTransDA, daWidth, daHeight);
+    //set the slices on the new isoview
+    //for ( int ii = 0; ii<3 ; ii++) 
+    //    projPicturePtr->ChangeSlice(amrPicturePtrArray[ii]->GetSlice(), ii);
+    //projPicturePtr->MakeSlices();
+  
 #endif
     for(np = 0; np < NPLANES; np++) {
         amrPicturePtrArray[np]->CreatePicture(XtWindow(wPlotPlane[np]),

@@ -69,13 +69,13 @@ void ViewTransform::Print()const {
 }
 
 // -------------------------------------------------------------------
-void ViewTransform::MakeTransform() {
+void ViewTransform::MakeTransform() {//ugh  full of hacks
   rotation.tomatrix(mRotation);
-  mRotation[0][3] = transX*0.2;
-  mRotation[1][3] = transY*0.2;
+  mRotation[0][3] = transX*0.2/sqrt(scale);
+  mRotation[1][3] = transY*0.2/sqrt(scale);
   renderRotation.tomatrix(mRenderRotation);
-  mRenderRotation[0][3] = transX*0.003;
-  mRenderRotation[1][3] = -transY*0.003;
+  mRenderRotation[0][3] = transX*0.003/scale;
+  mRenderRotation[1][3] = -transY*0.003/scale;
 }
 
 // -------------------------------------------------------------------

@@ -469,7 +469,8 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
         temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
         temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
 
-        double dBoxSize = pow(2., maxDrawnLevel-level);
+        double dBoxSize = //pow(2., maxDrawnLevel-level);
+            CRRBetweenLevels(level, maxDrawnLevel, amrData.RefRatio());
         int boxSize = (ceil(dBoxSize)-dBoxSize >= 0.5? 
                        floor(dBoxSize): ceil(dBoxSize));
         int vStartPos=fmod(datasetRegion[maxDrawnLevel].bigEnd(vDIR)+1, boxSize);
@@ -915,7 +916,8 @@ void Dataset::DrawIndices() {
        temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
        temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR));
 
-       double dBoxSize = pow(2., maxDrawnLevel-level);
+       double dBoxSize = //pow(2., maxDrawnLevel-level);
+            CRRBetweenLevels(level, maxDrawnLevel, amrData.RefRatio());
        int boxSize = (ceil(dBoxSize)-dBoxSize >= 0.5? 
                       floor(dBoxSize): ceil(dBoxSize));
 
