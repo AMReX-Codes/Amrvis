@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------
-// Output.C
+// Output.cpp
 // -------------------------------------------------------------------
 #include "Output.H"
 #include <fstream.h>
@@ -115,14 +115,13 @@ void WritePSPaletteFile(char *filename, XImage *image,
     fout << dec;
     fout << "grestore"  << '\n';
     fout << "0 setgray" << '\n';
-    fout << "30 0"      << '\n';
-    fout << "120 280"   << '\n';
+    fout << "24 0"      << '\n';
+    fout << "120 " << imagesizevert-1 << '\n';
     fout << "rectfill"  << '\n';
     int paletteHeight(216);
     int topOfPalette(256);
     double pSpacing((double) paletteHeight / (double) (palValueList.length() - 1));
     int palSpacing(ceil(pSpacing) + 1);
-//( (pSpacing-floor(pSpacing)) >= 0.5 ? ceil(pSpacing) : floor(pSpacing));
     fout << "/Palatino-Roman findfont" << '\n' << "20 scalefont"
         << '\n' << "setfont\n1 setgray" << '\n';
     for (int j = 0; j < palValueList.length() ; ++j) {
@@ -178,7 +177,7 @@ IMAGE *iopen(char *file, unsigned int type, unsigned int dim,
              unsigned int xsize, unsigned int ysize, unsigned int zsize)
 {
   IMAGE  *image;
-  int fdesc = 0;
+  int fdesc(0);
 
   image = new IMAGE;
   fdesc = creat(file, 0666);
@@ -191,10 +190,10 @@ IMAGE *iopen(char *file, unsigned int type, unsigned int dim,
   image->xsize = xsize;
   image->ysize = 1;
   image->zsize = 1;
-  if(dim>1) {
+  if(dim > 1) {
     image->ysize = ysize;
   }
-  if(dim>2) {
+  if(dim > 2) {
     image->zsize = zsize;
   }
   if(image->zsize == 1) {
@@ -232,20 +231,20 @@ IMAGE *iopen(char *file, unsigned int type, unsigned int dim,
 
 //----------------------------------------------------------------
 int putrow(IMAGE *image, unsigned short *buffer, unsigned int y, unsigned int z) {
-    unsigned short     *sptr;
-    unsigned char      *cptr;
+    unsigned short *sptr;
+    unsigned char  *cptr;
     unsigned int x;
     unsigned long min, max;
     long cnt;
 
-    if( !(image->flags & (_IORW|_IOWRT)) ) {
+    if( ! (image->flags & (_IORW|_IOWRT)) ) {
       cerr << "Error 1 in putrow." << endl;
       return -1;
     }
-    if(image->dim<3) {
+    if(image->dim < 3) {
         z = 0;
     }
-    if(image->dim<2) {
+    if(image->dim < 2) {
         y = 0;
     }
     if(ISVERBATIM(image->type)) {
@@ -300,7 +299,7 @@ int img_optseek(IMAGE *image, unsigned long offset) {
 
 // -------------------------------------------------------------
 int img_seek(IMAGE *image, unsigned int y, unsigned int z) {
-    if(y>=image->ysize || z>=image->zsize) {
+    if(y >= image->ysize || z >= image->zsize) {
       cerr << "img_seek: row number out of range" << endl;
       return EOF;
     }
@@ -389,7 +388,7 @@ void cvtlongs(long buffer[], long n) {
     long nlongs = n>>2;
     unsigned long lwrd;
 
-    for(i=0; i<nlongs; i++) {
+    for(i = 0; i < nlongs; ++i) {
         lwrd = buffer[i];
         buffer[i] =     ((lwrd>>24)             |
                         (lwrd>>8 & 0xff00)      |
@@ -405,7 +404,7 @@ void cvtshorts(unsigned short buffer[], long n) {
     long nshorts = n>>1;
     unsigned short swrd;
 
-    for(i=0; i<nshorts; i++) {
+    for(i = 0; i < nshorts; ++i) {
         swrd = *buffer;
         *buffer++ = (swrd>>8) | (swrd<<8);
     }

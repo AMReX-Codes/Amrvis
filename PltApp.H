@@ -30,7 +30,6 @@
 #endif
 
 #include "DataServices.H"
-//class DataServices;
 
 // plane sweep widget controls (WC)
 const int WCSTOP = 0;
@@ -62,10 +61,10 @@ typedef void (PltApp::*memberCB)(Widget, XtPointer, XtPointer);
 
 class PltApp {
     
-private:
+  private:
     PltApp();  // not defined
     
-public:
+  public:
     // created when opening a new file
     PltApp(XtAppContext, Widget, const aString &filename, 
            const Array<DataServices *> &dataservicesptr, bool isAnim);
@@ -110,34 +109,33 @@ public:
     void DoAttach(Widget, XtPointer, XtPointer);
     void DoDetach(Widget, XtPointer, XtPointer);
     void Clear();
-    ProjectionPicture *GetProjPicturePtr() { return projPicturePtr; }
+    ProjectionPicture *GetProjPicturePtr() const { return projPicturePtr; }
 #endif
     
     
-    void		DoUpdateFrame();
-    void		DoSpeedScale(XmScaleCallbackStruct *);
-    void		DoQuitButton(Widget, XtPointer, XtPointer);
-    void		DoChangeScale(int view);
-    void		DoChangeLevel(int, Widget, XtPointer, XtPointer);
-    void		DoChangeDerived(int, Widget, XtPointer, XtPointer);
-    void		DoDatasetButton(Widget, XtPointer, XtPointer);
-    void		DoPaletteButton(Widget, XtPointer, XtPointer);
-    void		DoSetRangeButton(Widget, XtPointer, XtPointer);
-    void		DoDoneSetRange(Widget, XtPointer, XtPointer);
-    void		DoCancelSetRange(Widget, XtPointer, XtPointer);
-    void		DoUserMin(Widget, XtPointer, XtPointer);
-    void		DoUserMax(Widget, XtPointer, XtPointer);
-    void		DoToggleRange(Widget, Range,
-                                      XmToggleButtonCallbackStruct *);
-    void		DoOpenPalFile(Widget, XtPointer, XtPointer);
-    void		DoSubregion(Widget, XtPointer, XtPointer);
-    void		DoOutput(Widget, XtPointer, XtPointer);
-    void		DoCreatePSFile(Widget, XtPointer, XtPointer);
-    void		DoCreateRGBFile(Widget, XtPointer, XtPointer);
-    void		DoCreateFABFile(Widget, XtPointer, XtPointer);
-    void		DoCreateAnimRGBFile();
-    void		QuitDataset();
-    void		DoExposeRef(); // RefArea (axis pictures) 
+    void DoUpdateFrame();
+    void DoSpeedScale(XmScaleCallbackStruct *);
+    void DoQuitButton(Widget, XtPointer, XtPointer);
+    void DoChangeScale(int view);
+    void DoChangeLevel(int, Widget, XtPointer, XtPointer);
+    void DoChangeDerived(int, Widget, XtPointer, XtPointer);
+    void DoDatasetButton(Widget, XtPointer, XtPointer);
+    void DoPaletteButton(Widget, XtPointer, XtPointer);
+    void DoSetRangeButton(Widget, XtPointer, XtPointer);
+    void DoDoneSetRange(Widget, XtPointer, XtPointer);
+    void DoCancelSetRange(Widget, XtPointer, XtPointer);
+    void DoUserMin(Widget, XtPointer, XtPointer);
+    void DoUserMax(Widget, XtPointer, XtPointer);
+    void DoToggleRange(Widget, Range, XmToggleButtonCallbackStruct *);
+    void DoOpenPalFile(Widget, XtPointer, XtPointer);
+    void DoSubregion(Widget, XtPointer, XtPointer);
+    void DoOutput(Widget, XtPointer, XtPointer);
+    void DoCreatePSFile(Widget, XtPointer, XtPointer);
+    void DoCreateRGBFile(Widget, XtPointer, XtPointer);
+    void DoCreateFABFile(Widget, XtPointer, XtPointer);
+    void DoCreateAnimRGBFile();
+    void QuitDataset();
+    void DoExposeRef(); // RefArea (axis pictures) 
     
     static void DoChangePlane(XtPointer, XtIntervalId *);
     static void SetDefaultPalette(const aString &palString);
@@ -153,13 +151,12 @@ public:
     static void SetInitialWindowWidth(int initWindowWidth);
     static void SetReserveSystemColors(int reservesystemcolors);
     
-    Widget WId()                     { return wAmrVisTopLevel; }
-    Widget GetWTransDA() { return wTransDA; }
-    aString GetFormatString() const  { return formatString; }
+    Widget WId() const               { return wAmrVisTopLevel; }
+    Widget GetWTransDA() const       { return wTransDA; }
+    const aString &GetFormatString() const  { return formatString; }
     void SetFormatString(aString str) { formatString = str; }
-    AmrPicture *GetAmrPicturePtr(int plane)
-    { return amrPicturePtrArray[plane]; }
-    Palette *GetPalettePtr()         { return pltPaletteptr; }
+    AmrPicture *GetAmrPicturePtr(int plane) { return amrPicturePtrArray[plane]; }
+    Palette *GetPalettePtr() const   { return pltPaletteptr; }
     DataServices *GetDataServicesPtr() { return dataServicesPtr[currentFrame]; }
     Array<DataServices *> &GetDataServicesPtrArray()
     { return dataServicesPtr; }

@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------
-// PltAppOutput.C 
+// PltAppOutput.cpp
 // -------------------------------------------------------------------
 #include "PltApp.H"
 #include "Output.H"
@@ -267,15 +267,6 @@ void PltApp::DoCreateAnimRGBFile() {
   imageSizeY = amrPicturePtrArray[ZPLANE]->ImageSizeV();
   WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, colors);
 }  // end DoCreateAnimRGBFile
-
-
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
-
-
-
-
-
-
-
 

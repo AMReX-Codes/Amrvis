@@ -241,9 +241,6 @@ void CreateMainWindow(int argc, char *argv[]) {
 
 #else
 
-  //String fallbacks[] = {"*fontList:7x13=charset", "*background:0",
-			//"*foreground:white", "*bottomShadowColor:gray16",
-			//"*topShadowColor:gray12", NULL };
 #if (BL_SPACEDIM == 2)
   String fallbacks[] = {"*fontList:7x13=charset", "*background:black",
 			"*foreground:white", "*bottomShadowColor:yellow",
@@ -251,9 +248,7 @@ void CreateMainWindow(int argc, char *argv[]) {
 #endif
 #if (BL_SPACEDIM == 3)
   String fallbacks[] = {"*fontList:7x13=charset",
-			//"*background:tomato",
-			//"*foreground:orange",
-			"*bottomShadowColor:yellow",
+			"*bottomShadowColor:black",
 			"*topShadowColor:gray",
 			NULL };
 #endif
@@ -265,15 +260,13 @@ void CreateMainWindow(int argc, char *argv[]) {
                                 (int *) &argc, argv, fallbacks,
 			XmNx,		350,
 			XmNy,		10,
-                                XmNwidth,	500,
+                        XmNwidth,	500,
 			XmNheight,	150,
 			NULL);
   
   GraphicsAttributes *TheGAptr = new GraphicsAttributes(wTopLevel);
   if(TheGAptr->PVisual() != XDefaultVisual(TheGAptr->PDisplay(), 
                                         TheGAptr->PScreenNumber() ) ){
-      //cout<<"Setting visualid to 0x"<<hex
-      //    <<TheGAptr->PVisual()->visualid<<dec<<"in main window"<<endl;
       Colormap colormap = XCreateColormap(TheGAptr->PDisplay(), 
                                           RootWindow(TheGAptr->PDisplay(),
                                                      TheGAptr->PScreenNumber()),

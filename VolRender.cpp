@@ -13,8 +13,6 @@
 extern Real RadToDeg(Real angle);
 extern Real DegToRad(Real angle);
 
-#define VOLUMEBOXES 0
-//#define VOLUMEBOXES 1
 
 // -------------------------------------------------------------------
 VolRender::VolRender()
@@ -150,9 +148,6 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
 			    int iColorSlots)
 {
   assert(bVolRenderDefined);
-#if (VOLUMEBOXES)
-  ParallelDescriptor::Abort("VOLUMEBOXES not implemented in parallel.");
-#endif
   
   if(swfDataValid) {
     return;
@@ -212,9 +207,7 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
     int sendp   = swfDataBox.bigEnd(ZDIR);
     
     Box gbox(swfDataBox);
-    Box goverlap = gbox & drawnDomain[maxDrawnLevel];
-    //grefbox = goverlap;
-    //grefbox.refine(crr);
+    Box goverlap(gbox & drawnDomain[maxDrawnLevel]);
     
     int gstartr = gbox.smallEnd(XDIR);
     int gstartc = gbox.smallEnd(YDIR);
@@ -316,16 +309,12 @@ void VolRender::MakeSWFDataOneProc(DataServices *dataServicesPtr,
       int sendc   = swfDataBox.bigEnd(YDIR);
       int sendp   = swfDataBox.bigEnd(ZDIR);
 
-      //int blackIndex = iBlackIndex;
       int colorSlots = iColorSlots;
       int paletteStart = iPaletteStart;
-      //paletteEnd   = iPaletteEnd;
-      //bodyColor = blackIndex;
       int cSlotsAvail = colorSlots - 1;
 
       cout << "Filling swfFabData..." << endl;
 
-#if ( ! VOLUMEBOXES)
       for(lev = minDrawnLevel; lev <= maxDrawnLevel; lev++) {
         crr = CRRBetweenLevels(lev, maxDrawnLevel, amrData.RefRatio());
 
@@ -439,8 +428,6 @@ void VolRender::MakeSWFDataOneProc(DataServices *dataServicesPtr,
 
         }  // end while(gpli)
       }  // end for(lev...)
-#endif
-
 
       cout << "--------------- make swfData time = "
            << ((clock()-time0)/1000000.0) << endl;
@@ -503,29 +490,36 @@ void VolRender::InvalidateVPData() {
   vpDataValid = false;
 }
 
+
+// -------------------------------------------------------------------
 void VolRender::SetLightingModel(bool lightOn) {
-  if (lightingModel == lightOn) return;
+  if(lightingModel == lightOn) {
+    return;
+  }
   lightingModel = lightOn;
-  if (lightingModel == true) {
-    vpSetVoxelField(vpc,  normalField, normalSize, normalOffset,
-                    maxShadeRampPts-1);
+  if(lightingModel == true) {
+    vpSetVoxelField(vpc, normalField, normalSize, normalOffset, maxShadeRampPts-1);
   } else {
-    vpSetVoxelField(vpc,  normalField, normalSize, normalOffset,
-                    paletteSize-1);
+    vpSetVoxelField(vpc, normalField, normalSize, normalOffset, paletteSize-1);
   }
 }
 
-void VolRender::SetPreClassifyAlgorithm(bool pC)
-{
+
+// -------------------------------------------------------------------
+void VolRender::SetPreClassifyAlgorithm(bool pC) {
   preClassify = pC;
 }
 
+
+// -------------------------------------------------------------------
 void VolRender::SetImage(unsigned char *image_data, int width, int height,
                          int pixel_type)
 {
     vpSetImage(vpc, image_data, width, height, width, pixel_type);
 }
 
+
+// -------------------------------------------------------------------
 void VolRender::MakePicture(Real mvmat[4][4], Real Length,
                             int width, int height)
 {
@@ -568,7 +562,6 @@ void VolRender::MakePicture(Real mvmat[4][4], Real Length,
 void VolRender::MakeVPData() {
   assert(bVolRenderDefined);
   if(ParallelDescriptor::IOProcessor()) {
-    //cout << "_in MakeVPData()" << endl;
     clock_t time0 = clock();
     
     vpDataValid = true;
@@ -585,19 +578,14 @@ void VolRender::MakeVPData() {
         // the classification and loading of the value model
         delete [] volData;
         volData = new RawVoxel[swfDataSize]; // volpack will delete this
-        // there is a memory leak with volData if vpDestroyContext is not called
-        //hmmm -- I have deleted volData, so this comment is old.
-
-        //cout << endl << "********** volData = " << volData << endl << endl;
-        int xStride, yStride, zStride;
-        xStride = sizeof(RawVoxel);
-        yStride = drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel);
-        zStride = drawnDomain[maxDataLevel].length(XDIR) *
-          drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel);
+        int xStride(sizeof(RawVoxel));
+        int yStride(drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel));
+        int zStride(drawnDomain[maxDataLevel].length(XDIR) *
+                    drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel));
         vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
                                xStride, yStride, zStride);
         CheckVP(vpret, 9.4);
-        for(int vindex = 0; vindex<swfDataSize; vindex++) {
+        for(int vindex = 0; vindex < swfDataSize; ++vindex) {
           volData[vindex].normal  = swfData[vindex];
           volData[vindex].density = swfData[vindex];
         }
@@ -606,16 +594,15 @@ void VolRender::MakeVPData() {
         CheckVP(vpret, 9.5);
         
       }
-    } else { //value rendering --
-      //load the volume data and precompute the minmax octree
+    } else {  // value rendering --
+      // load the volume data and precompute the minmax octree
       if (lightingModel) {
         delete [] volData;
         volData = new RawVoxel[swfDataSize]; 
-        int xStride, yStride, zStride;
-        xStride = sizeof(RawVoxel);
-        yStride = drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel);
-        zStride = drawnDomain[maxDataLevel].length(XDIR) *
-          drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel);
+        int xStride(sizeof(RawVoxel));
+        int yStride(drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel));
+        int zStride(drawnDomain[maxDataLevel].length(XDIR) *
+                    drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel));
         vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
                                xStride, yStride, zStride);
         CheckVP(vpret, 9.45);
@@ -626,15 +613,14 @@ void VolRender::MakeVPData() {
       } else {
         delete [] volData;
         volData = new RawVoxel[swfDataSize]; 
-        int xStride, yStride, zStride;
-        xStride = sizeof(RawVoxel);
-        yStride = drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel);
-        zStride = drawnDomain[maxDataLevel].length(XDIR) *
-          drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel);
+        int xStride(sizeof(RawVoxel));
+        int yStride(drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel));
+        int zStride(drawnDomain[maxDataLevel].length(XDIR) *
+                    drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel));
         vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
                                xStride, yStride, zStride);
         CheckVP(vpret, 9.4);
-        for(int vindex = 0; vindex<swfDataSize; vindex++) {
+        for(int vindex = 0; vindex < swfDataSize; ++vindex) {
           volData[vindex].normal  = swfData[vindex];
           volData[vindex].density = swfData[vindex];
         }
@@ -676,19 +662,17 @@ void VolRender::MakeVPData() {
 
     } else {
       assert(palettePtr != NULL);
-      for(int sn = 0; sn < paletteSize /* maxShadeRampPts */; ++sn) {
-        value_shade_table[sn] = (float) sn; //the correct old version
+      for(int sn = 0; sn < paletteSize; ++sn) {
+        value_shade_table[sn] = (float) sn;
       }
       value_shade_table[0] = (float) MaxPaletteIndex();
      
-      float maxf = 0.0;
-      float minf = 1000000.0;
-      for(int ijk = 0; ijk < paletteSize /* maxShadeRampPts */; ++ijk) {
+      float maxf(0.0);
+      float minf(1000000.0);
+      for(int ijk = 0; ijk < paletteSize; ++ijk) {
         maxf = Max(maxf, value_shade_table[ijk]);
         minf = Min(minf, value_shade_table[ijk]);
       }
-      SHOWVAL(minf);
-      SHOWVAL(maxf);
       
       vpret = vpSetLookupShader(vpc, 1, 1, normalField, value_shade_table.dataPtr(),
                                 paletteSize * sizeof(float), 0, NULL, 0);
@@ -853,7 +837,5 @@ void VolRender::SetTransProperties() {
   vpSetd(vpc, VP_MIN_VOXEL_OPACITY, minRayOpacity);
   vpSetd(vpc, VP_MAX_RAY_OPACITY,   maxRayOpacity);
 }
-
-
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------

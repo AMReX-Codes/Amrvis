@@ -25,11 +25,11 @@ class DataServices;
 
 class VolRender {
   public:
-  VolRender();
-  VolRender(const Array<Box> &drawdomain,
-            int mindrawnlevel, int maxdrawnlevel, Palette *);
+    VolRender();
+    VolRender(const Array<Box> &drawdomain,
+              int mindrawnlevel, int maxdrawnlevel, Palette *);
   
-  ~VolRender();
+    ~VolRender();
   
   private:
     unsigned int nPoints, bPoints;
@@ -62,7 +62,7 @@ class VolRender {
   
   public:
     vpContext      *GetVPContext()             { return vpc; }
-    void	        MakeVPData();
+    void	    MakeVPData();
     void            MakeSWFData(DataServices *dataServicesPtr,
                                 Real rDataMin, Real rDataMax,
                                 const aString &derivedName,
@@ -72,23 +72,22 @@ class VolRender {
   
     void MakePicture(Real mvmat[4][4], Real Length, int width, int height);
   
-    void SetImage(unsigned char *image_data, int width, int height,
-                  int pixel_type);
-    void            WriteSWFData(const aString &filenamebase, bool SWFLight);
-    unsigned char  *GetSWFData()               { return swfData; }
-    int             GetSWFDataSize()   const   { return swfDataSize; }
-    bool      	VPDataValid()      const   { return vpDataValid; }
-    void      	InvalidateVPData();
-    bool      	SWFDataValid()     const   { return swfDataValid; }
-    void      	InvalidateSWFData();
-    bool      	SWFDataAllocated() const   { return swfDataAllocated; }
-    void     	ReadTransferFile(const aString &rampFileName);
-    const Array<int>   &DensityRampX() const { return densityRampX; }
-    const Array<float> &DensityRampY() const { return densityRampY; }
+    void SetImage(unsigned char *image_data, int width, int height, int pixel_type);
+    void           WriteSWFData(const aString &filenamebase, bool SWFLight);
+    unsigned char *GetSWFData()               { return swfData; }
+    int             GetSWFDataSize()   const  { return swfDataSize; }
+    bool      	    VPDataValid()      const  { return vpDataValid; }
+    void      	    InvalidateVPData();
+    bool      	    SWFDataValid()     const  { return swfDataValid; }
+    void      	    InvalidateSWFData();
+    bool      	    SWFDataAllocated() const  { return swfDataAllocated; }
+    void     	    ReadTransferFile(const aString &rampFileName);
+    const Array<int>   &DensityRampX() const  { return densityRampX; }
+    const Array<float> &DensityRampY() const  { return densityRampY; }
     void            SetLightingModel(bool);
-    bool            GetLightingModel() { return lightingModel; }
+    bool            GetLightingModel() const  { return lightingModel; }
     void            SetPreClassifyAlgorithm(bool);
-    bool            GetPreClassifyAlgorithm() { return preClassify; }
+    bool            GetPreClassifyAlgorithm() const { return preClassify; }
     void SetAspect( Real newAspect) { vpAspect = newAspect; }
 
   private:
@@ -99,7 +98,7 @@ class VolRender {
     int densityField, densityOffset, densitySize, densityMax;
     int gradientField, gradientOffset, gradientSize, gradientMax;
   
-    bool     	AllocateSWFData();
+    bool     	    AllocateSWFData();
     void            MakeSWFDataOneProc(DataServices *dataServicesPtr,
                                        Real rDataMin, Real rDataMax,
                                        const aString &derivedName,

@@ -70,39 +70,13 @@ unsigned short *ibufalloc();
 
 
 // -------------------------------------------------------------
-// writergb.c
-unsigned short rbuf[8192];
-unsigned short gbuf[8192];
-unsigned short bbuf[8192];
-
-main(int argc, char *argv[]) {
-    int y, xsize, ysize;
-    IMAGE *image;
-
-    if(argc<4) {
-        fprintf(stderr,"usage writeimg name xsize ysize\n");
-        exit(1);
-    }
-    xsize = atoi(argv[2]);
-    ysize = atoi(argv[3]);
-    image = iopen(argv[1],"w",RLE(1),3,xsize,ysize,3);
-    for(y=0; y<ysize; y++) {
-        /* fill rbuf, gbuf, and bbuf with pixel values */
-        putrow(image,rbuf,y,0);         /* red row */
-        putrow(image,gbuf,y,1);         /* green row */
-        putrow(image,bbuf,y,2);         /* blue row */
-    }
-    iclose(image);
-    exit(0);
-}
-
-// -------------------------------------------------------------
 IMAGE *iopen(char *file, char *mode, unsigned int type, unsigned int dim,
              unsigned int xsize, unsigned int ysize, unsigned int zsize)
 {
     return(imgopen(0, file, mode, type, dim, xsize, ysize, zsize));
 }
 
+// -------------------------------------------------------------
 IMAGE *imgopen(int f, char *file, char *mode, unsigned int type, unsigned int dim,
                unsigned int xsize, unsigned int ysize, unsigned int zsize)
 {
@@ -180,11 +154,13 @@ IMAGE *imgopen(int f, char *file, char *mode, unsigned int type, unsigned int di
 }
 
 
+//----------------------------------------------------------------
 unsigned short *ibufalloc(IMAGE *image) {
     return (unsigned short *)malloc(IBUFSIZE(image->xsize));
 }
 
 
+//----------------------------------------------------------------
 cvtshorts( unsigned short buffer[], long n) {
     short i;
     long nshorts = n>>1;
@@ -205,12 +181,15 @@ int putrow(IMAGE *image, unsigned short *buffer, unsigned int y, unsigned int z)
     unsigned long min, max;
     long cnt;
 
-    if( !(image->flags & (_IORW|_IOWRT)) )
+    if( ! (image->flags & (_IORW|_IOWRT)) ) {
         return -1;
-    if(image->dim<3)
+    }
+    if(image->dim < 3) {
         z = 0;
-    if(image->dim<2)
+    }
+    if(image->dim < 2) {
         y = 0;
+    }
     if(ISVERBATIM(image->type)) {
         switch(BPP(image->type)) {
             case 1:
@@ -218,48 +197,50 @@ int putrow(IMAGE *image, unsigned short *buffer, unsigned int y, unsigned int z)
                 max = image->max;
                 cptr = (unsigned char *)image->tmpbuf;
                 sptr = buffer;
-                for(x=image->xsize; x--;) {
+                for(x=image->xsize; --x;) {
                     *cptr = *sptr++;
-                    if (*cptr > max) max = *cptr;
-                    if (*cptr < min) min = *cptr;
+                    if(*cptr > max) { max = *cptr; }
+                    if(*cptr < min) { min = *cptr; }
                     cptr++;
                 }
                 image->min = min;
                 image->max = max;
                 img_seek(image,y,z);
                 cnt = image->xsize;
-                if (img_write(image,image->tmpbuf,cnt) != cnt)
+                if(img_write(image,image->tmpbuf,cnt) != cnt) {
                     return -1;
-                else
+		} else {
                     return cnt;
-                /* NOTREACHED */
-
+		}
+	    break;
             case 2:
                 min = image->min;
                 max = image->max;
                 sptr = buffer;
-                for(x=image->xsize; x--;) {
-                    if (*sptr > max) max = *sptr;
-                    if (*sptr < min) min = *sptr;
+                for(x=image->xsize; --x;) {
+                    if (*sptr > max) { max = *sptr; }
+                    if (*sptr < min) { min = *sptr; }
                     sptr++;
                 }
                 image->min = min;
                 image->max = max;
                 img_seek(image,y,z);
                 cnt = image->xsize<<1;
-                if(image->dorev)
+                if(image->dorev) {
                     cvtshorts(buffer,cnt);
+		}
                 if (img_write(image,buffer,cnt) != cnt) {
-                    if(image->dorev)
+                    if(image->dorev) {
                         cvtshorts(buffer,cnt);
+		    }
                     return -1;
                 } else {
-                    if(image->dorev)
+                    if(image->dorev) {
                         cvtshorts(buffer,cnt);
+		    }
                     return image->xsize;
                 }
-                /* NOTREACHED */
-
+	    break;
             default:
                 cerr << "putrow: weird bpp" << endl;
         }
@@ -269,30 +250,30 @@ int putrow(IMAGE *image, unsigned short *buffer, unsigned int y, unsigned int z)
                 min = image->min;
                 max = image->max;
                 sptr = buffer;
-                for(x=image->xsize; x--;) {
-                    if (*sptr > max) max = *sptr;
-                    if (*sptr < min) min = *sptr;
-                    sptr++;
+                for(x = image->xsize; --x;) {
+                    if (*sptr > max) { max = *sptr; }
+                    if (*sptr < min) { min = *sptr; }
+                    ++sptr;
                 }
                 image->min = min;
                 image->max = max;
                 cnt = img_rle_compact(buffer,2,image->tmpbuf,1,image->xsize);
                 img_setrowsize(image,cnt,y,z);
                 img_seek(image,y,z);
-                if (img_write(image,image->tmpbuf,cnt) != cnt)
+                if(img_write(image,image->tmpbuf,cnt) != cnt) {
                     return -1;
-                else
+		} else {
                     return image->xsize;
-                /* NOTREACHED */
-
+		}
+	    break;
             case 2:
                 min = image->min;
                 max = image->max;
                 sptr = buffer;
-                for(x=image->xsize; x--;) {
-                    if (*sptr > max) max = *sptr;
-                    if (*sptr < min) min = *sptr;
-                    sptr++;
+                for(x=image->xsize; --x;) {
+                    if (*sptr > max) { max = *sptr; }
+                    if (*sptr < min) { min = *sptr; }
+                    ++sptr;
                 }
                 image->min = min;
                 image->max = max;
@@ -300,8 +281,9 @@ int putrow(IMAGE *image, unsigned short *buffer, unsigned int y, unsigned int z)
                 cnt <<= 1;
                 img_setrowsize(image,cnt,y,z);
                 img_seek(image,y,z);
-                if(image->dorev)
+                if(image->dorev) {
                     cvtshorts(image->tmpbuf,cnt);
+		}
                 if (img_write(image,image->tmpbuf,cnt) != cnt) {
                     if(image->dorev)
                         cvtshorts(image->tmpbuf,cnt);
@@ -311,13 +293,12 @@ int putrow(IMAGE *image, unsigned short *buffer, unsigned int y, unsigned int z)
                         cvtshorts(image->tmpbuf,cnt);
                     return image->xsize;
                 }
-                /* NOTREACHED */
-
+	    break;
             default:
                 cerr << "putrow: weird bpp\n" << endl;
         }
-    } else
-        cerr << "putrow: weird image type" << endl;
+    } else {
+        cerr << "putrow: bad image type" << endl;
+    }
 }
-
 // -------------------------------------------------------------

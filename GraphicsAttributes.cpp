@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------
-// GraphicsAttributes.C
+// GraphicsAttributes.cpp
 // -------------------------------------------------------------------
 #include "GraphicsAttributes.H"
 #include <Xlibint.h>

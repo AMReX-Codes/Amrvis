@@ -64,7 +64,7 @@ class Palette {
     void  SetReserveSystemColors(int reservesystemcolors);
     void  SetFormat(const aString &newFormat);
     void  SetTransfers(const Array<int> &transx, const Array<float> &transy);
-    Colormap GetColormap()        { return colmap;         }
+    Colormap GetColormap() const  { return colmap;         }
     const Array<XColor> &GetColorCells() const { return ccells; }
     int  BlackIndex()    const    { return blackIndex;     }
     int  WhiteIndex()    const    { return whiteIndex;     }
@@ -79,7 +79,7 @@ class Palette {
     const Array<Real> &PaletteDataList() const { return dataList; }
     aString PaletteNumberFormat() { return defaultFormat; }
     XImage *GetPictureXImage();
-    unsigned char *RemapTable()   { return remapTable;     }
+    unsigned char *RemapTable() const  { return remapTable;     }
 
   private:
     Palette(Widget &w);

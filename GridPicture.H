@@ -15,7 +15,7 @@
 
 class GridPicture {
 
-public:
+ public:
 
   GridPicture();
   ~GridPicture();
@@ -27,11 +27,11 @@ public:
   int HPositionInPicture();
   int VPositionInPicture();
 
-  int ImageSizeH()                    { return imageSizeH;  }
-  int ImageSizeV()                    { return imageSizeV;  }
+  int ImageSizeH() const { return imageSizeH;  }
+  int ImageSizeV() const { return imageSizeV;  }
 
 
-private:
+ private:
 
   Box		overlapBox;
   unsigned int 	dataSizeH, dataSizeV;

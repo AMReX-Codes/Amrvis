@@ -24,10 +24,6 @@
 #include <CascadeB.h>
 #include <Frame.h>
 
-#if defined(BL_PARALLELVOLUMERENDER)
-#include <PVolRender.H>
-#endif
-
 const int MAXSCALE       = 32;
 const int MENUFRAME      = 0;
 const int PALETTEFRAME   = 1;
@@ -64,8 +60,6 @@ PltApp::~PltApp() {
   }
   if(animating2d) {
     StopAnimation();
-  //for(int i = 1; i < animFrames; i++) {
-  //}
   }
   XtDestroyWidget(wAmrVisTopLevel);
 }
@@ -1344,9 +1338,6 @@ void PltApp::DoExposeRef() {
 	DrawAxes(wControlForm, xPlanePosX, xPlanePosY, 0, sY, sZ, xpColor);
 
 	sprintf(temp, "Z=%i", amrPicturePtrArray[ZPLANE]->GetSlice());
-//                (amrPicturePtrArray[YPLANE]->
-//		ImageSizeV()-1 - amrPicturePtrArray[YPLANE]->GetHLine())/
-//		currentScale + ivLowOffsetMAL[ZDIR]);
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(), zpColor);
 	XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
 		    centerX-xyzAxisLength+12,
@@ -1354,8 +1345,6 @@ void PltApp::DoExposeRef() {
 		    temp, strlen(temp));
 
 	sprintf(temp, "Y=%i", amrPicturePtrArray[YPLANE]->GetSlice());
-//amrPicturePtrArray[XPLANE]->GetVLine()/
-//		currentScale + ivLowOffsetMAL[YDIR]);
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(), ypColor);
 	XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
 		    centerX+stringOffsetX,
@@ -1363,8 +1352,6 @@ void PltApp::DoExposeRef() {
 		    temp, strlen(temp));
 
 	sprintf(temp, "X=%i", amrPicturePtrArray[XPLANE]->GetSlice());
-                //amrPicturePtrArray[ZPLANE]->GetVLine()/
-		//currentScale + ivLowOffsetMAL[XDIR]);
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(), xpColor);
 	XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
 		    centerX+4*stringOffsetX,
@@ -1514,8 +1501,8 @@ void PltApp::StaticCallback(Widget w, XtPointer client_data, XtPointer call_data
 // -------------------------------------------------------------------
 void PltApp::CBToggleRange(Widget w, XtPointer client_data, XtPointer call_data) {
   unsigned long getobj;
-  unsigned long r = (unsigned long) client_data;
-  Range range = (Range) r;
+  unsigned long r((unsigned long) client_data);
+  Range range((Range) r);
   XtVaGetValues(XtParent(w), XmNuserData, &getobj, NULL);
   PltApp *obj = (PltApp *) getobj;
   obj->DoToggleRange(w, range, (XmToggleButtonCallbackStruct *) call_data);
@@ -2149,6 +2136,7 @@ void PltApp::DoUserMax(Widget, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
+  showBoxes = XmToggleButtonGetState(wBoxesButton);
   if(animating2d) {
     ResetAnimation();
     DirtyFrames(); 
@@ -2928,8 +2916,8 @@ void PltApp::DoBackStep(int plane) {
           amrPicturePtrArray[ZPLANE]->SetHLine(0);
           amrPicturePtrArray[ZPLANE]->DoExposePicture();
           amrPicturePtrArray[plane]->ChangeSlice(amrPicturePtrArray[plane]->
-                                                 GetSubDomain()[amrPicturePtrArray[plane]->
-                                                               MaxAllowableLevel()].bigEnd(YDIR));
+                                       GetSubDomain()[amrPicturePtrArray[plane]->
+                                       MaxAllowableLevel()].bigEnd(YDIR));
       }
   }
   if(plane == ZPLANE) {
@@ -2951,8 +2939,8 @@ void PltApp::DoBackStep(int plane) {
           amrPicturePtrArray[YPLANE]->SetHLine(0);
           amrPicturePtrArray[YPLANE]->DoExposePicture();
           amrPicturePtrArray[plane]->ChangeSlice(amrPicturePtrArray[plane]->
-                                                 GetSubDomain()[amrPicturePtrArray[plane]->
-                                                               MaxAllowableLevel()].bigEnd(ZDIR));
+                                       GetSubDomain()[amrPicturePtrArray[plane]->
+                                       MaxAllowableLevel()].bigEnd(ZDIR));
       }
   }
 #if (BL_SPACEDIM == 3)
@@ -3393,8 +3381,8 @@ void PltApp::SetInitialFormatString(const aString &formatString) {
   PltApp::initialFormatString = formatString;
 }
 
-void PltApp::SetDefaultShowBoxes(int showBoxes) {
-  PltApp::defaultShowBoxes = showBoxes;
+void PltApp::SetDefaultShowBoxes(int showboxes) {
+  PltApp::defaultShowBoxes = showboxes;
 }
 
 void PltApp::SetInitialWindowHeight(int initWindowHeight) {

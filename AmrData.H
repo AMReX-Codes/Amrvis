@@ -92,8 +92,6 @@ class AmrData {
 	const aString &PlotFileVersion() { return plotFileVersion; }
 	
         // fill a databox using conservative interpolation
-	void FillPatch(FArrayBox &dest, int level, const Box &subbox);
-	void FillVar(FArrayBox &dest, int level, const aString &varName);
 	void FillVar(FArrayBox *destFab, const Box &destBox,
 		     int finestFillLevel, const aString &varName, int procWithFabs);
 	void FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,

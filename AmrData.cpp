@@ -105,8 +105,6 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
      return ReadNonPlotfileData(filename, filetype);
    }
 
-   // NEWPLT follows
-
    int i, j, k, width;
    aString plotName;
    fileName = filename;
@@ -991,195 +989,8 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
 
 
 // ---------------------------------------------------------------
-void AmrData::FillVar(FArrayBox &dest, int level, const aString &nm) {
-   ParallelDescriptor::Abort("Error:  should not be in AmrData::FillVar(Fab, int aString");
-/*
-   assert(level >= 0 && level <= finestLevel);
-
-   int i;
-   Box dbox(dest.box());
-   Box sbox(dbox);
-   //sbox.grow(s_wid);
-
-   // can we fill box entirely from within system interior?
-   Box sys(probDomain[level]);
-   int inside_domain = sys.contains(sbox);
-      
-   // if not, can it be filled using existing bndry regions?
-   sys.grow(boundaryWidth);
-   assert(sys.contains(sbox));
-
-   Box ovlp(dbox);
-   ovlp &= probDomain[level];
-   if(ovlp.ok()) {   // fill on the interior
-      if(level > 0) {
-         BoxDomain fd;
-         fd.add(ovlp);
-	 for(MultiFabIterator gpli(GetGrids(level, StateNumber(nm)));
-	     gpli.isValid(); ++gpli)
-	 {
-           if(ovlp.intersects(gpli.validbox())) {
-   	     fd.rmBox(gpli.validbox());
-           }
-         }
-         Box fine_unfilled = fd.minimalBox();
-      
-         if(fine_unfilled.ok()) {
-            int lrat = refRatio[level-1];
-            // not all filled, must interpolate from a coarser level.
-            fd.simplify();
-	    BoxDomainIterator bli(fd);
-            while(bli) {
-               Box fine_box(bli());
-               Box crse_box = coarsen(fine_box,lrat);
-
-               FArrayBox crse_patch(crse_box,1);
-	       FillVar(crse_patch,level-1,nm);
-               PcInterp(dest, crse_patch,fine_box,lrat);
-
-	      bli++;
-            }
-         }
-         fd.clear();
-      }  // level > 0
-   }     // sbox ok
-
-
-   // now, overwrite with good data from this level
-   //dataGrids[level]->Derive(dest, level, nm.c_str(), StateNumber(nm), true, 0);
-   GetGrids(level, StateNumber(nm)).copy(dest, 0, 0, 1);
-
-   // now fill with bndry regions
-   if( ! inside_domain) {
-      for(i = 0; i < nRegions; i++) {
-         FArrayBox *reg = regions[level][i];
-	 Box regbox(reg->box());
-	 Box ovlp(regbox);
-	 ovlp &= dbox;
-	 if(ovlp.ok()) {
-	    Box ovlp_domain(grow(ovlp,0));
-	    if(regbox.contains(ovlp_domain)) {
-	       dest.copy(*reg, ovlp, StateNumber(nm), ovlp, 0, 1);
-	    } else {
-	       FArrayBox tmpdat(ovlp_domain,nComp);
-	       FillPatch(tmpdat,level,ovlp_domain);
-	       dest.copy(tmpdat, ovlp, StateNumber(nm), ovlp, 0, 1);
-	    }
-	 }
-      }
-   }
-*/
-}    // end fillVar
-
-
-// ---------------------------------------------------------------
-void AmrData::FillPatch(FArrayBox &dest, int level, const Box &subbox) {
-   ParallelDescriptor::Abort("Error:  should not be in AmrData::FillPatch");
-/*
-   assert(level >= 0 && level <= finestLevel);
-
-   Box dbox(dest.box());
-   assert(dbox.contains(subbox));
-
-   Box sys(probDomain[level]);     // is box contained in system interior?
-   int inside_domain = sys.contains(subbox);
-   
-   sys.grow(boundaryWidth);        // is box too large for system?
-   assert(sys.contains(subbox));
-
-   Box sbox(subbox);
-   sbox &= probDomain[level];
-   if(sbox.ok()) {                 // fill on the interior
-      if(level > 0) {              // can we fill entire patch at this level?
-         BoxDomain fd;
-         fd.add(sbox);
-         for(MultiFabIterator gpli(GetGrids(level, iComp)); gpli.isValid(); ++gpli) {
-            if(sbox.intersects(gpli.validbox())) {
-   	       fd.rmBox(gpli.validbox());
-           }
-         }
-         Box fine_unfilled = fd.minimalBox();
-      
-         if(fine_unfilled.ok()) {
-            int lrat = refRatio[level-1];
-            // not all filled, must interpolate from a coarser level.
-            fd.simplify();
-	    BoxDomainIterator bli(fd);
-	    while(bli) {
-               Box fine_box(bli());
-
-	    // widen coarse box and fill it
-            Box crse_box = coarsen(fine_box,lrat);
-	    crse_box.grow(1);
-            FArrayBox crse_patch(crse_box,nComp);
-	    FillPatch(crse_patch,level-1,crse_box);
-            Interp(dest, crse_patch,fine_box,lrat);
-
-	      bli++;
-            }
-         }
-         fd.clear();
-      }  // end if(level > 0)
-   }   // end if(sbox...)
-
-
-   // now, overwrite with good data from this level
-   for(MultiFabIterator gpli(GetGrids(level, iComp)); gpli.isValid(); ++gpli) {
-     if(sbox.intersects(gpli.validbox())) {
-       dest.copy(gpli(), sbox);
-     }
-   }
-
-   // now fill with bndry regions
-   if( ! inside_domain) {
-      for(int i = 0; i < nRegions; i++) {
-         FArrayBox *reg = regions[level][i];
-         dest.copy(*reg,subbox);
-      }
-   }
-*/
-}  // end FillPatch
-
-
-// ---------------------------------------------------------------
 void AmrData::FillInterior(FArrayBox &dest, int level, const Box &subbox) {
    ParallelDescriptor::Abort("Error:  should not be in AmrData::FillInterior");
-/*
-   assert(level >= 0 && level <= finestLevel);
-
-   Box dbox(dest.box());
-   assert(dbox.contains(subbox));
-
-   // now fill from interior region by using piecewise constant interpolation
-   for(int lev = 0; lev < level; lev++) {
-      // compute refinement ratio
-      int lrat = 1;
-      for(int i = lev; i < level; i++) {
-        lrat *= refRatio[i];
-      }
-      // intersect with grids at this level
-      for(MultiFabIterator gpli(GetGrids(lev, iComp)); gpli.isValid(); ++gpli) {
-        Box gbox(gpli.validbox());
-	Box ovlp(refine(gbox,lrat));
-	ovlp &= subbox;
-	if(ovlp.ok()) {
-	  Box crse_box(coarsen(ovlp,lrat));
-	  FArrayBox crse(crse_box,nComp);
-	  crse.copy(gpli(), crse_box);
-	  PcInterp(dest, crse,ovlp,lrat);
-	}
-      }
-   }
-
-   // fill by copy at given level
-   for(MultiFabIterator gpli(GetGrids(level, iComp)); gpli.isValid(); ++gpli) {
-     Box ovlp(gpli.validbox());
-     ovlp &= subbox;
-     if(ovlp.ok()) {
-       dest.copy(gpli(), ovlp);
-     }
-   }
-*/
 }
 
 
@@ -1266,8 +1077,8 @@ MultiFab &AmrData::GetGrids(int level, int componentIndex) {
 
 // ---------------------------------------------------------------
 MultiFab &AmrData::GetGrids(int level, int componentIndex, const Box &onBox) {
-
   if(fileType == FAB) {
+    // do nothing
   } else {
     int whichVisMF(compIndexToVisMFMap[componentIndex]);
     for(MultiFabIterator mfi(*dataGrids[level][componentIndex]);
@@ -1278,7 +1089,6 @@ MultiFab &AmrData::GetGrids(int level, int componentIndex, const Box &onBox) {
       }
     }
   }
-
   return *dataGrids[level][componentIndex];
 }
 

@@ -39,7 +39,7 @@ class DataServices;
 class StringLoc;	
 
 class Dataset {
-public:
+ public:
   Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
           PltApp *pltappptr, int hdir, int vdir, int sdir);
   
@@ -65,7 +65,7 @@ public:
 
   AmrPicture *GetAmrPicturePtr() { return amrPicturePtr; }
 
-private:
+ private:
   Widget		wAmrVisTopLevel, wDatasetTopLevel, wDatasetForm;
   Widget		wDatasetTools, wScrollArea, wPixArea;
   Widget wFormat, wColorButton, wQuitButton, wLevels, wMinValue, wMaxValue;
@@ -95,14 +95,6 @@ private:
   StringLoc    **hIndexArray, **vIndexArray;    
   bool datasetPoint;
   
-  // X baggage
-  //Display     *display;
-  //Visual      *visual;
-  //Screen      *screen;
-  //XVisualInfo  visualInfo;
-  //GC           gc;
-  //Window       root, dataWindow;
-  //int          screenNumber;
   int          blackIndex, whiteIndex;
   
   void DrawGrid(int startX, int startY, int finishX, int finishY,
@@ -124,6 +116,5 @@ public:
 };
 
 #endif
-
-
-
+// -------------------------------------------------------------------
+// -------------------------------------------------------------------

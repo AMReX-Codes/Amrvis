@@ -814,7 +814,6 @@ bool DataServices::WriteFab(const aString &fname, const Box &region, int lev,
     Array<Box> destBoxes(1);
     destFabs[0]  = &data;
     destBoxes[0] = region;
-    //amrData.FillVar(data, lev, varname);
     amrData.FillVar(destFabs, destBoxes, lev, varname,
 		    ParallelDescriptor::IOProcessorNumber());
 

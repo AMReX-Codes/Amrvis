@@ -16,9 +16,6 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
 		 int totalwidth, int totalheight, int reservesystemcolors)
 {
   totalColorSlots = MaxPaletteIndex() + 1;
-  //cout << endl;
-  //cout << "************** totalColorSlots = " << totalColorSlots << endl;
-  //cout << endl;
   sysccells.resize(totalColorSlots);
   transY.resize(totalColorSlots);
   ccells.resize(totalColorSlots);
@@ -71,7 +68,6 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
 // -------------------------------------------------------------------
 Palette::~Palette() {
   delete [] remapTable;
-  // XFreeColormap(...);
 }
 
 
@@ -98,7 +94,6 @@ void Palette::SetReserveSystemColors(int reservesystemcolors) {
 // -------------------------------------------------------------------
 void Palette::Redraw() {
   Draw(pmin, pmax, defaultFormat);  // use defaults
-  //ExposePalette();
 }
 
 
@@ -111,7 +106,6 @@ void Palette::Draw(Real palMin, Real palMax, const aString &numberFormat) {
   pmax = palMax;
   defaultFormat = numberFormat;
   XClearWindow(display, palWindow);
-  //if(palPixmap == NULL) {
 
   if(palPixmap == 0) {
     palPixmap = XCreatePixmap(display, palWindow, totalPalWidth,
@@ -170,14 +164,14 @@ void Palette::SetTransfers(const Array<int> &transx, const Array<float> &transy)
   // interpolate between points
   assert(transx.length() == transy.length());
   int ntranspts(transx.length());
-  int n, ntrans, leftx, rightx;
+  int n, leftx, rightx;
   float lefty, righty, m, x;
   transSet = true;
-  ntrans = 0;  // where we are in transx
+  int ntrans(0);  // where we are in transx
 
   assert(transx[0] == 0);
 
-  for(n=0; n < totalColorSlots; n++) {
+  for(n=0; n < totalColorSlots; ++n) {
 
     if((ntrans+1) > ntranspts) {
 	cerr << (ntrans+1) << " > " << ntranspts << endl;
@@ -191,7 +185,7 @@ void Palette::SetTransfers(const Array<int> &transx, const Array<float> &transy)
         righty = transy[ntrans+1];
       }
       transY[n] = transy[ntrans];
-      ntrans++;
+      ++ntrans;
     } else {
       m = (righty - lefty) / (rightx - leftx);
       x = (float) (n - leftx);

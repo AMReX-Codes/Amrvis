@@ -39,15 +39,15 @@ class GraphicsAttributes {
     GraphicsAttributes(Widget);
     ~GraphicsAttributes();
 
-    Widget   PTopLevel()      { return appTopLevel; }
-    Display *PDisplay()       { return display; }
-    Screen  *PScreen()        { return screen;  }
-    Visual  *PVisual()        { return visual;  }
-    GC       PGC()            { return gc;    }
-    Window   PRoot()          { return root;  }
-    int      PDepth()         { return depth; }
-    int      PScreenNumber()  { return screennumber;  }
-    int      PBytesPerPixel() { return bytesPerPixel; }
+    Widget   PTopLevel()      const { return appTopLevel; }
+    Display *PDisplay()       const { return display; }
+    Screen  *PScreen()        const { return screen;  }
+    Visual  *PVisual()        const { return visual;  }
+    GC       PGC()            const { return gc;    }
+    Window   PRoot()          const { return root;  }
+    int      PDepth()         const { return depth; }
+    int      PScreenNumber()  const { return screennumber;  }
+    int      PBytesPerPixel() const { return bytesPerPixel; }
 };
 
 #endif
