@@ -23,7 +23,7 @@ GraphicsAttributes::GraphicsAttributes(Widget topLevel) {
   status = XMatchVisualInfo(display, DefaultScreen(display),
 			    8, PseudoColor, &visual_info);
   if( ! status) {
-    cerr << "Error: bad XMatchVisualInfo" << endl;
+    cerr << "Error: bad XMatchVisualInfo: no PseudoColor Visual" << endl;
     exit(1);
   }
   visual = visual_info.visual;

@@ -4,6 +4,12 @@
 #ifndef _VOLRENDER_H_
 #define _VOLRENDER_H_
 
+#ifdef BL_USE_NEW_HFILES
+#include <cstdio>
+#else
+#include <stdio.h>
+#endif
+
 #include "aString.H" 
 #include "Array.H" 
 #include "REAL.H" 
