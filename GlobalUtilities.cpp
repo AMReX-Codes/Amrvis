@@ -119,7 +119,6 @@ void GetDefaults(const aString &defaultsFile) {
   PltApp::SetInitialWindowHeight(500);
   PltApp::SetInitialWindowWidth(850);
   PltApp::SetReserveSystemColors(24);
-  FArrayBox::setOrdering(FABio::FAB_REVERSE_ORDER);  // alpha
   maxPictureSize = DEFAULTMAXPICTURESIZE;
   boundaryWidth = 0;
   skipPltLines = 0;
@@ -155,9 +154,7 @@ void GetDefaults(const aString &defaultsFile) {
       }
     }
   }
-  if(ParallelDescriptor::IOProcessor()) {
-    cout << "Reading defaults from:  " << fullDefaultsFile << endl;
-  }
+  cout << "Reading defaults from:  " << fullDefaultsFile << endl;
 
   ws(defs);
   defs.getline(buffer, BUFSIZ, '\n');
@@ -169,19 +166,6 @@ void GetDefaults(const aString &defaultsFile) {
       if(strcmp(defaultString,"palette") == 0) {
         sscanf(buffer, "%s%s",defaultString, tempString);
         PltApp::SetDefaultPalette(tempString);
-      }
-      else if(strcmp(defaultString,"fabordering") == 0) {
-        sscanf(buffer, "%s%s",defaultString, tempString);
-	if(strcmp(tempString, "sgi") == 0) {
-	  FArrayBox::setOrdering(FABio::FAB_NORMAL_ORDER);
-	} else if(strcmp(tempString, "alpha") == 0) {
-	  FArrayBox::setOrdering(FABio::FAB_REVERSE_ORDER);
-	} else if(strcmp(tempString, "reverse2") == 0) {
-	  FArrayBox::setOrdering(FABio::FAB_REVERSE_ORDER_2);
-	} else {  // error
-	  cerr << "Error in defaults file:  invalid parameter for fabordering:  "
-	       << tempString << endl;
-	}
       }
       else if(strcmp(defaultString, "initialderived") == 0) {
         sscanf(buffer, "%s%s", defaultString, tempString);
@@ -294,15 +278,14 @@ void PrintUsage(char *exname) {
     cout << exname << " [-help]" << endl;
 #endif
   cout << "       [-maxpixmapsize <max picture size in # of pixels>]" << endl;
-  cout << "       [<file type flag>] [-a] [-v] [-bw n] " << endl;
+  cout << "       [<file type flag>] [-v] [-bw n] " << endl;
   cout << "       [-xslice n] [-yslice n] [-zslice n] [-sliceallvars]" << endl;
 # if (BL_SPACEDIM == 2)
-  cout << "       [-boxslice xlo ylo xhi yhi]" << endl;
+  cout << "       [-boxslice xlo ylo xhi yhi]  [-a]" << endl;
 # else
   cout << "       [-boxslice xlo ylo zlo xhi yhi zhi]" << endl;
 #endif
   cout << "       [-nprocs n] [-sleep n] [-maxlev n]" << endl;
-  cout << "       [-sgi | -alpha | -reverse2]" << endl;
   cout << "       [-palette palname] [-initialderived dername]" << endl;
   cout << "       [-initialscale n] [-showboxes tf] [-numberformat fmt]" << endl;
 # if (BL_SPACEDIM == 3)
@@ -343,9 +326,6 @@ void PrintUsage(char *exname) {
     cout << "                     to a file.  note:  works in batch mode." << endl;
     cout << "  -useminmax min max use min and max as the global min max values" << endl;
 #endif
-  cout << "  -sgi               set fabordering = FAB_NORMAL_ORDER." << endl; 
-  cout << "  -alpha             set fabordering = FAB_REVERSE_ORDER." << endl; 
-  cout << "  -reverse2          set fabordering = FAB_REVERSE_ORDER_2." << endl; 
   cout << "  -v                 verbose." << endl; 
   cout << "  -palette palname   set the initial palette." << endl; 
   cout << "  -initialderived dername   set the initial derived to dername." << endl; 
@@ -399,6 +379,8 @@ void ParseCommandLine(int argc, char *argv[]) {
 	maxPictureSize = atoi(argv[i+1]);
       }
       i++;
+    } else if(strcmp(argv[i],"-cluster") == 0) {
+      DistributionMapping::strategy(DistributionMapping::CLUSTER);
     } else if(strcmp(argv[i], "-bw") == 0) {
       if(argc-1<i+1 || atoi(argv[i+1]) < 0) {
         PrintUsage(argv[0]);
@@ -438,8 +420,10 @@ void ParseCommandLine(int argc, char *argv[]) {
 	boxColor = atoi(argv[i+1]);
       }
       i++;
+#    if (BL_SPACEDIM == 2)
     } else if(strcmp(argv[i],"-a") == 0) {
       animation = true; 
+#   endif
     } else if(strcmp(argv[i],"-fab") == 0) {
       fileType = FAB;
     } else if(strcmp(argv[i],"-multifab") == 0) {
@@ -561,12 +545,6 @@ void ParseCommandLine(int argc, char *argv[]) {
       i=i+6;
       givenBoxSlice = true;
 #   endif
-    } else if(strcmp(argv[i], "-sgi") == 0) {
-      FArrayBox::setOrdering(FABio::FAB_NORMAL_ORDER);
-    } else if(strcmp(argv[i], "-alpha") == 0) {
-      FArrayBox::setOrdering(FABio::FAB_REVERSE_ORDER);
-    } else if(strcmp(argv[i], "-reverse2") == 0) {
-      FArrayBox::setOrdering(FABio::FAB_REVERSE_ORDER_2);
     } else if(strcmp(argv[i],"-palette") == 0) {
       PltApp::SetDefaultPalette(argv[i+1]);
       i++;
@@ -636,28 +614,11 @@ void ParseCommandLine(int argc, char *argv[]) {
   }
 
 
-  if(ParallelDescriptor::IOProcessor()) {
-    // print the values of fabordering and filetype so the user can see them
-    if(FArrayBox::getOrdering() == FABio::FAB_NORMAL_ORDER) {
-      cout << endl
-	   << ">>>>>>> Setting fab ordering to sgi (FABio::FAB_NORMAL_ORDER)."
-	   << endl;
-    } else if(FArrayBox::getOrdering() == FABio::FAB_REVERSE_ORDER) {
-      cout << endl
-	   << ">>>>>>> Setting fab ordering to alpha (FABio::FAB_REVERSE_ORDER)."
-	   << endl;
-    } else if(FArrayBox::getOrdering() == FABio::FAB_REVERSE_ORDER_2) {
-      cout << endl
-       << ">>>>>>> Setting fab ordering to reverse2 (FABio::FAB_REVERSE_ORDER_2)."
-       << endl;
-    }
-
-    if(fileType == INVALIDTYPE) {
-      ParallelDescriptor::Abort("Error:  invalid file type.  Exiting.");
-    } else {
-      cout << ">>>>>>> Setting file type to "
-           << FileTypeString[fileType] << "." << endl << endl;
-    }
+  if(fileType == INVALIDTYPE) {
+    ParallelDescriptor::Abort("Error:  invalid file type.  Exiting.");
+  } else {
+    cout << ">>>>>>> Setting file type to "
+         << FileTypeString[fileType] << "." << endl << endl;
   }
 
   if(fileType == FAB) {
