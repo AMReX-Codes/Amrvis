@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.38 2001-08-14 00:57:54 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.39 2001-08-16 00:19:39 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -107,15 +107,18 @@ void AddSlices(int dir, char *sliceset) {
     }
   }
 
+  list<int>::iterator dsliter;
   if(rangeSpecified) {
     if(BL_SPACEDIM == 2 && dir == ZDIR) {
       slice = 0;
-      if( ! dumpSliceList[dir].includes(slice)) {  // add unique
+      dsliter =  find(dumpSliceList[dir].begin(), dumpSliceList[dir].end(), slice);
+      if(dsliter == dumpSliceList[dir].end()) {
         dumpSliceList[dir].push_back(slice);
       }
     } else {
       for(slice = rangeStart; slice <= rangeEnd; ++slice) {
-        if( ! dumpSliceList[dir].includes(slice)) {  // add unique
+        dsliter =  find(dumpSliceList[dir].begin(),dumpSliceList[dir].end(),slice);
+        if(dsliter == dumpSliceList[dir].end()) {
           dumpSliceList[dir].push_back(slice);
         }
       }
@@ -125,7 +128,8 @@ void AddSlices(int dir, char *sliceset) {
     if(BL_SPACEDIM == 2 && dir == ZDIR) {
       slice = 0;
     }
-    if( ! dumpSliceList[dir].includes(slice)) {  // add unique
+    dsliter =  find(dumpSliceList[dir].begin(),dumpSliceList[dir].end(),slice);
+    if(dsliter == dumpSliceList[dir].end()) {
       dumpSliceList[dir].push_back(slice);
     }
   }

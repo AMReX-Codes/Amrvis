@@ -88,7 +88,7 @@ public:
   
 private:
 
-  XYPlotDataList *list;
+  XYPlotDataList *xypdlist;
   //Array <ListIterator <int> *> XiLI;
   //Array <ListIterator <XYPlotDataListLink *> *> linkLI;
   Array <std::list<int>::iterator> XiLI;

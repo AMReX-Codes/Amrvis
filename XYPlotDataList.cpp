@@ -256,7 +256,7 @@ void XYPlotDataList::UpdateStats(void) {
 
 // -------------------------------------------------------------------
 XYPlotDataListIterator::XYPlotDataListIterator (XYPlotDataList *alist)
-  : list(alist),
+  : xypdlist(alist),
     maxLevel(alist->curLevel),
     XiLI(alist->curLevel),
     linkLI(alist->curLevel+1)
@@ -264,32 +264,41 @@ XYPlotDataListIterator::XYPlotDataListIterator (XYPlotDataList *alist)
   curLevel = 0;
 
   for(int idx = 0; idx <= maxLevel; ++idx) {
-    //linkLI[idx] = new ListIterator<XYPlotDataListLink *> (*list->dataSets[idx]);
-    linkLI[idx] = (*list->dataSets[idx]).begin();
+    //linkLI[idx] = new ListIterator<XYPlotDataListLink *> (*xypdlist->dataSets[idx]);
+    linkLI[idx] = (*xypdlist->dataSets[idx]).begin();
   }
 
   for(int idx = 0; idx != maxLevel; ++idx) {
-    //XiLI[idx] = new ListIterator<int> (*list->upXi[idx]);
-    XiLI[idx] = (*list->upXi[idx]).begin();
+    //XiLI[idx] = new ListIterator<int> (*xypdlist->upXi[idx]);
+    XiLI[idx] = (*xypdlist->upXi[idx]).begin();
   }
 
-  if( ! *linkLI[0]) {
+  //if( ! *linkLI[0]) {
+  if(linkLI[0] == (*xypdlist->dataSets[0]).end()) {
     curLink = NULL;
     return;
   }
-  curLink = **linkLI[0];
+  //curLink = **linkLI[0];
+  curLink = *linkLI[0];
 
   int temp;
   while(true) {
     curXi = curLink->startXi;
     nextXi = curLink->endXi;
-    if(curLevel != maxLevel && *XiLI[curLevel] &&
-       ((temp = **XiLI[curLevel]) < nextXi))
+    //if(curLevel != maxLevel && *XiLI[curLevel] &&
+    //   ((temp = **XiLI[curLevel]) < nextXi))
+    temp = *(XiLI[curLevel]);
+    if(curLevel != maxLevel &&
+       XiLI[curLevel] != (*xypdlist->upXi[curLevel]).end() &&
+       (temp < nextXi))
     {
       nextXi = temp;
-      nextLink = **linkLI[curLevel+1];
-      ++(*XiLI[curLevel]);
-      ++(*linkLI[curLevel+1]);
+      //nextLink = **linkLI[curLevel+1];
+      nextLink = *linkLI[curLevel+1];
+      //++(*XiLI[curLevel]);
+      //++(*linkLI[curLevel+1]);
+      ++XiLI[curLevel];
+      ++linkLI[curLevel+1];
     } else {
       nextLink = NULL;
       break;
@@ -302,7 +311,7 @@ XYPlotDataListIterator::XYPlotDataListIterator (XYPlotDataList *alist)
     curLink = nextLink;
   }
   data = curLink->data;
-  xval = (0.5 + curXi) * list->dX[curLevel] + list->offsetX;
+  xval = (0.5 + curXi) * xypdlist->dX[curLevel] + xypdlist->offsetX;
   yval = *data;
 }
 
@@ -310,12 +319,12 @@ XYPlotDataListIterator::XYPlotDataListIterator (XYPlotDataList *alist)
 // -------------------------------------------------------------------
 XYPlotDataListIterator::~XYPlotDataListIterator() {
   int idx;
-  for(idx = 0; idx <= maxLevel; ++idx) {
-    delete linkLI[idx];
-  }
-  for(idx = 0; idx != maxLevel; ++idx) {
-    delete XiLI[idx];
-  }
+  //for(idx = 0; idx <= maxLevel; ++idx) {
+    //delete linkLI[idx];
+  //}
+  //for(idx = 0; idx != maxLevel; ++idx) {
+    //delete XiLI[idx];
+  //}
 }
 
 
@@ -323,7 +332,7 @@ XYPlotDataListIterator::~XYPlotDataListIterator() {
 XYPlotDataListIterator &XYPlotDataListIterator::operator++() {
   if(++curXi < nextXi) {
     ++data;
-    xval += list->dX[curLevel];
+    xval += xypdlist->dX[curLevel];
     yval = *data;
     return *this;
   }
@@ -340,24 +349,27 @@ XYPlotDataListIterator &XYPlotDataListIterator::operator++() {
 	curXi = curLink->Ndown;
 	curLink = curLink->down;
       } else {
-	while(curLink != **linkLI[0]) {
-	  ++(*linkLI[0]);
+	while(curLink != *linkLI[0]) {
+	  ++(linkLI[0]);
 	}
-	++(*linkLI[0]);
+	++(linkLI[0]);
 	if( ! *linkLI[0]) {
 	  curLink = NULL;
 	  return *this;
 	}
-	curLink = **linkLI[0];
+	curLink = *linkLI[0];
 	curXi = curLink->startXi;
       }
     }
     nextXi = curLink->endXi;
-    if(curLevel != maxLevel && *XiLI[curLevel] &&
-       ((temp = **XiLI[curLevel]) < nextXi))
+    temp = *XiLI[curLevel];
+    if(curLevel != maxLevel &&
+       //*XiLI[curLevel] &&
+       XiLI[curLevel] != (*xypdlist->upXi[curLevel]).end() &&
+       (temp < nextXi))
     {
       nextXi = temp;
-      nextLink = **linkLI[curLevel+1];
+      nextLink = *linkLI[curLevel+1];
       ++(*XiLI[curLevel]);
       ++(*linkLI[curLevel+1]);
     } else {
@@ -366,7 +378,7 @@ XYPlotDataListIterator &XYPlotDataListIterator::operator++() {
   } while(curXi >= nextXi);
   
   data = curLink->data + (curXi - curLink->startXi);
-  xval = (0.5 + curXi) * list->dX[curLevel] + list->offsetX;
+  xval = (0.5 + curXi) * xypdlist->dX[curLevel] + xypdlist->offsetX;
   yval = *data;
   return *this;
 }
