@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.H,v 1.17 2000-06-16 18:46:50 car Exp $
+// $Id: Palette.H,v 1.18 2000-06-19 16:44:35 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,6 +9,13 @@
 // ---------------------------------------------------------------
 #ifndef _PALETTE_H
 #define _PALETTE_H
+
+#ifdef BL_USE_NEW_HFILES
+#include <map>
+using std::map;
+#else
+#include <map>
+#endif
 
 #include "REAL.H"
 #include "aString.H"
@@ -30,6 +37,7 @@ class Palette {
 
 protected:
   Array<XColor> ccells;
+  map<Pixel, XColor> mcells;
   Pixmap 	palPixmap;
   int	  	totalPalWidth, palWidth, totalPalHeight;
   Array<Real>   dataList;
@@ -84,6 +92,7 @@ public:
   void  SetFormat(const aString &newFormat);
   Colormap GetColormap() const  { return colmap;         }
   const Array<XColor> &GetColorCells() const { return ccells; }
+  const map<Pixel, XColor>& GetColorCellsMap() const { return mcells; }
   Pixel BlackIndex()   const;
   Pixel WhiteIndex()   const;
   int  ColorSlots()    const    { return colorSlots;     }

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.cpp,v 1.28 2000-06-17 16:31:11 car Exp $
+// $Id: Palette.cpp,v 1.29 2000-06-19 16:44:35 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -320,6 +320,7 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
 	{
 	  ccells[i].pixel = i;
 	}
+      mcells[ccells[i].pixel] = ccells[i];
       ccells[i].red   = (unsigned short) i*256;
       ccells[i].green = (unsigned short) i*256;
       ccells[i].blue  = (unsigned short) i*256;
@@ -402,6 +403,7 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
       {
 	ccells[i].pixel = i;
       }
+    mcells[ccells[i].pixel] = ccells[i];
     ccells[i].red   = (unsigned short) rbuff[i] * 256;
     ccells[i].green = (unsigned short) gbuff[i] * 256;
     ccells[i].blue  = (unsigned short) bbuff[i] * 256;
@@ -496,15 +498,13 @@ Palette::unpixelate(Pixel index, unsigned char& r, unsigned char& g, unsigned ch
 {
   if ( GAptr->isTrueColor() )
     {
-      for ( int i = 0; i < totalColorSlots; ++i )
+      map<Pixel, XColor>::const_iterator mi = mcells.find(index);
+      if ( mi != mcells.end() )
 	{
-	  if ( ccells[i].pixel == index )
-	    {
-	      r = ccells[i].red   >> 8;
-	      g = ccells[i].green >> 8;
-	      b = ccells[i].blue  >> 8;
-	      return;
-	    }
+	  r = mi->second.red   >> 8;
+	  g = mi->second.green >> 8;
+	  b = mi->second.blue  >> 8;
+	  return;
 	}
       cout << "Hmm, not found index = " << index << endl;
       r = (index&GAptr->PRedMask()) >> GAptr->PRedShift();
