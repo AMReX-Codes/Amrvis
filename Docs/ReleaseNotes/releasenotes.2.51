@@ -11,7 +11,7 @@ edit box has also been added to set the number of contour lines.
 An information button has been added which displays a window containing
 information about the plot file.
 
-An lighting button has been added which displays a window allowing
+A lighting button has been added which displays a window allowing
 the user to adjust lighting parameters for volume rendering.
 
 Transfer functions are now part of the palette (no more vpramps.dat).
