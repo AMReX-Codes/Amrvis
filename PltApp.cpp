@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.122 2004-04-16 23:50:43 vince Exp $
+// $Id: PltApp.cpp,v 1.123 2004-04-20 00:44:11 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -205,8 +205,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 
   pltAppState->SetMinMaxRangeType(GLOBALMINMAX);
   Real rGlobalMin, rGlobalMax;
-  rGlobalMin =  AV_BIG_REAL;
-  rGlobalMax = -AV_BIG_REAL;
+  rGlobalMin =  std::numeric_limits<Real>::max();
+  rGlobalMax = -std::numeric_limits<Real>::max();
   int coarseLevel(0);
   int iCDerNum(pltAppState->CurrentDerivedNumber());
   string asCDer(pltAppState->CurrentDerived());
@@ -364,8 +364,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   int coarseLevel(0);
   int fineLevel(pltAppState->MaxAllowableLevel());
   Real rSMin, rSMax;
-  rSMin = AV_BIG_REAL;
-  rSMax = -AV_BIG_REAL;
+  rSMin =  std::numeric_limits<Real>::max();
+  rSMax = -std::numeric_limits<Real>::max();
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
     // GLOBALMINMAX is already set to parent's values
     // USERMINMAX is already set to parent's values
@@ -1373,8 +1373,8 @@ void PltApp::FindAndSetMinMax(const MinMaxRangeType mmrangetype,
   Real rMin, rMax, levMin, levMax;
   bool isSet(pltAppState->IsSet(mmrangetype, framenumber, derivednumber));
   if(isSet == false || resetIfSet) {  // find and set the mins and maxes
-    rMin =  AV_BIG_REAL;
-    rMax = -AV_BIG_REAL;
+    rMin =  std::numeric_limits<Real>::max();
+    rMax = -std::numeric_limits<Real>::max();
     for(int lev(coarselevel); lev <= finelevel; ++lev) {
       bool minMaxValid(false);
       DataServices::Dispatch(DataServices::MinMaxRequest,
@@ -1611,10 +1611,10 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   int fineLevel(pltAppState->MaxAllowableLevel());
   Real rGlobalMin, rGlobalMax;
   Real rSubregionMin, rSubregionMax;
-  rGlobalMin    =  AV_BIG_REAL;
-  rGlobalMax    = -AV_BIG_REAL;
-  rSubregionMin =  AV_BIG_REAL;
-  rSubregionMax = -AV_BIG_REAL;
+  rGlobalMin    =  std::numeric_limits<Real>::max();
+  rGlobalMax    = -std::numeric_limits<Real>::max();
+  rSubregionMin =  std::numeric_limits<Real>::max();
+  rSubregionMax = -std::numeric_limits<Real>::max();
   const string asCDer(pltAppState->CurrentDerived());
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
     // set FILEGLOBALMINMAX  dont reset if already set

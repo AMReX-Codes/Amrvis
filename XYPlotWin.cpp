@@ -510,8 +510,8 @@ void XYPlotWin::UpdateFrame(int frame) {
   XYPlotDataList *tempList;
   int num_lists_changed(0);
   if( ! animatingQ && zoomedInQ == false) {
-    lloY =  DBL_MAX;
-    hhiY = -DBL_MAX;
+    lloY =  std::numeric_limits<Real>::max();
+    hhiY = -std::numeric_limits<Real>::max();
   }
   for(list<XYPlotLegendItem *>::iterator ptr = legendList.begin();
       ptr != legendList.end(); ++ptr)
@@ -587,8 +587,8 @@ void XYPlotWin::StopAnimation(void) {
     delete (*ptr)->ready_list;
     delete (*ptr)->anim_lists;
   }
-  lloY =  DBL_MAX;
-  hhiY = -DBL_MAX;
+  lloY =  std::numeric_limits<Real>::max();
+  hhiY = -std::numeric_limits<Real>::max();
   for(list<XYPlotLegendItem *>::iterator ptr = legendList.begin();
       ptr != legendList.end(); ++ptr)
   {
@@ -631,10 +631,10 @@ void XYPlotWin::SetBoundingBox(double lowXIn,  double lowYIn,
       loY = -1.0;
       hiX =  1.0;
       hiY =  1.0;
-      lloX =  DBL_MAX;
-      lloY =  DBL_MAX;
-      hhiX = -DBL_MAX;
-      hhiY = -DBL_MAX;
+      lloX =  std::numeric_limits<Real>::max();
+      lloY =  std::numeric_limits<Real>::max();
+      hhiX = -std::numeric_limits<Real>::max();
+      hhiY = -std::numeric_limits<Real>::max();
       return;
     }
     loX = lloX;
@@ -1875,10 +1875,10 @@ void XYPlotWin::CBdoSelectDataList(Widget, XtPointer data,
 		    XmNbottomShadowColor, backgroundPix,
 		    NULL);
       if( ! animatingQ) {
-	lloX =  DBL_MAX;
-	lloY =  DBL_MAX;
-	hhiX = -DBL_MAX;
-	hhiY = -DBL_MAX;
+	lloX =  std::numeric_limits<Real>::max();
+	lloY =  std::numeric_limits<Real>::max();
+	hhiX = -std::numeric_limits<Real>::max();
+	hhiY = -std::numeric_limits<Real>::max();
         for(list<XYPlotLegendItem *>::iterator liitem = legendList.begin();
             liitem != legendList.end(); ++liitem)
         {
@@ -1966,10 +1966,10 @@ void XYPlotWin::CBdoRemoveDataList(Widget, XtPointer client_data,
 
   if(item->drawQ == true) {
     --numDrawnItems;
-    lloX =  DBL_MAX;
-    lloY =  DBL_MAX;
-    hhiX = -DBL_MAX;
-    hhiY = -DBL_MAX;
+    lloX =  std::numeric_limits<Real>::max();
+    lloY =  std::numeric_limits<Real>::max();
+    hhiX = -std::numeric_limits<Real>::max();
+    hhiY = -std::numeric_limits<Real>::max();
     for(list<XYPlotLegendItem *>::iterator liptr = legendList.begin();
         liptr != legendList.end(); ++liptr)
     {
@@ -2013,10 +2013,10 @@ void XYPlotWin::CBdoSetListLevel(Widget, XtPointer data, XtPointer) {
   XClearWindow(disp, XtWindow(item->wid));
   CBdoDrawLegendItem(None, item, NULL);
   if(item->drawQ == true) {
-    lloX =  DBL_MAX;
-    lloY =  DBL_MAX;
-    hhiX = -DBL_MAX;
-    hhiY = -DBL_MAX;
+    lloX =  std::numeric_limits<Real>::max();
+    lloY =  std::numeric_limits<Real>::max();
+    hhiX = -std::numeric_limits<Real>::max();
+    hhiY = -std::numeric_limits<Real>::max();
     for(list<XYPlotLegendItem *>::iterator liitem = legendList.begin();
         liitem != legendList.end(); ++liitem)
     {
@@ -2132,10 +2132,10 @@ void XYPlotWin::CBdoDeselectAllData(Widget, XtPointer, XtPointer) {
     }
   }
   if( ! animatingQ) {
-    lloX =  DBL_MAX;
-    lloY =  DBL_MAX;
-    hhiX = -DBL_MAX;
-    hhiY = -DBL_MAX;
+    lloX =  std::numeric_limits<Real>::max();
+    lloY =  std::numeric_limits<Real>::max();
+    hhiX = -std::numeric_limits<Real>::max();
+    hhiY = -std::numeric_limits<Real>::max();
   }
   CBdoRedrawPlot(None, NULL, NULL);
 

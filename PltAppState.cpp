@@ -6,6 +6,7 @@
 #include <cctype>
 #include <strstream>
 #include <iostream>
+#include <limits>
 using std::ostrstream;
 using std::ends;
 using std::cout;
@@ -17,8 +18,8 @@ using std::max;
 
 // -------------------------------------------------------------------
 CMinMax::CMinMax()
-	: rMin(AV_BIG_REAL),
-	  rMax(-AV_BIG_REAL),
+	: rMin( std::numeric_limits<Real>::max()),
+	  rMax(-std::numeric_limits<Real>::max()),
           bMinMaxSet(false)
 {
 }

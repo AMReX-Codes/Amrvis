@@ -2,6 +2,7 @@
 // XYPlotParam.cpp -- implementation of XYPlotParameters class
 // -------------------------------------------------------------------
 #include <X11/X.h>
+#include <limits>
 #undef index
 
 #include "XYPlotParam.H"
@@ -312,7 +313,7 @@ int XYPlotParameters::do_color(char *name, XColor *color) {
   // of RGB values (does this create pastel colors??)
 
   double red(color->red), green(color->green), blue(color->blue);
-  double best(DBL_MAX);
+  double best(std::numeric_limits<Real>::max());
   unsigned long best_pix = WhitePixel(gaPtr->PDisplay(), gaPtr->PScreenNumber());
   int end(param_palette->PaletteEnd());
   for(int ii(param_palette->PaletteStart()); ii <= end; ++ii) {

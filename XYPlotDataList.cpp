@@ -4,6 +4,7 @@
 #include "XYPlotDataList.H"
 #include "GlobalUtilities.H"
 #include <cfloat>
+#include <limits>
 
 // -------------------------------------------------------------------
 XYPlotDataList::XYPlotDataList(const string &derived, int minlevel,
@@ -210,8 +211,8 @@ for(int iCurLevel(maxLevel); iCurLevel >= minLevel; --iCurLevel) {
     }
   }
 
-  xypdlLoY[iCurLevel] =  DBL_MAX;
-  xypdlHiY[iCurLevel] = -DBL_MAX;
+  xypdlLoY[iCurLevel] =  std::numeric_limits<Real>::max();
+  xypdlHiY[iCurLevel] = -std::numeric_limits<Real>::max();
   for(ilev = minLevel; ilev <= iCurLevel; ++ilev) {
     for(int ii(0); ii < xypdlYVal[ilev].size(); ++ii) {
       xypdlLoY[iCurLevel] = std::min(xypdlLoY[iCurLevel], xypdlYVal[ilev][ii]);

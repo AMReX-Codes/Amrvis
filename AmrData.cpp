@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.66 2004-04-16 23:50:43 vince Exp $
+// $Id: AmrData.cpp,v 1.67 2004-04-20 00:44:11 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1616,8 +1616,8 @@ bool AmrData::MinMax(const Box &onBox, const string &derived, int level,
 
   bool valid(false);  // does onBox intersect any grids (are minmax valid)
   Real minVal, maxVal;
-  dataMin =  AV_BIG_REAL;
-  dataMax = -AV_BIG_REAL;
+  dataMin =  std::numeric_limits<Real>::max();
+  dataMax = -std::numeric_limits<Real>::max();
   Box overlap;
 
   //  our strategy here is to use the VisMF min and maxes if possible

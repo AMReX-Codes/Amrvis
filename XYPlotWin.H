@@ -31,10 +31,6 @@ class XYPlotParameters;
 #define BORDER_PADDING 	        5
 #define AXIS_PADDING            5
 
-#ifndef DBL_MAX
-#define DBL_MAX		        1e300
-#endif
-
 #define NUM_INIT_XSEGS          1000
 #define PADDING 	        2
 #define SPACE 		        10

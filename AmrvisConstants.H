@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrvisConstants.H,v 1.19 2002-02-26 01:00:02 vince Exp $
+// $Id: AmrvisConstants.H,v 1.20 2004-04-20 00:44:11 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -82,17 +82,6 @@ enum ContourType {
 };
 
 enum FileType { INVALIDTYPE = 0, FAB, MULTIFAB, NEWPLT, NUMDBPTYPES };
-
-
-#ifdef BL_USE_FLOAT
-#define AV_BIG_REAL FLT_MAX
-#else
-# ifdef BL_USE_DOUBLE
-#define AV_BIG_REAL DBL_MAX
-# else
-#   error Must define BL_USE_FLOAT or BL_USE_DOUBLE
-# endif
-#endif
 
 #endif
 // -------------------------------------------------------------------
