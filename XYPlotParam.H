@@ -94,14 +94,15 @@ typedef struct st_table_defn {
   st_table_entry **bins;
 } st_table;
 
-#include <XYPlotDefaults.H>
-#include <XYPlotWin.H>
-#include <PltApp.H>
+#include "XYPlotDefaults.H"
+#include "XYPlotWin.H"
+class GraphicsAttributes;
+class Palette;
 
 
 class XYPlotParameters {
 public:
-  XYPlotParameters(PltApp *parent, char *name);
+  XYPlotParameters(Palette *palPtr, GraphicsAttributes *gaptr, char *name);
   ~XYPlotParameters();
 
   //
@@ -140,13 +141,12 @@ public:
   //
   // Resets the palette and its dependent parameters.
   //
-  void ResetPalette();
+  void ResetPalette(Palette *newPalPtr);
 
 private:
   params param_temp;
   int param_ok;
   st_table param_table;
-  PltApp *pltParent;
   Palette *param_palette;
   GraphicsAttributes *GAptr;
   char *title;

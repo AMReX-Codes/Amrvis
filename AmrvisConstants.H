@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrvisConstants.H,v 1.9 2001-02-28 02:03:42 vince Exp $
+// $Id: AmrvisConstants.H,v 1.10 2001-03-14 00:41:53 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -14,6 +14,12 @@
 #include <cfloat>
 #else
 #include <float.h>
+#endif
+
+#include <stdio.h>
+
+#ifndef BUFSIZ
+# define BUFSIZ 8192
 #endif
 
 const int LINELENGTH = 160;

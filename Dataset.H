@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.H,v 1.24 2000-10-02 20:53:07 lijewski Exp $
+// $Id: Dataset.H,v 1.25 2001-03-14 00:41:53 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -13,11 +13,11 @@
 #undef index
 
 #include "Dataset.H"
-#include "PltApp.H"
-#include "DataServices.H"
+//#include "PltApp.H"
+//#include "DataServices.H"
 #include "GlobalUtilities.H"
 #include "GraphicsAttributes.H"
-#include "AmrPicture.H"
+//#include "AmrPicture.H"
 
 #include "Box.H"
 #include "AmrvisConstants.H"
@@ -25,18 +25,22 @@
 const int MAXSTRINGWIDTH = 64;
 
 class PltApp;
+class PltAppState;
+class AmrPicture;
 class DataServices;
 class StringLoc;	
 
 class Dataset {
  public:
-  Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
-          PltApp *pltappptr, int hdir, int vdir, int sdir);
+  Dataset(const Box &alignedRegion, AmrPicture *apptr,
+          PltApp *pltappptr, PltAppState *pltappstateptr,
+	  int hdir, int vdir, int sdir);
   
   ~Dataset();
   
-  void Render(const Box &alignedRegion, AmrPicture *apptr, PltApp *pltappptr,
-              int hdir, int vdir, int sdir);
+  void DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
+		     PltApp *pltappptr, PltAppState *pltappstateptr,
+		     int hdir, int vdir, int sdir);
   void DrawIndices();
   void DoRaise();
   void DoExpose(int fromExpose);
@@ -56,7 +60,7 @@ class Dataset {
   AmrPicture *GetAmrPicturePtr() { return amrPicturePtr; }
 
  private:
-  Widget	wAmrVisTopLevel, wDatasetTopLevel, wDatasetForm;
+  Widget	wDatasetTopLevel, wDatasetForm;
   Widget	wDatasetTools, wScrollArea, wPixArea;
   Widget        wFormat, wColorButton, wQuitButton, wLevels, wMinValue, wMaxValue;
   Arg		args[MAXARGS];
@@ -72,6 +76,7 @@ class Dataset {
   AmrPicture	*amrPicturePtr;
   DataServices	*dataServicesPtr;
   PltApp	*pltAppPtr;
+  PltAppState	*pltAppStatePtr;
   GraphicsAttributes	*GAptr;
   int 		dragging, drags;
   int		hStringOffset, vStringOffset;

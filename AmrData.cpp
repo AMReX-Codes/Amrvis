@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.47 2001-02-01 00:48:29 vince Exp $
+// $Id: AmrData.cpp,v 1.48 2001-03-14 00:41:52 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -180,7 +180,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
    }
 
    aString skipBuff(LINELENGTH);
-   for(i = 0; i < skipPltLines; i++) {
+   for(i = 0; i < skipPltLines; ++i) {
      skipBuff.getline(is);
      if(ParallelDescriptor::IOProcessor()) {
        cout << "Skipped line in pltfile = " << skipBuff << endl;
@@ -249,7 +249,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 	}
         return false;
       }
-      for(i = 0; i < BL_SPACEDIM; i++) {
+      for(i = 0; i < BL_SPACEDIM; ++i) {
         is >> probLo[i];
         if(verbose) {
           if(ParallelDescriptor::IOProcessor()) {
@@ -257,7 +257,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 	  }
 	}
       }
-      for(i = 0; i < BL_SPACEDIM; i++) {
+      for(i = 0; i < BL_SPACEDIM; ++i) {
         is >> probHi[i];
         if(verbose) {
           if(ParallelDescriptor::IOProcessor()) {
@@ -282,7 +282,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
       if(is.peek() == '(') {  // it is an IntVect
         bIVRefRatio = true;
       }
-      for(i = 0; i < finestLevel; i++) {
+      for(i = 0; i < finestLevel; ++i) {
 	// try to guess if refRatio is an IntVect
 	if(bIVRefRatio) {  // it is an IntVect
 	  IntVect ivRefRatio;
@@ -314,7 +314,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
       while(is.get() != '\n');
       probDomain.resize(finestLevel + 1);
       maxDomain.resize(finestLevel + 1);
-      for(i = 0; i <= finestLevel; i++) {
+      for(i = 0; i <= finestLevel; ++i) {
         is >> probDomain[i];
 	if(verbose) {
           if(ParallelDescriptor::IOProcessor()) {
@@ -344,7 +344,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
       }
       
       dxLevel.resize(finestLevel + 1);
-      for(i = 0; i <= finestLevel; i++) {
+      for(i = 0; i <= finestLevel; ++i) {
         dxLevel[i].resize(BL_SPACEDIM);
         for(k = 0; k < BL_SPACEDIM; k++) {
 	  is >> dxLevel[i][k];
@@ -360,7 +360,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
       vfEps.resize(finestLevel + 1);  // must resize these even if not cartGrid
       afEps.resize(finestLevel + 1);
       if(bCartGrid) {
-        for(i = 0; i <= finestLevel; i++) {
+        for(i = 0; i <= finestLevel; ++i) {
           is >> vfEps[i];
           if(verbose) {
             cout << "vfEps[" << i << "] = " << vfEps[i] << endl;
@@ -368,7 +368,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
         }
       }
 
-      for(i = 0; i < BL_SPACEDIM; i++) {
+      for(i = 0; i < BL_SPACEDIM; ++i) {
         probSize[i] = probHi[i] - probLo[i];
         if(probSize[i] <= 0.0 ) {
           if(ParallelDescriptor::IOProcessor()) {
@@ -451,7 +451,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
     gridLocLo.resize(finestLevel + 1);
     gridLocHi.resize(finestLevel + 1);
 
-    for(i = 0; i <= finestLevel; i++) {
+    for(i = 0; i <= finestLevel; ++i) {
       int nGrids;
       Real gTime;
       int iLevelSteps;
@@ -574,7 +574,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 	    // now fill out temp bndry region
 	    Box b_src, b_dest;
 	    int n;
-	    for(k = 1; k < BL_SPACEDIM; k++) {
+	    for(k = 1; k < BL_SPACEDIM; ++k) {
 	       int kdir = (idir + k) % BL_SPACEDIM;
  	       b_dest = adjCellLo(bx, kdir, 1);
 	       b_src  = b_dest;
@@ -606,7 +606,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 		 if(ovlp.ok()) {
   		   p->copy(tmpreg_lo,ovlp);
 		 }
-		 bli++;
+		 ++bli;
                }
 	    }  // end for j
 
@@ -667,7 +667,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 		 if(ovlp.ok()) {
   		   p->copy(tmpreg_hi,ovlp);
 		 }
-		 bli++;
+		 ++bli;
                }
 	    }  // end for j
 
@@ -682,12 +682,12 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
       Array<Real> p_lo(BL_SPACEDIM), p_hi(BL_SPACEDIM);
       LoNodeLoc(0,maxDomain[0].smallEnd(),p_lo);
       HiNodeLoc(0,maxDomain[0].bigEnd(),p_hi);
-      for(i = 0; i < BL_SPACEDIM; i++) {
+      for(i = 0; i < BL_SPACEDIM; ++i) {
          probLo[i] = p_lo[i];
 	 probHi[i] = p_hi[i];
 	 probSize[i] = p_hi[i] - p_lo[i];
       }
-      for(lev = 0; lev <= finestLevel; lev++) {
+      for(lev = 0; lev <= finestLevel; ++lev) {
          probDomain[lev] = maxDomain[lev];
       }
    }
@@ -727,7 +727,7 @@ bool AmrData::ReadNonPlotfileData(const aString &filename, FileType filetype) {
   }
   for(int iLevel(0); iLevel <= finestLevel; ++iLevel) {
     dxLevel[iLevel].resize(BL_SPACEDIM);
-    for(i = 0; i < BL_SPACEDIM; i++) {
+    for(i = 0; i < BL_SPACEDIM; ++i) {
       probLo[i] = 0.0;
       probHi[i] = 1.0;  // arbitrarily
       probSize[i] = probHi[i] - probLo[i];
@@ -873,7 +873,7 @@ bool AmrData::ReadNonPlotfileData(const aString &filename, FileType filetype) {
 // ---------------------------------------------------------------
 void AmrData::CellLoc(int lev, IntVect ix, Array<Real> &pos) const {
    BL_ASSERT(pos.length() == dxLevel[lev].length());
-   for(int i = 0; i < BL_SPACEDIM; i++) {
+   for(int i(0); i < BL_SPACEDIM; ++i) {
       pos[i] = probLo[i] + (dxLevel[lev][i])*(0.5 + Real(ix[i]));
    }
 }
@@ -882,7 +882,7 @@ void AmrData::CellLoc(int lev, IntVect ix, Array<Real> &pos) const {
 // ---------------------------------------------------------------
 void AmrData::LoNodeLoc(int lev, IntVect ix, Array<Real> &pos) const {
    BL_ASSERT(pos.length() == dxLevel[lev].length());
-   for(int i = 0; i < BL_SPACEDIM; i++) {
+   for(int i(0); i < BL_SPACEDIM; ++i) {
       pos[i] = probLo[i] + (dxLevel[lev][i])*Real(ix[i]);
    }
 }
@@ -891,7 +891,7 @@ void AmrData::LoNodeLoc(int lev, IntVect ix, Array<Real> &pos) const {
 // ---------------------------------------------------------------
 void AmrData::HiNodeLoc(int lev, IntVect ix, Array<Real> &pos) const {
    BL_ASSERT(pos.length() == dxLevel[lev].length());
-   for(int i = 0; i < BL_SPACEDIM; i++) {
+   for(int i(0); i < BL_SPACEDIM; ++i) {
       pos[i] = probLo[i] + (dxLevel[lev][i])*Real(ix[i]+1);
    }
 }
@@ -1395,7 +1395,7 @@ int AmrData::NumDeriveFunc() const {
 // return true if the given name is the name of a plot variable
 // that can be derived from what is known.
 bool AmrData::CanDerive(const aString &name) const {
-   for(int i = 0; i < plotVars.length(); i++) {
+   for(int i(0); i < plotVars.length(); ++i) {
      if(plotVars[i] == name) {
        return true;
      }
@@ -1407,7 +1407,7 @@ bool AmrData::CanDerive(const aString &name) const {
 // ---------------------------------------------------------------
 // output the list of variables that can be derived
 void AmrData::ListDeriveFunc(ostream &os) const {
-   for(int i = 0; i < plotVars.length(); i++) {
+   for(int i(0); i < plotVars.length(); ++i) {
      os << plotVars[i] << endl;
    }
 }
@@ -1761,12 +1761,12 @@ void AmrData::PcInterp(FArrayBox &fine, const FArrayBox &crse,
 FArrayBox *AmrData::ReadGrid(istream &is, int numVar) {
    long i, gstep;
    Real time;
-   static int grid_count = 0;
+   static int gridCount(0);
    Box gbox;
    int glev;
 
-   int gid  = grid_count;
-   grid_count++;
+   int gid(gridCount);
+   ++gridCount;
 
    is >> gbox >> glev;
    VSHOWVAL(verbose, gbox)
@@ -1776,7 +1776,7 @@ FArrayBox *AmrData::ReadGrid(istream &is, int numVar) {
    VSHOWVAL(verbose, gstep)
    VSHOWVAL(verbose, time)
 
-   for(i = 0; i < BL_SPACEDIM; i++) {
+   for(i = 0; i < BL_SPACEDIM; ++i) {
      Real xlo, xhi;
      is >> xlo >> xhi;  // unused
      if(verbose) {
@@ -1788,8 +1788,8 @@ FArrayBox *AmrData::ReadGrid(istream &is, int numVar) {
    }
 
    FArrayBox *fabPtr = new FArrayBox(gbox, numVar);
-   int whileTrap = 0;
-   int ivar = 0;
+   int whileTrap(0);
+   int ivar(0);
    //  optimize this for numVar == newdat.nComp()
    while(ivar < numVar) {
      FArrayBox tempfab(is);

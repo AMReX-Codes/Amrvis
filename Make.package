@@ -4,7 +4,7 @@ CEXE_headers += AmrPicture.H AmrData.H AmrvisConstants.H		\
                 GridPicture.H MessageArea.H				\
                 Palette.H PltApp.H Output.H Quaternion.H Point.H	\
                 Trackball.H XYPlotDataList.H XYPlotDefaults.H \
-		XYPlotWin.H XYPlotParam.H
+		XYPlotWin.H XYPlotParam.H PltAppState.H
 
 CEXE_sources += AmrPicture.cpp AmrData.cpp AmrVisTool.cpp		\
                 DataServices.cpp Dataset.cpp				\
@@ -12,7 +12,8 @@ CEXE_sources += AmrPicture.cpp AmrData.cpp AmrVisTool.cpp		\
                 MessageArea.cpp PltApp.cpp				\
                 GlobalUtilities.cpp Palette.cpp PltAppOutput.cpp	\
 		Output.cpp Quaternion.cpp Point.cpp Trackball.cpp       \
-		XYPlotDataList.cpp XYPlotParam.cpp XYPlotWin.cpp
+		XYPlotDataList.cpp XYPlotParam.cpp XYPlotWin.cpp        \
+		PltAppState.cpp
 
 
 ifeq ($(DIM),3)

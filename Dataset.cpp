@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.34 2000-10-05 20:37:11 vince Exp $
+// $Id: Dataset.cpp,v 1.35 2001-03-14 00:41:53 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -11,24 +11,22 @@ const int CHARACTERHEIGHT = 22;
 const int MAXINDEXCHARS   = 4;
 
 #include <Xm/Xm.h>
-//  #include <MainW.h>
-//  #include <RowColumn.h>
 #include <Xm/DrawingA.h>
 #include <Xm/PushB.h>
-//  #include <PushBG.h>
 #include <Xm/ToggleB.h>
-//  #include <ToggleBG.h>
-//  #include <SelectioB.h>
 #include <Xm/ScrollBar.h>
 #include <Xm/ScrolledW.h>
 #include <Xm/Text.h>
 #include <Xm/TextF.h>
-//  #include <DialogS.h>
 #include <Xm/Form.h>
 #include <Xm/Label.h>
 #undef index
 
-#include <Dataset.H>
+#include "Dataset.H"
+#include "PltApp.H"
+#include "PltAppState.H"
+#include "AmrPicture.H"
+#include "DataServices.H"
 
 #ifdef BL_USE_NEW_HFILES
 #include <strstream>
@@ -42,8 +40,9 @@ using std::ends;
 
 
 // -------------------------------------------------------------------
-Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
-		 PltApp *pltappptr, int hdir, int vdir, int sdir)
+Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
+		 PltApp *pltappptr, PltAppState *pltappstateptr,
+		 int hdir, int vdir, int sdir)
 {
 
   // alignedRegion is defined on the maxAllowableLevel
@@ -53,8 +52,8 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
   hDIR = hdir;
   vDIR = vdir;
   sDIR = sdir;
-  wAmrVisTopLevel = top; 
   pltAppPtr = pltappptr;
+  pltAppStatePtr = pltappstateptr;
   amrPicturePtr = apptr;
   dataServicesPtr = pltAppPtr->GetDataServicesPtr();
   finestLevel = amrPicturePtr->FinestLevel();
@@ -86,17 +85,17 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
    char shortfilename[BUFSIZ];
    char pltfilename[BUFSIZ];
    strcpy(pltfilename, pltAppPtr->GetFileName().c_str());
-   int fnl = strlen(pltfilename) - 1;
-   while(fnl>-1 && pltfilename[fnl] != '/') {
-     fnl--;
+   int fnl(strlen(pltfilename) - 1);
+   while(fnl > -1 && pltfilename[fnl] != '/') {
+     --fnl;
    }
    strcpy(shortfilename, &pltfilename[fnl+1]);
    
    ostrstream outstr(header, sizeof(header));
-   outstr << shortfilename << "  " << amrPicturePtr->CurrentDerived()
+   outstr << shortfilename << "  " << pltAppStatePtr->CurrentDerived()
           << "  " << alignedRegion << ends;
    wDatasetTopLevel = XtVaCreatePopupShell(header, topLevelShellWidgetClass,
-                                           wAmrVisTopLevel,
+                                           pltAppPtr->WId(),
                                            XmNwidth,	800,
                                            XmNheight,	500,
                                            NULL);
@@ -122,14 +121,14 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
 
   // ************************************************ Format Text Field
   i=0;
-  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
-  XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
-  XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      i++;
-  XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
+  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      ++i;
+  XtSetArg(args[i], XmNtopOffset, WOFFSET);      ++i;
+  XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      ++i;
+  XtSetArg(args[i], XmNleftOffset, WOFFSET);      ++i;
   char fbuff2[64];
   strcpy(fbuff2, formatString.c_str());
-  XtSetArg(args[i], XmNvalue, fbuff2);      i++;
-  XtSetArg(args[i], XmNcolumns, 12);      i++;
+  XtSetArg(args[i], XmNvalue, fbuff2);      ++i;
+  XtSetArg(args[i], XmNcolumns, 12);      ++i;
   wFormat = XtCreateManagedWidget("format", xmTextFieldWidgetClass,
 				    wDatasetTools, args, i);
   XtAddCallback(wFormat, XmNactivateCallback,
@@ -140,12 +139,12 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
 
   // ************************************************ Color Button
   i=0;
-  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
-  XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
-  XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET);      i++;
-  XtSetArg(args[i], XmNleftWidget, wFormat);      i++;
-  XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
-  XtSetArg(args[i], XmNheight, bHeight);      i++;
+  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      ++i;
+  XtSetArg(args[i], XmNtopOffset, WOFFSET);      ++i;
+  XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET);      ++i;
+  XtSetArg(args[i], XmNleftWidget, wFormat);      ++i;
+  XtSetArg(args[i], XmNleftOffset, WOFFSET);      ++i;
+  XtSetArg(args[i], XmNheight, bHeight);      ++i;
   wColorButton = XmCreateToggleButton(wDatasetTools, "Color", args, i);
   XtAddCallback(wColorButton, XmNvalueChangedCallback,
 		(XtCallbackProc) &Dataset::CBColorButton,
@@ -154,11 +153,11 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
 
   // ************************************************ Close Button
   i=0;
-  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
-  XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
-  XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      i++;
-  XtSetArg(args[i], XmNrightOffset, 20);      i++;
-  XtSetArg(args[i], XmNheight, bHeight);      i++;
+  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      ++i;
+  XtSetArg(args[i], XmNtopOffset, WOFFSET);      ++i;
+  XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      ++i;
+  XtSetArg(args[i], XmNrightOffset, 20);      ++i;
+  XtSetArg(args[i], XmNheight, bHeight);      ++i;
   wQuitButton = XmCreatePushButton(wDatasetTools, "Close", args, i);
   XtAddCallback(wQuitButton, XmNactivateCallback,
 		(XtCallbackProc) &Dataset::CBQuitButton,
@@ -270,7 +269,8 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
   myDataStringArray = NULL;
   bDataStringArrayAllocated = false;
 
-  Render(alignedRegion, amrPicturePtr, pltAppPtr, hdir, vdir, sdir);
+  DatasetRender(alignedRegion, amrPicturePtr, pltAppPtr, pltAppStatePtr,
+		hdir, vdir, sdir);
 }  // end Dataset::Dataset
 
 
@@ -290,20 +290,23 @@ Dataset::~Dataset() {
 
 
 // -------------------------------------------------------------------
-void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
-		     PltApp *pltappptr, int hdir, int vdir, int sdir)
+void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
+		            PltApp *pltappptr, PltAppState *pltappstateptr,
+			    int hdir, int vdir, int sdir)
 {
   int lev, i, c, d, stringCount;
   Box temp, dataBox;
   Real *dataPoint; 
   
   if(bDataStringArrayAllocated) {
-    for(int j = 0; j <= maxAllowableLevel; ++j) {
+    for(int j(0); j <= maxAllowableLevel; ++j) {
       delete [] myDataStringArray[j];
     }
     delete [] myDataStringArray;
   }
   
+  pltAppPtr = pltappptr;
+  pltAppStatePtr = pltappstateptr;
   maxDrawnLevel = pltAppPtr->MaxDrawnLevel(); 
   minDrawnLevel = pltAppPtr->MinDrawnLevel();
   
@@ -329,11 +332,10 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
     return;
   }
   
-  pltAppPtr = pltappptr;
   amrPicturePtr = apptr;
   dataServicesPtr = pltAppPtr->GetDataServicesPtr();
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
-  finestLevel = amrPicturePtr->NumberOfLevels() - 1;
+  finestLevel = amrPicturePtr->FinestLevel();
   maxAllowableLevel = amrPicturePtr->MaxAllowableLevel();
   
   // set up datasetRegion
@@ -369,7 +371,7 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
   strcpy(shortfilename, &pltfilename[fnl+1]);
   
   ostrstream outstr(header, sizeof(header));
-  outstr << shortfilename << "  " << amrPicturePtr->CurrentDerived()
+  outstr << shortfilename << "  " << pltAppStatePtr->CurrentDerived()
          << "  " << alignedRegion << ends;
   
   XtVaSetValues(wDatasetTopLevel, XmNtitle, header, NULL);
@@ -384,8 +386,8 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
                            (void *) &dataFab[lev],
 			   (void *) &(dataFab[lev].box()),
                            lev,
-			   (void *) &(amrPicturePtr->CurrentDerived()));
-    for(int iBox = 0; iBox < amrData.boxArray(lev).length(); ++iBox) {
+			   (void *) &(pltAppStatePtr->CurrentDerived()));
+    for(int iBox(0); iBox < amrData.boxArray(lev).length(); ++iBox) {
       temp = amrData.boxArray(lev)[iBox];
       if(datasetRegion[lev].intersects(temp)) {
         int ddl;
@@ -441,7 +443,7 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
     dataStringArray[ns].olflag = maxDrawnLevel;
   }
   if(dataStringArray == NULL) {
-    cout << "Error in Dataset::Render:  out of memory" << endl;
+    cout << "Error in Dataset::DatasetRender:  out of memory" << endl;
     return;
   }
   myDataStringArray = new StringLoc * [maxAllowableLevel+1];
@@ -635,7 +637,7 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
       }  // end for(d...)
     }  //end for(int level = minDrawnLevel...)
   
-}  // end Dataset::Render
+}  // end Dataset::DatasetRender
 
 
 // -------------------------------------------------------------------
@@ -725,7 +727,6 @@ void Dataset::CBPixInput(Widget, XtPointer client_data, XtPointer call_data)
 
 // -------------------------------------------------------------------
 void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
-  //Palette *palptr = pltAppPtr->GetPalettePtr();
   int hplot, vplot;
   int hDir, vDir;
 # if (BL_SPACEDIM == 3)
@@ -837,7 +838,7 @@ void Dataset::DoReadString(Widget w, XmSelectionBoxCallbackStruct *) {
   }
   // unexhaustive string check to prevent errors 
   stringOk = true;
-  for(int i = 0; i < formatString.length(); ++i) {
+  for(int i(0); i < formatString.length(); ++i) {
     if(formatString[i] == 's' || formatString[i] == 'u'
         || formatString[i] == 'p')
     {
@@ -847,8 +848,8 @@ void Dataset::DoReadString(Widget w, XmSelectionBoxCallbackStruct *) {
   if(stringOk) {
     pltAppPtr->SetFormatString(formatString);
     XClearWindow(GAptr->PDisplay(), XtWindow(wPixArea));
-    Render(datasetRegion[maxDrawnLevel], amrPicturePtr, pltAppPtr,
-	   hDIR, vDIR, sDIR);
+    DatasetRender(datasetRegion[maxDrawnLevel], amrPicturePtr, pltAppPtr,
+	          pltAppStatePtr, hDIR, vDIR, sDIR);
     pltAppPtr->GetPalettePtr()->SetFormat(formatString);
     pltAppPtr->GetPalettePtr()->Redraw();  // change palette numbers
   }

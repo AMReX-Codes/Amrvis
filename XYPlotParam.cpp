@@ -6,6 +6,9 @@
 #undef index
 
 #include "XYPlotParam.H"
+#include "Palette.H"
+#include "GraphicsAttributes.H"
+
 #ifdef BL_USE_NEW_HFILES
 #include <cstdlib>
 #include <cstring>
@@ -31,12 +34,10 @@ static char *defStyle[8] = {
 static char *positive[] = {"on", "yes", "true", "1", "affirmative", NULL};
 static char *negative[] = {"off", "no", "false", "0", "negative", NULL};
 
-XYPlotParameters::XYPlotParameters(PltApp *parent, char *name)
-  : pltParent(parent)
+XYPlotParameters::XYPlotParameters(Palette *palPtr, GraphicsAttributes *gaptr,
+				   char *name)
+  : param_palette(palPtr), GAptr(gaptr)
 {
-  
-  GAptr = pltParent->GetGAptr();
-  param_palette = pltParent->GetPalettePtr();
   title = STRDUP(name);
 
   // Initialize hash table.
@@ -47,7 +48,7 @@ XYPlotParameters::XYPlotParameters(PltApp *parent, char *name)
   param_table.num_bins = (ST_DEFAULT_INIT_TABLE_SIZE <= 0) ? 1 :
     ST_DEFAULT_INIT_TABLE_SIZE;
   param_table.bins = new st_table_entry *[param_table.num_bins];
-  for(int idx = 0; idx != param_table.num_bins; ++idx) {
+  for(int idx(0); idx != param_table.num_bins; ++idx) {
     param_table.bins[idx] = NULL;
   }
 
@@ -57,9 +58,9 @@ XYPlotParameters::XYPlotParameters(PltApp *parent, char *name)
 
 }
 
-void XYPlotParameters::ResetPalette() {
-  if(param_palette != pltParent->GetPalettePtr()) {
-    param_palette = pltParent->GetPalettePtr();
+void XYPlotParameters::ResetPalette(Palette *newPalPtr) {
+  if(param_palette != newPalPtr) {
+    param_palette = newPalPtr;
     param_full *entry;
     if((entry = st_lookup("GridColor")) != NULL && entry->real_form) {
       free_resource(entry->real_form);
@@ -70,7 +71,7 @@ void XYPlotParameters::ResetPalette() {
     unsigned int colorindex = param_palette->PaletteSize() / 8;
     char colorstr[10];
     char buf[20];
-    for(unsigned int idx = 0; idx < 8; idx++) {
+    for(unsigned int idx(0); idx < 8; ++idx) {
       sprintf(buf, "%d.Color", idx);
       sprintf(colorstr, "%u", idx * colorindex);
       Set_Parameter(buf, INT, colorstr);
@@ -83,7 +84,7 @@ XYPlotParameters::~XYPlotParameters(void) {
   st_table_entry *ptr, *next;
 
   // destroy table entries.
-  for(int idx = 0; idx < param_table.num_bins; ++idx) {
+  for(int idx(0); idx < param_table.num_bins; ++idx) {
     ptr = param_table.bins[idx];
     while(ptr != NULL) {
       next = ptr->next;
@@ -146,7 +147,7 @@ void XYPlotParameters::GetHardWiredDefaults(void) {
   // Initalize attribute colors defaults
   unsigned int colorindex = param_palette->PaletteSize() / 8;
   char colorstr[10];
-  for(unsigned int idx = 0; idx < 8; idx++) {
+  for(unsigned int idx(0); idx < 8; ++idx) {
     sprintf(buf, "%d.Style", idx);
     Set_Parameter(buf, STYLE, defStyle[idx]);
     sprintf(buf, "%d.Color", idx);
@@ -288,7 +289,7 @@ int XYPlotParameters::do_color(char *name, XColor *color) {
   double best = DBL_MAX;
   unsigned long best_pix = WhitePixel(GAptr->PDisplay(), GAptr->PScreenNumber());
   int end(param_palette->PaletteEnd());
-  for(int ii = param_palette->PaletteStart(); ii <= end; ++ii) {
+  for(int ii(param_palette->PaletteStart()); ii <= end; ++ii) {
     const XColor *newcolor = &param_palette->GetColorCells()[ii];
     double dred(newcolor->red - red);
     double dgreen(newcolor->green - green);
@@ -316,7 +317,7 @@ int XYPlotParameters::do_font(char *name, XFontStruct **font_info) {
   if(font_size = index(name_copy, '-')) {
     *font_size = '\0';
     font_family = name_copy;
-    font_size++;
+    ++font_size;
     font_size_value = atoi(font_size);
     if(font_size_value > 0) {
       // Still a little iffy -- what about weight and roman vs. other
@@ -325,7 +326,7 @@ int XYPlotParameters::do_font(char *name, XFontStruct **font_info) {
 			     DEF_MAX_NAMES, &font_count);
       
       // Load first one that you can
-      for(i = 0; i < font_count; i++) {
+      for(i = 0; i < font_count; ++i) {
 	if(*font_info = XLoadQueryFont(GAptr->PDisplay(), font_list[i])) {
 	  break;
 	}
@@ -347,7 +348,7 @@ int XYPlotParameters::do_style(char *list, param_style *val) {
   char *i, *spot, last_char;
   int count;
 
-  for(i = list; *i; i++) {
+  for(i = list; *i; ++i) {
     if((*i != '0') && (*i != '1')) {
       break;
     }
@@ -356,7 +357,7 @@ int XYPlotParameters::do_style(char *list, param_style *val) {
   if( ! *i) {
     val->len = 0;
     last_char = '\0';
-    for(i = list; *i; i++) {
+    for(i = list; *i; ++i) {
       if(*i != last_char) {
 	val->len += 1;
 	last_char = *i;
@@ -366,7 +367,7 @@ int XYPlotParameters::do_style(char *list, param_style *val) {
     last_char = *list;
     spot = val->dash_list;
     count = 0;
-    for(i = list; *i; i++) {
+    for(i = list; *i; ++i) {
       if(*i != last_char) {
 	*spot++ = (char) count;
 	last_char = *i;
@@ -385,10 +386,10 @@ int XYPlotParameters::do_style(char *list, param_style *val) {
 int XYPlotParameters::do_bool(char *name, int *val) {
   char  **term;
   
-  for(term = positive; *term; term++) {
+  for(term = positive; *term; ++term) {
     if(string_compare(name, *term) == 0) { *val = 1; return 1; }
   }
-  for(term = negative; *term; term++) {
+  for(term = negative; *term; ++term) {
     if(string_compare(name, *term) == 0) { *val = 0; return 1; }
   }
 
@@ -426,7 +427,7 @@ void XYPlotParameters::WriteToFile(char *filename) {
   if((fs = fopen(filename, "w")) == NULL) {
     return;
   }
-  for(i = 0; i < param_table.num_bins; i++) {
+  for(i = 0; i < param_table.num_bins; ++i) {
     for(ptr = param_table.bins[i]; ptr; ptr = ptr->next) {
       param_full *val = ptr->record;
       fprintf(fs, "%s\t", ptr->key);
@@ -514,12 +515,16 @@ void XYPlotParameters::rehash(void) {
   
   param_table.num_bins = (int) new_num_bins;
   
-  if(param_table.num_bins % 2 == 0) param_table.num_bins++;
+  if(param_table.num_bins % 2 == 0) {
+    param_table.num_bins++;
+  }
   
   param_table.bins = new st_table_entry *[param_table.num_bins];
-  for(i = 0; i != new_num_bins; ++i) param_table.bins[i] = NULL;
+  for(i = 0; i != new_num_bins; ++i) {
+    param_table.bins[i] = NULL;
+  }
 
-  for(i = 0; i < old_num_bins; i++) {
+  for(i = 0; i < old_num_bins; ++i) {
     ptr = old_bins[i];
     while(ptr) {
       next = ptr->next;

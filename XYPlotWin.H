@@ -12,9 +12,12 @@
 #include "AmrvisConstants.H"
 #include "XYPlotDataList.H"
 #include "XYPlotParam.H"
-#include "GraphicsAttributes.H"
+//#include "GraphicsAttributes.H"
 #include "xgout.H"
-#include "PltApp.H"
+//#include "PltApp.H"
+class PltApp;
+class GraphicsAttributes;
+class XYPlotParameters;
 
 #ifndef BUFSIZE
 #define BUFSIZE 1024
@@ -38,8 +41,6 @@
 #define TICKLENGTH	        5
 #define MAXLS           50
 
-#define MAX(a,b) ((a) > (b) ? (a) : (b))
-#define MIN(a,b) ((a) < (b) ? (a) : (b))
 
 typedef struct attr_typ {
   char    lineStyle[MAXLS];
@@ -73,8 +74,7 @@ class XYPlotWin {
 public:
 
   XYPlotWin(char *title, XtAppContext app, Widget w,
-	    class PltApp *parent, int type,
-	    int curr_frame = 0);
+	    PltApp *parent, int type, int curr_frame = 0);
   
   ~XYPlotWin();
   
@@ -96,9 +96,9 @@ private:
   
   XtAppContext            appContext;
   Widget                  wTopLevel;
-  class PltApp           *pltParent;
+  PltApp                 *pltParent;
   char                   *pltTitle;
-  class XYPlotParameters *parameters;
+  XYPlotParameters       *parameters;
   int                     whichType;
 
   Widget                  wXYPlotTopLevel;

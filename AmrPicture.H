@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.H,v 1.33 2001-02-28 02:02:38 vince Exp $
+// $Id: AmrPicture.H,v 1.34 2001-03-14 00:41:53 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -20,21 +20,26 @@
 #include "AmrvisConstants.H"
 #include "GlobalUtilities.H"
 #include "GridPicture.H"
-#include "Palette.H"
 #include "Array.H"
 #include "aString.H"
 #include "FArrayBox.H"
 
+#include <X11/X.h>
+#include <X11/Intrinsic.h>
+
 class PltApp;
+class PltAppState;
 class DataServices;
 class GraphicsAttributes;
+class Palette;
 
 enum VectorDerived { enVelocity, enMomentum, enNoneFound };
 
 class AmrPicture {
  public:
   AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
-             PltApp *pltappptr, DataServices *dataservicesptr,
+             PltApp *pltappptr, PltAppState *pltappstateptr,
+	     DataServices *dataservicesptr,
 	     bool bcartgridsmoothing);
   // construct an AmrPicture using data from filename
   // 3D: called by first XY view
@@ -43,36 +48,33 @@ class AmrPicture {
              GraphicsAttributes *gaptr, Box region, 
              AmrPicture *parentPicturePtr, 
              PltApp *parentPltAppPtr, PltApp *pltappptr,
+	     PltAppState *pltappstateptr,
 	     bool bcartgridsmoothing);
   // construct an AmrPicture using pointer to data & box
   
   ~AmrPicture();
-  static void CBFrameTimeOut(XtPointer, XtIntervalId *);
-  static void CBContourSweep(XtPointer, XtIntervalId *);
   void	DoFrameUpdate();
   void  DoContourSweep();
   void	DoStop();   // removes TimeOutCallback, updates GridPictures 
   void	SetRegion(int, int, int, int);
   void	CreatePicture(Window drawPictureHere, Palette *palptr,
                       const aString &derived);
-  void	Draw(int fromLevel, int toLevel);
+  void	APDraw(int fromLevel, int toLevel);
   void  DrawSlice(int);
   void	DoExposePicture();
   void	ToggleBoxes();
-  void	ChangeDerived(aString derived, Palette *palptr);
-  void  ChangeRasterImage();
-  void	ChangeScale(int newScale);
-  void	ChangeLevel(int lowLevel, int hiLevel);
+  void	APChangeDerived(aString derived, Palette *palptr);
+  void	APChangeScale(int newScale, int previousScale);
+  void	APChangeLevel(int lowLevel, int hiLevel);
   XImage *GetPictureXImage();
-  void	ChangeSlice(int here);
+  void	APChangeSlice(int here);
   
-  void	SyncPicture();
   void	SetSubCut(int, int, int, int);
   void	ToggleShowSubCut();
   void	DrawDatasetPoint(int hplot, int vplot, int size);
   void	UnDrawDatasetPoint();
   void	Sweep(AnimDirection direction);
-  void  SetHVLine();
+  void  SetHVLine(int scale);
   void	SetHLine(int hl)    { hLine = hl; }
   void	SetVLine(int vl)    { vLine = vl; }
   int	GetHLine() const    { return hLine; }
@@ -83,15 +85,13 @@ class AmrPicture {
   int	FinestLevel()       const { return numberOfLevels - 1; }
   int	MaxAllowableLevel() const { return maxAllowableLevel; }
   bool	ShowingBoxes()      const { return showBoxes; }
-  void  SetShowBoxes(bool b) { showBoxes = b; }
   unsigned int ImageSizeH() const { return imageSizeH; }
   unsigned int ImageSizeV() const { return imageSizeV; }
-  DataServices *GetDataServicesPtr() const { return dataServicesPtr; } 
   void	SetDataServicesPtr(DataServices *tothis) { dataServicesPtr = tothis; } 
-  void	SetDataMin(Real min) { dataMinSpecified = min; }
-  void	SetDataMax(Real max) { dataMaxSpecified = max; }
-  Real	GetSpecifiedMin() const { return dataMinSpecified; }
-  Real	GetSpecifiedMax() const { return dataMaxSpecified; }
+  void	SetDataMin(Real min) { /* cout << "_here 00: setting dms" << endl; */  dataMinSpecified[currDerivedNumber] = min; }
+  void	SetDataMax(Real max) { dataMaxSpecified[currDerivedNumber] = max; }
+  Real	GetSpecifiedMin() const { return dataMinSpecified[currDerivedNumber]; }
+  Real	GetSpecifiedMax() const { return dataMaxSpecified[currDerivedNumber]; }
   Real	GetMin() const       { return dataMinAllGrids; }
   Real	GetMax() const       { return dataMaxAllGrids; }
   Real	GetRegionMin() const { return dataMinRegion; }
@@ -109,23 +109,13 @@ class AmrPicture {
   const Box &GetSliceBox() const  { return sliceBox[finestLevel]; }
   int	GetMyView() const         { return myView; }
   const Array<Box> &GetSubDomain() const { return subDomain; }
-  bool	FramesMade() const        { return framesMade; }
   void	SetFrameSpeed(int toThis) { frameSpeed = toThis; }
-  int	GetFrameSpeed() const     { return frameSpeed; }
-  GraphicsAttributes *GetGAPtr()  { return GAptr; }
-  Palette *GetPalPtr()            { return palPtr; }
   Real	MinUsing() const          { return minUsing; }
   Real	MaxUsing() const          { return maxUsing; }
   Window	PictureWindow()   { return pictureWindow; }
   void	SetMaxDrawnLevel(int lev) { maxDrawnLevel = lev; }
   void  SetCartGridSmoothing(bool tf) { bCartGridSmoothing = tf; }
-  PltApp *GetPltAppPtr()          { return pltAppPtr; }
-  void ChangeContour(int);
-  bool Contours() const     { return contours; }
-  bool Raster()   const     { return raster; }
-  bool ColorContour() const { return colContour; }
-  bool VectorField()  const { return vectorField; }
-  VectorDerived FindVectorDerived(Array<aString> &aVectorDeriveNames);
+  void APChangeContour(int);
 
  private:
   Window 		pictureWindow;
@@ -133,13 +123,15 @@ class AmrPicture {
   int			numberOfContours;
   Real			dataMinAllGrids, dataMaxAllGrids;
   Real			dataMinRegion, dataMaxRegion;
-  Real			dataMinSpecified, dataMaxSpecified;
+  Array<Real>		dataMinSpecified, dataMaxSpecified;
+  Array<bool>		dataMinSpecifiedSet, dataMaxSpecifiedSet;
   Real			dataMinFile, dataMaxFile;
   Real			minUsing, maxUsing;
   RangeType             whichRange;
   Array<unsigned long>  dataSize, dataSizeH, dataSizeV;
   unsigned int   	imageSize, imageSizeH, imageSizeV;
   aString		currentDerived;
+  int    		currDerivedNumber;
   bool			showBoxes;
   int			hdspoint, vdspoint, dsBoxSize;
   int			datasetPointShowing, datasetPointColor;
@@ -163,7 +155,10 @@ class AmrPicture {
   Array<bool >           xImageCreated;
   GraphicsAttributes	*GAptr;
   PltApp	        *pltAppPtr;
+  PltAppState	        *pltAppStatePtr;
   DataServices		*dataServicesPtr;
+  Display		*display;
+  GC			xgc;
   int			myView, hLine, vLine;
   int			minDrawnLevel, maxDrawnLevel, maxAllowableLevel;
   int			maxLevelWithGrids, maxsFound;
@@ -177,7 +172,10 @@ class AmrPicture {
   void SetRasterOnly();
   void SetRasterContour();
   void SetColorContour();
+  void ChangeRasterImage();
+  bool ColorContour() const { return colContour; }
   void SetBWContour();
+  bool Raster()   const     { return raster; }
   void SetVectorField();
   void SetSlice(int view, int here);
   void CoarsenSliceBox();
@@ -205,12 +203,18 @@ class AmrPicture {
       return ( (a <= b) && (b <= c) || (a >= b) && (b >= c) );
   }
 
+  bool VectorField()  const { return vectorField; }
   void DrawVectorField(Display *display, Drawable &drawable, const GC &gc);
   void DrawVectorField(Display *display, Drawable &drawable, const GC &gc,
 		       int hDir, int vDir, int maxLength,
                        const Real *hdat, const Real *vdat,
 		       const Real velocityMax,
 		       const Box &dvfSliceBox, int dvfFactor);
+  VectorDerived FindVectorDerived(Array<aString> &aVectorDeriveNames);
+
+  static void CBFrameTimeOut(XtPointer, XtIntervalId *);
+  static void CBContourSweep(XtPointer, XtIntervalId *);
+
 };
 
 #endif

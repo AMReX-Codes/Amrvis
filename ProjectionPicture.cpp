@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.cpp,v 1.38 2001-02-22 22:17:16 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.39 2001-03-14 00:41:55 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -74,7 +74,7 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
       boxColors[lev] = MaxPaletteIndex() - 80 * (lev - 1);
     }
     boxColors[lev] = Max(0, Min(MaxPaletteIndex(), boxColors[lev]));
-    for(int iBox = 0; iBox < amrData.boxArray(lev).length(); ++iBox) {
+    for(int iBox(0); iBox < amrData.boxArray(lev).length(); ++iBox) {
       Box temp(amrData.boxArray(lev)[iBox]);
       if(temp.intersects(theDomain[lev])) {
         temp &= theDomain[lev];
@@ -130,7 +130,7 @@ void ProjectionPicture::AddBox(const Box &theBox, int index, int level) {
 void ProjectionPicture::TransformBoxPoints(int iLevel, int iBoxIndex) {
   Real px, py, pz;
 
-  for(int i = 0; i < NVERTICIES; ++i) {
+  for(int i(0); i < NVERTICIES; ++i) {
     viewTransformPtr->
 	   TransformPoint(boxReal[iLevel][iBoxIndex].vertices[i].component[0],
 			  boxReal[iLevel][iBoxIndex].vertices[i].component[1],
@@ -148,9 +148,9 @@ void ProjectionPicture::MakeBoxes() {
   maxDrawnLevel = pltAppPtr->MaxDrawnLevel();
 
   if(amrPicturePtr->ShowingBoxes()) {
-    for(int iLevel = minDrawnLevel; iLevel <= maxDrawnLevel; ++iLevel) {
+    for(int iLevel(minDrawnLevel); iLevel <= maxDrawnLevel; ++iLevel) {
       int nBoxes(boxTrans[iLevel].length());
-      for(int iBox = 0; iBox < nBoxes; ++iBox) {
+      for(int iBox(0); iBox < nBoxes; ++iBox) {
         TransformBoxPoints(iLevel, iBox);
       }
     }
@@ -173,7 +173,7 @@ void ProjectionPicture::MakeAuxiliaries() {
 // -------------------------------------------------------------------
 void ProjectionPicture::MakeBoundingBox() {
     Real px, py, pz;
-    for(int i = 0; i < NVERTICIES; ++i) {
+    for(int i(0); i < NVERTICIES; ++i) {
         viewTransformPtr->
             TransformPoint(realBoundingBox.vertices[i].component[0],
                            realBoundingBox.vertices[i].component[1],
@@ -191,7 +191,7 @@ void ProjectionPicture::MakeSubCutBox() {
     minDrawnLevel = pltAppPtr->MinDrawnLevel();
     maxDrawnLevel = pltAppPtr->MaxDrawnLevel();
     
-    for(int i = 0; i < NVERTICIES; ++i) {
+    for(int i(0); i < NVERTICIES; ++i) {
         viewTransformPtr->
             TransformPoint(realSubCutBox.vertices[i].component[0],
                            realSubCutBox.vertices[i].component[1],
@@ -207,8 +207,8 @@ void ProjectionPicture::MakeSubCutBox() {
 // -------------------------------------------------------------------
 void ProjectionPicture::MakeSlices() {
     Real px, py, pz;
-    for(int j = 0; j< 3 ; j++) {
-        for(int i = 0; i < 4; ++i) {
+    for(int j(0); j < 3 ; ++j) {
+        for(int i(0); i < 4; ++i) {
             viewTransformPtr->
                 TransformPoint(realSlice[j].edges[i].component[0],
                                realSlice[j].edges[i].component[1],

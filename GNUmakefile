@@ -8,8 +8,8 @@ COMP      = mpKCC
 
 COMP      = g++
 COMP      = KCC
-DEBUG     = TRUE
 DEBUG     = FALSE
+DEBUG     = TRUE
 DIM       = 2
 DIM       = 3
 NAMESPACE = TRUE

@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.H,v 1.19 2001-02-07 01:40:43 vince Exp $
+// $Id: ProjectionPicture.H,v 1.20 2001-03-14 00:41:55 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -130,29 +130,28 @@ private:
   RealSlice realSlice[3];
   TransSlice transSlice[3];
   
-  Array<int>	boxPoints;
-  Array<int>	boxColors;
+  Array<int> boxPoints;
+  Array<int> boxColors;
   int subCutColor, sliceColor, daWidth, daHeight;
   bool showSubCut, pixCreated;
-  int	minDrawnLevel, maxDrawnLevel, maxDataLevel;
+  int  minDrawnLevel, maxDrawnLevel, maxDataLevel;
   Real xcenter, ycenter, zcenter;
   Pixmap pixMap;
   Palette *palettePtr;
-  unsigned char  *imageData;
-  unsigned char  *volpackImageData;
-  XImage  *PPXImage;
+  unsigned char *imageData, *volpackImageData;
+  XImage *PPXImage;
   Array<Box> theDomain;
   char buffer[BUFSIZ];
   PltApp *pltAppPtr;
   Real scale[3];
   Real longestWindowLength, shortestWindowLength;
-  int		longestBoxSideDir;
-  int		nDenRampPts, nGradRampPts, nShadeRampPts;
-  int		maxDenRampPts, maxGradRampPts, maxShadeRampPts;
-  char		rampfilename[LINELENGTH];
+  int  longestBoxSideDir;
+  int  nDenRampPts, nGradRampPts, nShadeRampPts;
+  int  maxDenRampPts, maxGradRampPts, maxShadeRampPts;
+  char rampfilename[LINELENGTH];
   unsigned char	volumeBoxColor;
 #ifdef BL_VOLUMERENDER
-  VolRender       *volRender;
+  VolRender *volRender;
 #endif
   void MakeAuxiliaries();
   void MakeBoundingBox();
@@ -161,8 +160,8 @@ private:
   void DrawSlices(const Drawable &drawable);
   void LoadSlices(const Box &surroundingBox);
   // converts a Box to eight BoxRealPoints at the specified level
-  void		AddBox(const Box &theBox, int index, int level);
-  void            TransformBoxPoints(int iLevel, int iBoxIndex);
+  void AddBox(const Box &theBox, int index, int level);
+  void TransformBoxPoints(int iLevel, int iBoxIndex);
 
 };
 

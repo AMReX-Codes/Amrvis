@@ -1,6 +1,6 @@
 
 //
-// $Id: WriteRGB.cpp,v 1.8 2000-10-02 20:53:11 lijewski Exp $
+// $Id: WriteRGB.cpp,v 1.9 2001-03-14 00:41:55 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -145,7 +145,7 @@ IMAGE *imgopen(int f, char *file, char *mode, unsigned int type, unsigned int di
             image->rleend = 512L+2*tablesize;
             if(*mode=='w') {
               max = image->ysize*image->zsize;
-              for(i=0; i<max; i++) {
+              for(i = 0; i < max; ++i) {
                 image->rowstart[i] = 0;
                 image->rowsize[i] = -1;
               }
@@ -178,7 +178,7 @@ cvtshorts( unsigned short buffer[], long n) {
     long nshorts = n>>1;
     unsigned short swrd;
 
-    for(i=0; i<nshorts; i++) {
+    for(i = 0; i < nshorts; ++i) {
         swrd = *buffer;
         *buffer++ = (swrd>>8) | (swrd<<8);
     }
@@ -213,7 +213,7 @@ int putrow(IMAGE *image, unsigned short *buffer, unsigned int y, unsigned int z)
                     *cptr = *sptr++;
                     if(*cptr > max) { max = *cptr; }
                     if(*cptr < min) { min = *cptr; }
-                    cptr++;
+                    ++cptr;
                 }
                 image->min = min;
                 image->max = max;

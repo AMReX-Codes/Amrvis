@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.H,v 1.20 2000-11-22 00:25:15 vince Exp $
+// $Id: Palette.H,v 1.21 2001-03-14 00:41:54 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -26,8 +26,10 @@ const int TEXTCOLOR       = 224;
 const int TOTALPALHEIGHT  = 280;
 const int TOTALPALWIDTH   = 150;
 
-#include <GraphicsAttributes.H>
 #include <X11/Intrinsic.h>
+
+class GraphicsAttributes;
+
 
 enum PaletteType { ALPHA, NON_ALPHA };
 
@@ -107,8 +109,6 @@ public:
   aString PaletteNumberFormat() { return defaultFormat; }
   XImage *GetPictureXImage();
   unsigned char *RemapTable() const  { return remapTable;     }
-
-  const GraphicsAttributes &theGAptr() const { return *GAptr; }
 
   const Array<unsigned char> &theABuff() const { return abuff; }
   const Array<unsigned char> &theRBuff() const { return rbuff; }

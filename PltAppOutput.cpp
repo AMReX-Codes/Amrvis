@@ -1,6 +1,6 @@
 
 //
-// $Id: PltAppOutput.cpp,v 1.20 2000-10-02 20:53:09 lijewski Exp $
+// $Id: PltAppOutput.cpp,v 1.21 2001-03-14 00:41:55 vince Exp $
 //
 
 #include <Xm/Xm.h>
@@ -12,6 +12,9 @@
 // PltAppOutput.cpp
 // ---------------------------------------------------------------
 #include "PltApp.H"
+#include "PltAppState.H"
+#include "DataServices.H"
+#include "ProjectionPicture.H"
 #include "Output.H"
 
 // -------------------------------------------------------------------
@@ -23,9 +26,9 @@ void PltApp::DoOutput(Widget w, XtPointer data, XtPointer) {
   sMessage = XmStringCreateSimple("Please enter a filename base:");
 
   i=0;
-  XtSetArg(args[i], XmNselectionLabelString, sMessage); i++;
-  XtSetArg(args[i], XmNautoUnmanage, false); i++;
-  XtSetArg(args[i], XmNkeyboardFocusPolicy, XmPOINTER); i++;
+  XtSetArg(args[i], XmNselectionLabelString, sMessage); ++i;
+  XtSetArg(args[i], XmNautoUnmanage, false); ++i;
+  XtSetArg(args[i], XmNkeyboardFocusPolicy, XmPOINTER); ++i;
   wGetFileName = XmCreatePromptDialog(wAmrVisTopLevel, "Save as", args, i);
   XmStringFree(sMessage);
 
@@ -72,8 +75,7 @@ void PltApp::DoOutput(Widget w, XtPointer data, XtPointer) {
     ++i;
   }
   timestep[i] = '\0';
-  strcpy(cder, currentDerived.c_str());  // do this because currentDerive does not
-				         // work properly in sprintf
+  strcpy(cder, pltAppState->CurrentDerived().c_str());
   sprintf(tempstr, "%s.%s", cder, timestep);
 
   XmTextSetString(XmSelectionBoxGetChild(wGetFileName, XmDIALOG_TEXT), tempstr);
@@ -267,7 +269,7 @@ void PltApp::DoCreateAnimRGBFile() {
     ++i;
   }
   timestep[i] = '\0';
-  strcpy(cder, currentDerived.c_str());
+  strcpy(cder, pltAppState->CurrentDerived().c_str());
   sprintf(tempstr, "%s.%s", cder, timestep);
   sprintf(rgbfilename, "%s.rgb", tempstr);
 

@@ -1,34 +1,26 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.34 2000-11-22 00:24:31 vince Exp $
+// $Id: PltApp3D.cpp,v 1.35 2001-03-14 00:41:54 vince Exp $
 //
 
-#include <Xm/Xm.h>
-#include <Xm/Protocols.h>
-#include <Xm/ToggleBG.h>
-//  #include <MainW.h>
-#include <Xm/PushB.h>
-#include <Xm/PushBG.h>
-//  #include <FileSB.h>
-//  #include <Label.h>
-#include <Xm/LabelG.h>
-//  #include <RowColumn.h>
-#include <Xm/Form.h>
-#include <Xm/DrawingA.h>
-//  #include <Xm/Text.h>
-//  #include <ScrolledW.h>
-#include <Xm/TextF.h>
-#include <Xm/ToggleB.h>
-//  #include <SelectioB.h>
-//  #include <List.h>
-//  #include <Scale.h>
-//  #include <SeparatoG.h>
-//  #include <LabelG.h>
 // ---------------------------------------------------------------
 // PltApp3D.cpp
 // ---------------------------------------------------------------
 #include "PltApp.H"
+#include "PltAppState.H"
+#include "ProjectionPicture.H"
 #include "Quaternion.H"
+
+#include <Xm/Xm.h>
+#include <Xm/Protocols.h>
+#include <Xm/ToggleBG.h>
+#include <Xm/PushB.h>
+#include <Xm/PushBG.h>
+#include <Xm/LabelG.h>
+#include <Xm/Form.h>
+#include <Xm/DrawingA.h>
+#include <Xm/TextF.h>
+#include <Xm/ToggleB.h>
 
 
 #define MARK fprintf(stderr, "Mark: file %s, line %d.\n", __FILE__, __LINE__)
@@ -730,7 +722,7 @@ void PltApp::DoRender(Widget, XtPointer, XtPointer) {
     Real maxUsing(amrPicturePtrArray[ZPLANE]->MaxUsing());
     volRender->MakeSWFData(dataServicesPtr[currentFrame],
 			   minUsing, maxUsing,
-			   currentDerived, 
+			   pltAppState->CurrentDerived(), 
 			   iPaletteStart, iPaletteEnd,
 			   iBlackIndex, iWhiteIndex,
 			   iColorSlots);

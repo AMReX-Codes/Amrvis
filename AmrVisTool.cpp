@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.46 2001-02-20 21:42:00 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.47 2001-03-14 00:41:53 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -169,7 +169,7 @@ int main(int argc, char *argv[]) {
       // loop through the command line list of plot files
       FileType fileType = GetDefaultFileType();
       BL_ASSERT(fileType != INVALIDTYPE);
-      for(int nPlots = 0; nPlots < GetFileCount(); ++nPlots) {
+      for(int nPlots(0); nPlots < GetFileCount(); ++nPlots) {
         comlineFileName = GetComlineFilename(nPlots);
         if(ParallelDescriptor::IOProcessor()) {
           cout << endl << "FileName = " << comlineFileName << endl;
@@ -307,20 +307,20 @@ void CreateMainWindow(int argc, char *argv[]) {
   XtManageChild(wMenuBar);
 
   i = 0;
-  //XtSetArg(args[i], XmNrows,    20);       i++;
-  //XtSetArg(args[i], XmNcolumns, 80);       i++;
-  XtSetArg(args[i], XmNeditable, false);       i++;
-  XtSetArg(args[i], XmNeditMode, XmMULTI_LINE_EDIT);       i++;
-  XtSetArg(args[i], XmNwordWrap, true);       i++;
-  XtSetArg(args[i], XmNscrollHorizontal, false);       i++;
-  XtSetArg(args[i], XmNblinkRate, 0);       i++;
-  XtSetArg(args[i], XmNautoShowCursorPosition, true);       i++;
-  XtSetArg(args[i], XmNcursorPositionVisible,  false);      i++;
-  XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET);      i++;
-  XtSetArg(args[i], XmNtopWidget, wMenuBar);      i++;
-  XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      i++;
-  XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      i++;
-  XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);      i++;
+  //XtSetArg(args[i], XmNrows,    20);       ++i;
+  //XtSetArg(args[i], XmNcolumns, 80);       ++i;
+  XtSetArg(args[i], XmNeditable, false);       ++i;
+  XtSetArg(args[i], XmNeditMode, XmMULTI_LINE_EDIT);       ++i;
+  XtSetArg(args[i], XmNwordWrap, true);       ++i;
+  XtSetArg(args[i], XmNscrollHorizontal, false);       ++i;
+  XtSetArg(args[i], XmNblinkRate, 0);       ++i;
+  XtSetArg(args[i], XmNautoShowCursorPosition, true);       ++i;
+  XtSetArg(args[i], XmNcursorPositionVisible,  false);      ++i;
+  XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET);      ++i;
+  XtSetArg(args[i], XmNtopWidget, wMenuBar);      ++i;
+  XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      ++i;
+  XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      ++i;
+  XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);      ++i;
   wTextOut = XmCreateScrolledText(wMainWindow, "textOut", args, i);
   XtManageChild(wTextOut);
 
@@ -475,10 +475,10 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
 
     XmString sNone = XmStringCreateSimple("none");
     if( ! XmStringCompare(sDirectory, sNone)) {
-      XtSetArg (args[i], XmNdirectory, sDirectory); i++;
+      XtSetArg (args[i], XmNdirectory, sDirectory); ++i;
     }
-    XtSetArg (args[i], XmNpattern, sMask); i++;
-    XtSetArg (args[i], XmNfileTypeMask, XmFILE_ANY_TYPE); i++;
+    XtSetArg (args[i], XmNpattern, sMask); ++i;
+    XtSetArg (args[i], XmNfileTypeMask, XmFILE_ANY_TYPE); ++i;
     wDialog = XmCreateFileSelectionDialog(wTopLevel, "Open File", args, i);
     XtAddCallback(wDialog, XmNokCallback, (XtCallbackProc) CBOpenPltFile,
 		  NULL);

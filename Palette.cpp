@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.32 2000-11-22 00:25:32 vince Exp $
+// $Id: Palette.cpp,v 1.33 2001-03-14 00:41:54 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -8,6 +8,7 @@
 // ---------------------------------------------------------------
 #include "Palette.H"
 #include "GlobalUtilities.H"
+#include "GraphicsAttributes.H"
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -217,7 +218,7 @@ void Palette::Draw(Real palMin, Real palMax, const aString &numberFormat) {
 
   if(transSet) {    // show transfers in palette
     int transpnt, zerolinex = palWidth - 5;
-    for(i = paletteStart; i < totalColorSlots; i++) {
+    for(i = paletteStart; i < totalColorSlots; ++i) {
       cy = ((totalColorSlots - 1) - i) + 14;
       // draw transparency as black
       // FIXME:
@@ -237,7 +238,7 @@ void Palette::Draw(Real palMin, Real palMax, const aString &numberFormat) {
     XDrawLine(GAptr->PDisplay(), palPixmap, GAptr->PGC(), zerolinex, 14, zerolinex, colorSlots + 14);
 
   } else {
-    for(i = paletteStart; i < totalColorSlots; i++) {
+    for(i = paletteStart; i < totalColorSlots; ++i) {
       XSetForeground(GAptr->PDisplay(), GAptr->PGC(), ccells[i].pixel);
       cy = ((totalColorSlots - 1) - i) + 14;
       XDrawLine(GAptr->PDisplay(), palPixmap, GAptr->PGC(), 0, cy, palWidth, cy);
@@ -306,7 +307,7 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
   const unsigned long bprgb = GAptr->PBitsPerRGB();
   if((fd = open(fileName.c_str(), O_RDONLY, NULL)) < 0) {
     cout << "Can't open colormap file:  " << fileName << endl;
-    for(i = 0; i < totalColorSlots; i++) {    // make a default grayscale colormap.
+    for(i = 0; i < totalColorSlots; ++i) {    // make a default grayscale colormap.
       if(GAptr->IsTrueColor()) {
 	// FIXME: not 24 bit!
 	ccells[i].pixel = ( ((rbuff[i]>>(8-bprgb)) <<2*bprgb)
@@ -335,7 +336,7 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
 
     paletteType = NON_ALPHA;
     transferArray.resize(iSeqPalSize);
-    for(int j = 0; j<iSeqPalSize; j++) {
+    for(int j(0); j < iSeqPalSize; ++j) {
       indexArray[j] = j; 
       transferArray[j] = (float) j / (float)(iSeqPalSize-1);
       rbuff[j] = j;

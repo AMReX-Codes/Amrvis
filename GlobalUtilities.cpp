@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.34 2001-02-28 02:03:43 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.35 2001-03-14 00:41:53 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -17,6 +17,7 @@ using std::ifstream;
 #endif
 
 #include "PltApp.H"
+#include "ParallelDescriptor.H"
 
 const int DEFAULTMAXPICTURESIZE = 600000;
 

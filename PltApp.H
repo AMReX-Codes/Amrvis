@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.40 2001-02-28 02:03:42 vince Exp $
+// $Id: PltApp.H,v 1.41 2001-03-14 00:41:54 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -14,24 +14,26 @@
 #undef index
 
 #include "AmrvisConstants.H"
-#include "AmrPicture.H"
 #include "Box.H"
 #include "Dataset.H"
-#include "GraphicsAttributes.H"
 #include "GlobalUtilities.H"
 #include "Palette.H"
-#include "List.H"
 #include "aString.H"
 #if (BL_SPACEDIM==3)
 # include "ViewTransform.H"
-# include "ProjectionPicture.H"
+class ProjectionPicture;
 #endif
 
-#include "XYPlotWin.H"
-#include "XYPlotParam.H"
+class DataServices;
 
-#include "DataServices.H"
-//class DataServices;
+class AmrPicture;
+class Dataset;
+class GraphicsAttributes;
+class PltAppState;
+class XYPlotParameters;
+class XYPlotWin;
+class XYPlotDataList;
+
 
 // plane sweep widget controls (WC)
 const int WCSTOP = 0;
@@ -51,7 +53,6 @@ const int WCARGB  = 10;
 const int WCN     = 11;  // number of control widget
 
 const int NFRAMES = 19;
-const int MAXDERIVED = 64;
 
 #if 0
 struct ClientDataStruct {   // for passing information through client_data
@@ -61,10 +62,7 @@ struct ClientDataStruct {   // for passing information through client_data
 };
 #endif
 
-class XYPlotParameters;
-class XYPlotWin;
-class Dataset;
-
+class PltApp;
 typedef void (PltApp::*memberCB)(Widget, XtPointer, XtPointer);
 
 class PltApp {
@@ -116,14 +114,14 @@ public:
   XImage *CurrentFrameXImage()     { return frameBuffer[currentFrame]; }
   Real GlobalMin()    const        { return globalMin; }
   Real GlobalMax()    const        { return globalMax; }
-  int CurrentScale()  const        { return currentScale; }
-  int PreviousScale() const        { return previousScale; }
+  //int CurrentScale()  const        { return currentScale; }
   int MinAllowableLevel() const    { return minAllowableLevel; }
   int MinDrawnLevel() const        { return minDrawnLevel; }
   int MaxDrawnLevel() const        { return maxDrawnLevel; }
   bool GetShowBoxes() const        { return showBoxes; }
   void SetShowBoxes(bool showing)  { showBoxes = showing; }
   GraphicsAttributes *GetGAptr() const  { return GAptr; }
+  //const aString &CurrentDerived() const { return currentDerived; }
 
   const aString &GetFileName();
   bool  PaletteDrawn();
@@ -134,7 +132,7 @@ public:
   void  PaletteDrawn(bool trueOrFalse);
   
   XYPlotDataList *CreateLinePlot(int V, int sdir, int mal, int ixY,
-				 aString *derived);
+				 const aString *derived);
   void SetGlobalMinMax(Real specifiedMin, Real specifiedMax);
   GC GetRbgc() const { return rbgc; }
 
@@ -199,19 +197,20 @@ private:
   int currentContour;
   int activeView;
   int startX, startY, endX, endY;
-  int currentScale, previousScale, maxAllowableScale;
+  //int currentScale;
+  int maxAllowableScale;
   int minAllowableLevel;
   bool bCartGridSmoothing;
-  aString contourNumString, formatString, fileName, palFilename, currentDerived;
+  aString contourNumString, formatString, fileName, palFilename;
+  //aString currentDerived;
   char buffer[BUFSIZ];
   Box	trueRegion, selectionBox;
   Dataset *datasetPtr;
   GraphicsAttributes	*GAptr;
   Array<DataServices *> dataServicesPtr;
-  Array<aString> fileNames, derivedStrings;
+  Array<aString> fileNames;
   Array<XImage *> frameBuffer;
   Array<bool>	readyFrames;
-  // Array<XYPlotDataList *> 
   AnimDirection	animDirection;
   XtIntervalId	animationIId, multiclickIId;
   Real		globalMin, globalMax;
@@ -220,6 +219,7 @@ private:
   String trans;
   int startcutX[3], startcutY[3], finishcutX[3], finishcutY[3];
   PltApp *pltParent;
+  PltAppState *pltAppState;
   
   // baggage for fast rubber banding
   GC		rbgc;
@@ -227,21 +227,15 @@ private:
   int 		rWidth, rHeight, rStartX, rStartY;
   Cursor	cursor;
     
-  static aString defaultPaletteString,
-    initialDerived,
-    initialFormatString;
-  static int initialScale,
-    initialWindowHeight,
-    initialWindowWidth,
-    defaultShowBoxes,
-    placementOffsetX,
-    placementOffsetY,
-    reserveSystemColors;
+  static aString defaultPaletteString, initialDerived, initialFormatString;
+  static int initialScale, initialWindowHeight, initialWindowWidth;
+  static int defaultShowBoxes, placementOffsetX, placementOffsetY;
+  static int reserveSystemColors;
   
 #if (BL_SPACEDIM==3)
   int acc, labelAxes, transDetached;
   int daWidth, daHeight;
-  ProjectionPicture	*projPicturePtr;
+  ProjectionPicture *projPicturePtr;
   ViewTransform	viewTrans;
 //#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   bool lightingModel, showing3dRender, preClassify, lightingWindowExists;
@@ -250,6 +244,7 @@ private:
 #endif
   
   void PltAppInit();           // called by constructors
+  PltAppState *GetPltAppState() const { return pltAppState; }
 
   void DoDrawPointerLocation(Widget, XtPointer, XtPointer);
   void ChangeScale(Widget, XtPointer, XtPointer);
@@ -303,7 +298,7 @@ private:
   void CloseInfoWindow(Widget, XtPointer, XtPointer);
   void CloseContoursWindow(Widget, XtPointer, XtPointer);
   void DoExposePalette(Widget, XtPointer, XtPointer);
-  void DoExposePicture(Widget, XtPointer, XtPointer);
+  void PADoExposePicture(Widget, XtPointer, XtPointer);
 
 #if (BL_SPACEDIM==3)
   void DoOrient(Widget, XtPointer, XtPointer);
@@ -325,10 +320,6 @@ private:
 #endif
   void Clear();
 #endif
-
-  // RefArea (axis pictures) 
-
-  void SetHVLine(AmrPicture **);
 
   void AddStaticCallback(Widget w, String whichcb, memberCB whichf, void *d = NULL);
   void AddStaticEventHandler(Widget w, EventMask mask, memberCB cbf, void *d = NULL);

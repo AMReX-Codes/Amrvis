@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.cpp,v 1.19 2001-02-01 00:48:30 vince Exp $
+// $Id: Output.cpp,v 1.20 2001-03-14 00:41:54 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -65,10 +65,10 @@ void WritePSFile(const char *filename, XImage *image,
   fout << "colorimage";   // no << '\n';
 
   fout << hex;
-  char *buf = new char[8*imagesizehoriz+1];
-  for(int j = 0; j < imagesizevert; j++) {
-    int charindex = 0;
-    for(int i = 0; i < imagesizehoriz; i++) {
+  char *buf = new char[8 * imagesizehoriz + 1];
+  for(int j(0); j < imagesizevert; ++j) {
+    int charindex(0);
+    for(int i(0); i < imagesizehoriz; ++i) {
       //BL_ASSERT(charindex>8*imagesizehoriz+1);
       //FIXME
       unsigned char r, g, b;
@@ -76,7 +76,7 @@ void WritePSFile(const char *filename, XImage *image,
       palette.unpixelate(index, r, g, b);
       if(i % 10 == 0) {
         sprintf(buf+charindex, "\n");
-        charindex++;
+        ++charindex;
       }
       //fout << setw(2) << setfill('0') << (color.red >> 8);
       //fout << setw(2) << setfill('0') << (color.green >> 8);
@@ -115,9 +115,9 @@ void WritePSPaletteFile(const char *filename, XImage *image,
     
     fout << hex;
     char *buf = new char[8*imagesizehoriz+1];
-    for(int j = 0; j < imagesizevert; ++j) {
-      int charindex = 0;
-        for(int i = 0; i < imagesizehoriz; ++i) {
+    for(int j(0); j < imagesizevert; ++j) {
+      int charindex(0);
+        for(int i(0); i < imagesizehoriz; ++i) {
 	  //FIXME
 	    unsigned long index = (unsigned long) XGetPixel(image, i, j);
 	    unsigned char r, g, b;
@@ -143,7 +143,7 @@ void WritePSPaletteFile(const char *filename, XImage *image,
     int palSpacing = int(ceil(pSpacing)) + 1;
     fout << "/Palatino-Roman findfont" << '\n' << "20 scalefont"
         << '\n' << "setfont\n1 setgray" << '\n';
-    for(int j = 0; j < palValueList.length(); ++j) {
+    for(int j(0); j < palValueList.length(); ++j) {
         fout << "40 " << topOfPalette - ( j * palSpacing) << " moveto" << '\n';
         fout << "(";
         char dummyString[50];//should be big enough
@@ -174,11 +174,12 @@ void WriteRGBFile(const char *filename, XImage *ximage,
   // no support for RLE.
   image = iopen(filename, VERBATIM(1), 3, xsize, ysize, 3);
 
-  for(int y=0; y<ysize; y++) {
+  Pixel index;
+  unsigned char r, g, b;
+  for(int y(0); y < ysize; ++y) {
     /* fill rbuf, gbuf, and bbuf with pixel values */
-    for(int x=0; x<xsize; x++) {
-      Pixel index = XGetPixel(ximage,x,y);
-      unsigned char r, g, b;
+    for(int x(0); x < xsize; ++x) {
+      index = XGetPixel(ximage,x,y);
       palette.unpixelate(index, r, g, b);
       rbuf[x] = r;
       gbuf[x] = g;
@@ -289,7 +290,7 @@ int putrow(IMAGE *image, unsigned short *buffer, unsigned int y, unsigned int z)
                     *cptr = *sptr++;
                     if(*cptr > max) max = *cptr;
                     if(*cptr < min) min = *cptr;
-                    cptr++;
+                    ++cptr;
                 }
                 image->min = min;
                 image->max = max;
