@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.62 2003-12-11 01:48:51 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.63 2004-02-10 22:51:10 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -8,7 +8,9 @@
 // ---------------------------------------------------------------
 
 #include <stdio.h>
+#ifndef BL_IRIX64
 #include <endian.h>
+#endif
 
 // X/Motif headers
 #include <Xm/Xm.h>
