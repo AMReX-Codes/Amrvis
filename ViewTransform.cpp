@@ -1,6 +1,6 @@
 
 //
-// $Id: ViewTransform.cpp,v 1.18 2000-10-02 20:53:10 lijewski Exp $
+// $Id: ViewTransform.cpp,v 1.19 2001-01-04 17:46:34 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -46,10 +46,10 @@ ViewTransform::~ViewTransform() {
 AmrQuaternion ViewTransform::Screen2Quat(int start_X, int start_Y, 
                                          int end_X, int end_Y, Real box_size)
 {
-    Real xWorldStart((Real)(start_X-screenPositionX) / (screenPositionX*scale));
-    Real yWorldStart((Real)(start_Y-screenPositionY) / (screenPositionY*scale));
-    Real xWorldEnd((Real)(end_X-screenPositionX)/(screenPositionX*scale));
-    Real yWorldEnd((Real)(end_Y-screenPositionY)/(screenPositionY*scale));
+    Real xWorldStart((Real)(start_X - screenPositionX) / (screenPositionX * scale));
+    Real yWorldStart((Real)(start_Y - screenPositionY) / (screenPositionY * scale));
+    Real xWorldEnd((Real)(end_X - screenPositionX) / (screenPositionX * scale));
+    Real yWorldEnd((Real)(end_Y - screenPositionY) / (screenPositionY * scale));
     return trackball(xWorldEnd/box_size, yWorldEnd/box_size,
                      xWorldStart/box_size, yWorldStart/box_size);
 }
@@ -80,7 +80,6 @@ void ViewTransform::TransformPoint(Real x, Real y, Real z,
     Real point[4] = {x-objCenterX, y-objCenterY, z-objCenterZ, 1};
     Real newPoint[4];
     for(int ii = 0; ii < 2; ++ii) {
-      // save time -- only the first two numbers, I think
       int temp(0);
       for(int jj = 0; jj < 4; ++jj) {
         temp += (int) (point[jj] * mRotation[ii][jj] * scaleVector[jj]);
@@ -100,7 +99,7 @@ void ViewTransform::Print()const {
 
 
 // -------------------------------------------------------------------
-void ViewTransform::MakeTransform() {  //ugh -- why this constant?
+void ViewTransform::MakeTransform() {
   rotation.tomatrix(mRotation);
   mRotation[0][3] = boxTransX * 0.185;
   mRotation[1][3] = boxTransY * 0.185;
@@ -130,7 +129,7 @@ Real ViewTransform::InfNorm() {
   Real sum(0.);
   Real max(0.);
   for(int i = 0; i < 3; ++i) {
-    sum = fabs(mat[i][0])+fabs(mat[i][1])+fabs(mat[i][2]);
+    sum = fabs(mat[i][0]) + fabs(mat[i][1]) + fabs(mat[i][2]);
     max = (sum>max ? sum : max);
   }
   return max;

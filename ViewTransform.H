@@ -1,6 +1,6 @@
 
 //
-// $Id: ViewTransform.H,v 1.12 2000-10-02 20:53:10 lijewski Exp $
+// $Id: ViewTransform.H,v 1.13 2001-01-04 17:46:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -53,10 +53,11 @@ class ViewTransform {
     void SetAdjustments(Real len, int width, int height);
   
     void MakeTranslation(int x1, int y1, int x2, int y2, Real bS);
-    void ResetTranslation()
-      { boxTransX = renTransX = boxTransY = renTransY = 0.; }
-    Real GetTranslationX() { return boxTransX; }
-    Real GetTranslationY() { return boxTransY; }
+    void ResetTranslation() { boxTransX = renTransX = boxTransY = renTransY = 0.0; }
+    Real GetRenTransX() const { return boxTransX; }
+    Real GetRenTransY() const { return boxTransY; }
+    void SetRenTransX(Real newRenTransX) { renTransX = newRenTransX; }
+    void SetRenTransY(Real newRenTransY) { renTransY = newRenTransY; }
   
     Real InfNorm();
     AmrQuaternion Screen2Quat(int, int, int, int, Real);
