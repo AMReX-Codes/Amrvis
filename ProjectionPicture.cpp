@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ProjectionPicture.cpp,v 1.29 2000-06-13 23:18:21 car Exp $
+// $Id: ProjectionPicture.cpp,v 1.30 2000-06-13 23:19:08 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -302,6 +302,7 @@ void ProjectionPicture::DrawBoxesIntoDrawable(const Drawable &drawable,
   
   if(amrPicturePtr->ShowingBoxes()) {
     for(int iLevel = iFromLevel; iLevel <= iToLevel; ++iLevel) {
+      // FIXME:
       XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
                      boxColors[iLevel]);
       int nBoxes(boxTrans[iLevel].length());
@@ -313,6 +314,7 @@ void ProjectionPicture::DrawBoxesIntoDrawable(const Drawable &drawable,
     }
   }
   DrawAuxiliaries(drawable);
+  // FIXME:
   XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
                  boxColors[minDrawnLevel]);
 }
@@ -321,12 +323,14 @@ void ProjectionPicture::DrawBoxesIntoDrawable(const Drawable &drawable,
 // -------------------------------------------------------------------
 void ProjectionPicture::DrawAuxiliaries(const Drawable &drawable) {
   if(showSubCut) {
+    // FIXME:
     XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
                    subCutColor);
     transSubCutBox.Draw(XtDisplay(drawingArea),drawable,
                         XtScreen(drawingArea)->default_gc);
   }    
   //bounding box
+  // FIXME:
   XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
                  boxColors[minDrawnLevel]);
   transBoundingBox.Draw(XtDisplay(drawingArea), drawable,
@@ -337,6 +341,7 @@ void ProjectionPicture::DrawAuxiliaries(const Drawable &drawable) {
 
 // -------------------------------------------------------------------
 void ProjectionPicture::DrawSlices(const Drawable &drawable) {
+  // FIXME:
   XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
                  sliceColor);
   for(int k = 0; k < 3; ++k) {

@@ -1857,6 +1857,7 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
   XmDrawingAreaCallbackStruct *cbs =
     (XmDrawingAreaCallbackStruct *) call_data;
 
+  // FIXME:
   XSetForeground(disp, rbGC, 120);
 
   if(cbs->event->xany.type == ButtonPress) {

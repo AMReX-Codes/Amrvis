@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ProjectionPicture.H,v 1.15 2000-04-21 17:54:06 car Exp $
+// $Id: ProjectionPicture.H,v 1.16 2000-06-13 23:18:21 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -140,6 +140,7 @@ private:
   Pixmap pixMap;
   Palette *palettePtr;
   unsigned char  *imageData;
+  unsigned char  *volpackImageData;
   XImage  *PPXImage;
   Array<Box> theDomain;
   char buffer[BUFSIZ];

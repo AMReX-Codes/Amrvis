@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Dataset.cpp,v 1.30 1999-10-05 21:53:10 vince Exp $
+// $Id: Dataset.cpp,v 1.31 2000-06-13 23:19:07 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -978,6 +978,7 @@ void Dataset::DoExpose(int fromExpose) {
               if(myDataStringArray[lvl][stringCount].olflag >= maxDrawnLevel)
 #endif
               { 
+		// FIXME:??
                 XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), 
                                myDataStringArray[lvl][stringCount].color); 
                 XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea),

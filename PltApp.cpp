@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.cpp,v 1.60 2000-04-19 20:43:08 vince Exp $
+// $Id: PltApp.cpp,v 1.61 2000-06-13 23:19:08 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1251,6 +1251,7 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   //                (amrPicturePtrArray[YPLANE]->
   //		ImageSizeV()-1 - amrPicturePtrArray[YPLANE]->GetHLine())/
   //		currentScale + ivLowOffsetMAL[ZDIR]);
+  // FIXME:
   XSetForeground(GAptr->PDisplay(), GAptr->PGC(), zpColor);
   XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
 	      centerX-xyzAxisLength+12,
@@ -1260,6 +1261,7 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   sprintf(temp, "Y=%i", amrPicturePtrArray[YPLANE]->GetSlice());
   //amrPicturePtrArray[XPLANE]->GetVLine()/
   //		currentScale + ivLowOffsetMAL[YDIR]);
+  // FIXME:
   XSetForeground(GAptr->PDisplay(), GAptr->PGC(), ypColor);
   XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
 	      centerX+stringOffsetX,
@@ -1269,12 +1271,14 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   sprintf(temp, "X=%i", amrPicturePtrArray[XPLANE]->GetSlice());
   //amrPicturePtrArray[ZPLANE]->GetVLine()/
   //currentScale + ivLowOffsetMAL[XDIR]);
+  // FIXME:
   XSetForeground(GAptr->PDisplay(), GAptr->PGC(), xpColor);
   XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
 	      centerX+4*stringOffsetX,
 	      centerY+stringOffsetY+2,
 	      temp, strlen(temp));
   
+  // FIXME:
   XSetForeground(XtDisplay(wControlForm), GAptr->PGC(), ypColor);
   XDrawLine(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
 	    centerX, centerY, centerX, centerY-xyzAxisLength);
@@ -1296,6 +1300,7 @@ void PltApp::DrawAxes(Widget wArea, int xpos, int ypos, int /* orientation */ ,
   char hLabel[LINELENGTH], vLabel[LINELENGTH];
   strcpy(hLabel, hlabel);
   strcpy(vLabel, vlabel);
+  // FIXME:
   XSetForeground(XtDisplay(wArea), GAptr->PGC(), color);
   XDrawLine(XtDisplay(wArea), XtWindow(wArea), GAptr->PGC(),
 	    xpos+5, ypos, xpos+5, ypos+axisLength);

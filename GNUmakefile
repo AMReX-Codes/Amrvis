@@ -15,6 +15,9 @@ DIM       = 3
 NAMESPACE = TRUE
 NAMESPACE = FALSE
 
+STRICTLY  = TRUE
+STRICTLY  = FALSE
+
 USE_ARRAYVIEW = TRUE
 USE_ARRAYVIEW = FALSE
 
@@ -78,8 +81,7 @@ ifeq ($(MACHINE), Linux)
   INCLUDE_LOCATIONS += /usr/X11R6/include
   INCLUDE_LOCATIONS += /usr/X11R6/include/Xm
   LIBRARY_LOCATIONS += /usr/X11R6/lib
-  LIBRARY_LOCATIONS += /usr/X11R6/lib
-  LIBRARIES += -lXm -lXt -lX11
+  LIBRARIES += -lXm -lXp -lXt -lXext -lSM -lICE -lXpm -lX11
 endif
 
 ifeq ($(MACHINE), AIX)
@@ -129,9 +131,12 @@ ifeq ($(DIM),3)
   endif
   ifeq ($(USE_VOLRENDER), TRUE)
     DEFINES += -DBL_VOLUMERENDER
-    VOLPACKDIR = $(VINCEDIR)/volpack
+    #VOLPACKDIR = ../../volpack/volpack_cpp
+    #DEFINES += -DBL_VOLPACK_NEW
+    VOLPACKDIR = ../../volpack/volpack-1.0b3
+    VOLPACKDIR = ../volpack
     INCLUDE_LOCATIONS += $(VOLPACKDIR)
-    LIBRARY_LOCATIONS += $(VOLPACKDIR)/lib
+    LIBRARY_LOCATIONS += $(VOLPACKDIR)
     LIBRARIES += -lvolpack
     #DEFINES += -DVOLUMEBOXES
   endif

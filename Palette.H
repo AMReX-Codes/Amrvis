@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.H,v 1.12 1999-06-08 20:46:29 vince Exp $
+// $Id: Palette.H,v 1.13 2000-06-13 23:18:20 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -40,7 +40,7 @@ protected:
   Colormap      colmap;
   int           totalColorSlots, colorSlots;
   int           reserveSystemColors, colorOffset, paletteStart;
-  int		blackIndex, whiteIndex;
+  unsigned long blackIndex, whiteIndex;
   Real	        pmin, pmax;
   aString	defaultFormat;
   int		transSet;
@@ -57,7 +57,12 @@ protected:
   
   static Colormap systemColmap;
   PaletteType paletteType;
-  
+  bool visTrueColor;
+  int palDepth;
+  Array<unsigned char> abuff;
+  Array<unsigned char> rbuff;
+  Array<unsigned char> gbuff;
+  Array<unsigned char> bbuff;
 public:
   Palette(Widget &w, int datalistlength, int width,
           int totalwidth, int totalheight, int reservesystemcolors);
@@ -77,8 +82,8 @@ public:
   void  SetFormat(const aString &newFormat);
   Colormap GetColormap() const  { return colmap;         }
   const Array<XColor> &GetColorCells() const { return ccells; }
-  int  BlackIndex()    const    { return blackIndex;     }
-  int  WhiteIndex()    const    { return whiteIndex;     }
+  unsigned long BlackIndex()    const;
+  unsigned long WhiteIndex()    const;
   int  ColorSlots()    const    { return colorSlots;     }
   int  PaletteStart()  const    { return paletteStart;   }
   int  PaletteEnd()    const    { return totalColorSlots - 1; }
@@ -91,7 +96,16 @@ public:
   aString PaletteNumberFormat() { return defaultFormat; }
   XImage *GetPictureXImage();
   unsigned char *RemapTable() const  { return remapTable;     }
-  
+
+  const Array<unsigned char>& theABuff() const { return abuff; }
+  const Array<unsigned char>& theRBuff() const { return rbuff; }
+  const Array<unsigned char>& theGBuff() const { return gbuff; }
+  const Array<unsigned char>& theBBuff() const { return bbuff; }
+
+  unsigned char theABuff(int i) const { return abuff[i]; }
+  unsigned char theRBuff(int i) const { return rbuff[i]; }
+  unsigned char theGBuff(int i) const { return gbuff[i]; }
+  unsigned char theBBuff(int i) const { return bbuff[i]; }
 private:
   void ReadPalette(const aString &palNam);
   Palette(Widget &w);

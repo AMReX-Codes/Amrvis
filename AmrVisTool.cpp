@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrVisTool.cpp,v 1.40 1999-11-30 20:53:20 car Exp $
+// $Id: AmrVisTool.cpp,v 1.41 2000-06-13 23:18:20 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -256,9 +256,7 @@ void CreateMainWindow(int argc, char *argv[]) {
 			"*foreground:white", "*bottomShadowColor:yellow",
 			"*topShadowColor:gray", NULL };
 #elif (BL_SPACEDIM == 3)
-  String fallbacks[] = {"*fontList:7x13=charset",
-			"*bottomShadowColor:black",
-			"*topShadowColor:gray",
+  String fallbacks[] = {"*fontList:variable=charset",
 			NULL };
 #endif
 
@@ -272,7 +270,6 @@ void CreateMainWindow(int argc, char *argv[]) {
                         XmNwidth,	500,
 			XmNheight,	150,
 			NULL);
-  
   GraphicsAttributes *TheGAptr = new GraphicsAttributes(wTopLevel);
   if(TheGAptr->PVisual() != XDefaultVisual(TheGAptr->PDisplay(), 
                                         TheGAptr->PScreenNumber()))

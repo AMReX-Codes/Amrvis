@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.cpp,v 1.22 2000-06-13 23:18:20 car Exp $
+// $Id: Palette.cpp,v 1.23 2000-06-13 23:19:08 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -220,16 +220,19 @@ void Palette::Draw(Real palMin, Real palMax, const aString &numberFormat) {
     for(i = paletteStart; i < totalColorSlots; i++) {
       cy = ((totalColorSlots - 1) - i) + 14;
       // draw transparency as black
+      // FIXME:
       XSetForeground(display, gc, ccells[blackIndex].pixel);
       transpnt = (int) (zerolinex*(1.0-transferArray[i]));
       XDrawLine(display, palPixmap, gc, 0, cy, transpnt, cy);
 
       // draw color part of line
+      // FIXME:
       XSetForeground(display, gc, ccells[i].pixel);
       XDrawLine(display, palPixmap, gc, transpnt, cy, palWidth, cy);
     }
     
     // draw black line represening zero opacity
+      // FIXME:
     XSetForeground(display, gc, ccells[blackIndex].pixel);
     XDrawLine(display, palPixmap, gc, zerolinex, 14, zerolinex, colorSlots + 14);
 

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GraphicsAttributes.H,v 1.9 2000-04-21 17:54:06 car Exp $
+// $Id: GraphicsAttributes.H,v 1.10 2000-06-13 23:18:20 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -35,7 +35,6 @@ class GraphicsAttributes {
     int		depth, screennumber, bytesPerPixel;
 
     int		CalculateNBP();
-
   public:
 
     GraphicsAttributes(Widget);
@@ -50,6 +49,9 @@ class GraphicsAttributes {
     int      PDepth()         const { return depth; }
     int      PScreenNumber()  const { return screennumber;  }
     int      PBytesPerPixel() const { return bytesPerPixel; }
+    int      PBitsPerRGB()    const { return visual_info.bits_per_rgb; }
+    bool     isTrueColor()    const { return visual_info.c_class == TrueColor; }
+    int      PBitmapPaddedWidth(int width) const;
 };
 
 #endif
