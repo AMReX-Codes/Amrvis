@@ -253,6 +253,7 @@ void AmrPicture::AmrPictureInit() {
   frameSpeed = 300;
   hdspoint = 0;
   vdspoint = 0;
+  dsBoxSize = 0;
   datasetPointShowing = false;
   datasetPointColor = 0;
   subCutShowing = false;
@@ -536,18 +537,18 @@ void AmrPicture::DoExposePicture() {
         // draw plane "cutting" lines
       XSetForeground(GAptr->PDisplay(), GAptr->PGC(), hColor);
       XDrawLine(GAptr->PDisplay(), pictureWindow,
-		GAptr->PGC(), 0, hLine, imageSizeH, hLine); 
+                GAptr->PGC(), 0, hLine, imageSizeH, hLine); 
       XSetForeground(GAptr->PDisplay(), GAptr->PGC(), vColor);
       XDrawLine(GAptr->PDisplay(), pictureWindow,
-		GAptr->PGC(), vLine, 0, vLine, imageSizeV); 
+                GAptr->PGC(), vLine, 0, vLine, imageSizeV); 
       
       XSetForeground(GAptr->PDisplay(), GAptr->PGC(), hColor-30);
       XDrawLine(GAptr->PDisplay(), pictureWindow,
-		GAptr->PGC(), 0, hLine+1, imageSizeH, hLine+1); 
+                GAptr->PGC(), 0, hLine+1, imageSizeH, hLine+1); 
       XSetForeground(GAptr->PDisplay(), GAptr->PGC(), vColor-30);
       XDrawLine(GAptr->PDisplay(), pictureWindow,
-		GAptr->PGC(), vLine+1, 0, vLine+1, imageSizeV); 
-                  
+                GAptr->PGC(), vLine+1, 0, vLine+1, imageSizeV); 
+      
       if(subCutShowing) {
           // draw subvolume cutting border 
           XSetForeground(GAptr->PDisplay(), GAptr->PGC(), 90);
@@ -571,7 +572,7 @@ void AmrPicture::DoExposePicture() {
 		    subcut2ndX, subcutY, subcut2ndX, subcut2ndY);
         }
 #     endif
-
+/*
       if(datasetPointShowing) {
         int hpoint = hdspoint * pltAppPtr->CurrentScale();
         int vpoint = imageSizeV-1 - vdspoint * pltAppPtr->CurrentScale();
@@ -586,6 +587,7 @@ void AmrPicture::DoExposePicture() {
         XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
 		  hpoint, vpoint-5, hpoint, vpoint+5);
       }
+      */
     }
   }
 }  // end DoExposePicture
@@ -1085,12 +1087,27 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
 
 
 // ---------------------------------------------------------------------
-void AmrPicture::SetDatasetPoint(int hplot, int vplot, int color) {
+void AmrPicture::DrawDatasetPoint(int hplot, int vplot, int size)
+{
   hdspoint = hplot;
   vdspoint = vplot;
-  datasetPointColor = color;
-  datasetPointShowing = true;
+  dsBoxSize = size;
+  int hpoint = hdspoint * pltAppPtr->CurrentScale();
+  int vpoint = imageSizeV-1 - vdspoint * pltAppPtr->CurrentScale();
+  int side = dsBoxSize * pltAppPtr->CurrentScale();
+  XDrawRectangle(GAptr->PDisplay(), pictureWindow, GetPltAppPtr()->GetRbgc(),
+            hpoint, vpoint, side, side);
 }
+
+
+void AmrPicture::UnDrawDatasetPoint() {
+  int hpoint = hdspoint * pltAppPtr->CurrentScale();
+  int vpoint = imageSizeV-1 - vdspoint * pltAppPtr->CurrentScale();
+  int side = dsBoxSize * pltAppPtr->CurrentScale();
+  XDrawRectangle(GAptr->PDisplay(), pictureWindow, GetPltAppPtr()->GetRbgc(),
+            hpoint, vpoint, side, side);
+}
+
 
 
 // ---------------------------------------------------------------------
@@ -1172,10 +1189,10 @@ void AmrPicture::ShowFrameImage(int iSlice) {
 		GAptr->PGC(), vLine, 0, vLine, imageSizeV); 
   XSetForeground(GAptr->PDisplay(), GAptr->PGC(), hColor-30);
   XDrawLine(GAptr->PDisplay(), pictureWindow,
-		GAptr->PGC(), 0, hLine+1, imageSizeH, hLine+1); 
+  	GAptr->PGC(), 0, hLine+1, imageSizeH, hLine+1); 
   XSetForeground(GAptr->PDisplay(), GAptr->PGC(), vColor-30);
   XDrawLine(GAptr->PDisplay(), pictureWindow,
-		GAptr->PGC(), vLine+1, 0, vLine+1, imageSizeV); 
+  	GAptr->PGC(), vLine+1, 0, vLine+1, imageSizeV); 
   
   if(sliceDir == XDIR) {
     apXY->SetVLine(iRelSlice * pltAppPtr->CurrentScale());
@@ -1235,3 +1252,7 @@ void AmrPicture::SetWhichRange(Range newRange) {
 }
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
+
+
+
+

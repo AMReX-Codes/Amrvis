@@ -22,6 +22,7 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
   // alignedRegion is defined on the maxAllowableLevel
   int i;
   stringOk = true;
+  datasetPoint = false;
   hDIR = hdir;
   vDIR = vdir;
   sDIR = sdir;
@@ -594,41 +595,66 @@ void Dataset::CBPixInput(Widget, XtPointer client_data, XtPointer call_data)
 // -------------------------------------------------------------------
 void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
     //Palette *palptr = pltAppPtr->GetPalettePtr();
-  int hplot, vplot; 
+  int hplot, vplot;
+  int HDIR, VDIR, DEPTHDIR;
+  static int serverControlOK = 0;
   int xcell((int) (cbs->event->xbutton.x) / dataItemWidth);
   int ycell((int) (cbs->event->xbutton.y) / CHARACTERHEIGHT);
   Box pictureBox(amrPicturePtr->GetSubDomain()[maxDrawnLevel]);
   Box regionBox(datasetRegion[maxDrawnLevel]);
 
+  if(cbs->event->xany.type == ButtonPress) {
+      //XGrabServer(GAptr->PDisplay());
+      serverControlOK++;
+  }
+ 
   if(xcell >= 0 && xcell < pixSizeX/dataItemWidth &&
      ycell >= 0 && ycell < pixSizeY/CHARACTERHEIGHT)
   {
-    if(amrPicturePtr->GetMyView() == XY) {
-      hplot = regionBox.smallEnd(XDIR) - pictureBox.smallEnd(XDIR) + xcell;
-      vplot = regionBox.smallEnd(YDIR) - pictureBox.smallEnd(YDIR) +
-	      regionBox.length(YDIR)-1 - ycell;
-    }
-
-    if(amrPicturePtr->GetMyView() == XZ) {
-      hplot = regionBox.smallEnd(XDIR) - pictureBox.smallEnd(XDIR) + xcell;
-      vplot = regionBox.smallEnd(ZDIR) - pictureBox.smallEnd(ZDIR) +
-	      regionBox.length(ZDIR)-1 - ycell;
-    }
-
-    if(amrPicturePtr->GetMyView() == YZ) {
-      hplot = regionBox.smallEnd(YDIR) - pictureBox.smallEnd(YDIR) + xcell;
-      vplot = regionBox.smallEnd(ZDIR) - pictureBox.smallEnd(ZDIR) +
-	      regionBox.length(ZDIR)-1 - ycell;
-    }
-    amrPicturePtr->SetDatasetPoint(hplot, vplot, whiteIndex);
-    amrPicturePtr->DoExposePicture();
+      if(amrPicturePtr->GetMyView() == XY) {
+          HDIR = XDIR; VDIR = YDIR; DEPTHDIR = ZDIR;
+      } else if(amrPicturePtr->GetMyView() == XZ) {
+          HDIR = XDIR; VDIR = ZDIR; DEPTHDIR = YDIR;
+      } else if(amrPicturePtr->GetMyView() == YZ) {
+          HDIR = YDIR; VDIR = ZDIR; DEPTHDIR = XDIR;
+      }
+      
+      if ( xcell > regionBox.bigEnd(HDIR)-regionBox.smallEnd(HDIR))  
+          xcell = regionBox.bigEnd(HDIR)-regionBox.smallEnd(HDIR);
+      if ( ycell > regionBox.bigEnd(VDIR)-regionBox.smallEnd(VDIR))  
+          ycell = regionBox.bigEnd(VDIR)-regionBox.smallEnd(VDIR);
+      hplot = regionBox.smallEnd(HDIR) - pictureBox.smallEnd(HDIR) + xcell;
+      vplot = regionBox.smallEnd(VDIR) - pictureBox.smallEnd(VDIR) +
+          regionBox.length(VDIR)-1 - ycell;
+      
+      int boxCoor[3];
+      boxCoor[HDIR] = hplot; boxCoor[VDIR] = vplot; 
+      boxCoor[DEPTHDIR] = pltAppPtr->GetAmrPicturePtr(2-DEPTHDIR)->GetSlice();
+      
+      IntVect boxLocation(boxCoor[0], boxCoor[1], boxCoor[2]);
+      Box ourBox(boxLocation, boxLocation);
+      const AmrData &amrData = dataServicesPtr->AmrDataRef();
+      int finestLevel = amrData.FinestContainingLevel(ourBox, maxDrawnLevel);
+      int boxSize = CRRBetweenLevels(finestLevel, maxDrawnLevel, amrData.RefRatio());
+      hplot = hplot - fmod(hplot,boxSize);
+      vplot = vplot - fmod(vplot,boxSize) + boxSize - 1;
+      if (datasetPoint == true)
+          amrPicturePtr->UnDrawDatasetPoint();//if box already drawns...
+      else
+          datasetPoint = true; //if we just started...
+      amrPicturePtr->DrawDatasetPoint(hplot, vplot, boxSize);
   }
-
+  
   if(cbs->event->xany.type == ButtonRelease) {
-    amrPicturePtr->DatasetPointOff();
-    amrPicturePtr->DoExposePicture();
+      amrPicturePtr->UnDrawDatasetPoint();
+      //XUngrabServer(GAptr->PDisplay());
+    serverControlOK--;
+    datasetPoint = false;
+    if (serverControlOK != 0)
+        cerr<<"incorrect server control balance -- serverControlOK: "
+            <<serverControlOK<<endl;
   }
-} 
+}
 
 
 // -------------------------------------------------------------------
@@ -780,10 +806,10 @@ void Dataset::DoExpose(int fromExpose) {
                              -((level_diff+1)*hIndexAreaHeight),
                              CRRBetweenLevels(lev, maxDrawnLevel, amrData.RefRatio()),
                              whiteIndex, blackIndex);
+                                        
                 }
             }
         }
-        
         if(dragging) {
             DrawIndices();
             return;

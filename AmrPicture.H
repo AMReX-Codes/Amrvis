@@ -56,9 +56,9 @@ class AmrPicture {
 	void	SyncPicture();
 	void	SetSubCut(int, int, int, int);
 	void	ToggleShowSubCut();
-	void	SetDatasetPoint(int hplot, int vplot, int color);
+	void	DrawDatasetPoint(int hplot, int vplot, int size);
+	void	UnDrawDatasetPoint();
 	void	Sweep(AnimDirection direction);
-	void	DatasetPointOff()   { datasetPointShowing = false; }
 	void	SetHLine(int hl)    { hLine = hl; }
 	void	SetVLine(int vl)    { vLine = vl; }
 	int	GetHLine()          { return hLine; }
@@ -100,6 +100,7 @@ class AmrPicture {
 	Real	MaxUsing()                { return maxUsing; }
 	Window	PictureWindow()           { return pictureWindow; }
 	void	SetMaxDrawnLevel(int lev) { maxDrawnLevel = lev; }
+    PltApp *GetPltAppPtr() {return pltAppPtr; }
 
 private:
 	Window 			pictureWindow;
@@ -119,7 +120,7 @@ private:
 	bool			showBoxes;
 	int			minDrawnLevel, maxDrawnLevel, maxAllowableLevel;
 	int			maxLevelWithGrids, maxsFound;
-	int			hdspoint, vdspoint;
+	int			hdspoint, vdspoint, dsBoxSize;
 	int			datasetPointShowing, datasetPointColor;
 	Pixmap 			pixMap;
 	char			buffer[BUFSIZ];

@@ -2417,7 +2417,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
       oldX = cbs->event->xbutton.x;
       oldY = cbs->event->xbutton.y;
       XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
-		rbgc, 0, oldY, imageWidth, oldY);
+                rbgc, 0, oldY, imageWidth, oldY);
       lineDrawnH = true;
 
       // grab server and draw line(s)
@@ -2433,23 +2433,23 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 	  case MotionNotify:
 
 	    if(lineDrawnH) {   // undraw the old line
-              XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
-		        rbgc, 0, oldY, imageWidth, oldY);
+                XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
+                          rbgc, 0, oldY, imageWidth, oldY);
 #             if (BL_SPACEDIM == 3)
 	      if(V==ZPLANE) {  // undraw in other planes
-                XDrawLine(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
-		          rbgc, imageHeight-oldY, 0, imageHeight-oldY,
-			  amrPicturePtrArray[XPLANE]->ImageSizeV() - 1);
+                  XDrawLine(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
+                            rbgc, imageHeight-oldY, 0, imageHeight-oldY,
+                            amrPicturePtrArray[XPLANE]->ImageSizeV() - 1);
 	      }
 	      if(V==YPLANE) {
-                XDrawLine(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
-		          rbgc, 0, oldY,
-			  amrPicturePtrArray[XPLANE]->ImageSizeH() - 1, oldY);
+                  XDrawLine(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
+                            rbgc, 0, oldY,
+                            amrPicturePtrArray[XPLANE]->ImageSizeH() - 1, oldY);
 	      }
 	      if(V==XPLANE) {
-                XDrawLine(display, amrPicturePtrArray[YPLANE]->PictureWindow(),
-		          rbgc, 0, oldY,
-			  amrPicturePtrArray[YPLANE]->ImageSizeH() - 1, oldY);
+                  XDrawLine(display, amrPicturePtrArray[YPLANE]->PictureWindow(),
+                            rbgc, 0, oldY,
+                            amrPicturePtrArray[YPLANE]->ImageSizeH() - 1, oldY);
 	      }
 #             endif
 	    }
@@ -2464,22 +2464,22 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 
 	    // draw the new line
             XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
-		      rbgc, 0, newY, imageWidth, newY);
+                      rbgc, 0, newY, imageWidth, newY);
 #             if (BL_SPACEDIM == 3)
 	      if(V==ZPLANE) {
-                XDrawLine(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
-		          rbgc, imageHeight-newY, 0, imageHeight-newY,
-			  amrPicturePtrArray[XPLANE]->ImageSizeV() - 1);
+                  XDrawLine(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
+                            rbgc, imageHeight-newY, 0, imageHeight-newY,
+                            amrPicturePtrArray[XPLANE]->ImageSizeV() - 1);
 	      }
 	      if(V==YPLANE) {
-                XDrawLine(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
-		          rbgc, 0, newY,
-			  amrPicturePtrArray[XPLANE]->ImageSizeH() - 1, newY);
+                  XDrawLine(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
+                            rbgc, 0, newY,
+                            amrPicturePtrArray[XPLANE]->ImageSizeH() - 1, newY);
 	      }
 	      if(V==XPLANE) {
-                XDrawLine(display, amrPicturePtrArray[YPLANE]->PictureWindow(),
-		          rbgc, 0, newY,
-			  amrPicturePtrArray[YPLANE]->ImageSizeH() - 1, newY);
+                  XDrawLine(display, amrPicturePtrArray[YPLANE]->PictureWindow(),
+                            rbgc, 0, newY,
+                            amrPicturePtrArray[YPLANE]->ImageSizeH() - 1, newY);
 	      }
 #             endif
 	    lineDrawnH = true;

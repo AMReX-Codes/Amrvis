@@ -173,6 +173,7 @@ public:
 	void  PaletteDrawn(bool trueOrFalse);
 
 	void  SetGlobalMinMax(Real specifiedMin, Real specifiedMax);
+    GC GetRbgc() { return rbgc; }
 
 private:
 	Widget 		wTopLevel, wAmrVisTopLevel, wAmrVisMenu;

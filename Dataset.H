@@ -89,7 +89,7 @@ private:
     int		 xh, yv;
     Dimension	 width, height;
     StringLoc    **hIndexArray, **vIndexArray;    
-
+    bool datasetPoint;
 
 // X baggage
     //Display     *display;
