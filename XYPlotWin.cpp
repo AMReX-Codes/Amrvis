@@ -115,10 +115,10 @@ XYPlotWin::~XYPlotWin() {
 
   // delete all the call back parameter structs
   int nSize;
-  for(nSize = 0; nSize < xycbdPtrs.length(); ++nSize) {
+  for(nSize = 0; nSize < xycbdPtrs.size(); ++nSize) {
     delete xycbdPtrs[nSize];
   }
-  for(nSize = 0; nSize < xymenucbdPtrs.length(); ++nSize) {
+  for(nSize = 0; nSize < xymenucbdPtrs.size(); ++nSize) {
     delete xymenucbdPtrs[nSize];
   }
 }
@@ -618,12 +618,12 @@ void XYPlotWin::setBoundingBox (double lowX, double lowY,
   
   // Increase the padding for aesthetics
   if(hiX - loX == 0.0) {
-    pad = Max(0.5, fabs(hiX / 2.0));
+    pad = max(0.5, fabs(hiX / 2.0));
     hiX += pad;
     loX -= pad;
   }
   if(hiY - loY == 0.0) {
-    pad = Max(0.5, fabs(hiY / 2.0));
+    pad = max(0.5, fabs(hiY / 2.0));
     hiY += pad;
     loY -= pad;
   }
@@ -799,7 +799,7 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
       }
       XYMenuCBData *xymenucb = new XYMenuCBData(new_item, ii);
       // xymenucbdPtrs.push_back(xymenucb)
-      int nSize(xymenucbdPtrs.length());
+      int nSize(xymenucbdPtrs.size());
       xymenucbdPtrs.resize(nSize + 1);
       xymenucbdPtrs[nSize] = xymenucb;
 
@@ -2137,8 +2137,8 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
       return;
     }
 
-    oldX = newX = anchorX = Max(0, cbs->event->xbutton.x);
-    oldY = newY = anchorY = Max(0, cbs->event->xbutton.y);
+    oldX = newX = anchorX = max(0, cbs->event->xbutton.x);
+    oldY = newY = anchorY = max(0, cbs->event->xbutton.y);
     rectDrawn = false;
     // grab server and draw box(es)
     XChangeActivePointerGrab(disp,
@@ -2304,7 +2304,7 @@ void XYPlotWin::AddStaticCallback(Widget w, String cbtype, memberXYCB cbf,
 {
   XYCBData *cbs = new XYCBData(this, data, cbf);
   // xycbdPtrs.push_back(cbs)
-  int nSize(xycbdPtrs.length());
+  int nSize(xycbdPtrs.size());
   xycbdPtrs.resize(nSize + 1);
   xycbdPtrs[nSize] = cbs;
 
@@ -2320,7 +2320,7 @@ void XYPlotWin::AddStaticWMCallback(Widget w, Atom cbtype, memberXYCB cbf,
 {
   XYCBData *cbs = new XYCBData(this, data, cbf);
   // xycbdPtrs.push_back(cbs)
-  int nSize(xycbdPtrs.length());
+  int nSize(xycbdPtrs.size());
   xycbdPtrs.resize(nSize + 1);
   xycbdPtrs[nSize] = cbs;
 
@@ -2336,7 +2336,7 @@ void XYPlotWin::AddStaticEventHandler(Widget w, EventMask mask,
 {
   XYCBData *cbs = new XYCBData(this, data, cbf);
   // xycbdPtrs.push_back(cbs)
-  int nSize(xycbdPtrs.length());
+  int nSize(xycbdPtrs.size());
   xycbdPtrs.resize(nSize + 1);
   xycbdPtrs[nSize] = cbs;
 

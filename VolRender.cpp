@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.37 2001-05-10 23:38:01 vince Exp $
+// $Id: VolRender.cpp,v 1.38 2001-08-14 00:57:54 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -293,8 +293,8 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
         for(int gr(gostartr); gr <= goendr; ++gr) {
           //dat = dataPoint[(gp*gcols*grows)+(gc*grows)+gr];  // works
           dat = dataPoint[gcgrowstmp + gr];
-          dat = Max(dat,gmin); // clip data if out of range
-          dat = Min(dat,gmax);
+          dat = max(dat,gmin); // clip data if out of range
+          dat = min(dat,gmax);
           chardat = (char)(((dat-gmin)*oneOverGDiff)*cSlotsAvail);
           chardat += (char)iPaletteStart;
           sindexbase =
@@ -319,7 +319,7 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
       for(int lev = minDrawnLevel; lev <= maxDrawnLevel; ++lev) {
         int crr(CRRBetweenLevels(lev, maxDrawnLevel, amrData.RefRatio()));
 	const BoxArray &gridBoxes = amrData.boxArray(lev);
-	for(int iGrid = 0; iGrid < gridBoxes.length(); ++iGrid) {
+	for(int iGrid = 0; iGrid < gridBoxes.size(); ++iGrid) {
           gbox = gridBoxes[iGrid];
 	  // grow high end by one to eliminate overlap
 	  //gbox.growHi(XDIR, 1);
@@ -704,8 +704,8 @@ void VolRender::MakeVPData() {
       float maxf(0.0);
       float minf(1000000.0);
       for(int ijk = 0; ijk < paletteSize; ++ijk) {
-        maxf = Max(maxf, value_shade_table[ijk]);
-        minf = Min(minf, value_shade_table[ijk]);
+        maxf = max(maxf, value_shade_table[ijk]);
+        minf = min(minf, value_shade_table[ijk]);
       }
       
       vpret = vpSetLookupShader(vpc, 1, 1, normalField, 
@@ -761,14 +761,14 @@ void VolRender::SetTransferProperties() {
   density_ramp = palettePtr->GetTransferArray();
   vpSetClassifierTable(vpc, DENSITY_PARAM, densityField,
                        density_ramp.dataPtr(),
-		       density_ramp.length() * sizeof(float));
+		       density_ramp.size() * sizeof(float));
 
   /*  if(classifyFields == 2) {
-    vpRamp(gradient_ramp.dataPtr(), sizeof(float), gradientRampX.length(),
+    vpRamp(gradient_ramp.dataPtr(), sizeof(float), gradientRampX.size(),
 	   gradientRampX.dataPtr(), gradientRampY.dataPtr());
     vpSetClassifierTable(vpc, GRADIENT_PARAM, gradientField,
                          gradient_ramp.dataPtr(),
-			 gradient_ramp.length() * sizeof(float));
+			 gradient_ramp.size() * sizeof(float));
   }*/
 
   vpSetd(vpc, VP_MIN_VOXEL_OPACITY, minRayOpacity);

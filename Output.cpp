@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.cpp,v 1.23 2001-06-13 01:20:54 vince Exp $
+// $Id: Output.cpp,v 1.24 2001-08-14 00:57:54 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -59,7 +59,7 @@ void WriteNewPSFile(const char *filename, XImage *image,
   unsigned char r, g, b;
 
   Array<Real> rgb(256);
-  for(int ii(0); ii < rgb.length(); ++ii) {
+  for(int ii(0); ii < rgb.size(); ++ii) {
     rgb[ii] = (Real) ii / 255.0;
   }
 
@@ -109,7 +109,7 @@ void WriteNewPSFile(const char *filename, XImage *image,
   for(int ilev(minlev); ilev <= maxlev; ++ilev) {
     fout << "\n% boxes for level " << ilev << "\n";
     fout << "boxcolor" << ilev << " setrgbcolor\n\n";
-    for(int i(0); i < gridBoxes[ilev].length(); ++i) {
+    for(int i(0); i < gridBoxes[ilev].size(); ++i) {
       const GridBoxes gb = gridBoxes[ilev][i];
       int yboxinv(imagesizevert - (gb.ybox + 1));
       fout <<  gb.xbox << " " <<  yboxinv << " moveto\n";
@@ -227,11 +227,11 @@ void WritePSPaletteFile(const char *filename, XImage *image,
     fout << "rectfill"  << '\n';
     int paletteHeight(216);
     int topOfPalette(256);
-    double pSpacing((double) paletteHeight / (double) (palValueList.length() - 1));
+    double pSpacing((double) paletteHeight / (double) (palValueList.size() - 1));
     int palSpacing = int(ceil(pSpacing)) + 1;
     fout << "/Palatino-Roman findfont" << '\n' << "20 scalefont"
         << '\n' << "setfont\n1 setgray" << '\n';
-    for(int j(0); j < palValueList.length(); ++j) {
+    for(int j(0); j < palValueList.size(); ++j) {
         fout << "40 " << topOfPalette - ( j * palSpacing) << " moveto" << '\n';
         fout << "(";
         char dummyString[50];//should be big enough

@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.37 2001-05-10 23:38:00 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.38 2001-08-14 00:57:54 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -45,7 +45,7 @@ bool sliceAllVars;
 bool givenFilename;
 Box comlinebox;
 bool verbose;
-Array<List<int> > dumpSliceList;
+Array<list<int> > dumpSliceList;
 bool specifiedMinMax;
 Real specifiedMin;
 Real specifiedMax;
@@ -111,12 +111,12 @@ void AddSlices(int dir, char *sliceset) {
     if(BL_SPACEDIM == 2 && dir == ZDIR) {
       slice = 0;
       if( ! dumpSliceList[dir].includes(slice)) {  // add unique
-        dumpSliceList[dir].append(slice);
+        dumpSliceList[dir].push_back(slice);
       }
     } else {
       for(slice = rangeStart; slice <= rangeEnd; ++slice) {
         if( ! dumpSliceList[dir].includes(slice)) {  // add unique
-          dumpSliceList[dir].append(slice);
+          dumpSliceList[dir].push_back(slice);
         }
       }
     }
@@ -126,7 +126,7 @@ void AddSlices(int dir, char *sliceset) {
       slice = 0;
     }
     if( ! dumpSliceList[dir].includes(slice)) {  // add unique
-      dumpSliceList[dir].append(slice);
+      dumpSliceList[dir].push_back(slice);
     }
   }
 }
@@ -841,7 +841,7 @@ int GetSkipPltLines() { return skipPltLines; }
 void SetBoxColor(int boxcolor) { boxColor = boxcolor; }
 int GetBoxColor() { return boxColor; }
 
-Array< List<int> > &GetDumpSlices() { return dumpSliceList; }
+Array< list<int> > &GetDumpSlices() { return dumpSliceList; }
 
 int  GetFabOutFormat() { return fabIOSize;  }
 
@@ -861,7 +861,7 @@ void GetSpecifiedMinMax(Real &specifiedmin, Real &specifiedmax) {
 int CRRBetweenLevels(int fromlevel, int tolevel, const Array<int> &refratios) {
   BL_ASSERT(fromlevel >= 0);
   BL_ASSERT(tolevel >= fromlevel);
-  BL_ASSERT(tolevel <= refratios.length());
+  BL_ASSERT(tolevel <= refratios.size());
   int level, rr = 1;
   for(level = fromlevel; level < tolevel; ++level) {
     rr *= refratios[level];
@@ -890,9 +890,9 @@ int DetermineMaxAllowableLevel(const Box &finestbox, int finestlevel,
                   (unsigned long) levelDomain.length(YDIR);
       tempLength = (unsigned long) levelDomain.length(YDIR) *
                    (unsigned long) levelDomain.length(ZDIR);
-      boxpoints = Max(boxpoints, tempLength);
+      boxpoints = max(boxpoints, tempLength);
       tempLength = levelDomain.length(XDIR) * levelDomain.length(ZDIR);
-      boxpoints = Max(boxpoints, tempLength);
+      boxpoints = max(boxpoints, tempLength);
 #   endif
 
     if(boxpoints > maxpoints) {  // try next coarser level

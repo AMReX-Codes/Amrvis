@@ -1,6 +1,5 @@
-#palette               Pal8.new
-#palette               Palette
-initialderived        density
+palette               Pal8lb
+initialderived        tracer
 initialscale          4
 initialscale          1
 numberformat          %8.5f

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.93 2001-06-13 00:40:38 vince Exp $
+// $Id: PltApp.cpp,v 1.94 2001-08-14 00:57:54 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -87,7 +87,7 @@ PltApp::~PltApp() {
   XtDestroyWidget(wAmrVisTopLevel);
 
   // delete all the call back parameter structs
-  for(int nSize(0); nSize < cbdPtrs.length(); ++nSize) {
+  for(int nSize(0); nSize < cbdPtrs.size(); ++nSize) {
     delete cbdPtrs[nSize];
   }
 }
@@ -127,7 +127,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
 
   if(animating2d) {
     animFrames = GetFileCount(); 
-    BL_ASSERT(dataServicesPtr.length() == animFrames);
+    BL_ASSERT(dataServicesPtr.size() == animFrames);
     fileNames.resize(animFrames);
     for(i = 0; i < animFrames; ++i) {
       fileNames[i] = GetComlineFilename(i); 
@@ -197,7 +197,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     maxAllowableScale = (int) sqrt((Real) (MaxPictureSize()/dataSize));
   }
 
-  int currentScale(Max(1, Min(GetInitialScale(), maxAllowableScale)));
+  int currentScale(max(1, min(GetInitialScale(), maxAllowableScale)));
   pltAppState->SetCurrentScale(currentScale);
   pltAppState->SetMaxScale(maxAllowableScale);
 
@@ -218,8 +218,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
 		     onBox, coarseLevel, fineLevel, false);  // dont reset if set
     pltAppState->GetMinMax(FILEGLOBALMINMAX, iFrame, iCDerNum,
 			   rFileMin, rFileMax);
-    rGlobalMin = Min(rFileMin, rGlobalMin);
-    rGlobalMax = Max(rFileMax, rGlobalMax);
+    rGlobalMin = min(rFileMin, rGlobalMin);
+    rGlobalMax = max(rFileMax, rGlobalMax);
 
     // also set FILESUBREGIONMINMAXs and FILEUSERMINMAXs to the global values
     pltAppState->SetMinMax(FILESUBREGIONMINMAX, iFrame,
@@ -345,7 +345,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     maxAllowableScale = (int) sqrt((Real) (MaxPictureSize()/dataSize));
   }
 
-  int currentScale = Min(maxAllowableScale,
+  int currentScale = min(maxAllowableScale,
 			 pltParent->GetPltAppState()->CurrentScale());
   pltAppState->SetCurrentScale(currentScale);
   
@@ -379,8 +379,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     pltAppState->GetMinMax(FILESUBREGIONMINMAX, iFrame, iCDerNum,
 			   rTempMin, rTempMax);
     // collect file values
-    rSMin = Min(rSMin, rTempMin);
-    rSMax = Max(rSMax, rTempMax);
+    rSMin = min(rSMin, rTempMin);
+    rSMax = max(rSMax, rTempMax);
   }
   // now set each frame's SUBREGIONMINMAX to the overall subregion minmax
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
@@ -598,7 +598,7 @@ void PltApp::PltAppInit() {
 			  XmNmnemonic, 'V', XmNsubMenuId, wMenuPulldown, NULL);
 
   // To scale the raster / contour windows
-  int maxallow(Min(MAXSCALE, maxAllowableScale));
+  int maxallow(min(MAXSCALE, maxAllowableScale));
   wCascade = XmCreatePulldownMenu(wMenuPulldown, "scalemenu", NULL, 0);
   XtVaCreateManagedWidget("Scale", xmCascadeButtonWidgetClass, wMenuPulldown,
 			  XmNmnemonic, 'S', XmNsubMenuId, wCascade, NULL);
@@ -1344,8 +1344,8 @@ void PltApp::FindAndSetMinMax(const MinMaxRangeType mmrangetype,
                              (void *) &(currentderived),
                              lev, &levMin, &levMax, &minMaxValid);
       if(minMaxValid) {
-        rMin = Min(rMin, levMin);
-        rMax = Max(rMax, levMax);
+        rMin = min(rMin, levMin);
+        rMax = max(rMax, levMax);
       }
     }
     pltAppState->SetMinMax(mmrangetype, framenumber, derivednumber, rMin, rMax);
@@ -1589,13 +1589,13 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
 	       
     pltAppState->GetMinMax(FILEGLOBALMINMAX, iFrame, iCDerNum,
 			   rTempMin, rTempMax);
-    rGlobalMin = Min(rGlobalMin, rTempMin);
-    rGlobalMax = Max(rGlobalMax, rTempMax);
+    rGlobalMin = min(rGlobalMin, rTempMin);
+    rGlobalMax = max(rGlobalMax, rTempMax);
 
     pltAppState->GetMinMax(FILESUBREGIONMINMAX, iFrame, iCDerNum,
 			   rTempMin, rTempMax);
-    rSubregionMin = Min(rSubregionMin, rTempMin);
-    rSubregionMax = Max(rSubregionMax, rTempMax);
+    rSubregionMin = min(rSubregionMin, rTempMin);
+    rSubregionMax = max(rSubregionMax, rTempMax);
 
     // set FILEUSERMINMAX  dont reset if already set
     // this sets values to FILESUBREGIONMINMAX values if the user has not set them
@@ -1821,14 +1821,14 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
     finishcutY[np] /= currentScale;
   }
   
-  subregionBox.setSmall(XDIR, Min(startcutX[ZPLANE], finishcutX[ZPLANE]));
-  subregionBox.setSmall(YDIR, Min(startcutX[XPLANE], finishcutX[XPLANE]));
+  subregionBox.setSmall(XDIR, min(startcutX[ZPLANE], finishcutX[ZPLANE]));
+  subregionBox.setSmall(YDIR, min(startcutX[XPLANE], finishcutX[XPLANE]));
   subregionBox.setSmall(ZDIR, (amrPicturePtrArray[XPLANE]->ImageSizeV()-1)/
-			currentScale - Max(startcutY[XPLANE], finishcutY[XPLANE]));
-  subregionBox.setBig(XDIR, Max(startcutX[ZPLANE], finishcutX[ZPLANE]));
-  subregionBox.setBig(YDIR, Max(startcutX[XPLANE], finishcutX[XPLANE]));
+			currentScale - max(startcutY[XPLANE], finishcutY[XPLANE]));
+  subregionBox.setBig(XDIR, max(startcutX[ZPLANE], finishcutX[ZPLANE]));
+  subregionBox.setBig(YDIR, max(startcutX[XPLANE], finishcutX[XPLANE]));
   subregionBox.setBig(ZDIR, (amrPicturePtrArray[XPLANE]->ImageSizeV()-1)/
-		      currentScale - Min(startcutY[XPLANE], finishcutY[XPLANE]));
+		      currentScale - min(startcutY[XPLANE], finishcutY[XPLANE]));
   
   if(subregionBox.numPts() <= 4) {
     for(np = 0; np < NPLANES; ++np) {
@@ -1849,7 +1849,7 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
   // this puts tempRefinedBox in terms of the finest level
   newMinAllowableLevel = 0;//amrData.FinestContainingLevel(
                            // tempRefinedBox, finestLevel);
-  newMinAllowableLevel = Min(newMinAllowableLevel, maxAllowableLevel);
+  newMinAllowableLevel = min(newMinAllowableLevel, maxAllowableLevel);
   
   // coarsen to the newMinAllowableLevel to align grids
   subregionBox.coarsen(CRRBetweenLevels(newMinAllowableLevel,
@@ -2963,8 +2963,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
   int V((unsigned long) client_data);
   int imageHeight(amrPicturePtrArray[V]->ImageSizeV() - 1);
   int imageWidth(amrPicturePtrArray[V]->ImageSizeH() - 1);
-  int oldX(Max(0, Min(imageWidth,  cbs->event->xbutton.x)));
-  int oldY(Max(0, Min(imageHeight, cbs->event->xbutton.y)));
+  int oldX(max(0, min(imageWidth,  cbs->event->xbutton.x)));
+  int oldY(max(0, min(imageHeight, cbs->event->xbutton.y)));
   int mal(pltAppState->MaxAllowableLevel());
   int minDrawnLevel(pltAppState->MinDrawnLevel());
   int maxDrawnLevel(pltAppState->MaxDrawnLevel());
@@ -3055,8 +3055,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 		      &whichRoot, &whichChild,
 		      &rootX, &rootY, &newX, &newY, &inputMask);
 	
-	newX = Max(0, Min(imageWidth,  newX));
-	newY = Max(0, Min(imageHeight, newY));
+	newX = max(0, min(imageWidth,  newX));
+	newY = max(0, min(imageHeight, newY));
 	rWidth  = abs(newX-anchorX);   // draw the new rectangle
 	rHeight = abs(newY-anchorY);
 	rStartX = (anchorX < newX) ? anchorX : newX;
@@ -3132,8 +3132,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	    if(z2 > 65536) {    // fix bad -z values
 	      z2 = amrPicturePtrArray[ZPLANE]->GetSubDomain()[mal].smallEnd(ZDIR);
 	    }
-	    IntVect ivmin(Min(x1,x2), Min(y1,y2), Min(z1,z2));
-	    IntVect ivmax(Max(x1,x2), Max(y1,y2), Max(z1,z2));
+	    IntVect ivmin(min(x1,x2), min(y1,y2), min(z1,z2));
+	    IntVect ivmax(max(x1,x2), max(y1,y2), max(z1,z2));
 	    Box xyz12(ivmin, ivmax);
 	    xyz12 &= amrPicturePtrArray[ZPLANE]->GetSubDomain()[mal];
 	    
@@ -3149,18 +3149,18 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
       case ButtonRelease: {
 	XUngrabServer(display);  // giveitawaynow
 	
-	startX = (Max(0, Min(imageWidth,  anchorX))) / scale;
-	startY = (Max(0, Min(imageHeight, anchorY))) / scale;
-	endX   = (Max(0, Min(imageWidth,  nextEvent.xbutton.x))) / scale;
-	endY   = (Max(0, Min(imageHeight, nextEvent.xbutton.y))) / scale;
+	startX = (max(0, min(imageWidth,  anchorX))) / scale;
+	startY = (max(0, min(imageHeight, anchorY))) / scale;
+	endX   = (max(0, min(imageWidth,  nextEvent.xbutton.x))) / scale;
+	endY   = (max(0, min(imageHeight, nextEvent.xbutton.y))) / scale;
 	
 	// make "aligned" box with correct size, converted to AMR space.
-	selectionBox.setSmall(XDIR, Min(startX, endX));
+	selectionBox.setSmall(XDIR, min(startX, endX));
 	selectionBox.setSmall(YDIR, ((imageHeight + 1) / scale) -
-				     Max(startY, endY) - 1);
-	selectionBox.setBig(XDIR, Max(startX, endX));
+				     max(startY, endY) - 1);
+	selectionBox.setBig(XDIR, max(startX, endX));
 	selectionBox.setBig(YDIR, ((imageHeight + 1) / scale)  -
-				     Min(startY, endY) - 1);
+				     min(startY, endY) - 1);
 	
 	// selectionBox is now at the maxAllowableLevel because
 	// it is defined on the pixmap ( / scale)
@@ -3216,7 +3216,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  Real dataValue;
 	  DataServices::Dispatch(DataServices::PointValueRequest,
 				 dataServicesPtr[currentFrame],
-				 trueRegion.length(),
+				 trueRegion.size(),
 				 (void *) (trueRegion.dataPtr()),
 				 (void *) &pltAppState->CurrentDerived(),
 				 minDrawnLevel, maxDrawnLevel,
@@ -3383,7 +3383,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	
       case ButtonRelease:
 	XUngrabServer(display);
-	tempi = Max(0, Min(imageHeight, nextEvent.xbutton.y));
+	tempi = max(0, min(imageHeight, nextEvent.xbutton.y));
 	amrPicturePtrArray[V]->SetHLine(tempi);
 #if (BL_SPACEDIM == 3)
 	if(V == ZPLANE) {
@@ -3540,7 +3540,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	
       case ButtonRelease:
 	XUngrabServer(display);
-	tempi = Max(0, Min(imageWidth, nextEvent.xbutton.x));
+	tempi = max(0, min(imageWidth, nextEvent.xbutton.x));
 	amrPicturePtrArray[V]->SetVLine(tempi);
 #if (BL_SPACEDIM == 3)
 	if(V == ZPLANE) {
@@ -4016,7 +4016,7 @@ void PltApp::Animate(AnimDirection direction) {
 void PltApp::DirtyFrames() {
   paletteDrawn = false;
   for(int i(0); i < animFrames; ++i) {
-    if(readyFrames[i]) {
+    if(readyFrames[i] == true) {
       XDestroyImage(frameBuffer[i]);
     }
     readyFrames[i] = false;
@@ -4142,7 +4142,7 @@ void PltApp::AddStaticCallback(Widget w, String cbtype, memberCB cbf, void *d) {
   CBData *cbs = new CBData(this, d, cbf);
 
   // cbdPtrs.push_back(cbs)
-  int nSize(cbdPtrs.length());
+  int nSize(cbdPtrs.size());
   cbdPtrs.resize(nSize + 1);
   cbdPtrs[nSize] = cbs;
 
@@ -4157,7 +4157,7 @@ void PltApp::AddStaticEventHandler(Widget w, EventMask mask, memberCB cbf, void 
   CBData *cbs = new CBData(this, d, cbf);
 
   // cbdPtrs.push_back(cbs)
-  int nSize(cbdPtrs.length());
+  int nSize(cbdPtrs.size());
   cbdPtrs.resize(nSize + 1);
   cbdPtrs[nSize] = cbs;
 
@@ -4171,7 +4171,7 @@ XtIntervalId PltApp::AddStaticTimeOut(int time, memberCB cbf, void *d) {
   CBData *cbs = new CBData(this, d, cbf);
 
   // cbdPtrs.push_back(cbs)
-  int nSize(cbdPtrs.length());
+  int nSize(cbdPtrs.size());
   cbdPtrs.resize(nSize + 1);
   cbdPtrs[nSize] = cbs;
 
@@ -4260,7 +4260,7 @@ void PltApp::SetInitialWindowWidth(int initWindowWidth) {
 }
 
 void PltApp::SetReserveSystemColors(int reservesystemcolors) {
-  reservesystemcolors = Max(0, Min(128, reservesystemcolors));  // arbitrarily
+  reservesystemcolors = max(0, min(128, reservesystemcolors));  // arbitrarily
   PltApp::reserveSystemColors = reservesystemcolors;
 }
 

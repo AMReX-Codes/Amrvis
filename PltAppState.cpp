@@ -152,9 +152,9 @@ bool PltAppState::IsSet(const MinMaxRangeType mmrangetype,
 // -------------------------------------------------------------------
 void PltAppState::PrintSetMap() {
   cout << "PltAppState::PrintSetMap(): minMax[frame] [derived] [rangetype]" << endl;
-  for(int iframe(0); iframe < minMax.length(); ++iframe) {
-    for(int ider(0); ider < minMax[iframe].length(); ++ider) {
-      for(int immrt(0); immrt < minMax[iframe][ider].length(); ++immrt) {
+  for(int iframe(0); iframe < minMax.size(); ++iframe) {
+    for(int ider(0); ider < minMax[iframe].size(); ++ider) {
+      for(int immrt(0); immrt < minMax[iframe][ider].size(); ++immrt) {
 	cout << "minMax[" << iframe << "][" << ider << "][" << immrt << "] = ";
 	if(minMax[iframe][ider][immrt].IsSet()) {
 	  cout << " set      =  ";

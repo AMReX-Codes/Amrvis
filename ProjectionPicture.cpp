@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.cpp,v 1.41 2001-05-10 23:38:01 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.42 2001-08-14 00:57:54 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -39,8 +39,8 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
   palettePtr = PalettePtr;
 
   volumeBoxColor = (unsigned char) GetBoxColor();
-  volumeBoxColor = Max((unsigned char) palettePtr->PaletteStart(),
-                        Min((unsigned char) MaxPaletteIndex(), volumeBoxColor));
+  volumeBoxColor = max((unsigned char) palettePtr->PaletteStart(),
+                        min((unsigned char) MaxPaletteIndex(), volumeBoxColor));
 
   showSubCut = false;
   pixCreated = false;
@@ -75,8 +75,8 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
     } else {
       boxColors[lev] = MaxPaletteIndex() - 80 * (lev - 1);
     }
-    boxColors[lev] = Max(0, Min(MaxPaletteIndex(), boxColors[lev]));
-    for(int iBox(0); iBox < amrData.boxArray(lev).length(); ++iBox) {
+    boxColors[lev] = max(0, min(MaxPaletteIndex(), boxColors[lev]));
+    for(int iBox(0); iBox < amrData.boxArray(lev).size(); ++iBox) {
       Box temp(amrData.boxArray(lev)[iBox]);
       if(temp.intersects(theDomain[lev])) {
         temp &= theDomain[lev];
@@ -151,7 +151,7 @@ void ProjectionPicture::MakeBoxes() {
 
   if(pltAppPtr->GetPltAppState()->GetShowingBoxes()) {
     for(int iLevel(minDrawnLevel); iLevel <= maxDrawnLevel; ++iLevel) {
-      int nBoxes(boxTrans[iLevel].length());
+      int nBoxes(boxTrans[iLevel].size());
       for(int iBox(0); iBox < nBoxes; ++iBox) {
         TransformBoxPoints(iLevel, iBox);
       }
@@ -284,7 +284,7 @@ void ProjectionPicture::DrawBoxesIntoDrawable(const Drawable &drawable,
       // FIXME:
       XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
                      boxColors[iLevel]);
-      int nBoxes(boxTrans[iLevel].length());
+      int nBoxes(boxTrans[iLevel].size());
       for(int iBox = 0; iBox < nBoxes; ++iBox) {
         boxTrans[iLevel][iBox].Draw(XtDisplay(drawingArea), drawable,
                                     XtScreen(drawingArea)->default_gc);
@@ -452,8 +452,8 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
   volRender->SetImage( (unsigned char *)volpackImageData, daWidth, daHeight,
                        VP_LUMINANCE);
 #endif
-  longestWindowLength  = (Real) Max(daWidth, daHeight);
-  shortestWindowLength = (Real) Min(daWidth, daHeight);
+  longestWindowLength  = (Real) max(daWidth, daHeight);
+  shortestWindowLength = (Real) min(daWidth, daHeight);
   if(longestWindowLength == 0) {  // this happens when x deletes this window
 #ifdef BL_VOLUMERENDER
     volRender->SetAspect(1.0);

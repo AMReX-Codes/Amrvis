@@ -53,8 +53,8 @@ public:
   }
 
 protected:
-  Array <List <XYPlotDataListLink *> *> dataSets; 
-  Array <List <int> *> upXi;      // Used for data set iteration [level]
+  Array <list <XYPlotDataListLink *> *> dataSets; 
+  Array <list <int> *> upXi;      // Used for data set iteration [level]
   Array <int> ratios;             // Used for insertion of data sets beginning
                                   // in the middle of a single cell [level]
   Array <Real> dX;                // dX in the proper direction [level]
@@ -89,8 +89,10 @@ public:
 private:
 
   XYPlotDataList *list;
-  Array <ListIterator <int> *> XiLI;
-  Array <ListIterator <XYPlotDataListLink *> *> linkLI;
+  //Array <ListIterator <int> *> XiLI;
+  //Array <ListIterator <XYPlotDataListLink *> *> linkLI;
+  Array <std::list<int>::iterator *> XiLI;
+  Array <std::list<XYPlotDataListLink *>::iterator *> linkLI;
   XYPlotDataListLink *curLink, *nextLink;
   int curXi, nextXi, curLevel, maxLevel;
   Real *data;

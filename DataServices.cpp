@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.25 2001-02-23 22:47:32 vince Exp $
+// $Id: DataServices.cpp,v 1.26 2001-08-14 00:57:54 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -13,8 +13,10 @@
 
 #ifdef BL_USE_NEW_HFILES
 #include <iostream>
+#include <fstream>
 #include <cstdio>
 using std::ios;
+using std::ofstream;
 #else
 #include <iostream.h>
 #include <stdio.h>
@@ -131,7 +133,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 
   // handle exit request
   if(requestType == ExitRequest) {                // cleanup memory
-    for(int i = 0; i < dsArray.length(); ++i) {
+    for(int i(0); i < dsArray.size(); ++i) {
       if(DataServices::dsArray[i] != NULL) {
 	BL_ASSERT(DataServices::dsArray[i]->numberOfUsers == 0);
 	delete DataServices::dsArray[i];
@@ -986,7 +988,7 @@ void DataServices::PointValue(int pointBoxArraySize, Box *pointBoxArray,
   BL_ASSERT(destBox.volume() == 1);
 
   const BoxArray &intersectedBA = amrData.boxArray(intersectedLevel);
-  for(int iGrid = 0; iGrid < intersectedBA.length(); ++iGrid) {
+  for(int iGrid = 0; iGrid < intersectedBA.size(); ++iGrid) {
     if(destBox.intersects(intersectedBA[iGrid])) {
       intersectedGrid = intersectedBA[iGrid];
       break;
@@ -1021,7 +1023,7 @@ void DataServices::LineValues(int lineBoxArraySize, Box *lineBoxArray, int which
 
   for(int lev(coarsestLevelToSearch); lev <= finestLevelToSearch; ++lev) {
     const BoxArray &intersectedBA = amrData.boxArray(lev);
-    int numGrids(intersectedBA.length());
+    int numGrids(intersectedBA.size());
     for(int iGrid(0); iGrid != numGrids; ++iGrid) {
       if(lineBoxArray[lev].intersects(intersectedBA[iGrid])) {
         bLineIsValid = true;

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.66 2001-07-31 00:25:58 vince Exp $
+// $Id: AmrPicture.cpp,v 1.67 2001-08-14 00:57:54 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -184,7 +184,7 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
       tempSlice *= CRRBetweenLevels(parentPltAppPtr->GetPltAppState()->
 				    MaxDrawnLevel(), 
                                     maxDrawnLevel, amrData.RefRatio());
-      slice = Max(Min(tempSlice,
+      slice = max(min(tempSlice,
                       subDomain[maxAllowableLevel].bigEnd(YZ-myView)), 
                   subDomain[maxAllowableLevel].smallEnd(YZ-myView));
     } else {
@@ -337,7 +337,7 @@ void AmrPicture::SetSlice(int view, int here) {
   int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
   sliceDir = YZ - view;
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
-  BL_ASSERT(amrData.RefRatio().length() > 0);
+  BL_ASSERT(amrData.RefRatio().size() > 0);
 
 # if (BL_SPACEDIM == 3)
     slice = here;
@@ -362,7 +362,7 @@ void AmrPicture::SetSlice(int view, int here) {
     }
 # endif
 
-  for(lev = minDrawnLevel; lev < gpArray.length(); ++lev) {
+  for(lev = minDrawnLevel; lev < gpArray.size(); ++lev) {
     gpArray[lev].clear();
   }
   gpArray.clear();
@@ -392,7 +392,7 @@ void AmrPicture::SetSlice(int view, int here) {
   int gridNumber;
   for(lev = minDrawnLevel; lev <= maxLevelWithGrids; ++lev) {
     gridNumber = 0;
-    for(int iBox(0); iBox < amrData.boxArray(lev).length(); ++iBox) {
+    for(int iBox(0); iBox < amrData.boxArray(lev).size(); ++iBox) {
       Box temp(amrData.boxArray(lev)[iBox]);
       if(sliceBox[lev].intersects(temp)) {
 	temp &= sliceBox[lev];
@@ -464,7 +464,7 @@ void AmrPicture::DrawBoxes(Array< Array<GridPicture> > &gp, Drawable &drawable) 
       if(amrData.Terrain()) {
 	DrawTerrBoxes(level, bIsWindow, bIsPixmap);
       } else {
-        for(int i(0); i < gp[level].length(); ++i) {
+        for(int i(0); i < gp[level].size(); ++i) {
 	  xbox = gp[level][i].HPositionInPicture();
 	  ybox = gp[level][i].VPositionInPicture();
 	  wbox = gp[level][i].ImageSizeH(); 
@@ -1072,12 +1072,12 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
           }
 
           //for(isum=nStartV; isum< nEndV; isum++) {
-            //minDAV = Min(diffAvgV[isum], diffAvgV[isum+1]);
-            //maxDAV = Max(diffAvgV[isum], diffAvgV[isum+1]);
+            //minDAV = min(diffAvgV[isum], diffAvgV[isum+1]);
+            //maxDAV = max(diffAvgV[isum], diffAvgV[isum+1]);
           //}
           //for(isum=nStartH; isum<=nEndH; isum++) {
-            //minDAH = Min(diffAvgH[isum], diffAvgH[isum+1]);
-            //maxDAH = Max(diffAvgH[isum], diffAvgH[isum+1]);
+            //minDAH = min(diffAvgH[isum], diffAvgH[isum+1]);
+            //maxDAH = max(diffAvgH[isum], diffAvgH[isum+1]);
           //}
           normH =  ((diffAvgV[nEndV] - diffAvgV[nStartV]) * ((Real) nH));
                                                   // nH is correct here
@@ -1109,7 +1109,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
             }
             for(ii = 0; ii < iCurrent; ++ii) {
               yBody = (slope * ((iCurrent-ii)*cellDx)) + (jCurrent*cellDy);
-              jBody = Min(rrcs-1, (int) (yBody/cellDy));
+              jBody = min(rrcs-1, (int) (yBody/cellDy));
               for(jj = 0; jj <= jBody; ++jj) {
                 isIndex = ii + ((rrcs - (jj + 1)) * rrcs);
                 imageStencil[isIndex] = bodyCell;  // yflip
@@ -1146,7 +1146,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
               for(ii = rrcs; ii > iCurrent; --ii) {
                 yBody = (slope * ((ii - iCurrent) * cellDx)) +
                         ((rrcs - jCurrent) * cellDy);
-                jBody = Max(0, (int) (rrcs - (yBody / cellDy)));
+                jBody = max(0, (int) (rrcs - (yBody / cellDy)));
                 for(jj = jBody; jj < rrcs; ++jj) {
                   isIndex = (ii - 1) + ((rrcs - (jj + 1)) * rrcs);
                   imageStencil[isIndex] = bodyCell;  // yflip
@@ -1180,7 +1180,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 
             for(ii=rrcs; ii>iCurrent; ii--) {
               yBody = (-slope * ((ii-iCurrent)*cellDx)) + (jCurrent*cellDy);
-              jBody = Min(rrcs-1, (int) (yBody/cellDy));
+              jBody = min(rrcs-1, (int) (yBody/cellDy));
               for(jj=0; jj<=jBody; jj++) {
                 isIndex = (ii-1) + ((rrcs-(jj+1))*rrcs);
                 imageStencil[isIndex] = bodyCell;  // yflip
@@ -1214,7 +1214,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
             for(ii = 0; ii < iCurrent; ++ii) {
               yBody = (-slope * ((iCurrent - ii) * cellDx)) +
                       ((rrcs - jCurrent) * cellDy);
-              jBody = Max(0, (int) (rrcs - (yBody / cellDy)));
+              jBody = max(0, (int) (rrcs - (yBody / cellDy)));
               for(jj = jBody; jj < rrcs; ++jj) {
                 isIndex = ii + ((rrcs - (jj + 1)) * rrcs);  // yflip
                 imageStencil[isIndex] = bodyCell;
@@ -1335,7 +1335,7 @@ void AmrPicture::APChangeScale(int newScale, int previousScale) {
   pixMapCreated = true;
 
   for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
-   for(int grid(0); grid < gpArray[iLevel].length(); ++grid) {
+   for(int grid(0); grid < gpArray[iLevel].size(); ++grid) {
      gpArray[iLevel][grid].ChangeScale(newScale, imageSizeH, imageSizeV);
    }
   }
@@ -1392,7 +1392,7 @@ XImage *AmrPicture::GetPictureXImage(const bool bdrawboxesintoimage) {
         XSetForeground(display, xgc,
 		       palPtr->pixelate(MaxPaletteIndex()-80*level));
       }
-      for(int i(0); i < gpArray[level].length(); ++i) {
+      for(int i(0); i < gpArray[level].size(); ++i) {
 	xbox = gpArray[level][i].HPositionInPicture();
 	ybox = gpArray[level][i].VPositionInPicture();
 	wbox = gpArray[level][i].ImageSizeH(); 
@@ -1427,8 +1427,8 @@ void AmrPicture::GetGridBoxes(Array< Array<GridBoxes> > &gb,
 {
   gb.resize(maxlev + 1);  // resize from zero
   for(int level(minlev); level <= maxlev; ++level) {
-    gb[level].resize(gpArray[level].length());
-    for(int i(0); i < gpArray[level].length(); ++i) {
+    gb[level].resize(gpArray[level].size());
+    for(int i(0); i < gpArray[level].size(); ++i) {
       gb[level][i].xbox = gpArray[level][i].HPositionInPicture();
       gb[level][i].ybox = gpArray[level][i].VPositionInPicture();
       gb[level][i].wbox = gpArray[level][i].ImageSizeH(); 
@@ -1503,7 +1503,7 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
 
     for(lev = minDrawnLevel; lev <= maxLevelWithGridsHere; ++lev) {
       gridNumber = 0;
-      for(int iBox(0); iBox < amrData.boxArray(lev).length(); ++iBox) {
+      for(int iBox(0); iBox < amrData.boxArray(lev).size(); ++iBox) {
 	Box temp(amrData.boxArray(lev)[iBox]);
         if(interBox[lev].intersects(temp)) {
 	  temp &= interBox[lev];
@@ -1848,8 +1848,8 @@ void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
       int lratio(CRRBetweenLevels(lev, lev+1, amrData.RefRatio()));
       // construct mask array.  must be size FAB.
       const BoxArray &nextFinest = amrData.boxArray(lev+1);
-      for(int j(0); j < nextFinest.length(); ++j) {
-        Box coarseBox(coarsen(nextFinest[j],lratio));
+      for(int j(0); j < nextFinest.size(); ++j) {
+        Box coarseBox(BoxLib::coarsen(nextFinest[j],lratio));
         if(coarseBox.intersects(passedSliceFab[lev]->box())) {
           coarseBox &= passedSliceFab[lev]->box();
           mask.setVal(true,coarseBox,0);
@@ -1859,9 +1859,9 @@ void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
     
     // get rid of the complement
     const BoxArray &levelBoxArray = amrData.boxArray(lev);
-    BoxArray complement = complementIn(passedSliceFab[lev]->box(), 
-                                       levelBoxArray);
-    for(int i(0); i < complement.length(); ++i) {
+    BoxArray complement = BoxLib::complementIn(passedSliceFab[lev]->box(), 
+                                               levelBoxArray);
+    for(int i(0); i < complement.size(); ++i) {
       mask.setVal(true, complement[i], 0);
     }
     
@@ -2289,7 +2289,7 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
 
   for(int k(0); k < npts; ++k) {
     Real s(sqrt(hdat[k] * hdat[k] + vdat[k] * vdat[k]));
-    smax = Max(smax,s);
+    smax = max(smax,s);
   }
   
   

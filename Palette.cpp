@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.34 2001-06-11 20:09:45 vince Exp $
+// $Id: Palette.cpp,v 1.35 2001-08-14 00:57:54 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -246,16 +246,16 @@ void Palette::Draw(Real palMin, Real palMax, const aString &numberFormat) {
   }
 
   char palString[64];
-  for(i = 0; i < dataList.length(); ++i) {
+  for(i = 0; i < dataList.size(); ++i) {
     XSetForeground(GAptr->PDisplay(), GAptr->PGC(), WhiteIndex());
-    dataList[i] = palMin + (dataList.length()-1-i) *
-			   (palMax - palMin)/(dataList.length() - 1);
+    dataList[i] = palMin + (dataList.size()-1-i) *
+			   (palMax - palMin)/(dataList.size() - 1);
     if(i == 0) {
       dataList[i] = palMax;  // to avoid roundoff
     }
     sprintf(palString, numberFormat.c_str(), dataList[i]);
     XDrawString(GAptr->PDisplay(), palPixmap, GAptr->PGC(), palWidth + 4,
-		(i * colorSlots / (dataList.length() - 1)) + 20,
+		(i * colorSlots / (dataList.size() - 1)) + 20,
 		palString, strlen(palString));
   }
   ExposePalette();

@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.37 2001-05-04 00:16:34 vince Exp $
+// $Id: Dataset.cpp,v 1.38 2001-08-14 00:57:54 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -361,7 +361,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
 			   (void *) &(dataFab[lev].box()),
                            lev,
 			   (void *) &(pltAppStatePtr->CurrentDerived()));
-    for(int iBox(0); iBox < amrData.boxArray(lev).length(); ++iBox) {
+    for(int iBox(0); iBox < amrData.boxArray(lev).size(); ++iBox) {
       temp = amrData.boxArray(lev)[iBox];
       if(datasetRegion[lev].intersects(temp)) {
         int ddl;
@@ -376,7 +376,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
           ddl = d*dataBox.length(hDIR);
           for(c = 0; c < dataBox.length(hDIR); ++c) {
             sprintf(dataString, fstring, dataPoint[c+ddl]);
-            largestWidth = Max((int) strlen(dataString), largestWidth);
+            largestWidth = max((int) strlen(dataString), largestWidth);
           }
         }
       }
@@ -436,8 +436,8 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   Real hItemCount((Real) (datasetRegion[maxDrawnLevel].bigEnd(hDIR)));
   int hIndicesWidth((int) (ceil(log10(hItemCount+1))));
 
-  largestWidth = Max(largestWidth, hIndicesWidth);  
-  indexWidth = Max(MAXINDEXCHARS, vIndicesWidth+1) * CHARACTERWIDTH;
+  largestWidth = max(largestWidth, hIndicesWidth);  
+  indexWidth = max(MAXINDEXCHARS, vIndicesWidth+1) * CHARACTERWIDTH;
 
   // determine size of data area
   dataItemWidth = largestWidth * CHARACTERWIDTH;
@@ -478,7 +478,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
     
     
     for(lev = minDrawnLevel; lev <= maxDrawnLevel; ++lev) {
-      for(int iBox = 0; iBox < amrData.boxArray(lev).length(); ++iBox) {
+      for(int iBox = 0; iBox < amrData.boxArray(lev).size(); ++iBox) {
         temp = amrData.boxArray(lev)[iBox];
         if(datasetRegion[lev].intersects(temp)) {
           temp &= datasetRegion[lev];
@@ -866,11 +866,11 @@ void Dataset::DoExpose(int fromExpose) {
         
         
         hIndexAreaHeight = indexHeight;
-        hIndexAreaEnd    = Min((int) pixSizeY,
+        hIndexAreaEnd    = min((int) pixSizeY,
 			       vScrollBarPos + height - hScrollBarBuffer);
         hIndexAreaStart  = hIndexAreaEnd + 1 - hIndexAreaHeight;
         vIndexAreaWidth  = indexWidth;
-        vIndexAreaEnd    = Min((int) pixSizeX,
+        vIndexAreaEnd    = min((int) pixSizeX,
 			       hScrollBarPos + width - vScrollBarBuffer);
         vIndexAreaStart  = vIndexAreaEnd + 1 - vIndexAreaWidth;
         
@@ -884,7 +884,7 @@ void Dataset::DoExpose(int fromExpose) {
         
         // draw grid structure for entire region 
         for(lev = minDrawnLevel; lev <= maxDrawnLevel; ++lev) {
-            for(int iBox = 0; iBox < amrData.boxArray(lev).length(); ++iBox) {
+            for(int iBox = 0; iBox < amrData.boxArray(lev).size(); ++iBox) {
                 temp = amrData.boxArray(lev)[iBox];
                 if(datasetRegion[lev].intersects(temp)) {
                     temp &= datasetRegion[lev];
@@ -981,13 +981,13 @@ void Dataset::DrawIndices() {
     // horizontal
     XFillRectangle(display, dataWindow, gc, hScrollBarPos,
                    hIndexAreaStart-(hIndexAreaHeight*count), 
-                   Min((unsigned int) width,  pixSizeX),
+                   min((unsigned int) width,  pixSizeX),
                    hIndexAreaHeight);
     // vertical
     XFillRectangle(display, dataWindow, gc, 
                    vIndexAreaStart-(vIndexAreaWidth*count),
                    vScrollBarPos, vIndexAreaWidth,
-                   Min((unsigned int) height, pixSizeY));
+                   min((unsigned int) height, pixSizeY));
     }
     const AmrData &amrData = dataServicesPtr->AmrDataRef();
 

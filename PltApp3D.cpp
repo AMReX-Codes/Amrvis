@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.40 2001-06-13 00:40:38 vince Exp $
+// $Id: PltApp3D.cpp,v 1.41 2001-08-14 00:57:54 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -163,7 +163,7 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
     endX = cbs->event->xbutton.x;
     endY = cbs->event->xbutton.y;
     temp = viewTrans.GetScale() + (endY - startY) * 0.003;
-    temp = Max(temp, 0.1);
+    temp = max(temp, 0.1);
     viewTrans.SetScale(temp);
     
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)

@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.H,v 1.13 2001-05-10 23:38:00 vince Exp $
+// $Id: GlobalUtilities.H,v 1.14 2001-08-14 00:57:54 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -69,7 +69,8 @@ const aString &GetLightingFileName();
 
 bool DumpSlices();
 bool SliceAllVars();
-Array< List<int> > &GetDumpSlices();
+//Array< List<int> > &GetDumpSlices();
+Array< list<int> > &GetDumpSlices();
 int  GetFabOutFormat();
 
 #define SHOWVAL(val) { cout << #val << " = " << val << endl; }  // Jensens device

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.52 2001-06-13 00:40:38 vince Exp $
+// $Id: PltApp.H,v 1.53 2001-08-14 00:57:54 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -204,7 +204,7 @@ private:
   Array<DataServices *> dataServicesPtr;
   Array<aString> fileNames;
   Array<XImage *> frameBuffer;
-  Array<bool>	readyFrames;
+  vector<bool>	readyFrames;
   AnimDirection	animDirection;
   XtIntervalId	animationIId, multiclickIId;
   Real finestDx[BL_SPACEDIM], gridOffset[BL_SPACEDIM];

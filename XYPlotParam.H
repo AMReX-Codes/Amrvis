@@ -218,11 +218,11 @@ private:
   //
   void rehash(void);
 
-  int strihash(register char *string) {
+  int strihash(register char *xypstring) {
     register int val = 0;
     register int c;
     
-    while ((c = *string++) != '\0') {
+    while ((c = *xypstring++) != '\0') {
       if(isupper(c)) {
         c = tolower(c);
       }

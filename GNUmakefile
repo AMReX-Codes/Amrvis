@@ -6,12 +6,12 @@ PROFILE   = FALSE
 # use mpKCC for the sp
 COMP      = mpKCC
 
-COMP      = g++
 COMP      = KCC
+COMP      = g++
 DEBUG     = FALSE
 DEBUG     = TRUE
-DIM       = 3
 DIM       = 2
+DIM       = 3
 NAMESPACE = TRUE
 NAMESPACE = FALSE
 
@@ -39,10 +39,13 @@ EBASE = amrvis
 HERE = .
 
 INCLUDE_LOCATIONS += $(HERE)
-INCLUDE_LOCATIONS += ../pBoxLib_2
+#INCLUDE_LOCATIONS += ../pBoxLib_2
+INCLUDE_LOCATIONS += ../BoxLib
+INCLUDE_LOCATIONS += ../BoxLib/std
 
 DEFINES += -DBL_PARALLEL_IO
 #DEFINES += -DBL_USE_SETBUF
+DEFINES += -DBL_USE_NEW_HFILES
 
 ifeq ($(MACHINE),OSF1)
   ifeq ($(COMP),KCC)
@@ -125,7 +128,8 @@ ifeq ($(DIM),3)
     # VOLPACKDIR = ../../volpack/volpack_cpp
     # VOLPACKDIR = ../../volpack/volpack-1.0b3
     #VOLPACKDIR = $(PBOXLIB_HOME)/volpack
-    VOLPACKDIR = ../../../volpack
+    #VOLPACKDIR = ../volpack
+    VOLPACKDIR = ../../volpack.test
     INCLUDE_LOCATIONS += $(VOLPACKDIR)
     LIBRARY_LOCATIONS += $(VOLPACKDIR)
     LIBRARIES += -lvolpack
@@ -167,10 +171,13 @@ endif
 #XTRALIBS += 
 
 include $(HERE)/Make.package
-include $(PBOXLIB_HOME)/pBoxLib_2/Make.package
+#include $(PBOXLIB_HOME)/pBoxLib_2/Make.package
+include $(PBOXLIB_HOME)/BoxLib/Make.package
 
-vpath %.cpp $(HERE) ../pBoxLib_2
-vpath %.H $(HERE) ../pBoxLib_2
+#vpath %.cpp $(HERE) ../pBoxLib_2
+#vpath %.H $(HERE) ../pBoxLib_2
+vpath %.cpp $(HERE) ../BoxLib
+vpath %.H $(HERE) ../BoxLib
 vpath %.F $(HERE)
 vpath %.a $(LIBRARY_LOCATIONS)
 

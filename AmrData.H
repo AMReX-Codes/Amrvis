@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.H,v 1.19 2001-07-27 01:47:13 vince Exp $
+// $Id: AmrData.H,v 1.20 2001-08-14 00:57:54 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -23,7 +23,8 @@ class AmrData {
  protected: 
   // List of grids at each level, level 0 being coarsest.
   Array<Array<MultiFab *> > dataGrids;    // [level][component]
-  Array<Array<Array<bool> > > dataGridsDefined;  // [level][component][index]
+  //Array<Array<Array<bool> > > dataGridsDefined;  // [level][component][index]
+  vector<vector<vector<bool> > > dataGridsDefined;  // [level][component][index]
   // ^^^^^^^^^^^^^^^^^^^^^^^^ need to put these in a class which handles
   //                          setting defined/not defined
   Array<Array<VisMF *> > visMF;    // [level][whichMultiFab]

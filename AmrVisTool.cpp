@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.51 2001-05-10 23:38:00 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.52 2001-08-14 00:57:54 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -11,18 +11,8 @@
 
 // X/Motif headers
 #include <Xm/Xm.h>
-//  #include <MainW.h>
-//  #include <PushB.h>
-//  #include <PushBG.h>
 #include <Xm/FileSB.h>
-//  #include <MessageB.h>
-//  #include <Label.h>
-//  #include <Text.h>
-//  #include <RowColumn.h>
 #include <Xm/Form.h>
-//  #include <DrawingA.h>
-//  #include <ToggleB.h>
-//  #include <ToggleBG.h>
 #include <X11/Xos.h>
 // BoxLib has index member functions, Xos might define it (LessTif).
 #undef index
@@ -63,7 +53,7 @@ Arg		args[32];
 cMessageArea	messageText;
 char		buffer[BUFSIZ];
 XmString	sDirectory = XmStringCreateSimple("none");
-List<PltApp *>  pltAppList;
+list<PltApp *>  pltAppList;
 
 
 //--------------------------------------------------------------
@@ -78,9 +68,10 @@ int main(int argc, char *argv[]) {
   Box		comlineBox;
   aString	comlineFileName;
 
-    ParallelDescriptor::StartParallel(&argc,&argv);
+  BoxLib::Initialize(argc,argv);
+  //ParallelDescriptor::StartParallel(&argc,&argv);
 
-  ParmParse pp(0, argv, NULL, NULL);
+  //ParmParse pp(0, argv, NULL, NULL);
 
 
   GetDefaults("amrvis.defaults");
@@ -123,7 +114,8 @@ int main(int argc, char *argv[]) {
   if(bBatchMode) {
     DataServices::SetBatchMode();
     BatchFunctions();
-    ParallelDescriptor::EndParallel();
+    //ParallelDescriptor::EndParallel();
+    BoxLib::Finalize();
   } else {
 
     if(ParallelDescriptor::IOProcessor()) {
@@ -157,7 +149,7 @@ int main(int argc, char *argv[]) {
               dspArray[nPlots]->DecrementNumberOfUsers();
 	    }
 	  } else {
-            pltAppList.append(temp);
+            pltAppList.push_back(temp);
 	  }
 	} else {
           if(ParallelDescriptor::IOProcessor()) {
@@ -186,7 +178,7 @@ int main(int argc, char *argv[]) {
 	    if(temp == NULL) {
 	      cerr << "Error:  could not make a new PltApp." << endl;
 	    } else {
-              pltAppList.append(temp);
+              pltAppList.push_back(temp);
               dspArray[0]->IncrementNumberOfUsers();
 	    }
 	  }
@@ -204,6 +196,9 @@ int main(int argc, char *argv[]) {
   }  // end if(bBatchMode)
 
   //ParallelDescriptor::EndParallel();
+
+  return 0;
+
 }  // end main()
 
  
@@ -328,7 +323,7 @@ void BatchFunctions() {
       int minDrawnLevel = 0;
       int maxDrawnLevel;
       if(UseMaxLevel()) {
-        maxDrawnLevel = Max(0, Min(GetMaxLevel(), amrData.FinestLevel()));
+        maxDrawnLevel = max(0, min(GetMaxLevel(), amrData.FinestLevel()));
       } else {
         maxDrawnLevel = amrData.FinestLevel();
       }
@@ -363,7 +358,8 @@ void BatchFunctions() {
 
     if(DumpSlices()) {
         if(SliceAllVars()) {
-          for(int slicedir=0; slicedir<GetDumpSlices().length(); ++slicedir) {
+          for(int slicedir(0); slicedir < GetDumpSlices().size(); ++slicedir) {
+	  /*
             ListIterator<int> li(GetDumpSlices()[slicedir]);
             while(li) {
               int slicenum = li();
@@ -372,9 +368,18 @@ void BatchFunctions() {
                                      slicedir, slicenum);
               ++li;
             }
+	  */
+	    for(list<int>::iterator li = GetDumpSlices()[slicedir].begin();
+	        li != GetDumpSlices()[slicedir].end(); ++li)
+	    {
+              int slicenum = *li;
+              DataServices::Dispatch(DataServices::DumpSlicePlaneAllVars,
+				     &dataServices, slicedir, slicenum);
+	    }
           }
         } else {
-            for(int slicedir=0; slicedir<GetDumpSlices().length(); slicedir++) {
+            for(int slicedir(0); slicedir < GetDumpSlices().size(); ++slicedir) {
+	      /*
               ListIterator<int> li(GetDumpSlices()[slicedir]);
               while(li) {
                 int slicenum = li();
@@ -384,6 +389,15 @@ void BatchFunctions() {
 				       (void *) &derived);
                 ++li;
               }
+	      */
+	      for(list<int>::iterator li = GetDumpSlices()[slicedir].begin();
+	          li != GetDumpSlices()[slicedir].end(); ++li)
+	      {
+                int slicenum = *li;
+                DataServices::Dispatch(DataServices::DumpSlicePlaneOneVar,
+				       &dataServices, slicedir, slicenum,
+				       (void *) &derived);
+	      }
             }
         }
     }   // end if(DumpSlices())
@@ -415,10 +429,13 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
   unsigned long item = (unsigned long) client_data;
 
   if(item == QUITITEM) {
-    for(ListIterator<PltApp *> li(pltAppList); li; ++li) {
-      PltApp *obj = pltAppList[li];
+    //for(ListIterator<PltApp *> li(pltAppList); li; ++li) {
+    for(list<PltApp *>::iterator li = pltAppList.begin();
+        li != pltAppList.end(); ++li) {
+      //PltApp *obj = pltAppList[li];
+      PltApp *obj = *li;
       Array<DataServices *> dataServicesPtr = obj->GetDataServicesPtrArray();
-      for(int ids = 0; ids < dataServicesPtr.length(); ++ids) {
+      for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
         dataServicesPtr[ids]->DecrementNumberOfUsers();
       }
       delete obj;
@@ -500,7 +517,7 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
   if(temp == NULL) {
     cerr << "Error:  could not make a new PltApp." << endl;
   } else {
-    pltAppList.append(temp);
+    pltAppList.push_back(temp);
     dspArray[0]->IncrementNumberOfUsers();
   }
 
@@ -522,9 +539,9 @@ void SubregionPltApp(Widget wTopLevel, const Box &trueRegion,
   if(temp == NULL) {
     cerr << "Error in SubregionPltApp:  could not make a new PltApp." << endl;
   } else {
-    pltAppList.append(temp);
+    pltAppList.push_back(temp);
     Array<DataServices *> dataServicesPtr = temp->GetDataServicesPtrArray();
-    for(int ids = 0; ids < dataServicesPtr.length(); ++ids) {
+    for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
       dataServicesPtr[ids]->IncrementNumberOfUsers();
     }
   }
@@ -537,7 +554,7 @@ void CBQuitPltApp(Widget ofPltApp, XtPointer client_data, XtPointer) {
   pltAppList.remove(obj);
 
   Array<DataServices *> &dataServicesPtr = obj->GetDataServicesPtrArray();
-  for(int ids = 0; ids < dataServicesPtr.length(); ++ids) {
+  for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
     dataServicesPtr[ids]->DecrementNumberOfUsers();
     DataServices::Dispatch(DataServices::DeleteRequest, dataServicesPtr[ids], NULL);
   }
