@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.44 2000-10-02 20:53:07 lijewski Exp $
+// $Id: AmrVisTool.cpp,v 1.45 2000-10-05 20:18:07 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -288,7 +288,8 @@ void CreateMainWindow(int argc, char *argv[]) {
 
   XmString sCtrlQ = XmStringCreateSimple("Ctrl+Q");
   XmString sCtrlO = XmStringCreateSimple("Ctrl+O");
-  XmVaCreateSimplePulldownMenu(wMenuBar, "fileMenu", 0, CBFileMenu,
+  XmVaCreateSimplePulldownMenu(wMenuBar, "fileMenu", 0,
+    (XtCallbackProc) CBFileMenu,
     XmVaPUSHBUTTON, sOpen, 'O', "Ctrl<Key>O", sCtrlO,
     //XmVaSEPARATOR,   // the separator is buggy in old versions of motif
     XmVaPUSHBUTTON, sQuit, 'Q', "Ctrl<Key>Q", sCtrlQ,
@@ -477,7 +478,8 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
     XtSetArg (args[i], XmNpattern, sMask); i++;
     XtSetArg (args[i], XmNfileTypeMask, XmFILE_ANY_TYPE); i++;
     wDialog = XmCreateFileSelectionDialog(wTopLevel, "Open File", args, i);
-    XtAddCallback(wDialog, XmNokCallback, CBOpenPltFile,   NULL);
+    XtAddCallback(wDialog, XmNokCallback, (XtCallbackProc) CBOpenPltFile,
+		  NULL);
     XtAddCallback(wDialog, XmNcancelCallback, 
 		  (XtCallbackProc) XtUnmanageChild, NULL);
     XmStringFree(sMask);
