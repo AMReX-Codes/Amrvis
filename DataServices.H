@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.H,v 1.17 2001-11-16 01:48:08 vince Exp $
+// $Id: DataServices.H,v 1.18 2002-08-30 22:46:22 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -119,6 +119,7 @@ class DataServices {
     const Array<string> &PlotVarNames() const { return amrData.PlotVarNames(); }
     AmrData &AmrDataRef() { return amrData; }
     bool AmrDataOk() { return bAmrDataOk; }  
+    void SetWriteToLevel(const int iwtlev)  { iWriteToLevel = iwtlev; }
 
     // other functions
     int GetNumberOfUsers() const  { return numberOfUsers; }
@@ -133,6 +134,7 @@ class DataServices {
     bool bAmrDataOk;
     int dsArrayIndex;
     int numberOfUsers;
+    int iWriteToLevel;
 
     static Array<DataServices *> dsArray;
     static int dsArrayIndexCounter;

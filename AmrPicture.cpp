@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.75 2002-08-16 00:22:33 vince Exp $
+// $Id: AmrPicture.cpp,v 1.76 2002-08-30 22:46:22 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1494,6 +1494,7 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
   int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
   unsigned char *frameImageData = new unsigned char[dataSize[maxDrawnLevel]];
   int iEnd(0);
+  islice = -100000;  // bogus init value
   for(i = 0; i < length; ++i) {
     islice = (((slice - start + (posneg * i)) + length) % length);
 			          // ^^^^^^^^ + length for negative values
@@ -1948,11 +1949,11 @@ bool AmrPicture::DrawContour(const FArrayBox &fab, Real value,
   Real xDiff((rightEdge - leftEdge) / (xLength - 1));
   Real yDiff((topEdge - bottomEdge) / (yLength - 1));
   
-  bool left, right, bottom, top;  // does contour line intersect this side?
-  Real xLeft, yLeft;              // where contour line intersects left side
-  Real xRight, yRight;            // where contour line intersects right side
-  Real xBottom, yBottom;          // where contour line intersects bottom side
-  Real xTop, yTop;                // where contour line intersects top side
+  bool left, right, bottom, top;    // does contour line intersect this side?
+  Real xLeft(0.0), yLeft(0.0);      // where contour line intersects left side
+  Real xRight(0.0), yRight(0.0);    // where contour line intersects right side
+  Real xBottom(0.0), yBottom(0.0);  // where contour line intersects bottom side
+  Real xTop(0.0), yTop(0.0);        // where contour line intersects top side
   bool bFailureStatus(false);
   for(int j(0); j < yLength - 1; ++j) {
     for(int i(0); i < xLength - 1; ++i) {
@@ -2212,7 +2213,7 @@ VectorDerived AmrPicture::FindVectorDerived(Array<string> &aVectorDeriveNames) {
 void AmrPicture::DrawVectorField(Display *pDisplay, 
                                  Drawable &pDrawable, const GC &pGC)
 {
-  int hDir, vDir;
+  int hDir(-1), vDir(-1);
   if(myView == XY) {
     hDir = XDIR;
     vDir = YDIR;

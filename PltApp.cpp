@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.106 2002-08-23 23:42:33 vince Exp $
+// $Id: PltApp.cpp,v 1.107 2002-08-30 22:46:22 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1535,7 +1535,7 @@ void PltApp::ChangeLevel(Widget w, XtPointer client_data, XtPointer) {
   }
 
   if(datasetShowing) {
-    int hdir, vdir, sdir;
+    int hdir(-1), vdir(-1), sdir(-1);
     if(activeView==ZPLANE) { hdir = XDIR; vdir = YDIR; sdir = ZDIR; }
     if(activeView==YPLANE) { hdir = XDIR; vdir = ZDIR; sdir = YDIR; }
     if(activeView==XPLANE) { hdir = YDIR; vdir = ZDIR; sdir = XDIR; }
@@ -1691,7 +1691,7 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   }
   
   if(datasetShowing) {
-    int hdir, vdir, sdir;
+    int hdir(-1), vdir(-1), sdir(-1);
     hdir = (activeView == XPLANE) ? YDIR : XDIR;
     vdir = (activeView == ZPLANE) ? YDIR : ZDIR;
     sdir = (activeView == YPLANE) ? YDIR : ((activeView == XYPLANE) ? XDIR : ZDIR);
@@ -1885,7 +1885,7 @@ void PltApp::DoDatasetButton(Widget, XtPointer, XtPointer) {
     return;
   }
 
-  int hdir, vdir, sdir;
+  int hdir(-1), vdir(-1), sdir(-1);
   
   trueRegion = selectionBox;
   
@@ -2489,7 +2489,7 @@ void PltApp::SetNewFormatString(const string &newformatstring) {
   pltPaletteptr->SetFormat(newformatstring);
   pltPaletteptr->Redraw();
   if(datasetShowing) {
-    int hdir, vdir, sdir;
+    int hdir(-1), vdir(-1), sdir(-1);
     if(activeView == ZPLANE) { hdir = XDIR; vdir = YDIR; sdir = ZDIR; }
     if(activeView == YPLANE) { hdir = XDIR; vdir = ZDIR; sdir = YDIR; }
     if(activeView == XPLANE) { hdir = YDIR; vdir = ZDIR; sdir = XDIR; }
@@ -2713,7 +2713,7 @@ void PltApp::DoDoneSetRange(Widget, XtPointer client_data, XtPointer) {
 
   if(datasetShowing) {
     datasetPtr->DoRaise();
-    int hdir, vdir, sdir;
+    int hdir(-1), vdir(-1), sdir(-1);
     if(activeView==ZPLANE) { hdir = XDIR; vdir = YDIR; sdir = ZDIR; }
     if(activeView==YPLANE) { hdir = XDIR; vdir = ZDIR; sdir = YDIR; }
     if(activeView==XPLANE) { hdir = YDIR; vdir = ZDIR; sdir = XDIR; }
@@ -2856,9 +2856,9 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
   const AmrData &amrData(dataServicesPtr[currentFrame]->AmrDataRef());
   
   // Create an array of boxes corresponding to the intersected line.
-  int tdir, dir1;
+  int tdir(-1), dir1(-1);
 #if (BL_SPACEDIM == 3)
-  int dir2;
+  int dir2(-1);
 #endif
   switch (V) {
   case ZPLANE:
@@ -3426,7 +3426,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	}
 
 	if(oldY >= 0 && oldY <= imageHeight) {
-	  int sdir;
+	  int sdir(-1);
 	  switch (V) {
 	    case ZPLANE:
 	      sdir = XDIR;
@@ -3580,7 +3580,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	}
 
 	if(oldX >= 0 && oldX <= imageWidth) {
-	  int sdir;
+	  int sdir(-1);
 	  switch (V) {
 	    case ZPLANE:
 	      sdir = YDIR;
@@ -4107,7 +4107,7 @@ void PltApp::ShowFrame() {
   XmScaleSetValue(wWhichFileScale, currentFrame);
   
   if(datasetShowing) {
-    int hdir, vdir, sdir;
+    int hdir(-1), vdir(-1), sdir(-1);
     if(activeView == ZPLANE) { hdir = XDIR; vdir = YDIR; sdir = ZDIR; }
     if(activeView == YPLANE) { hdir = XDIR; vdir = ZDIR; sdir = YDIR; }
     if(activeView == XPLANE) { hdir = YDIR; vdir = ZDIR; sdir = XDIR; }

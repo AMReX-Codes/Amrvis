@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.57 2002-08-23 23:42:33 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.58 2002-08-30 22:46:22 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -366,6 +366,9 @@ void BatchFunctions() {
 #endif
 
     if(AVGlobals::DumpSlices()) {
+	if(AVGlobals::UseMaxLevel() == true) {
+	  dataServices.SetWriteToLevel(AVGlobals::GetMaxLevel());
+	}
         if(AVGlobals::SliceAllVars()) {
           for(int slicedir(0); slicedir < AVGlobals::GetDumpSlices().size();
 	      ++slicedir)
@@ -399,6 +402,9 @@ void BatchFunctions() {
     }   // end if(AVGlobals::DumpSlices())
 
     if(AVGlobals::GivenBoxSlice()) {
+	if(AVGlobals::UseMaxLevel() == true) {
+	  dataServices.SetWriteToLevel(AVGlobals::GetMaxLevel());
+	}
         Box comLineBox(AVGlobals::GetBoxFromCommandLine());
 	BL_ASSERT(comLineBox.ok());
         if(AVGlobals::SliceAllVars()) {

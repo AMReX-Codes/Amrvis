@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.34 2002-02-19 20:39:41 vince Exp $
+// $Id: DataServices.cpp,v 1.35 2002-08-30 22:46:22 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -78,7 +78,8 @@ namespace ParallelDescriptor {
 
 // ---------------------------------------------------------------
 DataServices::DataServices(const string &filename, const FileType &filetype)
-             : fileName(filename), fileType(filetype), bAmrDataOk(false)
+             : fileName(filename), fileType(filetype), bAmrDataOk(false),
+	       iWriteToLevel(-1)
 {
   numberOfUsers = 0;  // the user must do all incrementing and decrementing
 
@@ -132,12 +133,10 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 
   ParallelDescriptor::Barrier();  // procs 1 - N wait here
 
-  //ParallelDescriptor::Broadcast(ioProcNumber, &requestType, &requestType,
-				//sizeof(DSRequestType));
   {
-      int tmp = requestType;
-      ParallelDescriptor::Bcast(&tmp, 1, 0);
-      requestType = static_cast<DataServices::DSRequestType>(tmp);
+    int tmp = requestType;
+    ParallelDescriptor::Bcast(&tmp, 1, 0);
+    requestType = static_cast<DataServices::DSRequestType>(tmp);
   }
 
   // handle new request
@@ -153,18 +152,14 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       checkArrayIndex = ds->dsArrayIndex;
     }
 
-    //ParallelDescriptor::Broadcast(ioProcNumber, &fileNameLength,  &fileNameLength,
-				  //sizeof(int));
     ParallelDescriptor::Bcast(&fileNameLength, 1, 0);
-    //ParallelDescriptor::Broadcast(ioProcNumber, &newFileType,     &newFileType,
-				  //sizeof(FileType));
+
     {
-        int tmp = newFileType;
-        ParallelDescriptor::Bcast(&tmp, 1, 0);
-        newFileType = static_cast<FileType>(tmp);
+      int tmp = newFileType;
+      ParallelDescriptor::Bcast(&tmp, 1, 0);
+      newFileType = static_cast<FileType>(tmp);
     }
-    //ParallelDescriptor::Broadcast(ioProcNumber, &checkArrayIndex,&checkArrayIndex,
-				  //sizeof(int));
+
     ParallelDescriptor::Bcast(&checkArrayIndex, 1, 0);
 
     fileNameLengthPadded = fileNameLength + 1;    // for the null
@@ -174,8 +169,6 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       strcpy(fileNameCharPtr, ds->fileName.c_str());
     }
 
-    //ParallelDescriptor::Broadcast(ioProcNumber, fileNameCharPtr, fileNameCharPtr,
-                                  //fileNameLengthPadded);
     ParallelDescriptor::Bcast(fileNameCharPtr, fileNameLengthPadded,0);
 
     string newFileName(fileNameCharPtr);
@@ -210,8 +203,6 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     whichDSIndex = ds->dsArrayIndex;
   }
 
-  //ParallelDescriptor::Broadcast(ioProcNumber, &whichDSIndex, &whichDSIndex,
-				//sizeof(int));
   ParallelDescriptor::Bcast(&whichDSIndex, 1, 0);
   if( ! ParallelDescriptor::IOProcessor()) {
     ds = DataServices::dsArray[whichDSIndex];
@@ -226,12 +217,11 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       if(ParallelDescriptor::IOProcessor()) {
 	bDeleteDS = (DataServices::dsArray[whichDSIndex]->numberOfUsers == 0);
       }
-      //ParallelDescriptor::Broadcast(ioProcNumber, &bDeleteDS, &bDeleteDS,
-				    //sizeof(bool));
+
       {
-          int tmp = bDeleteDS;
-          ParallelDescriptor::Bcast(&tmp, 1, 0);
-          bDeleteDS = tmp;
+        int tmp = bDeleteDS;
+        ParallelDescriptor::Bcast(&tmp, 1, 0);
+        bDeleteDS = tmp;
       }
       if(bDeleteDS) {
         delete DataServices::dsArray[whichDSIndex];
@@ -258,13 +248,8 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 	derivedLength = derivedTemp.length();
       }
 
-      //ParallelDescriptor::Broadcast(ioProcNumber, &destBox, &destBox,sizeof(Box));
       ParallelDescriptor::Bcast(&destBox, 1, 0);
-      //ParallelDescriptor::Broadcast(ioProcNumber, &fineFillLevel, &fineFillLevel,
-				    //sizeof(int));
       ParallelDescriptor::Bcast(&fineFillLevel, 1, 0);
-      //ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength,
-				    //sizeof(int));
       ParallelDescriptor::Bcast(&derivedLength, 1, 0);
 
       derivedLengthPadded = derivedLength + 1;
@@ -274,8 +259,6 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
         strcpy(derivedCharPtr, derivedTemp.c_str());
       }
 
-      //ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
-				    //derivedLengthPadded);
       ParallelDescriptor::Bcast(derivedCharPtr, derivedLengthPadded, 0);
 
       string derived(derivedCharPtr);
@@ -319,13 +302,8 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 	derivedLength = derivedTemp.length();
       }
 
-      //ParallelDescriptor::Broadcast(ioProcNumber,&destBox, &destBox, sizeof(Box));
       ParallelDescriptor::Bcast(&destBox, 1, 0);
-      //ParallelDescriptor::Broadcast(ioProcNumber, &fineFillLevel, &fineFillLevel,
-				    //sizeof(int));
       ParallelDescriptor::Bcast(&fineFillLevel, 1, 0);
-      //ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength,
-				    //sizeof(int));
       ParallelDescriptor::Bcast(&derivedLength, 1, 0);
 
       derivedLengthPadded = derivedLength + 1;
@@ -335,8 +313,6 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
         strcpy(derivedCharPtr, derivedTemp.c_str());
       }
 
-      //ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
-				    //derivedLengthPadded);
       ParallelDescriptor::Bcast(derivedCharPtr, derivedLengthPadded, 0);
 
       string derived(derivedCharPtr);
@@ -362,10 +338,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
         fineFillLevel = va_arg(ap, int);
       }
 
-      //ParallelDescriptor::Broadcast(ioProcNumber,&destBox, &destBox, sizeof(Box));
       ParallelDescriptor::Bcast(&destBox, 1, 0);
-      //ParallelDescriptor::Broadcast(ioProcNumber, &fineFillLevel, &fineFillLevel,
-				    //sizeof(int));
       ParallelDescriptor::Bcast(&fineFillLevel, 1, 0);
 
       ds->WriteFab(fabFileName, destBox, fineFillLevel);
@@ -387,14 +360,8 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 	derivedLength = derivedTemp.length();
       }
 
-      //ParallelDescriptor::Broadcast(ioProcNumber, &slicedir, &slicedir,
-				    //sizeof(int));
       ParallelDescriptor::Bcast(&slicedir, 1, 0);
-      //ParallelDescriptor::Broadcast(ioProcNumber, &slicenum, &slicenum,
-				    //sizeof(int));
       ParallelDescriptor::Bcast(&slicenum, 1, 0);
-      //ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength,
-				    //sizeof(int));
       ParallelDescriptor::Bcast(&derivedLength, 1, 0);
 
       derivedLengthPadded = derivedLength + 1;
@@ -403,8 +370,6 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       if(ParallelDescriptor::IOProcessor()) {
         strcpy(derivedCharPtr, derivedTemp.c_str());
       }
-      //ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
-				    //derivedLengthPadded);
       ParallelDescriptor::Bcast(derivedCharPtr, derivedLengthPadded, 0);
 
       string derived(derivedCharPtr);
@@ -423,11 +388,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
         slicedir = va_arg(ap, int);
         slicenum = va_arg(ap, int);
       }
-      //ParallelDescriptor::Broadcast(ioProcNumber, &slicedir, &slicedir,
-				    //sizeof(int));
       ParallelDescriptor::Bcast(&slicedir, 1, 0);
-      //ParallelDescriptor::Broadcast(ioProcNumber, &slicenum, &slicenum,
-				    //sizeof(int));
       ParallelDescriptor::Bcast(&slicenum, 1, 0);
 
       ds->DumpSlice(slicedir, slicenum);
@@ -449,10 +410,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 	derivedLength = derivedTemp.length();
       }
 
-      //ParallelDescriptor::Broadcast(ioProcNumber, &box, &box, sizeof(Box));
       ParallelDescriptor::Bcast(&box, 1, 0);
-      //ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength,
-				    //sizeof(int));
       ParallelDescriptor::Bcast(&derivedLength, 1, 0);
 
       derivedLengthPadded = derivedLength + 1;
@@ -461,8 +419,6 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       if(ParallelDescriptor::IOProcessor()) {
         strcpy(derivedCharPtr, derivedTemp.c_str());
       }
-      //ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
-				    //derivedLengthPadded);
       ParallelDescriptor::Bcast(derivedCharPtr, derivedLengthPadded, 0);
 
       string derived(derivedCharPtr);
@@ -480,7 +436,6 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 	box = *boxRef;
       }
 
-      //ParallelDescriptor::Broadcast(ioProcNumber, &box, &box, sizeof(Box));
       ParallelDescriptor::Bcast(&box, 1, 0);
 
       ds->DumpSlice(box);
@@ -506,12 +461,8 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 	derivedLength = derivedTemp.length();
       }
 
-      //ParallelDescriptor::Broadcast(ioProcNumber, &box, &box, sizeof(Box));
       ParallelDescriptor::Bcast(&box, 1, 0);
-      //ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength,
-				    //sizeof(int));
       ParallelDescriptor::Bcast(&derivedLength, 1, 0);
-      //ParallelDescriptor::Broadcast(ioProcNumber, &level, &level, sizeof(int));
       ParallelDescriptor::Bcast(&level, 1, 0);
 
       derivedLengthPadded = derivedLength + 1;
@@ -520,8 +471,6 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       if(ParallelDescriptor::IOProcessor()) {
         strcpy(derivedCharPtr, derivedTemp.c_str());
       }
-      //ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
-				    //derivedLengthPadded);
       ParallelDescriptor::Bcast(derivedCharPtr, derivedLengthPadded, 0);
 
       string derived(derivedCharPtr);
@@ -556,11 +505,11 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       // coarsestLevelToSearch, and finestLevelToSearch
 
       int pointBoxArraySize;
-      Box *pointBoxArrayPtr, *pointBoxArrayTempPtr;
+      Box *pointBoxArrayPtr(NULL), *pointBoxArrayTempPtr(NULL);
       int coarsestLevelToSearch, finestLevelToSearch;
 
       string derivedTemp;
-      char *derivedCharPtr;
+      char *derivedCharPtr(NULL);
       int derivedLength, derivedLengthPadded;
 
       if(ParallelDescriptor::IOProcessor()) {
@@ -573,20 +522,9 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
         finestLevelToSearch   = va_arg(ap, int);
       }
 
-      //ParallelDescriptor::Broadcast(ioProcNumber, &pointBoxArraySize,
-						  //&pointBoxArraySize,
-						  //sizeof(int));
       ParallelDescriptor::Bcast(&pointBoxArraySize, 1, 0);
-      //ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength,
-                                    //sizeof(int));
       ParallelDescriptor::Bcast(&derivedLength, 1, 0);
-      //ParallelDescriptor::Broadcast(ioProcNumber, &coarsestLevelToSearch,
-						  //&coarsestLevelToSearch,
-						  //sizeof(int));
       ParallelDescriptor::Bcast(&coarsestLevelToSearch, 1, 0);
-      //ParallelDescriptor::Broadcast(ioProcNumber, &finestLevelToSearch,
-						  //&finestLevelToSearch,
-						  //sizeof(int));
       ParallelDescriptor::Bcast(&finestLevelToSearch, 1, 0);
 
       pointBoxArrayPtr = new Box[pointBoxArraySize];
@@ -600,12 +538,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 	  pointBoxArrayPtr[iBox] = pointBoxArrayTempPtr[iBox];
 	}
       }
-      //ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
-				    //derivedLengthPadded);
       ParallelDescriptor::Bcast(derivedCharPtr, derivedLengthPadded, 0);
-      //ParallelDescriptor::Broadcast(ioProcNumber,
-				    //pointBoxArrayPtr, pointBoxArrayPtr,
-				    //pointBoxArraySize * sizeof(Box));
       ParallelDescriptor::Bcast(pointBoxArrayPtr, pointBoxArraySize, 0);
 
       string derived(derivedCharPtr);
@@ -658,9 +591,9 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       // coarsestLevelToSearch, and finestLevelToSearch
 
       int lineBoxArraySize;
-      Box *lineBoxArrayPtr, *lineBoxArrayTempPtr;
-      int coarsestLevelToSearch, finestLevelToSearch, whichDir;
-      XYPlotDataList *dataList;
+      Box *lineBoxArrayPtr(NULL), *lineBoxArrayTempPtr(NULL);
+      int coarsestLevelToSearch(-1), finestLevelToSearch(-1), whichDir(-1);
+      XYPlotDataList *dataList(NULL);
 
       string derivedTemp;
       char *derivedCharPtr;
@@ -678,17 +611,9 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
         dataList = (XYPlotDataList *) va_arg(ap, void *);
       }
 
-      //ParallelDescriptor::Broadcast(ioProcNumber, &lineBoxArraySize,
-                                    //&lineBoxArraySize, sizeof(int));
       ParallelDescriptor::Bcast(&lineBoxArraySize, 1, 0);
-      //ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength,
-                                    //sizeof(int));
       ParallelDescriptor::Bcast(&derivedLength, 1, 0);
-      //ParallelDescriptor::Broadcast(ioProcNumber, &coarsestLevelToSearch,
-                                    //&coarsestLevelToSearch, sizeof(int));
       ParallelDescriptor::Bcast(&coarsestLevelToSearch, 1, 0);
-      //ParallelDescriptor::Broadcast(ioProcNumber, &finestLevelToSearch,
-                                    //&finestLevelToSearch, sizeof(int));
       ParallelDescriptor::Bcast(&finestLevelToSearch, 1, 0);
 
       lineBoxArrayPtr = new Box[lineBoxArraySize];
@@ -702,12 +627,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
           lineBoxArrayPtr[iBox] = lineBoxArrayTempPtr[iBox];
         }
       }
-      //ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
-                                    //derivedLengthPadded);
       ParallelDescriptor::Bcast(derivedCharPtr, derivedLengthPadded, 0);
-      //ParallelDescriptor::Broadcast(ioProcNumber,
-                                    //lineBoxArrayPtr, lineBoxArrayPtr,
-                                    //lineBoxArraySize * sizeof(Box));
       ParallelDescriptor::Bcast(lineBoxArrayPtr, lineBoxArraySize, 0);
 
       string derived(derivedCharPtr);
@@ -774,7 +694,14 @@ bool DataServices::DumpSlice(int slicedir, int slicenum, const string &varname)
   sliceFile += ".fab";
   cout << "sliceFile = " << sliceFile << endl;
 
-  Box sliceBox(amrData.ProbDomain()[amrData.FinestLevel()]);
+  int iWTL(-2);
+  if(iWriteToLevel == -1) {
+    iWTL = amrData.FinestLevel();
+  } else {
+    iWTL = iWriteToLevel;
+  }
+
+  Box sliceBox(amrData.ProbDomain()[iWTL]);
 
   if(BL_SPACEDIM == 2 && slicedir == ZDIR) {
     // use probDomain for the sliceBox
@@ -786,13 +713,14 @@ bool DataServices::DumpSlice(int slicedir, int slicenum, const string &varname)
 
   cout << "sliceBox  = " << sliceBox << endl;
   cout << endl;
-  if( ! amrData.ProbDomain()[amrData.FinestLevel()].contains(sliceBox)) {
+  if( ! amrData.ProbDomain()[iWTL].contains(sliceBox)) {
     cerr << "Error:  sliceBox = " << sliceBox << "  slicedir " << slicenum
-	 << " not in probDomain: " << amrData.ProbDomain()[amrData.FinestLevel()]
+	 << " on Level " << iWTL
+	 << " not in probDomain: " << amrData.ProbDomain()[iWTL]
 	 << endl;
     return false;
   }
-  WriteFab(sliceFile, sliceBox, amrData.FinestLevel(), varname);
+  WriteFab(sliceFile, sliceBox, iWTL, varname);
   return true;
 }
 
@@ -821,7 +749,14 @@ bool DataServices::DumpSlice(int slicedir, int slicenum) {  // dump all vars
   sliceFile += ".fab";
   cout << "sliceFile = " << sliceFile << endl;
 
-  Box sliceBox(amrData.ProbDomain()[amrData.FinestLevel()]);
+  int iWTL(-2);
+  if(iWriteToLevel == -1) {
+    iWTL = amrData.FinestLevel();
+  } else {
+    iWTL = iWriteToLevel;
+  }
+
+  Box sliceBox(amrData.ProbDomain()[iWTL]);
 
   if(BL_SPACEDIM == 2 && slicedir == ZDIR) {
     // use probDomain for the sliceBox
@@ -833,13 +768,14 @@ bool DataServices::DumpSlice(int slicedir, int slicenum) {  // dump all vars
 
   cout << "sliceBox  = " << sliceBox << endl;
   cout << endl;
-  if( ! amrData.ProbDomain()[amrData.FinestLevel()].contains(sliceBox)) {
+  if( ! amrData.ProbDomain()[iWTL].contains(sliceBox)) {
     cerr << "Error:  sliceBox = " << sliceBox << "  slicedir " << slicenum
-	 << " not in probDomain: " << amrData.ProbDomain()[amrData.FinestLevel()]
+	 << " on Level " << iWTL
+	 << " not in probDomain: " << amrData.ProbDomain()[iWTL]
 	 << endl;
     return false;
   }
-  WriteFab(sliceFile, sliceBox, amrData.FinestLevel());
+  WriteFab(sliceFile, sliceBox, iWTL);
   return true;
 }
 
@@ -869,12 +805,22 @@ bool DataServices::DumpSlice(const Box &b, const string &varname) {
 
   cout << "sliceBox = " << b << endl;
   cout << endl;
-  if( ! amrData.ProbDomain()[amrData.FinestLevel()].contains(b)) {
+
+  int iWTL(-2);
+  if(iWriteToLevel == -1) {
+    iWTL = amrData.FinestLevel();
+  } else {
+    iWTL = iWriteToLevel;
+  }
+
+  if( ! amrData.ProbDomain()[iWTL].contains(b)) {
     cerr << "Slice box not in probDomain: "
-	 << amrData.ProbDomain()[amrData.FinestLevel()] << endl;
+	 << amrData.ProbDomain()[iWTL]
+	 << " on Level " << iWTL
+	 << endl;
     return false;
   }
-  WriteFab(sliceFile, b, amrData.FinestLevel(), varname);
+  WriteFab(sliceFile, b, iWTL, varname);
   return true;
 }
 
@@ -902,12 +848,22 @@ bool DataServices::DumpSlice(const Box &b) {  // dump all vars
 
   cout << "sliceBox = " << b << endl;
   cout << endl;
-  if( ! amrData.ProbDomain()[amrData.FinestLevel()].contains(b)) {
+
+  int iWTL(-2);
+  if(iWriteToLevel == -1) {
+    iWTL = amrData.FinestLevel();
+  } else {
+    iWTL = iWriteToLevel;
+  }
+
+  if( ! amrData.ProbDomain()[iWTL].contains(b)) {
     cerr << "Slice box not in probDomain: "
-	 << amrData.ProbDomain()[amrData.FinestLevel()] << endl;
+	 << amrData.ProbDomain()[iWTL]
+	 << " on Level " << iWTL
+	 << endl;
     return false;
   }
-  WriteFab(sliceFile, b, amrData.FinestLevel());
+  WriteFab(sliceFile, b, iWTL);
   return true;
 }
 

@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.45 2002-08-23 00:19:36 vince Exp $
+// $Id: Dataset.cpp,v 1.46 2002-08-30 22:46:22 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -686,10 +686,10 @@ void Dataset::CBPixInput(Widget, XtPointer client_data, XtPointer call_data)
 
 // -------------------------------------------------------------------
 void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
-  int hplot, vplot;
-  int hDir, vDir;
+  int hplot(-1), vplot(-1);
+  int hDir(-1), vDir(-1);
 # if (BL_SPACEDIM == 3)
-  int depthDir;
+  int depthDir(-1);
 # endif
   static int serverControlOK = 0;
   int xcell((int) (cbs->event->xbutton.x) / dataItemWidth);
