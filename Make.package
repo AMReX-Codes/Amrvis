@@ -19,6 +19,14 @@ CEXE_sources += VolRender.cpp
 endif
 endif
 
+ifeq ($(DIM),3)
+ifeq ($(USE_PARALLELVOLRENDER), TRUE)
+CEXE_headers += PVolRender.H
+CEXE_sources += PVolRender.cpp
+cEXE_sources += matrix.c twopass.c shearwarp.c sw.c window.c
+endif
+endif
+
 
 ifeq ($(DIM),3)
 	CEXE_sources += ProjectionPicture.cpp ViewTransform.cpp PltApp3D.cpp
@@ -41,7 +49,7 @@ C$(BOXLIB_BASE)_headers += BArena.H Arena.H UseCount.H FabConv.H FPC.H
 C$(BOXLIB_BASE)_headers += Box.H IntVect.H IndexType.H Orientation.H
 C$(BOXLIB_BASE)_headers += BoxList.H BoxArray.H BoxDomain.H
 C$(BOXLIB_BASE)_headers += BoxAssoc.H FArrayBox.H Looping.H MultiFab.H
-C$(BOXLIB_BASE)_headers += RunStats.H CArena.H
+C$(BOXLIB_BASE)_headers += RunStats.H CArena.H Tracer.H
 
 C$(BOXLIB_BASE)_sources += ParmParse.cpp Utility.cpp aString.cpp BArena.cpp
 C$(BOXLIB_BASE)_sources += DistributionMapping.cpp ParallelDescriptor.cpp
@@ -49,7 +57,7 @@ C${BOXLIB_BASE}_sources += FabConv.cpp FPC.cpp BoxLib.cpp VisMF.cpp
 C$(BOXLIB_BASE)_sources += Box.cpp IntVect.cpp IndexType.cpp Orientation.cpp
 C$(BOXLIB_BASE)_sources += BoxList.cpp BoxArray.cpp BoxDomain.cpp
 C$(BOXLIB_BASE)_sources += BoxAssoc.cpp FArrayBox.cpp MultiFab.cpp
-C$(BOXLIB_BASE)_sources += RunStats.cpp CArena.cpp
+C$(BOXLIB_BASE)_sources += RunStats.cpp CArena.cpp Tracer.cpp
 
 T_headers += Array.H PArray.H List.H Pointers.H Misc.H Tuple.H
 T_headers += BaseFab.H ArithFab.H OrderedFab.H NormedFab.H FabArray.H
