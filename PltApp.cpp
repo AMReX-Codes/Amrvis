@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.cpp,v 1.51 1998-10-30 18:43:06 lijewski Exp $
+// $Id: PltApp.cpp,v 1.52 1998-11-02 21:39:38 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -135,10 +135,10 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
 		  	NULL);
 
   GAptr = new GraphicsAttributes(wAmrVisTopLevel);
-  if(GAptr->PVisual() 
-     != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber())) {
+  if(GAptr->PVisual() != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber()))
+  {
     XtVaSetValues(wAmrVisTopLevel, XmNvisual, GAptr->PVisual(),
-                  XmNdepth, 8, NULL);
+                  XmNdepth, GAptr->PDepth(), NULL);
   }
   FileType fileType = GetDefaultFileType();
   assert(fileType != INVALIDTYPE);
@@ -1331,14 +1331,14 @@ void PltApp::PltAppInit() {
   
   pltPaletteptr->SetWindow(XtWindow(wPalArea));
 
-  //  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotArea));
+  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotArea));
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wAmrVisTopLevel));
-  //pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPalArea));
-  //for(np = 0; np < NPLANES; np++) {
-  //  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotPlane[np]));
-  //}
+  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPalArea));
+  for(np = 0; np < NPLANES; np++) {
+    pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotPlane[np]));
+  }
 #if (BL_SPACEDIM == 3)
-  //  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wTransDA));
+  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wTransDA));
 #endif
 #if (BL_SPACEDIM == 2)
   if(animating2d) {
@@ -2079,13 +2079,20 @@ void PltApp::DoPaletteButton(Widget, XtPointer, XtPointer) {
   XtPopup(XtParent(wPalDialog), XtGrabExclusive);
 }
 
+
+// -------------------------------------------------------------------
 void PltApp::DestroyInfoWindow(Widget, XtPointer xp, XtPointer) {
   infoShowing = false;
 }
+
+
+// -------------------------------------------------------------------
 void PltApp::CloseInfoWindow(Widget, XtPointer, XtPointer) {
   XtDestroyWidget(wInfoTopLevel);
 }
 
+
+// -------------------------------------------------------------------
 void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   if(infoShowing) {
     XtPopup(wInfoTopLevel, XtGrabNone);

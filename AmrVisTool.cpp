@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrVisTool.cpp,v 1.31 1998-10-29 23:56:06 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.32 1998-11-02 21:39:38 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -273,7 +273,8 @@ void CreateMainWindow(int argc, char *argv[]) {
   
   GraphicsAttributes *TheGAptr = new GraphicsAttributes(wTopLevel);
   if(TheGAptr->PVisual() != XDefaultVisual(TheGAptr->PDisplay(), 
-                                        TheGAptr->PScreenNumber() ) ){
+                                        TheGAptr->PScreenNumber()))
+  {
       Colormap colormap = XCreateColormap(TheGAptr->PDisplay(), 
                                           RootWindow(TheGAptr->PDisplay(),
                                                      TheGAptr->PScreenNumber()),
