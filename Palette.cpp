@@ -56,7 +56,7 @@ Palette::Palette(Widget &w,  int datalistlength, int width, int
   colorOffset = reserveSystemColors;  // start our allocated palette here
 
   colorSlots   = COLORSLOTS - reserveSystemColors - 2;
-  blackIndex   = colorOffset + 1;
+  blackIndex   = colorOffset+1;
   whiteIndex   = colorOffset;
   paletteStart = colorOffset + 2;  // skip 2 for black and white
 				   // the data colors start here

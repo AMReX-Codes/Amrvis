@@ -108,6 +108,17 @@ void ViewTransform::SetAdjustments(Real len, int width, int height) {
 }
 
 
+Real ViewTransform::InfNorm() {
+  Real mat[4][4];
+  rotation.tomatrix(mat);
+  // compute the L-inf matrix norm:
+  Real sum = 0.; Real max = 0.;
+  for ( int i = 0; i < 3; i++){
+    sum = fabs(mat[i][0])+fabs(mat[i][1])+fabs(mat[i][2]);
+    max = ( sum>max ? sum : max );
+  }
+  return max;
+}
 
 // -------------------------------------------------------------------
 void ViewTransform::GetRotationMat(MatrixFour m) {

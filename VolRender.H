@@ -15,6 +15,7 @@
 #include "Box.H" 
 #include "AmrvisConstants.H" 
 #include "Volume.H" 
+#include "Palette.H"
 
 #ifdef BL_VOLUMERENDER
 #include <volpack.h>
@@ -26,90 +27,94 @@ class DataServices;
 
 class VolRender {
 public:
-    VolRender();
-    VolRender(const Array<Box> &drawdomain,
-              int mindrawnlevel, int maxdrawnlevel);
-    
-    ~VolRender();
-    
+  VolRender();
+  VolRender(const Array<Box> &drawdomain,
+            int mindrawnlevel, int maxdrawnlevel, Palette *);
+  
+  ~VolRender();
+  
 private:
-    unsigned int	nPoints, bPoints;
-    int		minDrawnLevel, maxDataLevel;
-    Array<Box>      drawnDomain;
-    char		buffer[BUFSIZ];
-    int		nDenRampPts, nGradRampPts, nShadeRampPts;
-    int		maxDenRampPts, maxGradRampPts, maxShadeRampPts;
-    bool		bVolRenderDefined;
-    
-    
+  unsigned int	nPoints, bPoints;
+  int		minDrawnLevel, maxDataLevel;
+  Array<Box>      drawnDomain;
+  char		buffer[BUFSIZ];
+  int		nDenRampPts, nGradRampPts, nShadeRampPts;
+  int		maxDenRampPts, maxGradRampPts, maxShadeRampPts;
+  bool		bVolRenderDefined;
+  Palette *palettePtr;
+  int paletteSize;
+  
 private:
-    vpContext      *vpc;
-    float *density_ramp;    // opacity as a function of density
-    float *gradient_ramp;   // opacity as a function of grad magnitude
-    float *shade_table;     // shading lookup table
-    int             rows, cols, planes;
-    unsigned char  *swfData;
-    int             swfDataSize;
-    bool		swfDataAllocated, vpDataValid, swfDataValid, vpCreated;
-    int		classifyFields, shadeFields;
-    int		*densityRampX, *gradientRampX;
-    float		*densityRampY, *gradientRampY;
-    float		minRayOpacity, maxRayOpacity;
-    RawVoxel       *volData;
-    
+  vpContext      *vpc;
+  float *density_ramp;    // opacity as a function of density
+  float *gradient_ramp;   // opacity as a function of grad magnitude
+  float *shade_table;     // shading lookup table
+  float *value_shade_table;  //for the value model
+  
+  int             rows, cols, planes;
+  unsigned char  *swfData;
+  int             swfDataSize;
+  bool		swfDataAllocated, vpDataValid, swfDataValid, vpCreated;
+  int		classifyFields, shadeFields;
+  int		*densityRampX, *gradientRampX;
+  float		*densityRampY, *gradientRampY;
+  float		minRayOpacity, maxRayOpacity;
+  RawVoxel       *volData;
+  
+  
 public:
-    vpContext      *GetVPContext()             { return vpc; }
-    void	        MakeVPData();
-    void            MakeSWFData(DataServices *dataServicesPtr,
-                                Real rDataMin, Real rDataMax,
-                                const aString &derivedName,
-                                int iPaletteStart, int iPaletteEnd,
-                                int iBlackIndex, int iWhiteIndex,
-                                int iColorSlots);
-    
-    void MakePicture(Real mvmat[4][4], Real Length,
-                     int width, int height);
-    
-    void SetImage(unsigned char *image_data, int width, int height,
-                         int pixel_type);
-    void            WriteSWFData(const aString &filenamebase, bool SWFLight);
-    unsigned char  *GetSWFData()               { return swfData; }
-    int             GetSWFDataSize()   const   { return swfDataSize; }
-    bool      	VPDataValid()      const   { return vpDataValid; }
-    void      	InvalidateVPData();
-    bool      	SWFDataValid()     const   { return swfDataValid; }
-    void      	InvalidateSWFData();
-    bool      	SWFDataAllocated() const   { return swfDataAllocated; }
-    void     	ReadTransferFile(const aString &rampFileName);
-    int             NDenRampPts()  { return nDenRampPts;  }
-    int            *DensityRampX() { return densityRampX; }
-    float          *DensityRampY() { return densityRampY; }
-    void            SetLightingModel(bool);
-    bool            GetLightingModel() { return lightingModel; }
-    void            SetPreClassifyAlgorithm(bool);
-    bool            GetPreClassifyAlgorithm() { return preClassify; }
-    void SetAspect( Real newAspect) { vpAspect = newAspect; }
+  vpContext      *GetVPContext()             { return vpc; }
+  void	        MakeVPData();
+  void            MakeSWFData(DataServices *dataServicesPtr,
+                              Real rDataMin, Real rDataMax,
+                              const aString &derivedName,
+                              int iPaletteStart, int iPaletteEnd,
+                              int iBlackIndex, int iWhiteIndex,
+                              int iColorSlots);
+  
+  void MakePicture(Real mvmat[4][4], Real Length,
+                   int width, int height);
+  
+  void SetImage(unsigned char *image_data, int width, int height,
+                int pixel_type);
+  void            WriteSWFData(const aString &filenamebase, bool SWFLight);
+  unsigned char  *GetSWFData()               { return swfData; }
+  int             GetSWFDataSize()   const   { return swfDataSize; }
+  bool      	VPDataValid()      const   { return vpDataValid; }
+  void      	InvalidateVPData();
+  bool      	SWFDataValid()     const   { return swfDataValid; }
+  void      	InvalidateSWFData();
+  bool      	SWFDataAllocated() const   { return swfDataAllocated; }
+  void     	ReadTransferFile(const aString &rampFileName);
+  int             NDenRampPts()  { return nDenRampPts;  }
+  int            *DensityRampX() { return densityRampX; }
+  float          *DensityRampY() { return densityRampY; }
+  void            SetLightingModel(bool);
+  bool            GetLightingModel() { return lightingModel; }
+  void            SetPreClassifyAlgorithm(bool);
+  bool            GetPreClassifyAlgorithm() { return preClassify; }
+  void SetAspect( Real newAspect) { vpAspect = newAspect; }
 private:
-    Real vpLen, vpAspect;
-    bool            lightingModel, preClassify;
-    int voxelFields;
-    int normalField, normalOffset, normalSize, normalMax;
-    int densityField, densityOffset, densitySize, densityMax;
-    int gradientField, gradientOffset, gradientSize, gradientMax;
-    
-    bool     	AllocateSWFData();
-    void            MakeSWFDataOneProc(DataServices *dataServicesPtr,
-                                       Real rDataMin, Real rDataMax,
-                                       const aString &derivedName,
-                                       int iPaletteStart, int iPaletteEnd,
-                                       int iBlackIndex, int iWhiteIndex,
-                                       int iColorSlots);
-    void            MakeSWFDataNProcs(DataServices *dataServicesPtr,
-                                      Real rDataMin, Real rDataMax,
-                                      const aString &derivedName,
-                                      int iPaletteStart, int iPaletteEnd,
-                                      int iBlackIndex, int iWhiteIndex,
-                                      int iColorSlots);
+  Real vpLen, vpAspect;
+  bool            lightingModel, preClassify;
+  int voxelFields;
+  int normalField, normalOffset, normalSize, normalMax;
+  int densityField, densityOffset, densitySize, densityMax;
+  int gradientField, gradientOffset, gradientSize, gradientMax;
+  
+  bool     	AllocateSWFData();
+  void            MakeSWFDataOneProc(DataServices *dataServicesPtr,
+                                     Real rDataMin, Real rDataMax,
+                                     const aString &derivedName,
+                                     int iPaletteStart, int iPaletteEnd,
+                                     int iBlackIndex, int iWhiteIndex,
+                                     int iColorSlots);
+  void            MakeSWFDataNProcs(DataServices *dataServicesPtr,
+                                    Real rDataMin, Real rDataMax,
+                                    const aString &derivedName,
+                                    int iPaletteStart, int iPaletteEnd,
+                                    int iBlackIndex, int iWhiteIndex,
+                                    int iColorSlots);
 };
 
 #endif

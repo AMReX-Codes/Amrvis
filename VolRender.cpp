@@ -16,7 +16,6 @@ extern Real DegToRad(Real angle);
 #define VOLUMEBOXES 0
 //#define VOLUMEBOXES 1
 
-
 // -------------------------------------------------------------------
 VolRender::VolRender()
           : bVolRenderDefined(false)
@@ -26,7 +25,7 @@ VolRender::VolRender()
 
 // -------------------------------------------------------------------
 VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
-		     int maxdrawnlevel)
+		     int maxdrawnlevel, Palette *PalettePtr)
 {
   minDrawnLevel = mindrawnlevel;
   maxDataLevel = maxdrawnlevel;
@@ -34,6 +33,7 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
   vpDataValid     = false;
   swfDataValid    = false;
   swfDataAllocated = false;
+  palettePtr = PalettePtr;
 
   volData = NULL;
 
@@ -57,6 +57,7 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
   gradientMax = MaxPaletteIndex();
 
   lightingModel = true;
+  paletteSize = 256;
 
   if(ParallelDescriptor::IOProcessor()) {
     // must initialize vpc before calling ReadTransferFile
@@ -66,7 +67,8 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
     maxShadeRampPts = normalMax   + 1;
     density_ramp    = new float[maxDenRampPts];
     shade_table     = new float[maxShadeRampPts];
-
+    value_shade_table = new float[paletteSize];
+    
     maxGradRampPts = gradientMax + 1;
     gradient_ramp  = new float[maxGradRampPts];
     gradientRampX  = NULL;
@@ -104,6 +106,7 @@ VolRender::~VolRender() {
     delete [] density_ramp;
     delete [] gradient_ramp;
     delete [] shade_table;
+    delete [] value_shade_table;
   }
 }
 
@@ -161,11 +164,11 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
 #if (VOLUMEBOXES)
   ParallelDescriptor::Abort("VOLUMEBOXES not implemented in parallel.");
 #endif
-
+  
   if(swfDataValid) {
     return;
   }
-
+  
   if( ! swfDataAllocated) {
     if(ParallelDescriptor::IOProcessor()) {
       swfDataAllocated = AllocateSWFData();
@@ -173,100 +176,100 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
       swfDataAllocated = true;
     }
   }
-
-      swfDataValid = true;
-      clock_t time0 = clock();
-
-      int maxDrawnLevel(maxDataLevel);
-      Box gbox, grefbox;
-      Box swfDataBox(drawnDomain[maxDrawnLevel]);
-      FArrayBox swfFabData;
-      if(ParallelDescriptor::IOProcessor()) {
-        swfFabData.resize(swfDataBox, 1);
-      }
-
-      DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
-			     &swfFabData, swfDataBox, maxDrawnLevel, derivedName);
-
-      if(ParallelDescriptor::IOProcessor()) {
-        Real gmin(rDataMin);
-        Real gmax(rDataMax);
-        Real globalDiff = gmax - gmin;
-        Real oneOverGDiff;
-        if(globalDiff < FLT_MIN) {
-          oneOverGDiff = 0.0;  // so we dont divide by zero
-        } else {
-          oneOverGDiff = 1.0 / globalDiff;
+  
+  swfDataValid = true;
+  clock_t time0 = clock();
+  
+  int maxDrawnLevel(maxDataLevel);
+  Box gbox, grefbox;
+  Box swfDataBox(drawnDomain[maxDrawnLevel]);
+  FArrayBox swfFabData;
+  if(ParallelDescriptor::IOProcessor()) {
+    swfFabData.resize(swfDataBox, 1);
+  }
+  
+  DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
+                         &swfFabData, swfDataBox, maxDrawnLevel, derivedName);
+  
+  if(ParallelDescriptor::IOProcessor()) {
+    Real gmin(rDataMin);
+    Real gmax(rDataMax);
+    Real globalDiff = gmax - gmin;
+    Real oneOverGDiff;
+    if(globalDiff < FLT_MIN) {
+      oneOverGDiff = 0.0;  // so we dont divide by zero
+    } else {
+      oneOverGDiff = 1.0 / globalDiff;
+    }
+    int cSlotsAvail = iColorSlots - 1;
+    
+    cout << "Filling swfFabData..." << endl;
+    
+    // copy data into swfData and change to chars
+    Real dat;
+    char chardat;
+    Real *dataPoint = swfFabData.dataPtr();
+    
+    int sindexbase;
+    int srows   = swfDataBox.length(XDIR);
+    int scols   = swfDataBox.length(YDIR);
+    //int splanes = swfDataBox.length(ZDIR);
+    int scolssrowstmp = scols*srows;
+    int sstartr = swfDataBox.smallEnd(XDIR);
+    int sstartc = swfDataBox.smallEnd(YDIR);
+    int sstartp = swfDataBox.smallEnd(ZDIR);
+    int sendr   = swfDataBox.bigEnd(XDIR);
+    int sendc   = swfDataBox.bigEnd(YDIR);
+    int sendp   = swfDataBox.bigEnd(ZDIR);
+    
+    Box gbox(swfDataBox);
+    Box goverlap = gbox & drawnDomain[maxDrawnLevel];
+    //grefbox = goverlap;
+    //grefbox.refine(crr);
+    
+    int gstartr = gbox.smallEnd(XDIR);
+    int gstartc = gbox.smallEnd(YDIR);
+    int gstartp = gbox.smallEnd(ZDIR);
+    
+    int gostartr = goverlap.smallEnd(XDIR) - gstartr;
+    int gostartc = goverlap.smallEnd(YDIR) - gstartc;
+    int gostartp = goverlap.smallEnd(ZDIR) - gstartp;
+    int goendr   = goverlap.bigEnd(XDIR)   - gstartr;
+    int goendc   = goverlap.bigEnd(YDIR)   - gstartc;
+    int goendp   = goverlap.bigEnd(ZDIR)   - gstartp;
+    
+    int grows   = gbox.length(XDIR);
+    int gcols   = gbox.length(YDIR);
+    //int gplanes = gbox.length(ZDIR);
+    
+    int gcolsgrowstmp = gcols*grows;
+    int gpgcgrtmp, gcgrowstmp;
+    //    unsigned int outputvalue = 0;
+    for(int gp=gostartp; gp <= goendp; gp++) {
+      gpgcgrtmp = gp*gcolsgrowstmp;
+      for(int gc=gostartc; gc <= goendc; gc++) {
+        gcgrowstmp = gpgcgrtmp + gc*grows;
+        for(int gr=gostartr; gr <= goendr; gr++) {
+          //dat = dataPoint[(gp*gcols*grows)+(gc*grows)+gr];  // works
+          dat = dataPoint[gcgrowstmp + gr];
+          dat = Max(dat,gmin); // clip data if out of range
+          dat = Min(dat,gmax);
+          chardat = (char)(((dat-gmin)*oneOverGDiff)*cSlotsAvail);
+          chardat += (char)iPaletteStart;
+          sindexbase =
+            (((gp+gstartp)-sstartp) * scolssrowstmp) +
+            ((sendc-((gc+gstartc))) * srows) +  // check this
+            ((gr+gstartr)-sstartr);
+          
+          swfData[sindexbase] = chardat;
         }
-        int cSlotsAvail = iColorSlots - 1;
-
-        cout << "Filling swfFabData..." << endl;
-
-        // copy data into swfData and change to chars
-        Real dat;
-        char chardat;
-        Real *dataPoint = swfFabData.dataPtr();
-
-        int sindexbase;
-        int srows   = swfDataBox.length(XDIR);
-        int scols   = swfDataBox.length(YDIR);
-        //int splanes = swfDataBox.length(ZDIR);
-        int scolssrowstmp = scols*srows;
-        int sstartr = swfDataBox.smallEnd(XDIR);
-        int sstartc = swfDataBox.smallEnd(YDIR);
-        int sstartp = swfDataBox.smallEnd(ZDIR);
-        int sendr   = swfDataBox.bigEnd(XDIR);
-        int sendc   = swfDataBox.bigEnd(YDIR);
-        int sendp   = swfDataBox.bigEnd(ZDIR);
-
-          Box gbox(swfDataBox);
-          Box goverlap = gbox & drawnDomain[maxDrawnLevel];
-          //grefbox = goverlap;
-          //grefbox.refine(crr);
-
-          int gstartr = gbox.smallEnd(XDIR);
-          int gstartc = gbox.smallEnd(YDIR);
-          int gstartp = gbox.smallEnd(ZDIR);
-
-          int gostartr = goverlap.smallEnd(XDIR) - gstartr;
-          int gostartc = goverlap.smallEnd(YDIR) - gstartc;
-          int gostartp = goverlap.smallEnd(ZDIR) - gstartp;
-          int goendr   = goverlap.bigEnd(XDIR)   - gstartr;
-          int goendc   = goverlap.bigEnd(YDIR)   - gstartc;
-          int goendp   = goverlap.bigEnd(ZDIR)   - gstartp;
-
-          int grows   = gbox.length(XDIR);
-          int gcols   = gbox.length(YDIR);
-          //int gplanes = gbox.length(ZDIR);
-
-          int gcolsgrowstmp = gcols*grows;
-          int gpgcgrtmp, gcgrowstmp;
-          for(int gp=gostartp; gp <= goendp; gp++) {
-            gpgcgrtmp = gp*gcolsgrowstmp;
-            for(int gc=gostartc; gc <= goendc; gc++) {
-              gcgrowstmp = gpgcgrtmp + gc*grows;
-              for(int gr=gostartr; gr <= goendr; gr++) {
-                //dat = dataPoint[(gp*gcols*grows)+(gc*grows)+gr];  // works
-                dat = dataPoint[gcgrowstmp + gr];
-                dat = Max(dat,gmin); // clip data if out of range
-                dat = Min(dat,gmax);
-                chardat = (char) (((dat - gmin) * oneOverGDiff) * cSlotsAvail);
-                chardat += iPaletteStart;
-
-                sindexbase =
-                      (((gp+gstartp)-sstartp) * scolssrowstmp) +
-                      ((sendc-((gc+gstartc))) * srows) +  // check this
-                      ((gr+gstartr)-sstartr);
-
-                swfData[sindexbase] = chardat;
-              }
-            }
-          }  // end for(gp...)
-
-        cout << "--------------- make swfData time = "
-             << ((clock()-time0)/1000000.0) << endl;
       }
-
+    }  // end for(gp...)
+    cout<<endl;
+    cout << "--------------- make swfData time = "
+         << ((clock()-time0)/1000000.0) << endl;
+  }
+  
 }  // end MakeSWFDataNProcs(...)
 
 
@@ -508,16 +511,24 @@ void VolRender::InvalidateSWFData() {
 
 // -------------------------------------------------------------------
 void VolRender::InvalidateVPData() {
-    vpDataValid = false;
+  vpDataValid = false;
 }
 
 void VolRender::SetLightingModel(bool lightOn) {
-    lightingModel = lightOn;
+  if (lightingModel == lightOn) return;
+  lightingModel = lightOn;
+  if (lightingModel == true) {
+    vpSetVoxelField(vpc,  normalField, normalSize, normalOffset,
+                    maxShadeRampPts-1);
+  } else {
+    vpSetVoxelField(vpc,  normalField, normalSize, normalOffset,
+                    paletteSize-1);
+  }
 }
 
 void VolRender::SetPreClassifyAlgorithm(bool pC)
 {
-    preClassify = pC;
+  preClassify = pC;
 }
 
 void VolRender::SetImage(unsigned char *image_data, int width, int height,
@@ -534,7 +545,6 @@ void VolRender::MakePicture(Real mvmat[4][4], Real Length,
     vpSetMatrix(vpc, mvmat);
     vpCurrentMatrix(vpc, VP_PROJECT);
     vpIdentityMatrix(vpc);
-
     vpLen = Length;
     if(width < height) {    // undoes volpacks aspect ratio scaling
         vpWindow(vpc, VP_PARALLEL, 
@@ -547,7 +557,6 @@ void VolRender::MakePicture(Real mvmat[4][4], Real Length,
                  -Length*vpAspect, Length*vpAspect,
                  -Length, Length);
     }
-    
     vpResult vpret;
     
     if(lightingModel) {
@@ -568,146 +577,147 @@ void VolRender::MakePicture(Real mvmat[4][4], Real Length,
 
 // -------------------------------------------------------------------
 void VolRender::MakeVPData() {
-    assert(bVolRenderDefined);
+  assert(bVolRenderDefined);
   if(ParallelDescriptor::IOProcessor()) {
-    cout << "_in MakeVPData()" << endl;
+    //cout << "_in MakeVPData()" << endl;
     clock_t time0 = clock();
-
+    
     vpDataValid = true;
-
+    
     cout << "vpClassifyScalars..." << endl;           // --- classify
-
+    
     vpResult vpret;
     if (preClassify) {
-        if (lightingModel) {
-            vpret = vpClassifyScalars(vpc, swfData, swfDataSize,
-                                      densityField, gradientField, normalField);
-            CheckVP(vpret, 6);
-        } else {
-            // the classification and loading of the value model
-            delete [] volData;
-            volData = new RawVoxel[swfDataSize]; // volpack will delete this
-            // there is a memory leak with volData if vpDestroyContext is not called
-            //cout << endl << "********** volData = " << volData << endl << endl;
-            int xStride, yStride, zStride;
-            xStride = sizeof(RawVoxel);
-            yStride = drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel);
-            zStride = drawnDomain[maxDataLevel].length(XDIR) *
-                drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel);
-            vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
-                                   xStride, yStride, zStride);
-            CheckVP(vpret, 9.4);
-            for(int vindex = 0; vindex<swfDataSize; vindex++) {
-                volData[vindex].normal  = swfData[vindex];
-                volData[vindex].density = swfData[vindex];
-            }
-            
-            vpret = vpClassifyVolume(vpc);
-            CheckVP(vpret, 9.5);
-        
-        }
-    } else { //value rendering --
-             //load the volume data and precompute the minmax octree
-        if (lightingModel) {
-            delete [] volData;
-            volData = new RawVoxel[swfDataSize]; 
-            int xStride, yStride, zStride;
-            xStride = sizeof(RawVoxel);
-            yStride = drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel);
-            zStride = drawnDomain[maxDataLevel].length(XDIR) *
-                drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel);
-            vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
-                                   xStride, yStride, zStride);
-            CheckVP(vpret, 9.45);
-            vpret = vpVolumeNormals(vpc, swfData, swfDataSize,
-                                    densityField, gradientField, normalField);
-            CheckVP(vpret, 6.1);
+      if (lightingModel) {
+        vpret = vpClassifyScalars(vpc, swfData, swfDataSize,
+                                  densityField, gradientField, normalField);
+        CheckVP(vpret, 6);
+      } else {
+        // the classification and loading of the value model
+        delete [] volData;
+        volData = new RawVoxel[swfDataSize]; // volpack will delete this
+        // there is a memory leak with volData if vpDestroyContext is not called
+        //hmmm -- I have deleted volData, so this comment is old.
 
-        } else {
-            delete [] volData;
-            volData = new RawVoxel[swfDataSize]; 
-            int xStride, yStride, zStride;
-            xStride = sizeof(RawVoxel);
-            yStride = drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel);
-            zStride = drawnDomain[maxDataLevel].length(XDIR) *
-                drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel);
-            vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
-                                   xStride, yStride, zStride);
-            CheckVP(vpret, 9.4);
-            for(int vindex = 0; vindex<swfDataSize; vindex++) {
-                volData[vindex].normal  = swfData[vindex];
-                volData[vindex].density = swfData[vindex];
-            }
-        }     
-            vpret = vpMinMaxOctreeThreshold(vpc, DENSITY_PARAM, 
-                                            OCTREE_DENSITY_THRESH);
-            CheckVP(vpret, 9.41);
-            
-            if (classifyFields == 2) {
-                vpret = vpMinMaxOctreeThreshold(vpc, GRADIENT_PARAM, 
-                                                OCTREE_GRADIENT_THRESH);
-                CheckVP(vpret, 9.42);
-            }
-            
-            vpret = vpCreateMinMaxOctree(vpc, 1, OCTREE_BASE_NODE_SIZE);
-            CheckVP(vpret, 9.43);
+        //cout << endl << "********** volData = " << volData << endl << endl;
+        int xStride, yStride, zStride;
+        xStride = sizeof(RawVoxel);
+        yStride = drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel);
+        zStride = drawnDomain[maxDataLevel].length(XDIR) *
+          drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel);
+        vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
+                               xStride, yStride, zStride);
+        CheckVP(vpret, 9.4);
+        for(int vindex = 0; vindex<swfDataSize; vindex++) {
+          volData[vindex].normal  = swfData[vindex];
+          volData[vindex].density = swfData[vindex];
+        }
+        
+        vpret = vpClassifyVolume(vpc);
+        CheckVP(vpret, 9.5);
+        
+      }
+    } else { //value rendering --
+      //load the volume data and precompute the minmax octree
+      if (lightingModel) {
+        delete [] volData;
+        volData = new RawVoxel[swfDataSize]; 
+        int xStride, yStride, zStride;
+        xStride = sizeof(RawVoxel);
+        yStride = drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel);
+        zStride = drawnDomain[maxDataLevel].length(XDIR) *
+          drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel);
+        vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
+                               xStride, yStride, zStride);
+        CheckVP(vpret, 9.45);
+        vpret = vpVolumeNormals(vpc, swfData, swfDataSize,
+                                densityField, gradientField, normalField);
+        CheckVP(vpret, 6.1);
+        
+      } else {
+        delete [] volData;
+        volData = new RawVoxel[swfDataSize]; 
+        int xStride, yStride, zStride;
+        xStride = sizeof(RawVoxel);
+        yStride = drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel);
+        zStride = drawnDomain[maxDataLevel].length(XDIR) *
+          drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel);
+        vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
+                               xStride, yStride, zStride);
+        CheckVP(vpret, 9.4);
+        for(int vindex = 0; vindex<swfDataSize; vindex++) {
+          volData[vindex].normal  = swfData[vindex];
+          volData[vindex].density = swfData[vindex];
+        }
+      }     
+      vpret = vpMinMaxOctreeThreshold(vpc, DENSITY_PARAM, 
+                                      OCTREE_DENSITY_THRESH);
+      CheckVP(vpret, 9.41);
+      
+      if (classifyFields == 2) {
+        vpret = vpMinMaxOctreeThreshold(vpc, GRADIENT_PARAM, 
+                                        OCTREE_GRADIENT_THRESH);
+        CheckVP(vpret, 9.42);
+      }
+      
+      vpret = vpCreateMinMaxOctree(vpc, 1, OCTREE_BASE_NODE_SIZE);
+      CheckVP(vpret, 9.43);
     }
     
     // --- set the shading parameters
     
     if (lightingModel) {
-        vpret = vpSetLookupShader(vpc, 1, 1, normalField, shade_table,
-                              maxShadeRampPts * sizeof(float), 0, NULL, 0);
-        CheckVP(vpret, 7);
-        vpSetMaterial(vpc, VP_MATERIAL0, VP_AMBIENT, VP_BOTH_SIDES, 0.28, 0.28, 0.28);
-        vpSetMaterial(vpc, VP_MATERIAL0, VP_DIFFUSE, VP_BOTH_SIDES, 0.35, 0.35, 0.35);
-        vpSetMaterial(vpc, VP_MATERIAL0, VP_SPECULAR, VP_BOTH_SIDES, 0.39, 0.39, 0.39);
-        vpSetMaterial(vpc, VP_MATERIAL0, VP_SHINYNESS, VP_BOTH_SIDES, 10.0,  0.0, 0.0);
-        
-        vpSetLight(vpc, VP_LIGHT0, VP_DIRECTION, 0.3, 0.3, 1.0);
-        vpSetLight(vpc, VP_LIGHT0, VP_COLOR, 1.0, 1.0, 1.0);
-        vpEnable(vpc, VP_LIGHT0, 1);
-        
-        vpSeti(vpc, VP_CONCAT_MODE, VP_CONCAT_LEFT);
-        
-        // --- compute shading lookup table
-        vpret = vpShadeTable(vpc);
-        CheckVP(vpret, 8);
-
+      vpret = vpSetLookupShader(vpc, 1, 1, normalField, shade_table,
+                                maxShadeRampPts * sizeof(float), 0, NULL, 0);
+      CheckVP(vpret, 7);
+      vpSetMaterial(vpc, VP_MATERIAL0, VP_AMBIENT, VP_BOTH_SIDES, 0.28, 0.28, 0.28);
+      vpSetMaterial(vpc, VP_MATERIAL0, VP_DIFFUSE, VP_BOTH_SIDES, 0.35, 0.35, 0.35);
+      vpSetMaterial(vpc, VP_MATERIAL0, VP_SPECULAR, VP_BOTH_SIDES, 0.39, 0.39, 0.39);
+      vpSetMaterial(vpc, VP_MATERIAL0, VP_SHINYNESS, VP_BOTH_SIDES, 10.0,  0.0, 0.0);
+      
+      vpSetLight(vpc, VP_LIGHT0, VP_DIRECTION, 0.3, 0.3, 1.0);
+      vpSetLight(vpc, VP_LIGHT0, VP_COLOR, 1.0, 1.0, 1.0);
+      vpEnable(vpc, VP_LIGHT0, 1);
+      
+      vpSeti(vpc, VP_CONCAT_MODE, VP_CONCAT_LEFT);
+      
+      // --- compute shading lookup table
+      vpret = vpShadeTable(vpc);
+      CheckVP(vpret, 8);
+      
     } else {
-        for(int sn=0; sn<maxShadeRampPts; sn++) {
-            shade_table[sn] = (float)sn;
-            //shade_table[sn] = (float)(sn*((float)DENSITY_MAX/(float)NORMAL_MAX));
-            //shade_table[sn] = 140.0;
-        }
-        //shade_table[0] = 255.0;
-        shade_table[0] = (Real) MaxPaletteIndex();
-        float maxf = 0.0;
-        float minf = 1000000.0;
-        for(int ijk = 0; ijk < maxShadeRampPts; ijk++) {
-            maxf = Max(maxf, shade_table[ijk]);
-            minf = Min(minf, shade_table[ijk]);
-        }
-        SHOWVAL(minf);
-        SHOWVAL(maxf);
-
-        vpret = vpSetLookupShader(vpc, 1, 1, normalField, shade_table,
-                                  maxShadeRampPts * sizeof(float), 0, NULL, 0);
-        CheckVP(vpret, 9);
-        
-        vpSetMaterial(vpc, VP_MATERIAL0, VP_AMBIENT, VP_BOTH_SIDES, 1.00, 1.00, 1.00);
-        vpSetMaterial(vpc, VP_MATERIAL0, VP_AMBIENT, VP_BOTH_SIDES, 0.28, 0.28, 0.28);
-        vpSetMaterial(vpc, VP_MATERIAL0, VP_DIFFUSE, VP_BOTH_SIDES, 0.35, 0.35, 0.35);
-        
-        vpSetLight(vpc, VP_LIGHT0, VP_DIRECTION, 0.3, 0.3, 1.0);
-        vpSetLight(vpc, VP_LIGHT0, VP_COLOR, 1.0, 1.0, 1.0);
-        vpEnable(vpc, VP_LIGHT0, 1);
-        
-        vpSeti(vpc, VP_CONCAT_MODE, VP_CONCAT_LEFT);
+      assert(palettePtr != NULL);
+      for(int sn=0; sn<paletteSize/*maxShadeRampPts*/; sn++) {
+        value_shade_table[sn] = (float)sn; //the correct old version
+      }
+      value_shade_table[0] = (Real) MaxPaletteIndex();
+     
+      float maxf = 0.0;
+      float minf = 1000000.0;
+      for(int ijk = 0; ijk < paletteSize/*maxShadeRampPts*/; ijk++) {
+        maxf = Max(maxf, value_shade_table[ijk]);
+        minf = Min(minf, value_shade_table[ijk]);
+      }
+      SHOWVAL(minf);
+      SHOWVAL(maxf);
+      
+      vpret = vpSetLookupShader(vpc, 1, 1, normalField, value_shade_table,
+                                paletteSize * sizeof(float), 0, NULL, 0);
+      CheckVP(vpret, 9);
+      
+      vpSetMaterial(vpc, VP_MATERIAL0, VP_AMBIENT, VP_BOTH_SIDES, 1.00, 1.00, 1.00);
+      vpSetMaterial(vpc, VP_MATERIAL0, VP_AMBIENT, VP_BOTH_SIDES, 0.28, 0.28, 0.28);
+      vpSetMaterial(vpc, VP_MATERIAL0, VP_DIFFUSE, VP_BOTH_SIDES, 0.35, 0.35, 0.35);
+      
+      vpSetLight(vpc, VP_LIGHT0, VP_DIRECTION, 0.3, 0.3, 1.0);
+      vpSetLight(vpc, VP_LIGHT0, VP_COLOR, 1.0, 1.0, 1.0);
+      vpEnable(vpc, VP_LIGHT0, 1);
+      
+      vpSeti(vpc, VP_CONCAT_MODE, VP_CONCAT_LEFT);
     }
     cout << "----- make vp data time = " << ((clock()-time0)/1000000.0) << endl;
   }
-
+  
 }  // end MakeVPData()
 
 
@@ -781,8 +791,13 @@ void VolRender::ReadTransferFile(const aString &rampFileName) {
   vpResult vpret = vpSetVoxelSize(vpc, BYTES_PER_VOXEL, voxelFields,
                         shadeFields, classifyFields);
   CheckVP(vpret, 14);
-  vpSetVoxelField(vpc,  normalField, normalSize, normalOffset,
+  if (lightingModel) {
+    vpSetVoxelField(vpc,  normalField, normalSize, normalOffset,
                   maxShadeRampPts-1);
+  } else {
+    vpSetVoxelField(vpc,  normalField, normalSize, normalOffset,
+                    paletteSize-1);
+  }
   vpSetVoxelField(vpc, densityField, densitySize, densityOffset,
                   densityMax);
 

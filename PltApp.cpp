@@ -110,7 +110,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
 			topLevelShellWidgetClass, wTopLevel,
 			XmNwidth,	initialWindowWidth,
 			XmNheight,	initialWindowHeight,
-		 	XmNx,		100+placementOffsetX,
+                     // XtNbackground,  reserveSystemColors+1,
+                        XmNx,		100+placementOffsetX,
 			XmNy,		200+placementOffsetY,
 		  	NULL);
 
@@ -219,6 +220,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 			topLevelShellWidgetClass, wTopLevel,
 			XmNwidth,	initialWindowWidth,
 			XmNheight,	initialWindowHeight,
+                                         //XtNbackground, 
+                                         //reserveSystemColors,
 		 	XmNx,		120+placementOffsetX,
 			XmNy,		220+placementOffsetY,
 		  	NULL);
@@ -308,6 +311,8 @@ void PltApp::PltAppInit() {
 		      XmNleftAttachment,  XmATTACH_FORM,
 		      XmNrightAttachment, XmATTACH_FORM,
 		      XmNheight,	  40,
+                                               //XtNbackground,
+                                               //reserveSystemColors+1,
 		      XmNshadowType,      XmSHADOW_ETCHED_IN,
 		      NULL);
   wAmrVisMenu = XtVaCreateManagedWidget("amrvismenu", xmFormWidgetClass,
@@ -579,6 +584,7 @@ void PltApp::PltAppInit() {
   wPicArea = XtVaCreateWidget("picarea", xmFormWidgetClass, wControlArea,
 		XmNtopAttachment,	XmATTACH_WIDGET,
 		//XmNtopWidget,		wAmrVisMenu,
+                              //XtNbackground, reserveSystemColors,
 		XmNtopWidget,		wFrames[MENUFRAME],
 		XmNleftAttachment,	XmATTACH_FORM,
 		XmNrightAttachment,	XmATTACH_FORM,
@@ -1191,6 +1197,8 @@ void PltApp::PltAppInit() {
 			      totalPalWidth, totalPalHeight, 
 			      reserveSystemColors);
 
+  //  XmChangeColor(wAmrVisTopLevel, pltPaletteptr->PaletteStart());
+  
   pltPaletteptr->SetWindow(XtWindow(wPalArea));
 
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotArea));

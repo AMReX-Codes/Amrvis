@@ -52,7 +52,7 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
   theDomain = amrPicturePtr->GetSubDomain();
 
 #ifdef BL_VOLUMERENDER
-  volRender = new VolRender(theDomain, minDrawnLevel, maxDrawnLevel);
+  volRender = new VolRender(theDomain, minDrawnLevel, maxDrawnLevel, palettePtr);
 #endif
 #ifdef BL_PARALLELVOLUMERENDER
   volRender = new PVolRender(theDomain, minDrawnLevel, maxDrawnLevel);
@@ -257,6 +257,18 @@ void ProjectionPicture::MakePicture() {
     }
   }
 
+  
+  unsigned char iMin, iMax;
+  iMin = 255;  iMax = 0;
+  for (int ii = 0; ii <daWidth*daHeight; ii++) {
+      iMin = Min(iMin, imageData[ii]);
+      iMax = Max(iMax, imageData[ii]);
+  }
+
+  if (0) 
+    cout<<"IMAGE:     "<<"Min: "<<(unsigned int)iMin
+        <<"   Max: "<<(unsigned int)iMax<<endl;
+  
   XPutImage(XtDisplay(drawingArea), pixMap, XtScreen(drawingArea)->
         default_gc, PPXImage, 0, 0, 0, 0, daWidth, daHeight);
 
@@ -266,8 +278,8 @@ void ProjectionPicture::MakePicture() {
 
 #ifdef BL_PARALLELVOLUMERENDER
   clock_t time0 = clock();
-
-  viewTransformPtr->GetScale(scale[XDIR], scale[YDIR], scale[ZDIR]);
+  
+  scale[XDIR] = scale[YDIR] = scale[ZDIR] = viewTransformPtr->GetScale();
 
   //vpCurrentMatrix(vpc, VP_MODEL);
   //vpIdentityMatrix(vpc);
@@ -289,13 +301,13 @@ void ProjectionPicture::MakePicture() {
   //vpret = vpRenderRawVolume(vpc);    // --- render
 
   SetDrawable(XtWindow(drawingArea));
-cout << endl;
-cout << "viewTransform rotation matrix = " << endl;
-viewTransformPtr->ViewRotationMat();
-cout << endl;
-cout << "viewTransform render rotation matrix = " << endl;
-viewTransformPtr->ViewRenderRotationMat();
-cout << endl;
+// cout << endl;
+// cout << "viewTransform rotation matrix = " << endl;
+// viewTransformPtr->ViewRotationMat();
+// cout << endl;
+// cout << "viewTransform render rotation matrix = " << endl;
+// viewTransformPtr->ViewRenderRotationMat();
+// cout << endl;
   MatrixFour m4Model, m4Proj, m4Comp;
   viewTransformPtr->GetRotationMat(m4Model);
   //viewTransformPtr->GetRenderRotationMat(m4Proj);
@@ -428,8 +440,17 @@ XImage *ProjectionPicture::DrawBoxesIntoPixmap(int iFromLevel, int iToLevel) {
 
 // -------------------------------------------------------------------
 void ProjectionPicture::DrawPicture() {
+  //Real Norm = (viewTransformPtr->GetScale()*32*viewTransformPtr->InfNorm())+10;// * SizeOfBox; // 10 is a buffer zone for the copy area
+  //int posX = Max(0., daWidth/2.-Norm)+viewTransformPtr->GetTranslationX()*0.185;
+  //int posY = Max(0., daHeight/2.-Norm)-viewTransformPtr->GetTranslationY()*0.185;
+  //0.185 is the constant I used for translation before that remains a mystery
+  //int dimX = Min(2*Norm, (Real)daWidth);
+  //int dimY = Min(2*Norm, (Real)daHeight);
+
   XCopyArea(XtDisplay(drawingArea), pixMap, XtWindow(drawingArea),
             XtScreen(drawingArea)->default_gc, 0, 0, daWidth, daHeight, 0, 0);
+            //XtScreen(drawingArea)->default_gc, posX, posY, 
+            //dimX, dimY, posX, posY);
 }
 
 

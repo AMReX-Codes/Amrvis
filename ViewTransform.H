@@ -16,49 +16,51 @@ typedef Real MatrixFour[4][4];
 
 class ViewTransform {
 public:
-    ViewTransform();
-    ~ViewTransform();
-    void MakeTransform();
-    // should be called after adjusting parameters
-    void TransformPoint(Real x, Real y, Real z,
-                        Real &pX, Real &pY, Real &pZ);
-
-    void Print() const;
-
-    void GetRotationMat(MatrixFour m);
-    void ViewRotationMat() const;
-    void GetRenderRotationMat(MatrixFour m);
-    void ViewRenderRotationMat() const;
-    
-    void SetAspect(Real apct) { vtAspect = apct; }
-    AmrQuaternion GetRotation() { return rotation; }
-    void SetRotation(AmrQuaternion quat) { rotation = quat; }
-    AmrQuaternion GetRenderRotation() { return renderRotation; }
-    void SetRenderRotation(AmrQuaternion quat) { renderRotation = quat; }
-
-    void SetObjCenter(Real x, Real y, Real z) 
-            { objCenterX = x; objCenterY = y; objCenterZ = z; }
-    void SetScreenPosition(int x, int y) 
-    { screenPositionX = x; screenPositionY = y; }
-    void SetScale(Real s) { scale = s; }
-    Real GetScale(void) { return scale; }
-    void SetAdjustments(Real len, int width, int height);
-    
-    void MakeTranslation(int x1, int y1, int x2, int y2, Real bS);
-    void ResetTranslation()
-    { boxTransX = renTransX = boxTransY = renTransY = 0.; }
-    //void GetTranslation(Real &tx, Real &ty) { tx = transX;  ty = transY; }
-    
-    AmrQuaternion Screen2Quat(int, int, int, int, Real);
-    void SetAdjust(Real txA, Real tyA) { txAdjust = txA; tyAdjust = tyA; }
+  ViewTransform();
+  ~ViewTransform();
+  void MakeTransform();
+  // should be called after adjusting parameters
+  void TransformPoint(Real x, Real y, Real z,
+                      Real &pX, Real &pY, Real &pZ);
+  
+  void Print() const;
+  
+  void GetRotationMat(MatrixFour m);
+  void ViewRotationMat() const;
+  void GetRenderRotationMat(MatrixFour m);
+  void ViewRenderRotationMat() const;
+  
+  void SetAspect(Real apct) { vtAspect = apct; }
+  AmrQuaternion GetRotation() { return rotation; }
+  void SetRotation(AmrQuaternion quat) { rotation = quat; }
+  AmrQuaternion GetRenderRotation() { return renderRotation; }
+  void SetRenderRotation(AmrQuaternion quat) { renderRotation = quat; }
+  
+  void SetObjCenter(Real x, Real y, Real z) 
+  { objCenterX = x; objCenterY = y; objCenterZ = z; }
+  void SetScreenPosition(int x, int y) 
+  { screenPositionX = x; screenPositionY = y; }
+  void SetScale(Real s) { scale = s; }
+  Real GetScale(void) { return scale; }
+  void SetAdjustments(Real len, int width, int height);
+  
+  void MakeTranslation(int x1, int y1, int x2, int y2, Real bS);
+  void ResetTranslation()
+  { boxTransX = renTransX = boxTransY = renTransY = 0.; }
+  Real GetTranslationX() { return boxTransX; }
+  Real GetTranslationY() { return boxTransY; }
+  
+  Real InfNorm();
+  AmrQuaternion Screen2Quat(int, int, int, int, Real);
+  void SetAdjust(Real txA, Real tyA) { txAdjust = txA; tyAdjust = tyA; }
 private:
-    Real scale, boxTransX, boxTransY, renTransX, renTransY;
-    AmrQuaternion rotation, renderRotation;
-    int screenPositionX, screenPositionY;
-    Real objCenterX, objCenterY, objCenterZ;
-    MatrixFour mRotation, mRenderRotation;
-    Real txAdjust, tyAdjust;
-    Real vtAspect;
+  Real scale, boxTransX, boxTransY, renTransX, renTransY;
+  AmrQuaternion rotation, renderRotation;
+  int screenPositionX, screenPositionY;
+  Real objCenterX, objCenterY, objCenterZ;
+  MatrixFour mRotation, mRenderRotation;
+  Real txAdjust, tyAdjust;
+  Real vtAspect;
 };
 
 ostream& operator << (ostream &, const ViewTransform &);

@@ -254,8 +254,8 @@ void CreateMainWindow(int argc, char *argv[]) {
 #endif
 #if (BL_SPACEDIM == 3)
   String fallbacks[] = {"*fontList:7x13=charset",
-			//"*background:black",
-			//"*foreground:white",
+			//"*background:tomato",
+			//"*foreground:orange",
 			"*bottomShadowColor:yellow",
 			"*topShadowColor:gray",
 			NULL };
@@ -265,13 +265,20 @@ void CreateMainWindow(int argc, char *argv[]) {
 
 
   wTopLevel = XtVaAppInitialize(&app, "AmrVisTool", NULL, 0, 
-			(int *) &argc, argv, fallbacks,
+                                (int *) &argc, argv, fallbacks,
 			XmNx,		350,
 			XmNy,		10,
-			XmNwidth,	500,
+                                XtNbackground, 36,
+                                XtNforeground, 37,
+                                XmNwidth,	500,
 			XmNheight,	150,
 			NULL);
-
+  Arg argList[2];
+  Pixel color;
+  XtSetArg(argList[0], XtNforeground, &color);
+  XtGetValues(wTopLevel, argList, 1);
+  
+  cout<<"color: "<<color<<endl;
 
   GraphicsAttributes *TheGAptr = new GraphicsAttributes(wTopLevel);
   if(TheGAptr->PVisual() != XDefaultVisual(TheGAptr->PDisplay(), 
@@ -398,7 +405,7 @@ void BatchFunctions() {
       }
       Array<Box> drawDomain = amrData.ProbDomain();
 
-      VolRender volRender(drawDomain, minDrawnLevel, maxDrawnLevel);
+      VolRender volRender(drawDomain, minDrawnLevel, maxDrawnLevel, NULL);
       Real dataMin, dataMax;
       if(UseSpecifiedMinMax()) {
         GetSpecifiedMinMax(dataMin, dataMax);
