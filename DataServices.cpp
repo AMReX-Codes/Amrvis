@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.35 2002-08-30 22:46:22 vince Exp $
+// $Id: DataServices.cpp,v 1.36 2002-08-31 00:06:46 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -668,11 +668,20 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 
 
 // ---------------------------------------------------------------
-bool DataServices::DumpSlice(int slicedir, int slicenum, const string &varname)
+bool DataServices::DumpSlice(int slicedir, int slicenum,
+                             const string &varname)
 {
   if( ! bAmrDataOk) {
     return false;
   }
+
+  int iWTL(-2);
+  if(iWriteToLevel == -1) {
+    iWTL = amrData.FinestLevel();
+  } else {
+    iWTL = iWriteToLevel;
+  }
+
   string sliceFile = fileName;
   sliceFile += ".";
   sliceFile += varname;
@@ -688,18 +697,11 @@ bool DataServices::DumpSlice(int slicedir, int slicenum, const string &varname)
     return false;
   }
   sliceFile += ".";
-  char slicechar[16];
-  sprintf(slicechar, "%d", slicenum);
+  char slicechar[64];
+  sprintf(slicechar, "%d.Level_%d", slicenum, iWTL);
   sliceFile += slicechar;
   sliceFile += ".fab";
   cout << "sliceFile = " << sliceFile << endl;
-
-  int iWTL(-2);
-  if(iWriteToLevel == -1) {
-    iWTL = amrData.FinestLevel();
-  } else {
-    iWTL = iWriteToLevel;
-  }
 
   Box sliceBox(amrData.ProbDomain()[iWTL]);
 
@@ -730,6 +732,14 @@ bool DataServices::DumpSlice(int slicedir, int slicenum) {  // dump all vars
   if( ! bAmrDataOk) {
     return false;
   }
+
+  int iWTL(-2);
+  if(iWriteToLevel == -1) {
+    iWTL = amrData.FinestLevel();
+  } else {
+    iWTL = iWriteToLevel;
+  }
+
   string sliceFile = fileName;
   sliceFile += ".";
   if(slicedir == XDIR) {
@@ -743,18 +753,11 @@ bool DataServices::DumpSlice(int slicedir, int slicenum) {  // dump all vars
     return false;
   }
   sliceFile += ".";
-  char slicechar[16];
-  sprintf(slicechar, "%d", slicenum);
+  char slicechar[64];
+  sprintf(slicechar, "%d.Level_%d", slicenum, iWTL);
   sliceFile += slicechar;
   sliceFile += ".fab";
   cout << "sliceFile = " << sliceFile << endl;
-
-  int iWTL(-2);
-  if(iWriteToLevel == -1) {
-    iWTL = amrData.FinestLevel();
-  } else {
-    iWTL = iWriteToLevel;
-  }
 
   Box sliceBox(amrData.ProbDomain()[iWTL]);
 
@@ -785,26 +788,6 @@ bool DataServices::DumpSlice(const Box &b, const string &varname) {
   if( ! bAmrDataOk) {
     return false;
   }
-  string sliceFile = fileName;
-  sliceFile += ".";
-  sliceFile += varname;
-  sliceFile += ".";
-  char slicechar[128];
-# if (BL_SPACEDIM == 2)
-    sprintf(slicechar, "%d.%d.%d.%d",
-            b.smallEnd(XDIR), b.smallEnd(YDIR),
-            b.bigEnd(XDIR),   b.bigEnd(YDIR));
-# else
-    sprintf(slicechar, "%d.%d.%d.%d.%d.%d",
-            b.smallEnd(XDIR), b.smallEnd(YDIR), b.smallEnd(ZDIR),
-            b.bigEnd(XDIR),   b.bigEnd(YDIR),   b.bigEnd(ZDIR));
-#endif
-  sliceFile += slicechar;
-  sliceFile += ".fab";
-  cout << "sliceFile = " << sliceFile << endl;
-
-  cout << "sliceBox = " << b << endl;
-  cout << endl;
 
   int iWTL(-2);
   if(iWriteToLevel == -1) {
@@ -812,6 +795,26 @@ bool DataServices::DumpSlice(const Box &b, const string &varname) {
   } else {
     iWTL = iWriteToLevel;
   }
+
+  string sliceFile = fileName;
+  sliceFile += ".";
+  sliceFile += varname;
+  sliceFile += ".";
+  char slicechar[256];
+# if (BL_SPACEDIM == 2)
+    sprintf(slicechar, "%d_%d__%d_%d.Level_%d",
+            b.smallEnd(XDIR), b.smallEnd(YDIR),
+            b.bigEnd(XDIR),   b.bigEnd(YDIR), iWTL);
+# else
+    sprintf(slicechar, "%d_%d_%d__%d_%d_%d.Level_%d",
+            b.smallEnd(XDIR), b.smallEnd(YDIR), b.smallEnd(ZDIR),
+            b.bigEnd(XDIR),   b.bigEnd(YDIR),   b.bigEnd(ZDIR), iWTL);
+#endif
+  sliceFile += slicechar;
+  sliceFile += ".fab";
+  cout << "sliceFile = " << sliceFile << endl;
+  cout << "sliceBox = " << b << endl;
+  cout << endl;
 
   if( ! amrData.ProbDomain()[iWTL].contains(b)) {
     cerr << "Slice box not in probDomain: "
@@ -830,24 +833,6 @@ bool DataServices::DumpSlice(const Box &b) {  // dump all vars
   if( ! bAmrDataOk) {
     return false;
   }
-  string sliceFile = fileName;
-  sliceFile += ".";
-  char slicechar[128];
-# if (BL_SPACEDIM == 2)
-    sprintf(slicechar, "%d.%d.%d.%d",
-            b.smallEnd(XDIR), b.smallEnd(YDIR),
-            b.bigEnd(XDIR),   b.bigEnd(YDIR));
-# else
-    sprintf(slicechar, "%d.%d.%d.%d.%d.%d",
-            b.smallEnd(XDIR), b.smallEnd(YDIR), b.smallEnd(ZDIR),
-            b.bigEnd(XDIR),   b.bigEnd(YDIR),   b.bigEnd(ZDIR));
-#endif
-  sliceFile += slicechar;
-  sliceFile += ".fab";
-  cout << "sliceFile = " << sliceFile << endl;
-
-  cout << "sliceBox = " << b << endl;
-  cout << endl;
 
   int iWTL(-2);
   if(iWriteToLevel == -1) {
@@ -855,6 +840,24 @@ bool DataServices::DumpSlice(const Box &b) {  // dump all vars
   } else {
     iWTL = iWriteToLevel;
   }
+
+  string sliceFile = fileName;
+  sliceFile += ".";
+  char slicechar[256];
+# if (BL_SPACEDIM == 2)
+    sprintf(slicechar, "%d_%d__%d_%d.Level_%d",
+            b.smallEnd(XDIR), b.smallEnd(YDIR),
+            b.bigEnd(XDIR),   b.bigEnd(YDIR), iWTL);
+# else
+    sprintf(slicechar, "%d_%d_%d__%d_%d_%d.Level_%d",
+            b.smallEnd(XDIR), b.smallEnd(YDIR), b.smallEnd(ZDIR),
+            b.bigEnd(XDIR),   b.bigEnd(YDIR),   b.bigEnd(ZDIR), iWTL);
+#endif
+  sliceFile += slicechar;
+  sliceFile += ".fab";
+  cout << "sliceFile = " << sliceFile << endl;
+  cout << "sliceBox = " << b << endl;
+  cout << endl;
 
   if( ! amrData.ProbDomain()[iWTL].contains(b)) {
     cerr << "Slice box not in probDomain: "
@@ -877,7 +880,6 @@ bool DataServices::FillVar(FArrayBox *destFab, const Box &destBox,
   if( ! bAmrDataOk) {
     return false;
   }
-
   amrData.FillVar(destFab, destBox, finestFillLevel, varname, procWithFab);
 
   return true;
@@ -891,7 +893,6 @@ bool DataServices::FillVar(MultiFab &destMultiFab, int finestFillLevel,
   if( ! bAmrDataOk) {
     return false;
   }
-
   amrData.FillVar(destMultiFab, finestFillLevel, varname);
 
   return true;

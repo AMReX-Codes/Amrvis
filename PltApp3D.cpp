@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.51 2002-08-23 23:42:33 vince Exp $
+// $Id: PltApp3D.cpp,v 1.52 2002-08-31 00:06:46 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -602,6 +602,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   VolRender *volRenderPtr = projPicturePtr->GetVolRenderPtr();
 
   //make the input forms
+/*
   Widget wLWambientLabel = XtVaCreateManagedWidget("ambient: ",
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_FORM,
@@ -611,6 +612,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftAttachment, XmATTACH_FORM,
 			    XmNleftOffset, WOFFSET,
 			    NULL);
+*/
   
   char cNbuff[64];
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetAmbient());
@@ -625,7 +627,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNvalue, cNbuff,
 			    XmNcolumns, 6,
 			    NULL);
-    
+/*
   Widget wLWdiffuseLabel = XtVaCreateManagedWidget("diffuse: ",
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
@@ -636,6 +638,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftAttachment, XmATTACH_FORM,
 			    XmNleftOffset, WOFFSET,
 			    NULL);
+*/    
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetDiffuse());
   wLWdiffuse = XtVaCreateManagedWidget("variable",
@@ -650,7 +653,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNvalue, cNbuff,
 			    XmNcolumns, 6,
 			    NULL);
-  
+/*
   Widget wLWspecularLabel = XtVaCreateManagedWidget("specular: ",
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
@@ -661,6 +664,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftAttachment, XmATTACH_FORM,
 			    XmNleftOffset, WOFFSET,
 			    NULL);
+*/  
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetSpecular());
   wLWspecular = XtVaCreateManagedWidget("variable",
@@ -675,7 +679,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNvalue, cNbuff,
 			    XmNcolumns, 6,
 			    NULL);
-  
+/*
   Widget wLWshinyLabel = XtVaCreateManagedWidget("shiny: ",
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
@@ -686,6 +690,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftAttachment, XmATTACH_FORM,
 			    XmNleftOffset, WOFFSET,
 			    NULL);
+*/  
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetShiny());
   wLWshiny = XtVaCreateManagedWidget("variable",
@@ -701,7 +706,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNcolumns, 6,
 			    NULL);
 
-  
+/*
   Widget wLWminOpacityLabel = XtVaCreateManagedWidget("minRayOpacity: ",
 			    xmLabelGadgetClass, wLWForm,
 			    xmTextFieldWidgetClass, wLWForm,
@@ -713,6 +718,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftAttachment, XmATTACH_FORM,
 			    XmNleftOffset, WOFFSET,
 			    NULL);
+*/  
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetMinRayOpacity());
   wLWminOpacity = XtVaCreateManagedWidget("minray",
@@ -728,6 +734,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNcolumns, 6,
 			    NULL);
   
+/*
   Widget wLWmaxOpacityLabel = XtVaCreateManagedWidget("maxRayOpacity: ",
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
@@ -738,6 +745,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftAttachment, XmATTACH_FORM,
 			    XmNleftOffset, WOFFSET,
 			    NULL);
+*/
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetMaxRayOpacity());
   wLWmaxOpacity = XtVaCreateManagedWidget("variable", xmTextFieldWidgetClass,

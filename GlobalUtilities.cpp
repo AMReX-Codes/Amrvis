@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.47 2002-08-23 23:57:15 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.48 2002-08-31 00:06:46 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -86,7 +86,7 @@ const string &AVGlobals::GetLightingFileName() {
 
 // -------------------------------------------------------------------
 void AddSlices(int dir, char *sliceset) {
-  int rangeStart, rangeEnd, slice;
+  int rangeStart(-1), rangeEnd(-1), slice(-1);
   bool rangeSpecified(false);
   dumpSlices = true;
 
