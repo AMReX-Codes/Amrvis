@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.H,v 1.16 2000-06-16 17:55:52 car Exp $
+// $Id: Palette.H,v 1.17 2000-06-16 18:46:50 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -37,7 +37,7 @@ protected:
   Colormap      colmap;
   int           totalColorSlots, colorSlots;
   int           reserveSystemColors, colorOffset, paletteStart;
-  unsigned long blackIndex, whiteIndex;
+  Pixel 	blackIndex, whiteIndex;
   Real	        pmin, pmax;
   aString	defaultFormat;
   int		transSet;
@@ -84,8 +84,8 @@ public:
   void  SetFormat(const aString &newFormat);
   Colormap GetColormap() const  { return colmap;         }
   const Array<XColor> &GetColorCells() const { return ccells; }
-  unsigned long BlackIndex()    const;
-  unsigned long WhiteIndex()    const;
+  Pixel BlackIndex()   const;
+  Pixel WhiteIndex()   const;
   int  ColorSlots()    const    { return colorSlots;     }
   int  PaletteStart()  const    { return paletteStart;   }
   int  PaletteEnd()    const    { return totalColorSlots - 1; }
@@ -110,8 +110,9 @@ public:
   unsigned char theRBuff(int i) const { return rbuff[i]; }
   unsigned char theGBuff(int i) const { return gbuff[i]; }
   unsigned char theBBuff(int i) const { return bbuff[i]; }
-  unsigned long pixelate(int i) const;
+  Pixel pixelate(int i) const;
   void unpixelate(Pixel p, unsigned char& r, unsigned char& g, unsigned char& b) const;
+  Pixel makePixel(unsigned char index) const;
 private:
   void ReadPalette(const aString &palNam);
   Palette(Widget &w);

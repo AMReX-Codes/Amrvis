@@ -49,8 +49,6 @@
 // S T R U C T U R E S
 /////////////////////////////////
 
-typedef unsigned long Pixel;
-
 typedef struct attr_typ {
   char    lineStyle[MAXLS];
   int     lineStyleLen;

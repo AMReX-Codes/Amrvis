@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.cpp,v 1.26 2000-06-16 17:55:53 car Exp $
+// $Id: Palette.cpp,v 1.27 2000-06-16 18:46:50 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -14,9 +14,11 @@
 #include <unistd.h>
 
 #ifdef BL_USE_NEW_HFILES
+#include <cassert>
 #include <cstdio>
 #else
 #include <stdio.h>
+#include <assert.h>
 #endif
 
 Colormap Palette::systemColmap;
@@ -170,6 +172,7 @@ Palette::Palette(int datalistlength, int width,
 // -------------------------------------------------------------------
 Palette::~Palette() {
   delete [] remapTable;
+  delete GAptr;
 }
 
 
@@ -440,7 +443,7 @@ XImage *Palette::GetPictureXImage() {
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
 
-unsigned long
+Pixel
 Palette::BlackIndex()    const
 {
   if ( GAptr->isTrueColor() )
@@ -449,7 +452,7 @@ Palette::BlackIndex()    const
     return blackIndex;
 }
 
-unsigned long
+Pixel
 Palette::WhiteIndex()    const
 {
   if ( GAptr->isTrueColor() )
@@ -458,7 +461,7 @@ Palette::WhiteIndex()    const
     return whiteIndex;
 }
 
-unsigned long
+Pixel
 Palette::pixelate(int i) const
 {
   if ( i < 0 )
@@ -467,6 +470,25 @@ Palette::pixelate(int i) const
     return WhiteIndex();
   else
     return ccells[i].pixel;
+}
+
+Pixel
+Palette::makePixel(unsigned char ind) const
+{
+  if ( GAptr->isTrueColor() )
+    {
+      assert( GAptr->PBitsPerRGB() <= 8 );
+      Pixel r = rbuff[ind] >> (8-GAptr->PBitsPerRGB());
+      Pixel g = gbuff[ind] >> (8-GAptr->PBitsPerRGB());
+      Pixel b = bbuff[ind] >> (8-GAptr->PBitsPerRGB());
+      return ((  r << GAptr->PRedShift()   )
+	      | (g << GAptr->PGreenShift() )
+	      | (b << GAptr->PBlueShift()  ));
+    }
+  else
+    {
+      return Pixel(ind);
+    }
 }
 
 void

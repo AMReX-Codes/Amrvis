@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.cpp,v 1.45 2000-06-14 00:53:20 car Exp $
+// $Id: AmrPicture.cpp,v 1.46 2000-06-16 18:46:50 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1038,8 +1038,8 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
     oneOverGDiff = 1.0 / (globalMax - globalMin);
   }
   const Real *dataPoint = fab.dataPtr();
-  unsigned long whiteIndex(palptr->WhiteIndex());
-  unsigned long blackIndex(palptr->BlackIndex());
+  Pixel whiteIndex(palptr->WhiteIndex());
+  Pixel blackIndex(palptr->BlackIndex());
   int colorSlots(palptr->ColorSlots());
   int paletteStart(palptr->PaletteStart());
   int paletteEnd(palptr->PaletteEnd());
@@ -1108,19 +1108,8 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 	    for ( int i = 0; i < widthpad; ++i )
 	      {
 		int itmp = i/scale;
-		unsigned long imm1 = imagedata[ itmp + jtmp ];
-		if ( GAptr->isTrueColor() )
-		  {
-		    unsigned int r = palPtr->theRBuff(imm1) >> (8-bprgb);
-		    unsigned int g = palPtr->theGBuff(imm1) >> (8-bprgb);
-		    unsigned int b = palPtr->theBBuff(imm1) >> (8-bprgb);
-		    unsigned long imm = b | (g<<bprgb) | (r<<bprgb*2);
-		    XPutPixel(*ximage, i, j, imm);
-		  }
-		else
-		  {
-		    XPutPixel(*ximage, i, j, imm1);
-		  }
+		unsigned char imm1 = imagedata[ itmp + jtmp ];
+		XPutPixel(*ximage, i, j, palPtr->makePixel(imm1));
 	      }
 	  }
       }

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ProjectionPicture.cpp,v 1.32 2000-06-16 17:55:53 car Exp $
+// $Id: ProjectionPicture.cpp,v 1.33 2000-06-16 18:46:50 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -255,20 +255,8 @@ void ProjectionPicture::MakePicture() {
     {
       for ( int i = 0; i < daWidth; ++i )
 	{
-	  unsigned long imm1 = volpackImageData[i+j*daWidth];
-	  if ( pltAppPtr->GetGAptr()->isTrueColor() )
-	    {
-	      // FIXME: Palette should be here
-	      unsigned int r = palPtr->theRBuff(imm1) >> (8 - bprgb);
-	      unsigned int g = palPtr->theGBuff(imm1) >> (8 - bprgb);
-	      unsigned int b = palPtr->theBBuff(imm1) >> (8 - bprgb);
-	      unsigned long imm = b | (g<<bprgb) | (r<<bprgb*2);
-	      XPutPixel(PPXImage, i, j, imm);
-	    }
-	  else
-	    {
-	      XPutPixel(PPXImage, i, j, imm1);
-	    }
+	  unsigned char imm1 = volpackImageData[i+j*daWidth];
+	  XPutPixel(PPXImage, i, j, palPtr->makePixel(imm1));
 	  // imageData[i+j*daWidth] = imm1;
 	}
     }
