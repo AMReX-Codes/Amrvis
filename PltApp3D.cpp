@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.49 2002-08-16 00:22:33 vince Exp $
+// $Id: PltApp3D.cpp,v 1.50 2002-08-23 00:19:36 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -222,13 +222,8 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   XtVaGetValues(wAmrVisTopLevel, XmNx, &xpos, XmNy, &ypos,
 	XmNwidth, &wdth, XmNheight, &hght, NULL);
 
-  int fnl(fileName.length() - 1);
-  while(fnl > -1 && fileName[fnl] != '/') {
-    --fnl;
-  }
-
-  string outbuf = "XYZ ";
-  outbuf += &fileName[fnl+1];
+  string outbuf = "XYZ  ";
+  outbuf += AVGlobals::StripSlashes(fileName);
   strcpy(buffer, outbuf.c_str());
 
   wDetachTopLevel = XtVaCreatePopupShell(buffer,

@@ -155,7 +155,7 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
   numItems = 0;
   setBoundingBox();
 
-  currHint = 1;
+  iCurrHint = 1;
   
   WM_DELETE_WINDOW = XmInternAtom(XtDisplay(wTopLevel),
 				  "WM_DELETE_WINDOW", false);
@@ -576,28 +576,32 @@ void XYPlotWin::StopAnimation(void) {
 
 
 
-#define TRANX(xval) (((double) ((xval) - XOrgX)) * XUnitsPerPixel + UsrOrgX)
-#define TRANY(yval) (UsrOppY - (((double) ((yval) - XOrgY)) * YUnitsPerPixel))
+#define TRANX(xval) (((double) ((xval) - iXOrgX)) * dXUnitsPerPixel + dUsrOrgX)
+#define TRANY(yval) (dUsrOppY - (((double) ((yval) - iXOrgY)) * dYUnitsPerPixel))
 #define SCREENX(userX) \
-    (((int) (((userX) - UsrOrgX)/XUnitsPerPixel + 0.5)) + XOrgX)
+    (((int) (((userX) - dUsrOrgX)/dXUnitsPerPixel + 0.5)) + iXOrgX)
 #define SCREENY(userY) \
-    (XOppY - ((int) (((userY) - UsrOrgY)/YUnitsPerPixel + 0.5)))
+    (iXOppY - ((int) (((userY) - dUsrOrgY)/dYUnitsPerPixel + 0.5)))
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::setBoundingBox (double lowX, double lowY,
-				double highX, double highY) {
-
+void XYPlotWin::setBoundingBox (double lowX,  double lowY,
+				double highX, double highY)
+{
   double pad;
   if(highX > lowX) {
     loX = lowX;
     hiX = highX;
   } else {
     if(numDrawnItems == 0) {
-      loX = loY = -1.0;
-      hiX = hiY = 1.0;
-      lloX = lloY = DBL_MAX;
-      hhiX = hhiY = -DBL_MAX;
+      loX = -1.0;
+      loY = -1.0;
+      hiX =  1.0;
+      hiY =  1.0;
+      lloX =  DBL_MAX;
+      lloY =  DBL_MAX;
+      hhiX = -DBL_MAX;
+      hhiY = -DBL_MAX;
       return;
     }
     loX = lloX;
@@ -624,11 +628,11 @@ void XYPlotWin::setBoundingBox (double lowX, double lowY,
   }
 
   if( ! zoomedInQ) {
-    // Add 10% padding to bounding box (div by 20 yeilds 5%)
-    pad = (hiX - loX) / 20.0;
+    // Add 10% padding to bounding box
+    pad = (hiX - loX) * 0.05;
     loX -= pad;
     hiX += pad;
-    pad = (hiY - loY) / 20.0;
+    pad = (hiY - loY) * 0.05;
     loY -= pad;
     hiY += pad;
   }
@@ -662,42 +666,42 @@ void XYPlotWin::CalculateBox() {
   int dir, ascent, descent;
   XTextExtents(labeltextFont, buff, strlen(buff), &dir, &ascent, &descent, &bb);
 
-  XOrgX = 2 * devInfo.bdrPad + bb.rbearing - bb.lbearing;
+  iXOrgX = 2 * devInfo.bdrPad + bb.rbearing - bb.lbearing;
   if(dispHintsQ) {
-    XOrgY = devInfo.bdrPad + (5 * devInfo.axisH) / 2;
+    iXOrgY = devInfo.bdrPad + (5 * devInfo.axisH) / 2;
   } else {
-    XOrgY = devInfo.bdrPad + (3 * devInfo.axisH) / 2;
+    iXOrgY = devInfo.bdrPad + (3 * devInfo.axisH) / 2;
   }
   
   // Now we find the lower right corner.  Below the space we have the X axis
   // grid labels.  To the right of the space we have the X axis unit label
   // and the legend.  We assume the worst case size for the unit label.  
-  XOppX = devInfo.areaW - devInfo.bdrPad - devInfo.axisW;
-  XOppY = devInfo.areaH - devInfo.bdrPad - (2 * devInfo.axisH);
+  iXOppX = devInfo.areaW - devInfo.bdrPad - devInfo.axisW;
+  iXOppY = devInfo.areaH - devInfo.bdrPad - (2 * devInfo.axisH);
 
-  XLocWinX = devInfo.bdrPad + (30 * devInfo.axisW);
-  XLocWinY = devInfo.areaH - devInfo.bdrPad - devInfo.axisH;
+  iXLocWinX = devInfo.bdrPad + (30 * devInfo.axisW);
+  iXLocWinY = devInfo.areaH - devInfo.bdrPad - devInfo.axisH;
   
   // Is the drawing area too small?
-  if((XOrgX >= XOppX) || (XOrgY >= XOppY)) {
+  if((iXOrgX >= iXOppX) || (iXOrgY >= iXOppY)) {
     return;
   }
   
   // We now have a bounding box for the drawing region. Figure out the units
   // per pixel using the data set bounding box.
-  XUnitsPerPixel = (hiX - loX) / ((double) (XOppX - XOrgX));
-  YUnitsPerPixel = (hiY - loY) / ((double) (XOppY - XOrgY));
+  dXUnitsPerPixel = (hiX - loX) / ((double) (iXOppX - iXOrgX));
+  dYUnitsPerPixel = (hiY - loY) / ((double) (iXOppY - iXOrgY));
   
   // Find origin in user coordinate space.  We keep the center of the
   // original bounding box in the same place.
   double bbCenX = (loX + hiX) / 2.0;
   double bbCenY = (loY + hiY) / 2.0;
-  double bbHalfWidth = ((double) (XOppX - XOrgX)) / 2.0 * XUnitsPerPixel;
-  double bbHalfHeight = ((double) (XOppY - XOrgY)) / 2.0 * YUnitsPerPixel;
-  UsrOrgX = bbCenX - bbHalfWidth;
-  UsrOrgY = bbCenY - bbHalfHeight;
-  UsrOppX = bbCenX + bbHalfWidth;
-  UsrOppY = bbCenY + bbHalfHeight;
+  double bbHalfWidth = ((double) (iXOppX - iXOrgX))  * 0.5 * dXUnitsPerPixel;
+  double bbHalfHeight = ((double) (iXOppY - iXOrgY)) * 0.5 * dYUnitsPerPixel;
+  dUsrOrgX = bbCenX - bbHalfWidth;
+  dUsrOrgY = bbCenY - bbHalfHeight;
+  dUsrOppX = bbCenX + bbHalfWidth;
+  dUsrOppY = bbCenY + bbHalfHeight;
 }
 
 
@@ -910,9 +914,9 @@ double XYPlotWin::initGrid(double low, double high, double step) {
   // the step by an arbitrary number > 1 (1.2) when this happens.
   double gridHigh;
   while(true) {
-    gridStep = roundUp(step);
-    gridHigh = (ceil(high / gridStep) + 1.0) * gridStep;
-    if(gridHigh + gridStep != gridHigh) {
+    dGridStep = roundUp(step);
+    gridHigh = (ceil(high / dGridStep) + 1.0) * dGridStep;
+    if(gridHigh + dGridStep != gridHigh) {
       break;
     }
     if(step < DBL_EPSILON) {
@@ -921,8 +925,8 @@ double XYPlotWin::initGrid(double low, double high, double step) {
     step *= 1.2;
   }
 
-  gridBase = (floor(low / gridStep)+1.0) * gridStep;
-  return gridBase;
+  dGridBase = (floor(low / dGridStep) + 1.0) * dGridStep;
+  return dGridBase;
 }
 
 
@@ -985,10 +989,10 @@ void XYPlotWin::writeValue(char *str, char *fmt, double val, int expv) {
 // Clipping algorithm from Neumann and Sproull by Cohen and Sutherland
 #define C_CODE(xval, yval, rtn) \
    rtn = 0; \
-   if((xval) < UsrOrgX) rtn = LEFT_CODE; \
-   else if((xval) > UsrOppX) rtn = RIGHT_CODE; \
-   if((yval) < UsrOrgY) rtn |= BOTTOM_CODE; \
-   else if((yval) > UsrOppY) rtn |= TOP_CODE
+   if((xval) < dUsrOrgX) rtn = LEFT_CODE; \
+   else if((xval) > dUsrOppX) rtn = RIGHT_CODE; \
+   if((yval) < dUsrOrgY) rtn |= BOTTOM_CODE; \
+   else if((yval) > dUsrOppY) rtn |= TOP_CODE
 
 
 
@@ -997,18 +1001,23 @@ void XYPlotWin::drawGridAndAxis(void) {
   int expX, expY; // Engineering powers
   int Yspot, Xspot;
   char value[10], final[BUFSIZE + 10];
-  double Xincr, Yincr, Xstart, Ystart,
-    Yindex, Xindex, larger;
+  double dXIncr, dYIncr, dXStart, dYStart, dYIndex, dXIndex, dLarger;
   XSegment segs[2];
   
   // Grid display powers are computed by taking the log of the largest
   // numbers and rounding down to the nearest multiple of 3.
-  if(fabs(UsrOrgX) > fabs(UsrOppX)) larger = fabs(UsrOrgX);
-  else larger = fabs(UsrOppX);
-  expX = ((int) floor(nlog10(larger) / 3.0)) * 3;
-  if(fabs(UsrOrgY) > fabs(UsrOppY)) larger = fabs(UsrOrgY);
-  else larger = fabs(UsrOppY);
-  expY = ((int) floor(nlog10(larger) / 3.0)) * 3;
+  if(fabs(dUsrOrgX) > fabs(dUsrOppX)) {
+    dLarger = fabs(dUsrOrgX);
+  } else {
+    dLarger = fabs(dUsrOppX);
+  }
+  expX = ((int) floor(nlog10(dLarger) / 3.0)) * 3;
+  if(fabs(dUsrOrgY) > fabs(dUsrOppY)) {
+    dLarger = fabs(dUsrOrgY);
+  } else {
+    dLarger = fabs(dUsrOppY);
+  }
+  expY = ((int) floor(nlog10(dLarger) / 3.0)) * 3;
   
   // With the powers computed,  we can draw the axis labels.
   Xspot = devInfo.bdrPad + (2 * devInfo.axisW);
@@ -1016,8 +1025,9 @@ void XYPlotWin::drawGridAndAxis(void) {
   if(expY != 0) {
     (void) sprintf(final, "%s x 10^%d", YUnitText, expY);
     textX(wPlotWin, Xspot, Yspot, final, T_LEFT, T_AXIS);
+  } else {
+    textX(wPlotWin, Xspot, Yspot, YUnitText, T_LEFT, T_AXIS);
   }
-  else textX(wPlotWin, Xspot, Yspot, YUnitText, T_LEFT, T_AXIS);
   
   Xspot = devInfo.areaW - devInfo.bdrPad;
   Yspot = devInfo.areaH - (2*devInfo.bdrPad);
@@ -1029,75 +1039,94 @@ void XYPlotWin::drawGridAndAxis(void) {
   }
   
   // First,  the grid line labels
-  Yincr = (devInfo.axisPad + devInfo.axisH) * YUnitsPerPixel;
-  Ystart = initGrid(UsrOrgY, UsrOppY, Yincr);
-  for(Yindex = Ystart; Yindex < UsrOppY; Yindex += gridStep) {
-    Yspot = SCREENY(Yindex);
+  dYIncr = (devInfo.axisPad + devInfo.axisH) * dYUnitsPerPixel;
+  dYStart = initGrid(dUsrOrgY, dUsrOppY, dYIncr);
+  int iLoopCheck(0);
+  for(dYIndex = 0.0; dYIndex < (dUsrOppY - dYStart); dYIndex += dGridStep) {
+    Yspot = SCREENY(dYIndex + dYStart);
     // Write the axis label
-    writeValue(value, formatY, Yindex, expY);
-    textX(wPlotWin, XOrgX - devInfo.bdrPad, Yspot, value, T_RIGHT, T_AXIS);
+    writeValue(value, formatY, (dYIndex + dYStart), expY);
+    textX(wPlotWin, iXOrgX - devInfo.bdrPad, Yspot, value, T_RIGHT, T_AXIS);
+    ++iLoopCheck;
+    if(iLoopCheck > ((int) ((dUsrOppY - dYStart)/dGridStep))) {
+      break;
+    }
   }
   
-  Xincr = (devInfo.axisPad + (devInfo.axisW * 7)) * XUnitsPerPixel;
-  Xstart = initGrid(UsrOrgX, UsrOppX, Xincr);
-  
-  for(Xindex = Xstart; Xindex < UsrOppX; Xindex += gridStep) {
-    Xspot = SCREENX(Xindex);
+  dXIncr = (devInfo.axisPad + (devInfo.axisW * 7)) * dXUnitsPerPixel;
+  dXStart = initGrid(dUsrOrgX, dUsrOppX, dXIncr);
+  iLoopCheck = 0;
+  for(dXIndex = 0.0; dXIndex < (dUsrOppX - dXStart); dXIndex += dGridStep) {
+    Xspot = SCREENX(dXIndex + dXStart);
     // Write the axis label
-    writeValue(value, formatX, Xindex, expX);
+    writeValue(value, formatX, (dXIndex + dXStart), expX);
     textX(wPlotWin, Xspot, devInfo.areaH-devInfo.bdrPad-devInfo.axisH,
 	  value, T_BOTTOM, T_AXIS);
+    ++iLoopCheck;
+    if(iLoopCheck > ((int) ((dUsrOppX - dXStart)/dGridStep))) {
+      break;
+    }
   }
   
   // Now,  the grid lines or tick marks
-  Yincr = (devInfo.axisPad + devInfo.axisH) * YUnitsPerPixel;
-  Ystart = initGrid(UsrOrgY, UsrOppY, Yincr);
-  for(Yindex = Ystart; Yindex < UsrOppY; Yindex += gridStep) {
-    Yspot = SCREENY(Yindex);
+  dYIncr = (devInfo.axisPad + devInfo.axisH) * dYUnitsPerPixel;
+  dYStart = initGrid(dUsrOrgY, dUsrOppY, dYIncr);
+  iLoopCheck = 0;
+  for(dYIndex = 0.0; dYIndex < (dUsrOppY - dYStart); dYIndex += dGridStep) {
+    Yspot = SCREENY(dYIndex + dYStart);
     // Draw the grid line or tick mark
-    if(tickQ && !(axisQ && Yindex == Ystart)) {
-      segs[0].x1 = XOrgX;
-      segs[0].x2 = XOrgX + devInfo.tickLen;
-      segs[1].x1 = XOppX - devInfo.tickLen;
-      segs[1].x2 = XOppX;
+    if(tickQ && ! (axisQ && dYIndex == 0.0)) {
+      segs[0].x1 = iXOrgX;
+      segs[0].x2 = iXOrgX + devInfo.tickLen;
+      segs[1].x1 = iXOppX - devInfo.tickLen;
+      segs[1].x2 = iXOppX;
       segs[0].y1 = segs[0].y2 = segs[1].y1 = segs[1].y2 = Yspot;
       segX(wPlotWin, 1, &(segs[1]), gridW, L_AXIS, 0, 0);
-    }
-    else {
-      segs[0].x1 = XOrgX;
-      segs[0].x2 = XOppX;
+    } else {
+      segs[0].x1 = iXOrgX;
+      segs[0].x2 = iXOppX;
       segs[0].y1 = segs[0].y2 = Yspot;
     }
     segX(wPlotWin, 1, segs, gridW, L_AXIS, 0, 0);
+    ++iLoopCheck;
+    if(iLoopCheck > ((int) ((dUsrOppY - dYStart)/dGridStep))) {
+      break;
+    }
   }
   
-  Xincr = (devInfo.axisPad + (devInfo.axisW * 7)) * XUnitsPerPixel;
-  Xstart = initGrid(UsrOrgX, UsrOppX, Xincr);
-  for(Xindex = Xstart; Xindex < UsrOppX; Xindex += gridStep) {
-    Xspot = SCREENX(Xindex);
+  dXIncr = (devInfo.axisPad + (devInfo.axisW * 7)) * dXUnitsPerPixel;
+  dXStart = initGrid(dUsrOrgX, dUsrOppX, dXIncr);
+  iLoopCheck = 0;
+  for(dXIndex = 0.0; dXIndex < (dUsrOppX - dXStart); dXIndex += dGridStep) {
+    Xspot = SCREENX(dXIndex + dXStart);
     // Draw the grid line or tick marks
-    if(tickQ && !(axisQ && Xindex == Xstart)) {
+    if(tickQ && !(axisQ && dXIndex == 0.0)) {
       segs[0].x1 = segs[0].x2 = segs[1].x1 = segs[1].x2 = Xspot;
-      segs[0].y1 = XOrgY;
-      segs[0].y2 = XOrgY + devInfo.tickLen;
-      segs[1].y1 = XOppY - devInfo.tickLen;
-      segs[1].y2 = XOppY;
-    }
-    else {
+      segs[0].y1 = iXOrgY;
+      segs[0].y2 = iXOrgY + devInfo.tickLen;
+      segs[1].y1 = iXOppY - devInfo.tickLen;
+      segs[1].y2 = iXOppY;
+    } else {
       segs[0].x1 = segs[0].x2 = Xspot;
-      segs[0].y1 = XOrgY;
-      segs[0].y2 = XOppY;
+      segs[0].y1 = iXOrgY;
+      segs[0].y2 = iXOppY;
     }
     segX(wPlotWin, 1, segs, gridW, L_AXIS, 0, 0);
-    if(tickQ) segX(wPlotWin, 1, &(segs[1]), gridW, L_AXIS, 0, 0);
+    if(tickQ) {
+      segX(wPlotWin, 1, &(segs[1]), gridW, L_AXIS, 0, 0);
+    }
+    ++iLoopCheck;
+    if(iLoopCheck > ((int) ((dUsrOppX - dXStart)/dGridStep))) {
+      break;
+    }
   }
 
   if(boundBoxQ) { // draw bounding box
     XSegment bb[4];
-    bb[0].x1 = bb[0].x2 = bb[1].x1 = bb[3].x2 = XOrgX;
-    bb[0].y1 = bb[2].y2 = bb[3].y1 = bb[3].y2 = XOrgY;
-    bb[1].x2 = bb[2].x1 = bb[2].x2 = bb[3].x1 = XOppX;
-    bb[0].y2 = bb[1].y1 = bb[1].y2 = bb[2].y1 = XOppY;
+    bb[0].x1 = bb[0].x2 = bb[1].x1 = bb[3].x2 = iXOrgX;
+    bb[0].y1 = bb[2].y2 = bb[3].y1 = bb[3].y2 = iXOrgY;
+    bb[1].x2 = bb[2].x1 = bb[2].x2 = bb[3].x1 = iXOppX;
+    bb[0].y2 = bb[1].y1 = bb[1].y2 = bb[2].y1 = iXOppY;
     segX(wPlotWin, 4, bb, gridW, L_AXIS, 0, 0);
   }
 }
@@ -1105,9 +1134,9 @@ void XYPlotWin::drawGridAndAxis(void) {
 
 // -------------------------------------------------------------------
 void XYPlotWin::clearData(void) {
-  XClearArea(disp, pWindow, XOrgX+1, XOrgY+1,
-	     (XOppX - XOrgX - 2),
-	     (XOppY - XOrgY - 2), false);
+  XClearArea(disp, pWindow, iXOrgX+1, iXOrgY+1,
+	     (iXOppX - iXOrgX - 2),
+	     (iXOppY - iXOrgY - 2), false);
 }
 
 
@@ -1168,20 +1197,20 @@ void XYPlotWin::drawData(void){
 	cd = (code1 ? code1 : code2);
 	if(cd & LEFT_CODE) {	     // Crosses left edge
 //if(bDiag) { cout << "      _here 2.LEFT" << endl; }
-	  ty = ssy1 + (ssy2 - ssy1) * (UsrOrgX - ssx1) / (ssx2 - ssx1);
-	  tx = UsrOrgX;
+	  ty = ssy1 + (ssy2 - ssy1) * (dUsrOrgX - ssx1) / (ssx2 - ssx1);
+	  tx = dUsrOrgX;
 	} else if(cd & RIGHT_CODE) {  // Crosses right edge
 //if(bDiag) { cout << "      _here 2.RIGHT" << endl; }
-	  ty = ssy1 + (ssy2 - ssy1) * (UsrOppX - ssx1) / (ssx2 - ssx1);
-	  tx = UsrOppX;
+	  ty = ssy1 + (ssy2 - ssy1) * (dUsrOppX - ssx1) / (ssx2 - ssx1);
+	  tx = dUsrOppX;
 	} else if(cd & BOTTOM_CODE) { // Crosses bottom edge
 //if(bDiag) { cout << "      _here 2.BOTTOM" << endl; }
-	  tx = ssx1 + (ssx2 - ssx1) * (UsrOrgY - ssy1) / (ssy2 - ssy1);
-	  ty = UsrOrgY;
+	  tx = ssx1 + (ssx2 - ssx1) * (dUsrOrgY - ssy1) / (ssy2 - ssy1);
+	  ty = dUsrOrgY;
 	} else if(cd & TOP_CODE) {    // Crosses top edge
 //if(bDiag) { cout << "      _here 2.TOP" << endl; }
-	  tx = ssx1 + (ssx2 - ssx1) * (UsrOppY - ssy1) / (ssy2 - ssy1);
-	  ty = UsrOppY;
+	  tx = ssx1 + (ssx2 - ssx1) * (dUsrOppY - ssy1) / (ssy2 - ssy1);
+	  ty = dUsrOppY;
 	}
 	if(cd == code1) {
 //if(bDiag) { cout << "      _here 2.code1" << endl; }
@@ -1262,14 +1291,19 @@ if((Xsegs[0][X_idx].x1 + Xsegs[0][X_idx].y1 +
 void XYPlotWin::textX (Widget win, int x, int y, char *text,
 		       int just, int style) {
   XCharStruct bb;
-  int rx = 0, ry = 0, dir;
+  int rx(0), ry(0), dir;
   int ascent, descent;
   XFontStruct *font;
-  int len = strlen(text);
+  int len(strlen(text));
   GC textGC;
 
-  if(style == T_TITLE){ font = titletextFont; textGC = titletextGC; }
-  else {                font = labeltextFont; textGC = labeltextGC; }
+  if(style == T_TITLE) {
+    font   = titletextFont;
+    textGC = titletextGC;
+  } else {
+    font   = labeltextFont;
+    textGC = labeltextGC;
+  }
 
   XTextExtents(font, text, len, &dir, &ascent, &descent, &bb);
   int width = bb.rbearing - bb.lbearing;
@@ -1292,10 +1326,10 @@ void XYPlotWin::textX (Widget win, int x, int y, char *text,
 
 // -------------------------------------------------------------------
 #define SEGGC(l_fg, l_style, l_width) \
-  gcvals.foreground = l_fg; \
-  gcvals.line_style = l_style; \
-  gcvals.line_width = l_width; \
-  XChangeGC(disp,segGC,GCForeground|GCLineStyle|GCLineWidth, &gcvals);
+              gcvals.foreground = l_fg; \
+              gcvals.line_style = l_style; \
+              gcvals.line_width = l_width; \
+              XChangeGC(disp,segGC,GCForeground|GCLineStyle|GCLineWidth, &gcvals);
 
 #define DASH(l_chars, l_len) XSetDashes(disp, segGC, 0, l_chars, l_len);
 
@@ -1345,7 +1379,9 @@ void XYPlotWin::dotX(Widget win, int x, int y, int style, int color) {
 // -------------------------------------------------------------------
 void XYPlotWin::CBdoClearData(Widget, XtPointer, XtPointer) {
 #if (BL_SPACEDIM == 2)
-  if(animatingQ) StopAnimation();
+  if(animatingQ) {
+    StopAnimation();
+  }
 #endif
   XYPlotLegendItem *next;
   for(XYPlotLegendItem *ptr = legendHead; ptr != NULL; ptr = next) {
@@ -1358,8 +1394,11 @@ void XYPlotWin::CBdoClearData(Widget, XtPointer, XtPointer) {
   for(int idx = 0; idx != 8; ++idx) {
     lineFormats[idx] = 0x0;
   }
-  legendHead = legendTail = colorChangeItem = NULL;
-  numItems = numDrawnItems = 0;
+  legendHead = NULL;
+  legendTail = NULL;
+  colorChangeItem = NULL;
+  numItems = 0;
+  numDrawnItems = 0;
   zoomedInQ = 0;
   setBoundingBox();
 
@@ -2045,7 +2084,7 @@ void XYPlotWin::drawHint(void) {
   }
   XClearArea(disp, pWindow, 20 * devInfo.axisW,
 	     0, 0, (5 * devInfo.axisH) / 2, false);
-  switch(currHint) {
+  switch(iCurrHint) {
     case 0:
       textX(wPlotWin, devInfo.areaW - 5, devInfo.bdrPad,
 	    "Left click to zoom in.", T_UPPERRIGHT, T_AXIS);
@@ -2068,7 +2107,7 @@ void XYPlotWin::drawHint(void) {
 
 // -------------------------------------------------------------------
 void XYPlotWin::CBdoDrawLocation(Widget, XtPointer, XtPointer data) {
-  if(devInfo.areaW < XLocWinX + 15 * devInfo.axisW) {
+  if(devInfo.areaW < iXLocWinX + 15 * devInfo.axisW) {
     return;
   }
   XEvent *event = (XEvent *) data;
@@ -2076,13 +2115,13 @@ void XYPlotWin::CBdoDrawLocation(Widget, XtPointer, XtPointer data) {
 
   if(event->type == LeaveNotify) {
     if(dispHintsQ) {
-      currHint = 1;
+      iCurrHint = 1;
       drawHint();
     }
-    XClearArea(disp, pWindow, 0, XLocWinY, XLocWinX, 0, false);
+    XClearArea(disp, pWindow, 0, iXLocWinY, iXLocWinX, 0, false);
   } else {
-    if(dispHintsQ && currHint != 0) {
-      currHint = 0;
+    if(dispHintsQ && iCurrHint != 0) {
+      iCurrHint = 0;
       drawHint();
     }
     Window whichRoot, whichChild;
@@ -2091,14 +2130,14 @@ void XYPlotWin::CBdoDrawLocation(Widget, XtPointer, XtPointer data) {
     
     XQueryPointer(disp, pWindow, &whichRoot, &whichChild,
 		  &rootX, &rootY, &newX, &newY, &inputMask);
-    if(newX <= XOppX && newX >= XOrgX && newY <= XOppY && newY >= XOrgY) {
+    if(newX <= iXOppX && newX >= iXOrgX && newY <= iXOppY && newY >= iXOrgY) {
       char locText[40];
       sprintf(locText, "(%.4E, %.4E)", TRANX(newX), TRANY(newY));
-      XClearArea(disp, pWindow, 0, XLocWinY, XLocWinX, 0, false);
+      XClearArea(disp, pWindow, 0, iXLocWinY, iXLocWinX, 0, false);
       textX(wPlotWin, devInfo.bdrPad, devInfo.areaH - devInfo.bdrPad,
 	    locText, T_LOWERLEFT, T_AXIS);
     } else {
-      XClearArea(disp, pWindow, 0, XLocWinY, XLocWinX, 0, false);
+      XClearArea(disp, pWindow, 0, iXLocWinY, iXLocWinX, 0, false);
     }
   }
 } 
@@ -2145,18 +2184,18 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
     lowX = TRANX(anchorX);
     lowY = TRANY(anchorY);
     
-    if(devInfo.areaW >= 2 * XLocWinX + 15 * devInfo.axisW) {
+    if(devInfo.areaW >= 2 * iXLocWinX + 15 * devInfo.axisW) {
       sprintf(locText, "(%.4E, %.4E)", lowX, lowY);
-      XClearArea(disp, pWindow, XLocWinX, XLocWinY, XLocWinX, 0, false);
-      textX(wPlotWin, XLocWinX + devInfo.bdrPad,
+      XClearArea(disp, pWindow, iXLocWinX, iXLocWinY, iXLocWinX, 0, false);
+      textX(wPlotWin, iXLocWinX + devInfo.bdrPad,
 	    devInfo.areaH - devInfo.bdrPad,
 	    locText, T_LOWERLEFT, T_AXIS);
     }
     
     while(true) {
-      if(devInfo.areaW >= XLocWinX + 15 * devInfo.axisW) {
+      if(devInfo.areaW >= iXLocWinX + 15 * devInfo.axisW) {
 	sprintf(locText, "(%.4E, %.4E)", TRANX(newX), TRANX(newY));
-	XClearArea(disp, pWindow, 0, XLocWinY, XLocWinX, 0, false);
+	XClearArea(disp, pWindow, 0, iXLocWinY, iXLocWinX, 0, false);
 	textX(wPlotWin, devInfo.bdrPad, devInfo.areaH - devInfo.bdrPad,
 	      locText, T_LOWERLEFT, T_AXIS);
       }
@@ -2228,7 +2267,7 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 	  setBoundingBox(lowX, lowY, highX, highY);
 	  CBdoRedrawPlot(None, NULL, NULL);
 	} else if((anchorX - newX == 0) && (anchorY - newY == 0)) {
-	  if(newX >= XOrgX && newX <= XOppX && newY >= XOrgY && newY <= XOppY) {
+	  if(newX >= iXOrgX && newX <= iXOppX && newY >= iXOrgY && newY <= iXOppY) {
 	    highX = (loX + hiX) / 2 - highX;
 	    highY = (loY + hiY) / 2 - highY;
 	    loX -= highX;
@@ -2239,11 +2278,11 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 	    CBdoRedrawPlot(None, NULL, NULL);
 	  }
 	}
-	if(devInfo.areaW > XLocWinX + 15 * devInfo.axisW) {
-	  if(devInfo.areaW > 2*XLocWinX + 15 * devInfo.axisW) {
-	    XClearArea(disp, pWindow, 0, XLocWinY, 2*XLocWinX, 0, false);
+	if(devInfo.areaW > iXLocWinX + 15 * devInfo.axisW) {
+	  if(devInfo.areaW > 2*iXLocWinX + 15 * devInfo.axisW) {
+	    XClearArea(disp, pWindow, 0, iXLocWinY, 2*iXLocWinX, 0, false);
 	  } else {
-	    XClearArea(disp, pWindow, 0, XLocWinY, XLocWinX, 0, false);
+	    XClearArea(disp, pWindow, 0, iXLocWinY, iXLocWinX, 0, false);
 	  }
 	  sprintf(locText, "(%.4E, %.4E)", TRANX(newX), TRANY(newY));	    
 	  textX(wPlotWin, devInfo.bdrPad, devInfo.areaH - devInfo.bdrPad,

@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.44 2002-08-16 00:22:33 vince Exp $
+// $Id: Dataset.cpp,v 1.45 2002-08-23 00:19:36 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -73,17 +73,9 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
 
   // ************************************************ Dataset Window 
    char header[BUFSIZ];
-   char shortfilename[BUFSIZ];
-   char pltfilename[BUFSIZ];
-   strcpy(pltfilename, pltAppPtr->GetFileName().c_str());
-   int fnl(strlen(pltfilename) - 1);
-   while(fnl > -1 && pltfilename[fnl] != '/') {
-     --fnl;
-   }
-   strcpy(shortfilename, &pltfilename[fnl+1]);
-   
    ostrstream outstr(header, sizeof(header));
-   outstr << shortfilename << "  " << pltAppStatePtr->CurrentDerived()
+   outstr << AVGlobals::StripSlashes(pltAppPtr->GetFileName())
+          << "  " << pltAppStatePtr->CurrentDerived()
           << "  " << alignedRegion << ends;
    wDatasetTopLevel = XtVaCreatePopupShell(header, topLevelShellWidgetClass,
                                            pltAppPtr->WId(),
@@ -338,17 +330,10 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   int paletteEnd(palptr->PaletteEnd());
   
   char header[BUFSIZ];
-  char shortfilename[BUFSIZ];
-  char pltfilename[BUFSIZ];
-  strcpy(pltfilename, pltAppPtr->GetFileName().c_str());
-  int fnl = strlen(pltfilename) - 1;
-  while(fnl>-1 && pltfilename[fnl] != '/') {
-    --fnl;
-  }
-  strcpy(shortfilename, &pltfilename[fnl+1]);
   
   ostrstream outstr(header, sizeof(header));
-  outstr << shortfilename << "  " << pltAppStatePtr->CurrentDerived()
+  outstr << AVGlobals::StripSlashes(pltAppPtr->GetFileName())
+         << "  " << pltAppStatePtr->CurrentDerived()
          << "  " << alignedRegion << ends;
   
   XtVaSetValues(wDatasetTopLevel, XmNtitle, header, NULL);

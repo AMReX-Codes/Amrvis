@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.104 2002-08-16 00:22:33 vince Exp $
+// $Id: PltApp.cpp,v 1.105 2002-08-23 00:19:36 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -125,10 +125,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 
   char header[BUFSIZ];
   ostrstream headerout(header, BUFSIZ);
-  int fnl(fileName.length() - 1);
-  while(fnl > -1 && fileName[fnl] != '/') {
-    --fnl;
-  }
 
   if(animating2d) {
     animFrames = AVGlobals::GetFileCount(); 
@@ -137,19 +133,15 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
     for(i = 0; i < animFrames; ++i) {
       fileNames[i] = AVGlobals::GetComlineFilename(i); 
     }
-
-    // If this is an animation, putting the time in the title bar wouldn't
-    // make much sense.  Instead, we simply indicate that this is an
-    // animation, and indicate the time underneath the file label in the
-    // controls window.
-    headerout << &fileName[fnl+1] << ", 2D Animation" << ends;
+    headerout << "2D Animation" << ends;
   } else {
     animFrames = 1;
     fileNames.resize(animFrames);
     fileNames[currentFrame] = fileName;
 
     // Single plot file, so the time is indicated in the title bar.
-    headerout << &fileName[fnl+1] << ", T=" << amrData.Time() << ends;
+    headerout << AVGlobals::StripSlashes(fileName) << "   T ="
+              << amrData.Time() << ends;
   }
 
   pltAppState = new PltAppState(animFrames, amrData.NumDeriveFunc());
@@ -396,23 +388,18 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   }
 // ---------------
 
-  int fnl(fileName.length() - 1);
-  while (fnl>-1 && fileName[fnl] != '/') {
-    --fnl;
-  }
-
-  char timestr[32];
+  char timestr[64];
   // If animating, do not indicate the time.
   if(animating2d) {
     timestr[0] = '\0';
   } else {
-    ostrstream timeOut(timestr, 32);
-    timeOut << " T = " << amrData.Time() << ends;
+    ostrstream timeOut(timestr, 64);
+    timeOut << "   T = " << amrData.Time() << ends;
   }
 
   ostrstream headerout(header, BUFSIZ);
     
-  headerout << &fileName[fnl+1] << timestr << "  Subregion:  "
+  headerout << AVGlobals::StripSlashes(fileName) << timestr << "  Subregion:  "
 	    << maxDomain << "  on level " << maxlev << ends;
 				
   wAmrVisTopLevel = XtVaCreatePopupShell(header, 
@@ -1021,12 +1008,9 @@ void PltApp::PltAppInit(bool bSubVolume) {
     XtVaGetValues(wAnimLabelFast, XmNwidth, &slw, NULL);
     XtVaSetValues(wAnimLabelFast, XmNx, wcfWidth-slw, NULL);
     
-    int fnl(fileNames[currentFrame].length() - 1);
-    while(fnl > -1 && fileNames[currentFrame][fnl] != '/') {
-      --fnl;
-    }
-
-    XmString fileString = XmStringCreateSimple(&fileNames[currentFrame][fnl+1]);
+    char cTempFN[BUFSIZ];
+    strcpy(cTempFN, AVGlobals::StripSlashes(fileNames[currentFrame]).c_str());
+    XmString fileString = XmStringCreateSimple(cTempFN);
     wWhichFileLabel = XtVaCreateManagedWidget("whichFileLabel",
 			      xmLabelWidgetClass, wControlForm,	
 			      XmNx, 0,
@@ -2496,9 +2480,9 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   int isrw, iwidw, itotalwidth, maxwidth(600);
   XtVaGetValues(wSetRangeRadioBox, XmNwidth, &isrw, NULL);
   XtVaGetValues(wid, XmNwidth, &iwidw, NULL);
-  cout << "============ _here 00:" << endl;
-  cout << "iw.. = " << isrw + (2 * iwidw) + 10 << endl;
-  cout << "isrw = " << isrw << "  iwidw = " << iwidw << endl;
+  //cout << "============ _here 00:" << endl;
+  //cout << "iw.. = " << isrw + (2 * iwidw) + 10 << endl;
+  //cout << "isrw = " << isrw << "  iwidw = " << iwidw << endl;
   itotalwidth = min(isrw + (2 * iwidw) + 10, maxwidth);
   XtVaSetValues(wSetRangeTopLevel, XmNwidth, itotalwidth, NULL);
 }
@@ -3465,12 +3449,9 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  if(newlist) {
 	    newlist->SetLevel(maxDrawnLevel);
 	    if(XYplotwin[sdir] == NULL) {
-	      int fnl(fileNames[0].length() - 1);
-	      while(fnl > -1 && fileNames[0][fnl] != '/') {
-	        --fnl;
-	      }
-	      XYplotwin[sdir] = new XYPlotWin(&fileNames[0][fnl+1],
-					      appContext, wAmrVisTopLevel,
+              char cTempFN[BUFSIZ];
+              strcpy(cTempFN, AVGlobals::StripSlashes(fileNames[0]).c_str());
+	      XYplotwin[sdir] = new XYPlotWin(cTempFN, appContext, wAmrVisTopLevel,
 					      this, sdir, currentFrame);
 	    }
 	    XYplotwin[sdir]->AddDataList(newlist);
@@ -3621,12 +3602,9 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  if(newlist) {
 	    newlist->SetLevel(maxDrawnLevel);
 	    if(XYplotwin[sdir] == NULL) {
-	      int fnl(fileNames[0].length() - 1);
-	      while(fnl > -1 && fileNames[0][fnl] != '/') {
-	        --fnl;
-	      }
-	      XYplotwin[sdir] = new XYPlotWin(&fileNames[0][fnl+1],
-					      appContext, wAmrVisTopLevel,
+              char cTempFN[BUFSIZ];
+              strcpy(cTempFN, AVGlobals::StripSlashes(fileNames[0]).c_str());
+	      XYplotwin[sdir] = new XYPlotWin(cTempFN, appContext, wAmrVisTopLevel,
 					      this, sdir, currentFrame);
 	    }
 	    XYplotwin[sdir]->AddDataList(newlist);
@@ -4118,12 +4096,10 @@ void PltApp::ShowFrame() {
 	    amrPicturePtrArray[ZPLANE]->ImageSizeV());
   
   string fileName(fileNames[currentFrame]);
-  int fnl(fileName.length() - 1);
-  while(fnl > -1 && fileName[fnl] != '/') {
-    --fnl;
-  }
 
-  XmString fileString = XmStringCreateSimple(&fileName[fnl+1]);
+  char cTempFN[BUFSIZ];
+  strcpy(cTempFN, AVGlobals::StripSlashes(fileName).c_str());
+  XmString fileString = XmStringCreateSimple(cTempFN);
   XtVaSetValues(wWhichFileLabel, XmNlabelString, fileString, NULL);
   XmStringFree(fileString);
   

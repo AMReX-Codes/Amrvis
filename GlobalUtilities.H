@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.H,v 1.17 2002-08-16 00:22:33 vince Exp $
+// $Id: GlobalUtilities.H,v 1.18 2002-08-23 00:19:36 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -43,6 +43,7 @@ namespace AVGlobals {
   int GetFileCount();
   int SleepTime();
   const string &GetComlineFilename(int index);
+  string StripSlashes(const string &inString);
   FileType GetDefaultFileType();
   bool GivenBox();
   bool GivenBoxSlice();

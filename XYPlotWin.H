@@ -106,8 +106,7 @@ private:
   GraphicsAttributes	 *gaPtr;
   Display                *disp;
   Visual                 *vis;
-  Cursor	          cursor,
-                          zoomCursor;
+  Cursor	          cursor, zoomCursor;
   XFontStruct            *labeltextFont, *titletextFont;
   GC		          titletextGC, labeltextGC, rbGC, segGC, dotGC;
 
@@ -120,9 +119,9 @@ private:
   XSegment               *Xsegs[2];
 
   // parameters.
-  unsigned char           markQ, tickQ, axisQ, boundBoxQ,
-                          plotLinesQ, saveDefaultQ, dispHintsQ,
-                          animatingQ, tbool[7];
+  unsigned char           markQ, tickQ, axisQ, boundBoxQ;
+  unsigned char           plotLinesQ, saveDefaultQ, dispHintsQ;
+  unsigned char           animatingQ, tbool[7];
   int                     lineW, gridW, dotW;
   char                   *XUnitText, *YUnitText, *formatX, *formatY;
   Pixel                   foregroundPix, backgroundPix, gridPix, textPix;
@@ -130,26 +129,25 @@ private:
   AttrSet                 AllAttrs[8];
   xgOut                   devInfo;
 
-  Widget                  wLegendMenu, wLegendButtons, wPlotWin,
-                          wOptionsDialog, wExportFileDialog, wOptionsWidgets[13];
+  Widget                  wLegendMenu, wLegendButtons, wPlotWin;
+  Widget                  wOptionsDialog, wExportFileDialog, wOptionsWidgets[13];
   Window                  pWindow;
   Atom                    WM_DELETE_WINDOW;
 
-  double                  gridBase, gridStep, gridJuke[101];
-  int                     gridNJuke, gridCurJuke;
-  double                  lloX, lloY,
-                          hhiX, hhiY,     // Global bounding box of window
-                          loX, loY,
-                          hiX, hiY,       // Local bounding box of window
-                          UsrOrgX,
-                          UsrOrgY,  // Origin of bounding box in user space
-                          UsrOppX,
-                          UsrOppY,        // Other point of bounding box
-                          XUnitsPerPixel, // X Axis scale factor
-                          YUnitsPerPixel; // Y Axis scale factor
-  int                     XOrgX, XOrgY,   // Origin of bounding box on screen
-                          XOppX, XOppY,   // Other point defining bounding box
-                          XLocWinX, XLocWinY, currHint;
+  double                  dGridBase, dGridStep;
+  double                  lloX, lloY;
+  double                  hhiX, hhiY;     // Global bounding box of window
+  double                  loX, loY;
+  double                  hiX, hiY;       // Local bounding box of window
+  double                  dUsrOrgX;
+  double                  dUsrOrgY;  // Origin of bounding box in user space
+  double                  dUsrOppX;
+  double                  dUsrOppY;        // Other point of bounding box
+  double                  dXUnitsPerPixel; // X Axis scale factor
+  double                  dYUnitsPerPixel; // Y Axis scale factor
+  int                     iXOrgX, iXOrgY;   // Origin of bounding box on screen
+  int                     iXOppX, iXOppY;   // Other point defining bounding box
+  int                     iXLocWinX, iXLocWinY, iCurrHint;
 #if (BL_SPACEDIM == 2)
   int                     numFrames;
 #endif
@@ -225,7 +223,7 @@ private:
   Array<XYMenuCBData *> xymenucbdPtrs;
 };
 
-void	CBcloseXYPlotWin(Widget, XtPointer, XtPointer);
+void CBcloseXYPlotWin(Widget, XtPointer, XtPointer);
 
 #endif
 

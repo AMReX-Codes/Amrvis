@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.45 2002-08-16 00:22:33 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.46 2002-08-23 00:19:36 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -373,6 +373,9 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
       }
       else if(strcmp(defaultString, "fixdenormals") == 0) {
         RealDescriptor::SetFixDenormals();
+      }
+      else if(strcmp(defaultString, "lowblack") == 0) {
+        lowBlack = true;
       }
       else {
         cout << "bad default argument:  " << defaultString << endl;
@@ -907,5 +910,29 @@ int AVGlobals::DetermineMaxAllowableLevel(const Box &finestbox,
   }
   return(maxallowablelevel);
 }
+
+
+// -------------------------------------------------------------------
+// this function strips slashes to try to find the true file name
+//   so:  /d/e/f/pltname/  would return pltname
+// -------------------------------------------------------------------
+string AVGlobals::StripSlashes(const string &inString) {
+  string sTemp;
+  string::size_type startString, endString;
+  endString = inString.find_last_not_of('/');
+  startString = inString.find_last_of('/', endString);
+  if(startString == string::npos) {  // no slashes found
+    startString = 0;
+  } else {                           // skip over the last one found
+    ++startString;
+  }
+  sTemp = inString.substr(startString, (endString - startString + 1));
+
+  return sTemp;
+}
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
+
+
+
+
