@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.71 2004-12-07 22:27:30 vince Exp $
+// $Id: AmrData.cpp,v 1.72 2005-01-12 22:04:38 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -260,6 +260,18 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
       for(i = 0; i < nComp; ++i) {
         isPltIn.getline(plotVarName, LINELENGTH);
 	mytrim(plotVarName);
+	if(bCartGrid) {  // check various permutations of vfrac name
+	  if(strcmp(plotVarName, "vol_frac") == 0) {
+	    cout << "+++++++++++++ found bad vfrac name:  " << plotVarName << endl;
+	    strcpy(plotVarName, "vfrac");
+	    cout << "+++++++++++++                  now:  " << plotVarName << endl;
+	  }
+	  if(strcmp(plotVarName, "volfrac") == 0) {
+	    cout << "+++++++++++++ found bad vfrac name:  " << plotVarName << endl;
+	    strcpy(plotVarName, "vfrac");
+	    cout << "+++++++++++++                  now:  " << plotVarName << endl;
+	  }
+	}
         plotVars[i] = plotVarName;
         if(ParallelDescriptor::IOProcessor()) {
           VSHOWVAL(verbose, plotVarName);

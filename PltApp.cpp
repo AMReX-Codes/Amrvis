@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.127 2004-07-29 16:30:32 car Exp $
+// $Id: PltApp.cpp,v 1.128 2005-01-12 22:04:38 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -496,14 +496,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
     amrPicturePtrArray[np]->SetRegion(startX, startY, endX, endY);
   }
 
-  char tempFormat[128];
-  strcpy(tempFormat, PltApp::initialFormatString.c_str());
-  XmString sFormatString = XmStringCreateSimple(tempFormat);
-  char *tempchar = new char[LINELENGTH];
-  XmStringGetLtoR(sFormatString, XmSTRING_DEFAULT_CHARSET, &tempchar);
-  XmStringFree(sFormatString);
-  pltAppState->SetFormatString(tempchar);
-  delete [] tempchar;
+  pltAppState->SetFormatString(PltApp::initialFormatString);
 
   infoShowing = false;
   contoursShowing = false;
