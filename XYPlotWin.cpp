@@ -35,6 +35,7 @@
 
 #include <iostream>
 #include <iomanip>
+#include <limits>
 using std::setw;
 using std::cout;
 using std::cerr;
@@ -462,7 +463,9 @@ void XYPlotWin::InitializeAnimation(int curr_frame, int num_frames) {
     return;
   }
   PltAppState *pas = pltParent->GetPltAppState();
-  Real gmin(DBL_MAX), gmax(-DBL_MAX), fmin, fmax;
+  Real gmin( std::numeric_limits<Real>::max());
+  Real gmax(-std::numeric_limits<Real>::max());
+  Real fmin, fmax;
   animatingQ = true;
   currFrame = curr_frame;
   numFrames = num_frames;

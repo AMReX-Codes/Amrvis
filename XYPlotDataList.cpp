@@ -214,8 +214,8 @@ for(int iCurLevel(maxLevel); iCurLevel >= minLevel; --iCurLevel) {
   xypdlHiY[iCurLevel] = -DBL_MAX;
   for(ilev = minLevel; ilev <= iCurLevel; ++ilev) {
     for(int ii(0); ii < xypdlYVal[ilev].size(); ++ii) {
-      xypdlLoY[iCurLevel] = min(xypdlLoY[iCurLevel], xypdlYVal[ilev][ii]);
-      xypdlHiY[iCurLevel] = max(xypdlHiY[iCurLevel], xypdlYVal[ilev][ii]);
+      xypdlLoY[iCurLevel] = std::min(xypdlLoY[iCurLevel], xypdlYVal[ilev][ii]);
+      xypdlHiY[iCurLevel] = std::max(xypdlHiY[iCurLevel], xypdlYVal[ilev][ii]);
     }
   }
 
