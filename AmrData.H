@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.H,v 1.18 2001-07-09 18:08:30 vince Exp $
+// $Id: AmrData.H,v 1.19 2001-07-27 01:47:13 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -90,6 +90,12 @@ class AmrData {
   void  CellLoc(int lev,   IntVect ix, Array<Real> &pos) const;
   void  LoNodeLoc(int lev, IntVect ix, Array<Real> &pos) const;
   void  HiNodeLoc(int lev, IntVect ix, Array<Real> &pos) const;
+
+  // find the IntVect given a physical location
+  // returns the intvect, the finest level it is contained on,
+  // and the intvect at the given finest level
+  void IntVectFromLocation(const int finestFillLevel, const Array<Real> &location,
+                           IntVect &ivLoc, int &ivLevel, IntVect &ivFinestFillLev);
   
   const Array< Array< Array<Real> > > &GridLocLo() const { return gridLocLo; }
   const Array< Array< Array<Real> > > &GridLocHi() const { return gridLocHi; }

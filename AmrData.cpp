@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.49 2001-07-09 18:08:30 vince Exp $
+// $Id: AmrData.cpp,v 1.50 2001-07-27 01:47:13 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -895,6 +895,27 @@ void AmrData::HiNodeLoc(int lev, IntVect ix, Array<Real> &pos) const {
    BL_ASSERT(pos.length() == dxLevel[lev].length());
    for(int i(0); i < BL_SPACEDIM; ++i) {
       pos[i] = probLo[i] + (dxLevel[lev][i])*Real(ix[i]+1);
+   }
+}
+
+
+// ---------------------------------------------------------------
+void AmrData::IntVectFromLocation(const int finestFillLevel,
+                                  const Array<Real> &location,
+                                  IntVect &ivLoc, int &ivLevel,
+				  IntVect &ivFinestFillLev)
+{
+   BL_ASSERT(location.length() == BL_SPACEDIM);
+   BL_ASSERT(finestFillLevel <= finestLevel);
+
+   //Box ivbox;
+   //ivLevel = 
+   int ffl(finestFillLevel);
+
+   for(int i(0); i < BL_SPACEDIM; ++i) {
+      int ival = probDomain[ffl].smallEnd()[i] +
+                 ((int) ( (location[i] - probLo[i]) / dxLevel[ffl][i] ) );
+      ivFinestFillLev.setVal(i, ival);
    }
 }
 
