@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.60 2001-11-16 20:41:53 marc Exp $
+// $Id: AmrData.cpp,v 1.61 2002-08-06 17:27:37 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -148,6 +148,19 @@ AmrData::~AmrData() {
    }
 }
 
+namespace
+{
+void mytrim(char* str)
+{
+    int i = std::strlen(str);
+    for ( int n = i-1; n >= 0; n-- )
+    {
+	if ( str[n] > ' ' ) break;
+	str[n] = 0;
+    }
+}
+}
+
 
 // ---------------------------------------------------------------
 bool AmrData::ReadData(const string &filename, FileType filetype) {
@@ -232,6 +245,7 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
       isPltIn.getline(plotVarName, LINELENGTH); // eat white space left by op<<
       for(i = 0; i < nComp; ++i) {
         isPltIn.getline(plotVarName, LINELENGTH);
+	mytrim(plotVarName);
         plotVars[i] = plotVarName;
         if(ParallelDescriptor::IOProcessor()) {
           VSHOWVAL(verbose, plotVarName);
