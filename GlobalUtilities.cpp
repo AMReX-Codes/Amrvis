@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GlobalUtilities.cpp,v 1.32 2000-04-04 00:18:23 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.33 2000-10-02 20:53:08 lijewski Exp $
 //
 
 // ---------------------------------------------------------------

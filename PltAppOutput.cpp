@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltAppOutput.cpp,v 1.19 2000-06-16 17:55:53 car Exp $
+// $Id: PltAppOutput.cpp,v 1.20 2000-10-02 20:53:09 lijewski Exp $
 //
 
 #include <Xm/Xm.h>

@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GraphicsAttributes.cpp,v 1.11 2000-06-16 17:55:52 car Exp $
+// $Id: GraphicsAttributes.cpp,v 1.12 2000-10-02 20:53:08 lijewski Exp $
 //
 
 // ---------------------------------------------------------------

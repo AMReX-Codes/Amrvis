@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: DatasetClient.cpp,v 1.4 1999-05-10 18:54:17 car Exp $
+// $Id: DatasetClient.cpp,v 1.5 2000-10-02 20:53:08 lijewski Exp $
 //
 
 // ---------------------------------------------------------------

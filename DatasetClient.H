@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: DatasetClient.H,v 1.3 2000-04-21 17:54:06 car Exp $
+// $Id: DatasetClient.H,v 1.4 2000-10-02 20:53:08 lijewski Exp $
 //
 
 // ---------------------------------------------------------------

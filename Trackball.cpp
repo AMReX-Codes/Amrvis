@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Trackball.cpp,v 1.5 1998-10-29 23:56:10 vince Exp $
+// $Id: Trackball.cpp,v 1.6 2000-10-02 20:53:10 lijewski Exp $
 //
 
 // ---------------------------------------------------------------

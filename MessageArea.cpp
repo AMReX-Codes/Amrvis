@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: MessageArea.cpp,v 1.4 1998-10-29 23:56:08 vince Exp $
+// $Id: MessageArea.cpp,v 1.5 2000-10-02 20:53:08 lijewski Exp $
 //
 
 // ---------------------------------------------------------------

@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.cpp,v 1.48 2000-06-17 16:31:10 car Exp $
+// $Id: AmrPicture.cpp,v 1.49 2000-10-02 20:53:07 lijewski Exp $
 //
 
 // ---------------------------------------------------------------

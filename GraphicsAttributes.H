@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GraphicsAttributes.H,v 1.14 2000-08-28 21:50:00 vince Exp $
+// $Id: GraphicsAttributes.H,v 1.15 2000-10-02 20:53:08 lijewski Exp $
 //
 
 // ---------------------------------------------------------------

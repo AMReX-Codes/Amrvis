@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ProjectionPicture.H,v 1.17 2000-06-14 20:08:28 car Exp $
+// $Id: ProjectionPicture.H,v 1.18 2000-10-02 20:53:10 lijewski Exp $
 //
 
 // ---------------------------------------------------------------

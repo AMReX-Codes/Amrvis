@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: MessageArea.H,v 1.5 2000-06-14 20:08:26 car Exp $
+// $Id: MessageArea.H,v 1.6 2000-10-02 20:53:08 lijewski Exp $
 //
 
 // ---------------------------------------------------------------

@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Quaternion.cpp,v 1.9 1998-10-29 23:56:10 vince Exp $
+// $Id: Quaternion.cpp,v 1.10 2000-10-02 20:53:10 lijewski Exp $
 //
 
 // ---------------------------------------------------------------

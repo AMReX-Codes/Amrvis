@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ViewTransform.cpp,v 1.17 1999-04-20 01:27:36 car Exp $
+// $Id: ViewTransform.cpp,v 1.18 2000-10-02 20:53:10 lijewski Exp $
 //
 
 // ---------------------------------------------------------------

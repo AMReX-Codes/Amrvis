@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: VolRender.cpp,v 1.33 2000-08-28 21:47:38 vince Exp $
+// $Id: VolRender.cpp,v 1.34 2000-10-02 20:53:10 lijewski Exp $
 //
 
 // ---------------------------------------------------------------

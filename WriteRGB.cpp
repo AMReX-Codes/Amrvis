@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: WriteRGB.cpp,v 1.7 1999-12-01 22:55:44 vince Exp $
+// $Id: WriteRGB.cpp,v 1.8 2000-10-02 20:53:11 lijewski Exp $
 //
 
 // ---------------------------------------------------------------

@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ViewTransform.H,v 1.11 1998-10-29 23:56:10 vince Exp $
+// $Id: ViewTransform.H,v 1.12 2000-10-02 20:53:10 lijewski Exp $
 //
 
 // ---------------------------------------------------------------

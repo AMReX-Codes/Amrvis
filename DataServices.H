@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: DataServices.H,v 1.12 2000-04-04 00:18:22 vince Exp $
+// $Id: DataServices.H,v 1.13 2000-10-02 20:53:07 lijewski Exp $
 //
 
 // ---------------------------------------------------------------

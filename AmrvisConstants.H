@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrvisConstants.H,v 1.6 2000-06-14 20:08:25 car Exp $
+// $Id: AmrvisConstants.H,v 1.7 2000-10-02 20:53:07 lijewski Exp $
 //
 
 // ---------------------------------------------------------------

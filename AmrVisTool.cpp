@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrVisTool.cpp,v 1.43 2000-06-17 16:31:11 car Exp $
+// $Id: AmrVisTool.cpp,v 1.44 2000-10-02 20:53:07 lijewski Exp $
 //
 
 // ---------------------------------------------------------------

@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ProjectionPicture.cpp,v 1.36 2000-08-28 21:48:37 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.37 2000-10-02 20:53:10 lijewski Exp $
 //
 
 // ---------------------------------------------------------------

@@ -1,7 +1,6 @@
-//BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GridPicture.H,v 1.7 1998-10-29 23:56:08 vince Exp $
+// $Id: GridPicture.H,v 1.8 2000-10-02 20:53:08 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
