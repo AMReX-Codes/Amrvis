@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.H,v 1.14 2001-08-22 00:22:32 vince Exp $
+// $Id: DataServices.H,v 1.15 2001-09-28 23:57:20 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -43,7 +43,9 @@ class DataServices {
       DumpSliceBoxAllVars,
       MinMaxRequest,
       PointValueRequest,
+#ifndef BL_NOLINEVALUES
       LineValuesRequest
+#endif
     };
 
     DataServices(const string &filename, const FileType &filetype);
@@ -102,11 +104,13 @@ class DataServices {
 		      int &intersectedLevel, Box &intersectedGrid,
 		      Real &dataPointValue, bool &bPointIsValid);
 
+#ifndef BL_NOLINEVALUES
       // LineValuesRequest
       void LineValues(int lineBoxArraySize, Box *lineBoxArray, int whichDir,
                       const string &currentDerived,
                       int coarsestLevelToSearch, int finestLevelToSearch,
                       XYPlotDataList *dataList, bool &lineIsValid);
+#endif
 
   public:
 

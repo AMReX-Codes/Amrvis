@@ -10,8 +10,8 @@ COMP      = KCC
 COMP      = g++
 DEBUG     = FALSE
 DEBUG     = TRUE
-DIM       = 3
 DIM       = 2
+DIM       = 3
 NAMESPACE = FALSE
 NAMESPACE = TRUE
 
