@@ -190,7 +190,7 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
   XmAddWMProtocolCallback(wXYPlotTopLevel, WM_DELETE_WINDOW,
 			  (XtCallbackProc) CBcloseXYPlotWin,
 			  (XtPointer) this);
-  Widget wControlArea, wScrollArea, wLegendArea;
+  Widget wControlArea, wLegendArea;
   Widget wExportButton, wOptionsButton, wCloseButton;
   Widget wAllButton, wNoneButton, wClearButton;
   XmString label_str1, label_str2, label_str3;
@@ -917,7 +917,8 @@ void XYPlotWin::ReattachLegendFrames() {
   list<XYPlotLegendItem *>::iterator liitem = legendList.begin();
   XtVaSetValues((*liitem)->frame,
 		XmNtopAttachment, XmATTACH_WIDGET,
-                XmNtopWidget, wLegendMenu,
+                //XmNtopWidget, wLegendMenu,
+                XmNtopWidget, wScrollArea,
 		NULL);
   list<XYPlotLegendItem *>::iterator liprevitem = liitem;
   ++liitem;
@@ -936,9 +937,7 @@ void XYPlotWin::ReattachLegendFrames() {
 void XYPlotWin::UpdateBoundingBox(XYPlotDataList *xypdl) {
   //cout << "???????????????????? _in XYPlotWin::UpdateBoundingBox" << endl;
   if(xypdl->StartX() < lloX) {
-  cout << " old lloX = " << lloX << endl;
     lloX = xypdl->StartX();
-  cout << " new lloX = " << lloX << endl;
   }
   if(xypdl->EndX() > hhiX) {
     hhiX = xypdl->EndX();

@@ -120,7 +120,7 @@ class XYPlotWin {
     AttrSet                 AllAttrs[8];
     xgOut                   devInfo;
 
-    Widget wLegendMenu, wLegendButtons, wPlotWin;
+    Widget wLegendMenu, wLegendButtons, wPlotWin, wScrollArea;
     Widget wOptionsDialog, wExportFileDialog, wOptionsWidgets[13];
     Window pWindow;
     Atom   WM_DELETE_WINDOW;
