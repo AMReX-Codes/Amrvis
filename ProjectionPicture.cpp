@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ProjectionPicture.cpp,v 1.28 1999-03-08 22:00:49 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.29 2000-06-13 23:18:21 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -43,6 +43,7 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
   showSubCut = false;
   pixCreated = false;
   imageData = NULL;
+  volpackImageData = 0;
   maxDataLevel = amrPicturePtr->MaxAllowableLevel();
   theDomain = amrPicturePtr->GetSubDomain();
 
@@ -107,6 +108,7 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
 // -------------------------------------------------------------------
 ProjectionPicture::~ProjectionPicture() {
   delete [] imageData;
+  delete [] volpackImageData;
   if(pixCreated) {
     XFreePixmap(XtDisplay(drawingArea), pixMap);
   }
@@ -242,11 +244,32 @@ void ProjectionPicture::MakePicture() {
     const unsigned char *remapTable = palPtr->RemapTable();
     int idat;
     for(idat=0; idat<daWidth*daHeight; idat++) {
-      imageData[idat] = remapTable[(unsigned char)imageData[idat]];
+      volpackImageData[idat] = remapTable[(unsigned char)volpackImageData[idat]];
     }
   }
 
-  
+  const unsigned long bprgb = pltAppPtr->GetGAptr()->PBitsPerRGB();
+  for ( int j = 0; j < daHeight; ++j )
+    {
+      for ( int i = 0; i < daWidth; ++i )
+	{
+	  unsigned long imm1 = volpackImageData[i+j*daWidth];
+	  if ( pltAppPtr->GetGAptr()->isTrueColor() )
+	    {
+	      // FIXME: Palette should be here
+	      unsigned int r = palPtr->theRBuff(imm1) >> (8 - bprgb);
+	      unsigned int g = palPtr->theGBuff(imm1) >> (8 - bprgb);
+	      unsigned int b = palPtr->theBBuff(imm1) >> (8 - bprgb);
+	      unsigned long imm = b | (g<<bprgb) | (r<<bprgb*2);
+	      XPutPixel(PPXImage, i, j, imm);
+	    }
+	  else
+	    {
+	      XPutPixel(PPXImage, i, j, imm1);
+	    }
+	  // imageData[i+j*daWidth] = imm1;
+	}
+    }
   unsigned char iMin, iMax;
   iMin = 255;  iMax = 0;
   for(int ii = 0; ii < daWidth * daHeight; ++ii) {
@@ -404,17 +427,21 @@ void ProjectionPicture::SetSubCut(const Box &newbox) {
 
 // -------------------------------------------------------------------
 void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
-  
+
   minDrawnLevel = pltAppPtr->MinDrawnLevel();
   maxDrawnLevel = pltAppPtr->MaxDrawnLevel();
   
   daWidth = w;
   daHeight = h;
+  int widthpad = (1+(w-1)/(XBitmapPad(XtDisplay(drawingArea))/8))*XBitmapPad(XtDisplay(drawingArea))/8;
+
   if(imageData != NULL) {
     delete [] imageData;
+    delete [] volpackImageData;
   }
-  imageData = new unsigned char[daWidth*daHeight];
-  if(imageData == NULL) {
+  volpackImageData = new unsigned char[daWidth*daHeight];
+  imageData = new unsigned char[widthpad*daHeight*XBitmapPad(XtDisplay(drawingArea))/8];
+  if(imageData == NULL || volpackImageData == NULL ) {
     cout << " SetDrawingAreaDimensions::imageData : new failed" << endl;
     BoxLib::Abort("Exiting.");
   }
@@ -422,26 +449,25 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
   viewTransformPtr->SetScreenPosition(daWidth/2, daHeight/2);
   
   PPXImage = XCreateImage(XtDisplay(drawingArea),
-                       XDefaultVisual(XtDisplay(drawingArea),
-                                      DefaultScreen(XtDisplay(drawingArea))),
-                       DefaultDepthOfScreen(XtScreen(drawingArea)), ZPixmap, 0,
-                       (char *) imageData, daWidth, daHeight,
-		XBitmapPad(XtDisplay(drawingArea)), daWidth);
+			  XDefaultVisual(XtDisplay(drawingArea),
+					 DefaultScreen(XtDisplay(drawingArea))),
+			  DefaultDepthOfScreen(XtScreen(drawingArea)), ZPixmap, 0,
+			  (char *) imageData, widthpad, daHeight,
+			  XBitmapPad(XtDisplay(drawingArea)), widthpad*XBitmapPad(XtDisplay(drawingArea))/8);
   
   if(pixCreated) {
     XFreePixmap(XtDisplay(drawingArea), pixMap);
   }
   pixMap = XCreatePixmap(XtDisplay(drawingArea), XtWindow(drawingArea),
-			daWidth, daHeight,
-			DefaultDepthOfScreen(XtScreen(drawingArea)));
+			 daWidth, daHeight,
+			 DefaultDepthOfScreen(XtScreen(drawingArea)));
   pixCreated = true;
 
 #ifdef BL_VOLUMERENDER
   // --- set the image buffer
-  volRender->SetImage( (unsigned char *)imageData, daWidth, daHeight,
+  volRender->SetImage( (unsigned char *)volpackImageData, daWidth, daHeight,
                        VP_LUMINANCE);
 #endif
-
   longestWindowLength  = (Real) Max(daWidth, daHeight);
   shortestWindowLength = (Real) Min(daWidth, daHeight);
   if(longestWindowLength == 0) {  // this happens when x deletes this window

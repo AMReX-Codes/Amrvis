@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.cpp,v 1.42 2000-04-04 00:18:22 vince Exp $
+// $Id: AmrPicture.cpp,v 1.43 2000-06-13 23:18:19 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -256,7 +256,8 @@ void AmrPicture::AmrPictureInit() {
   // dont use imageBox.length() because of node centered boxes
   imageSizeH = pltAppPtr->CurrentScale() * dataSizeH[maxAllowableLevel];
   imageSizeV = pltAppPtr->CurrentScale() * dataSizeV[maxAllowableLevel];
-  imageSize = imageSizeH * imageSizeV;
+  int widthpad = GAptr->PBitmapPaddedWidth(imageSizeH);
+  imageSize = imageSizeV * widthpad * GAptr->PBytesPerPixel();
 
   imageData.resize(numberOfLevels);
   scaledImageData.resize(numberOfLevels);
@@ -1037,8 +1038,8 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
     oneOverGDiff = 1.0 / (globalMax - globalMin);
   }
   const Real *dataPoint = fab.dataPtr();
-  int whiteIndex(palptr->WhiteIndex());
-  int blackIndex(palptr->BlackIndex());
+  unsigned long whiteIndex(palptr->WhiteIndex());
+  unsigned long blackIndex(palptr->BlackIndex());
   int colorSlots(palptr->ColorSlots());
   int paletteStart(palptr->PaletteStart());
   int paletteEnd(palptr->PaletteEnd());
@@ -1090,16 +1091,51 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 				   int datasizeh, int datasizev,
 				   int imagesizeh, int imagesizev)
 { 
-  int i, j, jish, jtmp;
+  int widthpad = GAptr->PBitmapPaddedWidth(imagesizeh);
+  *ximage = XCreateImage(GAptr->PDisplay(), GAptr->PVisual(),
+		GAptr->PDepth(), ZPixmap, 0, (char *) scaledimagedata,
+		widthpad, imagesizev,
+		XBitmapPad(GAptr->PDisplay()), widthpad*GAptr->PBytesPerPixel());
 
   if( ! bCartGridSmoothing) {
-    for(j = 0; j < imagesizev; ++j) {
-      jish = j*imagesizeh;
-      jtmp =  datasizeh * (j/scale);
-      for(i = 0; i < imagesizeh; ++i) {
-        scaledimagedata[i+jish] = imagedata [ (i/scale) + jtmp ];
+    if ( true )
+      {
+	const unsigned long bprgb = GAptr->PBitsPerRGB();
+	assert(bprgb <= 8);
+	for ( int j = 0; j < imagesizev; ++j )
+	  {
+	    int jtmp =  datasizeh * (j/scale);
+	    for ( int i = 0; i < widthpad; ++i )
+	      {
+		int itmp = i/scale;
+		unsigned long imm1 = imagedata[ itmp + jtmp ];
+		if ( GAptr->isTrueColor() )
+		  {
+		    unsigned int r = palPtr->theRBuff(imm1) >> (8-bprgb);
+		    unsigned int g = palPtr->theGBuff(imm1) >> (8-bprgb);
+		    unsigned int b = palPtr->theBBuff(imm1) >> (8-bprgb);
+		    unsigned long imm = b | (g<<bprgb) | (r<<bprgb*2);
+		    XPutPixel(*ximage, i, j, imm);
+		  }
+		else
+		  {
+		    XPutPixel(*ximage, i, j, imm1);
+		  }
+	      }
+	  }
       }
-    }
+    else
+      {
+	(*ximage)->byte_order = MSBFirst;
+	(*ximage)->bitmap_bit_order = MSBFirst;
+	for(int j = 0; j < imagesizev; ++j) {
+	  int jish = j*imagesizeh;
+	  int jtmp =  datasizeh * (j/scale);
+	  for(int i = 0; i < imagesizeh; ++i) {
+	    scaledimagedata[i+jish] = imagedata [ (i/scale) + jtmp ];
+	  }
+	}
+      }
   } else {  // bCartGridSmoothing
 /*
     int ii, jj, rrcs, iis;
@@ -1491,14 +1527,6 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 
   }  // end if(bCartGridSmoothing)
 
-  *ximage = XCreateImage(GAptr->PDisplay(), GAptr->PVisual(),
-		GAptr->PDepth(), ZPixmap, 0, (char *) scaledimagedata,
-		imagesizeh, imagesizev,
-		XBitmapPad(GAptr->PDisplay()), imagesizeh);
-
-  (*ximage)->byte_order = MSBFirst;
-  (*ximage)->bitmap_bit_order = MSBFirst;
-
 }  // end CreateScaledImage()
 
 
@@ -1516,7 +1544,8 @@ void AmrPicture::ChangeScale(int newScale) {
   }
   imageSizeH = newScale   * dataSizeH[maxAllowableLevel];
   imageSizeV = newScale   * dataSizeV[maxAllowableLevel];
-  imageSize  = imageSizeH * imageSizeV;
+  int widthpad = GAptr->PBitmapPaddedWidth(imageSizeH);
+  imageSize  = widthpad * imageSizeV * GAptr->PBytesPerPixel();
   XClearWindow(GAptr->PDisplay(), pictureWindow);
 
   if(pixMapCreated) {
