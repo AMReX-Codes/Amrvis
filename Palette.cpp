@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.47 2003-03-14 20:24:19 vince Exp $
+// $Id: Palette.cpp,v 1.48 2003-05-21 23:02:25 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -206,7 +206,8 @@ void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
 
       // draw color part of line
       // FIXME:
-      XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), ccells[i].pixel);
+      //XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), ccells[i].pixel);
+      XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), makePixel(i));
       XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), transpnt,
                 cy, palWidth, cy);
     }
@@ -219,7 +220,8 @@ void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
 
 #else
     for(i = paletteStart; i < totalColorSlots; ++i) {
-      XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), ccells[i].pixel);
+      //XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), ccells[i].pixel);
+      XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), makePixel(i));
       cy = ((totalColorSlots - 1) - i) + 14;
       XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), 0, cy, palWidth, cy);
     }
@@ -430,7 +432,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
     ccells[i].flags = DoRed | DoGreen | DoBlue;
   }
 
-  // set Transfer function here  NOTE:  doesn't call
+  // set Transfer function here
   transferArray.resize(iSeqPalSize);
   if(paletteType == NON_ALPHA) {
     for(int j(0); j < iSeqPalSize; ++j) {

@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.49 2003-03-05 20:57:26 vince Exp $
+// $Id: Dataset.cpp,v 1.50 2003-05-21 23:02:25 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -624,14 +624,15 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
 // -------------------------------------------------------------------
 void Dataset::DrawGrid(int startX, int startY, int finishX, int finishY, 
                        int gridspacingX, int gridspacingY,
-                       int foregroundIndex, int backgroundIndex) {
+                       Pixel foreground, Pixel background)
+{
     int i;
     Display *display = XtDisplay(wPixArea);
     GC gc = gaPtr->PGC();
     Window dataWindow = XtWindow(wPixArea);
 
-    XSetBackground(display, gc, backgroundIndex);
-    XSetForeground(display, gc, foregroundIndex);
+    XSetBackground(display, gc, background);
+    XSetForeground(display, gc, foreground);
 
     XDrawLine(display, dataWindow, gc, startX+1, startY, startX+1, finishY);
     for(i = startX; i <= finishX; i += gridspacingX) {
@@ -650,15 +651,15 @@ void Dataset::DrawGrid(int startX, int startY, int finishX, int finishY,
 
 // -------------------------------------------------------------------
 void Dataset::DrawGrid(int startX, int startY, int finishX, int finishY, 
-                       int refRatio, int foregroundIndex, int backgroundIndex)
+                       int refRatio, Pixel foreground, Pixel background)
 {
     int i;
     Display *display = XtDisplay(wPixArea);
     GC gc = gaPtr->PGC();
     Window dataWindow = XtWindow(wPixArea);
 
-    XSetBackground(display, gc, backgroundIndex);
-    XSetForeground(display, gc, foregroundIndex);
+    XSetBackground(display, gc, background);
+    XSetForeground(display, gc, foreground);
 
     XDrawLine(display, dataWindow, gc, startX+1, startY, startX+1, finishY);
     for(i = startX; i <= finishX; i += dataItemWidth * refRatio) {
@@ -827,6 +828,7 @@ void Dataset::DoExpose(int fromExpose) {
         return;
     }
     
+    Palette *palptr = pltAppPtr->GetPalettePtr();
     dataServicesPtr = pltAppPtr->GetDataServicesPtr();
     const AmrData &amrData = dataServicesPtr->AmrDataRef();
     if(noData) {
@@ -939,9 +941,8 @@ void Dataset::DoExpose(int fromExpose) {
               if(myDataStringArray[lvl][stringCount].olflag >= maxDrawnLevel)
 #endif
               { 
-		// FIXME:??
                 XSetForeground(XtDisplay(wPixArea), gaPtr->PGC(), 
-                               myDataStringArray[lvl][stringCount].color); 
+                     palptr->makePixel(myDataStringArray[lvl][stringCount].color)); 
                 XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea),
                             gaPtr->PGC(), xloc, yloc,
                             myDataStringArray[lvl][stringCount].ds,

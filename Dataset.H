@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.H,v 1.30 2003-02-12 23:01:48 vince Exp $
+// $Id: Dataset.H,v 1.31 2003-05-21 23:02:25 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -90,10 +90,10 @@ class Dataset {
   
   void DrawGrid(int startX, int startY, int finishX, int finishY,
                 int gridspacingX, int gridspacingY,
-                int foregroundIndex, int backgroundIndex);
+                Pixel foreground, Pixel background);
   void DrawGrid(int startX, int startY, int finishX, int finishY,
                 int refRatio,
-                int foregroundIndex, int backgroundIndex);
+                Pixel foreground, Pixel background);
 };
 
 

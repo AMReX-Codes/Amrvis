@@ -1,6 +1,6 @@
 
 //
-// $Id: GraphicsAttributes.cpp,v 1.15 2001-10-17 17:53:33 lijewski Exp $
+// $Id: GraphicsAttributes.cpp,v 1.16 2003-05-21 23:02:25 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -37,8 +37,10 @@ GraphicsAttributes::GraphicsAttributes(Widget topLevel)
   display = XtDisplay(topLevel);
   screen = XtScreen(topLevel);
   screennumber = DefaultScreen(display);
+/*
   int status = XMatchVisualInfo(display, DefaultScreen(display),
 				8, PseudoColor, &visual_info);
+  //status = 0;
   if(status != 0) {
     visual = visual_info.visual;
     depth = 8;
@@ -57,9 +59,40 @@ GraphicsAttributes::GraphicsAttributes(Widget topLevel)
       BoxLib::Abort("Error: bad XMatchVisualInfo: no PseudoColor Visual.");
     }
   }
+*/
+
+/*
+*/
+  int status(0);
+  status = XMatchVisualInfo(display, DefaultScreen(display),
+			    DefaultDepth(display, screennumber),
+			    TrueColor, &visual_info);
+  if(status != 0) {
+    cout << "***************** using TrueColor visual" << endl;
+    visual = visual_info.visual;
+    depth = DefaultDepth(display, screennumber);
+    red_shift = buildShift(visual_info.red_mask);
+    green_shift = buildShift(visual_info.green_mask);
+    blue_shift = buildShift(visual_info.blue_mask);
+  } else {
+    status = XMatchVisualInfo(display, DefaultScreen(display),
+			      8, PseudoColor, &visual_info);
+    if(status != 0) {
+      cout << "***************** using PseudoColor visual" << endl;
+      visual = visual_info.visual;
+      depth = 8;
+      red_shift   = 0;
+      blue_shift  = 0;
+      green_shift = 0;
+    } else if( status == 0 ) {
+      BoxLib::Abort("Error: bad XMatchVisualInfo: no PseudoColor Visual.");
+    }
+  }
+
   gc = screen->default_gc;
   root = RootWindow(display, DefaultScreen(display));
   bytesPerPixel = CalculateNBP();
+cout << "___________XtGetMultiClickTime = " << XtGetMultiClickTime(display) << endl;
 }
 
 

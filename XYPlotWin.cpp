@@ -351,6 +351,7 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
   XtPopup(wXYPlotTopLevel, XtGrabNone);
   pWindow = XtWindow(wPlotWin);
   SetPalette();
+  cout << "_here 400" << endl;
   gaPtr = new GraphicsAttributes(wXYPlotTopLevel);
   disp = gaPtr->PDisplay();
   vis  = gaPtr->PVisual();
