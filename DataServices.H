@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: DataServices.H,v 1.10 1998-11-26 00:15:33 vince Exp $
+// $Id: DataServices.H,v 1.11 1999-12-01 22:55:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -19,7 +19,6 @@
 #else
 #include <stdarg.h>
 #endif
-
 
 
 class DataServices {
@@ -99,7 +98,6 @@ class DataServices {
 		      int coarsestLevelToSearch, int finestLevelToSearch,
 		      int &intersectedLevel, Box &intersectedGrid,
 		      Real &dataPointValue, bool &bPointIsValid);
-
 
   public:
 

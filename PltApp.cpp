@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.cpp,v 1.57 1999-05-10 18:54:18 car Exp $
+// $Id: PltApp.cpp,v 1.58 1999-12-01 22:55:44 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -2820,10 +2820,9 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 	        }
 
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
-                if( ! XmToggleButtonGetState(wAutoDraw)) {
-#else
-                {  // scope
+                if( ! XmToggleButtonGetState(wAutoDraw))
 #endif
+                {
 	          x1 = startcutX[ZPLANE]/scale + ivLowOffsetMAL[XDIR];
 	          y1 = startcutX[XPLANE]/scale + ivLowOffsetMAL[YDIR];
 	          z1 = (amrPicturePtrArray[YPLANE]->ImageSizeV()-1 -
@@ -3125,9 +3124,9 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
             }
 
 #if (BL_SPACEDIM == 3)
-            for(int nP = 0; nP < 3; nP++)
-                projPicturePtr->
-                    ChangeSlice(nP, amrPicturePtrArray[nP]->GetSlice());
+            for(int nP = 0; nP < 3; ++nP) {
+              projPicturePtr->ChangeSlice(nP, amrPicturePtrArray[nP]->GetSlice());
+	    }
             projPicturePtr->MakeSlices();
             XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
             DoExposeTransDA();

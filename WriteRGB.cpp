@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: WriteRGB.cpp,v 1.6 1998-10-29 23:56:11 vince Exp $
+// $Id: WriteRGB.cpp,v 1.7 1999-12-01 22:55:44 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -47,7 +47,7 @@
 
 
 typedef struct {
-    unsigned short      imagic;         /* stuff saved on disk . . */
+    unsigned short      imagic;         // stuff saved on disk
     unsigned short      type;
     unsigned short      dim;
     unsigned short      xsize;
@@ -59,7 +59,7 @@ typedef struct {
     char                name[80];
     unsigned long       colormap;
 
-    long                file;           /* stuff used in core only */
+    long                file;           // stuff used in core only
     unsigned short      flags;
     short               dorev;
     short               x;
@@ -70,9 +70,9 @@ typedef struct {
     unsigned short      *base;
     unsigned short      *tmpbuf;
     unsigned long       offset;
-    unsigned long       rleend;         /* for rle images */
-    unsigned long       *rowstart;      /* for rle images */
-    long                *rowsize;       /* for rle images */
+    unsigned long       rleend;         // for rle images
+    unsigned long       *rowstart;      // for rle images
+    long                *rowsize;       // for rle images
 } IMAGE;
 
 
@@ -96,38 +96,41 @@ IMAGE *imgopen(int f, char *file, char *mode, unsigned int type, unsigned int di
         int i, max;
 
         image = (IMAGE*)calloc(1,sizeof(IMAGE));
-        if (*mode=='w') {
-                if (file) {
-                    f = creat(file, 0666);
+        if(*mode=='w') {
+                if(file) {
+                  f = creat(file, 0666);
                 }
-                if (f < 0) {
-                    cerr << "iopen: can't open output file " << file << endl;
-                    return NULL;
+                if(f < 0) {
+                  cerr << "iopen: can't open output file " << file << endl;
+                  return NULL;
                 }
                 image->imagic = IMAGIC;
                 image->type = type;
                 image->xsize = xsize;
                 image->ysize = 1;
                 image->zsize = 1;
-                if (dim>1)
-                    image->ysize = ysize;
-                if (dim>2)
-                    image->zsize = zsize;
+                if(dim>1) {
+                  image->ysize = ysize;
+		}
+                if(dim>2) {
+                  image->zsize = zsize;
+		}
                 if(image->zsize == 1) {
-                    image->dim = 2;
-                    if(image->ysize == 1)
-                        image->dim = 1;
+                  image->dim = 2;
+                  if(image->ysize == 1) {
+                    image->dim = 1;
+		  }
                 } else {
-                    image->dim = 3;
+                  image->dim = 3;
                 }
                 image->min = 10000000;
                 image->max = 0;
                 isetname(image,"no name");
                 image->wastebytes = 0;
                 image->dorev = 0;
-                if (write(f,image,sizeof(IMAGE)) != sizeof(IMAGE)) {
-                    cerr << "iopen: error on write of image header" << endl;
-                    return NULL;
+                if(write(f,image,sizeof(IMAGE)) != sizeof(IMAGE)) {
+                  cerr << "iopen: error on write of image header" << endl;
+                  return NULL;
                 }
         } else {
         }
@@ -137,29 +140,28 @@ IMAGE *imgopen(int f, char *file, char *mode, unsigned int type, unsigned int di
             image->rowstart = (unsigned long *)malloc(tablesize);
             image->rowsize = (long *)malloc(tablesize);
             if( image->rowstart == 0 || image->rowsize == 0 ) {
-                cerr << "iopen: error on table alloc" << endl;
-                return NULL;
+              cerr << "iopen: error on table alloc" << endl;
+              return NULL;
             }
             image->rleend = 512L+2*tablesize;
-            if (*mode=='w') {
-                max = image->ysize*image->zsize;
-                for(i=0; i<max; i++) {
-                    image->rowstart[i] = 0;
-                    image->rowsize[i] = -1;
-                }
-            } else {
+            if(*mode=='w') {
+              max = image->ysize*image->zsize;
+              for(i=0; i<max; i++) {
+                image->rowstart[i] = 0;
+                image->rowsize[i] = -1;
+              }
             }
         }
         image->cnt = 0;
         image->ptr = 0;
         image->base = 0;
         if( (image->tmpbuf = ibufalloc(image)) == 0 ) {
-            cerr << "iopen: error on tmpbuf alloc " << image->xsize << endl;
-            return NULL;
+          cerr << "iopen: error on tmpbuf alloc " << image->xsize << endl;
+          return NULL;
         }
         image->x = image->y = image->z = 0;
         image->file = f;
-        image->offset = 512L;                   /* set up for img_optseek */
+        image->offset = 512L;          // set up for img_optseek
         lseek(image->file, 512L, 0);
         return(image);
 }
@@ -167,7 +169,7 @@ IMAGE *imgopen(int f, char *file, char *mode, unsigned int type, unsigned int di
 
 //----------------------------------------------------------------
 unsigned short *ibufalloc(IMAGE *image) {
-    return (unsigned short *)malloc(IBUFSIZE(image->xsize));
+  return (unsigned short *) malloc(IBUFSIZE(image->xsize));
 }
 
 
@@ -219,9 +221,9 @@ int putrow(IMAGE *image, unsigned short *buffer, unsigned int y, unsigned int z)
                 img_seek(image,y,z);
                 cnt = image->xsize;
                 if(img_write(image,image->tmpbuf,cnt) != cnt) {
-                    return -1;
+                  return -1;
 		} else {
-                    return cnt;
+                  return cnt;
 		}
 	    break;
             case 2:
@@ -229,27 +231,27 @@ int putrow(IMAGE *image, unsigned short *buffer, unsigned int y, unsigned int z)
                 max = image->max;
                 sptr = buffer;
                 for(x=image->xsize; --x;) {
-                    if (*sptr > max) { max = *sptr; }
-                    if (*sptr < min) { min = *sptr; }
-                    sptr++;
+                  if(*sptr > max) { max = *sptr; }
+                  if(*sptr < min) { min = *sptr; }
+                  ++sptr;
                 }
                 image->min = min;
                 image->max = max;
                 img_seek(image,y,z);
                 cnt = image->xsize<<1;
                 if(image->dorev) {
-                    cvtshorts(buffer,cnt);
+                  cvtshorts(buffer,cnt);
 		}
-                if (img_write(image,buffer,cnt) != cnt) {
-                    if(image->dorev) {
-                        cvtshorts(buffer,cnt);
-		    }
-                    return -1;
+                if(img_write(image,buffer,cnt) != cnt) {
+                  if(image->dorev) {
+                    cvtshorts(buffer,cnt);
+		  }
+                  return -1;
                 } else {
-                    if(image->dorev) {
-                        cvtshorts(buffer,cnt);
-		    }
-                    return image->xsize;
+                  if(image->dorev) {
+                    cvtshorts(buffer,cnt);
+		  }
+                  return image->xsize;
                 }
 	    break;
             default:
@@ -262,9 +264,9 @@ int putrow(IMAGE *image, unsigned short *buffer, unsigned int y, unsigned int z)
                 max = image->max;
                 sptr = buffer;
                 for(x = image->xsize; --x;) {
-                    if (*sptr > max) { max = *sptr; }
-                    if (*sptr < min) { min = *sptr; }
-                    ++sptr;
+                  if(*sptr > max) { max = *sptr; }
+                  if(*sptr < min) { min = *sptr; }
+                  ++sptr;
                 }
                 image->min = min;
                 image->max = max;
@@ -272,9 +274,9 @@ int putrow(IMAGE *image, unsigned short *buffer, unsigned int y, unsigned int z)
                 img_setrowsize(image,cnt,y,z);
                 img_seek(image,y,z);
                 if(img_write(image,image->tmpbuf,cnt) != cnt) {
-                    return -1;
+                  return -1;
 		} else {
-                    return image->xsize;
+                  return image->xsize;
 		}
 	    break;
             case 2:
@@ -282,9 +284,9 @@ int putrow(IMAGE *image, unsigned short *buffer, unsigned int y, unsigned int z)
                 max = image->max;
                 sptr = buffer;
                 for(x=image->xsize; --x;) {
-                    if (*sptr > max) { max = *sptr; }
-                    if (*sptr < min) { min = *sptr; }
-                    ++sptr;
+                  if(*sptr > max) { max = *sptr; }
+                  if(*sptr < min) { min = *sptr; }
+                  ++sptr;
                 }
                 image->min = min;
                 image->max = max;
@@ -295,7 +297,7 @@ int putrow(IMAGE *image, unsigned short *buffer, unsigned int y, unsigned int z)
                 if(image->dorev) {
                     cvtshorts(image->tmpbuf,cnt);
 		}
-                if (img_write(image,image->tmpbuf,cnt) != cnt) {
+                if(img_write(image,image->tmpbuf,cnt) != cnt) {
                     if(image->dorev)
                         cvtshorts(image->tmpbuf,cnt);
                     return -1;

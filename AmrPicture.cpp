@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.cpp,v 1.40 1999-10-05 21:53:10 vince Exp $
+// $Id: AmrPicture.cpp,v 1.41 1999-12-01 22:55:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1076,7 +1076,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 { 
   int i, j, jish, jtmp;
 
-  if(! bCartGridSmoothing) {
+  if( ! bCartGridSmoothing) {
     for(j = 0; j < imagesizev; ++j) {
       jish = j*imagesizeh;
       jtmp =  datasizeh * (j/scale);

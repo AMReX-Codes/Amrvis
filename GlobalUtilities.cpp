@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GlobalUtilities.cpp,v 1.30 1999-05-10 18:54:18 car Exp $
+// $Id: GlobalUtilities.cpp,v 1.31 1999-12-01 22:55:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -178,13 +178,9 @@ void GetDefaults(const aString &defaultsFile) {
       }
     }
   }
-#ifdef BL_USE_MPI
   if(ParallelDescriptor::IOProcessor()) {
     cout << "Reading defaults from:  " << fullDefaultsFile << endl;
   }
-#else
-    cout << "Reading defaults from:  " << fullDefaultsFile << endl;
-#endif
 
   ws(defs);
   defs.getline(buffer, BUFSIZ, '\n');
@@ -268,6 +264,8 @@ void GetDefaults(const aString &defaultsFile) {
           fileType = FAB;
 	} else if(strcmp(tempString, "multifab") == 0) {
           fileType = MULTIFAB;
+	} else if(strcmp(tempString, "newplt") == 0) {
+          fileType = NEWPLT;
 	} else {  // error
 	  cerr << "Error in defaults file:  invalid parameter for filetype:  "
 	       << tempString << endl;
@@ -407,21 +405,21 @@ void ParseCommandLine(int argc, char *argv[]) {
   dumpSliceList.resize(3);  // always use 3 (zslice in 2d is image plane)
 
   int i;
-  for(i = 1; i <= argc - 1; i++) {
+  for(i = 1; i <= argc - 1; ++i) {
     if(strcmp(argv[i], "-maxpixmapsize") == 0) {
       if(argc-1<i+1 || atoi(argv[i+1]) == 0) {
         PrintUsage(argv[0]);
       } else {
 	maxPictureSize = atoi(argv[i+1]);
       }
-      i++;
+      ++i;
     } else if(strcmp(argv[i], "-bw") == 0) {
       if(argc-1<i+1 || atoi(argv[i+1]) < 0) {
         PrintUsage(argv[0]);
       } else {
 	boundaryWidth = atoi(argv[i+1]);
       }
-      i++;
+      ++i;
     } else if(strcmp(argv[i], "-maxlev") == 0) {
       if(argc-1<i+1 || atoi(argv[i+1]) < 0) {
         PrintUsage(argv[0]);
@@ -429,10 +427,10 @@ void ParseCommandLine(int argc, char *argv[]) {
         maxLevel = atoi(argv[i+1]);
         useMaxLevel = true;
       }
-      i++;
+      ++i;
     } else if(strcmp(argv[i], "-sleep") == 0) {
       sleepTime = atoi(argv[i+1]);
-      i++;
+      ++i;
     } else if(strcmp(argv[i], "-fabiosize") == 0) {
       int iSize = atoi(argv[i+1]);
       if(iSize == 8 || iSize == 32) {
@@ -442,21 +440,21 @@ void ParseCommandLine(int argc, char *argv[]) {
 	     << endl;
         fabIOSize = 0;
       }
-      i++;
+      ++i;
     } else if(strcmp(argv[i], "-skippltlines") == 0) {
       if(argc-1<i+1 || atoi(argv[i+1]) < 0) {
         PrintUsage(argv[0]);
       } else {
 	skipPltLines = atoi(argv[i+1]);
       }
-      i++;
+      ++i;
     } else if(strcmp(argv[i], "-boxcolor") == 0) {
       if(argc-1<i+1 || atoi(argv[i+1]) < 0) {
         PrintUsage(argv[0]);
       } else {
 	boxColor = atoi(argv[i+1]);
       }
-      i++;
+      ++i;
 #    if (BL_SPACEDIM == 2)
     } else if(strcmp(argv[i],"-a") == 0) {
       animation = true; 
@@ -483,7 +481,7 @@ void ParseCommandLine(int argc, char *argv[]) {
       if(argc-1<i+4 || ! strcpy(clby, argv[i+4])) {
         PrintUsage(argv[0]);
       }
-      i=i+4;
+      i += 4;
       givenBox = true;
 #    else
       if(argc-1<i+1 || ! strcpy(clsx, argv[i+1])) {
@@ -504,7 +502,7 @@ void ParseCommandLine(int argc, char *argv[]) {
       if(argc-1<i+6 || ! strcpy(clbz, argv[i+6])) {
         PrintUsage(argv[0]);
       }
-      i=i+6;
+      i += 6;
       givenBox = true;
 #   endif
 
@@ -526,8 +524,7 @@ void ParseCommandLine(int argc, char *argv[]) {
 	cout << "******* using min max = " << specifiedMin
 	     << "  " << specifiedMax << endl;
       }
-      i++;
-      i++;
+      i += 2;
     } else if(strcmp(argv[i],"-help") == 0) {
       PrintUsage(argv[0]);
     } else if(strcmp(argv[i], "-xslice") == 0) {
@@ -536,21 +533,21 @@ void ParseCommandLine(int argc, char *argv[]) {
       } else {
 	AddSlices(XDIR, argv[i+1]);
       }
-      i++;
+      ++i;
     } else if(strcmp(argv[i], "-yslice") == 0) {
       if(argc-1<i+1) {
         PrintUsage(argv[0]);
       } else {
 	AddSlices(YDIR, argv[i+1]);
       }
-      i++;
+      ++i;
     } else if(strcmp(argv[i], "-zslice") == 0) {
       if(argc-1<i+1) {
         PrintUsage(argv[0]);
       } else {
 	AddSlices(ZDIR, argv[i+1]);
       }
-      i++;
+      ++i;
     } else if(strcmp(argv[i], "-boxslice") == 0) {
 #    if (BL_SPACEDIM == 2)
       if(argc-1<i+1 || ! strcpy(clsx, argv[i+1])) {
@@ -565,7 +562,7 @@ void ParseCommandLine(int argc, char *argv[]) {
       if(argc-1<i+4 || ! strcpy(clby, argv[i+4])) {
         PrintUsage(argv[0]);
       }
-      i=i+4;
+      i += 4;
       givenBoxSlice = true;
 #    else
       if(argc-1<i+1 || ! strcpy(clsx, argv[i+1])) {
@@ -586,27 +583,27 @@ void ParseCommandLine(int argc, char *argv[]) {
       if(argc-1<i+6 || ! strcpy(clbz, argv[i+6])) {
         PrintUsage(argv[0]);
       }
-      i=i+6;
+      i += 6;
       givenBoxSlice = true;
 #   endif
     } else if(strcmp(argv[i],"-palette") == 0) {
       PltApp::SetDefaultPalette(argv[i+1]);
       initialPalette = argv[i+1];
-      i++;
+      ++i;
     } else if(strcmp(argv[i], "-initialderived") == 0) {
       PltApp::SetInitialDerived(argv[i+1]);
       initialDerived = argv[i+1];
-      i++;
+      ++i;
     } else if(strcmp(argv[i], "-initialscale") == 0) {
       int tempiscale = atoi(argv[i+1]);
       if(argc-1 < i+1 || tempiscale < 1) {
         PrintUsage(argv[0]);
       }
       PltApp::SetInitialScale(tempiscale);
-      i++;
+      ++i;
     } else if(strcmp(argv[i], "-numberformat") == 0) {
       PltApp::SetInitialFormatString(argv[i+1]);
-      i++;
+      ++i;
     } else if(strcmp(argv[i], "-showboxes") == 0) {
       if(*argv[i+1] == 't' || *argv[i+1] == 'T') {
         PltApp::SetDefaultShowBoxes(true);
@@ -615,7 +612,7 @@ void ParseCommandLine(int argc, char *argv[]) {
       } else {
         PrintUsage(argv[0]);
       }
-      i++;
+      ++i;
     } else if(strcmp(argv[i], "-cliptoppalette") == 0) {
       maxPaletteIndex = 254;  // clip the top palette index
     } else if(strcmp(argv[i], "-sliceallvars") == 0) {
@@ -678,15 +675,12 @@ void ParseCommandLine(int argc, char *argv[]) {
   if(fileType == INVALIDTYPE) {
     BoxLib::Abort("Error:  invalid file type.  Exiting.");
   } else {
-#ifdef BL_USE_MPI
     if(ParallelDescriptor::IOProcessor()) {
-      cout << ">>>>>>> Setting file type to "
-           << FileTypeString[fileType] << "." << endl << endl;
+      if(verbose) {
+        cout << ">>>>>>> Setting file type to "
+             << FileTypeString[fileType] << "." << endl << endl;
+      }
     }
-#else
-      cout << ">>>>>>> Setting file type to "
-           << FileTypeString[fileType] << "." << endl << endl;
-#endif
   }
 
 }  // end ParseCommandLine
@@ -756,7 +750,7 @@ int CRRBetweenLevels(int fromlevel, int tolevel, const Array<int> &refratios) {
   BL_ASSERT(tolevel >= fromlevel);
   BL_ASSERT(tolevel <= refratios.length());
   int level, rr = 1;
-  for(level = fromlevel; level < tolevel; level++) {
+  for(level = fromlevel; level < tolevel; ++level) {
     rr *= refratios[level];
   }
   return rr;
@@ -789,7 +783,7 @@ int DetermineMaxAllowableLevel(const Box &finestbox, int finestlevel,
 #   endif
 
     if(boxpoints > maxpoints) {  // try next coarser level
-      maxallowablelevel--;
+      --maxallowablelevel;
       levelDomain = finestbox;
       levelDomain.coarsen
               (CRRBetweenLevels(maxallowablelevel, finestlevel, refratios));

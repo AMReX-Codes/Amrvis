@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.cpp,v 1.20 1999-03-08 22:00:48 vince Exp $
+// $Id: Palette.cpp,v 1.21 1999-12-01 22:55:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -239,16 +239,15 @@ void Palette::SetWindowPalette(const aString &palName, Window newPalWindow) {
 // -------------------------------------------------------------------
 void Palette::ChangeWindowPalette(const aString &palName, Window newPalWindow) {
   ReadPalette(palName);
-  
 }
 
-void Palette::ReadPalette(const aString &palName)
-{
+
+// -------------------------------------------------------------------
+void Palette::ReadPalette(const aString &palName) {
   ReadSeqPalette(palName);
   XStoreColors(display, colmap, ccells.dataPtr(), totalColorSlots);
   XStoreColors(display, colmap, sysccells.dataPtr(), reserveSystemColors);
 }
-
 
 
 // -------------------------------------------------------------------
