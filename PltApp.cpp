@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.87 2001-05-04 00:16:34 vince Exp $
+// $Id: PltApp.cpp,v 1.88 2001-05-04 01:03:08 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1948,6 +1948,7 @@ void PltApp::DestroyInfoWindow(Widget, XtPointer xp, XtPointer) {
 // -------------------------------------------------------------------
 void PltApp::CloseInfoWindow(Widget, XtPointer, XtPointer) {
   XtPopdown(wInfoTopLevel);
+  infoShowing = false;
 }
 
 
@@ -2001,7 +2002,7 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   int numEntries = 9+amrData.FinestLevel()+1;
   char **entries = new char *[numEntries];
   
-  for(int j(0); j<numEntries; j++) {
+  for(int j(0); j < numEntries; ++j) {
     entries[j] = new char[BUFSIZ];
   }
   
@@ -2009,7 +2010,7 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   char buf[BUFSIZ];
   ostrstream prob(buf, BUFSIZ);
   prob.precision(15);
-  strcpy(entries[i], fileName.c_str()); ++i;
+  strcpy(entries[i], fileNames[currentFrame].c_str()); ++i;
   strcpy(entries[i], amrData.PlotFileVersion().c_str()); ++i;
   prob << "time: "<< amrData.Time() << ends;
   strcpy(entries[i], buf); ++i;
@@ -2080,7 +2081,8 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
 			    XmNleftAttachment, XmATTACH_POSITION,
 			    XmNleftPosition, 25,
 			    NULL);
-  AddStaticCallback(wInfoCloseButton, XmNactivateCallback, &PltApp::CloseInfoWindow);
+  AddStaticCallback(wInfoCloseButton, XmNactivateCallback,
+		    &PltApp::CloseInfoWindow);
   
   XtManageChild(wInfoList);
   XtManageChild(wInfoCloseButton);
