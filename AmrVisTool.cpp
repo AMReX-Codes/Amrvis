@@ -52,13 +52,13 @@ void BatchFunctions();
 // CallBack functions
 void CBFileMenu(Widget, XtPointer, XtPointer);
 void CBOpenPltFile(Widget, XtPointer, XtPointer);
-void CBPrefMenu(Widget, XtPointer, XtPointer);
-void CBHelpMenu(Widget, XtPointer, XtPointer);
+//void CBPrefMenu(Widget, XtPointer, XtPointer);
+//void CBHelpMenu(Widget, XtPointer, XtPointer);
 
 XtAppContext	app;
 Widget		wTopLevel, wTextOut, wDialog;
 Widget	wMainWindow, wMenuBar;
-XmString	sFile, sOpen, sQuit, sPreferences, sSet, sHelp, sHelpMenu;
+XmString	sFile, sOpen, sQuit;//, sPreferences, sSet, sHelp, sHelpMenu;
 Arg		args[32];
 cMessageArea	messageText;
 char		buffer[BUFSIZ];
@@ -294,15 +294,15 @@ void CreateMainWindow(int argc, char *argv[]) {
   sFile    = XmStringCreateSimple("File");
   sOpen    = XmStringCreateSimple("Open...");
   sQuit    = XmStringCreateSimple("Exit");
-  sPreferences = XmStringCreateSimple("Preferences");
-  sSet = XmStringCreateSimple("Set...");
-  sHelp    = XmStringCreateSimple("Help");
-  sHelpMenu    = XmStringCreateSimple("Help...");
+//  sPreferences = XmStringCreateSimple("Preferences");
+//  sSet = XmStringCreateSimple("Set...");
+//  sHelp    = XmStringCreateSimple("Help");
+//  sHelpMenu    = XmStringCreateSimple("Help...");
 
   wMenuBar = XmVaCreateSimpleMenuBar(wMainWindow, "menuBar",
 		XmVaCASCADEBUTTON, sFile, 'F',
-		XmVaCASCADEBUTTON, sPreferences, 'P',
-		XmVaCASCADEBUTTON, sHelp, 'H',
+                //XmVaCASCADEBUTTON, sPreferences, 'P',
+                //XmVaCASCADEBUTTON, sHelp, 'H',
 		XmNtopAttachment,	XmATTACH_FORM,
 		XmNleftAttachment,	XmATTACH_FORM,
 		XmNrightAttachment,	XmATTACH_FORM,
@@ -315,6 +315,7 @@ void CreateMainWindow(int argc, char *argv[]) {
     XmVaPUSHBUTTON, sQuit, 'Q', NULL, NULL,
     NULL);
 
+/*
   XmVaCreateSimplePulldownMenu(wMenuBar, "prefMenu", 1, CBPrefMenu,
     XmVaPUSHBUTTON, sSet, 'O', NULL, NULL,
     NULL);
@@ -322,14 +323,14 @@ void CreateMainWindow(int argc, char *argv[]) {
   XmVaCreateSimplePulldownMenu(wMenuBar, "helpMenu", 2, CBHelpMenu,
     XmVaPUSHBUTTON, sHelpMenu, 'O', NULL, NULL,
     NULL);
-
+    */
   XmStringFree(sFile);
   XmStringFree(sOpen);
   XmStringFree(sQuit);
-  XmStringFree(sPreferences);
-  XmStringFree(sSet);
-  XmStringFree(sHelp);
-  XmStringFree(sHelpMenu);
+//  XmStringFree(sPreferences);
+//  XmStringFree(sSet);
+//  XmStringFree(sHelp);
+//  XmStringFree(sHelpMenu);
 
   XtManageChild(wMenuBar);
 
@@ -606,7 +607,7 @@ void CBQuitPltApp(Widget ofPltApp, XtPointer client_data, XtPointer) {
 
 
 // ---------------------------------------------------------------
-void CBPrefMenu(Widget, XtPointer, XtPointer) {
+//void CBPrefMenu(Widget, XtPointer, XtPointer) {
   /*
   static Widget wDialog, wPrefWindow, wTypeRadioBox, wTypeOkButton, wTypeRowCol;
   static Widget wToggle;
@@ -614,11 +615,11 @@ void CBPrefMenu(Widget, XtPointer, XtPointer) {
   int i = 0;
   int item = (int) client_data;
   */
-}
+//}
 
 
 // ---------------------------------------------------------------
-void CBHelpMenu(Widget, XtPointer client_data, XtPointer) {
+//void CBHelpMenu(Widget, XtPointer client_data, XtPointer) {
   /*
   static Widget wDialog, wHelpWindow, wTypeOkButton, wTypeRowCol;
   static Widget wToggle;
@@ -647,6 +648,6 @@ void CBHelpMenu(Widget, XtPointer client_data, XtPointer) {
     XtPopup(XtParent(wHelpWindow), XtGrabExclusive);
   }  
   */
-}
+//}
 // ---------------------------------------------------------------
 // ---------------------------------------------------------------
