@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.47 2001-03-14 00:41:53 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.48 2001-03-17 16:54:38 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -210,46 +210,8 @@ void CreateMainWindow(int argc, char *argv[]) {
   int i;
   aString	comlineFileName;
 
-#ifdef CRAY
-#  if (BL_SPACEDIM == 2)
-     String fallbacks[6];
-     fallbacks[0] = "*fontList:7x13=charset";
-     fallbacks[1] = "*bottomShadowColor:gray";
-     fallbacks[2] = "*topShadowColor:gray";
-     fallbacks[3] = "*background:black";
-     fallbacks[4] = "*foreground:white";
-     fallbacks[5] = NULL;
-
-#  elif (BL_SPACEDIM == 3)
-     //String fallbacks[6];
-     String fallbacks[4];
-     fallbacks[0] = "*fontList:7x13=charset";
-     fallbacks[1] = "*bottomShadowColor:yellow";
-     fallbacks[2] = "*topShadowColor:gray";
-     fallbacks[3] = NULL;
-     //fallbacks[3] = "*background:black";
-     //fallbacks[4] = "*foreground:white";
-     //fallbacks[5] = NULL;
-     //String fallbacks[] = {"*fontList:7x13=charset",
-                           //"*background:black",
-                           //"*foreground:white",
-                           //"*bottomShadowColor:gray28",
-                           //"*topShadowColor:gray42",
-                           //NULL };
-#  endif
-
-#else
-
-#if (BL_SPACEDIM == 2)
-  String fallbacks[] = {"*fontList:7x13=charset", "*background:black",
-			"*foreground:white", "*bottomShadowColor:yellow",
-			"*topShadowColor:gray", NULL };
-#elif (BL_SPACEDIM == 3)
   String fallbacks[] = {"*fontList:variable=charset",
 			NULL };
-#endif
-
-#endif
 
 
   wTopLevel = XtVaAppInitialize(&app, "AmrVisTool", NULL, 0, 
