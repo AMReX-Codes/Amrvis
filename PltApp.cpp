@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.90 2001-05-10 23:38:01 vince Exp $
+// $Id: PltApp.cpp,v 1.91 2001-05-17 23:32:35 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -987,7 +987,7 @@ void PltApp::PltAppInit() {
       XtVaCreateManagedWidget("whichFileScale", xmScaleWidgetClass, wControlForm,
 			      XmNminimum,     0,
 			      XmNmaximum,     animFrames-1,
-			      XmNvalue,	      0,
+			      XmNvalue,	      currentFrame,
 			      XmNorientation, XmHORIZONTAL,
 			      XmNx,           0,
 			      XmNscaleWidth,  wcfWidth * 2 / 3,
@@ -1003,12 +1003,12 @@ void PltApp::PltAppInit() {
     XtVaGetValues(wAnimLabelFast, XmNwidth, &slw, NULL);
     XtVaSetValues(wAnimLabelFast, XmNx, wcfWidth-slw, NULL);
     
-    int fnl(fileName.length() - 1);
-    while(fnl > -1 && fileName[fnl] != '/') {
+    int fnl(fileNames[currentFrame].length() - 1);
+    while(fnl > -1 && fileNames[currentFrame][fnl] != '/') {
       --fnl;
     }
 
-    XmString fileString = XmStringCreateSimple(&fileName[fnl+1]);
+    XmString fileString = XmStringCreateSimple(&fileNames[currentFrame][fnl+1]);
     wWhichFileLabel = XtVaCreateManagedWidget("whichFileLabel",
 			      xmLabelWidgetClass, wControlForm,	
 			      XmNx, 0,
@@ -2900,17 +2900,18 @@ XYPlotDataList* PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
   Array<char *> intersectStr(mal + 1);
   
 #if (BL_SPACEDIM == 3)
-  char buffer[100];
+  char buffer[128];
   sprintf(buffer, "%s%s %s%s",
 	  (dir1 == XDIR) ? "X=" : "Y=", pltAppState->GetFormatString().c_str(),
 	  (dir2 == YDIR) ? "Y=" : "Z=", pltAppState->GetFormatString().c_str());
 #endif
   for(lev = 0; lev <= mal; ++lev) {
     XdX[lev] = amrData.DxLevel()[lev][sdir];
-    intersectStr[lev] = new char[30];
+    intersectStr[lev] = new char[128];
 #if (BL_SPACEDIM == 2)
     sprintf(intersectStr[lev], ((dir1 == XDIR) ? "X=" : "Y="));
-    sprintf(intersectStr[lev]+2, pltAppState->GetFormatString().c_str(), gridOffset[dir1] +
+    sprintf(intersectStr[lev]+2, pltAppState->GetFormatString().c_str(),
+	    gridOffset[dir1] +
 	    (0.5 + trueRegion[lev].smallEnd(dir1))*amrData.DxLevel()[lev][dir1]);
 #elif (BL_SPACEDIM == 3)
     sprintf(intersectStr[lev], buffer,
@@ -2920,10 +2921,10 @@ XYPlotDataList* PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 	    gridOffset[dir2]);
 #endif	    
   }
-  XYPlotDataList *newlist =
-    new XYPlotDataList(*derived, mal, ix, amrData.RefRatio(),
-		       XdX, intersectStr, gridOffset[sdir]);
-  int lineOK;
+  XYPlotDataList *newlist = new XYPlotDataList(*derived, mal, ix,
+				     amrData.RefRatio(),
+		                     XdX, intersectStr, gridOffset[sdir]);
+  bool lineOK;
   DataServices::Dispatch(DataServices::LineValuesRequest,
 			 dataServicesPtr[currentFrame],
 			 mal + 1,
@@ -4119,7 +4120,7 @@ void PltApp::ShowFrame() {
 #if (BL_SPACEDIM == 2)
   for(int dim(0); dim < 2; ++dim) {
     if(XYplotwin[dim]) {
-      XYplotwin[dim]->UpdateFrame(currentFrame, pltAppState->CurrentDerived());
+      XYplotwin[dim]->UpdateFrame(currentFrame);
     }
   }
 #endif

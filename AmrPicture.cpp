@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.63 2001-05-04 00:16:33 vince Exp $
+// $Id: AmrPicture.cpp,v 1.64 2001-05-17 23:32:34 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -2285,7 +2285,8 @@ void AmrPicture::DrawVectorField(Display *pDisplay, Drawable &pDrawable,
                                    const GC &pGC, int hDir, int vDir, int maxLength,
                                    const Real *hdat, const Real *vdat, 
                                    const Real velocityMax, const Box &dvfSliceBox,
-                                   int dvfFactor){
+                                   int dvfFactor)
+{
   int maxpoints(pltAppStatePtr->GetNumContours());  // partition longest side
   BL_ASSERT(maxpoints > 0);
   Real sight_h(maxLength / maxpoints);
@@ -2294,7 +2295,6 @@ void AmrPicture::DrawVectorField(Display *pDisplay, Drawable &pDrawable,
     stride = 1;
   }
   Real Amax(1.25 * sight_h);
-  Real eps(1.0e-3);
   Real arrowLength(0.25);
   XSetForeground(pDisplay, pGC, palPtr->WhiteIndex());
   int ilo(dvfSliceBox.smallEnd(hDir));
@@ -2306,34 +2306,41 @@ void AmrPicture::DrawVectorField(Display *pDisplay, Drawable &pDrawable,
   int jhi(dvfSliceBox.bigEnd(vDir));
   Real xlft(ilo + 0.5);
   Real ybot(jlo + 0.5);
+  Real x, y, x1, y1, x2, y2, a, b, p1, p2;
+  //Real s;
+  //Real eps(1.0e-3);
+  int iX1, iY1, iX2, iY2;
   for(int jj(jlo); jj <= jhi; jj += stride) {
-    Real y(ybot + (jj-jlo));
+    y = ybot + (jj-jlo);
     for(int ii(ilo); ii <= ihi; ii += stride) {
-      Real x(xlft + (ii-ilo));
-      Real x1(hdat[ii-ilo + nx*(jj-jlo)]);
-      Real y1(vdat[ii-ilo + nx*(jj-jlo)]);
-      Real s(sqrt(x1*x1 + y1*y1));
-      if(s < eps) {
-        continue;
-      }
-      Real a(Amax * (x1 / velocityMax));
-      Real b(Amax * (y1 / velocityMax));
-      Real x2(x + a);
-      Real y2(y + b); 
-      XDrawLine(pDisplay, pDrawable, pGC, 
-                (int) ((x - leftEdge) * dvfFactor),
-                (int) (imageSizeV - ((y - bottomEdge) * dvfFactor)),
-                (int) ((x2 - leftEdge) * dvfFactor),
-                (int) (imageSizeV - ((y2 - bottomEdge) * dvfFactor)));
-      Real p1(x2 - arrowLength * a);
-      Real p2(y2 - arrowLength * b);
-      p1 = p1 - (arrowLength / 2.0) * b;
-      p2 = p2 + (arrowLength / 2.0) * a;
-      XDrawLine(pDisplay, pDrawable, pGC, 
-                (int) ((x2 - leftEdge) * dvfFactor),
-                (int) (imageSizeV - ((y2 - bottomEdge) * dvfFactor)),
-                (int) ((p1 - leftEdge) * dvfFactor),
-                (int) (imageSizeV - ((p2 - bottomEdge) * dvfFactor)));
+      x = xlft + (ii-ilo);
+      x1 = hdat[ii-ilo + nx * (jj-jlo)];
+      y1 = vdat[ii-ilo + nx * (jj-jlo)];
+      //s = sqrt(x1 * x1 + y1 * y1);
+      //if(s < eps) {
+	//cout << "**** s eps = " << s << "  " << eps << endl;
+        //continue;
+      //}
+      a = Amax * (x1 / velocityMax);
+      b = Amax * (y1 / velocityMax);
+      x2 = x + a;
+      y2 = y + b; 
+      iX1 = (int) ((x - leftEdge) * dvfFactor);
+      iY1 = (int) (imageSizeV - ((y - bottomEdge) * dvfFactor));
+      iX2 = (int) ((x2 - leftEdge) * dvfFactor);
+      iY2 = (int) (imageSizeV - ((y2 - bottomEdge) * dvfFactor));
+      XDrawLine(pDisplay, pDrawable, pGC, iX1, iY1, iX2, iY2);
+
+      // draw the arrow heads
+      p1 = x2 - arrowLength * a;
+      p2 = y2 - arrowLength * b;
+      p1 = p1 - (arrowLength * 0.5) * b;
+      p2 = p2 + (arrowLength * 0.5) * a;
+      iX1 = iX2;
+      iY1 = iY2;
+      iX2 = (int) ((p1 - leftEdge) * dvfFactor);
+      iY2 = (int) (imageSizeV - ((p2 - bottomEdge) * dvfFactor));
+      XDrawLine(pDisplay, pDrawable, pGC, iX1, iY1, iX2, iY2);
     }
   }
 }

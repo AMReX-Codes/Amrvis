@@ -467,7 +467,7 @@ void XYPlotWin::InitializeAnimation(int curr_frame, int num_frames) {
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::UpdateFrame(int frame, aString comp) {
+void XYPlotWin::UpdateFrame(int frame) {
   XYPlotDataList *tempList;
   int num_lists_changed(0);
   if( ! animatingQ && ! zoomedInQ) {
@@ -1084,8 +1084,7 @@ void XYPlotWin::clearData(void) {
 // -------------------------------------------------------------------
 void XYPlotWin::drawData(void){
 
-  double sx1, sy1, sx2, sy2, ssx1, ssx2, ssy1, ssy2,
-    tx = 0, ty = 0;
+  double sx1, sy1, sx2, sy2, ssx1, ssx2, ssy1, ssy2, tx(0.0), ty(0.0);
   int code1, code2, cd, mark_inside;
   unsigned int X_idx;
   XSegment *ptr;
@@ -1095,9 +1094,13 @@ void XYPlotWin::drawData(void){
   XYPlotLegendItem *item;
 
   for(item = legendHead; item != NULL ; item = item->next) {
-    if(!item->drawQ) continue;
+    if( ! item->drawQ) {
+      continue;
+    }
     XYPlotDataListIterator li(item->list);
-    if(!li) continue;
+    if( ! li) {
+      continue;
+    }
     X_idx = 0;
     style = item->style;
     color = item->pixel;
@@ -1127,25 +1130,24 @@ void XYPlotWin::drawData(void){
 //if(bDiag) { cout << "      code1 code2 = " << code1 << "  " << code2 << endl; }
       mark_inside = (code1 == 0);
 //if(bDiag) { cout << "      mark_inside = " << mark_inside << endl; }
-      while (code1 || code2) {
-	if(code1 & code2) break;
+      while(code1 || code2) {
+	if(code1 & code2) {
+	  break;
+	}
 	cd = (code1 ? code1 : code2);
 	if(cd & LEFT_CODE) {	     // Crosses left edge
 //if(bDiag) { cout << "      _here 2.LEFT" << endl; }
 	  ty = ssy1 + (ssy2 - ssy1) * (UsrOrgX - ssx1) / (ssx2 - ssx1);
 	  tx = UsrOrgX;
-	}
-	else if(cd & RIGHT_CODE) {  // Crosses right edge
+	} else if(cd & RIGHT_CODE) {  // Crosses right edge
 //if(bDiag) { cout << "      _here 2.RIGHT" << endl; }
 	  ty = ssy1 + (ssy2 - ssy1) * (UsrOppX - ssx1) / (ssx2 - ssx1);
 	  tx = UsrOppX;
-	}
-	else if(cd & BOTTOM_CODE) { // Crosses bottom edge
+	} else if(cd & BOTTOM_CODE) { // Crosses bottom edge
 //if(bDiag) { cout << "      _here 2.BOTTOM" << endl; }
 	  tx = ssx1 + (ssx2 - ssx1) * (UsrOrgY - ssy1) / (ssy2 - ssy1);
 	  ty = UsrOrgY;
-	}
-	else if(cd & TOP_CODE) {    // Crosses top edge
+	} else if(cd & TOP_CODE) {    // Crosses top edge
 //if(bDiag) { cout << "      _here 2.TOP" << endl; }
 	  tx = ssx1 + (ssx2 - ssx1) * (UsrOppY - ssy1) / (ssy2 - ssy1);
 	  ty = UsrOppY;
@@ -1155,8 +1157,7 @@ void XYPlotWin::drawData(void){
 	  ssx1 = tx;
 	  ssy1 = ty;
 	  C_CODE(ssx1, ssy1, code1);
-	}
-	else {
+	} else {
 //if(bDiag) { cout << "      _here 2.code2" << endl; }
 	  ssx2 = tx;
 	  ssy2 = ty;
@@ -1164,7 +1165,7 @@ void XYPlotWin::drawData(void){
 	}
       }
 //if(bDiag) { cout << "      code1 code2 = " << code1 << "  " << code2 << endl; }
-      if(!code1 && !code2) {
+      if( ! code1 && ! code2) {
 	// Add segment to list
 	Xsegs[0][X_idx].x1 = Xsegs[1][X_idx].x1;
 	Xsegs[0][X_idx].y1 = Xsegs[1][X_idx].y1;
@@ -1190,28 +1191,30 @@ if((Xsegs[0][X_idx].x1 + Xsegs[0][X_idx].y1 +
   }
 }
 */
-	X_idx++;
+	++X_idx;
       }
       sx1 = sx2;
       sy1 = sy2;
       // Draw markers if requested and they are in drawing region
-      if(markQ && mark_inside)
+      if(markQ && mark_inside) {
 	dotX(wPlotWin, Xsegs[1][X_idx - 1].x1, Xsegs[1][X_idx - 1].y1,
 	     style, color);
+      }
     }
 
     // Handle last marker
     if(markQ) {
       C_CODE(sx1, sy1, mark_inside);
-      if(mark_inside == 0)
+      if(mark_inside == 0) {
 	dotX(wPlotWin, Xsegs[1][X_idx - 1].x1, Xsegs[1][X_idx - 1].y1,
 	     style, color);
+      }
     }
 
     // Draw segments
     if(plotLinesQ && (X_idx > 0)) {
       ptr = Xsegs[1];
-      while (X_idx > devInfo.maxSegs) {
+      while(X_idx > devInfo.maxSegs) {
 	segX(wPlotWin, devInfo.maxSegs, ptr, lineW, L_VAR, style, color);
 	ptr += devInfo.maxSegs;
 	X_idx -= devInfo.maxSegs;
@@ -1241,16 +1244,16 @@ void XYPlotWin::textX (Widget win, int x, int y, char *text,
   int width = bb.rbearing - bb.lbearing;
   int height = bb.ascent + bb.descent;
   
-  switch (just) {
-  case T_CENTER:     rx = x - (width / 2); ry = y - (height / 2); break;
-  case T_LEFT:       rx = x;               ry = y - (height / 2); break;
-  case T_UPPERLEFT:  rx = x;               ry = y;                break;
-  case T_TOP:        rx = x - (width / 2); ry = y;                break;
-  case T_UPPERRIGHT: rx = x - width;       ry = y;                break;
-  case T_RIGHT:      rx = x - width;       ry = y - (height / 2); break;
-  case T_LOWERRIGHT: rx = x - width;       ry = y - height;       break;
-  case T_BOTTOM:     rx = x - (width / 2); ry = y - height;       break;
-  case T_LOWERLEFT:  rx = x;               ry = y - height;       break;
+  switch(just) {
+    case T_CENTER:     rx = x - (width / 2); ry = y - (height / 2); break;
+    case T_LEFT:       rx = x;               ry = y - (height / 2); break;
+    case T_UPPERLEFT:  rx = x;               ry = y;                break;
+    case T_TOP:        rx = x - (width / 2); ry = y;                break;
+    case T_UPPERRIGHT: rx = x - width;       ry = y;                break;
+    case T_RIGHT:      rx = x - width;       ry = y - (height / 2); break;
+    case T_LOWERRIGHT: rx = x - width;       ry = y - height;       break;
+    case T_BOTTOM:     rx = x - (width / 2); ry = y - height;       break;
+    case T_LOWERLEFT:  rx = x;               ry = y - height;       break;
   }
   XDrawString(disp, XtWindow(win), textGC, rx, ry + bb.ascent, text, len);
 }
@@ -1272,22 +1275,18 @@ void XYPlotWin::segX(Widget win, int ns, XSegment *segs, int width,
 
   XGCValues gcvals;
   if(style == L_AXIS) {
-    if(gridStyle.len < 2){
+    if(gridStyle.len < 2) {
       SEGGC(gridPix, LineSolid, gridW);
-    }
-    else {
+    } else {
       SEGGC(gridPix, LineOnOffDash, gridW);
       DASH(gridStyle.dash_list, gridStyle.len);
     }
-  }
-  else { // Color and line style vary
-    if(lappr == 0){
+  } else {  // Color and line style vary
+    if(lappr == 0) {
       SEGGC(color, LineSolid, width);
-    }
-    else if(lappr == 16) {
+    } else if(lappr == 16) {
       SEGGC(backgroundPix, LineSolid, width);
-    }
-    else {
+    } else {
       SEGGC(color, LineOnOffDash, width);
       DASH(AllAttrs[lappr].lineStyle, AllAttrs[lappr].lineStyleLen);
     }
@@ -1325,7 +1324,9 @@ void XYPlotWin::CBdoClearData(Widget, XtPointer, XtPointer) {
     delete ptr;
   }
 
-  for(int idx = 0; idx != 8; ++idx) lineFormats[idx] = 0x0;
+  for(int idx = 0; idx != 8; ++idx) {
+    lineFormats[idx] = 0x0;
+  }
   legendHead = legendTail = colorChangeItem = NULL;
   numItems = numDrawnItems = 0;
   zoomedInQ = 0;
@@ -1352,8 +1353,9 @@ void XYPlotWin::CBdoExportFileDialog(Widget, XtPointer, XtPointer) {
 		      &XYPlotWin::CBdoExportFile, (XtPointer) 0);
     XtManageChild(wExportDumpFSBox);
     wExportFileDialog = XtParent(wExportDumpFSBox);
+  } else {
+    XtPopup(wExportFileDialog, XtGrabNone);
   }
-  else XtPopup(wExportFileDialog, XtGrabNone);
 }
 
 
@@ -1370,12 +1372,13 @@ void XYPlotWin::CBdoExportFile(Widget, XtPointer client_data, XtPointer data) {
   }
 
   char *filename;
-  if(animatingQ || !XmStringGetLtoR(cbs->value,
-				     XmSTRING_DEFAULT_CHARSET, &filename) ||
-      !(*filename)) {
+  if(animatingQ ||
+     ! XmStringGetLtoR(cbs->value, XmSTRING_DEFAULT_CHARSET, &filename) ||
+     ! (*filename))
+  {
     XmString label_str;
     Arg args[1];
-    label_str = XmStringCreateSimple((char*)
+    label_str = XmStringCreateSimple((char *)
 				     (animatingQ ?
 				      "Cannot create export file while animating." :
 				      "Invalid file name."));
@@ -1428,14 +1431,26 @@ void XYPlotWin::CBdoASCIIDump(Widget, XtPointer client_data, XtPointer data) {
   fprintf(fs, "TitleText: %s\n", pltTitle);
   fprintf(fs, "YUnitText: %s\n", YUnitText);
   fprintf(fs, "XUnitText: %s\n", XUnitText);
-  if(!plotLinesQ) fprintf(fs, "NoLines: true\n");
-  if(boundBoxQ) fprintf(fs, "BoundBox: on\n");
-  if(tickQ) fprintf(fs, "Ticks: on\n");
-  if(markQ) fprintf(fs, "Markers: on\n");
-  if(axisQ) fprintf(fs, "TickAxis: on\n");
+  if( ! plotLinesQ) {
+    fprintf(fs, "NoLines: true\n");
+  }
+  if(boundBoxQ) {
+    fprintf(fs, "BoundBox: on\n");
+  }
+  if(tickQ) {
+    fprintf(fs, "Ticks: on\n");
+  }
+  if(markQ) {
+    fprintf(fs, "Markers: on\n");
+  }
+  if(axisQ) {
+    fprintf(fs, "TickAxis: on\n");
+  }
 
   for(XYPlotLegendItem *item = legendHead; item; item = item->next) {
-    if(!item->drawQ) continue;
+    if( ! item->drawQ) {
+      continue;
+    }
     XYPlotDataList *list = item->list;
     fprintf(fs, "\"%s %lf Level %d/%d\n",
 	    list->derived.c_str(),
@@ -1458,11 +1473,13 @@ void XYPlotWin::CBdoOptions(Widget, XtPointer, XtPointer) {
     // Build options dialog.
     char *firstColumnText[] = {
       "Data Markers", "Ticks (vs. grid)", "Axis Lines", "Bounding Box",
-      "Plot Lines", "Display Hints" };
+      "Plot Lines", "Display Hints"
+    };
     char *secondColumnText[] = {
       "Grid Line Width", "Plot Line Width",
       "X Unit Text", "Y Unit Text",
-      "Grid Label Format X", "Grid Label Format Y"};
+      "Grid Label Format X", "Grid Label Format Y"
+    };
     
     tbool[0] = markQ;
     tbool[1] = tickQ;
@@ -1504,12 +1521,12 @@ void XYPlotWin::CBdoOptions(Widget, XtPointer, XtPointer) {
     char buffer[20], *str;
     for(ii = 0; ii != 6; ++ii) {
       switch(ii) {
-      case 0: sprintf(buffer, "%d", gridW); str = buffer; break;
-      case 1: sprintf(buffer, "%d", lineW); str = buffer; break;
-      case 2: str = XUnitText; break;
-      case 3: str = YUnitText; break;
-      case 4: str = formatX; break;
-      case 5: str = formatY; break;
+        case 0: sprintf(buffer, "%d", gridW); str = buffer; break;
+        case 1: sprintf(buffer, "%d", lineW); str = buffer; break;
+        case 2: str = XUnitText; break;
+        case 3: str = YUnitText; break;
+        case 4: str = formatX; break;
+        case 5: str = formatY; break;
       }
       wOptionsWidgets[ii] = wid = 
 	XtVaCreateManagedWidget(firstColumnText[ii],
@@ -1524,11 +1541,11 @@ void XYPlotWin::CBdoOptions(Widget, XtPointer, XtPointer) {
       
       XtVaCreateManagedWidget(secondColumnText[ii], xmLabelGadgetClass,
 			      wOptionsRC, NULL);
-      wOptionsWidgets[7+ii] = wid = 
-	XtVaCreateManagedWidget(NULL, xmTextWidgetClass, wOptionsRC,
+      wid = XtVaCreateManagedWidget(NULL, xmTextWidgetClass, wOptionsRC,
 				XmNeditMode, XmSINGLE_LINE_EDIT,
 				XmNvalue, str,
 				NULL);
+      wOptionsWidgets[7+ii] = wid;
     }
     
     XtManageChild(wOptionsRC);
@@ -1572,8 +1589,7 @@ void XYPlotWin::CBdoOptions(Widget, XtPointer, XtPointer) {
     AddStaticCallback(wCancelButton, XmNactivateCallback,
 		      &XYPlotWin::CBdoOptionsOKButton, (XtPointer) 0);
     
-    wOptionsWidgets[6] = wid = 
-      XtVaCreateManagedWidget("Save as Default",
+    wid = XtVaCreateManagedWidget("Save as Default",
 			      xmToggleButtonGadgetClass,
 			      wOptionsButtons,
 			      XmNset,     tbool[6],
@@ -1583,6 +1599,7 @@ void XYPlotWin::CBdoOptions(Widget, XtPointer, XtPointer) {
 			      XmNbottomAttachment, XmATTACH_FORM,
 			      XmNbottomOffset,     5,
 			      NULL);
+    wOptionsWidgets[6] = wid;
 			      
     AddStaticCallback(wid, XmNvalueChangedCallback,
 		      &XYPlotWin::CBdoOptionsToggleButton,
@@ -1685,20 +1702,17 @@ void XYPlotWin::CBdoOptionsOKButton(Widget, XtPointer data, XtPointer) {
       if(whichType == XDIR) {
 	parameters->Set_Parameter("InitialXWindowOffsetX", INT, buf);
 	parameters->Set_Parameter("InitialXWindowOffsetY", INT, buf2);
-      }
-      else if(whichType == YDIR){
+      } else if(whichType == YDIR){
 	parameters->Set_Parameter("InitialYWindowOffsetX", INT, buf);
 	parameters->Set_Parameter("InitialYWindowOffsetY", INT, buf2);
-      }
-      else{
+      } else{
 	parameters->Set_Parameter("InitialZWindowOffsetX", INT, buf);
 	parameters->Set_Parameter("InitialZWindowOffsetY", INT, buf2);
       }
 
       parameters->WriteToFile(".XYPlot.Defaults");
     }
-  }
-  else {
+  } else {
     tbool[0] = markQ;
     tbool[1] = tickQ;
     tbool[2] = axisQ;
@@ -1707,9 +1721,9 @@ void XYPlotWin::CBdoOptionsOKButton(Widget, XtPointer data, XtPointer) {
     tbool[5] = dispHintsQ;
     tbool[6] = saveDefaultQ;
 
-    int ii;
-    for(ii = 0; ii != 7; ++ii)
+    for(int ii(0); ii != 7; ++ii) {
       XmToggleButtonSetState(wOptionsWidgets[ii], tbool[ii], false);
+    }
     XmTextSetString(wOptionsWidgets[8], XUnitText);
     XmTextSetString(wOptionsWidgets[9], YUnitText);
     XmTextSetString(wOptionsWidgets[10], formatX);
@@ -1733,15 +1747,16 @@ void XYPlotWin::CBdoSelectDataList(Widget, XtPointer data,
     (XmDrawingAreaCallbackStruct *) call_data;
   
   if(cbs->event->xany.type == ButtonRelease &&
-     cbs->event->xbutton.button == 1) {
+     cbs->event->xbutton.button == 1)
+  {
     if(item->drawQ) {
       item->drawQ = 0;
-      numDrawnItems--;
+      --numDrawnItems;
       XtVaSetValues(item->frame,
 		    XmNtopShadowColor, backgroundPix,
 		    XmNbottomShadowColor, backgroundPix,
 		    NULL);
-      if(!animatingQ) {
+      if( ! animatingQ) {
 	lloX = lloY =  DBL_MAX;
 	hhiX = hhiY = -DBL_MAX;
 	for(XYPlotLegendItem *ptr = legendHead; ptr; ptr = ptr->next) {
@@ -1783,17 +1798,20 @@ void XYPlotWin::CBdoSelectDataList(Widget, XtPointer data,
 // -------------------------------------------------------------------
 void XYPlotWin::CBdoRemoveDataList(Widget, XtPointer client_data,
 				   XtPointer call_data) {
-  if(animatingQ) return;
+  if(animatingQ) {
+    return;
+  }
   XYPlotLegendItem *item = (XYPlotLegendItem *) client_data;
   XYPlotLegendItem *ptr;
 
-  if(item == colorChangeItem) colorChangeItem = NULL;
+  if(item == colorChangeItem) {
+    colorChangeItem = NULL;
+  }
   if((ptr = item->next) != NULL) {
     if((ptr->prev = item->prev) != NULL) {
       item->prev->next = ptr;
       XtVaSetValues(ptr->frame, XmNtopWidget, item->prev->frame, NULL);
-    }
-    else {
+    } else {
       legendHead = ptr;
       XtVaSetValues(ptr->frame, XmNtopWidget, wLegendMenu, NULL);
     }
@@ -1803,15 +1821,19 @@ void XYPlotWin::CBdoRemoveDataList(Widget, XtPointer client_data,
       for(XYPlotLegendItem *ptr2 = ptr->next;
 	  ptr2 && ptr2->list->copied_from == item->list;
 	  ptr2 = ptr2->next)
+      {
 	ptr2->list->copied_from = ptr->list;
+      }
     }
+  } else if((legendTail = item->prev) != NULL) {
+    item->prev->next = NULL;
+  } else {
+    legendHead = NULL;
   }
-  else if((legendTail = item->prev) != NULL) item->prev->next = NULL;
-  else legendHead = NULL;
 
   char mask = 0x1 << item->color;
   lineFormats[item->style] &= ~mask;
-  numItems--;
+  --numItems;
 
   if(item->drawQ) {
     --numDrawnItems;
@@ -1831,13 +1853,14 @@ void XYPlotWin::CBdoRemoveDataList(Widget, XtPointer client_data,
   XtDestroyWidget(item->frame);
   delete item->list;
   delete item;
-
 }
 
 
 // -------------------------------------------------------------------
 void XYPlotWin::CBdoCopyDataList(Widget, XtPointer data, XtPointer) {
-  if(animatingQ) return;
+  if(animatingQ) {
+    return;
+  }
   XYPlotLegendItem *item = (XYPlotLegendItem *) data;
   AddDataList(new XYPlotDataList(item->list), item);
 }
@@ -1845,7 +1868,9 @@ void XYPlotWin::CBdoCopyDataList(Widget, XtPointer data, XtPointer) {
 
 // -------------------------------------------------------------------
 void XYPlotWin::CBdoSetListLevel(Widget, XtPointer data, XtPointer) {
-  if(animatingQ) return;
+  if(animatingQ) {
+    return;
+  }
   XYMenuCBData *cbd = (XYMenuCBData *) data;
   XYPlotLegendItem *item = cbd->item;
 
@@ -1855,9 +1880,14 @@ void XYPlotWin::CBdoSetListLevel(Widget, XtPointer data, XtPointer) {
   if(item->drawQ) {
     lloX = lloY = DBL_MAX;
     hhiX = hhiY = -DBL_MAX;
-    for(item = legendHead; item; item = item->next)
-      if(item->drawQ) updateBoundingBox(item->list);
-    if(!zoomedInQ) setBoundingBox();
+    for(item = legendHead; item; item = item->next) {
+      if(item->drawQ) {
+        updateBoundingBox(item->list);
+      }
+    }
+    if( ! zoomedInQ) {
+      setBoundingBox();
+    }
     CBdoRedrawPlot(None, NULL, NULL);
   }
 }
@@ -1870,7 +1900,7 @@ void XYPlotWin::SetPalette(void) {
   pal->SetWindowPalette(pltParent->GetPaletteName(), pWindow);
   char buffer[20];
   params param_temp;   // temporary parameter grabbing slot
-  for(int idx = 0; idx < 8; idx++) {
+  for(int idx(0); idx < 8; ++idx) {
     sprintf(buffer, "%d.Color", idx);
     AllAttrs[idx].pixelValue = pal->GetColorCells()[PM_INT(buffer)].pixel;
   }
@@ -1878,7 +1908,6 @@ void XYPlotWin::SetPalette(void) {
   for(XYPlotLegendItem *item = legendHead; item; item = item->next) {
     pal->SetWindowPalette(pltParent->GetPaletteName(), XtWindow(item->wid));
   }
-
 }
 
 
@@ -1900,7 +1929,7 @@ void XYPlotWin::CBdoInitializeListColorChange(Widget, XtPointer data, XtPointer)
 // -------------------------------------------------------------------
 void XYPlotWin::CBdoSetListColor(Widget, XtPointer, XtPointer call_data) {
 
-  if(colorChangeItem && !animatingQ) {
+  if(colorChangeItem && ! animatingQ) {
     XmDrawingAreaCallbackStruct *cbs =
       (XmDrawingAreaCallbackStruct *) call_data;
     if(cbs->event->xany.type == ButtonPress) {
@@ -1908,7 +1937,7 @@ void XYPlotWin::CBdoSetListColor(Widget, XtPointer, XtPointer call_data) {
       int cy = ((totalColorSlots - 1) - cbs->event->xbutton.y) + 14;
       if(cy >= 0 && cy <= (totalColorSlots - 1)) {
 	colorChangeItem->pixel = AllAttrs[colorChangeItem->color].pixelValue =
-	  pltParent->GetPalettePtr()->GetColorCells()[cy].pixel;
+	        pltParent->GetPalettePtr()->GetColorCells()[cy].pixel;
 	XtPopup(wXYPlotTopLevel, XtGrabNone);
 	CBdoRedrawPlot(None, NULL, NULL);
 	CBdoDrawLegendItem(None, (void *) colorChangeItem, NULL);
@@ -1970,20 +1999,21 @@ void XYPlotWin::drawHint(void) {
   }
   XClearArea(disp, pWindow, 20 * devInfo.axisW,
 	     0, 0, (5 * devInfo.axisH) / 2, false);
-  switch (currHint) {
-  case 0:
-    textX(wPlotWin, devInfo.areaW - 5, devInfo.bdrPad,
-	  "Left click to zoom in.", T_UPPERRIGHT, T_AXIS);
+  switch(currHint) {
+    case 0:
+      textX(wPlotWin, devInfo.areaW - 5, devInfo.bdrPad,
+	    "Left click to zoom in.", T_UPPERRIGHT, T_AXIS);
 
-    if(zoomedInQ)
-      textX(wPlotWin, devInfo.areaW - 5, devInfo.bdrPad + devInfo.axisH,
-	    "Right click to zoom out.", T_UPPERRIGHT, T_AXIS);
+      if(zoomedInQ) {
+        textX(wPlotWin, devInfo.areaW - 5, devInfo.bdrPad + devInfo.axisH,
+	      "Right click to zoom out.", T_UPPERRIGHT, T_AXIS);
+      }
     break;
-  case 1:
-    textX(wPlotWin, devInfo.areaW - 5, devInfo.bdrPad,
-	  "Left click on legend items to toggle draw.", T_UPPERRIGHT, T_AXIS);
-    textX(wPlotWin, devInfo.areaW - 5, devInfo.bdrPad + devInfo.axisH,
-	  "Right click to select options.", T_UPPERRIGHT, T_AXIS);
+    case 1:
+      textX(wPlotWin, devInfo.areaW - 5, devInfo.bdrPad,
+	    "Left click on legend items to toggle draw.", T_UPPERRIGHT, T_AXIS);
+      textX(wPlotWin, devInfo.areaW - 5, devInfo.bdrPad + devInfo.axisH,
+	    "Right click to select options.", T_UPPERRIGHT, T_AXIS);
 
     break;
   }
@@ -2101,7 +2131,9 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 	}
 	
 	// get rid of those pesky extra MotionNotify events
-	while(XCheckTypedEvent(disp, MotionNotify, &nextEvent));
+	while(XCheckTypedEvent(disp, MotionNotify, &nextEvent)) {
+	  ;  // do nothing
+	}
 	
 	XQueryPointer(disp, pWindow, &whichRoot, &whichChild,
 		      &rootX, &rootY, &newX, &newY, &inputMask);

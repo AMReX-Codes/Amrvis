@@ -84,7 +84,7 @@ public:
 
 #if (BL_SPACEDIM == 2)
   void InitializeAnimation(int curr_frame, int num_frames);
-  void UpdateFrame(int frame, aString comp);
+  void UpdateFrame(int frame);
   void StopAnimation(void);
 #endif
 
