@@ -1,0 +1,17 @@
+
+Amrvis version 2.55 release notes.
+
+---------------------------------------------------------------------------
+-------------------------------------------------------------- New Features
+
+
+---------------------------------------------------------------------------
+----------------------------------------------------------------- Bug Fixes
+
+I fixed a bug that did not allow the "_H" to be in a multifab
+name specified on the command line.  The user can specify the
+name with or without the "_H" on both the command line or
+within the Open File dialog box.
+
+---------------------------------------------------------------------------
+---------------------------------------------------------------------------
