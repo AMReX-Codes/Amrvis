@@ -115,7 +115,7 @@ public:
   bool Contours() { return contours; }
   bool Raster() {return raster; }
   bool ColorContour() { return colContour; }
-  
+  bool VectorField() { return vectorField; }
 private:
   Window 			pictureWindow;
   int	numberOfLevels, finestLevel, numberOfDerived, numberOfContours;
@@ -157,7 +157,7 @@ private:
   Array<unsigned char *>  imageData, scaledImageData;
   Array<XImage *>         xImageArray;
   Array<bool >            xImageCreated;
-  bool contours, raster, colContour;
+  bool contours, raster, colContour, vectorField;
   
   
   // private functions
@@ -165,6 +165,7 @@ private:
   void SetRasterContour();
   void SetColorContour();
   void SetBWContour();
+  void SetVectorField();
   void SetSlice(int view, int here);
   void CoarsenSliceBox();
   void ShowFrameImage(int iSlice);
@@ -188,7 +189,9 @@ private:
   inline bool Between(Real a, Real b, Real c)
   {   return ( (a<=b)&&(b<=c) || (a>=b)&&(b>=c) ); }
 
-  //void DrawVectorField(...);
+  void DrawVectorField(Display *, Drawable &, GC);
+  void draw_vector_field(Display *, Drawable &, GC, int, int, int,
+                         const Real *, const Real *, Real, Box, int);
 };
 
 #endif

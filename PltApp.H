@@ -193,7 +193,7 @@ private:
   Widget 		wTopLevel, wAmrVisTopLevel, wAmrVisMenu;
   Widget 		wScaleMenu, wScaleOptions;
   Widget 		wLevelMenu, wLevelOptions;
-  Widget 		wContourMenu, wContourItems[4], wContourOptions;
+  Widget 		wContourMenu, wContourItems[5], wContourOptions;
   Widget		wDerivedMenu, wDerivedOptions;
   Widget 		wQuitButton, wSubregionButton;
   Widget		wPicArea, wPalArea, wPlotArea;

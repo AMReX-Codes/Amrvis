@@ -617,14 +617,14 @@ void PltApp::PltAppInit() {
                 XmNmarginHeight, 0,
                 XmNspacing, 0,
                 NULL);
-  XmString ContourItems[4];
+  XmString ContourItems[5];
   ContourItems[0] = XmStringCreateSimple("raster");
   ContourItems[1] = XmStringCreateSimple("raster w/contours");
   ContourItems[2] = XmStringCreateSimple("color contours");
   ContourItems[3] = XmStringCreateSimple("b/w contours");
+  ContourItems[4] = XmStringCreateSimple("velocity vectors");
   
-  
-  for(int j = 0; j<4; j++)
+  for(int j = 0; j<5; j++)
     {
       XtSetArg(args[0], XmNlabelString, ContourItems[j]);
       wContourItems[j] = XmCreatePushButtonGadget(wContourOptions,
@@ -633,7 +633,7 @@ void PltApp::PltAppInit() {
                     &PltApp::CBChangeContour, (XtPointer)j);
       XmStringFree(ContourItems[j]);
     }
-  XtManageChildren(wContourItems, 4);
+  XtManageChildren(wContourItems, 5);
   
   
   
@@ -1655,6 +1655,8 @@ void PltApp::CBChangeContour(Widget w, XtPointer input_data,
     array_value = 2;
   } else if (input_data == (XtPointer)3) {
     array_value = 3; 
+  } else if (input_data == (XtPointer)4) {
+    array_value = 4;
   } else assert(0);
   obj->SetCurrentContour(array_value);
   for(int np = 0; np < NPLANES; ++np) {

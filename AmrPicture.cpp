@@ -19,7 +19,7 @@
 AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
 		       PltApp *pltappptr, DataServices *dataservicesptr)
 {
-  contours = false; raster = true; colContour = false;
+  contours = false; raster = true; colContour = false; vectorField = false;
   int i, ilev;
   minDrawnLevel = mindrawnlevel;
   GAptr = gaptr;
@@ -106,9 +106,11 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
     contours = parentPltAppPtr->GetAmrPicturePtr(0)->Contours();
     raster = parentPltAppPtr->GetAmrPicturePtr(0)->Raster();
     colContour = parentPltAppPtr->GetAmrPicturePtr(0)->ColorContour();
+    vectorField = parentPltAppPtr->GetAmrPicturePtr(0)->VectorField();
   } else {
     if (parentPltAppPtr == NULL)
-      {  contours = false; raster = true; colContour = false; }
+      {  contours = false; raster = true; 
+      colContour = false; vectorField = false; }
     else cerr << "error:  can't access the parent pictures"<<endl;
   }
   int ilev;
@@ -432,6 +434,8 @@ void AmrPicture::ChangeContour(int array_val)
     SetColorContour();
   } else if (array_val == 3) {
     SetBWContour();
+  } else if (array_val == 4) {
+    SetVectorField();
   }
   if (raster == tmp_raster) // raster hasn't changed the image so all we
     { Draw(minDrawnLevel, maxDrawnLevel); } // have to do is redraw the contours
@@ -441,19 +445,23 @@ void AmrPicture::ChangeContour(int array_val)
 }
 
 void AmrPicture::SetRasterOnly() {
-  contours = false; raster = true; colContour = false;
+  contours = false; raster = true; colContour = false; vectorField = false;
 }
  
 void AmrPicture::SetRasterContour() {
-  contours = true; raster = true; colContour = false;
+  contours = true; raster = true; colContour = false; vectorField = false;
 }
 
 void AmrPicture::SetColorContour() {
-  contours = true; raster = false; colContour = true;
+  contours = true; raster = false; colContour = true; vectorField = false;
 }
 
 void AmrPicture::SetBWContour() {
-  contours = true; raster = false; colContour = false;
+  contours = true; raster = false; colContour = false; vectorField = false;
+}
+
+void AmrPicture::SetVectorField() {
+  contours = false; raster = true; colContour = false; vectorField = true;
 }
 
 // ---------------------------------------------------------------------
@@ -501,6 +509,8 @@ void AmrPicture::Draw(int fromLevel, int toLevel) {
            
   if (contours) {
     DrawContour(sliceFab, GAptr->PDisplay(), pixMap, GAptr->PGC());
+  } else if (vectorField) {
+    DrawVectorField(GAptr->PDisplay(), pixMap, GAptr->PGC());
   }
 
   if( ! pltAppPtr->Animating()) {
@@ -1051,7 +1061,7 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
   frameGrids.resize(length); 
   frameBuffer.resize(length);
   unsigned char *frameImageData = new unsigned char[dataSize[maxDrawnLevel]];
-  int iEnd;
+  int iEnd = 0;
   for(i = 0; i < length; ++i) {
     islice = (((slice - start + (posneg * i)) + length) % length);
 			          // ^^^^^^^^ + length for negative values
@@ -1667,162 +1677,145 @@ int AmrPicture::contour(const FArrayBox &fab, Real value,
   return failure_status;
 }
 
-/*
-void AmrPicture::DrawVectorField(const ContFrame& r, Real time)
+
+void AmrPicture::DrawVectorField(Display *pDisplay, 
+                                 Drawable &pDrawable, GC pGC)
 {
-  int lev, i, j;
-  int maxlev = r.level;
-  int amrlev = amrptr->finestLevel();
-  if (maxlev < 0) maxlev = amrlev;
-  maxlev = Min(maxlev,amrlev);
-  if (maxlev > MAX_LEV) {
-    cerr << "Contour::draw: maxlev > MAX_LEV" << endl;
-    abort();
+  int hDir, vDir;
+  if (myView == XY) {
+    hDir = 0;
+    vDir = 1;
+  } else if (myView == XZ) {
+    hDir = 0;
+    vDir = 2;
+  } else if (myView == YZ) {
+    hDir = 1;
+    vDir = 2;
+  } else {
+    assert(0);
   }
-  
+  const AmrData &amrData = dataServicesPtr->AmrDataRef();
+  int maxLength = amrData.ProbDomain()[maxDrawnLevel].longside();
+  int DVFscale = pltAppPtr->CurrentScale();
+  int DVFRatio = CRRBetweenLevels(maxDrawnLevel, 
+                                  maxAllowableLevel, 
+                                  amrData.RefRatio());
   // get velocity field
-  PArray<FARRAYBOX> *u[MAX_LEV];
-  PArray<FARRAYBOX> *v[MAX_LEV];
-  for (lev = 0; lev <= maxlev; lev++) {
-    u[lev] = amrptr->derive("x_velocity",time,lev);
-    v[lev] = amrptr->derive("y_velocity",time,lev);
-  }
+  Box DVFSliceBox(sliceFab[maxDrawnLevel]->box());
+  FArrayBox density(DVFSliceBox);
+  FArrayBox hVelocity(DVFSliceBox);
+  FArrayBox vVelocity(DVFSliceBox);
+  //  FArrayBox zVelocity(DVFSliceBox);
+  // fill the density and momentum:
+  aString Density("density");
+  aString choice[3];
+  choice[0] = "xmom";
+  choice[1] = "ymom";
+  choice[2] = "zmom";
+  aString hMom = choice[hDir];
+  aString vMom = choice[vDir];
+  //  aString zMom("zmom");
+  DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
+                         &density, density.box(),
+                         maxDrawnLevel, Density);
+  DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
+                         &hVelocity, hVelocity.box(),
+                         maxDrawnLevel, hMom);
+  DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
+                         &vVelocity, vVelocity.box(),
+                         maxDrawnLevel, vMom);
+  //   DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
+  //                          &zVelocity, zVelocity.box(),
+  //                          maxDrawnLevel, zMom);
+  // then divide to get velocity
+  hVelocity /= density;
+  vVelocity /= density;
+  //zVelocity /= density;
   
-  // zero out region covered by fine level
-  for (lev = 0; lev < maxlev; lev++) {
-    const BoxArray &bs = amrptr->boxArray(lev);
-    PArray<FARRAYBOX> &U = *u[lev];
-    PArray<FARRAYBOX> &V = *v[lev];
-    const BoxArray &bsf = amrptr->boxArray(lev+1);
-    int lrat = amrptr->refRatio(lev);
-    for (i = 0; i < bs.length(); i++) {
-      for (j = 0; j < bsf.length(); j++) {
-        BOX bfine(coarsen(bsf[j],lrat));
-        bfine &= bs[i];
-        if (bfine.ok()) {
-          U[i].setVal(0.0,bfine,0);
-          V[i].setVal(0.0,bfine,0);
-        }
-      }
-    }
-  }
-  
+  ////// zero out region covered by fine level
   // compute maximum speed
   Real smax = 0.0;
-  for (lev = 0; lev <= maxlev; lev++) {
-    const BoxArray &bs = amrptr->boxArray(lev);
-    PArray<FARRAYBOX> &U = *u[lev];
-    PArray<FARRAYBOX> &V = *v[lev];
-    for (i = 0; i < bs.length(); i++) {
-      // compute max speed
-      int npts = bs[i].numPts();
-      const Real* udat = U[i].dataPtr();
-      const Real* vdat = V[i].dataPtr();
-      int k;
-      for (k = 0; k < npts; k++) {
-        Real s = sqrt(udat[k]*udat[k]+vdat[k]*vdat[k]);
-        smax = Max(smax,s);
-      }
-    }
+  int npts = hVelocity.box().numPts();
+  const Real* hdat = hVelocity.dataPtr();
+  const Real* vdat = vVelocity.dataPtr();
+  //  const Real* zdat = zVelocity.dataPtr();
+  for (int k = 0; k < npts; k++) {
+    Real s = sqrt(hdat[k]*hdat[k]+vdat[k]*hdat[k]);//+zdat[k]*zdat[k]);
+    smax = Max(smax,s);
   }
+  
   
   if (smax < 1.0e-8) {
     cout << "CONTOUR: zero velocity field" << endl;
   } else {
-  */  // set color of vectors
-    /*
-      const Real* dx0 = amrptr->Geom(0).CellSize();
-      int  percent = 10;
-      Real xProbLength = Geometry::ProbLength(0);
-      Real Amax = xProbLength/Real(percent);
-      Real eps = 1.0e-3;
-      Real alen = 0.25;
-      int  nxprob = (int) (xProbLength/dx0[0]);
-      int  stride = nxprob/(2*percent);
-      if (stride < 1) stride = 1;
-      */
-    // --------- new sussman code
-  /*
-    const Real* dx0 = amrptr->Geom(0).CellSize();
-    int maxpoints= 20;  // partition longest side into 20 parts
-    Real maxlen=Geometry::ProbLength(0);
-    for (i = 1; i < BL_SPACEDIM; i++)
-      if (Geometry::ProbLength(i)>maxlen)
-        maxlen=Geometry::ProbLength(i);
-    
-    Real sight_h=maxlen/maxpoints;
-    int stride[BL_SPACEDIM];
-    for (i = 0; i < BL_SPACEDIM; i++) {
-      stride[i]= (int) (sight_h/dx0[i]);
-      if (stride[i]<1) stride[i]=1;
-    }
-    Real Amax=1.25*sight_h;
-    Real eps = 1.0e-3;
-    Real alen = 0.25;
-    // --------- end new sussman code
-    
-    // draw vectors
-    for (lev = 0; lev <= maxlev; lev++) {
-      //r.win->setfgColor(Vector_Colors[lev]);
-      // to allow more than 6 levels
-      r.win->setfgColor(Vector_Colors[lev%num_vector_colors]);
-      if (lev > 0) {
-        for(i = 0; i < BL_SPACEDIM; i++) {
-          stride[i] *= 2;
-        }
-      }
-      const Real* hx = amrptr->Geom(lev).CellSize();
-      const BoxArray &bs = amrptr->boxArray(lev);
-      PArray<FARRAYBOX> &U = *u[lev];
-      PArray<FARRAYBOX> &V = *v[lev];
-      int k;
-      for (k = 0; k < bs.length(); k++) {
-        const BOX& bx = bs[k];
-        int ilo = bx.smallEnd(0);
-        int ihi = bx.bigEnd(0);
-        int nx = ihi-ilo+1;
-        int jlo = bx.smallEnd(1);
-        int jhi = bx.bigEnd(1);
-        Real xlft = (ilo + 0.5)*hx[0];
-        Real ybot = (jlo + 0.5)*hx[1];
-        const Real* udat = U[k].dataPtr();
-        const Real* vdat = V[k].dataPtr();
-        for (j = jlo; j <= jhi; j+=stride[1]) {
-          Real y = ybot + (j-jlo)*hx[1];
-          for (i = ilo; i <= ihi; i+=stride[0]) {
-            Real x = xlft + (i-ilo)*hx[0];
-            Real u1 = udat[i-ilo + nx*(j-jlo)];
-            Real v1 = vdat[i-ilo + nx*(j-jlo)];
-            Real s = sqrt(u1*u1 + v1*v1);
-            if (s < eps) continue;
-            Real a = Amax*(u1/smax);
-            Real b = Amax*(v1/smax);
-            Real nlen = sqrt(a*a + b*b);
-            Real x2 = x + a;
-            Real y2 = y + b;
-            r.win->movePen(x,y);
-            r.win->drawLine(x2,y2);
-            Real p1 = x2 - alen*a;
-            Real p2 = y2 - alen*b;
-            p1 = p1 - (alen/2.0)*b;
-            p2 = p2 + (alen/2.0)*a;
-            r.win->drawLine(p1,p2);
-          }
-        }
-        
-      }
-    }
-    
-  } // end else
-  
-  // free memory
-  for (lev = 0; lev <= maxlev; lev++) {
-    delete u[lev];
-    delete v[lev];
-    u[lev] = v[lev] = NULL;
+    draw_vector_field(pDisplay, pDrawable, pGC, hDir, vDir, maxLength,
+                      hdat, vdat, smax, DVFSliceBox, DVFscale*DVFRatio);
   }
-  
 }
-*/
+
+
+
+
+
+void AmrPicture::draw_vector_field(Display *pDisplay, Drawable &pDrawable, 
+                                   GC pGC, int hDir, int vDir, int maxLength,
+                                   const Real *hdat, const Real *vdat, 
+                                   Real velocityMax, Box dvfSliceBox,
+                                   int dvfFactor){
+  int maxpoints= 20;  // partition longest side into 20 parts
+  Real sight_h=maxLength/maxpoints;
+  int stride = sight_h;
+  if (stride<1) 
+    { stride = 1; }
+  Real Amax=1.25*sight_h;
+  Real eps = 1.0e-3;
+  Real arrowLength = 0.25;
+  XSetForeground(pDisplay, pGC, palPtr->WhiteIndex());
+  // draw vectors
+  //  for (lev = maxDrawnLevel; lev <= maxDrawnLevel; lev++) {
+  //     stride[h] *= CRRBetween(minDrawnLevel, maxDrawnLevel, 
+  //                        amrData.RefRatio());
+  Box theBox(dvfSliceBox);
+  int ilo = theBox.smallEnd(hDir);
+  int leftEdge = ilo;
+  int ihi = theBox.bigEnd(hDir);
+  int nx = ihi-ilo+1;
+  int jlo = theBox.smallEnd(vDir);
+  int bottomEdge = jlo;
+  int jhi = theBox.bigEnd(vDir);
+  Real xlft = (ilo + 0.5);
+  Real ybot = (jlo + 0.5);
+  for (int jj = jlo; jj <= jhi; jj+=stride) {
+    Real y = ybot + (jj-jlo);
+    for (int ii = ilo; ii <= ihi; ii+=stride) {
+      Real x = xlft + (ii-ilo);
+      Real x1 = hdat[ii-ilo + nx*(jj-jlo)];
+      Real y1 = vdat[ii-ilo + nx*(jj-jlo)];
+      Real s = sqrt(x1*x1 + y1*y1);
+      if (s < eps) continue;
+      Real a = Amax*(x1/velocityMax);
+      Real b = Amax*(y1/velocityMax);
+      int x2 = x + a;
+      int y2 = y + b; 
+      XDrawLine(pDisplay, pDrawable, pGC, 
+                (x-leftEdge)*dvfFactor, 
+                imageSizeV-((y-bottomEdge)*dvfFactor), 
+                (x2-leftEdge)*dvfFactor, 
+                imageSizeV-((y2-bottomEdge)*dvfFactor));
+      Real p1 = x2 - arrowLength*a;
+      Real p2 = y2 - arrowLength*b;
+      p1 = p1 - (arrowLength/2.0)*b;
+      p2 = p2 + (arrowLength/2.0)*a;
+      XDrawLine(pDisplay, pDrawable, pGC, 
+                (x2-leftEdge)*dvfFactor, 
+                imageSizeV-((y2-bottomEdge)*dvfFactor), 
+                (p1-leftEdge)*dvfFactor, 
+                imageSizeV-((p2-bottomEdge)*dvfFactor));
+    }
+  }
+}
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
+
+
+

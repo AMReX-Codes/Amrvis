@@ -71,16 +71,16 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
      fnl--;
    }
    strcpy(shortfilename, &pltfilename[fnl+1]);
-
-  ostrstream outstr(header, sizeof(header));
-  outstr << shortfilename << "  " << amrPicturePtr->CurrentDerived()
-	 << "  " << alignedRegion << ends;
-  wDatasetTopLevel = XtVaCreatePopupShell(header, topLevelShellWidgetClass,
-			wAmrVisTopLevel,
-			XmNwidth,	800,
-			XmNheight,	500,
-			NULL);
-
+   
+   ostrstream outstr(header, sizeof(header));
+   outstr << shortfilename << "  " << amrPicturePtr->CurrentDerived()
+          << "  " << alignedRegion << ends;
+   wDatasetTopLevel = XtVaCreatePopupShell(header, topLevelShellWidgetClass,
+                                           wAmrVisTopLevel,
+                                           XmNwidth,	800,
+                                           XmNheight,	500,
+                                           NULL);
+   
   GAptr = new GraphicsAttributes(wDatasetTopLevel);
   if(GAptr->PVisual() !=
      XDefaultVisual(GAptr->PDisplay(),GAptr->PScreenNumber())) {
