@@ -10,8 +10,8 @@ COMP      = g++
 COMP      = KCC
 DEBUG     = FALSE
 DEBUG     = TRUE
-DIM       = 2
 DIM       = 3
+DIM       = 2
 NAMESPACE = TRUE
 NAMESPACE = FALSE
 
@@ -24,8 +24,8 @@ USE_ARRAYVIEW = FALSE
 USE_MPI=TRUE
 USE_MPI=FALSE
 
-USE_VOLRENDER = FALSE
 USE_VOLRENDER = TRUE
+USE_VOLRENDER = FALSE
 
 USE_PARALLELVOLRENDER = TRUE
 USE_PARALLELVOLRENDER = FALSE
@@ -66,6 +66,12 @@ ifeq ($(MACHINE),OSF1)
   endif
 endif
 
+ifeq ($(MACHINE),T3E)
+  ifeq ($(COMP),KCC)
+    CXXFLAGS += --diag_suppress 837
+  endif
+endif
+
 ############################################### x includes and libraries
 ifeq ($(MACHINE), OSF1)
   LIBRARIES += -lXm -lXt -lX11
@@ -89,6 +95,7 @@ ifeq ($(MACHINE), T3E)
   ifeq ($(WHICHT3E), NERSC)
     INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/X11
     INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/Xm
+    INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include
     INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/X11/Xaw
     LIBRARY_LOCATIONS += /opt/ctl/cvt/cvt/lib
     LIBRARIES += -lXm -lSM -lICE -lXt -lX11
