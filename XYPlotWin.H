@@ -54,7 +54,7 @@ class XYPlotWin;
 typedef void (XYPlotWin::*memberXYCB)(Widget, XtPointer, XtPointer);
 
 typedef struct legend_item_typ {
-  XYPlotDataList *list;
+  XYPlotDataList *XYPLIlist;
   legend_item_typ *prev, *next;
   Widget wid,                     // For legend item drawingarea
    frame,                         // For drawingarea frame

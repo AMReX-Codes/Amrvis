@@ -17,9 +17,9 @@
 #endif
 
 #define DEF(name, typ, def_name) \
- if(def_str = XGetDefault(GAptr->PDisplay(), title, name)) \
-   Set_Parameter(name, typ, def_str); \
- else Set_Parameter(name, typ, def_name);
+ if((def_str = XGetDefault(GAptr->PDisplay(), title, (name)))) \
+   { Set_Parameter((name), (typ), def_str); } \
+ else { Set_Parameter((name), (typ), (def_name)); }
 
 #define STRDUP(xx) (strcpy(new char[strlen(xx)+1], (xx)))
 

@@ -472,12 +472,12 @@ void XYPlotWin::InitializeAnimation(int curr_frame, int num_frames) {
   currFrame = curr_frame;
   numFrames = num_frames;
   for(XYPlotLegendItem *ptr = legendHead; ptr; ptr = ptr->next) {
-    if(ptr->list->copied_from != NULL) {
-      XYPlotDataList *tempList = ptr->list;
-      ptr->list = pltParent->CreateLinePlot(ZPLANE, whichType,
-					    ptr->list->maxLevel,
-					    ptr->list->gridline,
-					    &ptr->list->derived);
+    if(ptr->XYPLIlist->copied_from != NULL) {
+      XYPlotDataList *tempList = ptr->XYPLIlist;
+      ptr->XYPLIlist = pltParent->CreateLinePlot(ZPLANE, whichType,
+					    ptr->XYPLIlist->maxLevel,
+					    ptr->XYPLIlist->gridline,
+					    &ptr->XYPLIlist->derived);
       delete tempList;
     }
     ptr->anim_lists = new Array<XYPlotDataList *>(numFrames);
@@ -504,25 +504,25 @@ void XYPlotWin::UpdateFrame(int frame) {
       ++num_lists_changed;
     }
     if(animatingQ) {
-      (*ptr->anim_lists)[currFrame] = ptr->list;
+      (*ptr->anim_lists)[currFrame] = ptr->XYPLIlist;
       (*ptr->ready_list)[currFrame] = 1;
       if((*ptr->ready_list)[frame]) {
-	ptr->list = (*ptr->anim_lists)[frame];
+	ptr->XYPLIlist = (*ptr->anim_lists)[frame];
 	continue;
       }
     } else {
-      tempList = ptr->list;
+      tempList = ptr->XYPLIlist;
     }
     
-    int level(ptr->list->curLevel);
-    ptr->list = pltParent->CreateLinePlot(ZPLANE, whichType,
-				          ptr->list->maxLevel,
-				          ptr->list->gridline,
-				          &ptr->list->derived);
-    ptr->list->SetLevel(level);
-    ptr->list->UpdateStats();
-    if(ptr->list->numPoints > numXsegs) {
-      numXsegs = ptr->list->numPoints + 5;
+    int level(ptr->XYPLIlist->curLevel);
+    ptr->XYPLIlist = pltParent->CreateLinePlot(ZPLANE, whichType,
+				          ptr->XYPLIlist->maxLevel,
+				          ptr->XYPLIlist->gridline,
+				          &ptr->XYPLIlist->derived);
+    ptr->XYPLIlist->SetLevel(level);
+    ptr->XYPLIlist->UpdateStats();
+    if(ptr->XYPLIlist->numPoints > numXsegs) {
+      numXsegs = ptr->XYPLIlist->numPoints + 5;
       delete [] Xsegs[0];
       Xsegs[0] = new XSegment[numXsegs];
       delete [] Xsegs[1];
@@ -531,7 +531,7 @@ void XYPlotWin::UpdateFrame(int frame) {
     if( ! animatingQ) {
       delete tempList;
       if( ! zoomedInQ && ptr->drawQ) {
-        updateBoundingBox(ptr->list);
+        updateBoundingBox(ptr->XYPLIlist);
       }
     }
   }
@@ -557,7 +557,7 @@ void XYPlotWin::StopAnimation(void) {
   animatingQ = false;
   for(XYPlotLegendItem *ptr = legendHead; ptr; ptr = ptr->next) {
     for(int ii = 0; ii != numFrames; ++ii) {
-      if((*ptr->ready_list)[ii] && (*ptr->anim_lists)[ii] != ptr->list) {
+      if((*ptr->ready_list)[ii] && (*ptr->anim_lists)[ii] != ptr->XYPLIlist) {
 	delete (*ptr->anim_lists)[ii];
       }
     }
@@ -568,7 +568,7 @@ void XYPlotWin::StopAnimation(void) {
   hhiY = -DBL_MAX;
   for(XYPlotLegendItem *ptr = legendHead; ptr; ptr = ptr->next) {
     if(ptr->drawQ) {
-      updateBoundingBox(ptr->list);
+      updateBoundingBox(ptr->XYPLIlist);
     }
   }
   if( ! zoomedInQ) {
@@ -749,7 +749,7 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
 
   XYPlotLegendItem *new_item = new XYPlotLegendItem;
 
-  new_item->list = new_list;
+  new_item->XYPLIlist = new_list;
   lineFormats[i] |= mask;
   new_item->style = i;
   new_item->color = j;
@@ -886,18 +886,18 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::updateBoundingBox(XYPlotDataList *list) {
-  if(list->startX < lloX) {
-    lloX = list->startX;
+void XYPlotWin::updateBoundingBox(XYPlotDataList *xypdl) {
+  if(xypdl->startX < lloX) {
+    lloX = xypdl->startX;
   }
-  if(list->endX > hhiX) {
-    hhiX = list->endX;
+  if(xypdl->endX > hhiX) {
+    hhiX = xypdl->endX;
   }
-  if(list->lloY[list->curLevel] < lloY) {
-    lloY = list->lloY[list->curLevel];
+  if(xypdl->lloY[xypdl->curLevel] < lloY) {
+    lloY = xypdl->lloY[xypdl->curLevel];
   }
-  if(list->hhiY[list->curLevel] > hhiY) {
-    hhiY = list->hhiY[list->curLevel];
+  if(xypdl->hhiY[xypdl->curLevel] > hhiY) {
+    hhiY = xypdl->hhiY[xypdl->curLevel];
   }
 }
 
@@ -914,7 +914,7 @@ double XYPlotWin::initGrid(double low, double high, double step) {
   // and rounding error takes its toll.  We "fix" this by multiplying
   // the step by an arbitrary number > 1 (1.2) when this happens.
   double gridHigh;
-  while(1) {
+  while(true) {
     gridStep = roundUp(step);
     gridHigh = (ceil(high / gridStep) + 1.0) * gridStep;
     if(gridHigh + gridStep != gridHigh) {
@@ -1133,7 +1133,7 @@ void XYPlotWin::drawData(void){
     if( ! item->drawQ) {
       continue;
     }
-    XYPlotDataListIterator li(item->list);
+    XYPlotDataListIterator li(item->XYPLIlist);
     if( ! li) {
       continue;
     }
@@ -1356,7 +1356,7 @@ void XYPlotWin::CBdoClearData(Widget, XtPointer, XtPointer) {
   for(XYPlotLegendItem *ptr = legendHead; ptr != NULL; ptr = next) {
     next = ptr->next;
     XtDestroyWidget(ptr->frame);
-    delete ptr->list;
+    delete ptr->XYPLIlist;
     delete ptr;
   }
 
@@ -1487,7 +1487,7 @@ void XYPlotWin::CBdoASCIIDump(Widget, XtPointer client_data, XtPointer data) {
     if( ! item->drawQ) {
       continue;
     }
-    XYPlotDataList *list = item->list;
+    XYPlotDataList *list = item->XYPLIlist;
     fprintf(fs, "\"%s %lf Level %d/%d\n",
 	    list->derived.c_str(),
 	    list->intersectPoint[list->curLevel],
@@ -1812,7 +1812,7 @@ void XYPlotWin::CBdoSelectDataList(Widget, XtPointer data,
 	hhiX = hhiY = -DBL_MAX;
 	for(XYPlotLegendItem *ptr = legendHead; ptr; ptr = ptr->next) {
 	  if(ptr->drawQ) {
-	    updateBoundingBox(ptr->list);
+	    updateBoundingBox(ptr->XYPLIlist);
 	  }
 	}
       }
@@ -1824,7 +1824,7 @@ void XYPlotWin::CBdoSelectDataList(Widget, XtPointer data,
 		    XmNbottomShadowColor, foregroundPix,
 		    NULL);
       if( ! animatingQ) {
-        updateBoundingBox(item->list);
+        updateBoundingBox(item->XYPLIlist);
       }
     }
     if( ! animatingQ) {
@@ -1866,14 +1866,14 @@ void XYPlotWin::CBdoRemoveDataList(Widget, XtPointer client_data,
       legendHead = ptr;
       XtVaSetValues(ptr->frame, XmNtopWidget, wLegendMenu, NULL);
     }
-    if(item->list->copied_from == NULL && ptr->list->copied_from == item->list) {
-      ptr->list->copied_from = NULL;
-      item->list->copied_from = ptr->list;
+    if(item->XYPLIlist->copied_from == NULL && ptr->XYPLIlist->copied_from == item->XYPLIlist) {
+      ptr->XYPLIlist->copied_from = NULL;
+      item->XYPLIlist->copied_from = ptr->XYPLIlist;
       for(XYPlotLegendItem *ptr2 = ptr->next;
-	  ptr2 && ptr2->list->copied_from == item->list;
+	  ptr2 && ptr2->XYPLIlist->copied_from == item->XYPLIlist;
 	  ptr2 = ptr2->next)
       {
-	ptr2->list->copied_from = ptr->list;
+	ptr2->XYPLIlist->copied_from = ptr->XYPLIlist;
       }
     }
   } else if((legendTail = item->prev) != NULL) {
@@ -1892,7 +1892,7 @@ void XYPlotWin::CBdoRemoveDataList(Widget, XtPointer client_data,
     hhiX = hhiY = -DBL_MAX;
     for(ptr = legendHead; ptr; ptr = ptr->next) {
       if(ptr->drawQ) {
-        updateBoundingBox(ptr->list);
+        updateBoundingBox(ptr->XYPLIlist);
       }
     }
     if( ! zoomedInQ) {
@@ -1902,7 +1902,7 @@ void XYPlotWin::CBdoRemoveDataList(Widget, XtPointer client_data,
   }
 
   XtDestroyWidget(item->frame);
-  delete item->list;
+  delete item->XYPLIlist;
   delete item;
 }
 
@@ -1913,7 +1913,7 @@ void XYPlotWin::CBdoCopyDataList(Widget, XtPointer data, XtPointer) {
     return;
   }
   XYPlotLegendItem *item = (XYPlotLegendItem *) data;
-  AddDataList(new XYPlotDataList(item->list), item);
+  AddDataList(new XYPlotDataList(item->XYPLIlist), item);
 }
 
 
@@ -1925,7 +1925,7 @@ void XYPlotWin::CBdoSetListLevel(Widget, XtPointer data, XtPointer) {
   XYMenuCBData *cbd = (XYMenuCBData *) data;
   XYPlotLegendItem *item = cbd->item;
 
-  item->list->SetLevel(cbd->which);
+  item->XYPLIlist->SetLevel(cbd->which);
   XClearWindow(disp, XtWindow(item->wid));
   CBdoDrawLegendItem(None, item, NULL);
   if(item->drawQ) {
@@ -1933,7 +1933,7 @@ void XYPlotWin::CBdoSetListLevel(Widget, XtPointer data, XtPointer) {
     hhiX = hhiY = -DBL_MAX;
     for(item = legendHead; item; item = item->next) {
       if(item->drawQ) {
-        updateBoundingBox(item->list);
+        updateBoundingBox(item->XYPLIlist);
       }
     }
     if( ! zoomedInQ) {
@@ -2009,7 +2009,7 @@ void XYPlotWin::CBdoSelectAllData(Widget, XtPointer, XtPointer) {
 		    XmNbottomShadowColor, foregroundPix,
 		    NULL);
       if( ! animatingQ) {
-        updateBoundingBox(ptr->list);
+        updateBoundingBox(ptr->XYPLIlist);
       }
     }
   }
@@ -2268,7 +2268,7 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 // -------------------------------------------------------------------
 void XYPlotWin::CBdoDrawLegendItem(Widget, XtPointer data, XtPointer) {
   XYPlotLegendItem *item = (XYPlotLegendItem *) data;
-  XYPlotDataList *dataList = item->list;
+  XYPlotDataList *dataList = item->XYPLIlist;
   XSegment legLine;
   char legendText[1024];
 
