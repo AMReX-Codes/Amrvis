@@ -62,7 +62,9 @@ public:
   void DoQuitButton();
   void DoReadString(Widget, XmSelectionBoxCallbackStruct *);
   void DoPixInput(XmDrawingAreaCallbackStruct *);
-  
+
+  AmrPicture *GetAmrPicturePtr() { return amrPicturePtr; }
+
 private:
   Widget		wAmrVisTopLevel, wDatasetTopLevel, wDatasetForm;
   Widget		wDatasetTools, wScrollArea, wPixArea;

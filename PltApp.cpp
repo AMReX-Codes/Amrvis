@@ -1453,7 +1453,8 @@ void PltApp::CBChangeLevel(Widget w, XtPointer client_data,
       sdir = XDIR;
     }
     obj->datasetPtr->Render(obj->trueRegion, 
-                            obj->amrPicturePtrArray[NPLANES-1], 
+                            obj->datasetPtr->GetAmrPicturePtr(),
+                            //amrPicturePtrArray[NPLANES-1], 
                             obj, hdir, vdir, sdir);
     obj->datasetPtr->DoExpose(false);
   }
