@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.58 2002-08-30 22:46:22 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.59 2002-09-13 18:01:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -334,13 +334,14 @@ void BatchFunctions() {
       } else {
         maxDrawnLevel = amrData.FinestLevel();
       }
+      cout << "_in BatchFunctions:  using max level = " << maxDrawnLevel << endl;
       Array<Box> drawDomain = amrData.ProbDomain();
 
-      int iPaletteStart = 2;
-      int iPaletteEnd = AVGlobals::MaxPaletteIndex();
-      int iBlackIndex = 1;
-      int iWhiteIndex = 0;
-      int iColorSlots = AVGlobals::MaxPaletteIndex() + 1 - iPaletteStart;
+      int iPaletteStart(2);
+      int iPaletteEnd(AVGlobals::MaxPaletteIndex());
+      int iBlackIndex(1);
+      int iWhiteIndex(0);
+      int iColorSlots(AVGlobals::MaxPaletteIndex() + 1 - iPaletteStart);
       Palette volPal(PALLISTLENGTH, PALWIDTH, TOTALPALWIDTH, TOTALPALHEIGHT, 0);
       cout << "_in BatchFunctions:  palette name = "
            << AVGlobals::GetPaletteName() << endl;

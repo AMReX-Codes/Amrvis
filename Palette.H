@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.H,v 1.25 2002-02-07 23:59:02 vince Exp $
+// $Id: Palette.H,v 1.26 2002-09-13 18:01:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -15,6 +15,7 @@ using std::map;
 using std::string;
 
 #include "REAL.H"
+#include "Array.H"
 #include "Array.H"
 
 const int PALLISTLENGTH   = 8;

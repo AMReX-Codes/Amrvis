@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.107 2002-08-30 22:46:22 vince Exp $
+// $Id: PltApp.cpp,v 1.108 2002-09-13 18:01:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -526,7 +526,8 @@ void PltApp::PltAppInit(bool bSubVolume) {
   Widget wMainArea, wPalFrame, wPlotFrame, wPalForm;
 
   wMainArea = XtVaCreateManagedWidget("MainArea", xmFormWidgetClass,
-				      wAmrVisTopLevel, NULL);
+				      wAmrVisTopLevel,
+				      NULL);
 
   // ------------------------------- menu bar
   Widget wMenuBar, wMenuPulldown, wid, wCascade;
@@ -719,8 +720,8 @@ void PltApp::PltAppInit(bool bSubVolume) {
 				xmToggleButtonGadgetClass, wMenuPulldown,
 				XmNmnemonic, 'B',
 				XmNset, pltAppState->GetShowingBoxes(),
-				// XmNaccelerator, "<Key>B",
-				// XmNacceleratorText, label_str,
+				XmNaccelerator, "<Key>B",
+				XmNacceleratorText, label_str,
 				NULL);
   XmStringFree(label_str);
   AddStaticCallback(wid, XmNvalueChangedCallback, &PltApp::DoBoxesButton);
@@ -870,13 +871,15 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			    XmNtopAttachment,   XmATTACH_WIDGET,
 			    XmNtopWidget,       wPalFrame,
 			    XmNshadowType,      XmSHADOW_ETCHED_IN,
+			    //XmNbackground,      120, 
+			    //XmNforeground,      220, 
 			    NULL);
 
   unsigned long wc;
-  int wcfWidth = 150, wcfHeight = 260;
-  int centerX = wcfWidth/2, centerY = wcfHeight / 2 - 16;
-  int controlSize = 16;
-  int halfbutton = controlSize/2;
+  int wcfWidth(150), wcfHeight(260);
+  int centerX(wcfWidth / 2), centerY((wcfHeight / 2) - 16);
+  int controlSize(16);
+  int halfbutton(controlSize / 2);
   wControlForm = XtVaCreateManagedWidget("refArea",
 			    xmDrawingAreaWidgetClass, wControlsFrame,
 			    XmNwidth,	wcfWidth,
@@ -1362,7 +1365,7 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   char sX[LINELENGTH], sY[LINELENGTH], sZ[LINELENGTH];
   
   XClearWindow(display, XtWindow(wControlForm));
-  
+
   strcpy(sX, "X");
   strcpy(sY, "Y");
   strcpy(sZ, "Z");
@@ -1428,7 +1431,7 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
 void PltApp::DrawAxes(Widget wArea, int xpos, int ypos, int /* orientation */ ,
 		      char *hlabel, char *vlabel, int color)
 {
-  int axisLength=20;
+  int axisLength(20);
   char hLabel[LINELENGTH], vLabel[LINELENGTH];
   strcpy(hLabel, hlabel);
   strcpy(vLabel, vlabel);
@@ -2948,7 +2951,8 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 
 
 // -------------------------------------------------------------------
-void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data) {
+void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
+{
 
   XmDrawingAreaCallbackStruct *cbs = (XmDrawingAreaCallbackStruct *) call_data;
 
@@ -3304,6 +3308,9 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
       }  // end switch
     }  // end while(true)
   }
+
+
+
   if(servingButton == 2) {
     XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
 	      rbgc, 0, oldY, imageWidth, oldY);
@@ -3458,6 +3465,11 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
       }  // end switch
     }  // end while(true)
   }
+
+
+
+
+
   if(servingButton == 3) {
     int tempi;
     XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
@@ -3615,6 +3627,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
       }  // end switch
     }  // end while(true)
   }
+
+
 }  // end DoRubberBanding
 
 
