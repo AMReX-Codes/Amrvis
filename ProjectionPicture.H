@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.H,v 1.18 2000-10-02 20:53:10 lijewski Exp $
+// $Id: ProjectionPicture.H,v 1.19 2001-02-07 01:40:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -108,6 +108,7 @@ public:
   int ImageSizeH() const { return daWidth; }
   int ImageSizeV() const { return daHeight; }
   void ChangeSlice(int Dir, int newSlice);
+  Real LongestBoxSide() const { return longestBoxSide; }
   
   Real longestBoxSide;
   

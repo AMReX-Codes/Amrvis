@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrvisConstants.H,v 1.7 2000-10-02 20:53:07 lijewski Exp $
+// $Id: AmrvisConstants.H,v 1.8 2001-02-07 01:40:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -44,17 +44,16 @@ const int XPLANE = 2;
 const int ISOVIEW = 3;
 const int PALETTEVIEW = 4;
 
+const int WOFFSET = 4;
+
 enum AnimDirection { ANIMPOSDIR = 0, ANIMNEGDIR };
-
-enum Range { USEGLOBAL = 0, USELOCAL, USESPECIFIED, USEFILE, NRANGES, WOFFSET };
-
-enum FileType {
-  INVALIDTYPE = 0, FAB, MULTIFAB, NEWPLT, NUMDBPTYPES
-};
+enum Range { USEGLOBAL = 0, USELOCAL, USESPECIFIED, USEFILE, NRANGES };
+enum FileType { INVALIDTYPE = 0, FAB, MULTIFAB, NEWPLT, NUMDBPTYPES };
 
 static char *FileTypeString[] = {
   "invalidtype", "fab", "multifab", "newplt"
 };
+
 
 #ifdef BL_USE_FLOAT
 #define AV_BIG_REAL FLT_MAX

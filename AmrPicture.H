@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.H,v 1.31 2001-02-01 00:48:29 vince Exp $
+// $Id: AmrPicture.H,v 1.32 2001-02-07 01:40:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -101,7 +101,7 @@ class AmrPicture {
   int   GetContourNumber() const { return numberOfContours; }
   int   MinDrawnLevel() const { return minDrawnLevel; }
   int   MaxDrawnLevel() const { return maxDrawnLevel; }
-  Range	GetWhichRange() const   { return whichRange; }
+  Range	GetWhichRange() const { return whichRange; }
   Real	GetWhichMin();
   Real	GetWhichMax();
   void	SetHColor(int c)          { hColor = c; }

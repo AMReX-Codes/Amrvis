@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.70 2000-10-26 21:31:18 vince Exp $
+// $Id: PltApp.cpp,v 1.71 2001-02-07 01:40:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1767,7 +1767,7 @@ void PltApp::DoPaletteButton(Widget, XtPointer, XtPointer) {
 
   AddStaticCallback(wPalDialog, XmNokCallback, &PltApp::DoOpenPalFile);
   XtAddCallback(wPalDialog, XmNcancelCallback,
-		(XtCallbackProc)XtUnmanageChild, (XtPointer) this);
+		(XtCallbackProc) XtUnmanageChild, (XtPointer) this);
   XtManageChild(wPalDialog);
   XtPopup(XtParent(wPalDialog), XtGrabExclusive);
 }
@@ -2201,7 +2201,7 @@ void PltApp::DoDoneSetRange(Widget, XtPointer, XtPointer) {
   Real umin = atof(XmTextFieldGetString(wUserMin));
   Real umax = atof(XmTextFieldGetString(wUserMax));
 
-  for(np = 0; np < NPLANES; np++) {
+  for(np = 0; np < NPLANES; ++np) {
     amrPicturePtrArray[np]->SetDataMin(umin);
     amrPicturePtrArray[np]->SetDataMax(umax);
   }
@@ -2209,7 +2209,7 @@ void PltApp::DoDoneSetRange(Widget, XtPointer, XtPointer) {
   if(rangeType != amrPicturePtrArray[ZPLANE]->GetWhichRange() ||
      rangeType == USESPECIFIED)
   {
-    for(np = 0; np < NPLANES; np++) {
+    for(np = 0; np < NPLANES; ++np) {
       amrPicturePtrArray[np]->SetWhichRange(rangeType);	
       amrPicturePtrArray[np]->ChangeDerived(currentDerived, pltPaletteptr);
     }
@@ -2243,9 +2243,9 @@ void PltApp::DoDoneSetRange(Widget, XtPointer, XtPointer) {
       sdir = XDIR;
     }
     datasetPtr->Render(trueRegion, amrPicturePtrArray[activeView], this,
-    hdir, vdir, sdir);
+                       hdir, vdir, sdir);
     datasetPtr->DoExpose(false);
-    }
+  }
 }
 
 
@@ -2254,14 +2254,17 @@ void PltApp::DoCancelSetRange(Widget, XtPointer, XtPointer) {
   XtDestroyWidget(wSetRangeTopLevel);
 }
 
+
+// -------------------------------------------------------------------
 void PltApp::DestroySetRangeWindow(Widget, XtPointer, XtPointer) {
   setRangeShowing = false;
 }
 
 // -------------------------------------------------------------------
 void PltApp::DoUserMin(Widget, XtPointer, XtPointer) {
-  if(rangeType != USESPECIFIED)
+  if(rangeType != USESPECIFIED) {
     XtVaSetValues(wRangeRadioButton[rangeType], XmNset, false, NULL);
+  }
   XtVaSetValues(wRangeRadioButton[USESPECIFIED], XmNset, true, NULL);
   rangeType = USESPECIFIED;
   DoDoneSetRange(NULL, NULL, NULL);
@@ -2314,6 +2317,7 @@ void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
   */
 }
 
+
 // -------------------------------------------------------------------
 void PltApp::DoOpenPalFile(Widget w, XtPointer, XtPointer call_data) {
   char *palfile;
@@ -2341,6 +2345,7 @@ void PltApp::DoOpenPalFile(Widget w, XtPointer, XtPointer call_data) {
 }
 
 
+// -------------------------------------------------------------------
 XYPlotDataList* PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 				       aString *derived) {
   const AmrData &amrData(dataServicesPtr[currentFrame]->AmrDataRef());
@@ -2423,6 +2428,7 @@ XYPlotDataList* PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
   delete newlist;
   return NULL;
 }
+
 
 // -------------------------------------------------------------------
 void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data) {
