@@ -32,7 +32,10 @@
 #include "ParmParse.H"
 #include "ParallelDescriptor.H"
 #include "DataServices.H"
+
+#ifdef BL_VOLUMERENDER
 #include "VolRender.H"
+#endif
 
 #ifdef BL_USE_ARRAYVIEW
 #include "ArrayView.H"
@@ -330,8 +333,8 @@ void BatchFunctions() {
     }
 
 
-#  if (BL_SPACEDIM == 3)
-
+#if (BL_SPACEDIM == 3)
+#ifdef BL_VOLUMERENDER
     if(MakeSWFData()) {
       AmrData &amrData = dataServices.AmrDataRef();
       assert(dataServices.CanDerive(GetInitialDerived()));
@@ -369,7 +372,8 @@ void BatchFunctions() {
       volRender.WriteSWFData(comlineFileName);
 
     } 
-#  endif
+#endif
+#endif
 
     if(DumpSlices()) {
         if(SliceAllVars()) {

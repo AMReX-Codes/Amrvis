@@ -39,8 +39,9 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
   maxDataLevel = amrPicturePtr->MaxAllowableLevel();
   theDomain = amrPicturePtr->GetSubDomain();
 
-  //volRender = new VolRender(theDomain, minDrawnLevel, maxDataLevel);
+#ifdef BL_VOLUMERENDER
   volRender = new VolRender(theDomain, minDrawnLevel, maxDrawnLevel);
+#endif
 
   SetDrawingAreaDimensions(daWidth, daHeight);
 
@@ -87,14 +88,6 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
 		     amrData.RefRatio()));
   AddBox(alignedBox, iBoundingBoxIndex, minDrawnLevel);  // the bounding box
 
-  /*
-  alignedBox.setSmall(XDIR, 0);
-  alignedBox.setSmall(YDIR, 0);
-  alignedBox.setSmall(ZDIR, 0);
-  alignedBox.setBig(XDIR, 0);
-  alignedBox.setBig(YDIR, 0);
-  alignedBox.setBig(ZDIR, 0);
-  */
 
   AddBox(alignedBox, iSubCutBoxIndex, minDrawnLevel);	// the sub cut box
 
@@ -120,7 +113,9 @@ ProjectionPicture::~ProjectionPicture() {
   if(pixCreated) {
     XFreePixmap(XtDisplay(drawingArea), pixMap);
   }
+#ifdef BL_VOLUMERENDER
   delete volRender;
+#endif
 }
 
 
@@ -277,6 +272,7 @@ void ProjectionPicture::MakeBoxes() {
 
 // -------------------------------------------------------------------
 void ProjectionPicture::MakePicture() {
+#ifdef BL_VOLUMERENDER
   vpContext *vpc = volRender->GetVPContext();
   vpResult        vpret;
   clock_t time0 = clock();
@@ -339,6 +335,7 @@ imageout.write((unsigned char *)imageData, daWidth*daHeight*sizeof(char));
 imageout.close();
 */
 
+#endif
 
 }  // end MakePicture()
 
@@ -552,10 +549,12 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
 			DefaultDepthOfScreen(XtScreen(drawingArea)));
   pixCreated = true;
 
+#ifdef BL_VOLUMERENDER
   // --- set the image buffer
   vpContext *vpc = volRender->GetVPContext();
   vpSetImage(vpc, (unsigned char *)imageData, daWidth, daHeight,
              daWidth, VP_LUMINANCE);
+#endif
 
   longestWindowLength  = (Real) Max(daWidth, daHeight);
   shortestWindowLength = (Real) Min(daWidth, daHeight);
@@ -571,10 +570,12 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
 
 // -------------------------------------------------------------------
 void ProjectionPicture::ReadTransferFile(const aString &rampFileName) {
+#ifdef BL_VOLUMERENDER
   volRender->ReadTransferFile(rampFileName);
   pltAppPtr->GetPalettePtr()->SetTransfers(volRender->NDenRampPts(),
 					   volRender->DensityRampX(),
 					   volRender->DensityRampY());
+#endif
 }  // end ReadTransferFile
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------

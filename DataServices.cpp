@@ -15,7 +15,9 @@ DataServices::DataServices(const aString &filename, const FileType &filetype)
              : fileName(filename), fileType(filetype), bAmrDataOk(false)
 {
   numberOfUsers = 0;  // the user must do all incrementing and decrementing
+
   bAmrDataOk = amrData.ReadData(fileName, fileType);
+
   if(bAmrDataOk) {
     dsArrayIndex = DataServices::dsArrayIndexCounter;
     ++DataServices::dsArrayIndexCounter;
@@ -105,7 +107,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     assert(ds->dsArrayIndex == checkArrayIndex);
 
     continue;  // go to the top of the while loop
-  }
+  }  // end NewRequest
 
 
   // handle exit request
@@ -118,7 +120,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     }
     EndParallel();
     exit(0);
-  }
+  }  // end ExitRequest
 
   if(ParallelDescriptor::IOProcessor()) {
     va_start(ap, ds);

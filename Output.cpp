@@ -6,6 +6,7 @@
 #include <iomanip.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <math.h>
 
 
 IMAGE *iopen(char *file, unsigned int type, unsigned int dim,

@@ -1126,7 +1126,9 @@ void PltApp::PltAppInit() {
   }
 #if (BL_SPACEDIM == 3)
     viewTrans.MakeTransform();
+#ifdef BL_VOLUMERENDER
     XmToggleButtonSetState(wAutoDraw, false, false);
+#endif
     labelAxes = false;
     transDetached = false;
 
@@ -1332,10 +1334,10 @@ void PltApp::CBChangeDerived(Widget w, XtPointer client_data,
   XtVaGetValues(XtParent(w), XmNuserData, &getobj, NULL);
   PltApp *obj = (PltApp *) getobj;
 #if (BL_SPACEDIM == 3)
+#ifdef BL_VOLUMERENDER
   // ------------------------- swf
   obj->projPicturePtr->GetVolRenderPtr()->InvalidateSWFData();
   obj->projPicturePtr->GetVolRenderPtr()->InvalidateVPData();
-#ifdef BL_VOLUMERENDER
   XmString sAutoDraw = XmStringCreateSimple("Autodraw");
   if(obj->transDetached) {
     XtVaSetValues(obj->wDAutoDraw, XmNlabelString, sAutoDraw, NULL);
@@ -1503,11 +1505,17 @@ void PltApp::DoChangeLevel(int V, Widget, XtPointer client_data, XtPointer) {
   amrPicturePtrArray[V]->ChangeLevel(minDrawnLevel, maxDrawnLevel);
 
   if(V == ZPLANE) {
+#ifdef BL_VOLUMERENDER
     if(! XmToggleButtonGetState(wAutoDraw)) {
       projPicturePtr->MakeBoxes(); 
       XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
       DoExposeTransDA();
     }
+#else
+      projPicturePtr->MakeBoxes(); 
+      XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
+      DoExposeTransDA();
+#endif
   }
 }
 
@@ -2002,10 +2010,15 @@ void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
   amrPicturePtrArray[ZPLANE]->ToggleBoxes();
 # if (BL_SPACEDIM == 3)
     projPicturePtr->MakeBoxes(); 
+#ifdef BL_VOLUMERENDER
     if(! XmToggleButtonGetState(wAutoDraw)) {
       XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
       DoExposeTransDA();
     }
+#else
+      XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
+      DoExposeTransDA();
+#endif
     amrPicturePtrArray[YPLANE]->ToggleBoxes();
     amrPicturePtrArray[XPLANE]->ToggleBoxes();
 # endif
@@ -2215,7 +2228,11 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 			     abs(finishcutX[YPLANE]-startcutX[YPLANE]), rHeight);
 	        }
 
+#ifdef BL_VOLUMERENDER
                 if( ! XmToggleButtonGetState(wAutoDraw)) {
+#else
+                {  // scope
+#endif
 	          x1 = startcutX[ZPLANE]/scale + ivLowOffsetMAL[XDIR];
 	          y1 = startcutX[XPLANE]/scale + ivLowOffsetMAL[YDIR];
 	          z1 = (amrPicturePtrArray[YPLANE]->ImageSizeV()-1 -

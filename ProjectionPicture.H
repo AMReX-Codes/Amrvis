@@ -13,7 +13,10 @@
 
 #include "AmrPicture.H" 
 #include "ViewTransform.H" 
+
+#ifdef BL_VOLUMERENDER
 #include "VolRender.H" 
+#endif
 
 class PltApp;
 
@@ -35,7 +38,9 @@ public:
 
 	~ProjectionPicture();
 
+#ifdef BL_VOLUMERENDER
 	VolRender *GetVolRenderPtr() const { return volRender; }
+#endif
 	void    ReadTransferFile(const aString &rampFileName);
 	void	MakeBoxes();
 	void	MakePicture();
@@ -83,7 +88,9 @@ private:
 	int		maxDenRampPts, maxGradRampPts, maxShadeRampPts;
 	char		rampfilename[LINELENGTH];
 	unsigned char	volumeBoxColor;
+#ifdef BL_VOLUMERENDER
 	VolRender       *volRender;
+#endif
 
 	// converts a Box to eight BoxRealPoints at the specified level
 	void		AddBox(const Box &theBox, int index, int level);

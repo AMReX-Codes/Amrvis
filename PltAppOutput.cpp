@@ -109,9 +109,13 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   WritePSFile(psfilename, image, imageSizeX, imageSizeY, colors, palSize);
 
   // write the iso picture
+#ifdef BL_VOLUMERENDER
   if( ! XmToggleButtonGetState(wAutoDraw)) {
     projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
   }
+#else
+    projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
+#endif
   sprintf(psfilename, "%s.XYZ.ps", fileNameBase);
   image = projPicturePtr->GetPictureXImage();  
   imageSizeX = projPicturePtr->ImageSizeH();
@@ -174,9 +178,13 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
   WriteRGBFile(rgbfilename, image, imageSizeX, imageSizeY, colors, palSize);
 
   // write the iso picture
+#ifdef BL_VOLUMERENDER
   if( ! XmToggleButtonGetState(wAutoDraw)) {
     projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
   }
+#else
+    projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
+#endif
   sprintf(rgbfilename, "%s.XYZ.rgb", fileNameBase);
   image = projPicturePtr->GetPictureXImage();
   imageSizeX = projPicturePtr->ImageSizeH();

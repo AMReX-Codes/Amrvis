@@ -80,12 +80,12 @@ AmrData::AmrData() {
 
 // ---------------------------------------------------------------
 AmrData::~AmrData() {
-
    for(int i = 0; i < nRegions; ++i) {
      for(int lev = 0; lev <= finestLevel; ++lev) {
        delete regions[lev][i];
      }
    }
+
    for(int lev = 0; lev <= finestLevel; ++lev) {
      for(int iComp = 0; iComp < nComp; ++iComp) {
        for(MultiFabIterator mfi(*dataGrids[lev][iComp]); mfi.isValid(); ++mfi) {
@@ -131,70 +131,97 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 #endif
 
    if(verbose) {
-      cout << "AmrData::opening file = " << File << endl;
+     if(ParallelDescriptor::IOProcessor()) {
+       cout << "AmrData::opening file = " << filename << endl;
+     }
    }
 
    is.open(File.c_str(), ios::in);
    if(is.fail()) {
-      cerr << "Unable to open plotfile: " << File << endl;
+     if(ParallelDescriptor::IOProcessor()) {
+      cerr << "Unable to open file: " << filename << endl;
+     }
       return false;
    }
 
    aString skipBuff(LINELENGTH);
    for(i = 0; i < skipPltLines; i++) {
      skipBuff.getline(is);
-     cout << "Skipped line in pltfile = " << skipBuff << endl;
+     if(ParallelDescriptor::IOProcessor()) {
+       cout << "Skipped line in pltfile = " << skipBuff << endl;
+     }
    }
 
      is >> plotFileVersion;
      if(verbose) {
-       cout << "Plot file version:  " << plotFileVersion << endl;
+       if(ParallelDescriptor::IOProcessor()) {
+         cout << "Plot file version:  " << plotFileVersion << endl;
+       }
      }
 
      // read list of variables
      is >> nComp;
       if(nComp < 1 || nComp > 1024) {  // arbitrarily limit to 1024
-        cerr << "Error in AmrData:  bad nComp = " << nComp << endl;
+        if(ParallelDescriptor::IOProcessor()) {
+          cerr << "Error in AmrData:  bad nComp = " << nComp << endl;
+        }
         return false;
       }
-      VSHOWVAL(verbose, nComp);
+      if(ParallelDescriptor::IOProcessor()) {
+        VSHOWVAL(verbose, nComp);
+      }
 
       plotVars.resize(nComp);
       plotName.getline(is); // eat white space left by << operator
       for(i = 0; i < nComp; ++i) {
-          plotName.getline(is);
-          plotVars[i] = plotName;
+        plotName.getline(is);
+        plotVars[i] = plotName;
+        if(ParallelDescriptor::IOProcessor()) {
           VSHOWVAL(verbose, plotName);
+	}
       }
 
       int spacedim;
       is >>  spacedim >> time >> finestLevel;
-      VSHOWVAL(verbose, spacedim);
-      VSHOWVAL(verbose, time);
-      VSHOWVAL(verbose, finestLevel);
+      if(ParallelDescriptor::IOProcessor()) {
+        VSHOWVAL(verbose, spacedim);
+        VSHOWVAL(verbose, time);
+        VSHOWVAL(verbose, finestLevel);
+      }
       if(spacedim != BL_SPACEDIM) {
-	cerr << endl << " ~~~~ Error:  You are using " << BL_SPACEDIM << "D amrvis "
-	     << "to look at a " << spacedim << "D file." << endl << endl;
+        if(ParallelDescriptor::IOProcessor()) {
+	  cerr << endl << " ~~~~ Error:  You are using " << BL_SPACEDIM
+	       << "D amrvis "
+	       << "to look at a " << spacedim << "D file." << endl << endl;
+	}
 	return false;
       }
       if(finestLevel < 0) {
-        cerr << "Error in AmrData:  bad finestLevel = " << finestLevel << endl;
+        if(ParallelDescriptor::IOProcessor()) {
+          cerr << "Error in AmrData:  bad finestLevel = " << finestLevel << endl;
+	}
         return false;
       }
       for(i = 0; i < BL_SPACEDIM; i++) {
         is >> probLo[i];
         if(verbose) {
-	  cout << "probLo[" << i << "] = " << probLo[i] << endl;
+          if(ParallelDescriptor::IOProcessor()) {
+	    cout << "probLo[" << i << "] = " << probLo[i] << endl;
+	  }
 	}
       }
       for(i = 0; i < BL_SPACEDIM; i++) {
         is >> probHi[i];
         if(verbose) {
-	  cout << "probHi[" << i << "] = " << probHi[i] << endl;
+          if(ParallelDescriptor::IOProcessor()) {
+	    cout << "probHi[" << i << "] = " << probHi[i] << endl;
+	  }
 	}
       }
       if(verbose) {
-	cout << "Resizing refRatio to size = " << finestLevel << endl;
+        if(ParallelDescriptor::IOProcessor()) {
+	  cout << "Resizing refRatio to size = " << finestLevel << endl;
+	}
       }
       refRatio.resize(finestLevel, -1);
       while(is.get() != '\n');
@@ -208,20 +235,26 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 	  IntVect ivRefRatio;
 	  is >> ivRefRatio;
           if(verbose) {
-	    cout << "IntVect refRatio[" << i << "] = " << ivRefRatio << endl;
+            if(ParallelDescriptor::IOProcessor()) {
+	      cout << "IntVect refRatio[" << i << "] = " << ivRefRatio << endl;
+	    }
 	  }
 	  refRatio[i] = ivRefRatio[0];  // non-uniform ref ratios not supported
 	} else {
           is >> refRatio[i];
 	}
         if(verbose) {
-	  cout << "refRatio[" << i << "] = " << refRatio[i] << endl;
+          if(ParallelDescriptor::IOProcessor()) {
+	    cout << "refRatio[" << i << "] = " << refRatio[i] << endl;
+	  }
 	}
       }
       for(i = 0; i < finestLevel; ++i ) {
         if(refRatio[i] < 2 || refRatio[i] > 32 ) {
-          cerr << "Error in AmrData:  bad refRatio at level " << i << " = "
-	       << refRatio[i] << endl;
+          if(ParallelDescriptor::IOProcessor()) {
+            cerr << "Error in AmrData:  bad refRatio at level " << i << " = "
+	         << refRatio[i] << endl;
+	  }
           return false;
         }
       }
@@ -231,11 +264,15 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
       for(i = 0; i <= finestLevel; i++) {
         is >> probDomain[i];
 	if(verbose) {
-	  cout << "probDomain[" << i << "] = " << probDomain[i] << endl;
+          if(ParallelDescriptor::IOProcessor()) {
+	    cout << "probDomain[" << i << "] = " << probDomain[i] << endl;
+	  }
 	}
         if( ! probDomain[i].ok()) {
-          cerr << "Error in AmrData:  bad probDomain[" << i << "] = "
-	       << probDomain[i] << endl;
+          if(ParallelDescriptor::IOProcessor()) {
+            cerr << "Error in AmrData:  bad probDomain[" << i << "] = "
+	         << probDomain[i] << endl;
+	  }
           return false;
         }
       }
@@ -248,7 +285,9 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 				   // finestlevel of these, others have
 				   // finestlevel + 1
       if(verbose) {
-	cout << "Ignored levelSteps = " << lstepbuff << endl;
+        if(ParallelDescriptor::IOProcessor()) {
+	  cout << "Ignored levelSteps = " << lstepbuff << endl;
+	}
       }
       
       dxLevel.resize(finestLevel + 1);
@@ -257,7 +296,10 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
         for(k = 0; k < BL_SPACEDIM; k++) {
 	  is >> dxLevel[i][k];
 	  if(verbose) {
-	    cout << "dxLevel[" << i << "][" << k << "] = " << dxLevel[i][k] << endl;
+            if(ParallelDescriptor::IOProcessor()) {
+	      cout << "dxLevel[" << i << "][" << k << "] = "
+		   << dxLevel[i][k] << endl;
+	    }
 	  }
 	}
       }
@@ -265,20 +307,26 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
       for(i = 0; i < BL_SPACEDIM; i++) {
         probSize[i] = probHi[i] - probLo[i];
         if(probSize[i] <= 0.0 ) {
-          cerr << "Error in AmrData:  bad probSize[" << i << "] = "
-	       << probSize[i] << endl;
+          if(ParallelDescriptor::IOProcessor()) {
+            cerr << "Error in AmrData:  bad probSize[" << i << "] = "
+	         << probSize[i] << endl;
+	  }
           return false;
 	}
       }
 
       is >> coordSys;
-      VSHOWVAL(verbose, coordSys);
+      if(ParallelDescriptor::IOProcessor()) {
+        VSHOWVAL(verbose, coordSys);
+      }
       while(is.get() != '\n') {
         ;  // do nothing
       }
 
       is >> width;   // width of bndry regions
-      VSHOWVAL(verbose, width);
+      if(ParallelDescriptor::IOProcessor()) {
+        VSHOWVAL(verbose, width);
+      }
       while(is.get() != '\n') {
         ;  // do nothing
       }
@@ -312,8 +360,10 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
       while(bli) {
 	regions[lev][i] = new FArrayBox(bli(),nComp);
 	if(verbose) {
-	  cout << "BNDRY REGION " << i << " : " << bli() << endl;
-	  cout << "    numPts = " << bli().numPts() << endl;
+          if(ParallelDescriptor::IOProcessor()) {
+	    cout << "BNDRY REGION " << i << " : " << bli() << endl;
+	    cout << "    numPts = " << bli().numPts() << endl;
+	  }
 	}
 	++i;
 	++bli;
@@ -322,9 +372,11 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 
    // if positive set up and read bndry databoxes
    if(width > 0) {
+     if(ParallelDescriptor::IOProcessor()) {
         cerr << "Error in AmrData:  Boundary width > 0 not supported:  width = "
 	     << width << endl;
-        return false;
+     }
+     return false;
    }  // end if(width...)
 
    // read all grids but only save those inside the restricted region
@@ -338,18 +390,24 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
       Real gTime;
       int iLevelSteps;
       is >> lev >> nGrids >> gTime >> iLevelSteps;
-      VSHOWVAL(verbose, lev);
-      VSHOWVAL(verbose, nGrids);
-      VSHOWVAL(verbose, gTime);
-      VSHOWVAL(verbose, iLevelSteps);
+      if(ParallelDescriptor::IOProcessor()) {
+        VSHOWVAL(verbose, lev);
+        VSHOWVAL(verbose, nGrids);
+        VSHOWVAL(verbose, gTime);
+        VSHOWVAL(verbose, iLevelSteps);
+      }
       if(i != lev) {
-	cerr << "Level misrestart:mismatch on restart" << endl;
-        cerr << "Error in AmrData:  Level mismatch:  read level " << lev
-	     << " while expecting level " << i << endl;
+        if(ParallelDescriptor::IOProcessor()) {
+	  cerr << "Level misrestart:mismatch on restart" << endl;
+          cerr << "Error in AmrData:  Level mismatch:  read level " << lev
+	       << " while expecting level " << i << endl;
+	}
         return false;
       }
       if(nGrids < 1) {
-        cerr << "Error in AmrData:  bad nGrids = " << nGrids << endl;
+        if(ParallelDescriptor::IOProcessor()) {
+          cerr << "Error in AmrData:  bad nGrids = " << nGrids << endl;
+	}
         return false;
       }
 
@@ -360,8 +418,10 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
         gridLocHi[i][iloc].resize(BL_SPACEDIM);
 	for(int iDim = 0; iDim < BL_SPACEDIM; ++iDim) {
 	  is >> gridLocLo[i][iloc][iDim] >>  gridLocHi[i][iloc][iDim];
-          VSHOWVAL(verbose, gridLocLo[i][iloc][iDim]);
-          VSHOWVAL(verbose, gridLocHi[i][iloc][iDim]);
+          if(ParallelDescriptor::IOProcessor()) {
+            VSHOWVAL(verbose, gridLocLo[i][iloc][iDim]);
+            VSHOWVAL(verbose, gridLocHi[i][iloc][iDim]);
+	  }
 	}
       }
 
@@ -563,6 +623,11 @@ bool AmrData::ReadNonPlotfileData(const aString &filename, FileType filetype) {
   }
 
   fileName = filename;
+
+#ifdef BL_USE_SETBUF
+    VisMF::IO_Buffer io_buffer(VisMF::IO_Buffer_Size);
+#endif
+
   ifstream is;
   is.open(filename.c_str(), ios::in);
   if(is.fail()) {

@@ -2,14 +2,19 @@ CEXE_headers += AmrPicture.H AmrData.H AmrvisConstants.H \
                 DataServices.H Dataset.H \
 		GlobalUtilities.H GraphicsAttributes.H \
                 GridPicture.H MessageArea.H \
-                Palette.H PltApp.H Output.H VolRender.H
+                Palette.H PltApp.H Output.H
 
 CEXE_sources += AmrPicture.cpp AmrData.cpp AmrVisTool.cpp \
                 DataServices.cpp Dataset.cpp \
 		GraphicsAttributes.cpp GridPicture.cpp \
                 MessageArea.cpp PltApp.cpp \
                 GlobalUtilities.cpp Palette.cpp PltAppOutput.cpp \
-		Output.cpp VolRender.cpp
+		Output.cpp
+
+ifeq ($(USE_VOLRENDER), TRUE)
+CEXE_headers += VolRender.H
+CEXE_sources += VolRender.cpp
+endif
 
 
 ifeq ($(DIM),3)
