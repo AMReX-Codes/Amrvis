@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp3D.cpp,v 1.29 1998-10-29 23:56:10 vince Exp $
+// $Id: PltApp3D.cpp,v 1.30 1999-03-08 22:00:48 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -14,7 +14,7 @@
 // -------------------------------------------------------------------
 void PltApp::DoExposeTransDA() {
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
-  Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
+  Widget currentAutoDraw = (transDetached ? wDAutoDraw : wAutoDraw);
   if(XmToggleButtonGetState(currentAutoDraw)) {
       projPicturePtr->DrawPicture();
   } else {
@@ -41,10 +41,9 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
   AmrQuaternion quatRotation, quatRotation2;
   AmrQuaternion newRotation, newRotation2;
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
-    Widget currentAutoDraw = (transDetached? wDAutoDraw : wAutoDraw);
+    Widget currentAutoDraw = (transDetached ? wDAutoDraw : wAutoDraw);
 #endif
-  XmDrawingAreaCallbackStruct* cbs =
-        (XmDrawingAreaCallbackStruct*) call_data;
+  XmDrawingAreaCallbackStruct *cbs = (XmDrawingAreaCallbackStruct *) call_data;
   if(cbs->event->xany.type == ButtonPress) {
     servingButton = cbs->event->xbutton.button;
     startX = endX = cbs->event->xbutton.x;
@@ -105,7 +104,7 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
   if(servingButton==2) {
       endX = cbs->event->xbutton.x;
       endY = cbs->event->xbutton.y;
-      Real change = (startY-endY)*0.003;
+      Real change = (startY - endY) * 0.003;
       quatRotation = viewTrans.GetRotation();
       quatRotation2 = viewTrans.GetRenderRotation();
       // should replace the trigonometric equations...
@@ -135,7 +134,7 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
 #endif
       DoExposeTransDA();
       acc += 1;
-      if(acc==10) {
+      if(acc == 10) {
           startX = cbs->event->xbutton.x;
           startY = cbs->event->xbutton.y;
           acc = 0;
@@ -145,9 +144,9 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
   if(servingButton==3) {
       endX = cbs->event->xbutton.x;
       endY = cbs->event->xbutton.y;
-      Real ss = viewTrans.GetScale();
-      temp = ss+(endY-startY)*0.003;
-      if(temp<0.1) {
+      Real ss(viewTrans.GetScale());
+      temp = ss+(endY-startY) * 0.003;
+      if(temp < 0.1) {
           temp = 0.1;
       }
       viewTrans.SetScale(temp);
@@ -170,16 +169,16 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
 #endif
       DoExposeTransDA();
       acc += 1;
-      if(acc==15) {
-          startX = cbs->event->xbutton.x;
-          startY = cbs->event->xbutton.y;
-      acc = 0;
+      if(acc == 15) {
+        startX = cbs->event->xbutton.x;
+        startY = cbs->event->xbutton.y;
+        acc = 0;
       }
   } 
   if(cbs->event->xany.type == ButtonRelease) {
-      startX = endX = 0;
-      startY = endY = 0;
-      acc = 0;
+    startX = endX = 0;
+    startY = endY = 0;
+    acc = 0;
   }
 }  // end DoTransInput(...)
 
@@ -192,7 +191,10 @@ void PltApp::CBTransResize(Widget w, XtPointer client_data, XtPointer call_data)
 
 
 // -------------------------------------------------------------------
-void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
+void PltApp::DoAttach(Widget ww, XtPointer, XtPointer) {
+  if(bPltAppIsClosing) {
+    return;
+  }
   transDetached = false;
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   //Query wDLight for its state:
@@ -325,7 +327,7 @@ void PltApp::DoCancelLightingWindow(Widget, XtPointer, XtPointer) {
 void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   Position xpos, ypos;
   Dimension wdth, hght;
-  if( ! lightingWindowExists ) {
+  if( ! lightingWindowExists) {
     lightingWindowExists = true;
     //create lighting window
     XtVaGetValues(wAmrVisTopLevel, XmNx, &xpos, XmNy, &ypos,
@@ -347,10 +349,10 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
     AddStaticCallback(wLWTopLevel, XmNdestroyCallback,
                       &PltApp::DestroyLightingWindow);
         
-    if(GAptr->PVisual() 
-       != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber())) {
-      XtVaSetValues(wLWTopLevel, XmNvisual, GAptr->PVisual(),
-                    XmNdepth, 8, NULL);
+    if(GAptr->PVisual() != XDefaultVisual(GAptr->PDisplay(),
+					  GAptr->PScreenNumber()))
+    {
+      XtVaSetValues(wLWTopLevel, XmNvisual, GAptr->PVisual(), XmNdepth, 8, NULL);
     }
     
     wLWForm = XtVaCreateManagedWidget("detachform",
@@ -640,15 +642,16 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   AddStaticCallback(wDetachTopLevel, XmNdestroyCallback,
                     &PltApp::DoAttach);
 
-  if(GAptr->PVisual() 
-     != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber())) {
+  if(GAptr->PVisual() != XDefaultVisual(GAptr->PDisplay(),
+					GAptr->PScreenNumber()))
+  {
       XtVaSetValues(wDetachTopLevel, XmNvisual, GAptr->PVisual(),
                     XmNdepth, 8, NULL);
   }
 
   wDetachForm = XtVaCreateManagedWidget("detachform",
-	xmFormWidgetClass, wDetachTopLevel,
-	NULL);
+	             xmFormWidgetClass, wDetachTopLevel,
+	             NULL);
 
   i=0;
   XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);   i++;

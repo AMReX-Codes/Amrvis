@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.H,v 1.10 1998-10-29 23:56:09 vince Exp $
+// $Id: Palette.H,v 1.11 1999-03-08 22:00:48 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -75,7 +75,6 @@ public:
   void  Redraw();
   void  SetReserveSystemColors(int reservesystemcolors);
   void  SetFormat(const aString &newFormat);
-  void  SetTransfers(const Array<int> &transx, const Array<float> &transy);
   Colormap GetColormap() const  { return colmap;         }
   const Array<XColor> &GetColorCells() const { return ccells; }
   int  BlackIndex()    const    { return blackIndex;     }

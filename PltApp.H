@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.H,v 1.28 1999-01-07 21:08:57 vince Exp $
+// $Id: PltApp.H,v 1.29 1999-03-08 22:00:48 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -294,6 +294,7 @@ public:
   static int	placementOffsetY;
   static int	reserveSystemColors;
   bool lightingWindowExists;
+  bool bPltAppIsClosing;
   
 #if (BL_SPACEDIM==3)
   ProjectionPicture	*projPicturePtr;

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ProjectionPicture.cpp,v 1.27 1998-10-29 23:56:10 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.28 1999-03-08 22:00:49 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -11,7 +11,6 @@
 #include "PltApp.H"
 #include "DataServices.H"
 #include "Volume.H"
-#include "List.H"
 
 #ifdef BL_USE_NEW_HFILES
 #include <cmath>
@@ -20,8 +19,6 @@
 #include <math.h>
 #include <time.h>
 #endif
-
-#define VOLUMEBOXES 0
 
 // -------------------------------------------------------------------
 ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
@@ -40,8 +37,8 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
   palettePtr = PalettePtr;
 
   volumeBoxColor = (unsigned char) GetBoxColor();
-  volumeBoxColor = Max((unsigned char) 0, Min((unsigned char) MaxPaletteIndex(),
-			volumeBoxColor));
+  volumeBoxColor = Max((unsigned char) palettePtr->PaletteStart(),
+                        Min((unsigned char) MaxPaletteIndex(), volumeBoxColor));
 
   showSubCut = false;
   pixCreated = false;
@@ -447,10 +444,17 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
 
   longestWindowLength  = (Real) Max(daWidth, daHeight);
   shortestWindowLength = (Real) Min(daWidth, daHeight);
+  if(longestWindowLength == 0) {  // this happens when x deletes this window
 #ifdef BL_VOLUMERENDER
-  volRender->SetAspect(shortestWindowLength/longestWindowLength);
+    volRender->SetAspect(1.0);
 #endif
-  viewTransformPtr->SetAspect(shortestWindowLength/longestWindowLength);
+    viewTransformPtr->SetAspect(1.0);
+  } else {
+#ifdef BL_VOLUMERENDER
+    volRender->SetAspect(shortestWindowLength/longestWindowLength);
+#endif
+    viewTransformPtr->SetAspect(shortestWindowLength/longestWindowLength);
+  }
 
   Box alignedBox(theDomain[minDrawnLevel]);
   const AmrData &amrData = pltAppPtr->GetDataServicesPtr()->AmrDataRef();

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.cpp,v 1.19 1998-10-30 18:43:06 lijewski Exp $
+// $Id: Palette.cpp,v 1.20 1999-03-08 22:00:48 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -28,7 +28,6 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
 {
   totalColorSlots = MaxPaletteIndex() + 1;
   sysccells.resize(totalColorSlots);
-  //  transY.resize(totalColorSlots);
   transferArray.resize(totalColorSlots);
   ccells.resize(totalColorSlots);
   palPixmap = 0;
@@ -42,6 +41,18 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
   screenNumber = DefaultScreen(display);
   int status = XMatchVisualInfo(display, DefaultScreen(display),
                                 8, PseudoColor, &visualInfo);  // fills visualInfo
+  if( ! status) {
+    cerr << "Error: bad XMatchVisualInfo: no PseudoColor Visual" << endl;
+    exit(1);
+  }
+
+/*
+  cout << endl;
+  cout << "_in Palette:  screen  DefaultScreen(display) visualInfo.screen = "
+       << screen << "  " << DefaultScreen(display) << "  " << visualInfo.screen
+       << endl;
+  cout << endl;
+*/
 
   visual = visualInfo.visual;
   gc = screen->default_gc;
@@ -83,7 +94,6 @@ Palette::Palette(int datalistlength, int width,
 {
   totalColorSlots = MaxPaletteIndex() + 1;
   sysccells.resize(totalColorSlots);
-  //  transY.resize(totalColorSlots);
   transferArray.resize(totalColorSlots);
   ccells.resize(totalColorSlots);
   palPixmap = 0;
@@ -91,29 +101,16 @@ Palette::Palette(int datalistlength, int width,
   pmax = 1.0;
   defaultFormat = "%6.4f";
 
-  //display = XtDisplay(w);
-  //root = RootWindow(display, DefaultScreen(display));
-  //screen = XtScreen(w);
-  //screenNumber = DefaultScreen(display);
-  //int status = XMatchVisualInfo(display, DefaultScreen(display),
-                                //8, PseudoColor, &visualInfo);  // fills visualInfo
-
-  //visual = visualInfo.visual;
-  //gc = screen->default_gc;
-
   totalPalWidth = totalwidth;
   palWidth  = width;
   totalPalHeight = totalheight;
   dataList.resize(datalistlength);
-  //colmap = XCreateColormap(display, root, visual, AllocAll);
 
   transSet = false;
 
-  //systemColmap = DefaultColormap(display, screenNumber);
   for(int ii = 0; ii < totalColorSlots; ++ii) {
     sysccells[ii].pixel = ii;
   }
-  //XQueryColors(display, systemColmap, sysccells.dataPtr(), totalColorSlots);
   reserveSystemColors = reservesystemcolors;
   colorOffset = reserveSystemColors;  // start our allocated palette here
 
@@ -179,8 +176,8 @@ void Palette::Draw(Real palMin, Real palMax, const aString &numberFormat) {
 			      totalPalHeight + 50, 8);
   }
   XGetWindowAttributes(display, palWindow, &winAttribs);
-
   XSetForeground(display, gc, blackIndex);
+// ERROR here for 24 bit color pc
   XFillRectangle(display, palPixmap, gc, 0, 0, totalPalWidth, totalPalHeight + 50);
 
   if(transSet) {    // show transfers in palette
@@ -224,42 +221,6 @@ void Palette::Draw(Real palMin, Real palMax, const aString &numberFormat) {
   }
   ExposePalette();
 }  // end Palette::Draw.
-
-
-// -------------------------------------------------------------------
-void Palette::SetTransfers(const Array<int> &transx, const Array<float> &transy) {
-  // interpolate between points
-//   assert(transx.length() == transy.length());
-//   int ntranspts(transx.length());
-//   int n, leftx, rightx;
-//   float lefty, righty, m, x;
-//   transSet = true;
-  /*  int ntrans(0);  // where we are in transx
-
-  assert(transx[0] == 0);
-
-  for(int n=0; n < totalColorSlots; ++n) {
-
-//     if((ntrans+1) > ntranspts) {
-// 	cerr << (ntrans+1) << " > " << ntranspts << endl;
-//     }
-
-//     if(transx[ntrans] == n) {
-//       if(n != (totalColorSlots - 1)) {
-//         leftx = transx[ntrans];
-//         lefty = transy[ntrans];
-//         rightx = transx[ntrans+1];
-//         righty = transy[ntrans+1];
-//       }
-    transY[n] = transy[ntrans];
-    ++ntrans;
-//     } else {
-//       m = (righty - lefty) / (rightx - leftx);
-//       x = (float) (n - leftx);
-//       transY[n] = m*x + lefty;
-//     }
-  }*/
-}
 
 
 // -------------------------------------------------------------------

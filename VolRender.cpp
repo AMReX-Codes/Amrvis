@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: VolRender.cpp,v 1.26 1998-10-29 23:56:11 vince Exp $
+// $Id: VolRender.cpp,v 1.27 1999-03-08 22:00:49 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -148,15 +148,9 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
 			    int iBlackIndex, int iWhiteIndex,
 			    int iColorSlots)
 {
-  if(ParallelDescriptor::NProcs() == 1) {
     MakeSWFDataNProcs(dataServicesPtr, rDataMin, rDataMax,
 	              derivedName, iPaletteStart, iPaletteEnd,
 	              iBlackIndex, iWhiteIndex, iColorSlots);
-  } else {
-    MakeSWFDataNProcs(dataServicesPtr, rDataMin, rDataMax,
-	              derivedName, iPaletteStart, iPaletteEnd,
-	              iBlackIndex, iWhiteIndex, iColorSlots);
-  }
 }
 
 
@@ -271,192 +265,144 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
         }
       }
     }  // end for(gp...)
+
+    // ----------------------------------------------------- VolumeBoxes
+    bool bDrawVolumeBoxes(GetBoxColor() > -1);
+    if(bDrawVolumeBoxes) {
+      int edger, edgec, edgep;
+      int volumeBoxColor(GetBoxColor());
+      int gr, gc, gp, sr, sc, sp;
+      int sindex;
+      AmrData &amrData = dataServicesPtr->AmrDataRef();
+
+      for(int lev = minDrawnLevel; lev <= maxDrawnLevel; ++lev) {
+        int crr(CRRBetweenLevels(lev, maxDrawnLevel, amrData.RefRatio()));
+	const BoxArray &gridBoxes = amrData.boxArray(lev);
+	for(int iGrid = 0; iGrid < gridBoxes.length(); ++iGrid) {
+          gbox = gridBoxes[iGrid];
+          Box goverlap(gbox & drawnDomain[lev]);
+          grefbox = goverlap;
+          grefbox.refine(crr);
+
+          int gstartr(gbox.smallEnd(XDIR));
+          int gstartc(gbox.smallEnd(YDIR));
+          int gstartp(gbox.smallEnd(ZDIR));
+
+          int gostartr(goverlap.smallEnd(XDIR) - gstartr);
+          int gostartc(goverlap.smallEnd(YDIR) - gstartc);
+          int gostartp(goverlap.smallEnd(ZDIR) - gstartp);
+          int goendr(goverlap.bigEnd(XDIR)   - gstartr);
+          int goendc(goverlap.bigEnd(YDIR)   - gstartc);
+          int goendp(goverlap.bigEnd(ZDIR)   - gstartp);
+
+          grows = gbox.length(XDIR);
+          gcols = gbox.length(YDIR);
+
+        if(crr != 1) {
+          int gcolsgrowstmp(gcols * grows);
+          for(gp = gostartp; gp <= goendp; ++gp) {
+	    if(gp == gostartp || gp == goendp) {
+              edgep = 1;
+	    } else {
+              edgep = 0;
+	    }
+            gpgcgrtmp = gp * gcolsgrowstmp;
+            for(gc = gostartc; gc <= goendc; ++gc) {
+	      if(gc == gostartc || gc == goendc) {
+                edgec = 1;
+	      } else {
+                edgec = 0;
+	      }
+              for(gr=gostartr; gr <= goendr; ++gr) {
+		if(gr == gostartr || gr == goendr) {
+                  edger = 1;
+		} else {
+                  edger = 0;
+		}
+                sindexbase = (((gp + gstartp) * crr - sstartp) * scolssrowstmp) +
+                             ((sendc - ((gc + gstartc) * crr)) * srows) +
+                             ((gr + gstartr) * crr - sstartr);
+
+              if((edger + edgec + edgep) > 1) {
+                // (possibly) draw boxes into dataset
+                int onEdger, onEdgec, onEdgep;
+
+                for(sp = 0; sp < crr; ++sp) {
+		  if((gp==gostartp && sp==0) || (gp==goendp && sp == (crr-1))) {
+                    onEdgep = 1;
+		  } else {
+                    onEdgep = 0;
+		  }
+                  for(sc = 0; sc < crr; ++sc) {
+		    if((gc==gostartc && sc==0) || (gc==goendc && sc == (crr-1))) {
+                      onEdgec = 1;
+		    } else {
+                      onEdgec = 0;
+		    }
+                    for(sr = 0; sr < crr; ++sr) {
+		      if((gr==gostartr && sr==0) || (gr==goendr && sr == (crr-1))) {
+                        onEdger = 1;
+		      } else {
+                        onEdger = 0;
+		      }
+                      if((onEdger + onEdgec + onEdgep) > 1) {
+                        sindex = sindexbase + ((sp * scolssrowstmp) -
+					       (sc * srows) + sr);
+                        swfData[sindex] = volumeBoxColor;
+                      }
+
+                    }
+                  }
+                }  // end for(sp...)
+              }
+              }
+            }
+          }  // end for(gp...)
+
+        } else {  // crr == 1
+
+          int gcolsgrowstmp(gcols * grows);
+          for(gp = gostartp; gp <= goendp; ++gp) {
+	    if(gp == gostartp || gp == goendp) {
+              edgep = 1;
+	    } else {
+              edgep = 0;
+	    }
+            gpgcgrtmp = gp * gcolsgrowstmp;
+            for(gc = gostartc; gc <= goendc; ++gc) {
+	      if(gc == gostartc || gc == goendc) {
+                edgec = 1;
+	      } else {
+                edgec = 0;
+	      }
+              for(gr = gostartr; gr <= goendr; ++gr) {
+		if(gr == gostartr || gr == goendr) {
+                  edger = 1;
+		} else {
+                  edger = 0;
+		}
+                if((edger + edgec + edgep) > 1) {
+                  sindexbase =
+                      (((gp + gstartp) - sstartp) * scolssrowstmp) +
+                      ((sendc - ((gc + gstartc))) * srows) +
+                      ((gr + gstartr) - sstartr);
+                  swfData[sindexbase] = volumeBoxColor;
+                }
+              }
+            }
+          }  // end for(gp...)
+        }  // end if(crr...)
+
+        }  // end for(iGrid...)
+      }  // end for(lev...)
+    }  // end if(bDrawVolumeBoxes)
+
     cout << endl;
     cout << "--------------- make swfData time = "
          << ((clock()-time0)/1000000.0) << endl;
   }
   
 }  // end MakeSWFDataNProcs(...)
-
-
-// -------------------------------------------------------------------
-void VolRender::MakeSWFDataOneProc(DataServices *dataServicesPtr,
-			    Real rDataMin, Real rDataMax,
-			    const aString &derivedName,
-			    int iPaletteStart, int iPaletteEnd,
-			    int iBlackIndex, int iWhiteIndex,
-			    int iColorSlots)
-{
-  assert(bVolRenderDefined);
-
-  if(swfDataValid) {
-    return;
-  }
-
-  if( ! swfDataAllocated) {
-    AllocateSWFData();
-  }
-
-      AmrData &amrData = dataServicesPtr->AmrDataRef();
-      swfDataValid = true;
-      clock_t time0 = clock();
-
-      int maxDrawnLevel = maxDataLevel;
-      Box gbox, grefbox;
-      Box swfDataBox = drawnDomain[maxDrawnLevel];
-
-      Real *dataPoint, dat;
-      int lev, crr;
-      int grows, gcols, gr, gc, gp;
-      int srows, scols, sr, sc, sp;
-      //int gplanes splanes;
-      int sindex, sindexbase;
-      char chardat;
-      Real gmin = rDataMin;
-      Real gmax = rDataMax;
-      Real globalDiff = gmax - gmin;
-      Real oneOverGDiff;
-      if(globalDiff < FLT_MIN) {
-        oneOverGDiff = 0.0;  // so we dont divide by zero
-      } else {
-        oneOverGDiff = 1.0 / globalDiff;
-      }
-
-      srows   = swfDataBox.length(XDIR);
-      scols   = swfDataBox.length(YDIR);
-      //splanes = swfDataBox.length(ZDIR);
-      int scolssrowstmp = scols*srows;
-      int sstartr = swfDataBox.smallEnd(XDIR);
-      int sstartc = swfDataBox.smallEnd(YDIR);
-      int sstartp = swfDataBox.smallEnd(ZDIR);
-      int sendr   = swfDataBox.bigEnd(XDIR);
-      int sendc   = swfDataBox.bigEnd(YDIR);
-      int sendp   = swfDataBox.bigEnd(ZDIR);
-
-      int colorSlots = iColorSlots;
-      int paletteStart = iPaletteStart;
-      int cSlotsAvail = colorSlots - 1;
-
-      cout << "Filling swfFabData..." << endl;
-
-      for(lev = minDrawnLevel; lev <= maxDrawnLevel; lev++) {
-        crr = CRRBetweenLevels(lev, maxDrawnLevel, amrData.RefRatio());
-
-        for(MultiFabIterator gpli((amrData.GetGrids(lev,
-					amrData.StateNumber(derivedName),
-					drawnDomain[lev])));
-	    gpli.isValid(); ++gpli)
-	{
-          gbox = gpli.validbox();
-          Box goverlap = gbox & drawnDomain[lev];
-          grefbox = goverlap;
-          grefbox.refine(crr);
-
-          int gstartr = gbox.smallEnd(XDIR);
-          int gstartc = gbox.smallEnd(YDIR);
-          int gstartp = gbox.smallEnd(ZDIR);
-
-          int gostartr = goverlap.smallEnd(XDIR) - gstartr;
-          int gostartc = goverlap.smallEnd(YDIR) - gstartc;
-          int gostartp = goverlap.smallEnd(ZDIR) - gstartp;
-          int goendr   = goverlap.bigEnd(XDIR)   - gstartr;
-          int goendc   = goverlap.bigEnd(YDIR)   - gstartc;
-          int goendp   = goverlap.bigEnd(ZDIR)   - gstartp;
-
-          FArrayBox *swfFabData = new FArrayBox(gbox, 1);
-	  swfFabData->copy(gpli(), amrData.StateNumber(derivedName), 0, 1);
-          dataPoint = swfFabData->dataPtr();
-
-          grows   = gbox.length(XDIR);
-          gcols   = gbox.length(YDIR);
-          //gplanes = gbox.length(ZDIR);
-
-          // expand data into swfData and change to chars
-
-        if(crr != 1) {
-          int gcolsgrowstmp = gcols*grows;
-          int gpgcgrtmp, gcgrowstmp;
-          for(gp=gostartp; gp <= goendp; gp++) {
-            gpgcgrtmp = gp*gcolsgrowstmp;
-            for(gc=gostartc; gc <= goendc; gc++) {
-              gcgrowstmp = gpgcgrtmp + gc*grows;
-              for(gr=gostartr; gr <= goendr; gr++) {
-                //dat = dataPoint[(gp*gcols*grows)+(gc*grows)+gr];  // works
-                dat = dataPoint[gcgrowstmp + gr];
-                dat = Max(dat,gmin); // clip data if out of range
-                dat = Min(dat,gmax);
-                chardat = (char) (((dat-gmin)*oneOverGDiff) * cSlotsAvail);
-                chardat += paletteStart;
-
-                //   works
-                //sindexbase =
-                //      (((gp+gstartp)*crr-sstartp) * scols*srows) +
-                //  //((sendc-sstartc-((gc+gstartc)*crr-sstartc)) * srows)+
-                //      ((sendc-((gc+gstartc)*crr)) * srows)+  // check this
-                //      ((gr+gstartr)*crr-sstartr);
-                //
-                sindexbase =
-                      (((gp+gstartp)*crr-sstartp) * scolssrowstmp) +
-                      ((sendc-((gc+gstartc)*crr)) * srows)+  // check this
-                      ((gr+gstartr)*crr-sstartr);
-
-                for(sp=0; sp < crr; sp++) {
-                  for(sc=0; sc < crr; sc++) {
-                    for(sr=0; sr < crr; sr++) {
-                      sindex = sindexbase +
-                           //((sp*scols*srows) - (sc*srows) + sr);  // works
-                           ((sp*scolssrowstmp) - (sc*srows) + sr);
-                      //check out of range
-                      //if(sindex < 0 || sindex > swfDataBox.numPts()) {
-                        //cerr << "bad sindex = " << sindex << endl;
-                        //cerr << "    npts = " << swfDataBox.numPts() << endl;
-                        //exit(-4);
-                      //}
-                      swfData[sindex] = chardat;
-
-                    }
-                  }
-                }  // end for(sp...)
-              }  // end for(gr...)
-            }  // end for(gc...)
-          }  // end for(gp...)
-
-        } else {  // crr == 1
-          int gcolsgrowstmp = gcols*grows;
-          int gpgcgrtmp, gcgrowstmp;
-          for(gp=gostartp; gp <= goendp; gp++) {
-            gpgcgrtmp = gp*gcolsgrowstmp;
-            for(gc=gostartc; gc <= goendc; gc++) {
-              gcgrowstmp = gpgcgrtmp + gc*grows;
-              for(gr=gostartr; gr <= goendr; gr++) {
-                //dat = dataPoint[(gp*gcols*grows)+(gc*grows)+gr];  // works
-                dat = dataPoint[gcgrowstmp + gr];
-                dat = Max(dat,gmin); // clip data if out of range
-                dat = Min(dat,gmax);
-                chardat = (char) (((dat-gmin)*oneOverGDiff) * cSlotsAvail);
-                chardat += paletteStart;
-
-                sindexbase =
-                      (((gp+gstartp)-sstartp) * scolssrowstmp) +
-                      ((sendc-((gc+gstartc))) * srows) +  // check this
-                      ((gr+gstartr)-sstartr);
-
-                swfData[sindexbase] = chardat;
-              }
-            }
-          }  // end for(gp...)
-
-        }  // end if(crr...)
-
-	delete swfFabData;
-
-        }  // end while(gpli)
-      }  // end for(lev...)
-
-      cout << "--------------- make swfData time = "
-           << ((clock()-time0)/1000000.0) << endl;
-
-}  // end MakeSWFData
 
 
 // -------------------------------------------------------------------

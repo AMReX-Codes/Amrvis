@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.cpp,v 1.53 1998-12-02 00:38:23 vince Exp $
+// $Id: PltApp.cpp,v 1.54 1999-03-08 22:00:48 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -82,10 +82,10 @@ PltApp::~PltApp() {
   }
   if(animating2d) {
     StopAnimation();
-  //for(int i = 1; i < animFrames; i++) {
-  //}
   }
   XtDestroyWidget(wAmrVisTopLevel);
+
+  bPltAppIsClosing = true;
 }
 
 
@@ -1329,7 +1329,6 @@ void PltApp::PltAppInit() {
   pltPaletteptr = new Palette(wTopLevel, palListLength, palWidth,
 			      totalPalWidth, totalPalHeight, 
 			      reserveSystemColors);
-
   //  XmChangeColor(wAmrVisTopLevel, pltPaletteptr->PaletteStart());
   
   pltPaletteptr->SetWindow(XtWindow(wPalArea));
@@ -1449,6 +1448,8 @@ void PltApp::PltAppInit() {
     amrPicturePtrArray[np]->SetDataMin(amrPicturePtrArray[np]->GetRegionMin());
     amrPicturePtrArray[np]->SetDataMax(amrPicturePtrArray[np]->GetRegionMax());
   }  
+
+  bPltAppIsClosing = false;
 }	// end of PltAppInit
 
 
@@ -2157,48 +2158,61 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
     char buf[BUFSIZ];
     ostrstream prob(buf, BUFSIZ);
     prob.precision(15);
-    strcpy(entries[i], fileName.c_str());i++;
-    strcpy(entries[i], amrData.PlotFileVersion().c_str()); i++;
-    prob<<"time: "<<amrData.Time()<<ends;
-    strcpy(entries[i], buf); i++;
-    sprintf(entries[i], "levels: %d", amrData.FinestLevel()+1); i++;
-    sprintf(entries[i], "prob domain"); i++;
-    for(int k = 0; k<=amrData.FinestLevel(); k++) {
+    strcpy(entries[i], fileName.c_str());
+    ++i;
+    strcpy(entries[i], amrData.PlotFileVersion().c_str());
+    ++i;
+    prob << "time: " << amrData.Time() << ends;
+    strcpy(entries[i], buf);
+    ++i;
+    sprintf(entries[i], "levels: %d", amrData.FinestLevel()+1);
+    ++i;
+    sprintf(entries[i], "prob domain");
+    ++i;
+    for(int k = 0; k <= amrData.FinestLevel(); ++k) {
       ostrstream prob_domain(entries[i], BUFSIZ);
-      prob_domain << " level "<<k<<": "<<amrData.ProbDomain()[k]<<ends;
-      i++;
+      prob_domain << " level "<< k << ": " << amrData.ProbDomain()[k] << ends;
+      ++i;
     }
     prob.seekp(0);
-    prob<<"refratios:";
-    for(int k=0; k<amrData.FinestLevel(); k++) {
-      prob<<" "<<amrData.RefRatio()[k]; }
-    prob<<ends;
-    strcpy(entries[i], buf); i++;
+    prob << "refratios:";
+    for(int k = 0; k < amrData.FinestLevel(); ++k) {
+      prob << " " << amrData.RefRatio()[k];
+    }
+    prob << ends;
+    strcpy(entries[i], buf);
+    ++i;
 
     prob.seekp(0);
-    prob<<"probsize:";
-    for(int k=0; k<BL_SPACEDIM; k++) {
-       prob<<" "<<amrData.ProbSize()[k]; }
-    prob<<ends;
-    strcpy(entries[i], buf); i++;
+    prob << "probsize:";
+    for(int k = 0; k < BL_SPACEDIM; ++k) {
+      prob << " " << amrData.ProbSize()[k];
+    }
+    prob << ends;
+    strcpy(entries[i], buf);
+    ++i;
 
     prob.seekp(0);
-    prob<<"prob lo:";
-    for(int k=0; k<BL_SPACEDIM; k++) {
-       prob<<" "<<amrData.ProbLo()[k]; }
-    prob<<ends;
-    strcpy(entries[i], buf); i++;
+    prob << "prob lo:";
+    for(int k = 0; k < BL_SPACEDIM; ++k) {
+      prob << " " << amrData.ProbLo()[k];
+    }
+    prob << ends;
+    strcpy(entries[i], buf);
+    ++i;
 
     prob.seekp(0);
-    prob<<"prob hi:";
-    for(int k=0; k<BL_SPACEDIM; k++) {
-       prob<<" "<<amrData.ProbHi()[k]; }
-    prob<<ends;
-    strcpy(entries[i], buf); i++;
+    prob << "prob hi:";
+    for(int k = 0; k < BL_SPACEDIM; ++k) {
+      prob << " " << amrData.ProbHi()[k];
+    }
+    prob << ends;
+    strcpy(entries[i], buf);
+    ++i;
 
-    XmStringTable str_list=
-      (XmStringTable)XtMalloc(numEntries*sizeof(XmString *));
-    for(int j = 0; j<numEntries ; j++) {
+    XmStringTable str_list =
+	    (XmStringTable) XtMalloc(numEntries * sizeof(XmString *));
+    for(int j = 0; j < numEntries; ++j) {
       str_list[j] = XmStringCreateSimple(entries[j]);
     }
     
@@ -2208,7 +2222,7 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
                   XmNitems, str_list,
                   NULL);
     
-    for(int j = 0; j<numEntries; j++) {
+    for(int j = 0; j < numEntries; ++j) {
       delete [] entries[j];
     }
     delete [] entries;
@@ -2234,7 +2248,6 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
     XtPopup(wInfoTopLevel, XtGrabNone);
   }
 }
-
 
 
 // -------------------------------------------------------------------

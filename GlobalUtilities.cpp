@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GlobalUtilities.cpp,v 1.26 1999-01-07 21:08:57 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.27 1999-03-08 22:00:47 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -145,7 +145,7 @@ void GetDefaults(const aString &defaultsFile) {
   boundaryWidth = 0;
   skipPltLines = 0;
   maxPaletteIndex = 255;  // dont clip the top palette index (default)
-  boxColor = maxPaletteIndex;
+  boxColor = -1;  // invalid
   fileType = NEWPLT;  // default
   fabIOSize = 0;
 
@@ -313,6 +313,7 @@ void PrintUsage(char *exname) {
   cout << "       [-cliptoppalette]"<< endl;
 #if (BL_SPACEDIM == 3)
 #ifdef BL_VOLUMERENDER
+    cout << "       [-boxcolor n]" << endl;
     cout << "       [-makeswf_light]" << endl;
     cout << "       [-makeswf_value]" << endl;
 #endif
