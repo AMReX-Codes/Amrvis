@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.79 2001-04-16 22:47:41 vince Exp $
+// $Id: PltApp.cpp,v 1.80 2001-04-17 17:11:04 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1634,7 +1634,7 @@ pltAppState->PrintSetMap();  cout << endl;
   if(animating2d) {
     ResetAnimation();
     DirtyFrames();
-    if(currentRangeType == FILEMINMAX) {
+    if(UsingFileRange(currentRangeType)) {
       Real dataMin, dataMax;
       globalMin =  AV_BIG_REAL;
       globalMax = -AV_BIG_REAL;
@@ -3810,7 +3810,7 @@ void PltApp::ShowFrame() {
   interfaceReady = false;
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   if( ! readyFrames[currentFrame] || datasetShowing ||
-      currentRangeType == FILEMINMAX)
+      UsingFileRange(currentRangeType)
   {
 #   if(BL_SPACEDIM == 2)
     AmrPicture *tempapSF = amrPicturePtrArray[ZPLANE];
@@ -3849,7 +3849,7 @@ void PltApp::ShowFrame() {
     frameBuffer[currentFrame] = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
 #   endif
     readyFrames[currentFrame] = true;
-    paletteDrawn = (currentRangeType == FILEMINMAX) ? false : true;
+    paletteDrawn = ! UsingFileRange(currentRangeType);
   }
   
   XPutImage(display, XtWindow(wPlotPlane[ZPLANE]), xgc,

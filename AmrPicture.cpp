@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.58 2001-04-16 22:47:41 vince Exp $
+// $Id: AmrPicture.cpp,v 1.59 2001-04-17 17:11:04 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -841,7 +841,7 @@ void AmrPicture::APMakeImages(Palette *palptr) {
   palPtr = palptr;
   AmrData &amrData = dataServicesPtr->AmrDataRef();
   //if(currentDerived != derived || whichRange == FILEMINMAX)
-  if(pltAppStatePtr->GetMinMaxRangeType() == FILEMINMAX) {
+  if(UsingFileRange(pltAppStatePtr->GetMinMaxRangeType())) {
     //maxsFound = false;
     pltAppPtr->PaletteDrawn(false);
   }
@@ -939,29 +939,6 @@ void AmrPicture::APMakeImages(Palette *palptr) {
 
   }  // end if( ! maxsFound)
 
-  /*
-  switch(whichRange) {
-	case USEGLOBAL:
-    		minUsing = dataMinAllGrids;
-    		maxUsing = dataMaxAllGrids;
-	break;
-	case USELOCAL:
-    		minUsing = dataMinRegion;
-    		maxUsing = dataMaxRegion;
-	break;
-	case USESPECIFIED:
-    		minUsing = dataMinSpecified[currDerivedNumber];
-    		maxUsing = dataMaxSpecified[currDerivedNumber];
-	break;
-	case FILEMINMAX:
-    		minUsing = dataMinFile;
-    		maxUsing = dataMaxFile;
-	break;
-	default:
-    		BoxLib::Abort("Error in AmrPicture::ChangedDerived:  bad range.");
-	break;
-  }
-  */
   Real minUsing, maxUsing;
   pltAppStatePtr->GetMinMax(minUsing, maxUsing);
   VSHOWVAL(Verbose(), minUsing)
@@ -1960,44 +1937,6 @@ void AmrPicture::ShowFrameImage(int iSlice) {
 
   pltAppPtr->DoExposeRef();
 }  // end ShowFrameImage()
-
-
-/*
-// ---------------------------------------------------------------------
-Real AmrPicture::GetWhichMin() {
-  if(whichRange == USEGLOBAL) {
-    return dataMinAllGrids;
-  } else if(whichRange == USELOCAL) {
-    return dataMinRegion;
-  } else if(whichRange == USESPECIFIED) {
-    BL_ASSERT(dataMinSpecifiedSet[currDerivedNumber]);
-    return dataMinSpecified[currDerivedNumber];
-  } else if(whichRange == FILEMINMAX) {
-    return dataMinFile;
-  } else {
-    BoxLib::Abort("Error in AmrPicture::GetWhichMin:  bad range.");
-    return(-42.0);  // bogus return for the compiler
-  }
-}
-
-
-// ---------------------------------------------------------------------
-Real AmrPicture::GetWhichMax() {
-  if(whichRange == USEGLOBAL) {
-    return dataMaxAllGrids;
-  } else if(whichRange == USELOCAL) {
-    return dataMaxRegion;
-  } else if(whichRange == USESPECIFIED) {
-    BL_ASSERT(dataMaxSpecifiedSet[currDerivedNumber]);
-    return dataMaxSpecified[currDerivedNumber];
-  } else if(whichRange == FILEMINMAX) {
-    return dataMaxFile;
-  } else {
-    BoxLib::Abort("Error in AmrPicture::GetWhichMax:  bad range.");
-    return(-42.0);  // bogus return for the compiler
-  }
-}
-*/
 
 
 /*

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrvisConstants.H,v 1.12 2001-04-16 16:41:21 vince Exp $
+// $Id: AmrvisConstants.H,v 1.13 2001-04-17 17:11:04 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -56,13 +56,21 @@ const int WOFFSET = 4;
 enum AnimDirection { ANIMPOSDIR = 0, ANIMNEGDIR };
 
 enum MinMaxRangeType {
-    GLOBALMINMAX    = 0,
-    SUBREGIONMINMAX = 1,
-    USERMINMAX      = 2,
-    FILEMINMAX      = 3,
-    NUMBEROFMINMAX  = 4,
+    GLOBALMINMAX        = 0,
+    SUBREGIONMINMAX     = 1,
+    USERMINMAX          = 2,
+    FILEGLOBALMINMAX    = 3,
+    FILESUBREGIONMINMAX = 4,
+    FILEUSERMINMAX      = 5,
+    NUMBEROFMINMAX      = 6,
     INVALIDMINMAX
 };
+
+static bool UsingFileRange(const MinMaxRangeType rt) {
+  return(rt == FILEGLOBALMINMAX    ||
+         rt == FILESUBREGIONMINMAX ||
+	 rt == FILEUSERMINMAX);
+}
 
 enum ContourType {
   RASTERONLY     = 0,
