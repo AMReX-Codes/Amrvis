@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.56 2003-12-11 01:48:51 vince Exp $
+// $Id: PltApp3D.cpp,v 1.57 2004-11-15 22:16:38 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -922,7 +922,8 @@ void PltApp::Clear() {
 void PltApp::DoOrient(Widget w, XtPointer client_data, XtPointer) {
   Real rW(1.0), rX(0.0), rY(0.0), rZ(0.0);
   Real rW2(1.0), rX2(0.0), rY2(0.0), rZ2(0.0);
-  int iOrientation((int) client_data);
+  //int iOrientation((int) client_data);
+  int iOrientation(reinterpret_cast<int> (client_data));
   switch(iOrientation) {
     case OXY:
       rW  =  1.0;
