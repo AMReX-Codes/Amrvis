@@ -38,43 +38,47 @@ is currently
 
 \begin{verbatim}
 amrvis3d
-       [-help]
-       [-maxpixmapsize <max picture size in # of pixels>]
        [<file type flag>] [-v]
+       [-maxpixmapsize <max picture size in # of pixels>]
        [-xslice n] [-yslice n] [-zslice n] [-sliceallvars]
        [-boxslice xlo ylo zlo xhi yhi zhi]
-       [-nprocs n] [-maxlev n]
+       [-maxlev n]
        [-palette palname] [-initialderived dername]
        [-initialscale n] [-showboxes tf] [-numberformat fmt]
+       [-lowblack]
+       [-cliptoppalette]
        [-makeswf_light]
        [-makeswf_value]
        [-useminmax min max]
        [<filename(s)>]
-  -b                 specify subdomain box (on finest level).
-  -maxpixmapsize     specify maximum allowed picture size in pixels.
-  file type flags:   -fab, -newplt (default)
+
+  file type flags:   -fab, -newplt (-newplt is the default)
+  -v                 verbose.
+  -maxpixmapsize n   specify maximum allowed picture size in pixels.
+  -skippltlines n    skip n lines at head of the plt file.
+  -boxcolor n        set volumetric box color value [0,255].
   -xslice n          write a fab slice at x = n (n at the finest level).
   -yslice n          write a fab slice at y = n (n at the finest level).
   -zslice n          write a fab slice at z = n (n at the finest level).
   -sliceallvars      write all fab variables instead of just initialderived.
   -boxslice _box_    write a fab on the box (box at the finest level).
+                     box format:  lox loy loz hix hiy hiz.
+                     example:  -boxslice 0 0 0 120 42 200.
                      Note:  slices are written in batch mode.
-  -nprocs n          specify number of processors.
   -maxlev n          specify the maximum drawn level.
-  -makeswf_light     make volume rendering data using the
-                     current transfer function and write data
-                     to a file, using the lighting model.
-                     note:  works in batch mode.
-  -makeswf_value     same as above, with value model rendering.
-  -useminmax min max use min and max as the global min max values
-  -v                 verbose.
   -palette palname   set the initial palette.
   -initialderived dername   set the initial derived to dername.
   -initialscale n    set the initial scale to n.
   -showboxes tf      show boxes (the value of tf is true or false).
   -numberformat fmt  set the initial format to fmt (ex:  %4.2f).
   -lowblack          sets the lowest color in the palette to black.
-  -cliptoppalette    dont use the top palette index (for exceed).
+  -cliptoppalette    do not use the top palette index (for exceed).
+  -makeswf_light     make volume rendering data using the
+                     current transfer function and write data
+                     to a file, using the lighting model.
+                     note:  works in batch mode.
+  -makeswf_value     same as above, with value model rendering.
+  -useminmax min max use min and max as the global min max values
   <filename(s)>      must be included if box is specified.
 \end{verbatim}
 
@@ -137,6 +141,26 @@ through data files and through planes in 3D.  It is in the lower right
 part of the Data View Window below the Palette Area.  It also shows
 plane axes.  The animation controls will only be visible in 3D or
 if the Data View Window is used for 2D animation.
+
+\item[Lights Window] This window allows the user to set the following
+lighting parameters.
+
+\begin{description}
+\item [ambient]  Sets the ambient lighting value.
+
+\item [diffuse]  Sets the diffuse lighting value.
+
+\item [specular]  Sets the specular lighting value.
+
+\item [shiny]  Sets the material shinyness.
+
+\item [minRayOpacity]  Sets the minimum ray opacity cutoff.  The
+minimum value for this parameter is 0.0.  A good value is 0.05.
+
+\item [maxRayOpacity]  Sets the maximum ray opacity cutoff.  The
+maximum value for this parameter is 1.0.  A good value is 0.95.
+\end{description}
+
 \end{description}
 
 
@@ -179,7 +203,7 @@ data to one of several formats.
 options are {\em raster}, {\em raster \& contours}, {\em color contours},
 {\em b/w contours}, and {\em velocity vectors}.
 
-\item[Number of Contour setting]  This edit box allows the user to set
+\item[Number of Contour Lines]  This edit box allows the user to set
 the number of contour lines or velocity vectors.
 
 \item[Information Button]  This button displays a window with information
@@ -206,8 +230,8 @@ of the isometric image in 3D (boxes or volumetric rendering).
     \item [Lights]      Allows the user to set the rendering lighting parameters.
     \item[Light/Value]  This menu shows the volume rendering
                         model currently in effect.
-    \item[OT/PC]        This menu affect how the volume rendering
-                        stores data internally (OctTree/PreClassified).
+    \item[PC/OT]        This menu affect how the volume rendering
+                        stores data internally (PreClassified/OctTree).
 			PreClassified provides the fastest volume rendering.
     \item [Detach]      Detach the isometric view into its own window.
     \item [Attach]      Attach the isometric view.
@@ -237,7 +261,8 @@ orthogonal image views and zooming the isometric view (pull or push the mouse).
 
 \begin{description}
 \item [Slices] The user can specify multiple slices and ranges on the command line.
-For example:  {\em amrvis -newplt -xslice 7 -xslice 42 -yslice 19 -zslice 9 plt1010}
+For example:
+{\em amrvis -newplt -xslice 7 -xslice 42 -yslice 19 -zslice 9 plt1010}.
 This will create four fab files of the form
 {\em pltnnnn.derived.slicename.slicenum.fab}
 where derived is {\em initialderived} from {\bf amrvis.defaults}.
@@ -278,7 +303,6 @@ value model or lighting model.  The files are postprocessed with
 
 
 \subsection{Detailed Usage Notes}
-
 
 \begin{description}
 \item [Subregions] Subregions work functionally like the full region,
@@ -325,7 +349,14 @@ For animations across files in 3D, use {\em AmrMovie}.
 \item [Palettes]
 Palettes are in Non-interleaved Binary format and can be created
 with tools such as {\em icol} from {\bf AHPCRC} or {\em ximage}
-from {\bf NCSA}.
+from {\bf NCSA}.  The transfer function (which specifies transparency
+in the volumetric rendering) is included in the palette (they were
+formerly set in {\bf vpramps.dat}).
+The {\bf CCSE} version of {\em icol} must be used to create palettes
+with transfer functions.
+If the palette does not contain the transfer function values,
+a default will be used.
+
 
 \item [Number Format] The format for numbers (which is set in the
 {\bf Dataset} window) affects numbers in the dataset, the set range
@@ -396,30 +427,6 @@ The search path for {\bf amrvis.defaults} is (in this order):
 \end{verbatim}
 
 
-Transfer functions are now part of the palette (they were formerly set
-in {\bf vpramps.dat}).  A palette tool named {\em icol.trans} is
-available to create and modify palettes.  If the palette does not
-contain the transfer function values, a default will be used.
-
-The {\bf Lights} window allows the user to set the following lighting
-values.
-
-\begin{description}
-\item [ambient]  Sets the ambient lighting value.
-
-\item [diffuse]  Sets the diffuse lighting value.
-
-\item [specular]  Sets the specular lighting value.
-
-\item [shiny]  Sets the material shinyness.
-
-\item [minRayOpacity]  Sets the minimum ray opacity cutoff.  The
-minimum value for this parameter is 0.0.  A good value is 0.05.
-
-\item [maxRayOpacity]  Sets the maximum ray opacity cutoff.  The
-maximum value for this parameter is 1.0.  A good value is 0.95.
-\end{description}
-
 
 Note:  For volume rendering, the {\em VolPack} library from Stanford University
 must be linked with {\em amrvis}.  It currently can be obtained from
@@ -428,7 +435,7 @@ must be linked with {\em amrvis}.  It currently can be obtained from
 http://www-graphics.stanford.edu/software/volpack
 \end{verbatim}
 
-{\em Amrvis} has been tested with VolPack version 1.0beta3 (the
+{\em Amrvis} has been tested with {\bf VolPack} version 1.0beta3 (the
 latest release).
 
 
@@ -454,8 +461,7 @@ amrvis -a plt*            opens an animation for plt* (2D only).
 memory multiprocessor architectures using parallel BoxLib and the
 SPMD programming model.  The interface runs on processor zero
 (the I/O processor) and parallel DataServices runs on all processors
-and handles data requests from the {\em amrvis} interface.  The number
-of processors is set with the {\em -nprocs n} option.
+and handles data requests from the {\em amrvis} interface.
 
 
 
@@ -463,7 +469,7 @@ of processors is set with the {\em -nprocs n} option.
 
 Data from a plot file is read from disk only when required to create
 an image in {\em amrvis}.  The granularity for I/O is a single quantity
-of a FArrayBox within a MultiFab.  Within {\em amrvis}, data on a grid for the
+of an FArrayBox within a MultiFab.  Within {\em amrvis}, data on a grid for the
 current quantity is read from disk only if it intersect the current
 image plane within the current subvolume, is less than or equal to the
 maximum available level, and has not already been read (FABs are cached).
@@ -473,7 +479,7 @@ maximum available level, and has not already been read (FABs are cached).
 
 \begin{itemize}
 \item For best performance of {\em amrvis} (and in general when
-accesssing files), copy data files to local disk instead
+accessing files), copy data files to local disk instead
 of relying on a slow network connection.
 
 \item In 3D, select a subregion to volume render so
@@ -494,6 +500,9 @@ flag is set correctly for your plot files.
 
 \item Once you pick a file type (-fab, -newplt), you cannot change it for that
 {\em amrvis} process.
+
+\item Plot files have a new directory based format.  The old single file
+format is not supported.
 
 \item Names in the quantiy list (density, xmom, etc.) must be unique.
 

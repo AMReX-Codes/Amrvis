@@ -332,7 +332,7 @@ void PrintUsage(char *exname) {
        << endl; 
   cout << "  -boxslice _box_    write a fab on the box (box at the finest level)."
        << endl; 
-  cout << "                     box fomat:  lox loy loz hix hiy hiz." << endl;
+  cout << "                     box format:  lox loy loz hix hiy hiz." << endl;
   cout << "                     example:  -boxslice 0 0 0 120 42 200." << endl;
   cout << "                     Note:  slices are written in batch mode." << endl;
 #if(BL_SPACEDIM == 2)
@@ -346,7 +346,7 @@ void PrintUsage(char *exname) {
   cout << "  -showboxes tf      show boxes (the value of tf is true or false)." << endl; 
   cout << "  -numberformat fmt  set the initial format to fmt (ex:  %4.2f)." << endl; 
   cout << "  -lowblack          sets the lowest color in the palette to black."<<endl;
-  cout << "  -cliptoppalette    dont use the top palette index (for exceed)."<<endl;
+  cout << "  -cliptoppalette    do not use the top palette index (for exceed)."<<endl;
 #if (BL_SPACEDIM == 3)
 #ifdef BL_VOLUMERENDER
   cout << "  -makeswf_light     make volume rendering data using the" << endl;

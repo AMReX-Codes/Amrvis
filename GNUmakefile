@@ -3,6 +3,9 @@ PRECISION = DOUBLE
 PROFILE   = TRUE
 PROFILE   = FALSE
 
+# use mpKCC for the sp
+COMP      = mpKCC
+
 COMP      = KCC
 DEBUG     = TRUE
 DEBUG     = FALSE
@@ -51,12 +54,19 @@ DEFINES += -DBL_USE_MPI
 ifeq ($(MACHINE), OSF1)
 MPI_HOME = /usr/local/mpi
 endif
+ifeq ($(MACHINE), AIX)
+MPI_HOME = /usr/lpp/ppe.poe
+endif
 endif
 
 ifeq ($(USE_MPI), TRUE)
 ifeq ($(MACHINE), OSF1)
 INCLUDE_LOCATIONS += $(MPI_HOME)/include
 LIBRARY_LOCATIONS += $(MPI_HOME)/lib/alpha/ch_p4
+endif
+ifeq ($(MACHINE), AIX)
+INCLUDE_LOCATIONS += $(MPI_HOME)/include
+LIBRARY_LOCATIONS += $(MPI_HOME)/lib
 endif
 endif
 
@@ -89,6 +99,13 @@ INCLUDE_LOCATIONS += /usr/include/X11 /usr/include/Xm /usr/include/X11/Xaw
 LIBRARIES += -lXm -lXt -lX11
 endif
 
+ifeq ($(MACHINE), AIX)
+#INCLUDE_LOCATIONS += /usr/include/X11 /usr/include/Xm /usr/include/X11/Xaw
+INCLUDE_LOCATIONS += /usr/include/X11 /usr/include/Xm
+LIBRARIES += -lXm -lXt -lX11
+DEFINES += -D_ALL_SOURCE
+endif
+
 ifeq ($(MACHINE), T3E)
 ifeq ($(WHICHT3E), NERSC)
 INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/X11
@@ -114,6 +131,9 @@ endif
 ############################################### volume rendering
 ifeq ($(DIM),3)
 ifeq ($(MACHINE), T3E)
+USE_VOLRENDER = FALSE
+endif
+ifeq ($(MACHINE), AIX)
 USE_VOLRENDER = FALSE
 endif
 ifeq ($(USE_VOLRENDER), TRUE)

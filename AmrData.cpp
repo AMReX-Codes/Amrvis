@@ -33,25 +33,35 @@ using std::ios;
 
 #ifdef CRAY
 #     if (BL_SPACEDIM == 2)
-#	   define   FORT_CNTRP     CNTRP2D
-#	   define   FORT_PCINTRP    PCINTRP2D
+#	   define   FORT_CNTERP     CNTRP2D
+#	   define   FORT_PCINTERP    PCINTRP2D
 #     elif (BL_SPACEDIM == 3)
-#	   define   FORT_CINTRP     CINTRP3D
-#	   define   FORT_PCINTRP    PCINTRP3D
+#	   define   FORT_CINTERP     CINTRP3D
+#	   define   FORT_PCINTERP    PCINTRP3D
 #     endif
 #else
+#  ifdef BL_AIX
 #     if (BL_SPACEDIM == 2)
-#	   define   FORT_CINTRP     cintrp2d_
-#	   define   FORT_PCINTRP    pcintrp2d_
+#          define   FORT_CINTERP     cinterp2d
+#          define   FORT_PCINTERP    pcinterp2d
 #     elif (BL_SPACEDIM == 3)
-#	   define   FORT_CINTRP     cintrp3d_
-#	   define   FORT_PCINTRP    pcintrp3d_
+#          define   FORT_CINTERP     cinterp3d
+#          define   FORT_PCINTERP    pcinterp3d
 #     endif
+#  else
+#     if (BL_SPACEDIM == 2)
+#          define   FORT_CINTERP     cinterp2d_
+#          define   FORT_PCINTERP    pcinterp2d_
+#     elif (BL_SPACEDIM == 3)
+#          define   FORT_CINTERP     cinterp3d_
+#          define   FORT_PCINTERP    pcinterp3d_
+#     endif
+#  endif
 #endif
 
 
 extern "C" {
-  void FORT_CINTRP(Real *fine, ARLIM_P(flo), ARLIM_P(fhi),
+  void FORT_CINTERP(Real *fine, ARLIM_P(flo), ARLIM_P(fhi),
                   const int *fblo, const int *fbhi,
                   const int &nvar, const int &lratio,
 		  const Real *crse, const int &clo, const int &chi,
@@ -61,7 +71,7 @@ extern "C" {
 		  Real *fslope, Real *fdat, const int &f_len,
 		  Real *foff);
 
-  void FORT_PCINTRP(Real *fine, ARLIM_P(flo), ARLIM_P(fhi),
+  void FORT_PCINTERP(Real *fine, ARLIM_P(flo), ARLIM_P(fhi),
                    const int *fblo, const int *fbhi,
 		   const int &lrat, const int &nvar,
 		   const Real *crse, ARLIM_P(clo), ARLIM_P(chi),
@@ -1235,7 +1245,7 @@ void AmrData::Interp(FArrayBox &fine, FArrayBox &crse,
    const int *fslo = fslope_bx.loVect();
    const int *fshi = fslope_bx.hiVect();
 
-   FORT_CINTRP(fine.dataPtr(0),ARLIM(fine.loVect()),ARLIM(fine.hiVect()),
+   FORT_CINTERP(fine.dataPtr(0),ARLIM(fine.loVect()),ARLIM(fine.hiVect()),
                fblo,fbhi,fine.nComp(),lrat,
                crse.dataPtr(0),clo,chi,cblo,cbhi,fslo,fshi,
                cslope,cLen,fslope,fdat,fLen,foff);
@@ -1267,7 +1277,7 @@ void AmrData::PcInterp(FArrayBox &fine, const FArrayBox &crse,
       int tlo = fine_temp.smallEnd()[0];
       int thi = fine_temp.bigEnd()[0];
       Real *tempSpace = new Real[thi-tlo+1];
-      FORT_PCINTRP(fine.dataPtr(0),ARLIM(fine.loVect()),ARLIM(fine.hiVect()),
+      FORT_PCINTERP(fine.dataPtr(0),ARLIM(fine.loVect()),ARLIM(fine.hiVect()),
                    fblo,fbhi, lrat,fine.nComp(),
                    crse.dataPtr(),ARLIM(crse.loVect()),ARLIM(crse.hiVect()),
                    cblo,cbhi, tempSpace,tlo,thi);

@@ -1,8 +1,8 @@
 c ::: SCCS stuff "@(#)FABUTIL_3D.F	3.1\t6/25/93"
 
-#define   FORT_CINTERP   cintrp3d
-#define   FORT_PCINTERP  pcintrp3d
-#define   FORT_VCINTERP  vcintrp3d
+#define   FORT_CINTERP   cinterp3d
+#define   FORT_PCINTERP  pcinterp3d
+#define   FORT_VCINTERP  vcinterp3d
 
 #include "REAL.H"
 #include "CONSTANTS.H"
