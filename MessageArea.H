@@ -1,6 +1,6 @@
 
 //
-// $Id: MessageArea.H,v 1.6 2000-10-02 20:53:08 lijewski Exp $
+// $Id: MessageArea.H,v 1.7 2001-02-20 21:48:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,6 +9,7 @@
 #ifndef _MESSAGEAREA_H
 #define _MESSAGEAREA_H
 
+#include <stdio.h>
 #include <Xm/Xm.h>
 #include <Xm/Text.h>
 
