@@ -1,5 +1,5 @@
-palette               Pal8.new
-palette               Palette
+#palette               Pal8.new
+#palette               Palette
 initialderived        density
 initialscale          4
 initialscale          1

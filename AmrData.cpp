@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.48 2001-03-14 00:41:52 vince Exp $
+// $Id: AmrData.cpp,v 1.49 2001-07-09 18:08:30 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -512,6 +512,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
         visMF[i].resize(currentVisMF + 1);  // this preserves previous ones
         visMF[i][currentVisMF] = new VisMF(mfName);
 	int iComp(currentIndexComp);
+        nGrow = visMF[i][currentVisMF]->nGrow();
         currentIndexComp += visMF[i][currentVisMF]->nComp();
 	int currentVisMFComponent(0);
         for( ; iComp < currentIndexComp; ++iComp) {
@@ -844,6 +845,7 @@ bool AmrData::ReadNonPlotfileData(const aString &filename, FileType filetype) {
         visMF[1].resize(currentVisMF + 1);  // this preserves previous ones
         visMF[1][currentVisMF] = new VisMF(filename);
         int iComp(currentIndexComp);
+        nGrow = visMF[1][currentVisMF]->nGrow();
         currentIndexComp += visMF[1][currentVisMF]->nComp();
         for(int currentVisMFComponent(0); iComp < currentIndexComp; ++iComp) {
           // make single component multifabs for level one

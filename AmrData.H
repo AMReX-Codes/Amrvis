@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.H,v 1.17 2000-10-02 20:53:06 lijewski Exp $
+// $Id: AmrData.H,v 1.18 2001-07-09 18:08:30 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -43,6 +43,7 @@ class AmrData {
   Array<aString> plotVars;
   Array<Real> vfEps, afEps;
   int nComp;
+  int nGrow;
   int nRegions;         // number of boundary regions
   int boundaryWidth;    // number of zones in the boundary regions
   int coordSys;
@@ -96,6 +97,7 @@ class AmrData {
   
   int NComp() const		{ return nComp; }
   int BoundaryWidth() const	{ return boundaryWidth; }
+  int NGrow() const	        { return nGrow; }
   int CoordSys() const	        { return coordSys; }
   Real Time() const	        { return time; }
   const aString &PlotFileVersion() { return plotFileVersion; }
