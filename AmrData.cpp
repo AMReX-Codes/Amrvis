@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.cpp,v 1.24 1999-01-07 21:08:56 vince Exp $
+// $Id: AmrData.cpp,v 1.25 1999-02-10 21:09:52 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -10,7 +10,6 @@
 #include "AmrData.H"
 #include "ArrayLim.H"
 #include "BoxDomain.H"
-#include "Boolean.H"
 #include "Misc.H"
 #include "VisMF.H"
 #include "Interpolater.H"

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.H,v 1.10 1999-01-07 21:08:56 vince Exp $
+// $Id: AmrData.H,v 1.11 1999-02-10 21:09:52 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -15,7 +15,6 @@
 #include "Array.H"
 #include "MultiFab.H"
 #include "aString.H"
-#include "Boolean.H"
 #include "VisMF.H"
 
 class Interpolater;
