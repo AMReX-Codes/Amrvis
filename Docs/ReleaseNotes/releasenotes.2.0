@@ -1,0 +1,101 @@
+Amrvis version 2.0 release notes.
+
+This is a major release.
+
+---------------------------------------------------------------------------
+-------------------------------------------------------------- New Features
+
+This version can be run in parallel on both shared memory and distributed
+  memory architectures.  See the amrvis documentation for more detail.
+
+I/O of plot file data is implemented in parallel (if the machine's file
+  system supports it).
+
+I/O of plot file data is demand driven.  The granularity is a single
+  quantity of a single FArrayBox within a MultiFab.   Only the grids
+  which are required are read.  No flushing is currently done.
+
+Box indicies are shown in the Dataset (similar to ArrayView) and
+  are hierarchical.
+
+The currently selected planes for each view are shown in the isometric
+  grid view.
+
+For volume rendering, selection between the value model and the
+  lighting model is now a runtime option accessible through an option menu.
+
+Translation of the isometric view (grids and the volume rendering) is now
+  supported.  Use the left mouse button while pressing the shift key.
+
+For 2D animations, there is a button ("rgb >") which will write an rgb
+  file and advance to the next plotfile (for single clicks) and write
+  rgb files for multiple plotfiles (for double clicks).  It works like
+  the advance forward (">") animation button and will stop animating and
+  writing files when the stop ("O") button is clicked.
+
+There is now a separate program for deriving quantities from plotfiles.
+  The program is named AmrDerive (see its documentation).
+
+There is also a separate program for converting from old plot files to
+  new ones.  The program is named PlotConvert (see its documentation).
+
+
+---------------------------------------------------------------------------
+----------------------------- Features not in this version but coming soon.
+
+This version does not support the following plot file types:
+  Cartesian grid (-cgmf -cgsf in old amrvis).
+  Terrain.
+  R Theta.
+
+
+---------------------------------------------------------------------------
+------------------------------------------------------------- Major Changes
+
+Plot files now have a new directory based format to facilitate both parallel
+  I/O and demand driven I/O.
+
+Old plot file formats (ex:  cgmf, sf, etc.) are no longer supported.  All
+  plot files must be written in the new directory based format.  Use
+  PlotConvert to convert old plot files to the new format.
+
+Rotations in the isometric view (3D only) are implemented in a more
+  intuitive frame of reference.
+
+The cursor which is shown in the data image area when the user clicks on
+  a data value in the dataset window is now a box surrounding the data point.
+  This feature is also optimized.
+
+The value model for volume rendering is optimized and has performance
+  comparable to the lighting model.
+
+
+---------------------------------------------------------------------------
+------------------------------------------------------------- Minor Changes
+
+The boxes button is now implemented as a toggle button.
+
+The Dataset color button is now implemented as a toggle button.
+
+The ProjectionPicture "No Autodraw/Autodraw" button is now implemented
+  as a toggle button.
+
+For postscript output of the palette, numbers are written as postscript
+  text instead of bitmaps.
+
+Fab byte ordering is no longer a user settable parameter.  New plot
+  files and fabs know their byte ordering.
+
+---------------------------------------------------------------------------
+----------------------------------------------------------------- Bug Fixes
+
+Boxes in planar animations (3D) are now shown correctly.
+
+Quantity names with spaces (ex:  X Velocity) are now supported.
+
+Visual support is correctly handled for displays using default visuals
+  other than 8 bit Pseudocolor.
+
+---------------------------------------------------------------------------
+---------------------------------------------------------------------------
+

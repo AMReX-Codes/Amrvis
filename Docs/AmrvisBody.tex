@@ -11,12 +11,12 @@ for 2D and 3D data, requires no specialized graphics hardware, and
 can run in parallel on both SMP and distributed memory parallel machines.
 
 It also has batch capabilities for extracting arbitrary subregions
-(including cubes, planes, lines, and points) from data files and
+(including rectangular regions, planes, lines, and points) from data files and
 preprocessing volume renderings.  Batch capabilities also work in parallel.
 
 A separate tool, {\em AmrMovie}, can be used to view, animate, and output volume
-renderings.  This tool can animate preprocessed (with {\em Amrvis}) volume
-data at arbitrary orientations and through time.
+renderings.  This tool can animate volume data (which has been preprocessed
+with {\em Amrvis}) at arbitrary orientations and through time.
 
 Another separate tool, {\em AmrDerive}, can be used to create additional
 plot files from existing plot files.  The new plot files can consist of
@@ -37,23 +37,22 @@ argument will cause {\em amrvis} to print a usage message and exit.  The usage
 is currently
 
 \begin{verbatim}
-amrvis [-help]
+amrvis3d
+       [-help]
        [-maxpixmapsize <max picture size in # of pixels>]
-       [<file type flag>] [-a] [-v] [-bw n] 
+       [<file type flag>] [-v] [-bw n] 
        [-xslice n] [-yslice n] [-zslice n] [-sliceallvars]
        [-boxslice xlo ylo zlo xhi yhi zhi]
        [-nprocs n] [-sleep n] [-maxlev n]
        [-palette palname] [-initialderived dername]
        [-initialscale n] [-showboxes tf] [-numberformat fmt]
-       [-makeswf]
+       [-makeswf_light]
+       [-makeswf_value]
        [-useminmax min max]
        [<filename(s)>]
   -b                 specify subdomain box (on finest level).
   -maxpixmapsize     specify maximum allowed picture size in pixels.
   file type flags:   -fab, -newplt (default)
-  -bw n              specify maximum boundary width.
-  -skippltlines n    skip n lines at head of the plt file.
-  -boxcolor n        set volumetric box color value.
   -xslice n          write a fab slice at x = n (n at the finest level).
   -yslice n          write a fab slice at y = n (n at the finest level).
   -zslice n          write a fab slice at z = n (n at the finest level).
@@ -62,9 +61,11 @@ amrvis [-help]
                      Note:  slices are written in batch mode.
   -nprocs n          specify number of processors.
   -maxlev n          specify the maximum drawn level.
-  -makeswf           make volume rendering data using the
-                     current transfer funcion and write data
-                     to a file.  note:  works in batch mode.
+  -makeswf_light     make volume rendering data using the
+                     current transfer function and write data
+                     to a file, using the lighting model.
+                     note:  works in batch mode.
+  -makeswf_value     same as above, with value model rendering.
   -useminmax min max use min and max as the global min max values
   -v                 verbose.
   -palette palname   set the initial palette.
@@ -192,6 +193,8 @@ of the isometric image in 3D (boxes or volumetric rendering).
     \item [Trans]          Reread the transfer functions.
     \item[Light/Value]     This menu shows the volume rendering
                            model currently in effect.
+    \item[OT/PC]           This menu affect how the volume rendering
+                           stores data internally (OcTree/PreClassified).
     \item [Detach]         Detach the isometric view into its own window.
     \item [Attach]         Attach the isometric view.
 \end{description}
@@ -204,7 +207,8 @@ of the isometric image in 3D (boxes or volumetric rendering).
 \begin{description}
 \item [Left Button]  Selecting from menus, clicking buttons and animation controls,
 drawing subregions in a view for datasets and subvolumes, spinning the image
-in the isometric view, and clicking a point for its data value.
+in the isometric view, translating the image in the isometric view (with the
+shift button pressed), and clicking a point for its data value.
 
 \item [Middle Button]  Placing horizontal planar cutting lines in the
 orthogonal image views and rotating around the eye point in the isometric view.
@@ -249,9 +253,10 @@ the same values in both images to get the same picture.
 This feature operates in batch mode.
 {\em amrvis} will write out all requested slices for all files then exit.
 
-\item [Making Volumetric Data Files]  Use the {\bf -makeswf} option to create
-a data structure for fast volume rendering.  This option uses the
-current transfer function and writes the data for processing with
+\item [Making Volumetric Data Files]  Use the {\bf -makeswf_light}
+and {\bf -makeswf_value} options to write a data file for fast volume
+rendering.  This option uses the current transfer function and either the
+value model or lighting model.  The files are postprocessed with
 {\em AmrMovie}.
 
 \end{description}
@@ -287,18 +292,26 @@ Once a file type is specified (-fab, -newplt), it cannot be changed for that
 \item [Animations] During animations, pressing the {\bf O} button
 in the center of the animation controls will stop frame creation.
 {\em amrvis} will automatically calculate the data range over
-the file set or can be user specified with the {\bf Set Range} button.
+the file set or the range can be specified with the {\bf Set Range} button.
 In {\bf Set Range} for animations, the {\em File} option sets
 the minimum and maximum to the values for the current data file
 instead of the values over the entire set of data files.
 The arrows move single frames for single clicks and animate for double clicks.
 Animation works with all supported formats and with subregions.
 Animation across files within {\em amrvis} is supported in 2D only.
+For 2D animations, the {\bf rgb > } button will write an rgb file
+for the current image and advance to the next frame (for single clicks)
+or animate through the frames and write an rgb file for each frame
+automatically (for double clicks) until the {\bf O} button is pressed.
+File names are generated automatically and are of the form
+{\em quantity.nnnn.rgb} where {\em quantity} is the current derived quantity and
+{\em nnnn} is the plot file number (0123 for plt0123).
 For animations across files in 3D, use {\em AmrMovie}.
 
 \item [Palettes]
 Palettes are in Non-interleaved Binary format and can be created
-with tools such as {\em icol} from {\bf AHPCRC} or {\em ximage} from {\bf NCSA}.
+with tools such as {\em icol} from {\bf AHPCRC} or {\em ximage}
+from {\bf NCSA}.
 
 \item [Number Format] The format for numbers (which is set in the
 {\bf Dataset} window) affects numbers in the dataset, the set range
@@ -418,7 +431,7 @@ of processors is set with the {\em -nprocs n} option.
 \subsubsection{Demand Driven I/O}
 
 Data from a plot file is read from disk only when required to create
-and image in {\em amrvis}.  The granularity for I/O is a single quantity
+an image in {\em amrvis}.  The granularity for I/O is a single quantity
 of a FArrayBox within a MultiFab.  Within {\em amrvis}, data on a grid for the
 current quantity is read from disk only if it intersect the current
 image plane within the current subvolume, is less than or equal to the
@@ -452,12 +465,12 @@ of relying on a slow network connection.
 the left mouse button) before clicking on {\bf Dataset} or {\bf Subregion.}
     
 \item If {\em amrvis} hangs trying to read a plot file, make sure the file type
-flag is set for your plot files.
+flag is set correctly for your plot files.
 
 \item Once you pick a file type (-fab, -newplt), you cannot change it for that
 {\em amrvis} process.
 
-\item Names in the quantiy list (density, xmom, etc.) must have unique names.
+\item Names in the quantiy list (density, xmom, etc.) must be unique.
 
 \item {\em amrvis} takes background and lettering colors from
 the {\bf .Xdefaults} file.
