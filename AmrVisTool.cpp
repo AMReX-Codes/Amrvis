@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrVisTool.cpp,v 1.42 2000-06-14 20:08:25 car Exp $
+// $Id: AmrVisTool.cpp,v 1.43 2000-06-17 16:31:11 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -58,7 +58,6 @@ void CBOpenPltFile(Widget, XtPointer, XtPointer);
 XtAppContext	app;
 Widget		wTopLevel, wTextOut, wDialog;
 Widget	wMainWindow, wMenuBar;
-XmString	sFile, sOpen, sQuit;
 Arg		args[32];
 cMessageArea	messageText;
 char		buffer[BUFSIZ];
@@ -276,9 +275,9 @@ void CreateMainWindow(int argc, char *argv[]) {
 	          XmNscrollingPolicy,        XmAUTOMATIC,
 	          NULL);
 
-  sFile    = XmStringCreateSimple("File");
-  sOpen    = XmStringCreateSimple("Open...");
-  sQuit    = XmStringCreateSimple("Exit");
+  XmString sFile    = XmStringCreateSimple("File");
+  XmString sOpen    = XmStringCreateSimple("Open...");
+  XmString sQuit    = XmStringCreateSimple("Quit");
 
   wMenuBar = XmVaCreateSimpleMenuBar(wMainWindow, "menuBar",
 		XmVaCASCADEBUTTON, sFile, 'F',
@@ -288,16 +287,20 @@ void CreateMainWindow(int argc, char *argv[]) {
 		XmNheight,		30,
 		NULL);
 
+  XmString sCtrlQ = XmStringCreateSimple("Ctrl+Q");
+  XmString sCtrlO = XmStringCreateSimple("Ctrl+O");
   XmVaCreateSimplePulldownMenu(wMenuBar, "fileMenu", 0, CBFileMenu,
-    XmVaPUSHBUTTON, sOpen, 'O', NULL, NULL,
+    XmVaPUSHBUTTON, sOpen, 'O', "Ctrl<Key>O", sCtrlO,
     //XmVaSEPARATOR,   // the separator is buggy in old versions of motif
-    XmVaPUSHBUTTON, sQuit, 'Q', NULL, NULL,
+    XmVaPUSHBUTTON, sQuit, 'Q', "Ctrl<Key>Q", sCtrlQ,
     NULL);
 
 
   XmStringFree(sFile);
   XmStringFree(sOpen);
   XmStringFree(sQuit);
+  XmStringFree(sCtrlO);
+  XmStringFree(sCtrlQ);
 
   XtManageChild(wMenuBar);
 

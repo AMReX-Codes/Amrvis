@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ProjectionPicture.cpp,v 1.34 2000-06-16 20:29:23 car Exp $
+// $Id: ProjectionPicture.cpp,v 1.35 2000-06-17 16:31:11 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -330,9 +330,9 @@ void ProjectionPicture::DrawAuxiliaries(const Drawable &drawable) {
 
 // -------------------------------------------------------------------
 void ProjectionPicture::DrawSlices(const Drawable &drawable) {
-  // FIXME:
+  Palette* palPtr = pltAppPtr->GetPalettePtr();
   XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
-                 sliceColor);
+                 palPtr->pixelate(sliceColor));
   for(int k = 0; k < 3; ++k) {
     transSlice[k].Draw(XtDisplay(drawingArea), drawable,
                        XtScreen(drawingArea)->default_gc);

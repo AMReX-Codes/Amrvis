@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.cpp,v 1.63 2000-06-14 20:08:27 car Exp $
+// $Id: PltApp.cpp,v 1.64 2000-06-17 16:31:11 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -446,7 +446,8 @@ void PltApp::PltAppInit() {
   wid = XtVaCreateManagedWidget("Close", xmPushButtonGadgetClass, wMenuPulldown,
 				XmNmnemonic,  'C',
 				XmNaccelerator, "Ctrl<Key>C",
-				XmNacceleratorText, label_str, NULL);
+				XmNacceleratorText, label_str,
+				NULL);
   XmStringFree(label_str);
   XtAddCallback(wid, XmNactivateCallback, CBQuitPltApp, (XtPointer) this);
   
@@ -471,8 +472,11 @@ void PltApp::PltAppInit() {
       sprintf(accel, "<Key>%i", scale % 10);
       sprintf(accelText, "%i", scale % 10);
       label_str = XmStringCreateSimple(accelText);
-      XtVaSetValues(wid,  XmNmnemonic, scale + 'O', XmNaccelerator, accel,
-		    XmNacceleratorText, label_str, NULL);
+      XtVaSetValues(wid,
+		    XmNmnemonic, scale + 'O',
+		    XmNaccelerator, accel,
+		    XmNacceleratorText, label_str,
+		    NULL);
       XmStringFree(label_str);
     }
     else if(scale <= 20) {
@@ -480,8 +484,10 @@ void PltApp::PltAppInit() {
       sprintf(accel, "Alt<Key>%i", scale % 10);
       sprintf(accelText, "Alt+%i", scale % 10);
       label_str = XmStringCreateSimple(accelText);
-      XtVaSetValues(wid, XmNaccelerator, accel,
-		    XmNacceleratorText, label_str, NULL);
+      XtVaSetValues(wid,
+		    XmNaccelerator, accel,
+		    XmNacceleratorText, label_str,
+		    NULL);
       XmStringFree(label_str);
     }      
     if(scale == currentScale){
@@ -507,8 +513,11 @@ void PltApp::PltAppInit() {
       sprintf(accel, "Ctrl<Key>%i", menuLevel % 10);
       sprintf(accelText, "Ctrl+%i", menuLevel % 10);
       label_str = XmStringCreateSimple(accelText);
-      XtVaSetValues(wid, XmNmnemonic, menuLevel + '0', XmNaccelerator, accel,
-		    XmNacceleratorText, label_str, NULL);			      
+      XtVaSetValues(wid,
+		    XmNmnemonic, menuLevel + '0',
+		    XmNaccelerator, accel,
+		    XmNacceleratorText, label_str,
+		    NULL);			      
       XmStringFree(label_str);
     }
     if(menuLevel - minAllowableLevel == maxDrawnLevel) {
@@ -525,8 +534,8 @@ void PltApp::PltAppInit() {
   wid = XtVaCreateManagedWidget("Contours...",
 				xmPushButtonGadgetClass, wMenuPulldown,
 				XmNmnemonic,  'C',
-				XmNaccelerator, "<Key>C",
-				XmNacceleratorText, label_str,
+				// XmNaccelerator, "<Key>C",
+				// XmNacceleratorText, label_str,
 				NULL);
   XmStringFree(label_str);
   AddStaticCallback(wid, XmNactivateCallback, &PltApp::DoContoursButton);
@@ -536,8 +545,8 @@ void PltApp::PltAppInit() {
   wid = XtVaCreateManagedWidget("Range...",
 				xmPushButtonGadgetClass, wMenuPulldown,
 				XmNmnemonic,  'R',
-				XmNaccelerator, "<Key>R",
-				XmNacceleratorText, label_str,
+				// XmNaccelerator, "<Key>R",
+				// XmNacceleratorText, label_str,
 				NULL);
   XmStringFree(label_str);
   AddStaticCallback(wid, XmNactivateCallback, &PltApp::DoSetRangeButton);
@@ -548,13 +557,15 @@ void PltApp::PltAppInit() {
   wid = XtVaCreateManagedWidget("Dataset...",
 				xmPushButtonGadgetClass, wMenuPulldown,
 				XmNmnemonic,  'D',
-				XmNaccelerator, "<Key>D",
-				XmNacceleratorText, label_str,
+				// XmNaccelerator, "<Key>D",
+				// XmNacceleratorText, label_str,
 				NULL);
   XmStringFree(label_str);
   AddStaticCallback(wid, XmNactivateCallback, &PltApp::DoDatasetButton);
 
-  XtVaCreateManagedWidget(NULL, xmSeparatorGadgetClass, wMenuPulldown, NULL);
+  XtVaCreateManagedWidget(NULL,
+			  xmSeparatorGadgetClass, wMenuPulldown,
+			  NULL);
 
   // Toggle viewing the boxes
   label_str = XmStringCreateSimple("B");
@@ -562,8 +573,8 @@ void PltApp::PltAppInit() {
 				xmToggleButtonGadgetClass, wMenuPulldown,
 				XmNmnemonic, 'B',
 				XmNset, showBoxes,
-				XmNaccelerator, "<Key>B",
-				XmNacceleratorText, label_str,
+				// XmNaccelerator, "<Key>B",
+				// XmNacceleratorText, label_str,
 				NULL);
   XmStringFree(label_str);
   AddStaticCallback(wid, XmNvalueChangedCallback, &PltApp::DoBoxesButton);

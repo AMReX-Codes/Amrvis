@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.cpp,v 1.27 2000-06-16 18:46:50 car Exp $
+// $Id: Palette.cpp,v 1.28 2000-06-17 16:31:11 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -496,6 +496,17 @@ Palette::unpixelate(Pixel index, unsigned char& r, unsigned char& g, unsigned ch
 {
   if ( GAptr->isTrueColor() )
     {
+      for ( int i = 0; i < totalColorSlots; ++i )
+	{
+	  if ( ccells[i].pixel == index )
+	    {
+	      r = ccells[i].red   >> 8;
+	      g = ccells[i].green >> 8;
+	      b = ccells[i].blue  >> 8;
+	      return;
+	    }
+	}
+      cout << "Hmm, not found index = " << index << endl;
       r = (index&GAptr->PRedMask()) >> GAptr->PRedShift();
       g = (index&GAptr->PGreenMask()) >> GAptr->PGreenShift();
       b = (index&GAptr->PBlueMask()) >> GAptr->PBlueShift();

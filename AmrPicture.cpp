@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.cpp,v 1.47 2000-06-16 20:29:23 car Exp $
+// $Id: AmrPicture.cpp,v 1.48 2000-06-17 16:31:10 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1608,7 +1608,7 @@ XImage *AmrPicture::GetPictureXImage() {
       }
     }
   }
-  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), MaxPaletteIndex());
+  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->pixelate(MaxPaletteIndex()));
   XDrawRectangle(GAptr->PDisplay(), pixMap, GAptr->PGC(), 0, 0,
 			imageSizeH-1, imageSizeV-1);
 

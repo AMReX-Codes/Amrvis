@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GraphicsAttributes.H,v 1.12 2000-06-16 17:55:52 car Exp $
+// $Id: GraphicsAttributes.H,v 1.13 2000-06-17 16:31:11 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -37,9 +37,9 @@ class GraphicsAttributes {
     int		depth, screennumber, bytesPerPixel;
 
     int		CalculateNBP();
-  unsigned long red_shift;
-  unsigned long green_shift;
-  unsigned long blue_shift;
+    unsigned long red_shift;
+    unsigned long green_shift;
+    unsigned long blue_shift;
   public:
 
     explicit GraphicsAttributes(Widget);

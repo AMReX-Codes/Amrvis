@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.H,v 1.36 2000-06-14 20:08:27 car Exp $
+// $Id: PltApp.H,v 1.37 2000-06-17 16:31:11 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -54,11 +54,13 @@ const int WCN     = 11;  // number of control widget
 const int NFRAMES = 19;
 const int MAXDERIVED = 64;
 
+#if 0
 struct ClientDataStruct {   // for passing information through client_data
     Widget w;
     XtPointer object, data;
     unsigned long tempint1, tempint2;
 };
+#endif
 
 class XYPlotParameters;
 class XYPlotWin;

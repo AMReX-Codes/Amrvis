@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Dataset.H,v 1.22 2000-06-14 20:08:25 car Exp $
+// $Id: Dataset.H,v 1.23 2000-06-17 16:31:11 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -86,7 +86,7 @@ class Dataset {
   StringLoc    **hIndexArray, **vIndexArray;    
   bool datasetPoint;
   
-  unsigned long blackIndex, whiteIndex;
+  Pixel blackIndex, whiteIndex;
   
   void DrawGrid(int startX, int startY, int finishX, int finishY,
                 int gridspacingX, int gridspacingY,
