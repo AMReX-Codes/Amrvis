@@ -979,8 +979,9 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
   unsigned char *frameImageData = new unsigned char[dataSize[maxDrawnLevel]];
 
   for(i = 0; i < length; ++i) {
-    islice = ((slice + (posneg * i)) + length) % length;
+    islice = (((slice - start + (posneg * i)) + length) % length);
 			          // ^^^^^^^^ + length for negative values
+    //    cout<<"slice: "<<slice<<" islice: "<<islice<<" start: "<<start<<endl;
     intersectGrids.resize(maxAllowableLevel + 1);
     interBox[maxAllowableLevel].setSmall(sliceDir, start+islice);
     interBox[maxAllowableLevel].setBig(sliceDir, start+islice);
@@ -1041,7 +1042,7 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
     
     if( ! framesMade) {
 //        cout<<"islice: "<<islice<<" + "<<start<<endl;
-        pltAppPtr->GetProjPicturePtr()->ChangeSlice(YZ-sliceDir, start+islice);
+        pltAppPtr->GetProjPicturePtr()->ChangeSlice(YZ-sliceDir, islice+start);
         pltAppPtr->GetProjPicturePtr()->MakeSlices();
         XClearWindow(XtDisplay(pltAppPtr->GetWTransDA()),
                      XtWindow(pltAppPtr->GetWTransDA()));

@@ -413,7 +413,16 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
     myDataStringArray[level] = NULL;
   }
   bDataStringArrayAllocated = true;
-  
+
+  //determine the length of the character labels for the indices
+  Real vItemCount = datasetRegion[maxDrawnLevel].bigEnd(vDIR);
+  int vIndicesWidth = ceil(log10(vItemCount+1));
+  Real hItemCount = datasetRegion[maxDrawnLevel].bigEnd(hDIR);
+  int hIndicesWidth = ceil(log10(hItemCount+1));
+
+  largestWidth = Max(largestWidth, hIndicesWidth);  
+  indexWidth = Max(MAXINDEXCHARS, vIndicesWidth+1) * CHARACTERWIDTH;
+
   // determine size of data area
   dataItemWidth = largestWidth * CHARACTERWIDTH;
   pixSizeX = datasetRegion[maxDrawnLevel].length(hDIR) * dataItemWidth
