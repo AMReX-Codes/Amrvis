@@ -1,6 +1,6 @@
 
 //
-// $Id: PltAppOutput.cpp,v 1.31 2002-09-26 23:20:06 vince Exp $
+// $Id: PltAppOutput.cpp,v 1.32 2002-10-02 16:51:36 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -22,6 +22,7 @@ using std::cerr;
 using std::endl;
 using std::min;
 using std::max;
+using std::strcpy;
 
 
 // -------------------------------------------------------------------
@@ -166,26 +167,57 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
   XmStringGetLtoR(cbs->value, XmSTRING_DEFAULT_CHARSET, &fileNameBase);
 
   // write the ZPLANE picture
-  sprintf(rgbfilename, "%s.XY.rgb", fileNameBase);
+  char suffix[4];
+  if ( AVGlobals::IsSGIrgbFile() )
+  {
+      strcpy(suffix, "rgb");
+  }
+  else
+  {
+      strcpy(suffix, "ppm");
+  }
+  sprintf(rgbfilename, "%s.XY.%s", fileNameBase,suffix);
   printImage = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[ZPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[ZPLANE]->ImageSizeV();
-  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+  if ( AVGlobals::IsSGIrgbFile() )
+  {
+      WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+  }
+  else
+  {
+      WritePPMFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+  }
+  
 
 #if (BL_SPACEDIM==3)
   // write the YPLANE picture
-  sprintf(rgbfilename, "%s.XZ.rgb", fileNameBase);
+  sprintf(rgbfilename, "%s.XZ.%s", fileNameBase, suffix);
   printImage = amrPicturePtrArray[YPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[YPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[YPLANE]->ImageSizeV();
-  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+  if ( AVGlobals::IsSGIrgbFile() )
+  {
+      WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+  }
+  else
+  {
+      WritePPMFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+  }
 
   // write the XPLANE picture
-  sprintf(rgbfilename, "%s.YZ.rgb", fileNameBase);
+  sprintf(rgbfilename, "%s.YZ.%s", fileNameBase, suffix);
   printImage = amrPicturePtrArray[XPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[XPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[XPLANE]->ImageSizeV();
-  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+  if ( AVGlobals::IsSGIrgbFile() )
+  {
+      WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+  }
+  else
+  {
+      WritePPMFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+  }
 
   // write the iso picture
   int minDrawnLevel(pltAppState->MinDrawnLevel());
@@ -199,18 +231,32 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
 #else
   printImage = projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
 #endif
-  sprintf(rgbfilename, "%s.XYZ.rgb", fileNameBase);
+  sprintf(rgbfilename, "%s.XYZ.%s", fileNameBase, suffix);
   imageSizeX = projPicturePtr->ImageSizeH();
   imageSizeY = projPicturePtr->ImageSizeV();
-  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+  if ( AVGlobals::IsSGIrgbFile() )
+  {
+      WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+  }
+  else
+  {
+      WritePPMFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+  }
 # endif
 
   // write the palette
-  sprintf(rgbfilename, "%s.pal.rgb", fileNameBase);
+  sprintf(rgbfilename, "%s.pal.%s", fileNameBase, suffix);
   printImage = pltPaletteptr->GetPictureXImage();
   imageSizeX = pltPaletteptr->PaletteWidth();
   imageSizeY = pltPaletteptr->PaletteHeight();
-  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+  if ( AVGlobals::IsSGIrgbFile() )
+  {
+      WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+  }
+  else
+  {
+      WritePPMFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+  }
 
   XtFree(fileNameBase);
   XtDestroyWidget(w);
@@ -252,8 +298,18 @@ void PltApp::DoCreateAnimRGBFile() {
 
   ResetAnimation();
 
-  sprintf(rgbfilename, "%s.%s.rgb", pltAppState->CurrentDerived().c_str(),
-                AVGlobals::StripSlashes(fileNames[currentFrame]).c_str());
+  char suffix[4];
+  if ( AVGlobals::IsSGIrgbFile() )
+  {
+      strcpy(suffix, "rgb");
+  }
+  else
+  {
+      strcpy(suffix, "ppm");
+  }
+  sprintf(rgbfilename, "%s.%s.%s", pltAppState->CurrentDerived().c_str(),
+	  AVGlobals::StripSlashes(fileNames[currentFrame]).c_str(),
+	  suffix);
 
   cout << "******* Creating file:  " << rgbfilename << endl;
 
@@ -261,7 +317,14 @@ void PltApp::DoCreateAnimRGBFile() {
   printImage = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[ZPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[ZPLANE]->ImageSizeV();
-  WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+  if ( AVGlobals::IsSGIrgbFile() )
+  {
+      WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+  }
+  else
+  {
+      WritePPMFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+  }
 }  // end DoCreateAnimRGBFile
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------

@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.48 2002-08-31 00:06:46 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.49 2002-10-02 16:51:36 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -54,6 +54,7 @@ Real specifiedMax;
 bool useMaxLevel;
 int  maxLevel;
 int  maxPaletteIndex;
+bool SGIrgbfile = true;
 int  fabIOSize;
 
 char *FileTypeString[] = {
@@ -329,6 +330,12 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
           PltApp::SetDefaultShowBoxes(false);
         }
       }
+      else if(strcmp(defaultString, "ppm") == 0) {
+        sscanf(buffer, "%s%s", defaultString, tempString);
+        if(*tempString == 't' || *tempString == 'T') {
+          AVGlobals::ClearSGIrgbFile();
+        }
+      }
       else if(strcmp(defaultString, "boundarywidth") == 0) {
         sscanf(buffer, "%s%d", defaultString, &tempInt);
         boundaryWidth = tempInt;
@@ -413,6 +420,7 @@ void PrintUsage(char *exname) {
   cout << "       [-lowblack]"<< endl;
   cout << "       [-cliptoppalette]"<< endl;
   cout << "       [-fixdenormals]"<< endl;
+  cout << "       [-ppm]" << endl;
 #if (BL_SPACEDIM == 3)
 #ifdef BL_VOLUMERENDER
     cout << "       [-boxcolor n]" << endl;
@@ -463,6 +471,7 @@ void PrintUsage(char *exname) {
   cout << "  -lowblack          sets the lowest color in the palette to black."<<endl;
   cout << "  -cliptoppalette    do not use the top palette index (for exceed)."<<endl;
   cout << "  -fixdenormals      always fix denormals when reading fabs."<<endl;
+  cout << "  -ppm               output rasters using PPM file format."<<endl;
 #if (BL_SPACEDIM == 3)
 #ifdef BL_VOLUMERENDER
   cout << "  -makeswf_light     make volume rendering data using the" << endl;
@@ -728,6 +737,8 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       maxPaletteIndex = 254;  // clip the top palette index
     } else if(strcmp(argv[i], "-fixdenormals") == 0) {
       RealDescriptor::SetFixDenormals();
+    } else if(strcmp(argv[i], "-ppm") == 0) {
+	SGIrgbfile = false;
     } else if(strcmp(argv[i], "-sliceallvars") == 0) {
       sliceAllVars = true;
     } else if(i < argc) {
@@ -800,6 +811,10 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
 
 
 // -------------------------------------------------------------------
+void AVGlobals::SetSGIrgbFile() { SGIrgbfile = true; }
+void AVGlobals::ClearSGIrgbFile() { SGIrgbfile = false; }
+bool AVGlobals::IsSGIrgbFile() { return SGIrgbfile; }
+
 void AVGlobals::SetAnimation() { animation = true; }
 bool AVGlobals::IsAnimation()  { return animation; }
 

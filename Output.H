@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.H,v 1.13 2001-08-22 00:22:32 vince Exp $
+// $Id: Output.H,v 1.14 2002-10-02 16:51:36 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -83,6 +83,10 @@ void WritePSPaletteFile(const char *filename, XImage *image,
 			const string &palNumFormat, const Palette& palette);
 
 void WriteRGBFile(const char *filename, XImage *image,
+		  int imagesizehoriz, int imagesizevert,
+		  const Palette& palette);
+
+void WritePPMFile(const char *filename, XImage *image,
 		  int imagesizehoriz, int imagesizevert,
 		  const Palette& palette);
 

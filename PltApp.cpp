@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.113 2002-09-30 22:12:37 vince Exp $
+// $Id: PltApp.cpp,v 1.114 2002-10-02 16:51:36 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -567,8 +567,16 @@ void PltApp::PltAppInit(bool bSubVolume) {
   wid = XtVaCreateManagedWidget("PS File...", xmPushButtonGadgetClass,
 				wCascade, XmNmnemonic, 'P', NULL);
   AddStaticCallback(wid, XmNactivateCallback, &PltApp::DoOutput, (XtPointer) 0);
-  wid = XtVaCreateManagedWidget("RGB File...", xmPushButtonGadgetClass,
-				wCascade, XmNmnemonic, 'R', NULL);
+  if ( AVGlobals::IsSGIrgbFile() )
+  {
+      wid = XtVaCreateManagedWidget("RGB File...", xmPushButtonGadgetClass,
+				    wCascade, XmNmnemonic, 'R', NULL);
+  }
+  else
+  {
+      wid = XtVaCreateManagedWidget("PPM File...", xmPushButtonGadgetClass,
+				    wCascade, XmNmnemonic, 'M', NULL);
+  }
   AddStaticCallback(wid, XmNactivateCallback, &PltApp::DoOutput, (XtPointer) 1);
   wid = XtVaCreateManagedWidget("FAB File...", xmPushButtonGadgetClass,
 				wCascade, XmNmnemonic, 'F', NULL);

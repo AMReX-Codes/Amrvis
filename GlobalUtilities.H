@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.H,v 1.18 2002-08-23 00:19:36 vince Exp $
+// $Id: GlobalUtilities.H,v 1.19 2002-10-02 16:51:36 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -40,6 +40,9 @@ namespace AVGlobals {
 			 const Real &maxRayOpacityDef);
   void SetAnimation();
   bool IsAnimation();
+  void SetSGIrgbFile();
+  void ClearSGIrgbFile();
+  bool IsSGIrgbFile();
   int GetFileCount();
   int SleepTime();
   const string &GetComlineFilename(int index);

@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.cpp,v 1.28 2002-08-16 00:22:33 vince Exp $
+// $Id: Output.cpp,v 1.29 2002-10-02 16:51:36 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -275,6 +275,44 @@ void WriteRGBFile(const char *filename, XImage *ximage,
   }
   iclose(image);
 }
+
+void
+WritePPMFile(const char* filename, XImage* ximage,
+	     int imagesizehoriz, int imagesizevert,
+	     const Palette& palette)
+{
+    std::ofstream img(filename, std::ios::binary);
+    if ( !img )
+    {
+	BoxLib::Error("failed to open image file for writing");
+    }
+    int xsize = imagesizehoriz;
+    int ysize = imagesizevert;
+    unsigned char* ivdata = new unsigned char[3*xsize*ysize];
+    Pixel index;
+    unsigned char r,g,b;
+    int cnt = 0;
+    for ( int y = 0; y < ysize; ++y)
+    {
+	for ( int x = 0; x < xsize; ++x )
+	{
+	    index = XGetPixel(ximage, x, y);
+	    palette.unpixelate(index, r, g, b);
+	    ivdata[cnt++] = r;
+	    ivdata[cnt++] = g;
+	    ivdata[cnt++] = b;
+	}
+    }
+    BL_ASSERT(cnt == 3*xsize*ysize);
+    img << "P6" << endl << xsize << " " << ysize << endl << 255 << endl;
+    img.write(reinterpret_cast<const char*>(ivdata), xsize*ysize*3);
+    if ( !img )
+    {
+	BoxLib::Error("failed to write on image file");
+    }
+    delete[] ivdata;
+}
+
 
 #ifdef BL_Linux
 #define _IOWRT 0002
