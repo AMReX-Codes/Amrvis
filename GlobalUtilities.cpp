@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.52 2004-04-20 23:34:25 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.53 2004-04-30 23:00:56 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -399,6 +399,16 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
       else if(strcmp(defaultString, "lowblack") == 0) {
         lowBlack = true;
       }
+#if (BL_SPACEDIM == 3)
+      else if(strcmp(defaultString, "initplanes") == 0) {
+	int tempX, tempY, tempZ;
+        sscanf(buffer, "%s%d%d%d", defaultString, &tempX, &tempY, &tempZ);
+        ivInitialPlanes.setVal(XDIR, tempX);
+        ivInitialPlanes.setVal(YDIR, tempY);
+        ivInitialPlanes.setVal(ZDIR, tempZ);
+        givenInitialPlanes = true;
+      }
+#endif
       else {
         cout << "bad default argument:  " << defaultString << endl;
       }
@@ -516,6 +526,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
   char clsz[32];
   char clbz[32];
   char clPlaneX[32], clPlaneY[32], clPlaneZ[32];
+  bool givenInitialPlanesOnComline(false);
 #endif
 
   givenFilename = false;
@@ -733,6 +744,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       }
       i += 3;
       givenInitialPlanes = true;
+      givenInitialPlanesOnComline = true;
 #endif
     } else if(strcmp(argv[i],"-palette") == 0) {
       PltApp::SetDefaultPalette(argv[i+1]);
@@ -844,7 +856,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
   }
 
 #if (BL_SPACEDIM == 3)
-  if(givenInitialPlanes) {
+  if(givenInitialPlanesOnComline) {
     ivInitialPlanes.setVal(XDIR, atoi(clPlaneX));
     ivInitialPlanes.setVal(YDIR, atoi(clPlaneY));
     ivInitialPlanes.setVal(ZDIR, atoi(clPlaneZ));
