@@ -2,11 +2,24 @@
 // AmrData.cpp
 // ---------------------------------------------------------------
 #include "AmrData.H"
-#include "GlobalUtilities.H"
 #include "ArrayLim.H"
 #include "BoxDomain.H"
 #include "Boolean.H"
+#include "Misc.H"
 #include "VisMF.H"
+
+#ifdef SHOWVAL
+#undef SHOWVAL
+#endif
+
+#define SHOWVAL(val) { cout << #val << " = " << val << endl; }
+
+#ifdef VSHOWVAL
+#undef VSHOWVAL
+#endif
+
+#define VSHOWVAL(verbose, val) { if(verbose) { \
+                 cout << #val << " = " << val << endl; } }
 
 
 #ifdef CRAY
@@ -50,13 +63,15 @@ extern "C" {
 };
 
 
+bool AmrData::verbose = false;
+int  AmrData::skipPltLines  = 0;
+int  AmrData::sBoundaryWidth = 0;
+
 // ---------------------------------------------------------------
 AmrData::AmrData() {
-  for(int i = 0; i < BL_SPACEDIM; i++ ) {
-    probLo[i]   =  0.0;
-    probHi[i]   = -1.0;
-    probSize[i] = -1.0;
-  }
+  probSize.resize(BL_SPACEDIM, -1.0);
+  probLo.resize(BL_SPACEDIM,  0.0);
+  probHi.resize(BL_SPACEDIM, -1.0);
   plotVars.clear();
   nRegions = 0;
   boundaryWidth = 0;
@@ -115,7 +130,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
     is.rdbuf()->setbuf(io_buffer.dataPtr(), io_buffer.length());
 #endif
 
-   if(Verbose()) {
+   if(verbose) {
       cout << "AmrData::opening file = " << File << endl;
    }
 
@@ -126,38 +141,37 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
    }
 
    aString skipBuff(LINELENGTH);
-   for(i = 0; i < GetSkipPltLines(); i++) {
+   for(i = 0; i < skipPltLines; i++) {
      skipBuff.getline(is);
      cout << "Skipped line in pltfile = " << skipBuff << endl;
    }
 
-     aString plotFileVersion;
      is >> plotFileVersion;
-     if(Verbose()) {
+     if(verbose) {
        cout << "Plot file version:  " << plotFileVersion << endl;
      }
 
-     // read list of variables written
+     // read list of variables
      is >> nComp;
       if(nComp < 1 || nComp > 1024) {  // arbitrarily limit to 1024
         cerr << "Error in AmrData:  bad nComp = " << nComp << endl;
         return false;
       }
-      VSHOWVAL(Verbose(), nComp);
+      VSHOWVAL(verbose, nComp);
 
       plotVars.resize(nComp);
       plotName.getline(is); // eat white space left by << operator
       for(i = 0; i < nComp; ++i) {
           plotName.getline(is);
           plotVars[i] = plotName;
-          VSHOWVAL(Verbose(), plotName);
+          VSHOWVAL(verbose, plotName);
       }
 
       int spacedim;
       is >>  spacedim >> time >> finestLevel;
-      VSHOWVAL(Verbose(), spacedim);
-      VSHOWVAL(Verbose(), time);
-      VSHOWVAL(Verbose(), finestLevel);
+      VSHOWVAL(verbose, spacedim);
+      VSHOWVAL(verbose, time);
+      VSHOWVAL(verbose, finestLevel);
       if(spacedim != BL_SPACEDIM) {
 	cerr << endl << " ~~~~ Error:  You are using " << BL_SPACEDIM << "D amrvis "
 	     << "to look at a " << spacedim << "D file." << endl << endl;
@@ -169,20 +183,20 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
       }
       for(i = 0; i < BL_SPACEDIM; i++) {
         is >> probLo[i];
-        if(Verbose()) {
+        if(verbose) {
 	  cout << "probLo[" << i << "] = " << probLo[i] << endl;
 	}
       }
       for(i = 0; i < BL_SPACEDIM; i++) {
         is >> probHi[i];
-        if(Verbose()) {
+        if(verbose) {
 	  cout << "probHi[" << i << "] = " << probHi[i] << endl;
 	}
       }
-      if(Verbose()) {
+      if(verbose) {
 	cout << "Resizing refRatio to size = " << finestLevel << endl;
       }
-      refRatio.resize(finestLevel);
+      refRatio.resize(finestLevel, -1);
       while(is.get() != '\n');
       bool bIVRefRatio(false);
       if(is.peek() == '(') {  // it is an IntVect
@@ -193,14 +207,14 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 	if(bIVRefRatio) {  // it is an IntVect
 	  IntVect ivRefRatio;
 	  is >> ivRefRatio;
-          if(Verbose()) {
+          if(verbose) {
 	    cout << "IntVect refRatio[" << i << "] = " << ivRefRatio << endl;
 	  }
 	  refRatio[i] = ivRefRatio[0];  // non-uniform ref ratios not supported
 	} else {
           is >> refRatio[i];
 	}
-        if(Verbose()) {
+        if(verbose) {
 	  cout << "refRatio[" << i << "] = " << refRatio[i] << endl;
 	}
       }
@@ -216,7 +230,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
       maxDomain.resize(finestLevel + 1);
       for(i = 0; i <= finestLevel; i++) {
         is >> probDomain[i];
-	if(Verbose()) {
+	if(verbose) {
 	  cout << "probDomain[" << i << "] = " << probDomain[i] << endl;
 	}
         if( ! probDomain[i].ok()) {
@@ -233,7 +247,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
       is.getline(lstepbuff, 128);  // ignore levelsteps--some files have
 				   // finestlevel of these, others have
 				   // finestlevel + 1
-      if(Verbose()) {
+      if(verbose) {
 	cout << "Ignored levelSteps = " << lstepbuff << endl;
       }
       
@@ -242,7 +256,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
         dxLevel[i].resize(BL_SPACEDIM);
         for(k = 0; k < BL_SPACEDIM; k++) {
 	  is >> dxLevel[i][k];
-	  if(Verbose()) {
+	  if(verbose) {
 	    cout << "dxLevel[" << i << "][" << k << "] = " << dxLevel[i][k] << endl;
 	  }
 	}
@@ -257,15 +271,14 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 	}
       }
 
-      int cSys;
-      is >> cSys;
-      VSHOWVAL(Verbose(), cSys);
+      is >> coordSys;
+      VSHOWVAL(verbose, coordSys);
       while(is.get() != '\n') {
         ;  // do nothing
       }
 
       is >> width;   // width of bndry regions
-      VSHOWVAL(Verbose(), width);
+      VSHOWVAL(verbose, width);
       while(is.get() != '\n') {
         ;  // do nothing
       }
@@ -274,7 +287,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
    dataGridsDefined.resize(finestLevel + 1);
 
    int lev;
-   boundaryWidth = Max(width, GetBoundaryWidth());
+   boundaryWidth = Max(width, sBoundaryWidth);
    int Restrict = maxDomain[0].ok();  // cap R: restrict is a cray keyword
    if(Restrict) {
       for(lev = 1; lev <= finestLevel; lev++) {
@@ -298,7 +311,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
       i = 0;
       while(bli) {
 	regions[lev][i] = new FArrayBox(bli(),nComp);
-	if(Verbose()) {
+	if(verbose) {
 	  cout << "BNDRY REGION " << i << " : " << bli() << endl;
 	  cout << "    numPts = " << bli().numPts() << endl;
 	}
@@ -317,16 +330,18 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
    // read all grids but only save those inside the restricted region
 
     visMF.resize(finestLevel + 1);
+    gridLocLo.resize(finestLevel + 1);
+    gridLocHi.resize(finestLevel + 1);
 
     for(i = 0; i <= finestLevel; i++) {
       int nGrids;
       Real gTime;
       int iLevelSteps;
       is >> lev >> nGrids >> gTime >> iLevelSteps;
-      VSHOWVAL(Verbose(), lev);
-      VSHOWVAL(Verbose(), nGrids);
-      VSHOWVAL(Verbose(), gTime);
-      VSHOWVAL(Verbose(), iLevelSteps);
+      VSHOWVAL(verbose, lev);
+      VSHOWVAL(verbose, nGrids);
+      VSHOWVAL(verbose, gTime);
+      VSHOWVAL(verbose, iLevelSteps);
       if(i != lev) {
 	cerr << "Level misrestart:mismatch on restart" << endl;
         cerr << "Error in AmrData:  Level mismatch:  read level " << lev
@@ -338,12 +353,15 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
         return false;
       }
 
-      Real gridLocLo, gridLocHi;  // unused here
+      gridLocLo[i].resize(nGrids);
+      gridLocHi[i].resize(nGrids);
       for(int iloc = 0; iloc < nGrids; ++iloc) {
+        gridLocLo[i][iloc].resize(BL_SPACEDIM);
+        gridLocHi[i][iloc].resize(BL_SPACEDIM);
 	for(int iDim = 0; iDim < BL_SPACEDIM; ++iDim) {
-	  is >> gridLocLo >>  gridLocHi;
-          VSHOWVAL(Verbose(), gridLocLo);
-          VSHOWVAL(Verbose(), gridLocHi);
+	  is >> gridLocLo[i][iloc][iDim] >>  gridLocHi[i][iloc][iDim];
+          VSHOWVAL(verbose, gridLocLo[i][iloc][iDim]);
+          VSHOWVAL(verbose, gridLocHi[i][iloc][iDim]);
 	}
       }
 
@@ -353,8 +371,8 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 #ifdef BL_PARALLEL_IO
       mfName += '/';
       mfName += mfNameRelative;
-      VSHOWVAL(Verbose(), mfName);
-      VSHOWVAL(Verbose(), mfNameRelative);
+      VSHOWVAL(verbose, mfName);
+      VSHOWVAL(verbose, mfNameRelative);
 #endif /* BL_PARALLEL_IO */
 
       visMF[i] = new VisMF(mfName);
@@ -365,10 +383,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
         // defer reading the MultiFab data
         dataGrids[i][iComp] = new MultiFab(visMF[i]->boxArray(), 1,
 			                   visMF[i]->nGrow(), Fab_noallocate);
-        dataGridsDefined[i][iComp].resize(visMF[i]->length());
-        for(int iIdx = 0; iIdx < dataGridsDefined[i][iComp].length(); ++iIdx) {
-          dataGridsDefined[i][iComp][iIdx] = false;
-        }
+        dataGridsDefined[i][iComp].resize(visMF[i]->length(), false);
       }
 
     }  // end for(i...finestLevel)
@@ -543,7 +558,7 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 // ---------------------------------------------------------------
 bool AmrData::ReadNonPlotfileData(const aString &filename, FileType filetype) {
   int i;
-  if(Verbose()) {
+  if(verbose) {
      cout << "AmrPlot::opening file = " << filename << endl;
   }
 
@@ -560,7 +575,7 @@ bool AmrData::ReadNonPlotfileData(const aString &filename, FileType filetype) {
 #endif
 
    aString skipBuff(LINELENGTH);
-   for(i = 0; i < GetSkipPltLines(); i++) {
+   for(i = 0; i < skipPltLines; i++) {
      skipBuff.getline(is);
      cout << "Skipped line in file = " << skipBuff << endl;
    }
@@ -736,18 +751,13 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
     int numComps   = 1;
 
     int currentLevel;
-    Array<int> cumulativeRefRatios(finestFillLevel + 1);
+    Array<int> cumulativeRefRatios(finestFillLevel + 1, -1);
 
     cumulativeRefRatios[finestFillLevel] = 1;
     for(currentLevel = finestFillLevel - 1; currentLevel >= 0; --currentLevel) {
       cumulativeRefRatios[currentLevel] = cumulativeRefRatios[currentLevel + 1] *
                                           refRatio[currentLevel];
     }
-    //for(currentLevel = 0; currentLevel <= finestFillLevel; ++currentLevel) {
-      //cout << "cumulativeRefRatios[" << currentLevel << "] = "
-	   //<< cumulativeRefRatios[currentLevel] << endl;
-    //}
-
 
     // ensure the required grids are in memory
     for(currentLevel = 0; currentLevel <= finestFillLevel; ++currentLevel) {
@@ -1486,17 +1496,17 @@ FArrayBox *AmrData::ReadGrid(istream &is, int numVar) {
    grid_count++;
 
    is >> gbox >> glev;
-   VSHOWVAL(Verbose(), gbox)
-   VSHOWVAL(Verbose(), glev)
+   VSHOWVAL(verbose, gbox)
+   VSHOWVAL(verbose, glev)
 
    is >> gstep >> time;
-   VSHOWVAL(Verbose(), gstep)
-   VSHOWVAL(Verbose(), time)
+   VSHOWVAL(verbose, gstep)
+   VSHOWVAL(verbose, time)
 
    for(i = 0; i < BL_SPACEDIM; i++) {
      Real xlo, xhi;
      is >> xlo >> xhi;  // unused
-     if(Verbose()) {
+     if(verbose) {
        cout << "xlo xhi [" << i << "] = " << xlo << "  " << xhi << endl;
      }
    }
@@ -1518,7 +1528,7 @@ FArrayBox *AmrData::ReadGrid(istream &is, int numVar) {
      }
    }
 
-   if(Verbose()) {
+   if(verbose) {
      cout << "Constructing Grid, lev = " << glev << "  id = " << gid;
      cout << " box = " << gbox << endl;
    }

@@ -139,7 +139,8 @@ private:
 	Palette			*palPtr;
 	Array<FArrayBox *>	sliceFab;
 	Array<unsigned char *>  imageData, scaledImageData;
-	Array<XImage *>         image;
+	Array<XImage *>         xImageArray;
+	Array<bool >            xImageCreated;
 
 
 

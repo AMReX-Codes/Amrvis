@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------
 #include "AmrvisConstants.H"
 #include "DataServices.H"
-#include "GlobalUtilities.H"
+//#include "GlobalUtilities.H"
 #include "ParallelDescriptor.H"
 
 Array<DataServices *> DataServices::dsArray;
@@ -612,7 +612,7 @@ bool DataServices::DumpSlice(int slicedir, int slicenum, const aString &varname)
   sprintf(slicechar, "%d", slicenum);
   sliceFile += slicechar;
   sliceFile += ".fab";
-  SHOWVAL(sliceFile);
+  cout << "sliceFile = " << sliceFile << endl;
 
   Box sliceBox(amrData.ProbDomain()[amrData.FinestLevel()]);
 
@@ -624,7 +624,7 @@ bool DataServices::DumpSlice(int slicedir, int slicenum, const aString &varname)
     sliceBox.setBig(slicedir, slicenum);
   }
 
-  SHOWVAL(sliceBox);
+  cout << "sliceBox  = " << sliceBox << endl;
   cout << endl;
   if( ! amrData.ProbDomain()[amrData.FinestLevel()].contains(sliceBox)) {
     cerr << "Error:  sliceBox = " << sliceBox << "  slicedir " << slicenum
@@ -659,7 +659,7 @@ bool DataServices::DumpSlice(int slicedir, int slicenum) {  // dump all vars
   sprintf(slicechar, "%d", slicenum);
   sliceFile += slicechar;
   sliceFile += ".fab";
-  SHOWVAL(sliceFile);
+  cout << "sliceFile = " << sliceFile << endl;
 
   Box sliceBox(amrData.ProbDomain()[amrData.FinestLevel()]);
 
@@ -671,7 +671,7 @@ bool DataServices::DumpSlice(int slicedir, int slicenum) {  // dump all vars
     sliceBox.setBig(slicedir, slicenum);
   }
 
-  SHOWVAL(sliceBox);
+  cout << "sliceBox  = " << sliceBox << endl;
   cout << endl;
   if( ! amrData.ProbDomain()[amrData.FinestLevel()].contains(sliceBox)) {
     cerr << "Error:  sliceBox = " << sliceBox << "  slicedir " << slicenum
@@ -705,7 +705,7 @@ bool DataServices::DumpSlice(const Box &b, const aString &varname) {
 #endif
   sliceFile += slicechar;
   sliceFile += ".fab";
-  SHOWVAL(sliceFile);
+  cout << "sliceFile = " << sliceFile << endl;
 
   cout << "sliceBox = " << b << endl;
   cout << endl;
@@ -738,7 +738,7 @@ bool DataServices::DumpSlice(const Box &b) {  // dump all vars
 #endif
   sliceFile += slicechar;
   sliceFile += ".fab";
-  SHOWVAL(sliceFile);
+  cout << "sliceFile = " << sliceFile << endl;
 
   cout << "sliceBox = " << b << endl;
   cout << endl;

@@ -81,19 +81,23 @@ void main(int argc, char *argv[]) {
 
   ParseCommandLine(argc, argv);
 
+  if(Verbose()) {
+    AmrData::SetVerbose(true);
+  }
+  AmrData::SetSkipPltLines(GetSkipPltLines());
+  AmrData::SetStaticBoundaryWidth(GetBoundaryWidth());
+
   StartParallel(NProcs());
 
   if(SleepTime() > 0) {
     sleep(SleepTime());
   }
 
-
-
   if(GivenBox()) {
     comlineBox = GetBoxFromCommandLine();
   }
 
-  int pltApps = GetFileCount();
+  int pltApps(GetFileCount());
   bool bBatchMode(false);
   if(MakeSWFData() || DumpSlices() || GivenBoxSlice()) {
     bBatchMode = true;

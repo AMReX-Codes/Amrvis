@@ -207,7 +207,9 @@ void AmrPicture::AmrPictureInit() {
   for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
     sliceFab[iLevel] = new FArrayBox(sliceBox[iLevel], 1);
   }
-  image.resize(numberOfLevels);
+  //xImageArray.resize(numberOfLevels, NULL);
+  xImageArray.resize(numberOfLevels);
+  //xImageCreated.resize(numberOfLevels, false);
 
   // use maxAllowableLevel because all imageSizes are the same
   // regardless of which level is showing
@@ -269,7 +271,10 @@ AmrPicture::~AmrPicture() {
     delete [] imageData[iLevel];
     delete [] scaledImageData[iLevel];
     delete sliceFab[iLevel];
-    XDestroyImage(image[iLevel]);
+    //if(xImageCreated[iLevel]) {
+      //xImageCreated[iLevel] = false;
+      ////XDestroyImage(xImageArray[iLevel]);
+    //}
   }
 
   if(pixMapCreated) {
@@ -330,6 +335,7 @@ void AmrPicture::SetSlice(int view, int here) {
   gpArray.resize(numberOfLevels);
   maxLevelWithGrids = maxAllowableLevel;
 
+  //Array<int> nGrids(numberOfLevels, 0);
   Array<int> nGrids(numberOfLevels);
   for(lev = minDrawnLevel; lev <= maxAllowableLevel; ++lev) {
     nGrids[lev] = amrData.NIntersectingGrids(lev, sliceBox[lev]);
@@ -415,7 +421,7 @@ void AmrPicture::Draw(int fromLevel, int toLevel) {
   }  
 
   XPutImage(GAptr->PDisplay(), pixMap, GAptr->PGC(),
-            image[toLevel], 0, 0, 0, 0, imageSizeH, imageSizeV);
+            xImageArray[toLevel], 0, 0, 0, 0, imageSizeH, imageSizeV);
 
   if( ! pltAppPtr->Animating()) {
     DoExposePicture();
@@ -703,11 +709,16 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
     CreateImage(*(sliceFab[iLevel]), imageData[iLevel],
 		dataSizeH[iLevel], dataSizeV[iLevel],
 	        minUsing, maxUsing, palPtr);
-    CreateScaledImage(&(image[iLevel]), pltAppPtr->CurrentScale() *
+    //if(xImageCreated[iLevel]) {
+      //XDestroyImage(xImageArray[iLevel]);
+      //xImageCreated[iLevel] = false;
+    //}
+    CreateScaledImage(&(xImageArray[iLevel]), pltAppPtr->CurrentScale() *
                 CRRBetweenLevels(iLevel, maxAllowableLevel, amrData.RefRatio()),
                 imageData[iLevel], scaledImageData[iLevel],
                 dataSizeH[iLevel], dataSizeV[iLevel],
                 imageSizeH, imageSizeV);
+    //xImageCreated[iLevel] = true;
   }
   if( ! pltAppPtr->PaletteDrawn()) {
     pltAppPtr->PaletteDrawn(true);
@@ -824,11 +835,16 @@ void AmrPicture::ChangeScale(int newScale) {
   for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
     delete [] scaledImageData[iLevel];
     scaledImageData[iLevel] = new unsigned char[imageSize];
-    CreateScaledImage(&image[iLevel], newScale *
+    //if(xImageCreated[iLevel]) {
+      //XDestroyImage(xImageArray[iLevel]);
+      //xImageCreated[iLevel] = false;
+    //}
+    CreateScaledImage(&xImageArray[iLevel], newScale *
                 CRRBetweenLevels(iLevel, maxAllowableLevel, amrData.RefRatio()),
                 imageData[iLevel], scaledImageData[iLevel],
                 dataSizeH[iLevel], dataSizeV[iLevel],
                 imageSizeH, imageSizeV);
+    //xImageCreated[iLevel] = true;
   }
 
   hLine = ((hLine / (pltAppPtr->PreviousScale())) * newScale) + (newScale - 1);
@@ -854,7 +870,7 @@ void AmrPicture::ChangeLevel(int lowLevel, int hiLevel) {
 // ---------------------------------------------------------------------
 XImage *AmrPicture::GetPictureXImage() {
   int xbox, ybox, wbox, hbox;
-  XImage *image;
+  XImage *ximage;
 
   if(showBoxes) {
     for(int level = minDrawnLevel; level <= maxDrawnLevel; ++level) {
@@ -878,7 +894,7 @@ XImage *AmrPicture::GetPictureXImage() {
   XDrawRectangle(GAptr->PDisplay(), pixMap, GAptr->PGC(), 0, 0,
 			imageSizeH-1, imageSizeV-1);
 
-  image = XGetImage(GAptr->PDisplay(), pixMap, 0, 0,
+  ximage = XGetImage(GAptr->PDisplay(), pixMap, 0, 0,
 		imageSizeH, imageSizeV, AllPlanes, ZPixmap);
 
   if(pixMapCreated) {
@@ -888,7 +904,7 @@ XImage *AmrPicture::GetPictureXImage() {
 			   imageSizeH, imageSizeV, GAptr->PDepth());
   pixMapCreated = true;
   Draw(minDrawnLevel, maxDrawnLevel);
-  return image;
+  return ximage;
 }
 
 

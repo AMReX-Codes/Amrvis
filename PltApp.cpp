@@ -613,11 +613,9 @@ void PltApp::PltAppInit() {
   animating = 0;
   frameSpeed = 1;
 
-  readyFrames.resize(animFrames);
+  readyFrames.resize(animFrames, false);
   frameBuffer.resize(animFrames);
-  for(i = 0; i < animFrames; i++) {
-    readyFrames[i] = false;
-  }
+
   if(anim) {
     for(i = 0; i < animFrames; i++) {
       fileNames[i] = GetComlineFilename(i); 

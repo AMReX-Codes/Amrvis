@@ -24,19 +24,21 @@ class AmrData {
 	int finestLevel;   // most refined level available
 	Array<int> refRatio; // refinement ratio between level L and L+1
 	Array< Array<Real> > dxLevel;  // [level][dim];   // grid spacing
+	Array< Array< Array<Real> > > gridLocLo, gridLocHi;
 	Array<Box>  probDomain;
 	Array<Box>  maxDomain;        // max problem domain size
-	Real probSize[BL_SPACEDIM];
-	Real probLo[BL_SPACEDIM];
-	Real probHi[BL_SPACEDIM];
+	Array<Real> probSize;
+	Array<Real> probLo;
+	Array<Real> probHi;
 	Real time;
 	Array<aString> plotVars;
-	//int numberOfUsers;
 	int nComp;
 	int nRegions;         // number of boundary regions
 	int boundaryWidth;    // number of zones in the boundary regions
+	int coordSys;
 	Array< Array< FArrayBox *> > regions; // [lev][nReg]  ptrs to bndry data
 	BoxArray fabBoxArray;  // used only for fileType == FAB
+	aString plotFileVersion;
 	
 	FileType fileType;
 
@@ -48,10 +50,6 @@ class AmrData {
 	bool ReadNonPlotfileData(const aString &filename, FileType filetype);
 
 	const Array<aString> &PlotVarNames() const { return plotVars; }
-
-	//int GetNumberOfUsers() const ;
-	//void IncrementNumberOfUsers();
-	//void DecrementNumberOfUsers();
 
         int FinestLevel() const		{ return finestLevel; }
         const Array<int> &RefRatio() const      { return refRatio; }
@@ -67,9 +65,9 @@ class AmrData {
 	// limits of interior region of computational domain at each level
         const Array<Box> &ProbDomain() const { return probDomain; }
 	// physical size of computational domain
-        Real ProbSize(int dir) const	{ return probSize[dir]; }
-        Real ProbLo(int dir) const	{ return probLo[dir]; }
-        Real ProbHi(int dir) const	{ return probHi[dir]; }
+        const Array<Real> &ProbSize() const    { return probSize; }
+        const Array<Real> &ProbLo()   const    { return probLo;   }
+        const Array<Real> &ProbHi()   const    { return probHi;   }
 
         // return physical location of cell at index ix, level lev
         // cellLoc   = location of cell center
@@ -79,8 +77,15 @@ class AmrData {
         void  LoNodeLoc(int lev, IntVect ix, Array<Real> &pos) const;
         void  HiNodeLoc(int lev, IntVect ix, Array<Real> &pos) const;
 
+	const Array< Array< Array<Real> > > &GridLocLo() const { return gridLocLo; }
+	const Array< Array< Array<Real> > > &GridLocHi() const { return gridLocHi; }
+	const Array< Array<Real> > &DxLevel() const { return dxLevel; }
+
         int NComp() const		{ return nComp; }
         int BoundaryWidth() const	{ return boundaryWidth; }
+        int CoordSys() const	        { return coordSys; }
+        Real Time() const	        { return time; }
+	const aString &PlotFileVersion() { return plotFileVersion; }
 	
         // fill a databox using conservative interpolation
 	void FillPatch(FArrayBox &dest, int level, const Box &subbox);
@@ -115,9 +120,16 @@ class AmrData {
       bool MinMax(const Box &onBox, const aString &derived, int level,
 		  Real &dataMin, Real &dataMax);
 
+      static void SetVerbose(bool tf)       { verbose = tf; }
+      static void SetSkipPltLines(int spl)  { skipPltLines = spl; }
+      static void SetStaticBoundaryWidth(int bw)  { sBoundaryWidth = bw; }
+
   private:
 	aString fileName;
 	static FileType defaultFileType;
+	static bool verbose;
+	static int  skipPltLines;
+	static int  sBoundaryWidth;
 
         // fill on interior by piecewise constant interpolation
         void FillInterior(FArrayBox &dest, int level, const Box &subbox);
