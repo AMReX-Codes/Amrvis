@@ -272,44 +272,39 @@ void GetDefaults(const aString &defaultsFile) {
 // -------------------------------------------------------------------
 void PrintUsage(char *exname) {
   cout << endl;
-# if (BL_SPACEDIM == 3)
-    //cout << exname << " [-help] [-b <small x> <small y> <small z> "
-  	 //<< "<big x> <big y> <big z>]" << endl;
-    cout << exname << " [-help]" << endl;
-# else
-    //cout << exname << " [-help] [-b <small x> <small y> "
-  	 //<< "<big x> <big y>]" << endl;
-    cout << exname << " [-help]" << endl;
-#endif
+  cout << exname << " [-help]" << endl;
+  cout << "       [<file type flag>] [-v]" << endl;
+  //cout << "       [-bw n] " << endl;
   cout << "       [-maxpixmapsize <max picture size in # of pixels>]" << endl;
-  cout << "       [<file type flag>] [-v] [-bw n] " << endl;
   cout << "       [-xslice n] [-yslice n] [-zslice n] [-sliceallvars]" << endl;
 # if (BL_SPACEDIM == 2)
-  cout << "       [-boxslice xlo ylo xhi yhi]  [-a]" << endl;
+  cout << "       [-boxslice xlo ylo xhi yhi]" << endl;
+  cout << "       [-a]" << endl;
 # else
   cout << "       [-boxslice xlo ylo zlo xhi yhi zhi]" << endl;
 #endif
-  cout << "       [-nprocs n] [-sleep n] [-maxlev n]" << endl;
+  cout << "       [-nprocs n] [-maxlev n]" << endl;
   cout << "       [-palette palname] [-initialderived dername]" << endl;
   cout << "       [-initialscale n] [-showboxes tf] [-numberformat fmt]" << endl;
+  cout << "       [-lowblack]"<< endl;
 # if (BL_SPACEDIM == 3)
     cout << "       [-makeswf_light]" << endl;
     cout << "       [-makeswf_value]" << endl;
-    cout << "       [-lowblack]"<<endl;
     cout << "       [-useminmax min max]" << endl;
 #endif
   cout << "       [<filename(s)>]" << endl;
-  cout << "  -b                 specify subdomain box (on finest level)." << endl;
-  cout << "  -maxpixmapsize     specify maximum allowed picture size in pixels."
-       << endl;
-  cout << "  file type flags:   -fab, -multifab -newplt";
   cout << endl;
-# if(BL_SPACEDIM == 2)
-    cout << "  -a               load files as an animation." << endl; 
-#endif
-  cout << "  -bw n              specify maximum boundary width." << endl; 
+
+
+
+  cout << "  file type flags:   -fab, -newplt (-newplt is the default)" << endl;
+  cout << "  -v                 verbose." << endl; 
+  //cout << "  -bw n              specify maximum boundary width." << endl; 
+  cout << "  -maxpixmapsize n   specify maximum allowed picture size in pixels."
+       << endl;
+  //cout << "  -b                 specify subdomain box (on finest level)." << endl;
   cout << "  -skippltlines n    skip n lines at head of the plt file." << endl; 
-  cout << "  -boxcolor n        set volumetric box color value." << endl; 
+  cout << "  -boxcolor n        set volumetric box color value [0,255]." << endl; 
   cout << "  -xslice n          write a fab slice at x = n (n at the finest level)."
        << endl; 
   cout << "  -yslice n          write a fab slice at y = n (n at the finest level)."
@@ -321,26 +316,26 @@ void PrintUsage(char *exname) {
   cout << "  -boxslice _box_    write a fab on the box (box at the finest level)."
        << endl; 
   cout << "                     Note:  slices are written in batch mode." << endl;
+# if(BL_SPACEDIM == 2)
+  cout << "  -a                 load files as an animation." << endl; 
+#endif
   cout << "  -nprocs n          specify number of processors." << endl;
-  cout << "  -sleep  n          specify sleep time (for attaching parallel debuggers)." << endl;
+  //cout << "  -sleep  n          specify sleep time (for attaching parallel debuggers)." << endl;
   cout << "  -maxlev n          specify the maximum drawn level." << endl;
-
-
+  cout << "  -palette palname   set the initial palette." << endl; 
+  cout << "  -initialderived dername   set the initial derived to dername." << endl; 
+  cout << "  -initialscale n    set the initial scale to n." << endl; 
+  cout << "  -showboxes tf      show boxes (the value of tf is true or false)." << endl; 
+  cout << "  -numberformat fmt  set the initial format to fmt (ex:  %4.2f)." << endl; 
+  cout << "  -lowblack          sets the lowest color in the palette to black."<<endl;
 # if (BL_SPACEDIM == 3)
   cout << "  -makeswf_light     make volume rendering data using the" << endl;
   cout << "                     current transfer function and write data" << endl;
   cout << "                     to a file, using the lighting model."<<endl
        << "                     note:  works in batch mode." << endl;
   cout << "  -makeswf_value     same as above, with value model rendering."<<endl;
-  cout << "  -lowblack          sets the lowest color in the palette to black."<<endl;
   cout << "  -useminmax min max use min and max as the global min max values" << endl;
 #endif
-  cout << "  -v                 verbose." << endl; 
-  cout << "  -palette palname   set the initial palette." << endl; 
-  cout << "  -initialderived dername   set the initial derived to dername." << endl; 
-  cout << "  -initialscale n    set the initial scale to n." << endl; 
-  cout << "  -showboxes tf      show boxes (the value of tf is true or false)." << endl; 
-  cout << "  -numberformat fmt  set the initial format to fmt (ex:  %4.2f)." << endl; 
   cout << "  <filename(s)>      must be included if box is specified." << endl;
   cout << endl;
 
