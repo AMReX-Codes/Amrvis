@@ -1,6 +1,6 @@
 
 //
-// $Id: Point.H,v 1.7 2001-10-17 17:53:33 lijewski Exp $
+// $Id: Point.H,v 1.8 2004-05-05 20:44:31 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -11,7 +11,7 @@
 
 #include <iostream>
 #include <cmath>
-using std::ostream;
+//using std::ostream;
 
 #include "REAL.H"
 
@@ -73,7 +73,7 @@ public:
     //  Triple product:  positive if (p1,p2,p3) are right-handed coord system
     //friend Real triple( AmrVector v1, AmrVector v2, AmrVector v3 );
 
-  friend ostream& operator<<(ostream&s, const AmrVector &p);
+  friend std::ostream& operator<<(std::ostream&s, const AmrVector &p);
   
   friend class AmrSpherePoint;
 };
@@ -146,7 +146,7 @@ public:
     //void draw(Real s ) const;
   
 
-  friend ostream& operator<<(ostream&s, const AmrSpherePoint &p);
+  friend std::ostream& operator<<(std::ostream&s, const AmrSpherePoint &p);
 };
 
 //----------------------------------------------------------------------------
@@ -197,9 +197,9 @@ inline void AmrSpherePoint::draw(Real s ) const
     s *= scale; 
     glVertex3f( s*x, s*y, s*z ); }
 */
-inline ostream& operator<<( ostream&s, const AmrVector &p )
+inline std::ostream& operator<<( std::ostream&s, const AmrVector &p )
   { return s << "AmrVector(" << p.x << "," << p.y << "," << p.z << ")"; }
-inline ostream& operator<<( ostream&s, const AmrSpherePoint &p)
+inline std::ostream& operator<<( std::ostream&s, const AmrSpherePoint &p)
   { return s << "AmrSpherePoint( " << p.x << " , " << p.y << " , " << p.z << " )"; }
 
 #endif

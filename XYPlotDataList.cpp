@@ -83,6 +83,9 @@ void XYPlotDataList::AddFArrayBox(FArrayBox &fab, int whichdir, int level) {
   BL_ASSERT(level <= maxLevel);
 
   whichDir = whichdir;
+  if(fabBoxLists[level].isEmpty()) {  // set correct index type
+    fabBoxLists[level].convert(fab.box().ixType());
+  }
   fabBoxLists[level].push_back(fab.box());
   updatedQ = false;
   int istartx(fab.smallEnd()[whichdir]);
@@ -131,13 +134,20 @@ for(int iCurLevel(maxLevel); iCurLevel >= minLevel; --iCurLevel) {
   }
 
   Array<BoxList> unfilledBoxLists(iCurLevel + 1);
+  if(unfilledBoxLists[iCurLevel].isEmpty()) {  // convert to correct type
+    unfilledBoxLists[iCurLevel].convert(probDomain.ixType());
+  }
   unfilledBoxLists[iCurLevel].push_back(probDomain);
 
   for(ilev = iCurLevel; ilev >= minLevel; --ilev) {
+    if(fabBoxLists[ilev].isEmpty()) {  // set correct index type
+      fabBoxLists[ilev].convert(probDomain.ixType());
+    }
     fillBoxLists[ilev].clear(); 
+    fillBoxLists[ilev].convert(unfilledBoxLists[ilev].ixType());
     fillBoxLists[ilev].join(unfilledBoxLists[ilev]);
     fillBoxLists[ilev].intersect(fabBoxLists[ilev]);
-    BoxList tempUnfilled;
+    BoxList tempUnfilled(probDomain.ixType());
     for(BoxList::iterator bli = unfilledBoxLists[ilev].begin();
         bli != unfilledBoxLists[ilev].end(); ++bli)
     {
@@ -148,6 +158,7 @@ for(int iCurLevel(maxLevel); iCurLevel >= minLevel; --iCurLevel) {
 
     if(ilev > minLevel) {
       unfilledBoxLists[ilev - 1].clear();
+      unfilledBoxLists[ilev - 1].convert(probDomain.ixType());
       unfilledBoxLists[ilev - 1].join(unfilledBoxLists[ilev]);
       unfilledBoxLists[ilev - 1].coarsen(AVGlobals::CRRBetweenLevels(ilev - 1,
                                          ilev, xypdlRatios));

@@ -1,6 +1,6 @@
 
 //
-// $Id: ViewTransform.H,v 1.14 2001-10-17 17:53:33 lijewski Exp $
+// $Id: ViewTransform.H,v 1.15 2004-05-05 20:44:31 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -10,7 +10,7 @@
 #define _VIEWTRANSFORM_H_
 
 #include <iostream>
-using std::iostream;
+//using std::iostream;
 
 #include "REAL.H" 
 #include "Quaternion.H"
@@ -69,7 +69,7 @@ class ViewTransform {
     Real vtAspect;
 };
 
-ostream& operator << (ostream &, const ViewTransform &);
+std::ostream& operator << (std::ostream &, const ViewTransform &);
 
 #endif
 

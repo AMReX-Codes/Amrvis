@@ -1,6 +1,6 @@
 
 //
-// $Id: Quaternion.H,v 1.9 2003-11-12 01:21:46 vince Exp $
+// $Id: Quaternion.H,v 1.10 2004-05-05 20:44:31 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,6 +9,8 @@
 #ifndef _AMR_QUATERNION_H_
 #define _AMR_QUATERNION_H_
 
+#include <ostream>
+//using std::ostream;
 #include "REAL.H"
 #include "Point.H"
 

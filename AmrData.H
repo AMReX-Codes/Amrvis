@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.H,v 1.23 2002-02-26 01:00:01 vince Exp $
+// $Id: AmrData.H,v 1.24 2004-05-05 20:44:31 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -21,8 +21,8 @@
 using std::list;
 using std::string;
 using std::vector;
-using std::istream;
-using std::ostream;
+//using std::istream;
+//using std::ostream;
 
 class Interpolater;
 
@@ -137,7 +137,7 @@ class AmrData {
   
   bool CanDerive(const string &name) const;
   int  NumDeriveFunc() const;
-  void ListDeriveFunc(ostream &os) const;
+  void ListDeriveFunc(std::ostream &os) const;
   int  StateNumber(const string &statename) const;
   
   // return the finest level <= startLevel that fully contains box b
@@ -176,7 +176,7 @@ class AmrData {
               const Box &fine_box, int lrat);
   void PcInterp(FArrayBox &fine, const FArrayBox &crse,
                 const Box &subbox, int lrat);
-  FArrayBox *ReadGrid(istream &is, int numVar);
+  FArrayBox *ReadGrid(std::istream &is, int numVar);
   bool DefineFab(int level, int componentIndex, int fabIndex);
 };
 
