@@ -190,7 +190,6 @@ void XYPlotDataList::UpdateStats(void) {
     return;
   }
   numPoints = 0;
-
   BL_ASSERT(dataSets[0]->firstElement());
 
   {
@@ -237,10 +236,10 @@ void XYPlotDataList::UpdateStats(void) {
 
 // -------------------------------------------------------------------
 XYPlotDataListIterator::XYPlotDataListIterator (XYPlotDataList *alist)
-  : list(alist),
-    XiLI(alist->curLevel),
-    linkLI(alist->curLevel+1),
-    maxLevel(alist->curLevel)
+                       : list(alist),
+                         XiLI(alist->curLevel),
+                         linkLI(alist->curLevel+1),
+                         maxLevel(alist->curLevel)
 {
   curLevel = 0;
 

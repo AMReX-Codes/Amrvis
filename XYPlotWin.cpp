@@ -122,13 +122,12 @@ XYPlotWin::~XYPlotWin() {
 // -------------------------------------------------------------------
 XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
 		     int type, int curr_frame)
-  : appContext(app),
-    wTopLevel(w),
-    pltParent(parent),
-    whichType(type),
-    currFrame(curr_frame)
+          : appContext(app),
+            wTopLevel(w),
+            pltParent(parent),
+            whichType(type),
+            currFrame(curr_frame)
 {
-
   int idx;
   char buffer[BUFSIZE];
   pltTitle = new char[strlen(title) + 1];
@@ -188,9 +187,9 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
   XmAddWMProtocolCallback(wXYPlotTopLevel, WM_DELETE_WINDOW,
 			  (XtCallbackProc) CBcloseXYPlotWin,
 			  (XtPointer) this);
-  Widget wControlArea, wScrollArea, wLegendArea,
-    wExportButton, wOptionsButton, wCloseButton,
-    wAllButton, wNoneButton, wClearButton;
+  Widget wControlArea, wScrollArea, wLegendArea;
+  Widget wExportButton, wOptionsButton, wCloseButton;
+  Widget wAllButton, wNoneButton, wClearButton;
   XmString label_str1, label_str2, label_str3;
 
   wControlArea = XtVaCreateManagedWidget("controlArea", xmFormWidgetClass,

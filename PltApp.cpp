@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.117 2002-12-10 20:12:23 vince Exp $
+// $Id: PltApp.cpp,v 1.118 2003-09-09 22:15:51 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -570,15 +570,12 @@ void PltApp::PltAppInit(bool bSubVolume) {
   wid = XtVaCreateManagedWidget("PS File...", xmPushButtonGadgetClass,
 				wCascade, XmNmnemonic, 'P', NULL);
   AddStaticCallback(wid, XmNactivateCallback, &PltApp::DoOutput, (XtPointer) 0);
-  if ( AVGlobals::IsSGIrgbFile() )
-  {
-      wid = XtVaCreateManagedWidget("RGB File...", xmPushButtonGadgetClass,
-				    wCascade, XmNmnemonic, 'R', NULL);
-  }
-  else
-  {
-      wid = XtVaCreateManagedWidget("PPM File...", xmPushButtonGadgetClass,
-				    wCascade, XmNmnemonic, 'M', NULL);
+  if(AVGlobals::IsSGIrgbFile()) {
+    wid = XtVaCreateManagedWidget("RGB File...", xmPushButtonGadgetClass,
+				  wCascade, XmNmnemonic, 'R', NULL);
+  } else {
+    wid = XtVaCreateManagedWidget("PPM File...", xmPushButtonGadgetClass,
+				  wCascade, XmNmnemonic, 'M', NULL);
   }
   AddStaticCallback(wid, XmNactivateCallback, &PltApp::DoOutput, (XtPointer) 1);
   wid = XtVaCreateManagedWidget("FAB File...", xmPushButtonGadgetClass,
@@ -617,8 +614,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
       sprintf(accel, "<Key>%i", scale % 10);
       sprintf(accelText, "%i", scale % 10);
       label_str = XmStringCreateSimple(accelText);
-      XtVaSetValues(wid,
-		    XmNmnemonic, scale + 'O',
+      XtVaSetValues(wid, XmNmnemonic, scale + 'O',
 		    XmNaccelerator, accel,
 		    XmNacceleratorText, label_str,
 		    NULL);
@@ -644,7 +640,6 @@ void PltApp::PltAppInit(bool bSubVolume) {
   }
 
   // Levels button, to view various levels of refinement
-  //int numberOfLevels(amrPicturePtrArray[ZPLANE]->NumberOfLevels()-minAllowableLevel);
   wCascade = XmCreatePulldownMenu(wMenuPulldown, "levelmenu", NULL, 0);
   XtVaCreateManagedWidget("Level", xmCascadeButtonWidgetClass, wMenuPulldown,
 			  XmNmnemonic, 'L', XmNsubMenuId, wCascade, NULL);
@@ -660,8 +655,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
       sprintf(accel, "Ctrl<Key>%i", menuLevel % 10);
       sprintf(accelText, "Ctrl+%i", menuLevel % 10);
       label_str = XmStringCreateSimple(accelText);
-      XtVaSetValues(wid,
-		    XmNmnemonic, menuLevel + '0',
+      XtVaSetValues(wid, XmNmnemonic, menuLevel + '0',
 		    XmNaccelerator, accel,
 		    XmNacceleratorText, label_str,
 		    NULL);			      
@@ -776,7 +770,6 @@ void PltApp::PltAppInit(bool bSubVolume) {
   preClassify = true;
 
   // RENDER MENU
-
   wMenuPulldown = XmCreatePulldownMenu(wMenuBar, "RenderPulldown", NULL, 0);
   XtVaCreateManagedWidget("Render", xmCascadeButtonWidgetClass, wMenuBar,
 			  XmNmnemonic, 'R', XmNsubMenuId, wMenuPulldown, NULL);
@@ -817,7 +810,6 @@ void PltApp::PltAppInit(bool bSubVolume) {
 				wCascade, XmNset, false, NULL);
   AddStaticCallback(wid, XmNvalueChangedCallback,
 		    &PltApp::DoClassifyMenu, (XtPointer) 1);
-
 #endif
 
   // --------------------------------------------------------------- help menu
@@ -848,8 +840,6 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			    XmNleftAttachment,   XmATTACH_FORM,
 			    XmNrightAttachment,  XmATTACH_FORM,
 			    XmNbottomAttachment, XmATTACH_FORM,
-			    // XmNx,	         690,
-			    // XmNy,		 0,
 			    XmNwidth,		 150,
 			    XmNheight,		 290,
 			    NULL);
@@ -882,8 +872,6 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			    XmNtopAttachment,   XmATTACH_WIDGET,
 			    XmNtopWidget,       wPalFrame,
 			    XmNshadowType,      XmSHADOW_ETCHED_IN,
-			    //XmNbackground,      120, 
-			    //XmNforeground,      220, 
 			    NULL);
 
   unsigned long wc;
@@ -903,8 +891,8 @@ void PltApp::PltAppInit(bool bSubVolume) {
 
   wControls[WCSTOP] =
     XtVaCreateManagedWidget("0", xmPushButtonWidgetClass, wControlForm,
-			    XmNx, centerX-halfbutton,
-			    XmNy, centerY-halfbutton,
+			    XmNx, centerX - halfbutton,
+			    XmNy, centerY - halfbutton,
 			    XmCMarginBottom, 2,
 			    NULL);
   XtManageChild(wControls[WCSTOP]);
@@ -912,38 +900,38 @@ void PltApp::PltAppInit(bool bSubVolume) {
   wControls[WCXNEG] =
     XtVaCreateManagedWidget("wcxneg", xmArrowButtonWidgetClass, wControlForm,
 			    XmNarrowDirection,      XmARROW_LEFT,
-			    XmNx, centerX+halfbutton,
-			    XmNy, centerY-halfbutton,
+			    XmNx, centerX + halfbutton,
+			    XmNy, centerY - halfbutton,
 			    NULL);
   wControls[WCXPOS] =
     XtVaCreateManagedWidget("wcxpos", xmArrowButtonWidgetClass, wControlForm,
 			    XmNarrowDirection,      XmARROW_RIGHT,
-			    XmNx, centerX+3*halfbutton,
-			    XmNy, centerY-halfbutton,
+			    XmNx, centerX + 3 * halfbutton,
+			    XmNy, centerY - halfbutton,
 			    NULL);
   wControls[WCYNEG] =
     XtVaCreateManagedWidget("wcyneg", xmArrowButtonWidgetClass, wControlForm,
 			    XmNarrowDirection,      XmARROW_DOWN,
-			    XmNx, centerX-halfbutton,
-			    XmNy, centerY-3*halfbutton,
+			    XmNx, centerX - halfbutton,
+			    XmNy, centerY - 3 * halfbutton,
 			    NULL);
   wControls[WCYPOS] =
     XtVaCreateManagedWidget("wcypos", xmArrowButtonWidgetClass, wControlForm,
 			    XmNarrowDirection,      XmARROW_UP,
-			    XmNx, centerX-halfbutton,
-			    XmNy, centerY-5*halfbutton,
+			    XmNx, centerX - halfbutton,
+			    XmNy, centerY - 5 * halfbutton,
 			    NULL);
   wControls[WCZNEG] =
     XtVaCreateManagedWidget("wczneg", xmArrowButtonWidgetClass, wControlForm,
 			    XmNarrowDirection,      XmARROW_RIGHT,
-			    XmNx, centerX-3*halfbutton+1,
-			    XmNy, centerY+halfbutton-1,
+			    XmNx, centerX - 3 * halfbutton + 1,
+			    XmNy, centerY + halfbutton - 1,
 			    NULL);
   wControls[WCZPOS] =
     XtVaCreateManagedWidget("wczpos", xmArrowButtonWidgetClass, wControlForm,
 			    XmNarrowDirection,      XmARROW_LEFT,
-			    XmNx, centerX-5*halfbutton+2,
-			    XmNy, centerY+3*halfbutton-2,
+			    XmNx, centerX - 5 * halfbutton + 2,
+			    XmNy, centerY + 3 * halfbutton - 2,
 			    NULL);
   
   for(wc = WCSTOP; wc <= WCZPOS; ++wc) {
@@ -972,12 +960,12 @@ void PltApp::PltAppInit(bool bSubVolume) {
     wControls[WCATNEG] =
       XtVaCreateManagedWidget("wcatneg", xmArrowButtonWidgetClass, wControlForm,
 			      XmNarrowDirection,      XmARROW_LEFT,
-			      XmNx, centerX-3*halfbutton,
+			      XmNx, centerX - 3 * halfbutton,
 			      NULL);
     wControls[WCATPOS] =
       XtVaCreateManagedWidget("wcatpos", xmArrowButtonWidgetClass, wControlForm,
-			      XmNarrowDirection,      XmARROW_RIGHT,
-			      XmNx, centerX+halfbutton,
+			      XmNarrowDirection, XmARROW_RIGHT,
+			      XmNx, centerX + halfbutton,
 			      NULL);
     for(wc = WCATNEG; wc <= WCATPOS; ++wc) {
       XtVaSetValues(wControls[wc], XmNwidth,  controlSize, XmNheight, controlSize,
@@ -987,21 +975,18 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			(XtPointer) wc);
     }
 
-    if ( AVGlobals::IsSGIrgbFile() )
-    {
+    if(AVGlobals::IsSGIrgbFile()) {
 	wControls[WCARGB] =
 	    XtVaCreateManagedWidget("rgb >", xmPushButtonWidgetClass, wControlForm,
 				    XmCMarginBottom, 2,
-				    XmNwidth,  3*controlSize,
+				    XmNwidth,  3 * controlSize,
 				    XmNheight, controlSize,
 				    XmNborderWidth, 0,
 				    XmNhighlightThickness, 0,
-				    XmNx, centerX-3*halfbutton,
-				    XmNy, wcfHeight+3*halfbutton-adjustHeight2D,
+				    XmNx, centerX - 3 * halfbutton,
+				    XmNy, wcfHeight + 3 * halfbutton-adjustHeight2D,
 				    NULL);
-    }
-    else
-    {
+    } else {
 	wControls[WCARGB] =
 	    XtVaCreateManagedWidget("ppm >", xmPushButtonWidgetClass, wControlForm,
 				    XmCMarginBottom, 2,
@@ -1010,7 +995,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 				    XmNborderWidth, 0,
 				    XmNhighlightThickness, 0,
 				    XmNx, centerX-3*halfbutton,
-				    XmNy, wcfHeight+3*halfbutton-adjustHeight2D,
+				    XmNy, wcfHeight + 3 * halfbutton-adjustHeight2D,
 				    NULL);
     }
     AddStaticCallback(wControls[WCARGB], XmNactivateCallback, &PltApp::ChangePlane,
@@ -1035,7 +1020,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			      XmNy, wcfHeight-7*halfbutton-adjustHeight2D,
 			      NULL);
     XtVaGetValues(wAnimLabelFast, XmNwidth, &slw, NULL);
-    XtVaSetValues(wAnimLabelFast, XmNx, wcfWidth-slw, NULL);
+    XtVaSetValues(wAnimLabelFast, XmNx, wcfWidth - slw, NULL);
     
     char cTempFN[BUFSIZ];
     strcpy(cTempFN, AVGlobals::StripSlashes(fileNames[currentFrame]).c_str());
@@ -1076,8 +1061,6 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			      NULL);
     
     AddStaticCallback(wSpeedScale, XmNvalueChangedCallback, &PltApp::DoSpeedScale);
-    //XtVaGetValues(wSpeedScale, XmNwidth, &slw, NULL);
-    //XtVaSetValues(wSpeedScale, XmNx, (wcfWidth-slw) / 2, NULL);
     Widget wSpeedLabel =
       XtVaCreateManagedWidget("Speed", xmLabelWidgetClass, wControlForm,	
 			      XmNy, wcfHeight - 9 * halfbutton - adjustHeight2D,
@@ -1162,7 +1145,6 @@ void PltApp::PltAppInit(bool bSubVolume) {
 		NULL);
 
 // ********************************************************* XZ
-
   wScrollArea[YPLANE] =
     XtVaCreateManagedWidget("scrollAreaXZ",
 			    xmScrolledWindowWidgetClass, wPlotArea,
@@ -1185,7 +1167,6 @@ void PltApp::PltAppInit(bool bSubVolume) {
   XtVaSetValues(wScrollArea[YPLANE], XmNworkWindow, wPlotPlane[YPLANE], NULL); 
   
   // ********************************************************* YZ
-  
   wScrollArea[XPLANE] =
     XtVaCreateManagedWidget("scrollAreaYZ",
 			    xmScrolledWindowWidgetClass, wPlotArea,
@@ -1207,7 +1188,6 @@ void PltApp::PltAppInit(bool bSubVolume) {
   XtVaSetValues(wScrollArea[XPLANE], XmNworkWindow, wPlotPlane[XPLANE], NULL); 
   
   // ****************************************** Transform Area & buttons
-  
   wOrientXY = XtVaCreateManagedWidget("XY",
 				    xmPushButtonGadgetClass, wPlotArea,
 				    XmNleftAttachment, XmATTACH_WIDGET,

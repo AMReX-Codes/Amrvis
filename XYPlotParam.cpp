@@ -107,7 +107,6 @@ XYPlotParameters::~XYPlotParameters(void) {
   
   // clear table bins and the table itself.
   delete param_table.bins;
-
   delete [] title;
 }
 
@@ -239,44 +238,50 @@ params * XYPlotParameters::resolve_entry(char *name, param_types type,
   
   result->type = type;
   switch (type) {
-  case INT:
-    if(sscanf(form, "%d", &result->intv.value) != 1) {
-      fprintf(stderr, paramstr, name, form, "integer", DEF_INT);
-      result->intv.value = atoi(DEF_INT);
-    }
+    case INT:
+      if(sscanf(form, "%d", &result->intv.value) != 1) {
+        fprintf(stderr, paramstr, name, form, "integer", DEF_INT);
+        result->intv.value = atoi(DEF_INT);
+      }
     break;
-  case STR:
-    result->strv.value = form;
+
+    case STR:
+      result->strv.value = form;
     break;
-  case PIXEL:
-    if( ! do_color(form, &result->pixv.value)) {
-      fprintf(stderr, paramstr, name, form, "color", DEF_PIXEL);
-      do_color(DEF_PIXEL, &result->pixv.value);
-    }
+
+    case PIXEL:
+      if( ! do_color(form, &result->pixv.value)) {
+        fprintf(stderr, paramstr, name, form, "color", DEF_PIXEL);
+        do_color(DEF_PIXEL, &result->pixv.value);
+      }
     break;
-  case FONT:
-    if( ! do_font(form, &result->fontv.value)) {
-      fprintf(stderr, paramstr, name, form, "font", DEF_FONT);
-      do_font(DEF_FONT, &result->fontv.value);
-    }
+
+    case FONT:
+      if( ! do_font(form, &result->fontv.value)) {
+        fprintf(stderr, paramstr, name, form, "font", DEF_FONT);
+        do_font(DEF_FONT, &result->fontv.value);
+      }
     break;
-  case STYLE:
-    if( ! do_style(form, &result->stylev)) {
-      fprintf(stderr, paramstr, name, form, "line style", DEF_STYLE);
-      do_style(DEF_STYLE, &result->stylev);
-    }
+
+    case STYLE:
+      if( ! do_style(form, &result->stylev)) {
+        fprintf(stderr, paramstr, name, form, "line style", DEF_STYLE);
+        do_style(DEF_STYLE, &result->stylev);
+      }
     break;
-  case BOOL:
-    if( ! do_bool(form, &result->boolv.value)) {
-      fprintf(stderr, paramstr, name, form, "boolean flag", DEF_BOOL);
-      do_bool(DEF_BOOL, &result->boolv.value);
-    }
+
+    case BOOL:
+      if( ! do_bool(form, &result->boolv.value)) {
+        fprintf(stderr, paramstr, name, form, "boolean flag", DEF_BOOL);
+        do_bool(DEF_BOOL, &result->boolv.value);
+      }
     break;
-  case DBL:
-    if(sscanf(form, "%lf", &result->dblv.value) != 1) {
-      fprintf(stderr, paramstr, name, form, "double", DEF_DBL);
-      result->dblv.value = atof(DEF_DBL);
-    }
+
+    case DBL:
+      if(sscanf(form, "%lf", &result->dblv.value) != 1) {
+        fprintf(stderr, paramstr, name, form, "double", DEF_DBL);
+        result->dblv.value = atof(DEF_DBL);
+      }
     break;
   }
   return result;
@@ -287,8 +292,8 @@ params * XYPlotParameters::resolve_entry(char *name, param_types type,
 int XYPlotParameters::do_color(char *name, XColor *color) {
   Colormap cmap = param_palette->GetColormap();
   if( ! XParseColor(gaPtr->PDisplay(),
-		   DefaultColormap(gaPtr->PDisplay(), gaPtr->PScreenNumber()),
-		   name, color))
+		    DefaultColormap(gaPtr->PDisplay(), gaPtr->PScreenNumber()),
+		    name, color))
   {
     return 0;
   }
