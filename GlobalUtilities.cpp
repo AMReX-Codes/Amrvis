@@ -290,7 +290,8 @@ void PrintUsage(char *exname) {
   cout << "       [-palette palname] [-initialderived dername]" << endl;
   cout << "       [-initialscale n] [-showboxes tf] [-numberformat fmt]" << endl;
 # if (BL_SPACEDIM == 3)
-    cout << "       [-makeswf]" << endl;
+    cout << "       [-makeswf_light]" << endl;
+    cout << "       [-makeswf_value]" << endl;
     cout << "       [-useminmax min max]" << endl;
 #endif
   cout << "       [<filename(s)>]" << endl;
@@ -322,10 +323,12 @@ void PrintUsage(char *exname) {
 
 
 # if (BL_SPACEDIM == 3)
-    cout << "  -makeswf           make volume rendering data using the" << endl;
-    cout << "                     current transfer funcion and write data" << endl;
-    cout << "                     to a file.  note:  works in batch mode." << endl;
-    cout << "  -useminmax min max use min and max as the global min max values" << endl;
+  cout << "  -makeswf_light     make volume rendering data using the" << endl;
+  cout << "                     current transfer function and write data" << endl;
+  cout << "                     to a file, using the lighting model."<<endl
+       << "                     note:  works in batch mode." << endl;
+  cout << "  -makeswf_value     same as above, with value model rendering."<<endl;
+  cout << "  -useminmax min max use min and max as the global min max values" << endl;
 #endif
   cout << "  -v                 verbose." << endl; 
   cout << "  -palette palname   set the initial palette." << endl; 
