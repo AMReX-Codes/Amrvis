@@ -299,9 +299,9 @@ private:
   Widget wAutoDraw, wDAutoDraw;
   Widget wLightButton, wDLightButton;
   Widget wLWCancelButton, wLWDoneButton, wLWApplyButton;
-  Widget wLWNumber1, wLWNumber2, wLWNumber3, wLWNumber4;
+  Widget wLWambient, wLWdiffuse, wLWspecular, wLWshiny;
   Widget wLWminOpacity, wLWmaxOpacity; 
-  Widget wLWNumberLabel1, wLWNumberLabel2, wLWNumberLabel3, wLWNumberLabel4;
+  Widget wLWambientLabel, wLWdiffuseLabel, wLWspecularLabel, wLWshinyLabel;
   Widget wLWminOpacityLabel, wLWmaxOpacityLabel;
   Widget wLight, wLightItems[2], wLightOptions;
   Widget wDLight, wDLightItems[2], wDLightOptions;

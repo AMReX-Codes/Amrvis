@@ -251,10 +251,10 @@ void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
 
 void PltApp::DoApplyLightingWindow(Widget, XtPointer, XtPointer) {
   //read new input
-  Real ambient = atof(XmTextFieldGetString(wLWNumber1));
-  Real diffuse = atof(XmTextFieldGetString(wLWNumber2));
-  Real specular = atof(XmTextFieldGetString(wLWNumber3));
-  Real shiny = atof(XmTextFieldGetString(wLWNumber4));
+  Real ambient = atof(XmTextFieldGetString(wLWambient));
+  Real diffuse = atof(XmTextFieldGetString(wLWdiffuse));
+  Real specular = atof(XmTextFieldGetString(wLWspecular));
+  Real shiny = atof(XmTextFieldGetString(wLWshiny));
   Real minray = atof(XmTextFieldGetString(wLWminOpacity));
   Real maxray = atof(XmTextFieldGetString(wLWmaxOpacity));
 
@@ -314,7 +314,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
                            topLevelShellWidgetClass, 
                            wAmrVisTopLevel,
                            XmNwidth, 200,
-                           XmNheight, 200,
+                           XmNheight, 300,
                            XmNx, xpos+wdth-20,
                            XmNy, ypos+20,
                            NULL);
@@ -334,6 +334,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 
     // make the buttons
     int i=0;
+    XtSetArg(args[i], XmNtopAttachment, XmATTACH_POSITION);    i++;
+    XtSetArg(args[i], XmNtopPosition, 87);    i++;
     XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);   i++;
     XtSetArg(args[i], XmNbottomOffset, WOFFSET);    i++;
     XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      i++;
@@ -346,6 +348,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
                       &PltApp::DoDoneLightingWindow);
     
     i=0;
+    XtSetArg(args[i], XmNtopAttachment, XmATTACH_POSITION);    i++;
+    XtSetArg(args[i], XmNtopPosition, 87);    i++;
     XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);   i++;
     XtSetArg(args[i], XmNbottomOffset, WOFFSET);    i++;
     XtSetArg(args[i], XmNleftAttachment, XmATTACH_POSITION);      i++;
@@ -364,6 +368,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 
 
     i=0;
+    XtSetArg(args[i], XmNtopAttachment, XmATTACH_POSITION);    i++;
+    XtSetArg(args[i], XmNtopPosition, 87);    i++;
     XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);   i++;
     XtSetArg(args[i], XmNbottomOffset, WOFFSET);    i++;
     XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      i++;
@@ -381,110 +387,116 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
     i=0;
     XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
     XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
+    XtSetArg(args[i], XmNbottomAttachment, XmATTACH_POSITION);    i++;
+    XtSetArg(args[i], XmNbottomPosition, 12);    i++;
     XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      i++;
     XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
-    wLWNumberLabel1 = XtCreateManagedWidget("ambient: ",
+    wLWambientLabel = XtCreateManagedWidget("ambient: ",
                                            xmLabelGadgetClass, wLWForm,
                                            args, i);
     
     i=0;
     XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
     XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
+    XtSetArg(args[i], XmNbottomAttachment, XmATTACH_POSITION);    i++;
+    XtSetArg(args[i], XmNbottomPosition, 12);    i++;
     XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      i++;
     XtSetArg(args[i], XmNrightOffset, WOFFSET);      i++;
     char cNbuff[64];
     sprintf(cNbuff, "%3.2f", volRenderPtr->GetAmbient());
     XtSetArg(args[i], XmNvalue, cNbuff);      i++;
-    XmString sLWVariableSet1 = XmStringCreateSimple("Variable");
-    XtSetArg(args[i], XmNlabelString, sLWVariableSet1);    i++;
     XtSetArg(args[i], XmNcolumns, 6);      i++;
-    wLWNumber1 = XtCreateManagedWidget("variable", xmTextFieldWidgetClass,
+    wLWambient = XtCreateManagedWidget("variable", xmTextFieldWidgetClass,
                                             wLWForm, args, i);
 
-    XmStringFree(sLWVariableSet1);
 
     i=0;
     XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET);      i++;
     XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
-    XtSetArg(args[i], XmNtopWidget, wLWNumber1);      i++;
+    XtSetArg(args[i], XmNbottomAttachment, XmATTACH_POSITION);    i++;
+    XtSetArg(args[i], XmNbottomPosition, 25);    i++;
+    XtSetArg(args[i], XmNtopWidget, wLWambient);      i++;
     XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      i++;
     XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
-    wLWNumberLabel2 = XtCreateManagedWidget("diffuse: ",
+    wLWdiffuseLabel = XtCreateManagedWidget("diffuse: ",
                                            xmLabelGadgetClass, wLWForm,
                                            args, i);
     
     i=0;
     XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET);      i++;
     XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
-    XtSetArg(args[i], XmNtopWidget, wLWNumber1);      i++;
+    XtSetArg(args[i], XmNtopWidget, wLWambient);      i++;
+    XtSetArg(args[i], XmNbottomAttachment, XmATTACH_POSITION);    i++;
+    XtSetArg(args[i], XmNbottomPosition, 25);    i++;
     XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      i++;
     XtSetArg(args[i], XmNrightOffset, WOFFSET);      i++;
     sprintf(cNbuff, "%3.2f", volRenderPtr->GetDiffuse());
     XtSetArg(args[i], XmNvalue, cNbuff);      i++;
-    XmString sLWVariableSet2 = XmStringCreateSimple("Variable");
-    XtSetArg(args[i], XmNlabelString, sLWVariableSet2);    i++;
     XtSetArg(args[i], XmNcolumns, 6);      i++;
-    wLWNumber2 = XtCreateManagedWidget("variable", xmTextFieldWidgetClass,
+    wLWdiffuse = XtCreateManagedWidget("variable", xmTextFieldWidgetClass,
                                             wLWForm, args, i);
 
-    XmStringFree(sLWVariableSet2);
 
     i=0;
     XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET);      i++;
     XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
-    XtSetArg(args[i], XmNtopWidget, wLWNumber2);      i++;
+    XtSetArg(args[i], XmNtopWidget, wLWdiffuse);      i++;
+    XtSetArg(args[i], XmNbottomAttachment, XmATTACH_POSITION);    i++;
+    XtSetArg(args[i], XmNbottomPosition, 37);    i++;
     XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      i++;
     XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
-    wLWNumberLabel3 = XtCreateManagedWidget("specular: ",
+    wLWspecularLabel = XtCreateManagedWidget("specular: ",
                                            xmLabelGadgetClass, wLWForm,
                                            args, i);
     
     i=0;
     XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET);      i++;
     XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
-    XtSetArg(args[i], XmNtopWidget, wLWNumber2);      i++;
+    XtSetArg(args[i], XmNtopWidget, wLWdiffuse);      i++;
+    XtSetArg(args[i], XmNbottomAttachment, XmATTACH_POSITION);    i++;
+    XtSetArg(args[i], XmNbottomPosition, 37);    i++;
     XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      i++;
     XtSetArg(args[i], XmNrightOffset, WOFFSET);      i++;
     sprintf(cNbuff, "%3.2f", volRenderPtr->GetSpecular());
     XtSetArg(args[i], XmNvalue, cNbuff);      i++;
-    XmString sLWVariableSet3 = XmStringCreateSimple("Variable");
-    XtSetArg(args[i], XmNlabelString, sLWVariableSet3);    i++;
     XtSetArg(args[i], XmNcolumns, 6);      i++;
-    wLWNumber3 = XtCreateManagedWidget("variable", xmTextFieldWidgetClass,
+    wLWspecular = XtCreateManagedWidget("variable", xmTextFieldWidgetClass,
                                             wLWForm, args, i);
 
-    XmStringFree(sLWVariableSet3);
 
     i=0;
     XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET);      i++;
     XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
-    XtSetArg(args[i], XmNtopWidget, wLWNumber3);      i++;
+    XtSetArg(args[i], XmNtopWidget, wLWspecular);      i++;
+    XtSetArg(args[i], XmNbottomAttachment, XmATTACH_POSITION);    i++;
+    XtSetArg(args[i], XmNbottomPosition, 50);    i++;
     XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      i++;
     XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
-    wLWNumberLabel4 = XtCreateManagedWidget("shiny: ",
+    wLWshinyLabel = XtCreateManagedWidget("shiny: ",
                                            xmLabelGadgetClass, wLWForm,
                                            args, i);
     
     i=0;
     XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET);      i++;
     XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
-    XtSetArg(args[i], XmNtopWidget, wLWNumber3);      i++;
+    XtSetArg(args[i], XmNtopWidget, wLWspecular);      i++;
+    XtSetArg(args[i], XmNbottomAttachment, XmATTACH_POSITION);    i++;
+    XtSetArg(args[i], XmNbottomPosition, 50);    i++;
     XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      i++;
     XtSetArg(args[i], XmNrightOffset, WOFFSET);      i++;
     sprintf(cNbuff, "%3.2f", volRenderPtr->GetShiny());
     XtSetArg(args[i], XmNvalue, cNbuff);      i++;
-    XmString sLWVariableSet4 = XmStringCreateSimple("Variable");
-    XtSetArg(args[i], XmNlabelString, sLWVariableSet4);    i++;
     XtSetArg(args[i], XmNcolumns, 6);      i++;
-    wLWNumber4 = XtCreateManagedWidget("variable", xmTextFieldWidgetClass,
+    wLWshiny = XtCreateManagedWidget("variable", xmTextFieldWidgetClass,
                                             wLWForm, args, i);
 
-    XmStringFree(sLWVariableSet4);
 
     i=0;
     XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET);      i++;
     XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
-    XtSetArg(args[i], XmNtopWidget, wLWNumber4);      i++;
+    XtSetArg(args[i], XmNtopWidget, wLWshiny);      i++;
+    XtSetArg(args[i], XmNbottomAttachment, XmATTACH_POSITION);    i++;
+    XtSetArg(args[i], XmNbottomPosition, 62);    i++;
     XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      i++;
     XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
     wLWminOpacityLabel = XtCreateManagedWidget("minOpacityOpacity: ",
@@ -494,7 +506,9 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
     i=0;
     XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET);      i++;
     XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
-    XtSetArg(args[i], XmNtopWidget, wLWNumber4);      i++;
+    XtSetArg(args[i], XmNtopWidget, wLWshiny);      i++;
+    XtSetArg(args[i], XmNbottomAttachment, XmATTACH_POSITION);    i++;
+    XtSetArg(args[i], XmNbottomPosition, 62);    i++;
     XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      i++;
     XtSetArg(args[i], XmNrightOffset, WOFFSET);      i++;
     sprintf(cNbuff, "%3.2f", volRenderPtr->GetMinRayOpacity());
@@ -507,6 +521,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
     XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET);      i++;
     XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
     XtSetArg(args[i], XmNtopWidget, wLWminOpacity);      i++;
+    XtSetArg(args[i], XmNbottomAttachment, XmATTACH_POSITION);    i++;
+    XtSetArg(args[i], XmNbottomPosition, 75);    i++;
     XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      i++;
     XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
     wLWmaxOpacityLabel = XtCreateManagedWidget("maxRayOpacity: ",
@@ -517,6 +533,8 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
     XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET);      i++;
     XtSetArg(args[i], XmNtopOffset, WOFFSET);      i++;
     XtSetArg(args[i], XmNtopWidget, wLWminOpacity);      i++;
+    XtSetArg(args[i], XmNbottomAttachment, XmATTACH_POSITION);    i++;
+    XtSetArg(args[i], XmNbottomPosition, 75);    i++;
     XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      i++;
     XtSetArg(args[i], XmNrightOffset, WOFFSET);      i++;
     sprintf(cNbuff, "%3.2f", volRenderPtr->GetMaxRayOpacity());
