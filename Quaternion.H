@@ -1,6 +1,6 @@
 
 //
-// $Id: Quaternion.H,v 1.8 2003-09-11 00:02:14 vince Exp $
+// $Id: Quaternion.H,v 1.9 2003-11-12 01:21:46 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -56,7 +56,7 @@ class AmrQuaternion {
     Real QY() const { return y; }
     Real QZ() const { return z; }
   
-    friend ostream& operator<<( ostream &s, const AmrQuaternion &q);
+    friend std::ostream& operator<<(std::ostream &s, const AmrQuaternion &q);
 };
 
 inline AmrQuaternion AmrQuaternion::operator*(const AmrQuaternion &q) const {
@@ -95,7 +95,7 @@ inline AmrQuaternion inverse(const AmrQuaternion &q) {
   return AmrQuaternion( q.w, -q.x, -q.y, -q.z );
 }
 
-inline ostream& operator<<( ostream &s, const AmrQuaternion &q) {
+inline std::ostream& operator<<(std::ostream &s, const AmrQuaternion &q) {
   return s << "AmrQuaternion( " << q.w << " , " << q.x << " , "
            << q.y << " , " << q.z << " )";
 }
