@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.109 2002-09-20 20:01:02 vince Exp $
+// $Id: PltApp.cpp,v 1.110 2002-09-25 23:19:51 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -3402,7 +3402,9 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  amrPicturePtrArray[YPLANE]->SetHLine(tempi);
 	}
 
-	if( ! (cbs->event->xbutton.state & ShiftMask)) {
+        if( ! ( (cbs->event->xbutton.state & ShiftMask) ||
+                (cbs->event->xbutton.state & ControlMask) ) )
+        {
 	  if(V == ZPLANE) {
 	    amrPicturePtrArray[YPLANE]->
 	      APChangeSlice((imageHeight - tempi)/scale + ivLowOffsetMAL[YDIR]);
@@ -3560,7 +3562,10 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  amrPicturePtrArray[ZPLANE]->SetHLine(amrPicturePtrArray[ZPLANE]->
 				                        ImageSizeV()-1 - tempi);
 	}
-	if( ! (cbs->event->xbutton.state & ShiftMask)) {
+        if( ! ( (cbs->event->xbutton.state & ShiftMask) ||
+                (cbs->event->xbutton.state & ControlMask) ) )
+        {
+
 	  if(V == ZPLANE) {
 	    amrPicturePtrArray[XPLANE]->
 	      APChangeSlice((tempi / scale) + ivLowOffsetMAL[XDIR]);
@@ -3735,11 +3740,11 @@ void PltApp::DoBackStep(int plane) {
   switch(plane) {
    case XPLANE:
     if(appX->GetSlice() > appX->GetSubDomain()[maLev].smallEnd(XDIR)) {
-      appZ->SetVLine((appZ->GetVLine() - 1) * currentScale);
+      appZ->SetVLine(appZ->GetVLine() - currentScale);
       appZ->DoExposePicture();
-      appY->SetVLine((appY->GetVLine() - 1) * currentScale);
+      appY->SetVLine(appY->GetVLine() - currentScale);
       appY->DoExposePicture();
-      appX->APChangeSlice(appX->GetSlice()-1);
+      appX->APChangeSlice(appX->GetSlice() - 1);
       break;
     }
     appZ->SetVLine(appY->ImageSizeH() - 1);
@@ -3752,9 +3757,9 @@ void PltApp::DoBackStep(int plane) {
    case YPLANE:
     if(appY->GetSlice() > appY->GetSubDomain()[maLev].smallEnd(YDIR))
     {
-      appX->SetVLine((appX->GetVLine() - 1) * currentScale);
+      appX->SetVLine(appX->GetVLine() - currentScale);
       appX->DoExposePicture();
-      appZ->SetHLine((appZ->GetHLine() + 1) * currentScale);
+      appZ->SetHLine(appZ->GetHLine() + currentScale);
       appZ->DoExposePicture();
       appY->APChangeSlice(appY->GetSlice() - 1);
       break;
@@ -3768,9 +3773,9 @@ void PltApp::DoBackStep(int plane) {
 
    case ZPLANE:
     if(appZ->GetSlice() > appZ->GetSubDomain()[maLev].smallEnd(ZDIR)) {
-      appX->SetHLine((appX->GetHLine() + 1) * currentScale);
+      appX->SetHLine(appX->GetHLine() + currentScale);
       appX->DoExposePicture();
-      appY->SetHLine((appY->GetHLine() + 1) * currentScale);
+      appY->SetHLine(appY->GetHLine() + currentScale);
       appY->DoExposePicture();
       appZ->APChangeSlice(appZ->GetSlice() - 1);
       break;
@@ -3802,9 +3807,9 @@ void PltApp::DoForwardStep(int plane) {
   switch(plane) {
    case XPLANE:
     if(appX->GetSlice() < appX->GetSubDomain()[maLev].bigEnd(XDIR)) {
-      appZ->SetVLine((appZ->GetVLine() + 1) * currentScale);
+      appZ->SetVLine(appZ->GetVLine() + currentScale);
       appZ->DoExposePicture();
-      appY->SetVLine((appY->GetVLine() + 1) * currentScale);
+      appY->SetVLine(appY->GetVLine() + currentScale);
       appY->DoExposePicture();
       appX->APChangeSlice(appX->GetSlice() + 1);
       break;
@@ -3818,9 +3823,9 @@ void PltApp::DoForwardStep(int plane) {
 
    case YPLANE:
     if(appY->GetSlice() < appY->GetSubDomain()[maLev].bigEnd(YDIR)) {
-      appX->SetVLine((appX->GetVLine() + 1) * currentScale);
+      appX->SetVLine(appX->GetVLine() + currentScale);
       appX->DoExposePicture();
-      appZ->SetHLine((appZ->GetHLine() - 1) * currentScale);
+      appZ->SetHLine(appZ->GetHLine() - currentScale);
       appZ->DoExposePicture();
       appY->APChangeSlice(appY->GetSlice() + 1);
       break;
@@ -3834,9 +3839,9 @@ void PltApp::DoForwardStep(int plane) {
 
    case ZPLANE:
     if(appZ->GetSlice() < appZ->GetSubDomain()[maLev].bigEnd(ZDIR)) {
-      appX->SetHLine((appX->GetHLine() - 1) * currentScale);
+      appX->SetHLine(appX->GetHLine() - currentScale);
       appX->DoExposePicture();
-      appY->SetHLine((appY->GetHLine() - 1) * currentScale);
+      appY->SetHLine(appY->GetHLine() - currentScale);
       appY->DoExposePicture();
       appZ->APChangeSlice(appZ->GetSlice() + 1);
       break;
@@ -3952,15 +3957,12 @@ void PltApp::ResetAnimation() {
   if( ! interfaceReady) {
 #   if(BL_SPACEDIM == 2)
     int maLev(pltAppState->MaxAllowableLevel());
-    //int newContourNum(amrPicturePtrArray[ZPLANE]->GetContourNumber());
     AmrPicture *Tempap = amrPicturePtrArray[ZPLANE];
     XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
 			 (XtEventHandler) &PltApp::StaticEvent,
 			 (XtPointer) Tempap);
-    //Array<Box> domain = amrPicturePtrArray[ZPLANE]->GetSubDomain();
     Box fineDomain(amrPicturePtrArray[ZPLANE]->GetSubDomain()[maLev]);
     delete Tempap;
-    //amrPicturePtrArray[ZPLANE]->SetDataServicesPtr(dataServicesPtr[currentFrame]); 
     
     const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
     fineDomain.refine(AVGlobals::CRRBetweenLevels(maLev, amrData.FinestLevel(),

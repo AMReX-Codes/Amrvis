@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.77 2002-09-20 20:01:02 vince Exp $
+// $Id: AmrPicture.cpp,v 1.78 2002-09-25 23:19:52 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -721,14 +721,14 @@ void AmrPicture::DoExposePicture() {
 #if (BL_SPACEDIM == 3)
       // draw plane "cutting" lines
       XSetForeground(display, xgc, palPtr->pixelate(hColor));
-      XDrawLine(display, pictureWindow, xgc, 0, hLine, imageSizeH, hLine); 
+      XDrawLine(display, pictureWindow, xgc, 0, hLine, imageSizeH - 1, hLine); 
       XSetForeground(display, xgc, palPtr->pixelate(vColor));
-      XDrawLine(display, pictureWindow, xgc, vLine, 0, vLine, imageSizeV); 
+      XDrawLine(display, pictureWindow, xgc, vLine, 0, vLine, imageSizeV - 1); 
       
       XSetForeground(display, xgc, palPtr->pixelate(hColor-30));
-      XDrawLine(display, pictureWindow, xgc, 0, hLine+1, imageSizeH, hLine+1); 
+      XDrawLine(display, pictureWindow, xgc, 0, hLine+1, imageSizeH - 1, hLine+1); 
       XSetForeground(display, xgc, palPtr->pixelate(vColor-30));
-      XDrawLine(display, pictureWindow, xgc, vLine+1, 0, vLine+1, imageSizeV); 
+      XDrawLine(display, pictureWindow, xgc, vLine+1, 0, vLine+1, imageSizeV - 1); 
       
       if(subCutShowing) {  // draw subvolume cutting border 
         XSetForeground(display, xgc, palPtr->pixelate(90));
