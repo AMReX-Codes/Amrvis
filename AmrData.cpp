@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.cpp,v 1.27 1999-03-18 17:57:51 sstanley Exp $
+// $Id: AmrData.cpp,v 1.28 1999-04-05 17:39:21 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -12,7 +12,6 @@
 #include "BoxDomain.H"
 #include "Misc.H"
 #include "VisMF.H"
-#include "Interpolater.H"
 
 #ifdef BL_USE_NEW_HFILES
 #include <iostream>
@@ -46,7 +45,7 @@ using std::ios;
 #	   define   FORT_PCINTERP    PCINTERP3D
 #     endif
 #else
-#  ifdef BL_AIX
+#  ifdef BL_FORT_USE_LOWERCASE
 #     if (BL_SPACEDIM == 2)
 #          define   FORT_CINTERP     cinterp2d
 #          define   FORT_PCINTERP    pcinterp2d

@@ -26,6 +26,8 @@ USE_PARALLELVOLRENDER = TRUE
 USE_PARALLELVOLRENDER = FALSE
 
 PBOXLIB_HOME = ..
+TOP = $(PBOXLIB_HOME)
+
 include ../mk/Make.defs
 
 EBASE = amrvis
@@ -33,8 +35,8 @@ HERE = .
 
 INCLUDE_LOCATIONS += $(HERE)
 INCLUDE_LOCATIONS += ../pBoxLib_2
-INCLUDE_LOCATIONS += ../amrlib
-INCLUDE_LOCATIONS += ../bndrylib
+#INCLUDE_LOCATIONS += ../amrlib
+#INCLUDE_LOCATIONS += ../bndrylib
 
 ############################################### define vince's home dir
 ifeq ($(MACHINE), OSF1)
@@ -192,6 +194,7 @@ CFLAGS += -g
 XTRALIBS += 
 
 include $(HERE)/Make.package
+include $(TOP)/pBoxLib_2/Make.package
 
 vpath %.cpp $(HERE) ../pBoxLib_2
 vpath %.F $(HERE)
