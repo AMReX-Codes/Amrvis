@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.61 2001-05-01 22:09:24 vince Exp $
+// $Id: AmrPicture.cpp,v 1.62 2001-05-01 22:57:32 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -232,7 +232,6 @@ void AmrPicture::AmrPictureInit() {
     sliceFab[iLevel] = new FArrayBox(sliceBox[iLevel], 1);
   }
   xImageArray.resize(numberOfLevels);
-  //xImageCreated.resize(numberOfLevels, false);
 
   display = GAptr->PDisplay();
   xgc = GAptr->PGC();
@@ -511,18 +510,6 @@ void AmrPicture::DrawTerrBoxes(int level, bool bIsWindow, bool bIsPixmap) {
   Real index_zhi = vScale * dx0[0] / (expansion * dx[0]) *
                    (subDomain[0].bigEnd()[BL_SPACEDIM-1] + 1);
 
-#if 0
-  if(level > 0) {
-    Real zhi(-1000000.0);
-    for(i = 0; i < gpArray[0].length(); ++i) {
-      GridPlot *gridptr_crse = gpArray[0][i].GetGridPtr();
-      DataBoxPlot *meshdb_crse = gridptr_crse->Mesh();
-      zhi = Max(zhi, meshdb_crse->max(0));
-    }
-    index_zhi = vScale * zhi / dx[0];
-  }
-#endif
-
       for(i = 0; i < gpArray[level].length(); ++i) {
         xbox = gpArray[level][i].HPositionInPicture();
         ybox = gpArray[level][i].VPositionInPicture();
@@ -774,34 +761,24 @@ void AmrPicture::CreatePicture(Window drawPictureHere, Palette *palptr) {
 
 // ---------------------------------------------------------------------
 void AmrPicture::APMakeImages(Palette *palptr) {
-  //int lev;
-  //char buffer[BUFSIZ];
-  //Real dataMin, dataMax;
-  //bool printDone(false);
   BL_ASSERT(palptr != NULL);
   palPtr = palptr;
   AmrData &amrData = dataServicesPtr->AmrDataRef();
-  //if(currentDerived != derived || whichRange == FILEMINMAX)
   if(UsingFileRange(pltAppStatePtr->GetMinMaxRangeType())) {
-    //maxsFound = false;
     pltAppPtr->PaletteDrawn(false);
   }
 
   int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
   int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
-  //if( ! maxsFound)
-  {
-    if(framesMade) {
-      for(int i(0); i < subDomain[maxAllowableLevel].length(sliceDir); ++i) {
-        XDestroyImage(frameBuffer[i]);
-      }
-      framesMade = false;
+  if(framesMade) {
+    for(int i(0); i < subDomain[maxAllowableLevel].length(sliceDir); ++i) {
+      XDestroyImage(frameBuffer[i]);
     }
-    if(pendingTimeOut != 0) {
-      DoStop();
-    }
-    //maxsFound = true;
-  }  // end if( ! maxsFound)
+    framesMade = false;
+  }
+  if(pendingTimeOut != 0) {
+    DoStop();
+  }
 
   Real minUsing, maxUsing;
   pltAppStatePtr->GetMinMax(minUsing, maxUsing);
@@ -826,7 +803,6 @@ void AmrPicture::APMakeImages(Palette *palptr) {
                 dataSizeH[iLevel], dataSizeV[iLevel],
                 imageSizeH, imageSizeV);
   }
-  cout << "***** _in APMakeImages:  PaletteDrawn = " << pltAppPtr->PaletteDrawn() << endl;
   if( ! pltAppPtr->PaletteDrawn()) {
     pltAppPtr->PaletteDrawn(true);
     palptr->Draw(minUsing, maxUsing, pltAppPtr->GetFormatString());

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.85 2001-05-01 22:09:25 vince Exp $
+// $Id: PltApp.cpp,v 1.86 2001-05-01 22:57:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -395,8 +395,10 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 					 XmNdeleteResponse, XmDO_NOTHING,			 
 					 NULL);
 
-cout << "_in PltApp::PltApp:  subregion" << endl;
-pltAppState->PrintSetMap();  cout << endl;
+  if(Verbose()) {
+    cout << "_in PltApp::PltApp:  subregion" << endl;
+    pltAppState->PrintSetMap();  cout << endl;
+  }
 
   GAptr = new GraphicsAttributes(wAmrVisTopLevel);
   display = GAptr->PDisplay();
@@ -1509,7 +1511,9 @@ void PltApp::ChangeLevel(Widget w, XtPointer client_data, XtPointer) {
 void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   if(w == wCurrDerived) {
     XtVaSetValues(w, XmNset, true, NULL);
-    cout << "--------------------- unchanged derived." << endl;
+    if(Verbose()) {
+      cout << "--------------------- unchanged derived." << endl;
+    }
     return;
   }
   XtVaSetValues(wCurrDerived, XmNset, false, NULL);
@@ -1518,12 +1522,10 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   pltAppState->SetCurrentDerived(dataServicesPtr[currentFrame]->
 				   PlotVarNames()[derivedNumber], derivedNumber);
 
-  //maxDrawnLevel = pltAppState->MaxAllowableLevel();
   maxDrawnLevel = pltAppState->MaxDrawnLevel();
 
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
 
-// ---------------
   // possibly set all six minmax types here
   const Array<Box> &onSubregionBox = amrPicturePtrArray[ZPLANE]->GetSubDomain();
   const Array<Box> &onBox(amrData.ProbDomain());
@@ -1579,9 +1581,10 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
 			     rSubregionMin, rSubregionMax);
     }
   }
-// ---------------
-cout << "_in PltApp::ChangeDerived" << endl;
-pltAppState->PrintSetMap();  cout << endl;
+  if(Verbose()) {
+    cout << "_in PltApp::ChangeDerived" << endl;
+    pltAppState->PrintSetMap();  cout << endl;
+  }
 
 
 #if (BL_SPACEDIM == 3)
@@ -1599,8 +1602,6 @@ pltAppState->PrintSetMap();  cout << endl;
     DirtyFrames();
     if(UsingFileRange(currentRangeType)) {
       Real dataMin, dataMax;
-      //globalMin =  AV_BIG_REAL;
-      //globalMax = -AV_BIG_REAL;
       int coarseLevel(0);
       int fineLevel(maxDrawnLevel);
       for(int lev(coarseLevel); lev <= fineLevel; ++lev) {
@@ -1613,12 +1614,8 @@ pltAppState->PrintSetMap();  cout << endl;
 	if( ! minMaxValid) {
 	  continue;
 	}
-	//globalMin = Min(globalMin, dataMin);
-	//globalMax = Max(globalMax, dataMax);
       }
     } else if(strcmp(pltAppState->CurrentDerived().c_str(),"vol_frac") == 0) {
-      //globalMin = 0.0;
-      //globalMax = 1.0;
     } else {
       aString outbuf("Finding global min & max values for ");
       outbuf += pltAppState->CurrentDerived();
@@ -1627,8 +1624,6 @@ pltAppState->PrintSetMap();  cout << endl;
       PrintMessage(buffer);
       
       Real dataMin, dataMax;
-      //globalMin =  AV_BIG_REAL;
-      //globalMax = -AV_BIG_REAL;
       int coarseLevel(0);
       int fineLevel(maxDrawnLevel);
       for(int iFrame(0); iFrame < animFrames; ++iFrame) {
@@ -1642,8 +1637,6 @@ pltAppState->PrintSetMap();  cout << endl;
 	  if( ! minMaxValid) {
 	    continue;
 	  }
-	  //globalMin = Min(globalMin, dataMin);
-	  //globalMax = Max(globalMax, dataMax);
 	}
       }
     } 
@@ -1677,11 +1670,6 @@ pltAppState->PrintSetMap();  cout << endl;
 			     pltAppState->CurrentDerivedNumber(),
 			     specifiedMin, specifiedMax);
     }
-  } else {
-    //for(int iv(0); iv < NPLANES; ++iv) {
-    //  amrPicturePtrArray[iv]->SetDataMin(amrPicturePtrArray[iv]->GetRegionMin());
-    //  amrPicturePtrArray[iv]->SetDataMax(amrPicturePtrArray[iv]->GetRegionMax());
-    //}
   }
 }  // end ChangeDerived(...)
 
@@ -1765,7 +1753,6 @@ void PltApp::ToggleRange(Widget w, XtPointer client_data, XtPointer call_data) {
       }
     }
   }
-  cout << "_here 1:  currentRangeType = " << currentRangeType << endl;
 }
 
 
@@ -2230,7 +2217,6 @@ void PltApp::DoToggleFileRangeButton(Widget w, XtPointer client_data,
       currentRangeType = USERMINMAX;
     }
   }
-  cout << "_here 2:  currentRangeType = " << currentRangeType << endl;
 }
 
 
@@ -2593,8 +2579,6 @@ void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
       XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
       DoExposeTransDA();
 #endif
-    //amrPicturePtrArray[YPLANE]->ToggleBoxes();
-    //amrPicturePtrArray[XPLANE]->ToggleBoxes();
 #endif
 
   // draw a bounding box around the image
@@ -3030,8 +3014,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  
 	  buffout << ends;  // end the string
 	  PrintMessage(buffer);
-	}
-	else {
+
+	} else {
 	  
 	  // tell the amrpicture about the box
 	  activeView = V;
