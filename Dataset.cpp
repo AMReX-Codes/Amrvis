@@ -31,6 +31,8 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
   dataServicesPtr = pltAppPtr->GetDataServicesPtr();
   finestLevel = amrPicturePtr->FinestLevel();
   maxAllowableLevel = amrPicturePtr->MaxAllowableLevel();
+  maxDrawnLevel = pltAppPtr->MaxDrawnLevel(); 
+  minDrawnLevel = pltAppPtr->MinDrawnLevel();
   char tempFormat[32];
   strcpy(tempFormat, pltAppPtr->GetFormatString().c_str());
   XmString sFormatString = XmStringCreateSimple(tempFormat);
@@ -192,6 +194,9 @@ Dataset::~Dataset() {
   delete GAptr;
   delete [] datasetRegion;
   delete [] dataStringArray;
+  for(int j = 0; j<=maxAllowableLevel; j++)
+      delete [] myDataStringArray[j];
+  delete [] myDataStringArray;
   XtDestroyWidget(wDatasetTopLevel);
 }
 
@@ -200,231 +205,251 @@ Dataset::~Dataset() {
 void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
 		     PltApp *pltappptr, int hdir, int vdir, int sdir)
 {
-  int lev, i, c, d, stringCount;
-  Box temp, dataBox;
-  Real *dataPoint; 
-
-  hDIR = hdir;
-  vDIR = vdir;
-  sDIR = sdir;
-  hAxisString = "x";
-  vAxisString = "y";
-   if( ! stringOk) {
-    return;
-  }
-
-  pltAppPtr = pltappptr;
-  amrPicturePtr = apptr;
-  dataServicesPtr = pltAppPtr->GetDataServicesPtr();
-  const AmrData &amrData = dataServicesPtr->AmrDataRef();
-  finestLevel = amrPicturePtr->NumberOfLevels() - 1;
-  maxAllowableLevel = amrPicturePtr->MaxAllowableLevel();
-
-  // set up datasetRegion
-
-  datasetRegion = new Box[maxAllowableLevel+1];
-  datasetRegion[maxAllowableLevel] = alignedRegion;
-  for(i = maxAllowableLevel - 1; i >= 0; --i) {
-    datasetRegion[i] = datasetRegion[maxAllowableLevel];
-    datasetRegion[i].coarsen(
-	     CRRBetweenLevels(i, maxAllowableLevel, amrData.RefRatio()));
-  }
-
-  // datasetRegion is now an array of Boxes that encloses the selected region
-
-  Array<FArrayBox> dataFab(maxAllowableLevel+1);
-  for(i = 0; i <= maxAllowableLevel; ++i) {
-    dataFab[i].resize(datasetRegion[i], 1);
-  }
-
-  Palette *palptr = pltAppPtr->GetPalettePtr();
-  int colorSlots(palptr->ColorSlots());
-  int paletteStart(palptr->PaletteStart());
-  int paletteEnd(palptr->PaletteEnd());
-
-  char header[BUFSIZ];
-  char shortfilename[BUFSIZ];
-  char pltfilename[BUFSIZ];
-  strcpy(pltfilename, pltAppPtr->GetFileName().c_str());
-  int fnl = strlen(pltfilename) - 1;
-  while(fnl>-1 && pltfilename[fnl] != '/') {
-    --fnl;
-  }
-  strcpy(shortfilename, &pltfilename[fnl+1]);
-
-  ostrstream outstr(header, sizeof(header));
-  outstr << shortfilename << "  " << amrPicturePtr->CurrentDerived()
-	 << "  " << alignedRegion << ends;
-
-  XtVaSetValues(wDatasetTopLevel, XmNtitle, header, NULL);
-
-  // find largest data width and count # of data strings 
-
-  int largestWidth(0);
-  stringCount = 0; 
-  for(lev = 0; lev <= maxAllowableLevel; ++lev) {
-    DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
-			   &dataFab[lev], dataFab[lev].box(),
-			   lev, amrPicturePtr->CurrentDerived());
-  //
-    for(int iBox = 0; iBox < amrData.boxArray(lev).length(); ++iBox) {
+    int lev, i, c, d, stringCount;
+    Box temp, dataBox;
+    Real *dataPoint; 
+    
+    hDIR = hdir;
+    vDIR = vdir;
+    sDIR = sdir;
+    hAxisString = "x";
+    vAxisString = "y";
+    if( ! stringOk) {
+        return;
+    }
+    
+    pltAppPtr = pltappptr;
+    amrPicturePtr = apptr;
+    dataServicesPtr = pltAppPtr->GetDataServicesPtr();
+    const AmrData &amrData = dataServicesPtr->AmrDataRef();
+    finestLevel = amrPicturePtr->NumberOfLevels() - 1;
+    maxAllowableLevel = amrPicturePtr->MaxAllowableLevel();
+    
+    // set up datasetRegion
+    
+    datasetRegion = new Box[maxAllowableLevel+1];
+    datasetRegion[maxAllowableLevel] = alignedRegion;
+    for(i = maxAllowableLevel - 1; i >= 0; --i) {
+        datasetRegion[i] = datasetRegion[maxAllowableLevel];
+        datasetRegion[i].coarsen(
+            CRRBetweenLevels(i, maxAllowableLevel, amrData.RefRatio()));
+    }
+    
+    // datasetRegion is now an array of Boxes that encloses the selected region
+    
+    Array<FArrayBox> dataFab(maxAllowableLevel+1);
+    for(i = 0; i <= maxAllowableLevel; ++i) {
+        dataFab[i].resize(datasetRegion[i], 1);
+    }
+    
+    Palette *palptr = pltAppPtr->GetPalettePtr();
+    int colorSlots(palptr->ColorSlots());
+    int paletteStart(palptr->PaletteStart());
+    int paletteEnd(palptr->PaletteEnd());
+    
+    char header[BUFSIZ];
+    char shortfilename[BUFSIZ];
+    char pltfilename[BUFSIZ];
+    strcpy(pltfilename, pltAppPtr->GetFileName().c_str());
+    int fnl = strlen(pltfilename) - 1;
+    while(fnl>-1 && pltfilename[fnl] != '/') {
+        --fnl;
+    }
+    strcpy(shortfilename, &pltfilename[fnl+1]);
+    
+    ostrstream outstr(header, sizeof(header));
+    outstr << shortfilename << "  " << amrPicturePtr->CurrentDerived()
+           << "  " << alignedRegion << ends;
+    
+    XtVaSetValues(wDatasetTopLevel, XmNtitle, header, NULL);
+    
+    // find largest data width and count # of data strings 
+    
+    int largestWidth(0);
+    stringCount = 0;
+    myStringCount = new int[maxAllowableLevel];
+    for(lev = 0; lev <= maxAllowableLevel; ++lev) {
+        myStringCount[lev] = 0;
+        DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
+                               &dataFab[lev], dataFab[lev].box(),
+                               lev, amrPicturePtr->CurrentDerived());
+        //
+        for(int iBox = 0; iBox < amrData.boxArray(lev).length(); ++iBox) {
       temp = amrData.boxArray(lev)[iBox];
       if(datasetRegion[lev].intersects(temp)) {
-	int ddl;
-	temp &= datasetRegion[lev];
-	dataBox = temp;
-        FArrayBox dataFabTemp(dataBox, 1);
-	dataFabTemp.copy(dataFab[lev]);
-		  //amrPlotPtr->StateNumber(amrPicturePtr->CurrentDerived()), 0, 1);
-	dataPoint = dataFabTemp.dataPtr();
-	stringCount += dataBox.length(vDIR) * dataBox.length(hDIR);
-	for(d = 0; d < dataBox.length(vDIR); ++d) {
-	  ddl = d*dataBox.length(hDIR);
-	  for(c = 0; c < dataBox.length(hDIR); ++c) {
-	    sprintf(dataString, formatString.c_str(), dataPoint[c+ddl]);
-	    largestWidth = Max((int)strlen(dataString), largestWidth);
-	  }
-	}
-        //delete dataFab;
-      }
-    }
-  //
-  }
-
-
-  if(Verbose()) {
-    cout << stringCount << " data points" << endl;
-  }
-  numStrings = stringCount;
-  dataStringArray = new StringLoc[numStrings];
-  int ns;
-  for(ns = 0; ns < numStrings; ns++) {
-    dataStringArray[ns].olflag = false;
-  }
-  if(dataStringArray == NULL) {
-    cout << "Error in Dataset::Render:  out of memory" << endl;
-    return;
-  }
-
-  // determine size of data area
-  dataItemWidth = largestWidth * CHARACTERWIDTH;
-  pixSizeX = datasetRegion[maxAllowableLevel].length(hDIR) * dataItemWidth
-      + ((maxAllowableLevel+1)*indexWidth);
-  pixSizeY = datasetRegion[maxAllowableLevel].length(vDIR) * CHARACTERHEIGHT
-      + ((maxAllowableLevel+1)*indexHeight);
-
-  // create StringLoc array and define color scheme 
-  if(pixSizeX == 0 || pixSizeY == 0) {
-    noData = true;
-    sprintf (dataString, "No intersection.");
-    pixSizeX = strlen(dataString) * CHARACTERWIDTH;
-    pixSizeY = CHARACTERHEIGHT+5;
-    XtVaSetValues(wPixArea,
-		XmNwidth,	pixSizeX,
-		XmNheight,	pixSizeY,
-		NULL);
-  } else {
-    noData = false;
-    XtVaSetValues(wPixArea,
-		XmNwidth,	pixSizeX,
-		XmNheight,	pixSizeY,
-		NULL);
-
-    stringCount = 0; 
-    int lastLevLow = 0, lastLevHigh = 0;
-    int csm1 = colorSlots - 1;
-    Real datamin = amrPicturePtr->GetWhichMin();
-    Real globalDiff = amrPicturePtr->GetWhichMax() - amrPicturePtr->GetWhichMin();
-    Real oneOverGlobalDiff;
-    if(globalDiff < FLT_MIN) {
-      oneOverGlobalDiff = 0.0;  // so we dont divide by zero
-    } else {
-      oneOverGlobalDiff = 1.0 / globalDiff;
-    }
-
-    for(lev = 0; lev <= maxAllowableLevel; ++lev) {
-      for(int iBox = 0; iBox < amrData.boxArray(lev).length(); ++iBox) {
-        temp = amrData.boxArray(lev)[iBox];
-    //
-        if(datasetRegion[lev].intersects(temp)) {
-	  temp &= datasetRegion[lev];
-	  dataBox = temp;
-	  temp.refine(CRRBetweenLevels(lev,
-				 maxAllowableLevel, amrData.RefRatio()));
-	  temp.shift(hDIR, -datasetRegion[maxAllowableLevel].smallEnd(hDIR)); 
-	  temp.shift(vDIR, -datasetRegion[maxAllowableLevel].smallEnd(vDIR)); 
-          //dataFab = new FArrayBox(dataBox, 1);
+          int ddl;
+          temp &= datasetRegion[lev];
+          dataBox = temp;
           FArrayBox dataFabTemp(dataBox, 1);
-	  dataFabTemp.copy(dataFab[lev]);
-		  //amrPlotPtr->StateNumber(amrPicturePtr->CurrentDerived()), 0, 1);
-	  dataPoint = dataFabTemp.dataPtr();
-	  int ddl;
-	  int crr = CRRBetweenLevels(lev, maxAllowableLevel, amrData.RefRatio());
-	  Real amrmax(amrPicturePtr->GetWhichMax());
-	  Real amrmin(amrPicturePtr->GetWhichMin());
-
-	    for(d = 0; d < dataBox.length(vDIR); ++d) {
-	      ddl = d * dataBox.length(hDIR);
-	      for(c = 0; c < dataBox.length(hDIR); ++c) {
-	        sprintf(dataString, formatString.c_str(), dataPoint[c+ddl]);
-		if(dataPoint[c+ddl] > amrmax) {
-		  dataStringArray[stringCount].color = paletteEnd;    // clip
-		} else if(dataPoint[c+ddl] < amrmin) {
-		  dataStringArray[stringCount].color = paletteStart;  // clip
-		} else {
-                  dataStringArray[stringCount].color = (int)
-		    (((dataPoint[c+ddl] - datamin) * oneOverGlobalDiff) * csm1 ); 
-                  dataStringArray[stringCount].color += paletteStart;
-	        }	
-                dataStringArray[stringCount].xloc = (temp.smallEnd(hDIR)
-			  + c * crr) * dataItemWidth + 5;
-                dataStringArray[stringCount].yloc = pixSizeY-1 -
-		    (temp.smallEnd(vDIR) + d * crr) * CHARACTERHEIGHT - 4;
-
-	        for(i = lastLevLow; i < lastLevHigh; i++) { // remove overlap
-	 	  if(dataStringArray[i].xloc ==
-				       dataStringArray[stringCount].xloc
-		     && dataStringArray[i].yloc ==
-			               dataStringArray[stringCount].yloc)
-		  {
-		    dataStringArray[i].olflag = true;
-                  }
-	        }	
-
-	        strcpy(dataStringArray[stringCount].ds, dataString);
-	        dataStringArray[stringCount].dslen = strlen(dataString);
-
-	        ++stringCount;
-
-	      }  // end for(c...)
-    	    }  // end for(d...)
-
-	  //delete dataFab;
-
-        }  // end if(datasetRegion[lev].intersects(temp))
+          dataFabTemp.copy(dataFab[lev]);
+          //amrPlotPtr->StateNumber(amrPicturePtr->CurrentDerived()), 0, 1);
+          dataPoint = dataFabTemp.dataPtr();
+          stringCount += dataBox.length(vDIR) * dataBox.length(hDIR);
+          myStringCount[lev] +=  dataBox.length(vDIR) * dataBox.length(hDIR);
+          for(d = 0; d < dataBox.length(vDIR); ++d) {
+              ddl = d*dataBox.length(hDIR);
+              for(c = 0; c < dataBox.length(hDIR); ++c) {
+                  sprintf(dataString, formatString.c_str(), dataPoint[c+ddl]);
+                  largestWidth = Max((int)strlen(dataString), largestWidth);
+              }
+          }
+          //delete dataFab;
       }
-      lastLevLow = lastLevHigh;
-      lastLevHigh = stringCount; 
-    //
+        }
+        //
     }
-  }  // end if(pixSizeX...)
 
+    if(Verbose()) {
+        cout << stringCount << " data points" << endl;
+    }
+    numStrings = stringCount;
+    dataStringArray = new StringLoc[numStrings];
+    int ns;
+    for(ns = 0; ns < numStrings; ns++) {
+        dataStringArray[ns].olflag = maxDrawnLevel;
+    }
+    if(dataStringArray == NULL) {
+        cout << "Error in Dataset::Render:  out of memory" << endl;
+        return;
+    }
+    myDataStringArray = new StringLoc * [maxAllowableLevel+1];
+    for(int level = 0; level <= maxAllowableLevel; level++) {
+        myDataStringArray[level] = new StringLoc [myStringCount[level] ];
+    }
+    // determine size of data area
+    dataItemWidth = largestWidth * CHARACTERWIDTH;
+    pixSizeX = datasetRegion[maxDrawnLevel].length(hDIR) * dataItemWidth
+        + ((maxDrawnLevel+1)*indexWidth);
+    pixSizeY = datasetRegion[maxDrawnLevel].length(vDIR) * CHARACTERHEIGHT
+        + ((maxDrawnLevel+1)*indexHeight);
+    
+    // create StringLoc array and define color scheme 
+    if(pixSizeX == 0 || pixSizeY == 0) {
+        noData = true;
+        sprintf (dataString, "No intersection.");
+        pixSizeX = strlen(dataString) * CHARACTERWIDTH;
+        pixSizeY = CHARACTERHEIGHT+5;
+        XtVaSetValues(wPixArea,
+                      XmNwidth,	pixSizeX,
+                      XmNheight,	pixSizeY,
+                      NULL);
+    } else {
+        noData = false;
+        XtVaSetValues(wPixArea,
+                      XmNwidth,	pixSizeX,
+                      XmNheight,	pixSizeY,
+                      NULL);
+        
+        stringCount = 0; 
+        int lastLevLow = 0, lastLevHigh = 0;
+        int csm1 = colorSlots - 1;
+        Real datamin = amrPicturePtr->GetWhichMin();
+        Real globalDiff = amrPicturePtr->GetWhichMax() - amrPicturePtr->GetWhichMin();
+        Real oneOverGlobalDiff;
+        if(globalDiff < FLT_MIN) {
+            oneOverGlobalDiff = 0.0;  // so we dont divide by zero
+        } else {
+            oneOverGlobalDiff = 1.0 / globalDiff;
+        }
+
+        for(lev = minDrawnLevel; lev <= maxDrawnLevel; ++lev) {
+            for(int iBox = 0; iBox < amrData.boxArray(lev).length(); ++iBox) {
+                temp = amrData.boxArray(lev)[iBox];
+                //
+                if(datasetRegion[lev].intersects(temp)) {
+                temp &= datasetRegion[lev];
+                    dataBox = temp;
+                    temp.refine(CRRBetweenLevels(lev,
+                                                 maxDrawnLevel, amrData.RefRatio()));
+                    temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
+                    temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
+                    //dataFab = new FArrayBox(dataBox, 1);
+                    FArrayBox dataFabTemp(dataBox, 1);
+                    dataFabTemp.copy(dataFab[lev]);
+                    //amrPlotPtr->StateNumber(amrPicturePtr->CurrentDerived()), 0, 1);
+                    dataPoint = dataFabTemp.dataPtr();
+                    int ddl;
+                    int crr = CRRBetweenLevels(lev, maxDrawnLevel, amrData.RefRatio());
+                    Real amrmax(amrPicturePtr->GetWhichMax());
+                    Real amrmin(amrPicturePtr->GetWhichMin());
+                    
+                    for(d = 0; d < dataBox.length(vDIR); ++d) {
+                        ddl = d * dataBox.length(hDIR);
+                        for(c = 0; c < dataBox.length(hDIR); ++c) {
+                            sprintf(dataString, formatString.c_str(), dataPoint[c+ddl]);
+                            if(dataPoint[c+ddl] > amrmax) {
+                                dataStringArray[stringCount].color = paletteEnd;    // clip
+                            } else if(dataPoint[c+ddl] < amrmin) {
+                                dataStringArray[stringCount].color = paletteStart;  // clip
+                            } else {
+                                dataStringArray[stringCount].color = (int)
+                                    (((dataPoint[c+ddl] - datamin) * oneOverGlobalDiff) * csm1 ); 
+                                dataStringArray[stringCount].color += paletteStart;
+                            }	
+                            dataStringArray[stringCount].xloc = (temp.smallEnd(hDIR)
+                                                                 + c * crr) * dataItemWidth + 5;
+                            dataStringArray[stringCount].yloc = pixSizeY-1 -
+                                (temp.smallEnd(vDIR) + d * crr) * CHARACTERHEIGHT - 4;
+                            
+                            for(i = lastLevLow; i < lastLevHigh; i++) { // remove overlap
+                                if(dataStringArray[i].xloc ==
+                                   dataStringArray[stringCount].xloc
+                                   && dataStringArray[i].yloc ==
+                                   dataStringArray[stringCount].yloc)
+                                {
+                                    dataStringArray[i].olflag = lev-1; // level at which visible
+                                }
+                            }	
+                            
+                            strcpy(dataStringArray[stringCount].ds, dataString);
+                            dataStringArray[stringCount].dslen = strlen(dataString);
+                            
+                            ++stringCount;
+                            
+                        }  // end for(c...)
+                    }  // end for(d...)
+                    
+                    //delete dataFab;
+                    
+                }  // end if(datasetRegion[lev].intersects(temp))
+            }
+            lastLevLow = lastLevHigh;
+            lastLevHigh = stringCount; 
+            //
+        }
+        
+        
+    }  // end if(pixSizeX...)
+
+    //now load into **StringLoc
+
+    int SC = 0;
+    for(lev = 0;lev<=maxAllowableLevel;lev++) {
+        for(stringCount = 0; stringCount<myStringCount[lev]; stringCount++) {
+            myDataStringArray[lev][stringCount] = dataStringArray[SC++];
+        }
+    }
+
+
+
+
+
+  
   XSetWindowColormap(GAptr->PDisplay(), XtWindow(wDatasetTopLevel),
 	pltAppPtr->GetPalettePtr()->GetColormap());
   XSetWindowColormap(GAptr->PDisplay(), XtWindow(wPixArea),
 	pltAppPtr->GetPalettePtr()->GetColormap());
-
   XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), blackIndex);
 
-    Box tempBox = datasetRegion[maxAllowableLevel];
-    tempBox.shift(hDIR, -datasetRegion[maxAllowableLevel].smallEnd(hDIR)); 
-    tempBox.shift(vDIR, -datasetRegion[maxAllowableLevel].smallEnd(vDIR)); 
+    Box tempBox = datasetRegion[maxDrawnLevel];
+    tempBox.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
+    tempBox.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
 
-    hIndexArray = new StringLoc* [maxAllowableLevel];
-    vIndexArray = new StringLoc* [maxAllowableLevel];
-    for(int level = 0; level <= maxAllowableLevel; level++)
+    hIndexArray = new StringLoc* [maxDrawnLevel];
+    vIndexArray = new StringLoc* [maxDrawnLevel];
+    for(int level = 0; level <= maxDrawnLevel; level++)
     {
-        double boxSize = pow(2., maxAllowableLevel-level);
+        double boxSize = pow(2., maxDrawnLevel-level);
         // fill the box index arrays  ~**~
         Box iABox = datasetRegion[level];
         hIndexArray[level] = new StringLoc[iABox.length(hDIR)];
@@ -448,7 +473,7 @@ void Dataset::Render(const Box &alignedRegion, AmrPicture *apptr,
             vIndexArray[level][d].color = blackIndex;
             vIndexArray[level][d].xloc = 0;  // find this dynamically when drawing
             vIndexArray[level][d].yloc =((boxSize-((boxSize*iABox.length(vDIR))-
-                              datasetRegion[maxAllowableLevel].length(vDIR))
+                              datasetRegion[maxDrawnLevel].length(vDIR))
                                           +(boxSize*(iABox.length(vDIR)-1-d)))
                                          * CHARACTERHEIGHT)+vStringOffset;
             strcpy(vIndexArray[level][d].ds, dataString);
@@ -637,160 +662,166 @@ void Dataset::DoRaise() {
 // -------------------------------------------------------------------
 void Dataset::DoExpose(int fromExpose) {
 
-  if(fromExpose && drags) {
-    --drags;
-    return;
-  }
-
-  dataServicesPtr = pltAppPtr->GetDataServicesPtr();
-  const AmrData &amrData = dataServicesPtr->AmrDataRef();
-  if(noData) {
-    cout << "_in Dataset::DoExpose:  noData" << endl;
-    XSetBackground(XtDisplay(wPixArea), GAptr->PGC(), blackIndex);
-    XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), whiteIndex);
-    XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea), GAptr->PGC(),
-			2, pixSizeY-5, dataString, strlen(dataString));
-  } else {
-    unsigned int lev, stringCount;
-    Box temp, dataBox;
-    Widget hScrollBar, vScrollBar;
-    Dimension wdth, hght;
-
-    XtVaGetValues(wScrollArea, XmNhorizontalScrollBar, &hScrollBar,
-	          XmNverticalScrollBar, &vScrollBar, NULL);
-
+    if(fromExpose && drags) {
+        --drags;
+        return;
+    }
+    
+    dataServicesPtr = pltAppPtr->GetDataServicesPtr();
+    const AmrData &amrData = dataServicesPtr->AmrDataRef();
+    if(noData) {
+        cout << "_in Dataset::DoExpose:  noData" << endl;
+        XSetBackground(XtDisplay(wPixArea), GAptr->PGC(), blackIndex);
+        XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), whiteIndex);
+        XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea), GAptr->PGC(),
+                    2, pixSizeY-5, dataString, strlen(dataString));
+    } else {
+        unsigned int lev, stringCount;
+        Box temp, dataBox;
+        Widget hScrollBar, vScrollBar;
+        Dimension wdth, hght;
+        
+        XtVaGetValues(wScrollArea, XmNhorizontalScrollBar, &hScrollBar,
+                      XmNverticalScrollBar, &vScrollBar, NULL);
+        
 #ifndef SCROLLBARERROR
-  int hSliderSize, hIncrement, hPageIncrement;
-  int vSliderSize, vIncrement, vPageIncrement;
-
-  XmScrollBarGetValues(hScrollBar, &hScrollBarPos, &hSliderSize,
-		       &hIncrement, &hPageIncrement);
-  XmScrollBarGetValues(vScrollBar, &vScrollBarPos, &vSliderSize,
-		       &vIncrement, &vPageIncrement);
+        int hSliderSize, hIncrement, hPageIncrement;
+        int vSliderSize, vIncrement, vPageIncrement;
+        
+        XmScrollBarGetValues(hScrollBar, &hScrollBarPos, &hSliderSize,
+                             &hIncrement, &hPageIncrement);
+        XmScrollBarGetValues(vScrollBar, &vScrollBarPos, &vSliderSize,
+                             &vIncrement, &vPageIncrement);
 #endif
-
-  Dimension scrollAreaSpacing;
-  XtVaGetValues(wScrollArea,
-		XmNwidth, &width,
-		XmNheight, &height,
-		XmNspacing, &scrollAreaSpacing,
-		NULL);
-
-  xh = (int) hScrollBarPos - dataItemWidth;
-  yv = (int) vScrollBarPos - dataItemWidth;
-
-  int hScrollBarBuffer = 32;
-  int vScrollBarBuffer = 32;
-  if(pixSizeY == vSliderSize) {  // the vertical scroll bar is not visible
-    vScrollBarBuffer = scrollAreaSpacing;
-  }
-  if(pixSizeX == hSliderSize) {  // the horizontal scroll bar is not visible
-    hScrollBarBuffer = scrollAreaSpacing;
-  }
-
-
-    hIndexAreaHeight = indexHeight;
-    hIndexAreaEnd    = Min((int) pixSizeY, vScrollBarPos + height - hScrollBarBuffer);
-    hIndexAreaStart  = hIndexAreaEnd + 1 - hIndexAreaHeight;
-    vIndexAreaWidth  = indexWidth;
-    vIndexAreaEnd    = Min((int) pixSizeX, hScrollBarPos + width - vScrollBarBuffer);
-    vIndexAreaStart  = vIndexAreaEnd + 1 - vIndexAreaWidth;
-
-    XtVaGetValues(wScrollArea, XmNwidth, &wdth, XmNheight, &hght, NULL);
-
-
-    int level = 0;
-    Box bTemp = datasetRegion[level];
-    bTemp.shift(hDIR, -(datasetRegion[level].smallEnd(hDIR))); 
-    bTemp.shift(vDIR, -datasetRegion[level].smallEnd(vDIR)); 
-    
-    
-    XClearWindow(GAptr->PDisplay(), XtWindow(wPixArea));
-
-//Draw Indices first time
-     DrawIndices(bTemp);
-
-     // draw grid structure for entire region 
-    for(lev = 0; lev <= maxAllowableLevel; ++lev) {
-      for(int iBox = 0; iBox < amrData.boxArray(lev).length(); ++iBox) {
-        temp = amrData.boxArray(lev)[iBox];
-        if(datasetRegion[lev].intersects(temp)) {
-	  temp &= datasetRegion[lev];
-	  dataBox = temp;
-	  temp.refine(CRRBetweenLevels(lev,
-				 maxAllowableLevel, amrData.RefRatio()));
-	  temp.shift(hDIR, -datasetRegion[maxAllowableLevel].smallEnd(hDIR)); 
-	  temp.shift(vDIR, -datasetRegion[maxAllowableLevel].smallEnd(vDIR));
-          DrawGrid(temp.smallEnd(hDIR) * dataItemWidth,
-                   (pixSizeY-1 - (temp.bigEnd(vDIR)+1) * CHARACTERHEIGHT)
-                   -((maxAllowableLevel+1)*hIndexAreaHeight),
-                   (temp.bigEnd(hDIR)+1) * dataItemWidth,
-                   (pixSizeY-1 - temp.smallEnd(vDIR) * CHARACTERHEIGHT)
-                   -((maxAllowableLevel+1)*hIndexAreaHeight),
-                   CRRBetweenLevels(lev, maxAllowableLevel, amrData.RefRatio()),
-                   whiteIndex, blackIndex);
+        
+        Dimension scrollAreaSpacing;
+        XtVaGetValues(wScrollArea,
+                      XmNwidth, &width,
+                      XmNheight, &height,
+                      XmNspacing, &scrollAreaSpacing,
+                      NULL);
+        
+        xh = (int) hScrollBarPos - dataItemWidth;
+        yv = (int) vScrollBarPos - dataItemWidth;
+        
+        int hScrollBarBuffer = 32;
+        int vScrollBarBuffer = 32;
+        if(pixSizeY == vSliderSize) {  // the vertical scroll bar is not visible
+            vScrollBarBuffer = scrollAreaSpacing;
         }
-      }
-    }
-    
-    if(dragging) {
-      return;
-    }
-    
-    int xloc, yloc;
-    int xh = (int) hScrollBarPos - dataItemWidth;
-    int yv = (int) vScrollBarPos - dataItemWidth;
-
-  // draw data strings
-  if(XmToggleButtonGetState(wColorButton)) {
-    for(stringCount=0; stringCount<numStrings; stringCount++) {
-      xloc = dataStringArray[stringCount].xloc;
-      yloc = dataStringArray[stringCount].yloc-((maxAllowableLevel+1)*hIndexAreaHeight);
+        if(pixSizeX == hSliderSize) {  // the horizontal scroll bar is not visible
+            hScrollBarBuffer = scrollAreaSpacing;
+        }
+        
+        
+        hIndexAreaHeight = indexHeight;
+        hIndexAreaEnd    = Min((int) pixSizeY, vScrollBarPos + height - hScrollBarBuffer);
+        hIndexAreaStart  = hIndexAreaEnd + 1 - hIndexAreaHeight;
+        vIndexAreaWidth  = indexWidth;
+        vIndexAreaEnd    = Min((int) pixSizeX, hScrollBarPos + width - vScrollBarBuffer);
+        vIndexAreaStart  = vIndexAreaEnd + 1 - vIndexAreaWidth;
+        
+        XtVaGetValues(wScrollArea, XmNwidth, &wdth, XmNheight, &hght, NULL);
+        
+        
+        int level = 0;
+        Box bTemp = datasetRegion[level];
+        bTemp.shift(hDIR, -(datasetRegion[level].smallEnd(hDIR))); 
+        bTemp.shift(vDIR, -datasetRegion[level].smallEnd(vDIR)); 
+        
+        
+        XClearWindow(GAptr->PDisplay(), XtWindow(wPixArea));
+        
+        int min_level = minDrawnLevel;
+        int max_level = maxDrawnLevel;
+        
+//Draw Indices first time
+        DrawIndices(bTemp);
+        
+        // draw grid structure for entire region 
+        for(lev = 0; lev <= max_level; ++lev) {
+            for(int iBox = 0; iBox < amrData.boxArray(lev).length(); ++iBox) {
+                temp = amrData.boxArray(lev)[iBox];
+                if(datasetRegion[lev].intersects(temp)) {
+                    temp &= datasetRegion[lev];
+                    dataBox = temp;
+                    temp.refine(CRRBetweenLevels(lev,
+                                                 max_level, amrData.RefRatio()));
+                    temp.shift(hDIR, -datasetRegion[max_level].smallEnd(hDIR)); 
+                    temp.shift(vDIR, -datasetRegion[max_level].smallEnd(vDIR));
+                    DrawGrid(temp.smallEnd(hDIR) * dataItemWidth,
+                             (pixSizeY-1 - (temp.bigEnd(vDIR)+1) * CHARACTERHEIGHT)
+                             -(((max_level-min_level)+1)*hIndexAreaHeight),
+                             (temp.bigEnd(hDIR)+1) * dataItemWidth,
+                             (pixSizeY-1 - temp.smallEnd(vDIR) * CHARACTERHEIGHT)
+                             -((max_level-min_level+1)*hIndexAreaHeight),
+                             CRRBetweenLevels(lev, max_level, amrData.RefRatio()),
+                             whiteIndex, blackIndex);
+                }
+            }
+        }
+        
+        if(dragging) {
+            return;
+        }
+        
+        int xloc, yloc;
+        int xh = (int) hScrollBarPos - dataItemWidth;
+        int yv = (int) vScrollBarPos - dataItemWidth;
+        
+        // draw data strings
+        if(XmToggleButtonGetState(wColorButton)) {
+            for(int lev = min_level; lev<=max_level; lev++) {
+                for(stringCount=0; stringCount<myStringCount[lev]; stringCount++) {
+                    xloc = myDataStringArray[lev][stringCount].xloc;
+                    yloc = myDataStringArray[lev][stringCount].yloc-((max_level-min_level+1)*hIndexAreaHeight);
 #ifndef SCROLLBARERROR
-      if(dataStringArray[stringCount].olflag == false  &&
-	xloc > xh && yloc > yv &&
-	xloc < hScrollBarPos+wdth && yloc < vScrollBarPos+hght)
+                    if(myDataStringArray[lev][stringCount].olflag >= max_level  &&
+                       xloc > xh && yloc > yv &&
+                       xloc < hScrollBarPos+wdth && yloc < vScrollBarPos+hght)
 #else
-      if(dataStringArray[stringCount].olflag == false)
+                    if(myDataStringArray[lev][stringCount].olflag >= max_level)
 #endif
-      {
-  	XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), 
-                       dataStringArray[stringCount].color); 
-         XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea),
-			GAptr->PGC(), xloc, yloc,
-			dataStringArray[stringCount].ds,
-			dataStringArray[stringCount].dslen);
-      }
-    }
-
-  } else {
-    XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), whiteIndex);
-    for(stringCount=0; stringCount<numStrings; stringCount++) {
-      xloc = dataStringArray[stringCount].xloc;
-      yloc = dataStringArray[stringCount].yloc-((maxAllowableLevel+1)*hIndexAreaHeight);
+                { 
+                    XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), 
+                                   myDataStringArray[lev][stringCount].color); 
+                    XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea),
+                                GAptr->PGC(), xloc, yloc,
+                                myDataStringArray[lev][stringCount].ds,
+                                myDataStringArray[lev][stringCount].dslen);
+                }
+                }
+            }
+        } else {
+            XSetForeground(XtDisplay(wPixArea), GAptr->PGC(), whiteIndex);
+            for(int lev = min_level; lev<=max_level; lev++) {
+                for(stringCount=0; stringCount<myStringCount[lev]; stringCount++) {
+                    xloc = myDataStringArray[lev][stringCount].xloc;
+                    yloc = myDataStringArray[lev][stringCount].yloc-((max_level-min_level+1)*hIndexAreaHeight);
 #ifndef SCROLLBARERROR
-      if(dataStringArray[stringCount].olflag == false  &&
-	xloc > xh && yloc > yv &&
-	xloc < hScrollBarPos+wdth && yloc < vScrollBarPos+hght)
+                    if(myDataStringArray[lev][stringCount].olflag >= max_level &&
+                       xloc > xh && yloc > yv &&
+                       xloc < hScrollBarPos+wdth && yloc < vScrollBarPos+hght)
 #else
-      if(dataStringArray[stringCount].olflag == false)
+                    if(myDataStringArray[lev][stringCount].olflag >= max_level)
 #endif
-      {
-           XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea),
-          		GAptr->PGC(), xloc, yloc,
-          		dataStringArray[stringCount].ds,
-          		dataStringArray[stringCount].dslen);
-      }
+                    {
+                        XDrawString(XtDisplay(wPixArea), XtWindow(wPixArea),
+                                    GAptr->PGC(), xloc, yloc,
+                                    myDataStringArray[lev][stringCount].ds,
+                                    myDataStringArray[lev][stringCount].dslen);
+                    }
+                }
+            }
+        }
+        
+        DrawIndices(bTemp);
     }
-  }
-
-  DrawIndices(bTemp);
-  }
 }  // end DoExpose
 
 
 // -------------------------------------------------------------------
-void Dataset::DrawIndices(const Box &tempBox) {//~**~
+void Dataset::DrawIndices(const Box &tempBox) {
     int xloc, yloc;
     unsigned int stringCount;
     GC gc = GAptr->PGC();
@@ -799,7 +830,7 @@ void Dataset::DrawIndices(const Box &tempBox) {//~**~
     
     
     XSetForeground(display, gc, whiteIndex);
-   for(int level = 0; level<=maxAllowableLevel; level++)
+   for(int level = minDrawnLevel; level<=maxDrawnLevel; level++)
     {
     // horizontal
         XFillRectangle(display, dataWindow, gc, hScrollBarPos,
@@ -811,10 +842,10 @@ void Dataset::DrawIndices(const Box &tempBox) {//~**~
                        vScrollBarPos, vIndexAreaWidth,
                        Min((unsigned int) height, pixSizeY));
     }
-   
-   for(int level = 0; level<=maxAllowableLevel; level++)
+   for(int level = minDrawnLevel; level<=maxDrawnLevel; level++)
    {
-       double boxSize = pow(2., maxAllowableLevel-level);
+       //cout<<level<<endl;
+       double boxSize = pow(2., maxDrawnLevel-level);
        
 // draw the horizontal box index grid -- on top of the white background.
        DrawGrid(tempBox.smallEnd(hDIR) * dataItemWidth, 
@@ -826,7 +857,7 @@ void Dataset::DrawIndices(const Box &tempBox) {//~**~
        // draw the vertical box index grid
        DrawGrid(vIndexAreaStart-(level*vIndexAreaWidth)-1, 
                 (boxSize-((boxSize*datasetRegion[level].length(vDIR))
-                          -datasetRegion[maxAllowableLevel].length(vDIR)))*CHARACTERHEIGHT,
+                          -datasetRegion[maxDrawnLevel].length(vDIR)))*CHARACTERHEIGHT,
                 vIndexAreaEnd-(level*vIndexAreaWidth), 
                 hIndexAreaStart-(level*hIndexAreaHeight), 
                 vIndexAreaWidth,boxSize*CHARACTERHEIGHT,
@@ -876,7 +907,7 @@ void Dataset::DrawIndices(const Box &tempBox) {//~**~
            }
        } 
    }  //end for( int level . . .
-}  // end DrawIndicies
+}  // end DrawIndices
 
 
 // -------------------------------------------------------------------

@@ -70,11 +70,11 @@ private:
     Box		*datasetRegion;
     unsigned int	pixSizeX, pixSizeY;
     int		finestLevel, dataItemWidth, dataItemHeight;
-    int		maxAllowableLevel, stringOk;
-    int		noData, hDIR, vDIR, sDIR, numStrings;
+    int		maxAllowableLevel, maxDrawnLevel, minDrawnLevel, stringOk;
+    int		noData, hDIR, vDIR, sDIR, numStrings, *myStringCount;
     char		buffer[BUFSIZ], dataString[MAXSTRINGWIDTH];
     aString		formatString;
-    StringLoc	*dataStringArray;
+    StringLoc	*dataStringArray, **myDataStringArray;
     AmrPicture	*amrPicturePtr;
     DataServices	*dataServicesPtr;
     PltApp		*pltAppPtr;
