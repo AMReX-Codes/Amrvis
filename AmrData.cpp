@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.cpp,v 1.26 1999-03-10 00:57:02 vince Exp $
+// $Id: AmrData.cpp,v 1.27 1999-03-18 17:57:51 sstanley Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1368,6 +1368,29 @@ int AmrData::FinestContainingLevel(const Box &b, int startLevel) const {
       if(visMFBA.contains(levelBox)) {
         return level;
       }
+      levelBox.coarsen(refRatio[level - 1]);
+    }
+  }
+  return 0;
+}
+
+
+// ---------------------------------------------------------------
+int AmrData::FinestIntersectingLevel(const Box &b, int startLevel) const {
+  assert(startLevel >= 0 && startLevel <= finestLevel);
+  assert(b.ok());
+
+  if(fileType == FAB) {
+    return 0;
+  } else {
+    Box levelBox(b);
+    for(int level = startLevel; level > 0; --level) {
+      const BoxArray &visMFBA = visMF[level][0]->boxArray();
+
+      for (int box = 0; box < visMFBA.length(); box++)
+        if(visMFBA[box].intersects(levelBox)) {
+          return level;}
+
       levelBox.coarsen(refRatio[level - 1]);
     }
   }

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.H,v 1.12 1999-03-10 00:57:01 vince Exp $
+// $Id: AmrData.H,v 1.13 1999-03-18 17:57:51 sstanley Exp $
 //
 
 // ---------------------------------------------------------------
@@ -119,6 +119,10 @@ class AmrData {
   // return the finest level <= startLevel that fully contains box b
   // b is defined on startLevel
   int FinestContainingLevel(const Box &b, int startLevel) const;
+  
+  // return the finest level <= startLevel that intersects box b
+  // b is defined on startLevel
+  int FinestIntersectingLevel(const Box &b, int startLevel) const;
   
   // number of grids at level which intersect b
   int NIntersectingGrids(int level, const Box &b) const;
