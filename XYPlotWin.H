@@ -16,10 +16,6 @@
 #include "xgout.H"
 #include "PltApp.H"
 
-/////////////////////////////////////////////
-// D E F I N I T I O N S
-/////////////////////////////////////////////
-
 #ifndef BUFSIZE
 #define BUFSIZE 1024
 #endif
@@ -44,10 +40,6 @@
 
 #define MAX(a,b) ((a) > (b) ? (a) : (b))
 #define MIN(a,b) ((a) < (b) ? (a) : (b))
-
-/////////////////////////////////
-// S T R U C T U R E S
-/////////////////////////////////
 
 typedef struct attr_typ {
   char    lineStyle[MAXLS];

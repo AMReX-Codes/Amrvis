@@ -3,10 +3,6 @@
 //
 
 #include <X11/X.h>
-//#include <X11/Xos.h>
-//#include <X11/Xlib.h>
-//#include <X11/Xutil.h>
-//#include <X11/cursorfont.h>
 #undef index
 
 #include "XYPlotParam.H"
@@ -19,7 +15,7 @@
 #endif
 
 #define DEF(name, typ, def_name) \
- if (def_str = XGetDefault(GAptr->PDisplay(), title, name)) \
+ if(def_str = XGetDefault(GAptr->PDisplay(), title, name)) \
    Set_Parameter(name, typ, def_str); \
  else Set_Parameter(name, typ, def_name);
 
@@ -51,8 +47,9 @@ XYPlotParameters::XYPlotParameters(PltApp *parent, char *name)
   param_table.num_bins = (ST_DEFAULT_INIT_TABLE_SIZE <= 0) ? 1 :
     ST_DEFAULT_INIT_TABLE_SIZE;
   param_table.bins = new st_table_entry *[param_table.num_bins];
-  for(int idx = 0; idx != param_table.num_bins; ++idx)
+  for(int idx = 0; idx != param_table.num_bins; ++idx) {
     param_table.bins[idx] = NULL;
+  }
 
   GetHardWiredDefaults();
   ReadFromFile("~/.XYPlot.Defaults"); // First read "global" defaults
@@ -64,20 +61,23 @@ void XYPlotParameters::ResetPalette() {
   if(param_palette != pltParent->GetPalettePtr()) {
     param_palette = pltParent->GetPalettePtr();
     param_full *entry;
-    if((entry = st_lookup("GridColor")) != NULL && entry->real_form)
+    if((entry = st_lookup("GridColor")) != NULL && entry->real_form) {
       free_resource(entry->real_form);
-    if((entry = st_lookup("TextColor")) != NULL && entry->real_form)
+    }
+    if((entry = st_lookup("TextColor")) != NULL && entry->real_form) {
       free_resource(entry->real_form);
+    }
     unsigned int colorindex = param_palette->PaletteSize() / 8;
     char colorstr[10];
     char buf[20];
-    for (unsigned int idx = 0; idx < 8; idx++) {
+    for(unsigned int idx = 0; idx < 8; idx++) {
       sprintf(buf, "%d.Color", idx);
       sprintf(colorstr, "%u", idx * colorindex);
       Set_Parameter(buf, INT, colorstr);
     }
   }
 }
+
 
 XYPlotParameters::~XYPlotParameters(void) {
   st_table_entry *ptr, *next;
@@ -88,8 +88,12 @@ XYPlotParameters::~XYPlotParameters(void) {
     while(ptr != NULL) {
       next = ptr->next;
       param_full *entry = ptr->record;
-      if(entry->real_form) free_resource(entry->real_form);
-      if(entry->text_form) delete entry->text_form;
+      if(entry->real_form) {
+        free_resource(entry->real_form);
+      }
+      if(entry->text_form) {
+        delete entry->text_form;
+      }
       delete entry;
       delete ptr;
       ptr = next;
@@ -142,7 +146,7 @@ void XYPlotParameters::GetHardWiredDefaults(void) {
   // Initalize attribute colors defaults
   unsigned int colorindex = param_palette->PaletteSize() / 8;
   char colorstr[10];
-  for (unsigned int idx = 0; idx < 8; idx++) {
+  for(unsigned int idx = 0; idx < 8; idx++) {
     sprintf(buf, "%d.Style", idx);
     Set_Parameter(buf, STYLE, defStyle[idx]);
     sprintf(buf, "%d.Color", idx);
@@ -156,11 +160,14 @@ void XYPlotParameters::Set_Parameter(char *name,  param_types type,
 				     const char *val) {
   param_full *entry = st_lookup(name);
   
-  if (entry) {
-    if (entry->real_form) free_resource(entry->real_form);
-    if (entry->text_form) delete entry->text_form;
-  }
-  else {
+  if(entry) {
+    if(entry->real_form) {
+      free_resource(entry->real_form);
+    }
+    if(entry->text_form) {
+      delete entry->text_form;
+    }
+  } else {
     entry = new param_full;
     st_insert(STRDUP(name), entry);
   }
@@ -173,31 +180,32 @@ void XYPlotParameters::Set_Parameter(char *name,  param_types type,
 int XYPlotParameters::Get_Parameter(char *name, params *val) {
   param_full *entry = st_lookup(name);
 
-  if(!entry) {
+  if( ! entry) {
     fprintf(stderr, "Couldn't find parameter %s for %s.\n", name, title);
     return 0;
   }
   
-  if (!entry->real_form)
+  if( ! entry->real_form) {
     entry->real_form = resolve_entry(name, entry->type, entry->text_form);
+  }
   *val = *(entry->real_form);
   return 1;
 }
 
 void XYPlotParameters::free_resource(params *val) {
   switch (val->type) {
-  case INT:
-  case STR:
-  case BOOL:
-  case PIXEL:
-  case DBL:
-    // No reclaiming necessary
+    case INT:
+    case STR:
+    case BOOL:
+    case PIXEL:
+    case DBL:
+      // No reclaiming necessary
     break;
-  case FONT:
-    XFreeFont(GAptr->PDisplay(), val->fontv.value);
+    case FONT:
+      XFreeFont(GAptr->PDisplay(), val->fontv.value);
     break;
-  case STYLE:
-    delete val->stylev.dash_list;
+    case STYLE:
+      delete val->stylev.dash_list;
     break;
   }
   delete val;
@@ -212,7 +220,7 @@ params * XYPlotParameters::resolve_entry(char *name, param_types type,
   result->type = type;
   switch (type) {
   case INT:
-    if (sscanf(form, "%d", &result->intv.value) != 1) {
+    if(sscanf(form, "%d", &result->intv.value) != 1) {
       fprintf(stderr, paramstr, name, form, "integer", DEF_INT);
       result->intv.value = atoi(DEF_INT);
     }
@@ -221,31 +229,31 @@ params * XYPlotParameters::resolve_entry(char *name, param_types type,
     result->strv.value = form;
     break;
   case PIXEL:
-    if (!do_color(form, &result->pixv.value)) {
+    if(!do_color(form, &result->pixv.value)) {
       fprintf(stderr, paramstr, name, form, "color", DEF_PIXEL);
       do_color(DEF_PIXEL, &result->pixv.value);
     }
     break;
   case FONT:
-    if (!do_font(form, &result->fontv.value)) {
+    if(!do_font(form, &result->fontv.value)) {
       fprintf(stderr, paramstr, name, form, "font", DEF_FONT);
       do_font(DEF_FONT, &result->fontv.value);
     }
     break;
   case STYLE:
-    if (!do_style(form, &result->stylev)) {
+    if(!do_style(form, &result->stylev)) {
       fprintf(stderr, paramstr, name, form, "line style", DEF_STYLE);
       do_style(DEF_STYLE, &result->stylev);
     }
     break;
   case BOOL:
-    if (!do_bool(form, &result->boolv.value)) {
+    if(!do_bool(form, &result->boolv.value)) {
       fprintf(stderr, paramstr, name, form, "boolean flag", DEF_BOOL);
       do_bool(DEF_BOOL, &result->boolv.value);
     }
     break;
   case DBL:
-    if (sscanf(form, "%lf", &result->dblv.value) != 1) {
+    if(sscanf(form, "%lf", &result->dblv.value) != 1) {
       fprintf(stderr, paramstr, name, form, "double", DEF_DBL);
       result->dblv.value = atof(DEF_DBL);
     }
@@ -256,15 +264,18 @@ params * XYPlotParameters::resolve_entry(char *name, param_types type,
 
 int XYPlotParameters::do_color(char *name, XColor *color) {
   Colormap cmap = param_palette->GetColormap();
-  if (!XParseColor(GAptr->PDisplay(),
+  if( ! XParseColor(GAptr->PDisplay(),
 		   DefaultColormap(GAptr->PDisplay(), GAptr->PScreenNumber()),
-		   name, color)) return 0;
-  if (string_compare(name, "black") == 0) {
+		   name, color))
+  {
+    return 0;
+  }
+  if(string_compare(name, "black") == 0) {
     color->pixel = BlackPixel(GAptr->PDisplay(), GAptr->PScreenNumber());
     XQueryColor(GAptr->PDisplay(), cmap, color);
     return 1;
   }
-  if (string_compare(name, "white") == 0) {
+  if(string_compare(name, "white") == 0) {
     color->pixel = WhitePixel(GAptr->PDisplay(), GAptr->PScreenNumber());
     XQueryColor(GAptr->PDisplay(), cmap, color);
     return 1;
@@ -276,13 +287,13 @@ int XYPlotParameters::do_color(char *name, XColor *color) {
   double red = color->red, green = color->green, blue = color->blue;
   double best = DBL_MAX;
   unsigned long best_pix = WhitePixel(GAptr->PDisplay(), GAptr->PScreenNumber());
-  int end = param_palette->PaletteEnd();
+  int end(param_palette->PaletteEnd());
   for(int ii = param_palette->PaletteStart(); ii <= end; ++ii) {
     const XColor *newcolor = &param_palette->GetColorCells()[ii];
-    double dred = newcolor->red - red;
-    double dgreen = newcolor->green - green;
-    double dblue = newcolor->blue - blue;
-    double temp = (dred * dred) + (dgreen * dgreen) + (dblue * dblue);
+    double dred(newcolor->red - red);
+    double dgreen(newcolor->green - green);
+    double dblue(newcolor->blue - blue);
+    double temp((dred * dred) + (dgreen * dgreen) + (dblue * dblue));
     if(temp < best) {
       best = temp;
       best_pix = newcolor->pixel;
@@ -296,33 +307,39 @@ int XYPlotParameters::do_color(char *name, XColor *color) {
 }  
 
 int XYPlotParameters::do_font(char *name, XFontStruct **font_info) {
-  char name_copy[DEF_MAX_FONT],
-    query_spec[DEF_MAX_FONT];
+  char name_copy[DEF_MAX_FONT], query_spec[DEF_MAX_FONT];
   char *font_family, *font_size, **font_list;
   int font_size_value, font_count, i;
   
   // First attempt to interpret as font family/size
   strcpy(name_copy, name);
-  if (font_size = index(name_copy, '-')) {
+  if(font_size = index(name_copy, '-')) {
     *font_size = '\0';
     font_family = name_copy;
     font_size++;
     font_size_value = atoi(font_size);
-    if (font_size_value > 0) {
+    if(font_size_value > 0) {
       // Still a little iffy -- what about weight and roman vs. other
       sprintf(query_spec, ISO_FONT, font_family, font_size_value * 10);
       font_list = XListFonts(GAptr->PDisplay(), query_spec,
 			     DEF_MAX_NAMES, &font_count);
       
       // Load first one that you can
-      for (i = 0; i < font_count; i++)
-	if (*font_info = XLoadQueryFont(GAptr->PDisplay(), font_list[i])) break;
-      if (*font_info) return 1;
+      for(i = 0; i < font_count; i++) {
+	if(*font_info = XLoadQueryFont(GAptr->PDisplay(), font_list[i])) {
+	  break;
+	}
+      }
+      if(*font_info) {
+        return 1;
+      }
     }
   }
   // Assume normal font name
   *font_info = XLoadQueryFont(GAptr->PDisplay(), name);
-  if((*font_info = XLoadQueryFont(GAptr->PDisplay(), name)) != NULL) return 1;
+  if((*font_info = XLoadQueryFont(GAptr->PDisplay(), name)) != NULL) {
+    return 1;
+  }
   return 0;
 }
 
@@ -330,14 +347,17 @@ int XYPlotParameters::do_style(char *list, param_style *val) {
   char *i, *spot, last_char;
   int count;
 
-  for (i = list; *i; i++)
-    if ((*i != '0') && (*i != '1')) break;
+  for(i = list; *i; i++) {
+    if((*i != '0') && (*i != '1')) {
+      break;
+    }
+  }
   
-  if (!*i) {
+  if( ! *i) {
     val->len = 0;
     last_char = '\0';
-    for (i = list; *i; i++) {
-      if (*i != last_char) {
+    for(i = list; *i; i++) {
+      if(*i != last_char) {
 	val->len += 1;
 	last_char = *i;
       }
@@ -346,28 +366,31 @@ int XYPlotParameters::do_style(char *list, param_style *val) {
     last_char = *list;
     spot = val->dash_list;
     count = 0;
-    for (i = list; *i; i++) {
-      if (*i != last_char) {
+    for(i = list; *i; i++) {
+      if(*i != last_char) {
 	*spot++ = (char) count;
 	last_char = *i;
 	count = 1;
+      } else {
+        ++count;
       }
-      else count++;
     }
     *spot = (char) count;
     return 1;
+  } else {
+    return 0;
   }
-  else return 0;
 }
 
 int XYPlotParameters::do_bool(char *name, int *val) {
   char  **term;
   
-  for (term = positive; *term; term++)
-    if (string_compare(name, *term) == 0) { *val = 1; return 1; }
-
-  for (term = negative; *term; term++)
-    if (string_compare(name, *term) == 0) { *val = 0; return 1; }
+  for(term = positive; *term; term++) {
+    if(string_compare(name, *term) == 0) { *val = 1; return 1; }
+  }
+  for(term = negative; *term; term++) {
+    if(string_compare(name, *term) == 0) { *val = 0; return 1; }
+  }
 
   return 0;
 }
@@ -378,15 +401,16 @@ void XYPlotParameters::ReadFromFile(char *filename) {
     char linebuffer[100], keybuffer[50], typebuffer[50], valbuffer[50];
     param_types type;
     while(fgets(linebuffer, 100, fs)) {
-      if(sscanf(linebuffer, "%s %s %s", keybuffer,
-		typebuffer, valbuffer) != 3) break;
-      if(!strcmp(typebuffer, "BOOL"))       type = BOOL;
-      else if(!strcmp(typebuffer, "STYLE")) type = STYLE;
-      else if(!strcmp(typebuffer, "INT"))   type = INT;
-      else if(!strcmp(typebuffer, "STR"))   type = STR;
-      else if(!strcmp(typebuffer, "PIXEL")) type = PIXEL;
-      else if(!strcmp(typebuffer, "FONT"))  type = FONT;
-      else if(!strcmp(typebuffer, "DBL"))   type = DBL;
+      if(sscanf(linebuffer, "%s %s %s", keybuffer, typebuffer, valbuffer) != 3) {
+        break;
+      }
+      if( ! strcmp(typebuffer, "BOOL"))       type = BOOL;
+      else if( ! strcmp(typebuffer, "STYLE")) type = STYLE;
+      else if( ! strcmp(typebuffer, "INT"))   type = INT;
+      else if( ! strcmp(typebuffer, "STR"))   type = STR;
+      else if( ! strcmp(typebuffer, "PIXEL")) type = PIXEL;
+      else if( ! strcmp(typebuffer, "FONT"))  type = FONT;
+      else if( ! strcmp(typebuffer, "DBL"))   type = DBL;
       else break;
       Set_Parameter(keybuffer, type, valbuffer);
     }
@@ -399,12 +423,16 @@ void XYPlotParameters::WriteToFile(char *filename) {
   int     i;
   FILE *fs;
 
-  if((fs = fopen(filename, "w")) == NULL) return;
-  for (i = 0; i < param_table.num_bins; i++) {
+  if((fs = fopen(filename, "w")) == NULL) {
+    return;
+  }
+  for(i = 0; i < param_table.num_bins; i++) {
     for(ptr = param_table.bins[i]; ptr; ptr = ptr->next) {
       param_full *val = ptr->record;
       fprintf(fs, "%s\t", ptr->key);
-      if(strlen(ptr->key) < 10) fprintf(fs, "\t");
+      if(strlen(ptr->key) < 10) {
+        fprintf(fs, "\t");
+      }
       switch (val->type) {
       case INT:   fprintf(fs, "INT");   break;
       case STR:	  fprintf(fs, "STR");   break;
@@ -425,9 +453,13 @@ param_full * XYPlotParameters::st_lookup(register char *key) {
   
   // find entry.
   ptr = param_table.bins[strihash(key)];
-  while (1) {
-    if(ptr == NULL) break;
-    if(!string_compare(key, ptr->key)) return ptr->record;
+  while(true) {
+    if(ptr == NULL) {
+      break;
+    }
+    if( ! string_compare(key, ptr->key)) {
+      return ptr->record;
+    }
     ptr = ptr->next;
   }
   return NULL;
@@ -443,20 +475,20 @@ int XYPlotParameters::st_insert(char *key, param_full *value) {
   // find entry.
   last = &param_table.bins[hash_val];
   ptr = *last;
-  while (ptr && string_compare(key, ptr->key)) {
+  while(ptr && string_compare(key, ptr->key)) {
     last = &ptr->next;
     ptr = *last;
   }
-  if (ptr && param_table.reorder_flag) {
+  if(ptr && param_table.reorder_flag) {
     *last = ptr->next;
     ptr->next = param_table.bins[hash_val];
     param_table.bins[hash_val] = ptr;
   }
   
-  if (ptr == NULL) {
+  if(ptr == NULL) {
 
     // add directly.
-    if (param_table.num_entries/param_table.num_bins >=
+    if(param_table.num_entries/param_table.num_bins >=
 	param_table.max_density) {
 	rehash();
 	hash_val = strihash(key);
@@ -482,14 +514,14 @@ void XYPlotParameters::rehash(void) {
   
   param_table.num_bins = (int) new_num_bins;
   
-  if (param_table.num_bins % 2 == 0) param_table.num_bins++;
+  if(param_table.num_bins % 2 == 0) param_table.num_bins++;
   
   param_table.bins = new st_table_entry *[param_table.num_bins];
   for(i = 0; i != new_num_bins; ++i) param_table.bins[i] = NULL;
 
-  for (i = 0; i < old_num_bins; i++) {
+  for(i = 0; i < old_num_bins; i++) {
     ptr = old_bins[i];
-    while (ptr) {
+    while(ptr) {
       next = ptr->next;
       hash_val = strihash(ptr->key);
       ptr->next = param_table.bins[hash_val];

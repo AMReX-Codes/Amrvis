@@ -5,10 +5,6 @@
 #ifndef _XYPLOT_PARAM_H
 #define _XYPLOT_PARAM_H
 
-/////////////////////////////////////////////
-// I N C L U D E S
-/////////////////////////////////////////////
-
 #include <X11/X.h>
 #include <X11/Xlib.h>
 
@@ -18,10 +14,6 @@
 #include <ctype.h>
 #endif
 
-/////////////////////////////////////////////
-// D E F I N I T I O N S
-/////////////////////////////////////////////
-
 #define ST_DEFAULT_MAX_DENSITY 5
 #define ST_DEFAULT_INIT_TABLE_SIZE 11
 #define ST_DEFAULT_GROW_FACTOR 2.0
@@ -29,9 +21,6 @@
 
 #define ISO_FONT "*-*-%s-medium-r-normal-*-*-%d-*-*-*-*-iso8859-*"
 
-/////////////////////////////////////////////
-// S T R U C T U R E S
-/////////////////////////////////////////////
 
 typedef enum param_types_defn {
   INT, STR, PIXEL, FONT, STYLE, BOOL, DBL
@@ -109,9 +98,6 @@ typedef struct st_table_defn {
 #include <XYPlotWin.H>
 #include <PltApp.H>
 
-///////////////////////////////////////////////////
-// C L A S S  D E F I N I T I O N
-///////////////////////////////////////////////////
 
 class XYPlotParameters {
 public:
@@ -238,7 +224,9 @@ private:
     register int c;
     
     while ((c = *string++) != '\0') {
-      if (isupper(c)) c = tolower(c);
+      if(isupper(c)) {
+        c = tolower(c);
+      }
       val = val * 997 + c;
     }
     
@@ -249,10 +237,16 @@ private:
     register char c, d;
     
     while ((c = *s1) != '\0') {
-      if (isupper(c)) c = tolower(c);
+      if(isupper(c)) {
+        c = tolower(c);
+      }
       d = *s2;
-      if (isupper(d)) d = tolower(d);
-      if(c != d) return 1;
+      if(isupper(d)) {
+        d = tolower(d);
+      }
+      if(c != d) {
+        return 1;
+      }
       ++s1;
       ++s2;
     }
