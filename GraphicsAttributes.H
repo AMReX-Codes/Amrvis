@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GraphicsAttributes.H,v 1.13 2000-06-17 16:31:11 car Exp $
+// $Id: GraphicsAttributes.H,v 1.14 2000-08-28 21:50:00 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -54,7 +54,7 @@ class GraphicsAttributes {
     int      PScreenNumber()  const { return screennumber;  }
     int      PBytesPerPixel() const { return bytesPerPixel; }
     int      PBitsPerRGB()    const { return visual_info.bits_per_rgb; }
-    bool     isTrueColor()    const { return visual_info.c_class == TrueColor; }
+    bool     IsTrueColor()    const { return visual_info.c_class == TrueColor; }
     unsigned long PRedMask()  const { return visual_info.red_mask; }
     unsigned long PGreenMask() const { return visual_info.green_mask; }
     unsigned long PBlueMask() const { return visual_info.blue_mask; }
