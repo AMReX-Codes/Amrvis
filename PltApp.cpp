@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.81 2001-04-17 23:45:40 vince Exp $
+// $Id: PltApp.cpp,v 1.82 2001-04-18 17:56:51 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -2372,7 +2372,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
     wFileRangeCheckBox = XmCreateToggleButton(wSetRangeForm, "File_Range",
 			      args, i);
     AddStaticCallback(wFileRangeCheckBox, XmNvalueChangedCallback,
-		      DoToggleFileRangeButton, NULL);
+		      &PltApp::DoToggleFileRangeButton, NULL);
   }
     
   currentRangeType = pltAppState->GetMinMaxRangeType();
