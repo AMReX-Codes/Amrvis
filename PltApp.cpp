@@ -1762,8 +1762,11 @@ void PltApp::DoChangeDerived(int V, Widget, XtPointer client_data, XtPointer) {
       vdir = ZDIR;
       sdir = XDIR;
     }
-    datasetPtr->Render(trueRegion, amrPicturePtrArray[V], this, hdir, vdir, sdir);
-    datasetPtr->DoExpose(false);
+    if(V == activeView) {
+      datasetPtr->Render(trueRegion, amrPicturePtrArray[activeView],
+		         this, hdir, vdir, sdir);
+      datasetPtr->DoExpose(false);
+    }
   }
 
   if(UseSpecifiedMinMax()) {
@@ -3330,7 +3333,7 @@ void PltApp::ShowFrame() {
       vdir = ZDIR;
       sdir = XDIR;
     }
-    datasetPtr->Render(trueRegion, amrPicturePtrArray[ZPLANE], this,
+    datasetPtr->Render(trueRegion, amrPicturePtrArray[activeView], this,
 		       hdir, vdir, sdir);
     datasetPtr->DoExpose(false);
   }
