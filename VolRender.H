@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.H,v 1.22 2000-10-02 20:53:10 lijewski Exp $
+// $Id: VolRender.H,v 1.23 2000-10-05 20:03:40 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -112,20 +112,6 @@ private:
   int gradientField, gradientOffset, gradientSize, gradientMax;
   
   bool     	    AllocateSWFData();
-  /*
-  void            MakeSWFDataOneProc(DataServices *dataServicesPtr,
-                                     Real rDataMin, Real rDataMax,
-                                     const aString &derivedName,
-                                     int iPaletteStart, int iPaletteEnd,
-                                     int iBlackIndex, int iWhiteIndex,
-                                     int iColorSlots);
-  */
-  void            MakeSWFDataNProcs(DataServices *dataServicesPtr,
-                                    Real rDataMin, Real rDataMax,
-                                    const aString &derivedName,
-                                    int iPaletteStart, int iPaletteEnd,
-                                    int iBlackIndex, int iWhiteIndex,
-                                    int iColorSlots);
   void MakeDefaultTransProperties();
   void SetProperties();
 };

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.49 2000-10-02 20:53:07 lijewski Exp $
+// $Id: AmrPicture.cpp,v 1.50 2000-10-05 20:03:40 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -50,6 +50,7 @@ AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
   }
   showBoxes = PltApp::GetDefaultShowBoxes();
 
+cout << "+++++++++++++++++++++++++++++++++++++++ in ap::ap:  showBoxes = " << (int) showBoxes << endl;
   finestLevel = amrData.FinestLevel();
   maxAllowableLevel =
           DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
@@ -530,9 +531,11 @@ void AmrPicture::DrawBoxes(Array< Array<GridPicture> > &gp,
     }
   }
   // draw bounding box
+  /*
   XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->WhiteIndex());
   XDrawRectangle(GAptr->PDisplay(), drawable, GAptr->PGC(), 0, 0,
 			imageSizeH-1, imageSizeV-1);
+  */
 }
 
 
@@ -722,7 +725,9 @@ void AmrPicture::SyncPicture() {
 
 // ---------------------------------------------------------------------
 void AmrPicture::ToggleBoxes() {
-  showBoxes = (showBoxes ? false : true);
+cout << "+++++++++++++++++++++++++++++++++++++++ in ap::togbox:  showBoxes = " << (int) showBoxes << endl;
+  showBoxes = ! showBoxes;
+cout << "+++++ after +++++++++++++++++++++++++++ in ap::togbox:  showBoxes = " << (int) showBoxes << endl;
   DoExposePicture();
 }
 
@@ -1607,9 +1612,11 @@ XImage *AmrPicture::GetPictureXImage() {
       }
     }
   }
+  /*
   XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->pixelate(MaxPaletteIndex()));
   XDrawRectangle(GAptr->PDisplay(), pixMap, GAptr->PGC(), 0, 0,
 			imageSizeH-1, imageSizeV-1);
+  */
 
   ximage = XGetImage(GAptr->PDisplay(), pixMap, 0, 0,
 		imageSizeH, imageSizeV, AllPlanes, ZPixmap);
@@ -1850,9 +1857,9 @@ void AmrPicture::DoFrameUpdate() {
   int iRelSlice(slice - subDomain[maxAllowableLevel].smallEnd(sliceDir));
   ShowFrameImage(iRelSlice);
   XSync(GAptr->PDisplay(), false);
-  pendingTimeOut = XtAppAddTimeOut(pltAppPtr->GetAppContext(),
-                                   frameSpeed, &AmrPicture::CBFrameTimeOut,
-                                   (XtPointer) this);
+  pendingTimeOut = XtAppAddTimeOut(pltAppPtr->GetAppContext(), frameSpeed,
+			   (XtTimerCallbackProc) &AmrPicture::CBFrameTimeOut,
+                           (XtPointer) this);
 }  // end DoFrameUpdate()
 
 
@@ -1863,9 +1870,9 @@ void AmrPicture::DoContourSweep() {
   } else {
     pltAppPtr->DoBackStep(myView);
   } 
-  pendingTimeOut = XtAppAddTimeOut(pltAppPtr->GetAppContext(),
-                                   frameSpeed, &AmrPicture::CBContourSweep,
-                                   (XtPointer) this);
+  pendingTimeOut = XtAppAddTimeOut(pltAppPtr->GetAppContext(), frameSpeed,
+			   (XtTimerCallbackProc) &AmrPicture::CBContourSweep,
+                           (XtPointer) this);
 }
 
 
@@ -1885,9 +1892,9 @@ void AmrPicture::Sweep(AnimDirection direction) {
     DoStop();
   }
   if(contours) {
-    pendingTimeOut = XtAppAddTimeOut(pltAppPtr->GetAppContext(),
-                                     frameSpeed, &AmrPicture::CBContourSweep,
-                                     (XtPointer) this);
+    pendingTimeOut = XtAppAddTimeOut(pltAppPtr->GetAppContext(), frameSpeed,
+				(XtTimerCallbackProc) &AmrPicture::CBContourSweep,
+                                (XtPointer) this);
     sweepDirection = direction;
     return; 
   }
@@ -1895,8 +1902,8 @@ void AmrPicture::Sweep(AnimDirection direction) {
     CreateFrames(direction);
   }
   if(framesMade) {
-    pendingTimeOut = XtAppAddTimeOut(pltAppPtr->GetAppContext(),
-  				frameSpeed, &AmrPicture::CBFrameTimeOut,
+    pendingTimeOut = XtAppAddTimeOut(pltAppPtr->GetAppContext(), frameSpeed,
+				(XtTimerCallbackProc) &AmrPicture::CBFrameTimeOut,
 				(XtPointer) this);
     sweepDirection = direction;
   }

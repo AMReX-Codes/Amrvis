@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.66 2000-10-02 20:53:09 lijewski Exp $
+// $Id: PltApp.cpp,v 1.67 2000-10-05 20:03:40 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -2284,7 +2284,9 @@ void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
     ResetAnimation();
     DirtyFrames(); 
   }
+  cout << "***************************************** showBoxes = " << (int) showBoxes << endl;
   showBoxes = !showBoxes;
+  cout << "**** after ****************************** showBoxes = " << (int) showBoxes << endl;
   amrPicturePtrArray[ZPLANE]->ToggleBoxes();
 #if (BL_SPACEDIM == 3)
     projPicturePtr->MakeBoxes(); 
@@ -2302,6 +2304,7 @@ void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
 #endif
 
   // draw a bounding box around the image
+  /*
   int imageSizeX = amrPicturePtrArray[ZPLANE]->ImageSizeH();
   int imageSizeY = amrPicturePtrArray[ZPLANE]->ImageSizeV();
   XSetForeground(GAptr->PDisplay(), GAptr->PGC(), pltPaletteptr->WhiteIndex());
@@ -2309,6 +2312,7 @@ void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
             0, imageSizeY, imageSizeX, imageSizeY);
   XDrawLine(GAptr->PDisplay(), XtWindow(wPlotPlane[ZPLANE]), GAptr->PGC(),
             imageSizeX, 0, imageSizeX, imageSizeY);
+  */
 }
 
 // -------------------------------------------------------------------
@@ -3122,14 +3126,18 @@ void PltApp::DoExposePicture(Widget w, XtPointer client_data, XtPointer) {
   
   amrPicturePtrArray[np]->DoExposePicture();
   // draw bounding box
+  /*
   int isX = amrPicturePtrArray[np]->ImageSizeH();
   int isY = amrPicturePtrArray[np]->ImageSizeV();
   XSetForeground(GAptr->PDisplay(), GAptr->PGC(),
 		 amrPicturePtrArray[np]->GetPalPtr()->WhiteIndex());
   XDrawLine(GAptr->PDisplay(), XtWindow(w), GAptr->PGC(), 0, isY, isX, isY);
   XDrawLine(GAptr->PDisplay(), XtWindow(w), GAptr->PGC(), isX, 0, isX, isY);
+  */
 }
 
+
+// -------------------------------------------------------------------
 void PltApp::DoDrawPointerLocation(Widget, XtPointer data, XtPointer cbe) {
   XEvent *event = (XEvent *) cbe;
   unsigned long V = (unsigned long) data;

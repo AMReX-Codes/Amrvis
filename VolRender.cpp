@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.34 2000-10-02 20:53:10 lijewski Exp $
+// $Id: VolRender.cpp,v 1.35 2000-10-05 20:03:41 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -161,20 +161,6 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
 			    int iBlackIndex, int iWhiteIndex,
 			    int iColorSlots)
 {
-    MakeSWFDataNProcs(dataServicesPtr, rDataMin, rDataMax,
-	              derivedName, iPaletteStart, iPaletteEnd,
-	              iBlackIndex, iWhiteIndex, iColorSlots);
-}
-
-
-// -------------------------------------------------------------------
-void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
-			    Real rDataMin, Real rDataMax,
-			    const aString &derivedName,
-			    int iPaletteStart, int iPaletteEnd,
-			    int iBlackIndex, int iWhiteIndex,
-			    int iColorSlots)
-{
   BL_ASSERT(bVolRenderDefined);
   
   if(swfDataValid) {
@@ -194,7 +180,21 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
   
   int maxDrawnLevel(maxDataLevel);
   Box gbox, grefbox;
-  Box swfDataBox(drawnDomain[maxDrawnLevel]);
+
+  Box swfDataBoxFull(drawnDomain[maxDrawnLevel]);
+  int iMidPoint((swfDataBoxFull.bigEnd(XDIR) - swfDataBoxFull.smallEnd(XDIR)) / 2);  // approx
+  cout << ")))))))  (orig) swfDataBox = " << swfDataBoxFull << endl;
+
+for(int iSubBox(0); iSubBox < 2; ++iSubBox) {
+  Box swfDataBox(swfDataBoxFull);
+  if(iSubBox == 0) {
+    swfDataBox.setBig(XDIR, iMidPoint);
+  } else {
+    swfDataBox.setSmall(XDIR, iMidPoint + 1);
+  }
+  cout << "))))))) iSubBox swfDataBox = " << iSubBox << "  " << swfDataBox << endl;
+
+
   FArrayBox swfFabData;
   if(ParallelDescriptor::IOProcessor()) {
     swfFabData.resize(swfDataBox, 1);
@@ -226,16 +226,16 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
     Real *dataPoint = swfFabData.dataPtr();
     
     int sindexbase;
-    int srows   = swfDataBox.length(XDIR);
-    int scols   = swfDataBox.length(YDIR);
+    int srows   = swfDataBoxFull.length(XDIR);
+    int scols   = swfDataBoxFull.length(YDIR);
     //int splanes = swfDataBox.length(ZDIR);
     int scolssrowstmp = scols*srows;
-    int sstartr = swfDataBox.smallEnd(XDIR);
-    int sstartc = swfDataBox.smallEnd(YDIR);
-    int sstartp = swfDataBox.smallEnd(ZDIR);
-    int sendr   = swfDataBox.bigEnd(XDIR);
-    int sendc   = swfDataBox.bigEnd(YDIR);
-    int sendp   = swfDataBox.bigEnd(ZDIR);
+    int sstartr = swfDataBoxFull.smallEnd(XDIR);
+    int sstartc = swfDataBoxFull.smallEnd(YDIR);
+    int sstartp = swfDataBoxFull.smallEnd(ZDIR);
+    int sendr   = swfDataBoxFull.bigEnd(XDIR);
+    int sendc   = swfDataBoxFull.bigEnd(YDIR);
+    int sendp   = swfDataBoxFull.bigEnd(ZDIR);
     
     Box gbox(swfDataBox);
     Box goverlap(gbox & drawnDomain[maxDrawnLevel]);
@@ -258,11 +258,11 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
     int gcolsgrowstmp = gcols*grows;
     int gpgcgrtmp, gcgrowstmp;
     //    unsigned int outputvalue = 0;
-    for(int gp=gostartp; gp <= goendp; gp++) {
+    for(int gp(gostartp); gp <= goendp; ++gp) {
       gpgcgrtmp = gp*gcolsgrowstmp;
-      for(int gc=gostartc; gc <= goendc; gc++) {
+      for(int gc(gostartc); gc <= goendc; ++gc) {
         gcgrowstmp = gpgcgrtmp + gc*grows;
-        for(int gr=gostartr; gr <= goendr; gr++) {
+        for(int gr(gostartr); gr <= goendr; ++gr) {
           //dat = dataPoint[(gp*gcols*grows)+(gc*grows)+gr];  // works
           dat = dataPoint[gcgrowstmp + gr];
           dat = Max(dat,gmin); // clip data if out of range
@@ -279,7 +279,7 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
       }
     }  // end for(gp...)
 
-    // ----------------------------------------------------- VolumeBoxes
+                                                // ---------------- VolumeBoxes
     bool bDrawVolumeBoxes(GetBoxColor() > -1);  // need to limit to palmaxindex
     if(bDrawVolumeBoxes) {
       int edger, edgec, edgep;
@@ -415,12 +415,16 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
       }  // end for(lev...)
     }  // end if(bDrawVolumeBoxes)
 
+
+}  // end for(iSubBox...)
+
+
     cout << endl;
     cout << "--------------- make swfData time = "
          << ((clock()-time0)/1000000.0) << endl;
   }
   
-}  // end MakeSWFDataNProcs(...)
+}  // end MakeSWFData(...)
 
 
 // -------------------------------------------------------------------
@@ -595,8 +599,7 @@ void VolRender::MakeVPData() {
         CheckVP(vpret, 9.5);
         
       }
-    } else {
-      // load the volume data and precompute the minmax octree
+    } else {   // load the volume data and precompute the minmax octree
       if(lightingModel) {
         delete [] volData;
         volData = new RawVoxel[swfDataSize]; 
