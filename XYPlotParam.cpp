@@ -140,7 +140,7 @@ void XYPlotParameters::GetHardWiredDefaults(void) {
 }
 
 void XYPlotParameters::Set_Parameter(char *name,  param_types type,
-				     char *val) {
+				     const char *val) {
   param_full *entry = st_lookup(name);
   
   if (entry) {
