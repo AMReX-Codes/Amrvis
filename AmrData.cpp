@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.cpp,v 1.35 1999-05-11 16:13:22 lijewski Exp $
+// $Id: AmrData.cpp,v 1.36 1999-05-11 17:39:45 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -108,11 +108,6 @@ AmrData::~AmrData() {
 
    for(int lev = 0; lev <= finestLevel; ++lev) {
      for(int iComp = 0; iComp < nComp; ++iComp) {
-       for(MultiFabIterator mfi(*dataGrids[lev][iComp]); mfi.isValid(); ++mfi) {
-         if(dataGridsDefined[lev][iComp][mfi.index()]) {
-           delete dataGrids[lev][iComp]->remove(mfi.index());
-         }
-       }
        delete dataGrids[lev][iComp];
      }
    }
