@@ -73,6 +73,8 @@ amrvis3d
   -initialscale n    set the initial scale to n.
   -showboxes tf      show boxes (the value of tf is true or false).
   -numberformat fmt  set the initial format to fmt (ex:  %4.2f).
+  -lowblack          sets the lowest color in the palette to black.
+  -cliptoppalette    dont use the top palette index (for exceed).
   <filename(s)>      must be included if box is specified.
 \end{verbatim}
 
@@ -195,6 +197,7 @@ of the isometric image in 3D (boxes or volumetric rendering).
                            model currently in effect.
     \item[OT/PC]           This menu affect how the volume rendering
                            stores data internally (OctTree/PreClassified).
+			   PreClassified provides the fastest volume rendering.
     \item [Detach]         Detach the isometric view into its own window.
     \item [Attach]         Attach the isometric view.
 \end{description}
@@ -299,7 +302,7 @@ instead of the values over the entire set of data files.
 The arrows move single frames for single clicks and animate for double clicks.
 Animation works with all supported formats and with subregions.
 Animation across files within {\em amrvis} is supported in 2D only.
-For 2D animations, the {\bf rgb > } button will write an rgb file
+For 2D animations, the {\bf rgb} button will write an rgb file
 for the current image and advance to the next frame (for single clicks)
 or animate through the frames and write an rgb file for each frame
 automatically (for double clicks) until the {\bf O} button is pressed.
@@ -355,6 +358,7 @@ windowheight          650
 windowwidth           900
 filetype              fab
 filetype              newplt
+cliptoppalette
 \end{verbatim}
 
 
@@ -368,6 +372,8 @@ of the {\bf Data View Window} with arguments in number of pixels.
 {\em showboxes} affects initial drawing of {\bf AMR} grid boxes.  Valid
 values are {\bf TRUE} or {\bf FALSE}.
 {\em filetype} specifies the type of file (same values as the command line).
+{\em cliptoppalette} forces {\em amrvis} to not use the top palette entry
+(this option is for exceed users).
 For duplicate keywords, the last one in the file is used (for example, {\bf newplt}
 will be the {\em filetype} in the above file).  Command line settings
 override settings in {\bf amrvis.defaults}.
@@ -398,6 +404,16 @@ Transfer functions are set in {\bf vpramps.dat}, which has the following structu
 \end{verbatim}
 
 
+Note:  For volume rendering, the VolPack library from Stanford University
+must be linked with {\em amrvis}.  It currently can be obtained from
+
+\begin{verbatim}
+http://www-graphics.stanford.edu/software/volpack
+\end{verbatim}
+
+{\em Amrvis} has been tested with VolPack version 1.0beta3 (the
+latest release.
+
 
 \subsection{Examples}
 
@@ -425,8 +441,6 @@ and handles data requests from the {\em amrvis} interface.  The number
 of processors is set with the {\em -nprocs n} option.
 
 
-\subsubsection{Parallel I/O}
-
 
 \subsubsection{Demand Driven I/O}
 
@@ -436,12 +450,6 @@ of a FArrayBox within a MultiFab.  Within {\em amrvis}, data on a grid for the
 current quantity is read from disk only if it intersect the current
 image plane within the current subvolume, is less than or equal to the
 maximum available level, and has not already been read (FABs are cached).
-
-
-\subsubsection{Rendering Models}
-
-
-
 
 
 \subsection{Efficiency Notes}
