@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.H,v 1.22 2001-08-22 00:22:32 vince Exp $
+// $Id: Palette.H,v 1.23 2001-10-02 23:43:19 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,14 +9,10 @@
 #ifndef _PALETTE_H
 #define _PALETTE_H
 
-#ifdef BL_USE_NEW_HFILES
 #include <map>
 #include <string>
 using std::map;
 using std::string;
-#else
-#include <map>
-#endif
 
 #include "REAL.H"
 #include "Array.H"
