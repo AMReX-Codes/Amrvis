@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.71 2001-10-17 17:53:33 lijewski Exp $
+// $Id: AmrPicture.cpp,v 1.72 2001-12-03 18:42:15 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -17,6 +17,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 using std::max;
+using std::min;
 
 #include <ctime>
 
