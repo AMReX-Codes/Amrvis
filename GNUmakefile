@@ -113,7 +113,7 @@ ifeq ($(WHICHT3E), NERSC)
 INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/X11
 INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/Xm
 INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/X11/Xaw
-LIBRARY_LOCATIONS += /opt/ctl/cvt/ctv/lib
+LIBRARY_LOCATIONS += /opt/ctl/cvt/cvt/lib
 LIBRARIES += -lXm -lSM -lICE -lXt -lX11
 endif
 endif
