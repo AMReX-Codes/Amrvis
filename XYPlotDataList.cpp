@@ -17,17 +17,17 @@ XYPlotDataList::XYPlotDataList(const aString &_derived, int max_level,
 			       const Array<Real> &d_X,
 			       const Array<char *> &intersect_point,
 			       Real offset_x)
-  : maxLevel(max_level),
-    offsetX(offset_x),
+  : dataSets(max_level+1),
     upXi(max_level),
-    derived(_derived),
-    dataSets(max_level+1),
     ratios(ratio_list),
     dX(d_X),
     intersectPoint(intersect_point),
     lloY(max_level+1),
     hhiY(max_level+1),
-    gridline(_gridline)
+    maxLevel(max_level),
+    gridline(_gridline),
+    offsetX(offset_x),
+    derived(_derived)
 {
   int idx;
 
@@ -50,23 +50,23 @@ XYPlotDataList::XYPlotDataList(const aString &_derived, int max_level,
 
 // -------------------------------------------------------------------
 XYPlotDataList::XYPlotDataList(XYPlotDataList *src)
-  : maxLevel(src->maxLevel),
-    curLevel(src->curLevel),
-    offsetX(src->offsetX),
-    startX(src->startX),
-    endX(src->endX),
-    numPoints(src->numPoints),
-    updatedQ(src->updatedQ),
-    emptyQ(src->updatedQ),
+  : dataSets(src->dataSets),
     upXi(src->upXi),
-    dataSets(src->dataSets),
     ratios(src->ratios),
     dX(src->dX),
     intersectPoint(src->intersectPoint),
     lloY(src->lloY),
     hhiY(src->hhiY),
-    derived(src->derived),
-    gridline(src->gridline)
+    numPoints(src->numPoints),
+    maxLevel(src->maxLevel),
+    curLevel(src->curLevel),
+    gridline(src->gridline),
+    updatedQ(src->updatedQ),
+    emptyQ(src->updatedQ),
+    startX(src->startX),
+    endX(src->endX),
+    offsetX(src->offsetX),
+    derived(src->derived)
 {
   if(src->copied_from) {
     copied_from = src->copied_from;
@@ -79,8 +79,7 @@ XYPlotDataList::XYPlotDataList(XYPlotDataList *src)
 // -------------------------------------------------------------------
 XYPlotDataList::~XYPlotDataList() {
   if(copied_from == NULL) {
-    int idx;
-    for(idx = 0; idx <= maxLevel; ++idx) {
+    for(int idx(0); idx <= maxLevel; ++idx) {
       //for(ListIterator<XYPlotDataListLink *> li(*dataSets[idx]); li; ++li) {
       for(list<XYPlotDataListLink *>::iterator li = (*dataSets[idx]).begin();
           li != (*dataSets[idx]).end(); ++li)
@@ -91,7 +90,7 @@ XYPlotDataList::~XYPlotDataList() {
       delete dataSets[idx];
       delete intersectPoint[idx];
     }
-    for(idx = 0; idx != maxLevel; ++idx) {
+    for(int idx(0); idx != maxLevel; ++idx) {
       delete upXi[idx];
     }
   }
@@ -257,9 +256,9 @@ void XYPlotDataList::UpdateStats(void) {
 // -------------------------------------------------------------------
 XYPlotDataListIterator::XYPlotDataListIterator (XYPlotDataList *alist)
   : xypdlist(alist),
-    maxLevel(alist->curLevel),
     XiLI(alist->curLevel),
-    linkLI(alist->curLevel+1)
+    linkLI(alist->curLevel+1),
+    maxLevel(alist->curLevel)
 {
   curLevel = 0;
 
@@ -318,7 +317,7 @@ XYPlotDataListIterator::XYPlotDataListIterator (XYPlotDataList *alist)
 
 // -------------------------------------------------------------------
 XYPlotDataListIterator::~XYPlotDataListIterator() {
-  int idx;
+  //int idx;
   //for(idx = 0; idx <= maxLevel; ++idx) {
     //delete linkLI[idx];
   //}
