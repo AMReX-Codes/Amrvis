@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.46 2002-08-23 00:19:36 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.47 2002-08-23 23:57:15 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -241,6 +241,7 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
   boxColor = -1;  // invalid
   fileType = NEWPLT;  // default
   fabIOSize = 0;
+  lowBlack = false;
 
   // try to find the defaultsFile
   string fullDefaultsFile;
@@ -496,7 +497,6 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
   givenBoxSlice = false;
   makeSWFData = false;
   makeSWFLight = false;
-  lowBlack = false;
   dumpSlices = false;
   sliceAllVars = false;
   verbose = false;
