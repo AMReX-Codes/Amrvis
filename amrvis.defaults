@@ -5,10 +5,12 @@ initialscale          4
 initialscale          1
 numberformat          %8.5f
 maxpixmapsize         200000
+maxpixmapsize         20000000
 reservesystemcolors   38
 reservesystemcolors   24
 reservesystemcolors   34
 showboxes             FALSE
+showboxes             TRUE
 windowheight          550
 windowwidth           800
 filetype              newplt

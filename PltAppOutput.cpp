@@ -1,6 +1,6 @@
 
 //
-// $Id: PltAppOutput.cpp,v 1.23 2001-05-10 23:38:01 vince Exp $
+// $Id: PltAppOutput.cpp,v 1.24 2001-06-11 20:09:46 vince Exp $
 //
 
 #include <Xm/Xm.h>
@@ -107,6 +107,14 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   imageSizeX = amrPicturePtrArray[ZPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[ZPLANE]->ImageSizeV();
   WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+
+  const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+  bool bDrawBoxesIntoImage(false);
+  printImage = amrPicturePtrArray[ZPLANE]->GetPictureXImage(bDrawBoxesIntoImage);
+  Array< Array<GridBoxes> > gridBoxes;
+  amrPicturePtrArray[ZPLANE]->GetGridBoxes(gridBoxes, minDrawnLevel, maxDrawnLevel);
+  WriteNewPSFile(psfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr,
+		 amrData, minDrawnLevel, maxDrawnLevel, gridBoxes);
 
 #if (BL_SPACEDIM==3)
   // write the YPLANE picture

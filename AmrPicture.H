@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.H,v 1.38 2001-04-26 00:41:13 vince Exp $
+// $Id: AmrPicture.H,v 1.39 2001-06-11 20:09:41 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -33,6 +33,10 @@ class DataServices;
 class GraphicsAttributes;
 class Palette;
 
+struct GridBoxes {
+  int xbox, ybox, wbox, hbox;
+};
+
 enum VectorDerived { enVelocity, enMomentum, enNoneFound };
 
 class AmrPicture {
@@ -64,7 +68,7 @@ class AmrPicture {
   void	APMakeImages(Palette *palptr);
   void	APChangeScale(int newScale, int previousScale);
   void	APChangeLevel();
-  XImage *GetPictureXImage();
+  XImage *GetPictureXImage(const bool bdrawboxesintoimage = true);
   void	APChangeSlice(int here);
   
   void	SetSubCut(int, int, int, int);
@@ -90,6 +94,8 @@ class AmrPicture {
   Window PictureWindow()          { return pictureWindow; }
   void  SetCartGridSmoothing(bool tf) { bCartGridSmoothing = tf; }
   void APChangeContour(ContourType prevCType);
+  void GetGridBoxes(Array< Array<GridBoxes> > &gb,
+		    const int minlev, const int maxlev);
 
  private:
   Window 		pictureWindow;

@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.H,v 1.10 2000-10-02 20:53:08 lijewski Exp $
+// $Id: Output.H,v 1.11 2001-06-11 20:09:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -16,6 +16,8 @@
 #include "aString.H"
 
 #include <Palette.H>
+#include <AmrData.H>
+#include <AmrPicture.H>
 
 // the following is support for writing rgb files.
 #define IMAGIC  0732
@@ -65,6 +67,12 @@ typedef struct {
 void WritePSFile(const char *filename, XImage *image,
                  int imagesizehoriz, int imagesizevert,
                  const Palette& palette);
+
+void WriteNewPSFile(const char *filename, XImage *image,
+                 int imagesizehoriz, int imagesizevert,
+                 const Palette &palette, const AmrData &amrdata,
+		 const int minlev, const int maxlev,
+		 Array< Array<GridBoxes> > &gridBoxes);
 
 void WritePSPaletteFile(const char *filename, XImage *image,
                         int imagesizehoriz, int imagesizevert,

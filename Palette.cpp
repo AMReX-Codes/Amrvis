@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.33 2001-03-14 00:41:54 vince Exp $
+// $Id: Palette.cpp,v 1.34 2001-06-11 20:09:45 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -302,7 +302,7 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
   bbuff.resize(iSeqPalSize);
   abuff.resize(iSeqPalSize);
   Array<int> indexArray(iSeqPalSize);
-  int	i, fd;		/* file descriptor */
+  int i, fd;
 
   const unsigned long bprgb = GAptr->PBitsPerRGB();
   if((fd = open(fileName.c_str(), O_RDONLY, NULL)) < 0) {
@@ -310,16 +310,16 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
     for(i = 0; i < totalColorSlots; ++i) {    // make a default grayscale colormap.
       if(GAptr->IsTrueColor()) {
 	// FIXME: not 24 bit!
-	ccells[i].pixel = ( ((rbuff[i]>>(8-bprgb)) <<2*bprgb)
-			     | ((gbuff[i]>>(8-bprgb))<< bprgb)
-			     | ((bbuff[i]>>(8-bprgb))<< 0) );
+	ccells[i].pixel = (((rbuff[i] >> (8 - bprgb)) << 2 * bprgb)
+			 | ((gbuff[i] >> (8 - bprgb)) << bprgb)
+			 | ((bbuff[i] >> (8 - bprgb)) << 0) );
       } else {
 	ccells[i].pixel = i;
       }
       mcells[ccells[i].pixel] = ccells[i];
-      ccells[i].red   = (unsigned short) i*256;
-      ccells[i].green = (unsigned short) i*256;
-      ccells[i].blue  = (unsigned short) i*256;
+      ccells[i].red   = (unsigned short) i * 256;
+      ccells[i].green = (unsigned short) i * 256;
+      ccells[i].blue  = (unsigned short) i * 256;
       ccells[i].flags = DoRed|DoGreen|DoBlue;
     }
     // set low value to black
@@ -377,8 +377,12 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
 
   (void) close(fd);
 
-  rbuff[blackIndex] = 0;   gbuff[blackIndex] = 0;   bbuff[blackIndex] = 0;
-  rbuff[whiteIndex] = 255; gbuff[whiteIndex] = 255; bbuff[whiteIndex] = 255;
+  rbuff[blackIndex] = 0;
+  gbuff[blackIndex] = 0;
+  bbuff[blackIndex] = 0;
+  rbuff[whiteIndex] = 255;
+  gbuff[whiteIndex] = 255;
+  bbuff[whiteIndex] = 255;
 
   if(LowBlack()) {   // set low value to black
     rbuff[paletteStart] = 0;
@@ -390,9 +394,9 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
   for(i = 0; i < totalColorSlots; ++i) {
     if(GAptr->IsTrueColor()) {
       // FIXME: not 24 bit!
-      ccells[i].pixel = (((rbuff[i]>>(8-bprgb)) <<2*bprgb)
-			   |((gbuff[i]>>(8-bprgb))<< bprgb)
-			   |((bbuff[i]>>(8-bprgb))<< 0));
+      ccells[i].pixel = (((rbuff[i] >> (8 - bprgb)) << 2 * bprgb)
+		       | ((gbuff[i] >> (8 - bprgb)) << bprgb)
+		       | ((bbuff[i] >> (8 - bprgb)) << 0));
     } else {
       ccells[i].pixel = i;
     }
@@ -400,7 +404,7 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
     ccells[i].red   = (unsigned short) rbuff[i] * 256;
     ccells[i].green = (unsigned short) gbuff[i] * 256;
     ccells[i].blue  = (unsigned short) bbuff[i] * 256;
-    ccells[i].flags = DoRed|DoGreen|DoBlue;
+    ccells[i].flags = DoRed | DoGreen | DoBlue;
   }
 
   // set Transfer function here  NOTE:  doesn't call
@@ -408,7 +412,7 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
   if(paletteType == NON_ALPHA) {
     for(int j(0); j < iSeqPalSize; ++j) {
       indexArray[j] = j; 
-      transferArray[j] = (float) j / (float)(iSeqPalSize-1);
+      transferArray[j] = (float) j / (float) (iSeqPalSize-1);
     }
   } else if(paletteType == ALPHA) {
     for(int j(0); j < iSeqPalSize; ++j) {

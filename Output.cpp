@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.cpp,v 1.20 2001-03-14 00:41:54 vince Exp $
+// $Id: Output.cpp,v 1.21 2001-06-11 20:09:44 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -20,15 +20,18 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <strstream>
 using std::hex;
 using std::dec;
 using std::ofstream;
+using std::ostrstream;
 #else
 #include <fstream.h>
 #include <iomanip.h>
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <strstream.h>
 #endif
 
 
@@ -46,10 +49,90 @@ void cvtimage(long *buffer);
 
 
 // -------------------------------------------------------------------
-void WritePSFile(const char *filename, XImage *image,
+void WriteNewPSFile(const char *filename, XImage *image,
 		 int imagesizehoriz, int imagesizevert,
-		 const Palette& palette)
+		 const Palette &palette, const AmrData &amrdata,
+		 const int minlev, const int maxlev,
+		 Array< Array<GridBoxes> > &gridBoxes)
 {
+  clock_t time0 = clock();
+  unsigned char r, g, b;
+
+  Array<Real> rgb(256);
+  for(int ii(0); ii < rgb.length(); ++ii) {
+    rgb[ii] = (Real) ii / 255.0;
+  }
+
+  char newfilename[BUFSIZ];
+  sprintf(newfilename, "%s.new.ps", filename);
+  ofstream fout(newfilename);
+  fout.precision(3);
+  fout << "%!PS-Adobe-2.0" << '\n';
+  fout <<  "%%BoundingBox: 0 0 " << imagesizehoriz-1 << " "
+       << imagesizevert-1 << '\n';
+  fout << "gsave" << '\n';
+  fout << "/d {moveto 1 0 rlineto 0 -1 rlineto -1 0 rlineto closepath fill} def\n";
+  fout << "/s {setrgbcolor newpath} def\n";
+
+  fout << "\n% box color defs\n";
+  for(int iblev(minlev); iblev <= maxlev; ++iblev) {
+    if(iblev == minlev) {
+      fout << "/boxcolor" << iblev << " {1.0 1.0 1.0} def  % white\n";
+    } else {
+      palette.unpixelate(MaxPaletteIndex() - 80 * iblev, r, g, b);
+      fout << "/boxcolor" << iblev << " {"
+           << rgb[(int) r] << " " << rgb[(int) g] << " " << rgb[(int) b]
+           << "} def\n";
+    }
+  }
+
+  for(int j(0); j < imagesizevert; ++j) {
+    int jflip(imagesizevert - (j + 1));
+    for(int i(0); i < imagesizehoriz; ++i) {
+      palette.unpixelate(XGetPixel(image, i, j), r, g, b);
+      fout << rgb[(int) r] << " " << rgb[(int) g] << " " << rgb[(int) b]
+	   << " s " << i << " " << jflip << " d\n";
+    }
+  }
+
+  // draw the boxes
+  fout << "% draw the boxes\n";
+  for(int ilev(minlev); ilev <= maxlev; ++ilev) {
+    fout << "\n% boxes for level " << ilev << "\n";
+    if(ilev == minlev) {
+      fout << "boxcolor" << ilev << " setrgbcolor\n";
+    } else {
+      palette.unpixelate(MaxPaletteIndex() - 80 * ilev, r, g, b);
+      fout << rgb[(int) r] << " " << rgb[(int) g] << " " << rgb[(int) b]
+           << " setrgbcolor\n";
+    }
+    for(int i(0); i < gridBoxes[ilev].length(); ++i) {
+      const GridBoxes gb = gridBoxes[ilev][i];
+      int yboxinv(imagesizevert - (gb.ybox + 1));
+      fout <<  gb.xbox << " " <<  yboxinv << " moveto\n";
+      fout <<  gb.wbox << " " <<  0       << " rlineto\n";
+      fout <<  0       << " " << -gb.hbox << " rlineto\n";
+      fout << -gb.wbox << " " <<  0       << " rlineto\n";
+      fout << "closepath stroke\n\n";
+    }
+  }
+
+
+  fout << "grestore" << '\n';
+  fout << "showpage" << '\n';
+  fout.close();
+
+  cout << ">>>>>>> WriteNewPSFileTime = " << ((clock()-time0)/1000000.0) << endl;
+}
+
+
+// -------------------------------------------------------------------
+void WritePSFile(const char *filename, XImage *image,
+                 int imagesizehoriz, int imagesizevert,
+                 const Palette &palette)
+{
+  clock_t time0 = clock();
+
   ofstream fout(filename);
   fout << "%!PS-Adobe-2.0" << '\n';
   fout <<  "%%BoundingBox: 0 0 " << imagesizehoriz-1 << " "
@@ -90,6 +173,8 @@ void WritePSFile(const char *filename, XImage *image,
   fout << "grestore" << '\n';
   fout << "showpage" << '\n';
   fout.close();
+
+  cout << "> > > > WritePSFileTime    = " << ((clock()-time0)/1000000.0) << endl;
 }
 
 

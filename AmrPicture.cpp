@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.64 2001-05-17 23:32:34 vince Exp $
+// $Id: AmrPicture.cpp,v 1.65 2001-06-11 20:09:41 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1373,13 +1373,13 @@ void AmrPicture::APChangeLevel() {
 
 
 // ---------------------------------------------------------------------
-XImage *AmrPicture::GetPictureXImage() {
+XImage *AmrPicture::GetPictureXImage(const bool bdrawboxesintoimage) {
   int xbox, ybox, wbox, hbox;
   XImage *ximage;
 
   int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
   int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
-  if(pltAppStatePtr->GetShowingBoxes()) {
+  if(pltAppStatePtr->GetShowingBoxes() && bdrawboxesintoimage) {
     for(int level(minDrawnLevel); level <= maxDrawnLevel; ++level) {
       if(level == minDrawnLevel) {
         XSetForeground(display, xgc, palPtr->WhiteIndex());
@@ -1413,6 +1413,23 @@ XImage *AmrPicture::GetPictureXImage() {
   pixMapCreated = true;
   APDraw(minDrawnLevel, maxDrawnLevel);
   return ximage;
+}
+
+
+// ---------------------------------------------------------------------
+void AmrPicture::GetGridBoxes(Array< Array<GridBoxes> > &gb,
+                              const int minlev, const int maxlev)
+{
+  gb.resize(maxlev + 1);  // resize from zero
+  for(int level(minlev); level <= maxlev; ++level) {
+    gb[level].resize(gpArray[level].length());
+    for(int i(0); i < gpArray[level].length(); ++i) {
+      gb[level][i].xbox = gpArray[level][i].HPositionInPicture();
+      gb[level][i].ybox = gpArray[level][i].VPositionInPicture();
+      gb[level][i].wbox = gpArray[level][i].ImageSizeH(); 
+      gb[level][i].hbox = gpArray[level][i].ImageSizeV(); 
+    }
+  }
 }
 
 
