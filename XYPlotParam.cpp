@@ -72,8 +72,8 @@ void XYPlotParameters::ResetPalette(Palette *newPalPtr) {
     for(unsigned int idx(0); idx < 8; ++idx) {
       sprintf(buf, "%d.Color", idx);
       ici = (idx * colorindex) + param_palette->PaletteStart();
-      ici = min(ici, param_palette->PaletteEnd());
-      ici = max(ici, param_palette->PaletteStart() + 1);  // for lowblack
+      ici = std::min(ici, param_palette->PaletteEnd());
+      ici = std::max(ici, param_palette->PaletteStart() + 1);  // for lowblack
       sprintf(colorstr, "%u", ici);
       Set_Parameter(buf, INT, colorstr);
     }
@@ -158,8 +158,8 @@ void XYPlotParameters::GetHardWiredDefaults(void) {
     Set_Parameter(buf, STYLE, defStyle[idx]);
     sprintf(buf, "%d.Color", idx);
     ici = (idx * colorindex) + param_palette->PaletteStart();
-    ici = min(ici, param_palette->PaletteEnd());
-    ici = max(ici, param_palette->PaletteStart() + 1);  // for lowblack
+    ici = std::min(ici, param_palette->PaletteEnd());
+    ici = std::max(ici, param_palette->PaletteStart() + 1);  // for lowblack
     sprintf(colorstr, "%u", ici);
     Set_Parameter(buf, INT, colorstr);
   }
