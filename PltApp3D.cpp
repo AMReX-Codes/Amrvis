@@ -595,8 +595,8 @@ void PltApp::DoAutoDraw(Widget w, XtPointer, XtPointer) {
         if (showing3dRender) showing3dRender = false;
         projPicturePtr->MakeBoxes();
     }
-    // XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
-    // DoExposeTransDA();
+    XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
+    DoExposeTransDA();
 #endif
 }
 

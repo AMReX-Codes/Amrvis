@@ -110,7 +110,7 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
 
   // write the iso picture
 #ifdef BL_VOLUMERENDER
-  if( ! XmToggleButtonGetState(wAutoDraw)) {
+  if( ! (XmToggleButtonGetState(wAutoDraw) || showing3dRender ) ) {
     printImage = projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
   } else {
     printImage = projPicturePtr->GetPictureXImage();
@@ -180,7 +180,7 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
 
   // write the iso picture
 #ifdef BL_VOLUMERENDER
-  if( ! XmToggleButtonGetState(wAutoDraw)) {
+  if( ! (XmToggleButtonGetState(wAutoDraw) || showing3dRender )) {
     printImage = projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
   } else {
     printImage = projPicturePtr->GetPictureXImage();
