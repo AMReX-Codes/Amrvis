@@ -10,6 +10,8 @@
 #include <DrawingA.h>
 #include <PushB.h>
 #include <PushBG.h>
+#include <ToggleB.h>
+#include <ToggleBG.h>
 #include <SelectioB.h>
 #include <ScrollBar.h>
 #include <ScrolledW.h>
@@ -92,3 +94,6 @@ class StringLoc {
 };
 
 #endif
+
+
+

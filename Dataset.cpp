@@ -101,9 +101,10 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
   XtSetArg(args[i], XmNleftWidget, wFormat);      i++;
   XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
   XtSetArg(args[i], XmNheight, bHeight);      i++;
-  wColorButton = XmCreatePushButton(wDatasetTools, "Color", args, i);
-  XtAddCallback(wColorButton, XmNactivateCallback, &Dataset::CBColorButton,
+  wColorButton = XmCreateToggleButton(wDatasetTools, "Color", args, i);
+  XtAddCallback(wColorButton, XmNvalueChangedCallback, &Dataset::CBColorButton,
 		(XtPointer) this);
+  XmToggleButtonSetState(wColorButton, true, false);
 
   // ************************************************ Close Button
   i=0;
