@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.76 2001-03-23 20:51:21 vince Exp $
+// $Id: PltApp.cpp,v 1.77 2001-04-16 16:41:22 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -98,11 +98,9 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     dataServicesPtr(dataservicesptr),
     animating2d(isAnim),
     currentFrame(0),
+    currentRangeType(GLOBALMINMAX),
     bCartGridSmoothing(false)
 {
-  pltAppState = new PltAppState();
-  pltAppState->SetContourType(RASTERONLY);
-
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   lightingWindowExists = false;
 #endif
@@ -111,6 +109,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     return;
   }
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+
   int i;
 
   char header[BUFSIZ];
@@ -142,9 +141,12 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     headerout << &fileName[fnl+1] << ", T=" << amrData.Time() << ends;
   }
 
+  pltAppState = new PltAppState(animFrames, amrData.NumDeriveFunc());
+  pltAppState->SetContourType(RASTERONLY);
+  pltAppState->SetCurrentFrame(currentFrame);
+
   // Set the delete response to DO_NOTHING so that it can be app defined.
-  wAmrVisTopLevel =
-    XtVaCreatePopupShell(header, 
+  wAmrVisTopLevel = XtVaCreatePopupShell(header, 
 			 topLevelShellWidgetClass, wTopLevel,
 			 XmNwidth,	    initialWindowWidth,
 			 XmNheight,	    initialWindowHeight,
@@ -169,12 +171,18 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     SetInitialDerived(dataServicesPtr[currentFrame]->PlotVarNames()[0]);
   }
 
-  pltAppState->SetCurrentDerived(PltApp::initialDerived);
-  SetShowBoxes(GetDefaultShowBoxes());
+  pltAppState->SetCurrentDerived(PltApp::initialDerived,
+				 amrData.StateNumber(initialDerived));
+  pltAppState->SetShowingBoxes(GetDefaultShowBoxes());
   int finestLevel(amrData.FinestLevel());
+  pltAppState->SetFinestLevel(finestLevel);
   int maxlev = DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
 			       finestLevel, MaxPictureSize(), amrData.RefRatio());
-  minAllowableLevel = 0;
+  int minAllowableLevel(0);
+  pltAppState->SetMinAllowableLevel(minAllowableLevel);
+  pltAppState->SetMaxAllowableLevel(maxlev);
+  pltAppState->SetMinDrawnLevel(minAllowableLevel);
+  pltAppState->SetMaxDrawnLevel(maxlev);
   Box maxDomain(amrData.ProbDomain()[maxlev]);
   unsigned long dataSize(maxDomain.length(XDIR) * maxDomain.length(YDIR));
   if(MaxPictureSize() == 0) {
@@ -185,20 +193,59 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
 
   int currentScale(Max(1, Min(GetInitialScale(), maxAllowableScale)));
   pltAppState->SetCurrentScale(currentScale);
-  
-  amrPicturePtrArray[ZPLANE] = new AmrPicture(minAllowableLevel, GAptr,
-					this, pltAppState,
+  pltAppState->SetMaxScale(maxAllowableScale);
+
+//_here 0  
+// ---------------
+  pltAppState->SetMinMaxRangeType(GLOBALMINMAX);
+  Real levDataMin, levDataMax;
+  Real rGlobalMin, rGlobalMax;
+  rGlobalMin =  AV_BIG_REAL;
+  rGlobalMax = -AV_BIG_REAL;
+  int coarseLevel(0);
+  int fineLevel(pltAppState->MaxAllowableLevel());
+  for(int iFrame(0); iFrame < animFrames; ++iFrame) {
+    for(int lev(coarseLevel); lev <= fineLevel; ++lev) {
+      bool minMaxValid(false);
+      Box onBox(amrData.ProbDomain()[lev]);
+      DataServices::Dispatch(DataServices::MinMaxRequest,
+                             dataServicesPtr[iFrame],
+                             (void *) &(onBox),
+                             (void *) &(pltAppState->CurrentDerived()),
+                             lev, &levDataMin, &levDataMax, &minMaxValid);
+      if(minMaxValid) {
+        rGlobalMin = Min(rGlobalMin, levDataMin);
+        rGlobalMax = Max(rGlobalMax, levDataMax);
+      }
+    }
+    // set GLOBALMINMAXs
+    pltAppState->SetMinMax(GLOBALMINMAX, iFrame,
+			   pltAppState->CurrentDerivedNumber(),
+			   rGlobalMin, rGlobalMax);
+    // also set SUBREGIONMINMAXs and USERMINMAXs to the global values
+    pltAppState->SetMinMax(SUBREGIONMINMAX, iFrame,
+			   pltAppState->CurrentDerivedNumber(),
+			   rGlobalMin, rGlobalMax);
+    pltAppState->SetMinMax(USERMINMAX, iFrame,
+			   pltAppState->CurrentDerivedNumber(),
+			   rGlobalMin, rGlobalMax);
+  }
+// ---------------
+
+  amrPicturePtrArray[ZPLANE] = new AmrPicture(GAptr, this, pltAppState,
 					dataServicesPtr[currentFrame],
 					bCartGridSmoothing);
 #if (BL_SPACEDIM == 3)
-  amrPicturePtrArray[YPLANE] = new AmrPicture(YPLANE, minAllowableLevel, GAptr,
+  amrPicturePtrArray[YPLANE] = new AmrPicture(YPLANE, GAptr,
 					amrData.ProbDomain()[finestLevel],
-		                        amrPicturePtrArray[ZPLANE], NULL, this,
+		                        //amrPicturePtrArray[ZPLANE],
+					NULL, this,
 					pltAppState,
 					bCartGridSmoothing);
-  amrPicturePtrArray[XPLANE] = new AmrPicture(XPLANE, minAllowableLevel, GAptr,
+  amrPicturePtrArray[XPLANE] = new AmrPicture(XPLANE, GAptr,
 					amrData.ProbDomain()[finestLevel],
-		                        amrPicturePtrArray[ZPLANE], NULL, this,
+		                        //amrPicturePtrArray[ZPLANE],
+					NULL, this,
 					pltAppState,
 					bCartGridSmoothing);
 #endif
@@ -207,11 +254,12 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
     ivLowOffsetMAL.setVal(i, amrData.ProbDomain()[maxlev].smallEnd(i));
   }
 
-  numContours = 5;
+  //numContours = 5;
   contourNumString = aString("5");
-  for(i = 0; i != NPLANES; ++i) {
-    amrPicturePtrArray[i]->SetContourNumber(5);
-  }
+  pltAppState->SetNumContours(5);
+  //for(i = 0; i != NPLANES; ++i) {
+  //  amrPicturePtrArray[i]->SetContourNumber(5);
+  //}
 
   palFilename = PltApp::defaultPaletteString;
   PltAppInit();
@@ -220,7 +268,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
 
 // -------------------------------------------------------------------
 PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
-	       const IntVect &offset, AmrPicture *parentPtr,
+	       const IntVect &offset,
+	       //AmrPicture *parentPtr,
 	       PltApp *pltParent, const aString &palfile,
 	       bool isAnim, const aString &newderived, const aString &filename)
   : paletteDrawn(false),
@@ -233,11 +282,17 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     animating2d(isAnim),
     //showBoxes(pltParent->showBoxes),
     currentFrame(pltParent->currentFrame),
-    numContours(pltParent->numContours),
+    //numContours(pltParent->GetPltAppState()->GetNumContours()),
     palFilename(palfile)
 {
-  pltAppState = new PltAppState();
-  pltAppState->SetCurrentDerived(newderived);
+  const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+
+  pltAppState = new PltAppState(animFrames, amrData.NumDeriveFunc());
+  pltAppState->SetCurrentDerived(newderived, amrData.StateNumber(newderived));
+  pltAppState->SetCurrentFrame(currentFrame);
+
+  currentRangeType = pltParent->GetPltAppState()->GetMinMaxRangeType();
+  pltAppState->SetMinMaxRangeType(currentRangeType);
 
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   lightingWindowExists = false;
@@ -246,18 +301,22 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 
   char header[BUFSIZ];
 
-  SetShowBoxes(pltParent->GetShowBoxes());
+  pltAppState->SetShowingBoxes(pltParent->GetPltAppState()->GetShowingBoxes());
 
-  bCartGridSmoothing =  pltParent->bCartGridSmoothing;
-  const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+  bCartGridSmoothing = pltParent->bCartGridSmoothing;
   int finestLevel(amrData.FinestLevel());
+  pltAppState->SetFinestLevel(finestLevel);
   int maxlev = DetermineMaxAllowableLevel(region, finestLevel,
 					  MaxPictureSize(), amrData.RefRatio());
-  //minAllowableLevel = 0; //amrData.FinestContainingLevel(region, finestLevel);
-  minAllowableLevel = amrData.FinestContainingLevel(region, finestLevel);
+  int minAllowableLevel = amrData.FinestContainingLevel(region, finestLevel);
+
+  pltAppState->SetMinAllowableLevel(minAllowableLevel);
+  pltAppState->SetMaxAllowableLevel(maxlev);
+  pltAppState->SetMaxDrawnLevel(pltParent->GetPltAppState()->MaxDrawnLevel());
+
   Box maxDomain(region);
   if(maxlev < finestLevel) {
-    maxDomain.coarsen(CRRBetweenLevels(maxlev, finestLevel,amrData.RefRatio()));
+    maxDomain.coarsen(CRRBetweenLevels(maxlev, finestLevel, amrData.RefRatio()));
   }
 
   unsigned long dataSize(maxDomain.length(XDIR) * maxDomain.length(YDIR));
@@ -271,7 +330,73 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 			 pltParent->GetPltAppState()->CurrentScale());
   pltAppState->SetCurrentScale(currentScale);
   pltAppState->SetContourType(pltParent->GetPltAppState()->GetContourType());
+  pltAppState->SetNumContours(pltParent->GetPltAppState()->GetNumContours());
   
+// ---------------
+  Array<Box> onBox(pltAppState->MaxAllowableLevel() + 1);
+  onBox[pltAppState->MaxAllowableLevel()] = maxDomain;
+  for(int ilev(pltAppState->MaxAllowableLevel() - 1); ilev >= 0; --ilev) {
+    Box tempbox(maxDomain);
+    tempbox.coarsen(CRRBetweenLevels(ilev, finestLevel, amrData.RefRatio()));
+    onBox[ilev] = tempbox;
+  }
+  int iCDerNum(pltAppState->CurrentDerivedNumber());
+  const aString asCDer(pltAppState->CurrentDerived());
+  int coarseLevel(0);
+  int fineLevel(pltAppState->MaxAllowableLevel());
+  Real rPMin, rPMax;
+  for(int iFrame(0); iFrame < animFrames; ++iFrame) {
+    // set GLOBALMINMAX to parent's values
+    pltParent->GetPltAppState()->GetMinMax(GLOBALMINMAX, iFrame, iCDerNum,
+			                   rPMin, rPMax);
+    pltAppState->SetMinMax(GLOBALMINMAX, iFrame, iCDerNum, rPMin, rPMax);
+
+    // also set SUBREGIONMINMAX
+    SetMinMax(SUBREGIONMINMAX, iFrame, asCDer, iCDerNum, onBox,
+	      coarseLevel, fineLevel, true);
+
+    // set USERMINMAX to parent's values
+    pltParent->GetPltAppState()->GetMinMax(USERMINMAX, iFrame, iCDerNum,
+			                   rPMin, rPMax);
+    pltAppState->SetMinMax(USERMINMAX, iFrame, iCDerNum, rPMin, rPMax);
+  }
+/*
+  Real levDataMin, levDataMax;
+  Real rGlobalMin, rGlobalMax;
+  Real rSubregMin, rSubregMax;
+  rSubregMin =  AV_BIG_REAL;
+  rSubregMax = -AV_BIG_REAL;
+  int coarseLevel(0);
+  int fineLevel(pltAppState->MaxAllowableLevel());
+  for(int iFrame(0); iFrame < animFrames; ++iFrame) {
+    for(int lev(coarseLevel); lev <= fineLevel; ++lev) {
+      bool minMaxValid(false);
+      DataServices::Dispatch(DataServices::MinMaxRequest,
+                             dataServicesPtr[iFrame],
+                             (void *) &(maxDomain),
+                             (void *) &(pltAppState->CurrentDerived()),
+                             lev, &levDataMin, &levDataMax, &minMaxValid);
+      if(minMaxValid) {
+        rSubregMin = Min(rSubregMin, levDataMin);
+        rSubregMax = Max(rSubregMax, levDataMax);
+      }
+    }
+    // set GLOBALMINMAXs
+    pltParent->GetPltAppState()->GetMinMax(GLOBALMINMAX, iFrame, iCDerNum,
+			                   rGlobalMin, rGlobalMax);
+    pltAppState->SetMinMax(GLOBALMINMAX, iFrame, iCDerNum,
+			   rGlobalMin, rGlobalMax);
+    // also set SUBREGIONMINMAXs and USERMINMAXs to the global values
+    pltAppState->SetMinMax(SUBREGIONMINMAX, iFrame, iCDerNum,
+			   rSubregMin, rSubregMax);
+    pltParent->GetPltAppState()->GetMinMax(USERMINMAX, iFrame, iCDerNum,
+			                   rGlobalMin, rGlobalMax);
+    pltAppState->SetMinMax(USERMINMAX, iFrame, iCDerNum,
+			   rGlobalMin, rGlobalMax);
+  }
+*/
+// ---------------
+
   int fnl(fileName.length() - 1);
   while (fnl>-1 && fileName[fnl] != '/') {
     --fnl;
@@ -283,7 +408,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     timestr[0] = '\0';
   } else {
     ostrstream timeOut(timestr, 20);
-    timeOut << " T=" << amrData.Time() << ends;
+    timeOut << " T = " << amrData.Time() << ends;
   }
 
   ostrstream headerout(header, BUFSIZ);
@@ -300,6 +425,9 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 					 XmNdeleteResponse, XmDO_NOTHING,			 
 					 NULL);
 
+cout << "_in PltApp::PltApp:  subregion" << endl;
+pltAppState->PrintSetMap();  cout << endl;
+
   GAptr = new GraphicsAttributes(wAmrVisTopLevel);
   display = GAptr->PDisplay();
   xgc = GAptr->PGC();
@@ -308,16 +436,18 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
       XtVaSetValues(wAmrVisTopLevel, XmNvisual, GAptr->PVisual(),
                     XmNdepth, 8, NULL);
   }
+  pltAppState->SetMinDrawnLevel(minAllowableLevel);
   for(int np(0); np < NPLANES; ++np) {
-    amrPicturePtrArray[np] = new AmrPicture(np, minAllowableLevel, GAptr, region,
-					    parentPtr, pltParent, this,
+    amrPicturePtrArray[np] = new AmrPicture(np, GAptr, region,
+					    //parentPtr,
+					    pltParent, this,
 					    pltAppState,
 					    bCartGridSmoothing);
   }
   
-  for(int j(0); j < NPLANES; ++j) {
-    amrPicturePtrArray[j]->SetContourNumber(numContours);
-  }
+  //for(int j(0); j < NPLANES; ++j) {
+  //  amrPicturePtrArray[j]->SetContourNumber(numContours);
+  //}
   
 #if (BL_SPACEDIM == 3)
   for(int i(0); i < 3; ++i) {
@@ -333,7 +463,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 void PltApp::PltAppInit() {
   int np;
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
-  int maxAllowLev = amrPicturePtrArray[ZPLANE]->MaxAllowableLevel();
+  int minAllowableLevel(pltAppState->MinAllowableLevel());
+  int maxAllowableLevel(pltAppState->MaxAllowableLevel());
 
   // User defined widget destroy callback -- will free all memory used to create
   // window.
@@ -347,7 +478,7 @@ void PltApp::PltAppInit() {
     // For speed (and clarity!) we store the values of the finest value of h of
     // each dimension, as well as the low value of the problem domain in simple
     // arrays.  These are both in problem space.
-    finestDx[np] = amrData.DxLevel()[maxAllowLev][np];
+    finestDx[np] = amrData.DxLevel()[maxAllowableLevel][np];
     gridOffset[np] = amrData.ProbLo()[np];
   }
 
@@ -356,12 +487,12 @@ void PltApp::PltAppInit() {
   
   servingButton = 0;
   activeView = ZPLANE;
-  maxDrawnLevel = maxAllowLev;
-  minDrawnLevel = minDataLevel = minAllowableLevel;
+  minDrawnLevel = minAllowableLevel;
+  maxDrawnLevel = maxAllowableLevel;
   maxDataLevel = amrData.FinestLevel();
   startX = startY = endX = endY = 0;
 
-  currentFrame = 0;
+  //currentFrame = 0;
   animationIId = 0;
   frameSpeed = 300;
 
@@ -514,7 +645,7 @@ void PltApp::PltAppInit() {
   }
 
   // Levels button, to view various levels of refinement
-  int numberOfLevels(amrPicturePtrArray[ZPLANE]->NumberOfLevels()-minAllowableLevel);
+  //int numberOfLevels(amrPicturePtrArray[ZPLANE]->NumberOfLevels()-minAllowableLevel);
   wCascade = XmCreatePulldownMenu(wMenuPulldown, "levelmenu", NULL, 0);
   XtVaCreateManagedWidget("Level", xmCascadeButtonWidgetClass, wMenuPulldown,
 			  XmNmnemonic, 'L', XmNsubMenuId, wCascade, NULL);
@@ -586,7 +717,7 @@ void PltApp::PltAppInit() {
   wid = XtVaCreateManagedWidget("Boxes",
 				xmToggleButtonGadgetClass, wMenuPulldown,
 				XmNmnemonic, 'B',
-				XmNset, showBoxes,
+				XmNset, pltAppState->GetShowingBoxes(),
 				// XmNaccelerator, "<Key>B",
 				// XmNacceleratorText, label_str,
 				NULL);
@@ -982,8 +1113,7 @@ void PltApp::PltAppInit() {
 	<Btn3Down>: DrawingAreaInput() ManagerGadgetButtonMotion()	\n\
 	<Btn3Up>: DrawingAreaInput() ManagerGadgetButtonMotion()";
 	
-  wPlotPlane[ZPLANE] =
-    XtVaCreateManagedWidget("plotArea",
+  wPlotPlane[ZPLANE] = XtVaCreateManagedWidget("plotArea",
 			    xmDrawingAreaWidgetClass, wScrollArea[ZPLANE],
 			    XmNtranslations,  XtParseTranslationTable(trans),
 			    XmNwidth, amrPicturePtrArray[ZPLANE]->ImageSizeH() + 1,
@@ -1018,13 +1148,12 @@ void PltApp::PltAppInit() {
 			    XmNscrollingPolicy,	 XmAUTOMATIC,
 			    NULL);
   
-  wPlotPlane[YPLANE] =
-    XtVaCreateManagedWidget("plotArea",
-			    xmDrawingAreaWidgetClass, wScrollArea[YPLANE],
-			    XmNtranslations, XtParseTranslationTable(trans),
-			    XmNwidth,   amrPicturePtrArray[YPLANE]->ImageSizeH() + 1,
-			    XmNheight,  amrPicturePtrArray[YPLANE]->ImageSizeV() + 1,
-			    NULL);
+  wPlotPlane[YPLANE] = XtVaCreateManagedWidget("plotArea",
+		         xmDrawingAreaWidgetClass, wScrollArea[YPLANE],
+		         XmNtranslations, XtParseTranslationTable(trans),
+		         XmNwidth,  amrPicturePtrArray[YPLANE]->ImageSizeH() + 1,
+		         XmNheight, amrPicturePtrArray[YPLANE]->ImageSizeV() + 1,
+		         NULL);
   XtVaSetValues(wScrollArea[YPLANE], XmNworkWindow, wPlotPlane[YPLANE], NULL); 
   
   // ********************************************************* YZ
@@ -1041,8 +1170,7 @@ void PltApp::PltAppInit() {
 			    XmNscrollingPolicy,	XmAUTOMATIC,
 			    NULL);
   
-  wPlotPlane[XPLANE] =
-    XtVaCreateManagedWidget("plotArea",
+  wPlotPlane[XPLANE] = XtVaCreateManagedWidget("plotArea",
 			    xmDrawingAreaWidgetClass, wScrollArea[XPLANE],
 			    XmNtranslations,  XtParseTranslationTable(trans),
 			    XmNwidth,  amrPicturePtrArray[XPLANE]->ImageSizeH() + 1,
@@ -1180,8 +1308,8 @@ void PltApp::PltAppInit() {
       globalMax = -AV_BIG_REAL;
       for(int iFrame(0); iFrame < animFrames; ++iFrame) {
 	int coarseLevel(0);
-	int fineLevel(amrPicturePtrArray[ZPLANE]->NumberOfLevels());
-        for(int lev(coarseLevel); lev < fineLevel; ++lev) {
+	int fineLevel(pltAppState->FinestLevel());
+        for(int lev(coarseLevel); lev <= fineLevel; ++lev) {
           bool minMaxValid(false);
           DataServices::Dispatch(DataServices::MinMaxRequest,
                                  dataServicesPtr[iFrame],
@@ -1200,8 +1328,7 @@ void PltApp::PltAppInit() {
 
   for(np = 0; np < NPLANES; ++np) {
     amrPicturePtrArray[np]->CreatePicture(XtWindow(wPlotPlane[np]),
-					  pltPaletteptr,
-					  pltAppState->CurrentDerived());
+					  pltPaletteptr);
   }
 
 #if (BL_SPACEDIM == 3)
@@ -1223,13 +1350,41 @@ void PltApp::PltAppInit() {
 
   interfaceReady = true;
   
-  for(np = 0; np < NPLANES; ++np) {
-    amrPicturePtrArray[np]->SetDataMin(amrPicturePtrArray[np]->GetRegionMin());
-    amrPicturePtrArray[np]->SetDataMax(amrPicturePtrArray[np]->GetRegionMax());
-  }  
+  //for(np = 0; np < NPLANES; ++np) {
+  //  amrPicturePtrArray[np]->SetDataMin(amrPicturePtrArray[np]->GetRegionMin());
+  //  amrPicturePtrArray[np]->SetDataMax(amrPicturePtrArray[np]->GetRegionMax());
+  //}  
 
 }  // end PltAppInit()
 
+
+// -------------------------------------------------------------------
+void PltApp::SetMinMax(const MinMaxRangeType mmrangetype, const int framenumber,
+		       const aString &currentderived, const int derivednumber,
+		       const Array<Box> &onBox,
+		       const int coarselevel, const int finelevel,
+		       const bool resetIfSet)
+{
+  Real rMin, rMax, levMin, levMax;
+  rMin =  AV_BIG_REAL;
+  rMax = -AV_BIG_REAL;
+  for(int lev(coarselevel); lev <= finelevel; ++lev) {
+    bool minMaxValid(false);
+    DataServices::Dispatch(DataServices::MinMaxRequest,
+                           dataServicesPtr[framenumber],
+                           (void *) &(onBox[lev]),
+                           (void *) &(currentderived),
+                           lev, &levMin, &levMax, &minMaxValid);
+    if(minMaxValid) {
+      rMin = Min(rMin, levMin);
+      rMax = Max(rMax, levMax);
+    }
+  }
+  bool isset(pltAppState->IsSet(mmrangetype, framenumber, derivednumber));
+  if(isset == false || resetIfSet) {
+    pltAppState->SetMinMax(mmrangetype, framenumber, derivednumber, rMin, rMax);
+  }
+}
 
 
 // -------------------------------------------------------------------
@@ -1361,8 +1516,8 @@ void PltApp::ChangeScale(Widget w, XtPointer client_data, XtPointer) {
 					     finishcutY[whichView]);
     amrPicturePtrArray[whichView]->APChangeScale(currentScale, previousScale);
     XtVaSetValues(wPlotPlane[whichView], 
-		  XmNwidth,	amrPicturePtrArray[whichView]->ImageSizeH()+1,
-		  XmNheight,	amrPicturePtrArray[whichView]->ImageSizeV()+1,
+		  XmNwidth,  amrPicturePtrArray[whichView]->ImageSizeH() + 1,
+		  XmNheight, amrPicturePtrArray[whichView]->ImageSizeV() + 1,
 		  NULL);
   }
   DoExposeRef();
@@ -1385,9 +1540,11 @@ void PltApp::ChangeLevel(Widget w, XtPointer client_data, XtPointer) {
   }
 
   unsigned long newLevel = (unsigned long) client_data;
-  minDrawnLevel = minAllowableLevel;
-  maxDrawnLevel = newLevel + minAllowableLevel;
+  int minDrawnLevel(pltAppState->MinAllowableLevel());
+  int maxDrawnLevel(newLevel + pltAppState->MinAllowableLevel());
 
+  pltAppState->SetMinDrawnLevel(minDrawnLevel);
+  pltAppState->SetMaxDrawnLevel(maxDrawnLevel);
   for(int whichView(0); whichView < NPLANES; ++whichView) {
     amrPicturePtrArray[whichView]->APChangeLevel(minDrawnLevel, maxDrawnLevel);
     
@@ -1424,25 +1581,51 @@ void PltApp::ChangeLevel(Widget w, XtPointer client_data, XtPointer) {
 void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   if(w == wCurrDerived) {
     XtVaSetValues(w, XmNset, true, NULL);
+    cout << "--------------------- unchanged derived." << endl;
     return;
   }
   XtVaSetValues(wCurrDerived, XmNset, false, NULL);
   wCurrDerived = w;
   unsigned long derivedNumber = (unsigned long) client_data;
   pltAppState->SetCurrentDerived(dataServicesPtr[currentFrame]->
-				   PlotVarNames()[derivedNumber]);
+				   PlotVarNames()[derivedNumber], derivedNumber);
 
-  maxDrawnLevel = amrPicturePtrArray[ZPLANE]->MaxAllowableLevel();
+  //maxDrawnLevel = pltAppState->MaxAllowableLevel();
+  maxDrawnLevel = pltAppState->MaxDrawnLevel();
 
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
 
+// ---------------
+  //Array<Box> onBox(pltAppState->MaxAllowableLevel() + 1);
+  const Array<Box> &onBox = amrPicturePtrArray[ZPLANE]->GetSubDomain();
+  int iCDerNum(pltAppState->CurrentDerivedNumber());
+  int coarseLevel(pltAppState->MinAllowableLevel());
+  int fineLevel(pltAppState->MaxAllowableLevel());
+  //Real rPMin, rPMax;
+  const aString asCDer(pltAppState->CurrentDerived());
+  for(int iFrame(0); iFrame < animFrames; ++iFrame) {
+    // set GLOBALMINMAX  dont reset if already set
+    SetMinMax(GLOBALMINMAX, iFrame, asCDer, iCDerNum, onBox,
+	      coarseLevel, fineLevel, false);
+
+    // set SUBREGIONMINMAX  dont reset if already set
+    SetMinMax(SUBREGIONMINMAX, iFrame, asCDer, iCDerNum, onBox,
+	      coarseLevel, fineLevel, false);
+
+    // set USERMINMAX  dont reset if already set
+    SetMinMax(USERMINMAX, iFrame, asCDer, iCDerNum, onBox,
+	      coarseLevel, fineLevel, false);
+  }
+// ---------------
+cout << "_in PltApp::ChangeDerived" << endl;
+pltAppState->PrintSetMap();  cout << endl;
+
+
 #if (BL_SPACEDIM == 3)
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
-  // ------------------------- swf
   projPicturePtr->GetVolRenderPtr()->InvalidateSWFData();
   projPicturePtr->GetVolRenderPtr()->InvalidateVPData();
 #endif
-  // ------------------------- end swf
   Clear();
 #endif
 
@@ -1451,7 +1634,7 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   if(animating2d) {
     ResetAnimation();
     DirtyFrames();
-    if(rangeType == USEFILE) {
+    if(currentRangeType == FILEMINMAX) {
       Real dataMin, dataMax;
       globalMin =  AV_BIG_REAL;
       globalMax = -AV_BIG_REAL;
@@ -1508,10 +1691,10 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   XtVaSetValues(wPlotLabel, XmNlabelString, label_str, NULL);
   XmStringFree(label_str);
 
+  pltAppState->SetMaxDrawnLevel(maxDrawnLevel);
   for(int iv(0); iv < NPLANES; ++iv) {
-    amrPicturePtrArray[iv]->SetMaxDrawnLevel(maxDrawnLevel);
-    amrPicturePtrArray[iv]->APChangeDerived(pltAppState->CurrentDerived(),
-                                            pltPaletteptr);
+    //amrPicturePtrArray[iv]->SetMaxDrawnLevel(maxDrawnLevel);
+    amrPicturePtrArray[iv]->APMakeImages(pltPaletteptr);
   }
   
   if(datasetShowing) {
@@ -1527,15 +1710,16 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   if(UseSpecifiedMinMax()) {
     Real specifiedMin, specifiedMax;
     GetSpecifiedMinMax(specifiedMin, specifiedMax);
-    for(int iv(0); iv < NPLANES; ++iv) {
-      amrPicturePtrArray[iv]->SetDataMin(specifiedMin);
-      amrPicturePtrArray[iv]->SetDataMax(specifiedMax);
+    for(int iFrame(0); iFrame < animFrames; ++iFrame) {
+      pltAppState->SetMinMax(USERMINMAX, iFrame,
+			     pltAppState->CurrentDerivedNumber(),
+			     specifiedMin, specifiedMax);
     }
   } else {
-    for(int iv(0); iv < NPLANES; ++iv) {
-      amrPicturePtrArray[iv]->SetDataMin(amrPicturePtrArray[iv]->GetRegionMin());
-      amrPicturePtrArray[iv]->SetDataMax(amrPicturePtrArray[iv]->GetRegionMax());
-    }
+    //for(int iv(0); iv < NPLANES; ++iv) {
+    //  amrPicturePtrArray[iv]->SetDataMin(amrPicturePtrArray[iv]->GetRegionMin());
+    //  amrPicturePtrArray[iv]->SetDataMax(amrPicturePtrArray[iv]->GetRegionMax());
+    //}
   }
 }  // end ChangeDerived(...)
 
@@ -1591,7 +1775,8 @@ void PltApp::ReadContourString(Widget w, XtPointer, XtPointer) {
 
   if(stringOk) {
     contourNumString = tmpContourNumString;
-    numContours = atoi(contourNumString.c_str());
+    //numContours = atoi(contourNumString.c_str());
+    pltAppState->SetNumContours(atoi(contourNumString.c_str()));
     SetNumContours();
   }
 
@@ -1602,10 +1787,10 @@ void PltApp::ReadContourString(Widget w, XtPointer, XtPointer) {
 // -------------------------------------------------------------------
 void PltApp::SetNumContours(bool bRedrawAmrPicture) {
   for(int ii(0); ii < NPLANES; ++ii) {
-    amrPicturePtrArray[ii]->SetContourNumber(numContours);
+    //amrPicturePtrArray[ii]->SetContourNumber(numContours);
     if(bRedrawAmrPicture)
-      amrPicturePtrArray[ii]->APDraw(amrPicturePtrArray[ii]->MinDrawnLevel(), 
-				     amrPicturePtrArray[ii]->MaxDrawnLevel());
+      amrPicturePtrArray[ii]->APDraw(pltAppState->MinDrawnLevel(), 
+				     pltAppState->MaxDrawnLevel());
   }
 }
   
@@ -1615,7 +1800,7 @@ void PltApp::ToggleRange(Widget w, XtPointer client_data, XtPointer call_data) {
   unsigned long r = (unsigned long) client_data;
   XmToggleButtonCallbackStruct *state = (XmToggleButtonCallbackStruct *) call_data;
   if(state->set == true) {
-    rangeType = (RangeType) r;
+    currentRangeType = (MinMaxRangeType) r;
   }
 }
 
@@ -1625,7 +1810,7 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
   Box subregionBox;
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   int finestLevel(amrData.FinestLevel());
-  int maxAllowableLevel(amrPicturePtrArray[ZPLANE]->MaxAllowableLevel());
+  int maxAllowableLevel(pltAppState->MaxAllowableLevel());
   int newMinAllowableLevel;
   
   // subregionBox is at the maxAllowableLevel
@@ -1667,7 +1852,7 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
   subregionBox += ivLowOffsetMAL;   // shift to true data region
 #endif
   
-  Box tempRefinedBox = subregionBox;
+  Box tempRefinedBox(subregionBox);
   tempRefinedBox.refine(CRRBetweenLevels(maxAllowableLevel, finestLevel,
 					 amrData.RefRatio()));
   // this puts tempRefinedBox in terms of the finest level
@@ -1696,7 +1881,8 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
   // if not -- choose the limit
   
   // then pass the slices to the subregion constructor below...
-  SubregionPltApp(wTopLevel, subregionBox, ivOffset, amrPicturePtrArray[ZPLANE],
+  SubregionPltApp(wTopLevel, subregionBox, ivOffset,
+		  //amrPicturePtrArray[ZPLANE],
 		  this, palFilename, animating2d, pltAppState->CurrentDerived(),
 		  fileName);
   
@@ -2070,13 +2256,17 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   char fMin[LINELENGTH];
   char fMax[LINELENGTH];
   strcpy(format, formatString.c_str());
-  Widget wSetRangeForm, wDoneButton, wCancelButton;
+  Widget wSetRangeForm, wDoneButton, wApplyButton, wCancelButton;
   Widget wSetRangeRadioBox, wRangeRC, wid;
 
   
   // do these here to set XmNwidth of wSetRangeTopLevel
-  sprintf(fMin, format, amrPicturePtrArray[ZPLANE]->GetGlobalMin());
-  sprintf(fMax, format, amrPicturePtrArray[ZPLANE]->GetGlobalMax());
+  Real rtMin, rtMax;
+  pltAppState->GetMinMax(GLOBALMINMAX, currentFrame,
+			 pltAppState->CurrentDerivedNumber(),
+			 rtMin, rtMax);
+  sprintf(fMin, format, rtMin);
+  sprintf(fMax, format, rtMax);
   sprintf (range, "Min: %s  Max: %s", fMin, fMax);
   
   XtVaGetValues(wAmrVisTopLevel, XmNx, &xpos, XmNy, &ypos,
@@ -2085,7 +2275,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   wSetRangeTopLevel = XtVaCreatePopupShell("Set Range",
 			 topLevelShellWidgetClass, wAmrVisTopLevel,
 			 XmNwidth,		12*(strlen(range)+2),
-			 XmNheight,		150,
+			 XmNheight,		200,
 			 XmNx,			xpos+width/2,
 			 XmNy,			ypos,
 			 NULL);
@@ -2112,8 +2302,21 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 					XmNleftAttachment, XmATTACH_FORM,
 					XmNleftOffset, WOFFSET,
 					NULL);
-  AddStaticCallback(wDoneButton, XmNactivateCallback,
-		    &PltApp::DoDoneSetRange);
+  bool bKillSRWindow(true);
+  AddStaticCallback(wDoneButton, XmNactivateCallback, &PltApp::DoDoneSetRange,
+		    (XtPointer) bKillSRWindow);
+  
+  wApplyButton = XtVaCreateManagedWidget(" Apply ",
+					  xmPushButtonGadgetClass, wSetRangeForm,
+					  XmNbottomAttachment, XmATTACH_FORM,
+					  XmNbottomOffset, WOFFSET,
+					  XmNleftAttachment, XmATTACH_WIDGET,
+					  XmNleftWidget, wDoneButton,
+					  XmNleftOffset, WOFFSET,
+					  NULL);
+  bKillSRWindow = false;
+  AddStaticCallback(wApplyButton, XmNactivateCallback, &PltApp::DoDoneSetRange,
+		    (XtPointer) bKillSRWindow);
   
   wCancelButton = XtVaCreateManagedWidget(" Cancel ",
 					  xmPushButtonGadgetClass, wSetRangeForm,
@@ -2122,33 +2325,37 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 					  XmNrightAttachment, XmATTACH_FORM,
 					  XmNrightOffset, WOFFSET,
 					  NULL);
-  AddStaticCallback(wCancelButton, XmNactivateCallback,
-		    &PltApp::DoCancelSetRange);
+  AddStaticCallback(wCancelButton, XmNactivateCallback, &PltApp::DoCancelSetRange);
   
   // make the radio box
-  wSetRangeRadioBox = XmCreateRadioBox(wSetRangeForm, "setrangeradiobox", NULL, 0);
+  wSetRangeRadioBox = XmCreateRadioBox(wSetRangeForm, "setrangeradiobox",
+				       NULL, 0);
+  XtVaSetValues(wSetRangeRadioBox, XmNmarginHeight, 8, NULL);
+  XtVaSetValues(wSetRangeRadioBox, XmNmarginWidth, 4, NULL);
+  XtVaSetValues(wSetRangeRadioBox, XmNspacing, 14, NULL);
   
-  wRangeRadioButton[USEGLOBAL] = XtVaCreateManagedWidget("Global",
+  wRangeRadioButton[GLOBALMINMAX] = XtVaCreateManagedWidget("Global",
 			    xmToggleButtonWidgetClass, wSetRangeRadioBox, NULL);
-  AddStaticCallback(wRangeRadioButton[USEGLOBAL], XmNvalueChangedCallback,
-		    &PltApp::ToggleRange, (XtPointer) USEGLOBAL);
-  wRangeRadioButton[USELOCAL] = XtVaCreateManagedWidget("Local",
+  AddStaticCallback(wRangeRadioButton[GLOBALMINMAX], XmNvalueChangedCallback,
+		    &PltApp::ToggleRange, (XtPointer) GLOBALMINMAX);
+  wRangeRadioButton[SUBREGIONMINMAX] = XtVaCreateManagedWidget("Local",
+			    xmToggleButtonWidgetClass, wSetRangeRadioBox,
+			    NULL);
+  AddStaticCallback(wRangeRadioButton[SUBREGIONMINMAX], XmNvalueChangedCallback,
+		    &PltApp::ToggleRange, (XtPointer) SUBREGIONMINMAX);
+  wRangeRadioButton[USERMINMAX] = XtVaCreateManagedWidget("User",
 			    xmToggleButtonWidgetClass, wSetRangeRadioBox, NULL);
-  AddStaticCallback(wRangeRadioButton[USELOCAL], XmNvalueChangedCallback,
-		    &PltApp::ToggleRange, (XtPointer) USELOCAL);
-  wRangeRadioButton[USESPECIFIED] = XtVaCreateManagedWidget("User",
-			    xmToggleButtonWidgetClass, wSetRangeRadioBox, NULL);
-  AddStaticCallback(wRangeRadioButton[USESPECIFIED], XmNvalueChangedCallback,
-		    &PltApp::ToggleRange, (XtPointer) USESPECIFIED);
+  AddStaticCallback(wRangeRadioButton[USERMINMAX], XmNvalueChangedCallback,
+		    &PltApp::ToggleRange, (XtPointer) USERMINMAX);
   if(animating2d) {
-    wRangeRadioButton[USEFILE] = XtVaCreateManagedWidget("File",
+    wRangeRadioButton[FILEMINMAX] = XtVaCreateManagedWidget("File",
 			      xmToggleButtonWidgetClass, wSetRangeRadioBox, NULL);
-    AddStaticCallback(wRangeRadioButton[USEFILE], XmNvalueChangedCallback,
-		      &PltApp::ToggleRange, (XtPointer) USEFILE);
+    AddStaticCallback(wRangeRadioButton[FILEMINMAX], XmNvalueChangedCallback,
+		      &PltApp::ToggleRange, (XtPointer) FILEMINMAX);
   }
     
-  rangeType = amrPicturePtrArray[ZPLANE]->GetWhichRange();
-  XtVaSetValues(wRangeRadioButton[rangeType], XmNset, true, NULL);
+  currentRangeType = pltAppState->GetMinMaxRangeType();
+  XtVaSetValues(wRangeRadioButton[currentRangeType], XmNset, true, NULL);
   
   wRangeRC = XtVaCreateManagedWidget("rangeRC", xmRowColumnWidgetClass,
 			    wSetRangeForm,
@@ -2162,26 +2369,38 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			    XmNorientation,     XmHORIZONTAL,
 			    NULL);
   // make the strings representing data min and maxes
-  sprintf(fMin, format, amrPicturePtrArray[ZPLANE]->GetGlobalMin());
-  sprintf(fMax, format, amrPicturePtrArray[ZPLANE]->GetGlobalMax());
+  pltAppState->GetMinMax(GLOBALMINMAX, currentFrame,
+			 pltAppState->CurrentDerivedNumber(),
+			 rtMin, rtMax);
+  sprintf(fMin, format, rtMin);
+  sprintf(fMax, format, rtMax);
+  sprintf(range, "Min: %s", fMin);
+  XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
+  //XtVaSetValues(wid, XmNleftOffset, 20, NULL);
+  sprintf(range, "Max: %s", fMax);
+  XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
+
+  pltAppState->GetMinMax(SUBREGIONMINMAX, currentFrame,
+			 pltAppState->CurrentDerivedNumber(),
+			 rtMin, rtMax);
+  sprintf(fMin, format, rtMin);
+  sprintf(fMax, format, rtMax);
   sprintf(range, "Min: %s", fMin);
   XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
   sprintf(range, "Max: %s", fMax);
   XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
 
-  sprintf(fMin, format, amrPicturePtrArray[ZPLANE]->GetRegionMin());
-  sprintf(fMax, format, amrPicturePtrArray[ZPLANE]->GetRegionMax());
-  sprintf(range, "Min: %s", fMin);
-  XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
-  sprintf(range, "Max: %s", fMax);
-  XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
-
+  pltAppState->GetMinMax(USERMINMAX, currentFrame,
+			 pltAppState->CurrentDerivedNumber(),
+			 rtMin, rtMax);
   wid = XtVaCreateManagedWidget("wid", xmRowColumnWidgetClass, wRangeRC,
 			    XmNorientation, XmHORIZONTAL,
 			    XmNleftOffset,       0,
+			    //XmNborderWidth,      0,
 			    NULL);
   XtVaCreateManagedWidget("Min:", xmLabelGadgetClass, wid, NULL);
-  sprintf(range, format, amrPicturePtrArray[ZPLANE]->GetSpecifiedMin());
+  //XtVaSetValues(wid, XmNmarginWidth, 0, NULL);
+  sprintf(range, format, rtMin);
   wUserMin = XtVaCreateManagedWidget("local range",
 			    xmTextFieldWidgetClass, wid,
 			    XmNvalue,		range,
@@ -2193,9 +2412,10 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   wid = XtVaCreateManagedWidget("wid", xmRowColumnWidgetClass, wRangeRC,
 			    XmNorientation, XmHORIZONTAL,
  			    XmNleftOffset,       0,
+			    //XmNborderWidth,      0,
 			    NULL);
   XtVaCreateManagedWidget("Max:", xmLabelGadgetClass, wid, NULL);
-  sprintf(range, format, amrPicturePtrArray[ZPLANE]->GetSpecifiedMax());
+  sprintf(range, format, rtMax);
   wUserMax = XtVaCreateManagedWidget("local range",
 			    xmTextFieldWidgetClass, wid,
 			    XmNvalue,		range,
@@ -2215,36 +2435,53 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void PltApp::DoDoneSetRange(Widget, XtPointer, XtPointer) {
+void PltApp::DoDoneSetRange(Widget, XtPointer client_data, XtPointer) {
+  bool bKillSRWindow = (bool) client_data;
   paletteDrawn = false;
 
   int np;
   Real umin(atof(XmTextFieldGetString(wUserMin)));
   Real umax(atof(XmTextFieldGetString(wUserMax)));
 
-  for(np = 0; np < NPLANES; ++np) {
-    amrPicturePtrArray[np]->SetDataMin(umin);
-    amrPicturePtrArray[np]->SetDataMax(umax);
+  for(int iFrame(0); iFrame < animFrames; ++iFrame) {
+    pltAppState->SetMinMax(USERMINMAX, iFrame,
+			   pltAppState->CurrentDerivedNumber(),
+			   umin, umax);
   }
+  //for(np = 0; np < NPLANES; ++np) {
+  //  amrPicturePtrArray[np]->SetDataMin(umin);
+  //  amrPicturePtrArray[np]->SetDataMax(umax);
+  //}
 
-  if(rangeType != amrPicturePtrArray[ZPLANE]->GetWhichRange() ||
-     rangeType == USESPECIFIED)
+  if(currentRangeType != pltAppState->GetMinMaxRangeType() ||
+     currentRangeType == USERMINMAX)
   {
+    pltAppState->SetMinMaxRangeType(currentRangeType);	
     for(np = 0; np < NPLANES; ++np) {
-      amrPicturePtrArray[np]->SetWhichRange(rangeType);	
-      amrPicturePtrArray[np]->APChangeDerived(pltAppState->CurrentDerived(),
-					      pltPaletteptr);
+      amrPicturePtrArray[np]->APMakeImages(pltPaletteptr);
     }
 #if (BL_SPACEDIM == 3)
-    Clear();
+    //Clear();
 #endif
     if(animating2d) {
       ResetAnimation();
       DirtyFrames(); 
       ShowFrame();
     }
+#if (BL_SPACEDIM == 3)
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
+    projPicturePtr->GetVolRenderPtr()->InvalidateSWFData();
+    projPicturePtr->GetVolRenderPtr()->InvalidateVPData();
+    XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
+    if(XmToggleButtonGetState(wAutoDraw) || showing3dRender) {
+      DoRender();
+    }
+#endif
+#endif
   }
-  XtDestroyWidget(wSetRangeTopLevel);
+  if(bKillSRWindow) {
+    XtDestroyWidget(wSetRangeTopLevel);
+  }
 
   if(datasetShowing) {
     datasetPtr->DoRaise();
@@ -2285,23 +2522,25 @@ void PltApp::DestroySetRangeWindow(Widget, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void PltApp::DoUserMin(Widget, XtPointer, XtPointer) {
-  if(rangeType != USESPECIFIED) {
-    XtVaSetValues(wRangeRadioButton[rangeType], XmNset, false, NULL);
+  if(currentRangeType != USERMINMAX) {
+    XtVaSetValues(wRangeRadioButton[currentRangeType], XmNset, false, NULL);
   }
-  XtVaSetValues(wRangeRadioButton[USESPECIFIED], XmNset, true, NULL);
-  rangeType = USESPECIFIED;
-  DoDoneSetRange(NULL, NULL, NULL);
+  XtVaSetValues(wRangeRadioButton[USERMINMAX], XmNset, true, NULL);
+  currentRangeType = USERMINMAX;
+  bool bKillSRWindow(true);
+  DoDoneSetRange(NULL, (XtPointer) bKillSRWindow, NULL);
 }
 
 
 // -------------------------------------------------------------------
 void PltApp::DoUserMax(Widget, XtPointer, XtPointer) {
-  if(rangeType != USESPECIFIED) {
-    XtVaSetValues(wRangeRadioButton[rangeType], XmNset, false, NULL);
+  if(currentRangeType != USERMINMAX) {
+    XtVaSetValues(wRangeRadioButton[currentRangeType], XmNset, false, NULL);
   }
-  XtVaSetValues(wRangeRadioButton[USESPECIFIED], XmNset, true, NULL);
-  rangeType = USESPECIFIED;
-  DoDoneSetRange(NULL, NULL, NULL);
+  XtVaSetValues(wRangeRadioButton[USERMINMAX], XmNset, true, NULL);
+  currentRangeType = USERMINMAX;
+  bool bKillSRWindow(true);
+  DoDoneSetRange(NULL, (XtPointer) bKillSRWindow, NULL);
 }
 
 
@@ -2311,8 +2550,8 @@ void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
     ResetAnimation();
     DirtyFrames(); 
   }
-  showBoxes = ! showBoxes;
-  amrPicturePtrArray[ZPLANE]->ToggleBoxes();
+  pltAppState->SetShowingBoxes( ! pltAppState->GetShowingBoxes());
+  //amrPicturePtrArray[ZPLANE]->ToggleBoxes();
 #if (BL_SPACEDIM == 3)
     projPicturePtr->MakeBoxes(); 
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
@@ -2324,8 +2563,8 @@ void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
       XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
       DoExposeTransDA();
 #endif
-    amrPicturePtrArray[YPLANE]->ToggleBoxes();
-    amrPicturePtrArray[XPLANE]->ToggleBoxes();
+    //amrPicturePtrArray[YPLANE]->ToggleBoxes();
+    //amrPicturePtrArray[XPLANE]->ToggleBoxes();
 #endif
 
   // draw a bounding box around the image
@@ -2412,7 +2651,7 @@ XYPlotDataList* PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 #endif
   }
   Array<Box> trueRegion(mal + 1);
-  trueRegion[mal] = amrPicturePtrArray[V]->GetSliceBox();
+  trueRegion[mal] = amrPicturePtrArray[V]->GetSliceBox(pltAppState->FinestLevel());
   trueRegion[mal].setSmall(tdir, ivLowOffsetMAL[tdir] + ix);
   trueRegion[mal].setBig(tdir, trueRegion[mal].smallEnd(tdir));
   int lev;
@@ -2455,7 +2694,7 @@ XYPlotDataList* PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 			 (void *) (trueRegion.dataPtr()),
 			 sdir,
 			 (void *) derived,
-			 minAllowableLevel, mal,
+			 pltAppState->MinAllowableLevel(), mal,
 			 (void *) newlist, &lineOK);
   
   if(lineOK) {
@@ -2481,7 +2720,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
   int imageWidth(amrPicturePtrArray[V]->ImageSizeH() - 1);
   int oldX(Max(0, Min(imageWidth,  cbs->event->xbutton.x)));
   int oldY(Max(0, Min(imageHeight, cbs->event->xbutton.y)));
-  int mal(amrPicturePtrArray[ZPLANE]->MaxAllowableLevel());
+  int mal(pltAppState->MaxAllowableLevel());
   const AmrData &amrData(dataServicesPtr[currentFrame]->AmrDataRef());
   int rootX, rootY;
   unsigned int inputMask;
@@ -2644,8 +2883,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 		  finishcutY[YPLANE])/scale + ivLowOffsetMAL[ZDIR];
 	    
 	    if(z2 > 65536) {    // fix bad -z values
-	      z2 = amrPicturePtrArray[ZPLANE]->
-		GetSubDomain()[mal].smallEnd(ZDIR);
+	      z2 = amrPicturePtrArray[ZPLANE]->GetSubDomain()[mal].smallEnd(ZDIR);
 	    }
 	    IntVect ivmin(Min(x1,x2), Min(y1,y2), Min(z1,z2));
 	    IntVect ivmax(Max(x1,x2), Max(y1,y2), Max(z1,z2));
@@ -3182,7 +3420,7 @@ void PltApp::DoDrawPointerLocation(Widget, XtPointer data, XtPointer cbe) {
 		&rootX, &rootY, &newX, &newY, &inputMask);
 
   int Yloci = ((amrPicturePtrArray[V]->ImageSizeV())/currentScale) -
-    1 - (newY / currentScale) + ivLowOffsetMAL[YDIR];
+              1 - (newY / currentScale) + ivLowOffsetMAL[YDIR];
   int Xloci = newX / currentScale + ivLowOffsetMAL[XDIR];
   char locText[40];
 
@@ -3241,8 +3479,7 @@ void PltApp::DoBackStep(int plane) {
   switch (plane) {
   case XPLANE:
     if(amrPicturePtrArray[XPLANE]->GetSlice() > amrPicturePtrArray[XPLANE]->
-       GetSubDomain()[amrPicturePtrArray[XPLANE]->
-		     MaxAllowableLevel()].smallEnd(XDIR))
+       GetSubDomain()[pltAppState->MaxAllowableLevel()].smallEnd(XDIR))
     {
       amrPicturePtrArray[ZPLANE]->SetVLine((amrPicturePtrArray[ZPLANE]->
 					    GetVLine()-1)*currentScale);
@@ -3262,13 +3499,11 @@ void PltApp::DoBackStep(int plane) {
     amrPicturePtrArray[YPLANE]->DoExposePicture();
     amrPicturePtrArray[XPLANE]->
       APChangeSlice(amrPicturePtrArray[XPLANE]->
-		  GetSubDomain()[amrPicturePtrArray[XPLANE]->
-				MaxAllowableLevel()].bigEnd(XDIR));
+		  GetSubDomain()[pltAppState->MaxAllowableLevel()].bigEnd(XDIR));
     break;
   case YPLANE:
     if(amrPicturePtrArray[YPLANE]->GetSlice() > amrPicturePtrArray[YPLANE]->
-       GetSubDomain()[amrPicturePtrArray[YPLANE]->
-		     MaxAllowableLevel()].smallEnd(YDIR))
+       GetSubDomain()[pltAppState->MaxAllowableLevel()].smallEnd(YDIR))
     {
       amrPicturePtrArray[XPLANE]->SetVLine(amrPicturePtrArray[XPLANE]->
 					   GetVLine()-1* currentScale);
@@ -3287,13 +3522,11 @@ void PltApp::DoBackStep(int plane) {
     amrPicturePtrArray[ZPLANE]->DoExposePicture();
     amrPicturePtrArray[YPLANE]->
       APChangeSlice(amrPicturePtrArray[YPLANE]->
-		  GetSubDomain()[amrPicturePtrArray[YPLANE]->
-				MaxAllowableLevel()].bigEnd(YDIR));
+		  GetSubDomain()[pltAppState->MaxAllowableLevel()].bigEnd(YDIR));
     break;
   case ZPLANE:
     if(amrPicturePtrArray[ZPLANE]->GetSlice() > amrPicturePtrArray[ZPLANE]->
-       GetSubDomain()[amrPicturePtrArray[ZPLANE]->
-		     MaxAllowableLevel()].smallEnd(ZDIR))
+       GetSubDomain()[pltAppState->MaxAllowableLevel()].smallEnd(ZDIR))
     {
       amrPicturePtrArray[XPLANE]->SetHLine(amrPicturePtrArray[XPLANE]->
 					   GetHLine()+1* currentScale);
@@ -3310,8 +3543,7 @@ void PltApp::DoBackStep(int plane) {
     amrPicturePtrArray[YPLANE]->SetHLine(0);
     amrPicturePtrArray[YPLANE]->DoExposePicture();
     amrPicturePtrArray[ZPLANE]->APChangeSlice(amrPicturePtrArray[ZPLANE]->
-		  GetSubDomain()[amrPicturePtrArray[ZPLANE]->
-				MaxAllowableLevel()].bigEnd(ZDIR));
+		  GetSubDomain()[pltAppState->MaxAllowableLevel()].bigEnd(ZDIR));
   }
 
 #if (BL_SPACEDIM == 3)
@@ -3330,8 +3562,7 @@ void PltApp::DoForwardStep(int plane) {
   switch(plane) {
   case XPLANE:
     if(amrPicturePtrArray[XPLANE]->GetSlice() < amrPicturePtrArray[XPLANE]->
-       GetSubDomain()[amrPicturePtrArray[XPLANE]->
-		     MaxAllowableLevel()].bigEnd(XDIR))
+       GetSubDomain()[pltAppState->MaxAllowableLevel()].bigEnd(XDIR))
     {
       amrPicturePtrArray[ZPLANE]->SetVLine(amrPicturePtrArray[ZPLANE]->
 					   GetVLine()+1* currentScale);
@@ -3348,13 +3579,11 @@ void PltApp::DoForwardStep(int plane) {
     amrPicturePtrArray[YPLANE]->SetVLine(0);
     amrPicturePtrArray[YPLANE]->DoExposePicture();
     amrPicturePtrArray[XPLANE]->APChangeSlice(amrPicturePtrArray[XPLANE]->
-		  GetSubDomain()[amrPicturePtrArray[XPLANE]->
-				MaxAllowableLevel()].smallEnd(XDIR));
+		  GetSubDomain()[pltAppState->MaxAllowableLevel()].smallEnd(XDIR));
     break;
   case YPLANE:
     if(amrPicturePtrArray[YPLANE]->GetSlice() < amrPicturePtrArray[YPLANE]->
-       GetSubDomain()[amrPicturePtrArray[YPLANE]->
-		     MaxAllowableLevel()].bigEnd(YDIR))
+       GetSubDomain()[pltAppState->MaxAllowableLevel()].bigEnd(YDIR))
     {
       amrPicturePtrArray[XPLANE]->SetVLine(amrPicturePtrArray[XPLANE]->
 					   GetVLine()+1* currentScale);
@@ -3372,13 +3601,11 @@ void PltApp::DoForwardStep(int plane) {
 					 ImageSizeV()-1);
     amrPicturePtrArray[ZPLANE]->DoExposePicture();
     amrPicturePtrArray[YPLANE]->APChangeSlice(amrPicturePtrArray[YPLANE]->
-		  GetSubDomain()[amrPicturePtrArray[YPLANE]->
-				MaxAllowableLevel()].smallEnd(YDIR));
+		  GetSubDomain()[pltAppState->MaxAllowableLevel()].smallEnd(YDIR));
     break;
   case ZPLANE:
     if(amrPicturePtrArray[ZPLANE]->GetSlice() < amrPicturePtrArray[ZPLANE]->
-       GetSubDomain()[amrPicturePtrArray[ZPLANE]->
-		     MaxAllowableLevel()].bigEnd(ZDIR))
+       GetSubDomain()[pltAppState->MaxAllowableLevel()].bigEnd(ZDIR))
     {
       amrPicturePtrArray[XPLANE]->SetHLine(amrPicturePtrArray[XPLANE]->
 					   GetHLine()-1* currentScale);
@@ -3397,8 +3624,7 @@ void PltApp::DoForwardStep(int plane) {
 					 ImageSizeV()-1);
     amrPicturePtrArray[YPLANE]->DoExposePicture();
     amrPicturePtrArray[ZPLANE]->APChangeSlice(amrPicturePtrArray[ZPLANE]->
-		  GetSubDomain()[amrPicturePtrArray[ZPLANE]->
-				MaxAllowableLevel()].smallEnd(ZDIR));
+		  GetSubDomain()[pltAppState->MaxAllowableLevel()].smallEnd(ZDIR));
   }
 #if (BL_SPACEDIM == 3)
   //what about voume rendering?
@@ -3470,6 +3696,7 @@ void PltApp::DoAnimBackStep() {
   if(currentFrame < 0) {
     currentFrame = animFrames - 1;
   }
+  pltAppState->SetCurrentFrame(currentFrame);
   ShowFrame();
 }
 
@@ -3485,6 +3712,7 @@ void PltApp::DoAnimForwardStep() {
   if(currentFrame == animFrames) {
     currentFrame = 0;
   }
+  pltAppState->SetCurrentFrame(currentFrame);
   ShowFrame();
 }
 
@@ -3493,6 +3721,7 @@ void PltApp::DoAnimForwardStep() {
 void PltApp::DoAnimFileScale(Widget, XtPointer, XtPointer cbs) {
   StopAnimation();
   currentFrame = ((XmScaleCallbackStruct *) cbs)->value;
+  pltAppState->SetCurrentFrame(currentFrame);
   ShowFrame();
 }
 
@@ -3502,31 +3731,33 @@ void PltApp::ResetAnimation() {
   StopAnimation();
   if( ! interfaceReady) {
 #   if(BL_SPACEDIM == 2)
-    int maxAllowableLevel(amrPicturePtrArray[ZPLANE]->MaxAllowableLevel());
-    int newContourNum(amrPicturePtrArray[ZPLANE]->GetContourNumber());
-    AmrPicture *tempap = amrPicturePtrArray[ZPLANE];
-    Array<Box> domain = tempap->GetSubDomain();
-    char tempString[BUFSIZ];
-    strcpy(tempString, tempap->CurrentDerived().c_str());
-    tempap->SetDataServicesPtr(dataServicesPtr[currentFrame]); 
-    
-    const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
-    Box fineDomain(domain[tempap->MaxAllowableLevel()]);
-    fineDomain.refine(CRRBetweenLevels(tempap->MaxAllowableLevel(),
-				       amrData.FinestLevel(), amrData.RefRatio()));
-    amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, minAllowableLevel,
-						GAptr, fineDomain, 
-						tempap, NULL, this,
-						pltAppState,
-						bCartGridSmoothing);
-    amrPicturePtrArray[ZPLANE]->SetMaxDrawnLevel(maxDrawnLevel);
-    SetNumContours(false);
+    int maxAllowableLevel(pltAppState->MaxAllowableLevel());
+    //int newContourNum(amrPicturePtrArray[ZPLANE]->GetContourNumber());
+    AmrPicture *Tempap = amrPicturePtrArray[ZPLANE];
     XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
 			 (XtEventHandler) &PltApp::StaticEvent,
-			 (XtPointer) tempap);
-    delete tempap;
+			 (XtPointer) Tempap);
+    delete Tempap;
+    Array<Box> domain = amrPicturePtrArray[ZPLANE]->GetSubDomain();
+    amrPicturePtrArray[ZPLANE]->SetDataServicesPtr(dataServicesPtr[currentFrame]); 
+    
+    const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+    Box fineDomain(domain[pltAppState->MaxAllowableLevel()]);
+    fineDomain.refine(CRRBetweenLevels(pltAppState->MaxAllowableLevel(),
+				       amrData.FinestLevel(), amrData.RefRatio()));
+    amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, GAptr, fineDomain, 
+						NULL, this,
+						pltAppState,
+						bCartGridSmoothing);
+    pltAppState->SetMaxDrawnLevel(maxDrawnLevel);
+    //amrPicturePtrArray[ZPLANE]->SetMaxDrawnLevel(maxDrawnLevel);
+    //SetNumContours(false);
+    //XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
+			 //(XtEventHandler) &PltApp::StaticEvent,
+			 //(XtPointer) Tempap);
+    //delete Tempap;
     amrPicturePtrArray[ZPLANE]->CreatePicture(XtWindow(wPlotPlane[ZPLANE]),
-					      pltPaletteptr, tempString);
+					      pltPaletteptr);
     AddStaticEventHandler(wPlotPlane[ZPLANE], ExposureMask,
 			  &PltApp::PADoExposePicture, (XtPointer) ZPLANE);
     interfaceReady = true;
@@ -3594,6 +3825,7 @@ void PltApp::DoUpdateFrame(Widget, XtPointer, XtPointer) {
       currentFrame = animFrames - 1;
     }
   }
+  pltAppState->SetCurrentFrame(currentFrame);
   ShowFrame();
   XSync(display, false);
   animationIId = AddStaticTimeOut(frameSpeed, &PltApp::DoUpdateFrame);
@@ -3604,43 +3836,49 @@ void PltApp::DoUpdateFrame(Widget, XtPointer, XtPointer) {
 void PltApp::ShowFrame() {
   interfaceReady = false;
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
-  if( ! readyFrames[currentFrame] || datasetShowing || rangeType == USEFILE) {
+  if( ! readyFrames[currentFrame] || datasetShowing ||
+      currentRangeType == FILEMINMAX)
+  {
 #   if(BL_SPACEDIM == 2)
-    AmrPicture *tempap = amrPicturePtrArray[ZPLANE];
-    Array<Box> domain = tempap->GetSubDomain();
-    char tempString[BUFSIZ];
-    strcpy(tempString, tempap->CurrentDerived().c_str());
+    AmrPicture *tempapSF = amrPicturePtrArray[ZPLANE];
+    Array<Box> domain = amrPicturePtrArray[ZPLANE]->GetSubDomain();
+    XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
+			 (XtEventHandler) &PltApp::StaticEvent,
+			 (XtPointer) tempapSF);
+    delete tempapSF;
     
-    tempap->SetDataServicesPtr(dataServicesPtr[currentFrame]);
-    int newContourNum(tempap->GetContourNumber());
+    //tempapSF->SetDataServicesPtr(dataServicesPtr[currentFrame]);
     
     int finestLevel(amrData.FinestLevel());
     int maxlev(DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
-					  finestLevel, MaxPictureSize(), amrData.RefRatio()));
+					  finestLevel, MaxPictureSize(),
+					  amrData.RefRatio()));
     
-    Box fineDomain(domain[tempap->MaxAllowableLevel()]);
-    fineDomain.refine(CRRBetweenLevels(tempap->MaxAllowableLevel(),
+    pltAppState->SetMaxAllowableLevel(maxlev);
+    int minAllowableLevel(pltAppState->MinAllowableLevel());
+    Box fineDomain(domain[pltAppState->MaxAllowableLevel()]);
+    fineDomain.refine(CRRBetweenLevels(pltAppState->MaxAllowableLevel(),
 				       finestLevel, amrData.RefRatio()));
-    amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, minAllowableLevel, 
-						GAptr, fineDomain, 
-						tempap, NULL, this,
+    amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, GAptr, fineDomain, 
+						NULL, this,
 						pltAppState,
 						bCartGridSmoothing);
-    XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
-			 (XtEventHandler) &PltApp::StaticEvent,
-			 (XtPointer) tempap);
-    SetNumContours(false);
-    delete tempap;
+    //XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
+			 //(XtEventHandler) &PltApp::StaticEvent,
+			 //(XtPointer) tempapSF);
+    //SetNumContours(false);
+    //delete tempapSF;
     
-    amrPicturePtrArray[ZPLANE]->SetMaxDrawnLevel(maxDrawnLevel);
+    pltAppState->SetMaxDrawnLevel(maxDrawnLevel);
+    //amrPicturePtrArray[ZPLANE]->SetMaxDrawnLevel(maxDrawnLevel);
     amrPicturePtrArray[ZPLANE]->CreatePicture(XtWindow(wPlotPlane[ZPLANE]),
-					      pltPaletteptr, tempString);
+					      pltPaletteptr);
     AddStaticEventHandler(wPlotPlane[ZPLANE], ExposureMask,
 			  &PltApp::PADoExposePicture, (XtPointer) ZPLANE);
     frameBuffer[currentFrame] = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
 #   endif
     readyFrames[currentFrame] = true;
-    paletteDrawn = (rangeType == USEFILE) ? false : true;
+    paletteDrawn = (currentRangeType == FILEMINMAX) ? false : true;
   }
   
   XPutImage(display, XtWindow(wPlotPlane[ZPLANE]), xgc,
@@ -3697,15 +3935,18 @@ void PltApp::ShowFrame() {
 #endif
 }  // end ShowFrame
 
+
 // -------------------------------------------------------------------
+/*
 void PltApp::SetGlobalMinMax(Real specifiedMin, Real specifiedMax) {
   BL_ASSERT(specifiedMax > specifiedMin);
+  pltAppState->SetMinMaxRangeType(USERMINMAX);
   for(int np(0); np < NPLANES; ++np) {
-    amrPicturePtrArray[np]->SetWhichRange(USESPECIFIED);
     amrPicturePtrArray[np]->SetDataMin(specifiedMin);
     amrPicturePtrArray[np]->SetDataMax(specifiedMax);
   }
 }
+*/
 
 
 // -------------------------------------------------------------------
@@ -3794,8 +4035,8 @@ void PltApp::SetInitialFormatString(const aString &formatString) {
   PltApp::initialFormatString = formatString;
 }
 
-void PltApp::SetDefaultShowBoxes(int showBoxes) {
-  PltApp::defaultShowBoxes = showBoxes;
+void PltApp::SetDefaultShowBoxes(int showboxes) {
+  PltApp::defaultShowBoxes = showboxes;
 }
 
 void PltApp::SetInitialWindowHeight(int initWindowHeight) {

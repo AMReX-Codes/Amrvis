@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.H,v 1.25 2001-03-14 00:41:53 vince Exp $
+// $Id: Dataset.H,v 1.26 2001-04-16 16:41:21 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -66,7 +66,7 @@ class Dataset {
   Arg		args[MAXARGS];
   Box		*datasetRegion;
   unsigned int	pixSizeX, pixSizeY;
-  int		finestLevel, dataItemWidth, dataItemHeight;
+  int		dataItemWidth, dataItemHeight;
   int		maxAllowableLevel, maxDrawnLevel, minDrawnLevel, stringOk;
   int		noData, hDIR, vDIR, sDIR, numStrings, *myStringCount;
   char		buffer[BUFSIZ], dataString[MAXSTRINGWIDTH];

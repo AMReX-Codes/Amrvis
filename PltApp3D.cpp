@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.36 2001-03-23 20:51:21 vince Exp $
+// $Id: PltApp3D.cpp,v 1.37 2001-04-16 16:41:22 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -696,8 +696,10 @@ void PltApp::DoRender(Widget, XtPointer, XtPointer) {
     int iBlackIndex   = pltPaletteptr->BlackIndex();
     int iWhiteIndex   = pltPaletteptr->WhiteIndex();
     int iColorSlots   = pltPaletteptr->ColorSlots();
-    Real minUsing(amrPicturePtrArray[ZPLANE]->MinUsing());
-    Real maxUsing(amrPicturePtrArray[ZPLANE]->MaxUsing());
+    //Real minUsing(amrPicturePtrArray[ZPLANE]->MinUsing());
+    //Real maxUsing(amrPicturePtrArray[ZPLANE]->MaxUsing());
+    Real minUsing, maxUsing;
+    pltAppState->GetMinMax(minUsing, maxUsing);
     volRender->MakeSWFData(dataServicesPtr[currentFrame],
 			   minUsing, maxUsing,
 			   pltAppState->CurrentDerived(), 

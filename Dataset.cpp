@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.35 2001-03-14 00:41:53 vince Exp $
+// $Id: Dataset.cpp,v 1.36 2001-04-16 16:41:21 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -56,8 +56,7 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
   pltAppStatePtr = pltappstateptr;
   amrPicturePtr = apptr;
   dataServicesPtr = pltAppPtr->GetDataServicesPtr();
-  finestLevel = amrPicturePtr->FinestLevel();
-  maxAllowableLevel = amrPicturePtr->MaxAllowableLevel();
+  maxAllowableLevel = pltAppStatePtr->MaxAllowableLevel();
   char tempFormat[32];
   strcpy(tempFormat, pltAppPtr->GetFormatString().c_str());
   XmString sFormatString = XmStringCreateSimple(tempFormat);
@@ -307,8 +306,8 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   
   pltAppPtr = pltappptr;
   pltAppStatePtr = pltappstateptr;
-  maxDrawnLevel = pltAppPtr->MaxDrawnLevel(); 
-  minDrawnLevel = pltAppPtr->MinDrawnLevel();
+  maxDrawnLevel = pltAppStatePtr->MaxDrawnLevel(); 
+  minDrawnLevel = pltAppStatePtr->MinDrawnLevel();
   
   hDIR = hdir;
   vDIR = vdir;
@@ -335,8 +334,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   amrPicturePtr = apptr;
   dataServicesPtr = pltAppPtr->GetDataServicesPtr();
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
-  finestLevel = amrPicturePtr->FinestLevel();
-  maxAllowableLevel = amrPicturePtr->MaxAllowableLevel();
+  maxAllowableLevel = pltAppStatePtr->MaxAllowableLevel();
   
   // set up datasetRegion
   //we shall waste some space to that datasetRegion[lev] corresponds to lev
@@ -492,8 +490,11 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
     stringCount = 0; 
     int lastLevLow(0), lastLevHigh(0);
     int csm1(colorSlots - 1);
-    Real datamin(amrPicturePtr->GetWhichMin());
-    Real globalDiff(amrPicturePtr->GetWhichMax() - amrPicturePtr->GetWhichMin());
+    //Real datamin(amrPicturePtr->GetWhichMin());
+    Real datamin, datamax;
+    pltAppStatePtr->GetMinMax(datamin, datamax);
+    //Real globalDiff(amrPicturePtr->GetWhichMax() - amrPicturePtr->GetWhichMin());
+    Real globalDiff(datamax - datamin);
     Real oneOverGlobalDiff;
     if(globalDiff < FLT_MIN) {
       oneOverGlobalDiff = 0.0;  // so we dont divide by zero
@@ -517,8 +518,9 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
           dataPoint = dataFabTemp.dataPtr();
           int ddl;
           int crr = CRRBetweenLevels(lev, maxDrawnLevel, amrData.RefRatio());
-          Real amrmax(amrPicturePtr->GetWhichMax());
-          Real amrmin(amrPicturePtr->GetWhichMin());
+          //Real amrmax(amrPicturePtr->GetWhichMax());
+          //Real amrmin(amrPicturePtr->GetWhichMin());
+	  Real amrmin(datamin), amrmax(datamax);
           
           for(d = 0; d < dataBox.length(vDIR); ++d) {
             ddl = d * dataBox.length(hDIR);

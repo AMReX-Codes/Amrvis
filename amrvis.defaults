@@ -7,6 +7,7 @@ numberformat          %8.5f
 maxpixmapsize         200000
 reservesystemcolors   38
 reservesystemcolors   24
+reservesystemcolors   34
 showboxes             FALSE
 windowheight          550
 windowwidth           800

@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.cpp,v 1.39 2001-03-14 00:41:55 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.40 2001-04-16 16:41:22 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -10,6 +10,7 @@
 
 #include "ProjectionPicture.H"
 #include "PltApp.H"
+#include "PltAppState.H"
 #include "DataServices.H"
 #include "Volume.H"
 
@@ -29,8 +30,8 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
   int lev;
   pltAppPtr = pltappptr;
   amrPicturePtr = pltAppPtr->GetAmrPicturePtr(XY); 
-  minDrawnLevel = pltAppPtr->MinDrawnLevel();
-  maxDrawnLevel = pltAppPtr->MaxDrawnLevel();
+  minDrawnLevel = pltAppPtr->GetPltAppState()->MinDrawnLevel();
+  maxDrawnLevel = pltAppPtr->GetPltAppState()->MaxDrawnLevel();
   drawingArea = da; 
   viewTransformPtr = vtptr;
   daWidth = w;
@@ -45,7 +46,7 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
   pixCreated = false;
   imageData = NULL;
   volpackImageData = 0;
-  maxDataLevel = amrPicturePtr->MaxAllowableLevel();
+  maxDataLevel = pltAppPtr->GetPltAppState()->MaxAllowableLevel();
   theDomain = amrPicturePtr->GetSubDomain();
 
 #ifdef BL_VOLUMERENDER
@@ -144,10 +145,10 @@ void ProjectionPicture::TransformBoxPoints(int iLevel, int iBoxIndex) {
 
 // -------------------------------------------------------------------
 void ProjectionPicture::MakeBoxes() {
-  minDrawnLevel = pltAppPtr->MinDrawnLevel();
-  maxDrawnLevel = pltAppPtr->MaxDrawnLevel();
+  minDrawnLevel = pltAppPtr->GetPltAppState()->MinDrawnLevel();
+  maxDrawnLevel = pltAppPtr->GetPltAppState()->MaxDrawnLevel();
 
-  if(amrPicturePtr->ShowingBoxes()) {
+  if(pltAppPtr->GetPltAppState()->GetShowingBoxes()) {
     for(int iLevel(minDrawnLevel); iLevel <= maxDrawnLevel; ++iLevel) {
       int nBoxes(boxTrans[iLevel].length());
       for(int iBox(0); iBox < nBoxes; ++iBox) {
@@ -188,8 +189,8 @@ void ProjectionPicture::MakeBoundingBox() {
 // -------------------------------------------------------------------
 void ProjectionPicture::MakeSubCutBox() {
     Real px, py, pz;
-    minDrawnLevel = pltAppPtr->MinDrawnLevel();
-    maxDrawnLevel = pltAppPtr->MaxDrawnLevel();
+    minDrawnLevel = pltAppPtr->GetPltAppState()->MinDrawnLevel();
+    maxDrawnLevel = pltAppPtr->GetPltAppState()->MaxDrawnLevel();
     
     for(int i(0); i < NVERTICIES; ++i) {
         viewTransformPtr->
@@ -274,10 +275,10 @@ void ProjectionPicture::DrawBoxes(int iFromLevel, int iToLevel) {
 void ProjectionPicture::DrawBoxesIntoDrawable(const Drawable &drawable,
 					      int iFromLevel, int iToLevel)
 {
-  minDrawnLevel = pltAppPtr->MinDrawnLevel();
-  maxDrawnLevel = pltAppPtr->MaxDrawnLevel();
+  minDrawnLevel = pltAppPtr->GetPltAppState()->MinDrawnLevel();
+  maxDrawnLevel = pltAppPtr->GetPltAppState()->MaxDrawnLevel();
   
-  if(amrPicturePtr->ShowingBoxes()) {
+  if(pltAppPtr->GetPltAppState()->GetShowingBoxes()) {
     for(int iLevel = iFromLevel; iLevel <= iToLevel; ++iLevel) {
       // FIXME:
       XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
@@ -373,8 +374,8 @@ void ProjectionPicture::LabelAxes() {
   int xHere(1);	// Where to label axes with X, Y, and Z
   int yHere(3);
   int zHere(4);
-  minDrawnLevel = pltAppPtr->MinDrawnLevel();
-  maxDrawnLevel = pltAppPtr->MaxDrawnLevel();
+  minDrawnLevel = pltAppPtr->GetPltAppState()->MinDrawnLevel();
+  maxDrawnLevel = pltAppPtr->GetPltAppState()->MaxDrawnLevel();
   XDrawString(XtDisplay(drawingArea), XtWindow(drawingArea),
               XtScreen(drawingArea)->default_gc,
               transBoundingBox.vertices[xHere].x,
@@ -410,8 +411,8 @@ void ProjectionPicture::SetSubCut(const Box &newbox) {
 // -------------------------------------------------------------------
 void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
 
-  minDrawnLevel = pltAppPtr->MinDrawnLevel();
-  maxDrawnLevel = pltAppPtr->MaxDrawnLevel();
+  minDrawnLevel = pltAppPtr->GetPltAppState()->MinDrawnLevel();
+  maxDrawnLevel = pltAppPtr->GetPltAppState()->MaxDrawnLevel();
   
   daWidth = w;
   daHeight = h;

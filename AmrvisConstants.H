@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrvisConstants.H,v 1.11 2001-03-15 19:32:43 vince Exp $
+// $Id: AmrvisConstants.H,v 1.12 2001-04-16 16:41:21 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -54,8 +54,14 @@ const int PALETTEVIEW = 4;
 const int WOFFSET = 4;
 
 enum AnimDirection { ANIMPOSDIR = 0, ANIMNEGDIR };
-enum RangeType {
-    USEGLOBAL = 0, USELOCAL, USESPECIFIED, USEFILE, NRANGES, INVALIDRANGE
+
+enum MinMaxRangeType {
+    GLOBALMINMAX    = 0,
+    SUBREGIONMINMAX = 1,
+    USERMINMAX      = 2,
+    FILEMINMAX      = 3,
+    NUMBEROFMINMAX  = 4,
+    INVALIDMINMAX
 };
 
 enum ContourType {
@@ -80,9 +86,11 @@ static char *FileTypeString[] = {
 
 
 #ifdef BL_USE_FLOAT
+//#define AV_SMALL_REAL FLT_MIN
 #define AV_BIG_REAL FLT_MAX
 #else
 # ifdef BL_USE_DOUBLE
+//#define AV_SMALL_REAL DBL_MIN
 #define AV_BIG_REAL DBL_MAX
 # else
 #   error Must define BL_USE_FLOAT or BL_USE_DOUBLE

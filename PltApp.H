@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.43 2001-03-23 20:51:21 vince Exp $
+// $Id: PltApp.H,v 1.44 2001-04-16 16:41:21 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -78,7 +78,8 @@ public:
   // for subregion
   PltApp(XtAppContext app, Widget w, const Box &region,
          const IntVect &offset,
-         AmrPicture *parentPtr, PltApp *pltparent,
+         //AmrPicture *parentPtr,
+	 PltApp *pltparent,
          const aString &palfile, bool isAnim,
          const aString &newderived, const aString &file);
   
@@ -115,13 +116,14 @@ public:
   Real GlobalMin()    const        { return globalMin; }
   Real GlobalMax()    const        { return globalMax; }
   //int CurrentScale()  const        { return currentScale; }
-  int MinAllowableLevel() const    { return minAllowableLevel; }
-  int MinDrawnLevel() const        { return minDrawnLevel; }
-  int MaxDrawnLevel() const        { return maxDrawnLevel; }
-  bool GetShowBoxes() const        { return showBoxes; }
-  void SetShowBoxes(bool showing)  { showBoxes = showing; }
+  //int MinAllowableLevel() const    { return minAllowableLevel; }
+  //int MinDrawnLevel() const        { return minDrawnLevel; }
+  //int MaxDrawnLevel() const        { return maxDrawnLevel; }
+  //bool GetShowBoxes() const        { return showBoxes; }
+  //void SetShowBoxes(bool showing)  { showBoxes = showing; }
   GraphicsAttributes *GetGAptr() const  { return GAptr; }
   //const aString &CurrentDerived() const { return currentDerived; }
+  PltAppState *GetPltAppState() const { return pltAppState; }
 
   const aString &GetFileName();
   bool  PaletteDrawn();
@@ -133,7 +135,7 @@ public:
   
   XYPlotDataList *CreateLinePlot(int V, int sdir, int mal, int ixY,
 				 const aString *derived);
-  void SetGlobalMinMax(Real specifiedMin, Real specifiedMax);
+  //void SetGlobalMinMax(Real specifiedMin, Real specifiedMax);
   GC GetRbgc() const { return rbgc; }
 
   void QuitDataset();
@@ -154,7 +156,7 @@ public:
 private:
   Widget wTopLevel, wAmrVisTopLevel;
   Widget wScrollArea[NPLANES], wPlotPlane[NPLANES];
-  Widget wRangeRadioButton[NRANGES];
+  Widget wRangeRadioButton[NUMBEROFMINMAX];
   Widget wUserMin, wUserMax;
   Widget wWhichFileLabel, wWhichFileScale, wWhichTimeLabel;
   Widget wControlForm;
@@ -186,24 +188,24 @@ private:
   Palette *pltPaletteptr;
   AmrPicture *amrPicturePtrArray[NPLANES];
   IntVect ivLowOffsetMAL;  // at maxAllowableLevel
-  RangeType rangeType;
-  bool animating2d, setRangeShowing, contoursShowing, infoShowing,
-    datasetShowing, paletteDrawn, showBoxes,  writingRGB, interfaceReady,
-    paletteCBQ;
+  MinMaxRangeType currentRangeType;
+  bool animating2d, setRangeShowing, contoursShowing, infoShowing;
+  bool datasetShowing, paletteDrawn, writingRGB, interfaceReady;
+  bool paletteCBQ;
   int servingButton;
-  int numContours;
-  int minDrawnLevel, maxDrawnLevel, minDataLevel, maxDataLevel;
+  //int numContours;
+  int minDrawnLevel, maxDrawnLevel, maxDataLevel;
   int currentFrame, animFrames, frameSpeed;
   int activeView;
   int startX, startY, endX, endY;
   //int currentScale;
   int maxAllowableScale;
-  int minAllowableLevel;
+  //int minAllowableLevel;
   bool bCartGridSmoothing;
   aString contourNumString, formatString, fileName, palFilename;
   //aString currentDerived;
   char buffer[BUFSIZ];
-  Box	trueRegion, selectionBox;
+  Box trueRegion, selectionBox;
   Dataset *datasetPtr;
   GraphicsAttributes	*GAptr;
   Array<DataServices *> dataServicesPtr;
@@ -245,7 +247,6 @@ private:
 #endif
   
   void PltAppInit();           // called by constructors
-  PltAppState *GetPltAppState() const { return pltAppState; }
 
   void DoDrawPointerLocation(Widget, XtPointer, XtPointer);
   void ChangeScale(Widget, XtPointer, XtPointer);
@@ -320,6 +321,12 @@ private:
   void Clear();
 #endif
 
+  void SetMinMax(const MinMaxRangeType mmrangetype, const int framenumber,
+		 const aString &currentderived, const int derivednumber,
+		 const Array<Box> &onBox,
+		 const int coarselevel, const int finelevel,
+		 const bool resetIfSet);
+
   void AddStaticCallback(Widget w, String whichcb, memberCB whichf, void *d = NULL);
   void AddStaticEventHandler(Widget w, EventMask mask, memberCB cbf, void *d = NULL);
   XtIntervalId AddStaticTimeOut(int time, memberCB whichf, void *d = NULL);
@@ -338,7 +345,8 @@ private:
 };
 
 void	SubregionPltApp(Widget toplevel, const Box &region, const IntVect &offset,
-			AmrPicture *app, PltApp *pltparent, const aString &palfile,
+			//AmrPicture *app,
+			PltApp *pltparent, const aString &palfile,
 			int isanim, const aString &derived,
 			const aString &filename);
 void	CBQuitPltApp(Widget, XtPointer, XtPointer);

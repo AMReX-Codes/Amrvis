@@ -1,6 +1,6 @@
 
 //
-// $Id: PltAppOutput.cpp,v 1.21 2001-03-14 00:41:55 vince Exp $
+// $Id: PltAppOutput.cpp,v 1.22 2001-04-16 16:41:22 vince Exp $
 //
 
 #include <Xm/Xm.h>
@@ -225,7 +225,7 @@ void PltApp::DoCreateFABFile(Widget w, XtPointer, XtPointer call_data) {
   sprintf(fabfilename, "%s.fab", fileNameBase);
   aString fabFileName(fabfilename);
         
-  aString derivedQuantity(amrPicturePtrArray[0]->CurrentDerived());
+  aString derivedQuantity(pltAppState->CurrentDerived());
   Array<Box> bx = amrPicturePtrArray[0]->GetSubDomain();
   DataServices::Dispatch(DataServices::WriteFabOneVar,
 			 dataServicesPtr[currentFrame],

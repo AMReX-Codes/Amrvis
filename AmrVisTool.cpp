@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.48 2001-03-17 16:54:38 car Exp $
+// $Id: AmrVisTool.cpp,v 1.49 2001-04-16 16:41:21 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -508,11 +508,13 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
 // ---------------------------------------------------------------
 void SubregionPltApp(Widget wTopLevel, const Box &trueRegion,
 		     const IntVect &offset,
-		     AmrPicture *parentPicturePtr, PltApp *pltparent,
+		     //AmrPicture *parentPicturePtr,
+		     PltApp *pltparent,
 		     const aString &palfile, int isAnim,
 		     const aString &currentderived, const aString &file)
 {
-  PltApp *temp = new PltApp(app, wTopLevel, trueRegion, offset, parentPicturePtr,
+  PltApp *temp = new PltApp(app, wTopLevel, trueRegion, offset,
+		    //parentPicturePtr,
 		    pltparent, palfile, isAnim, currentderived, file);
   if(temp == NULL) {
     cerr << "Error in SubregionPltApp:  could not make a new PltApp." << endl;

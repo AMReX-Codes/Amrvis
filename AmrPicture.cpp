@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.56 2001-03-23 20:51:20 vince Exp $
+// $Id: AmrPicture.cpp,v 1.57 2001-04-16 16:41:21 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -34,7 +34,7 @@ bool DrawContours(ContourType cType) {
 
 
 // ---------------------------------------------------------------------
-AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
+AmrPicture::AmrPicture(GraphicsAttributes *gaptr,
 		       PltApp *pltappptr, PltAppState *pltappstateptr,
 		       DataServices *dataservicesptr,
 		       bool bcartgridsmoothing)
@@ -43,41 +43,43 @@ AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
              pltAppStatePtr(pltappstateptr),
              dataServicesPtr(dataservicesptr),
              myView(XY),
-             minDrawnLevel(mindrawnlevel),
+             //minDrawnLevel(mindrawnlevel),
              bCartGridSmoothing(bcartgridsmoothing),
-             isSubDomain(false),
-             findSubRange(false)
+             isSubDomain(false)
+             //findSubRange(false)
 {
   int i, ilev;
 
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
 
-  dataMinSpecified.resize(amrData.NumDeriveFunc(), -42.0);
-  dataMaxSpecified.resize(amrData.NumDeriveFunc(),  42.0);
-  dataMinSpecifiedSet.resize(amrData.NumDeriveFunc(), false);
-  dataMaxSpecifiedSet.resize(amrData.NumDeriveFunc(), false);
-  currDerivedNumber = amrData.StateNumber(pltAppStatePtr->CurrentDerived());
-  if(UseSpecifiedMinMax()) {
-    whichRange = USESPECIFIED;
+  //dataMinSpecified.resize(amrData.NumDeriveFunc(), -42.0);
+  //dataMaxSpecified.resize(amrData.NumDeriveFunc(),  42.0);
+  //dataMinSpecifiedSet.resize(amrData.NumDeriveFunc(), false);
+  //dataMaxSpecifiedSet.resize(amrData.NumDeriveFunc(), false);
+  //currDerivedNumber = pltAppStatePtr->CurrentDerivedNumber();
+  //if(UseSpecifiedMinMax()) {
+    //whichRange = USESPECIFIED;
     //cout << "_here 1:  setting specifiedminmax to GetSpecMM" << endl;
-    GetSpecifiedMinMax(dataMinSpecified[currDerivedNumber],
-		       dataMaxSpecified[currDerivedNumber]);
-  } else {
-    whichRange = USEGLOBAL;
+    //GetSpecifiedMinMax(dataMinSpecified[currDerivedNumber],
+		       //dataMaxSpecified[currDerivedNumber]);
+  //} else {
+    //whichRange = USEGLOBAL;
     //cout << "_here 2:  setting specifiedminmax to 0.0" << endl;
-    dataMinSpecified[currDerivedNumber] = 0.0;
-    dataMaxSpecified[currDerivedNumber] = 0.0;
-  }
-  showBoxes = PltApp::GetDefaultShowBoxes();
+    //dataMinSpecified[currDerivedNumber] = 0.0;
+    //dataMaxSpecified[currDerivedNumber] = 0.0;
+  //}
+  //showBoxes = PltApp::GetDefaultShowBoxes();
 
-  finestLevel = amrData.FinestLevel();
-  maxAllowableLevel =
-          DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
-		        finestLevel, MaxPictureSize(), amrData.RefRatio());
+  //finestLevel = amrData.FinestLevel();
+  //maxAllowableLevel = DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
+		        //finestLevel, MaxPictureSize(), amrData.RefRatio());
+  int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
 
   numberOfLevels    = maxAllowableLevel + 1;
-  maxDrawnLevel     = maxAllowableLevel;
+  //maxDrawnLevel     = maxAllowableLevel;
   maxLevelWithGrids = maxAllowableLevel;
+
+  int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
 
   subDomain.resize(numberOfLevels);
   for(ilev = 0; ilev <= maxAllowableLevel; ++ilev) {  // set type
@@ -126,9 +128,8 @@ AmrPicture::AmrPicture(int mindrawnlevel, GraphicsAttributes *gaptr,
 
 
 // ---------------------------------------------------------------------
-AmrPicture::AmrPicture(int view, int mindrawnlevel, 
-                       GraphicsAttributes *gaptr, Box region,
-                       AmrPicture *parentPicturePtr,
+AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
+		       const Box &region,
                        PltApp *parentPltAppPtr,
 		       PltApp *pltappptr, PltAppState *pltappstateptr,
 		       bool bcartgridsmoothing)
@@ -136,50 +137,48 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
              pltAppPtr(pltappptr),
              pltAppStatePtr(pltappstateptr),
              myView(view),
-             minDrawnLevel(mindrawnlevel),
+             //minDrawnLevel(mindrawnlevel),
              bCartGridSmoothing(bcartgridsmoothing),
              isSubDomain(true)
 {
-  BL_ASSERT(parentPicturePtr != NULL);
   BL_ASSERT(pltappptr != NULL);
   int ilev;
 
-  if(myView == XY) {
-    findSubRange = true;
-  } else {
-    findSubRange = false;
-  }
   dataServicesPtr = pltAppPtr->GetDataServicesPtr();
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
 
-  dataMinSpecified.resize(amrData.NumDeriveFunc(), -42.0);
-  dataMaxSpecified.resize(amrData.NumDeriveFunc(),  42.0);
-  dataMinSpecifiedSet.resize(amrData.NumDeriveFunc(), false);
-  dataMaxSpecifiedSet.resize(amrData.NumDeriveFunc(), false);
-  currDerivedNumber = parentPicturePtr->currDerivedNumber;
-  cout << "-------------- _in AmrPicture::constructor 2" << endl;
-  SHOWVAL(currDerivedNumber)
-  SHOWVAL(pltAppStatePtr->CurrentDerived())
+  //dataMinSpecified.resize(amrData.NumDeriveFunc(), -42.0);
+  //dataMaxSpecified.resize(amrData.NumDeriveFunc(),  42.0);
+  //dataMinSpecifiedSet.resize(amrData.NumDeriveFunc(), false);
+  //dataMaxSpecifiedSet.resize(amrData.NumDeriveFunc(), false);
+  //currDerivedNumber = parentPicturePtr->currDerivedNumber;
+  //cout << "-------------- _in AmrPicture::constructor 2" << endl;
+  //SHOWVAL(currDerivedNumber)
+  //SHOWVAL(pltAppStatePtr->CurrentDerived())
 
-  whichRange = parentPicturePtr->GetWhichRange();
-  dataMinSpecified[currDerivedNumber] = parentPicturePtr->GetSpecifiedMin();
-  dataMaxSpecified[currDerivedNumber] = parentPicturePtr->GetSpecifiedMax();
-  dataMinSpecifiedSet[currDerivedNumber] = true;
-  dataMaxSpecifiedSet[currDerivedNumber] = true;
-  showBoxes = parentPicturePtr->ShowingBoxes();
+  //whichRange = parentPicturePtr->GetWhichRange();
+  //dataMinSpecified[currDerivedNumber] = parentPicturePtr->GetSpecifiedMin();
+  //dataMaxSpecified[currDerivedNumber] = parentPicturePtr->GetSpecifiedMax();
+  //dataMinSpecifiedSet[currDerivedNumber] = true;
+  //dataMaxSpecifiedSet[currDerivedNumber] = true;
+  //showBoxes = parentPicturePtr->ShowingBoxes();
 
-  finestLevel = amrData.FinestLevel();
-  maxAllowableLevel = DetermineMaxAllowableLevel(region, finestLevel,
-				   MaxPictureSize(), amrData.RefRatio());
+  //finestLevel = amrData.FinestLevel();
+  //maxAllowableLevel = DetermineMaxAllowableLevel(region, finestLevel,
+				   //MaxPictureSize(), amrData.RefRatio());
+  int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
 
   numberOfLevels    = maxAllowableLevel + 1;
-  maxDrawnLevel     = maxAllowableLevel;
+  int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
   maxLevelWithGrids = maxAllowableLevel;
  
+  int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
+
   subDomain.resize(numberOfLevels);
-  // region is at the finestLevel
-  subDomain[maxAllowableLevel] = region.coarsen(CRRBetweenLevels(maxAllowableLevel,
-					     finestLevel, amrData.RefRatio()));
+  Box sdBox(region);     // region is at the finestLevel
+  subDomain[maxAllowableLevel] = sdBox.coarsen(CRRBetweenLevels(maxAllowableLevel,
+					       pltAppStatePtr->FinestLevel(),
+					       amrData.RefRatio()));
 
   for(ilev = maxAllowableLevel - 1; ilev >= minDrawnLevel; --ilev) {
     subDomain[ilev] = subDomain[maxAllowableLevel];
@@ -226,7 +225,7 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
 
     if(parentPltAppPtr != NULL) {
       int tempSlice = parentPltAppPtr->GetAmrPicturePtr(myView)->GetSlice();
-      tempSlice *= CRRBetweenLevels(parentPltAppPtr->MaxDrawnLevel(), 
+      tempSlice *= CRRBetweenLevels(parentPltAppPtr->GetPltAppState()->MaxDrawnLevel(), 
                                     maxDrawnLevel, amrData.RefRatio());
       slice = Max(Min(tempSlice,
                       subDomain[maxAllowableLevel].bigEnd(YZ-myView)), 
@@ -253,8 +252,9 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
 
 // ---------------------------------------------------------------------
 void AmrPicture::AmrPictureInit() {
-  numberOfContours = 0;
   int iLevel;
+  int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
+  int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
   if(myView==XZ) {
     sliceBox[maxAllowableLevel].setSmall(YDIR, slice);
     sliceBox[maxAllowableLevel].setBig(YDIR, slice);
@@ -311,7 +311,6 @@ void AmrPicture::AmrPictureInit() {
   subcutX = 0;
   subcut2ndX = 0;
   framesMade = false;
-  maxsFound = false;
   if(myView == XZ) {
     hColor = MaxPaletteIndex();
     vColor = 65;
@@ -331,6 +330,7 @@ void AmrPicture::AmrPictureInit() {
 
 // ---------------------------------------------------------------------
 void AmrPicture::SetHVLine(int scale) {
+  int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
   int first(0);
   for(int i(0); i <= YZ; ++i) {
     if(i == myView) {
@@ -356,6 +356,8 @@ void AmrPicture::SetHVLine(int scale) {
 
 // ---------------------------------------------------------------------
 AmrPicture::~AmrPicture() {
+  int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
+  int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
   if(framesMade) {
     for(int isl(0); isl < subDomain[maxAllowableLevel].length(sliceDir); ++isl) {
       XDestroyImage(frameBuffer[isl]);
@@ -376,6 +378,8 @@ AmrPicture::~AmrPicture() {
 // ---------------------------------------------------------------------
 void AmrPicture::SetSlice(int view, int here) {
   int lev;
+  int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
+  int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
   sliceDir = YZ - view;
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
   BL_ASSERT(amrData.RefRatio().length() > 0);
@@ -457,6 +461,10 @@ void AmrPicture::SetSlice(int view, int here) {
 // ---------------------------------------------------------------------
 void AmrPicture::APChangeContour(ContourType prevCType) {
   ContourType cType(pltAppStatePtr->GetContourType());
+  Real minUsing, maxUsing;
+  pltAppStatePtr->GetMinMax(minUsing, maxUsing);
+  int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
+  int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
 
   if(DrawRaster(cType) != DrawRaster(prevCType)) {  // recreate the raster image
     AmrData &amrData = dataServicesPtr->AmrDataRef();
@@ -475,6 +483,7 @@ void AmrPicture::APChangeContour(ContourType prevCType) {
       palPtr->Draw(minUsing, maxUsing, pltAppPtr->GetFormatString());
     }
   }
+  int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
   APDraw(minDrawnLevel, maxDrawnLevel);
 }
 
@@ -486,8 +495,10 @@ void AmrPicture::DrawBoxes(Array< Array<GridPicture> > &gp, Drawable &drawable) 
   bool bIsWindow(true);
   bool bIsPixmap(false);
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
+  int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
+  int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
 
-  if(showBoxes) {
+  if(pltAppStatePtr->GetShowingBoxes()) {
     for(int level(minDrawnLevel); level <= maxDrawnLevel; ++level) {
       if(level == minDrawnLevel) {
         XSetForeground(display, xgc, palPtr->WhiteIndex());
@@ -661,21 +672,21 @@ void AmrPicture::APDraw(int fromLevel, int toLevel) {
     DrawVectorField(display, pixMap, xgc);
   }
 
-/*
-char *fontName = "12x24";
-XFontStruct *fontInfo;
-fontInfo = XLoadQueryFont(display, fontName);
+//
+//char *fontName = "12x24";
+//XFontStruct *fontInfo;
+//fontInfo = XLoadQueryFont(display, fontName);
 
-GC fontGC = XCreateGC(display, GAptr->PRoot(), 0, NULL);
-XSetFont(display, fontGC, fontInfo->fid);
+//GC fontGC = XCreateGC(display, GAptr->PRoot(), 0, NULL);
+//XSetFont(display, fontGC, fontInfo->fid);
 
-XSetForeground(display, fontGC, palPtr->WhiteIndex());
-  XDrawString(display, pixMap,
-              fontGC,
-              imageSizeH / 2,
-              imageSizeV / 2,
-              currentDerived.c_str(), currentDerived.length());
-*/
+//XSetForeground(display, fontGC, palPtr->WhiteIndex());
+  //XDrawString(display, pixMap,
+              //fontGC,
+              //imageSizeH / 2,
+              //imageSizeV / 2,
+              //currentDerived.c_str(), currentDerived.length());
+//
 
   if( ! pltAppPtr->Animating()) {  // this should always be true
     DoExposePicture();
@@ -683,11 +694,13 @@ XSetForeground(display, fontGC, palPtr->WhiteIndex());
 }  // end AmrPicture::Draw.
 
 
+/*
 // ---------------------------------------------------------------------
 void AmrPicture::ToggleBoxes() {
   showBoxes = ! showBoxes;
   DoExposePicture();
 }
+*/
 
 
 // ---------------------------------------------------------------------
@@ -805,38 +818,43 @@ void AmrPicture::APChangeSlice(int here) {
     DoStop();
   }
   SetSlice(myView, here);
-  APChangeDerived(currentDerived, palPtr);
+  APMakeImages(palPtr);
 }
 
 
 // ---------------------------------------------------------------------
-void AmrPicture::CreatePicture(Window drawPictureHere, Palette *palptr,
-				const aString &derived)
-{
+void AmrPicture::CreatePicture(Window drawPictureHere, Palette *palptr) {
   palPtr = palptr;
-  currentDerived = derived;
-  AmrData &amrData = dataServicesPtr->AmrDataRef();
-  currDerivedNumber = amrData.StateNumber(currentDerived);
+  //currentDerived = derived;
+  //AmrData &amrData = dataServicesPtr->AmrDataRef();
+  //currDerivedNumber = amrData.StateNumber(currentDerived);
+  //currDerivedNumber = pltAppStatePtr->CurrentDerivedNumber();
+  //BL_ASSERT(currDerivedNumber == amrData.StateNumber(derived));
+  //BL_ASSERT(derived == pltAppStatePtr->CurrentDerived());
   pictureWindow = drawPictureHere;
-  APChangeDerived(currentDerived, palptr);
+  APMakeImages(palptr);
 }
 
 
 // ---------------------------------------------------------------------
-void AmrPicture::APChangeDerived(aString derived, Palette *palptr) {
-  int lev;
-  char buffer[BUFSIZ];
-  Real dataMin, dataMax;
-  bool printDone(false);
+void AmrPicture::APMakeImages(Palette *palptr) {
+  //int lev;
+  //char buffer[BUFSIZ];
+  //Real dataMin, dataMax;
+  //bool printDone(false);
   BL_ASSERT(palptr != NULL);
   palPtr = palptr;
   AmrData &amrData = dataServicesPtr->AmrDataRef();
-  if(currentDerived != derived || whichRange == USEFILE) {
-    maxsFound = false;
+  //if(currentDerived != derived || whichRange == USEFILE)
+  if(pltAppStatePtr->GetMinMaxRangeType() == FILEMINMAX) {
+    //maxsFound = false;
     pltAppPtr->PaletteDrawn(false);
   }
 
-  if( ! maxsFound) {
+  int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
+  int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
+  //if( ! maxsFound)
+  {
     if(framesMade) {
       for(int i(0); i < subDomain[maxAllowableLevel].length(sliceDir); ++i) {
         XDestroyImage(frameBuffer[i]);
@@ -846,10 +864,11 @@ void AmrPicture::APChangeDerived(aString derived, Palette *palptr) {
     if(pendingTimeOut != 0) {
       DoStop();
     }
-    maxsFound = true;
-    currentDerived = derived;
-    currDerivedNumber = amrData.StateNumber(currentDerived);
+    //maxsFound = true;
+    //const aString currentDerived(pltAppStatePtr->CurrentDerived());
+    //currDerivedNumber = amrData.StateNumber(currentDerived);
 
+/*
     if(myView == XY) {
       aString outbuf = "Reading data for ";
       outbuf += pltAppPtr->GetFileName();
@@ -888,7 +907,7 @@ void AmrPicture::APChangeDerived(aString derived, Palette *palptr) {
 	                           &dataMin, &dataMax, &minMaxValid);
 	    if(minMaxValid) {
               dataMinRegion = Min(dataMinRegion, dataMin);
-             dataMaxRegion = Max(dataMaxRegion, dataMax);
+              dataMaxRegion = Max(dataMaxRegion, dataMax);
 	    }
 	  }
 	}  // end for(lev...)
@@ -898,32 +917,34 @@ void AmrPicture::APChangeDerived(aString derived, Palette *palptr) {
         dataMinRegion   = pltAppPtr->GlobalMin();
         dataMaxRegion   = pltAppPtr->GlobalMax();
       }
-      sprintf(buffer, "...");
-      printDone = true;
-      PrintMessage(buffer);
-      if( ! findSubRange) {
-	dataMinRegion = dataMinAllGrids;
-	dataMaxRegion = dataMaxAllGrids;
-      }
+//sprintf(buffer, "...");
+//printDone = true;
+//PrintMessage(buffer);
+      //if( ! findSubRange) {
+	//dataMinRegion = dataMinAllGrids;
+	//dataMaxRegion = dataMaxAllGrids;
+      //}
     } else {
-      dataMinAllGrids = pltAppPtr->GetAmrPicturePtr(XY)->GetGlobalMin();
-      dataMaxAllGrids = pltAppPtr->GetAmrPicturePtr(XY)->GetGlobalMax();
-      dataMinRegion   = pltAppPtr->GetAmrPicturePtr(XY)->GetRegionMin();
-      dataMaxRegion   = pltAppPtr->GetAmrPicturePtr(XY)->GetRegionMax();
+      //dataMinAllGrids = pltAppPtr->GetAmrPicturePtr(XY)->GetGlobalMin();
+      //dataMaxAllGrids = pltAppPtr->GetAmrPicturePtr(XY)->GetGlobalMax();
+      //dataMinRegion   = pltAppPtr->GetAmrPicturePtr(XY)->GetRegionMin();
+      //dataMaxRegion   = pltAppPtr->GetAmrPicturePtr(XY)->GetRegionMax();
     }
+*/
 
-    BL_ASSERT(dataMinSpecifiedSet[currDerivedNumber] ==
-	      dataMaxSpecifiedSet[currDerivedNumber]);
-    if(dataMinSpecifiedSet[currDerivedNumber] == false) {
+    //BL_ASSERT(dataMinSpecifiedSet[currDerivedNumber] ==
+	      //dataMaxSpecifiedSet[currDerivedNumber]);
+    //if(dataMinSpecifiedSet[currDerivedNumber] == false) {
       //cout << "_here 0:  setting specifiedminmax to allgrid" << endl;
-      dataMinSpecified[currDerivedNumber] = dataMinAllGrids;
-      dataMaxSpecified[currDerivedNumber] = dataMaxAllGrids;
-      dataMinSpecifiedSet[currDerivedNumber] = true;
-      dataMaxSpecifiedSet[currDerivedNumber] = true;
-    }
+      //dataMinSpecified[currDerivedNumber] = dataMinAllGrids;
+      //dataMaxSpecified[currDerivedNumber] = dataMaxAllGrids;
+      //dataMinSpecifiedSet[currDerivedNumber] = true;
+      //dataMaxSpecifiedSet[currDerivedNumber] = true;
+    //}
 
   }  // end if( ! maxsFound)
 
+  /*
   switch(whichRange) {
 	case USEGLOBAL:
     		minUsing = dataMinAllGrids;
@@ -945,15 +966,21 @@ void AmrPicture::APChangeDerived(aString derived, Palette *palptr) {
     		BoxLib::Abort("Error in AmrPicture::ChangedDerived:  bad range.");
 	break;
   }
+  */
+  Real minUsing, maxUsing;
+  pltAppStatePtr->GetMinMax(minUsing, maxUsing);
   VSHOWVAL(Verbose(), minUsing)
   VSHOWVAL(Verbose(), maxUsing)
+  VSHOWVAL(Verbose(), minDrawnLevel)
+  VSHOWVAL(Verbose(), maxAllowableLevel)
 
+  const aString currentDerived(pltAppStatePtr->CurrentDerived());
   for(int iLevel(minDrawnLevel); iLevel <= maxAllowableLevel; ++iLevel) {
     DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
 		           (void *) (sliceFab[iLevel]),
 			   (void *) (&(sliceFab[iLevel]->box())),
 			   iLevel,
-			   (void *) &derived);
+			   (void *) &currentDerived);
     CreateImage(*(sliceFab[iLevel]), imageData[iLevel],
  		dataSizeH[iLevel], dataSizeV[iLevel],
  	        minUsing, maxUsing, palPtr);
@@ -967,13 +994,14 @@ void AmrPicture::APChangeDerived(aString derived, Palette *palptr) {
     pltAppPtr->PaletteDrawn(true);
     palptr->Draw(minUsing, maxUsing, pltAppPtr->GetFormatString());
   }
+  int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
   APDraw(minDrawnLevel, maxDrawnLevel);
-  if(printDone) {
-    sprintf(buffer, "done.\n");
-    PrintMessage(buffer);
-  }
+//if(printDone) {
+//  sprintf(buffer, "done.\n");
+//  PrintMessage(buffer);
+//}
 
-}  // end APChangeDerived
+}  // end AP Make Images
 
 
 // -------------------------------------------------------------------
@@ -991,18 +1019,15 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
     oneOverGDiff = 1.0 / (globalMax - globalMin);
   }
   const Real *dataPoint = fab.dataPtr();
-  Pixel whiteIndex(palptr->WhiteIndex());
-  Pixel blackIndex(palptr->BlackIndex());
-  int colorSlots(palptr->ColorSlots());
-  int paletteStart(palptr->PaletteStart());
-  int paletteEnd(palptr->PaletteEnd());
-  int csm1(colorSlots - 1);
-  
-  Real dPoint;
   
   ContourType cType(pltAppStatePtr->GetContourType());
   // flips the image in Vert dir: j => datasizev-j-1
   if(DrawRaster(cType)) {
+    Real dPoint;
+    int paletteStart(palptr->PaletteStart());
+    int paletteEnd(palptr->PaletteEnd());
+    int colorSlots(palptr->ColorSlots());
+    int csm1(colorSlots - 1);
     for(int j(0); j < datasizev; ++j) {
       jdsh = j * datasizeh;
       jtmp1 = (datasizev-j-1) * datasizeh;
@@ -1026,10 +1051,12 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
   } else {
 
     if(LowBlack()) {
+      Pixel blackIndex(palptr->BlackIndex());
       for(int i(0); i < (datasizeh * datasizev); ++i) {
         imagedata[i] = blackIndex;
       }
     } else {
+      Pixel whiteIndex(palptr->WhiteIndex());
       for(int i(0); i < (datasizeh * datasizev); ++i) {
         imagedata[i] = whiteIndex;
       }
@@ -1469,6 +1496,9 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 // ---------------------------------------------------------------------
 void AmrPicture::APChangeScale(int newScale, int previousScale) { 
   int iLevel;
+  int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
+  int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
+  int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
   if(framesMade) {
     for(int i(0); i < subDomain[maxAllowableLevel].length(sliceDir); ++i) {
       XDestroyImage(frameBuffer[i]);
@@ -1516,8 +1546,9 @@ void AmrPicture::APChangeScale(int newScale, int previousScale) {
 
 // ---------------------------------------------------------------------
 void AmrPicture::APChangeLevel(int lowLevel, int hiLevel) { 
-  minDrawnLevel = lowLevel;
-  maxDrawnLevel = hiLevel;
+  //minDrawnLevel = lowLevel;
+  //maxDrawnLevel = hiLevel;
+  int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
   if(framesMade) {
     for(int i(0); i < subDomain[maxAllowableLevel].length(sliceDir); ++i) {
       XDestroyImage(frameBuffer[i]);
@@ -1529,6 +1560,8 @@ void AmrPicture::APChangeLevel(int lowLevel, int hiLevel) {
   }
   XClearWindow(display, pictureWindow);
 
+  int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
+  int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
   APDraw(minDrawnLevel, maxDrawnLevel);
 }
 
@@ -1538,7 +1571,9 @@ XImage *AmrPicture::GetPictureXImage() {
   int xbox, ybox, wbox, hbox;
   XImage *ximage;
 
-  if(showBoxes) {
+  int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
+  int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
+  if(pltAppStatePtr->GetShowingBoxes()) {
     for(int level(minDrawnLevel); level <= maxDrawnLevel; ++level) {
       if(level == minDrawnLevel) {
         XSetForeground(display, xgc, palPtr->WhiteIndex());
@@ -1577,6 +1612,8 @@ XImage *AmrPicture::GetPictureXImage() {
 
 // ---------------------------------------------------------------------
 void AmrPicture::CoarsenSliceBox() {
+  int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
+  int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
   for(int i(maxAllowableLevel - 1); i >= minDrawnLevel; --i) {
     sliceBox[i] = sliceBox[maxAllowableLevel];
     sliceBox[i].coarsen(CRRBetweenLevels(i, maxAllowableLevel,
@@ -1598,6 +1635,8 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
     posneg = -1;
   }
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
+  int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
+  int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
 
   sprintf(buffer, "Creating frames..."); 
   PrintMessage(buffer);
@@ -1612,6 +1651,7 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
   }
   frameGrids.resize(length); 
   frameBuffer.resize(length);
+  int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
   unsigned char *frameImageData = new unsigned char[dataSize[maxDrawnLevel]];
   int iEnd(0);
   for(i = 0; i < length; ++i) {
@@ -1654,6 +1694,7 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
     }   // end for(lev...)
 
     // get the data for this slice
+    aString currentDerived(pltAppStatePtr->CurrentDerived());
     FArrayBox imageFab(interBox[maxDrawnLevel], 1);
     DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
 			   (void *) &imageFab,
@@ -1661,6 +1702,8 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
 			   maxDrawnLevel,
                            (void *) &currentDerived);
 
+    Real minUsing, maxUsing;
+    pltAppStatePtr->GetMinMax(minUsing, maxUsing);
     CreateImage(imageFab, frameImageData,
 		dataSizeH[maxDrawnLevel], dataSizeV[maxDrawnLevel],
                 minUsing, maxUsing, palPtr);
@@ -1784,6 +1827,7 @@ void AmrPicture::CBContourSweep(XtPointer client_data, XtIntervalId *) {
 
 // ---------------------------------------------------------------------
 void AmrPicture::DoFrameUpdate() {
+  int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
   if(sweepDirection == ANIMPOSDIR) {
     if(slice < subDomain[maxAllowableLevel].bigEnd(sliceDir)) {
       ++slice;
@@ -1923,6 +1967,7 @@ void AmrPicture::ShowFrameImage(int iSlice) {
 }  // end ShowFrameImage()
 
 
+/*
 // ---------------------------------------------------------------------
 Real AmrPicture::GetWhichMin() {
   if(whichRange == USEGLOBAL) {
@@ -1957,8 +2002,10 @@ Real AmrPicture::GetWhichMax() {
     return(-42.0);  // bogus return for the compiler
   }
 }
+*/
 
 
+/*
 // ---------------------------------------------------------------------
 void AmrPicture::SetWhichRange(RangeType newRange) {
   whichRange = newRange;
@@ -1970,6 +2017,7 @@ void AmrPicture::SetWhichRange(RangeType newRange) {
   }
   DoStop();
 }
+*/
 
 
 // ---------------------------------------------------------------------
@@ -1978,11 +2026,13 @@ void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
                              Drawable &passedPixMap, 
                              const GC &passedGC)
 {
-  Real v_min(GetWhichMin());
-  Real v_max(GetWhichMax());
+  //Real v_min(GetWhichMin());
+  //Real v_max(GetWhichMax());
+  Real v_min, v_max;
+  pltAppStatePtr->GetMinMax(v_min, v_max);
   Real v_off;
-  if(numberOfContours != 0) {
-    v_off = v_min + 0.5 * (v_max - v_min) / (Real) numberOfContours;
+  if(pltAppStatePtr->GetNumContours() != 0) {
+    v_off = v_min + 0.5 * (v_max - v_min) / (Real) pltAppStatePtr->GetNumContours();
   } else {
     v_off = 1.0;
   }
@@ -2002,6 +2052,8 @@ void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
 
   Array <Real> pos_low(BL_SPACEDIM);
   Array <Real> pos_high(BL_SPACEDIM);
+  int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
+  int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
   amrData.LoNodeLoc(maxDrawnLevel, passedSliceFab[maxDrawnLevel]->smallEnd(), 
                     pos_low);
   amrData.HiNodeLoc(maxDrawnLevel, passedSliceFab[maxDrawnLevel]->bigEnd(), 
@@ -2046,6 +2098,8 @@ void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
     int paletteStart(palPtr->PaletteStart());
     int csm1(palPtr->ColorSlots() - 1);
     Real oneOverGDiff;
+    Real minUsing, maxUsing;
+    pltAppStatePtr->GetMinMax(minUsing, maxUsing);
     if((maxUsing - minUsing) < FLT_MIN) {
       oneOverGDiff = 0.0;
     } else {
@@ -2058,8 +2112,8 @@ void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
     } else {
       drawColor = palPtr->BlackIndex();
     }
-    for(int icont(0); icont < numberOfContours; ++icont) {
-      Real frac((Real) icont / numberOfContours);
+    for(int icont(0); icont < pltAppStatePtr->GetNumContours(); ++icont) {
+      Real frac((Real) icont / pltAppStatePtr->GetNumContours());
       Real value(v_off + frac * (v_max - v_min));
       if(pltAppStatePtr->GetContourType() == COLORCONTOURS) {
         if(value > maxUsing) {  // clip
@@ -2384,6 +2438,8 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
   }
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
   int DVFscale(pltAppStatePtr->CurrentScale());
+  int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
+  int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
   int DVFRatio(CRRBetweenLevels(maxDrawnLevel, 
                                 maxAllowableLevel, amrData.RefRatio()));
   // get velocity field
@@ -2478,7 +2534,7 @@ void AmrPicture::DrawVectorField(Display *pDisplay, Drawable &pDrawable,
                                    const Real *hdat, const Real *vdat, 
                                    const Real velocityMax, const Box &dvfSliceBox,
                                    int dvfFactor){
-  int maxpoints(numberOfContours);  // partition longest side into 20 parts
+  int maxpoints(pltAppStatePtr->GetNumContours());  // partition longest side
   BL_ASSERT(maxpoints > 0);
   Real sight_h(maxLength / maxpoints);
   int stride((int) sight_h);

@@ -14,24 +14,30 @@
 #define _PLTAPPSTATE_H_
 
 #include "AmrvisConstants.H"
-/*
-#include "AmrPicture.H"
-#include "Box.H"
-#include "Dataset.H"
-#include "GraphicsAttributes.H"
-#include "GlobalUtilities.H"
-#include "DataServices.H"
-#include "Palette.H"
-#include "List.H"
-#if (BL_SPACEDIM==3)
-# include "ViewTransform.H"
-# include "ProjectionPicture.H"
-#endif
-
-*/
-
 #include "aString.H"
 #include "Array.H"
+#include "Box.H"
+
+const int NOTSETYET(-42);
+static void Cnsy(int val) { BL_ASSERT(val != NOTSETYET); }
+
+class CMinMax {
+  public:
+    CMinMax();
+    ~CMinMax();
+    void SetMinMax(const Real rmin, const Real rmax);
+    void GetMinMax(Real &rmin, Real &rmax);
+    bool IsSet() const { return bMinMaxSet; }
+
+    // no is set checking on these
+    Real Min() const { return rMin; }
+    Real Max() const { return rMax; }
+
+  private:
+    Real rMin, rMax;
+    bool bMinMaxSet;
+};
+
 
 class AmrPicture;
 
@@ -39,11 +45,11 @@ class AmrPicture;
 class PltAppState {
     
 private:
-  //PltAppState();  // not defined
-  
+  PltAppState();  // disallow
+
 public:
   // created when opening a new file
-  PltAppState();
+  PltAppState(int numFrames, int numDerived);
   
   // for subregion
   /*
@@ -56,52 +62,101 @@ public:
   
   ~PltAppState();
   
-  int  CurrentScale()  const          { return currentScale; }
+  // ------------------------ scale
+  int  CurrentScale()  const          { Cnsy(currentScale);  return currentScale; }
   void SetCurrentScale(int newScale)  { currentScale = newScale; }
+  int  MaxScale()  const          { Cnsy(maxScale);  return maxScale; }
+  void SetMaxScale(int newMaxScale)  { maxScale = newMaxScale; }
 
+  // ------------------------ frame
+  void SetCurrentFrame(int newFrame)  { currentFrame = newFrame; }
+
+  // ------------------------ derived
+  void SetCurrentDerived(const aString &newDerived, int cdnumber);
   const aString &CurrentDerived() const { return currentDerived; }
-  void SetCurrentDerived(const aString &newDerived) { currentDerived = newDerived; }
+  int CurrentDerivedNumber() const { Cnsy(currentDerivedNumber);
+				     return currentDerivedNumber; }
 
-  //bool GetShowingBoxes() const        { return showBoxes; }
-  //void SetShowingBoxes(bool showing)  { showBoxes = showing; }
+  // ------------------------ boxes
+  bool GetShowingBoxes() const        { return showBoxes; }
+  void SetShowingBoxes(bool showing)  { showBoxes = showing; }
 
-  void SetContourType(ContourType newContourType) { currentContourType =
-						    newContourType; }
+  // ------------------------ contours
+  void SetContourType(ContourType newContourType)
+			     { currentContourType = newContourType; }
   ContourType GetContourType() const { return currentContourType; }
+  void SetNumContours(int ncontours) { nContours = ncontours; }
+  int  GetNumContours() const        { Cnsy(nContours);  return nContours; }
 
-/*
-  int MinAllowableLevel() const    { return minAllowableLevel; }
-  int MinDrawnLevel() const        { return minDrawnLevel; }
-  int MaxDrawnLevel() const        { return maxDrawnLevel; }
-  Real CurrentMin()    const        { return currentMin; }
-  Real CurrentMax()    const        { return currentMax; }
-  GraphicsAttributes *GetGAptr() const  { return GAptr; }
-  void SetGlobalMinMax(Real specifiedMin, Real specifiedMax);
-*/
+  // ------------------------ mins and maxes
+  MinMaxRangeType GetMinMaxRangeType() const { return currentMinMaxType; }
+  void SetMinMaxRangeType(MinMaxRangeType newmmrtype)
+				       { currentMinMaxType = newmmrtype; }
+
+  void SetMinMax(const MinMaxRangeType mmrangetype,
+		 const int framenumber,
+		 const int derivednumber,
+		 const Real rmin, const Real rmax);
+  void GetMinMax(const MinMaxRangeType mmrangetype,
+		 const int framenumber,
+		 const int derivednumber,
+		 Real &rmin, Real &rmax);
+  // this one uses the current frame, derived, and range type
+  void GetMinMax(Real &rmin, Real &rmax);
+  bool IsSet(const MinMaxRangeType mmrangetype, const int framenumber,
+	     const int derivednumber);
+  void PrintSetMap();
+
+  // ------------------------ levels
+  void SetMinAllowableLevel(int newval) { minAllowableLevel = newval; }
+  void SetMaxAllowableLevel(int newval) { maxAllowableLevel = newval; }
+  void SetMinDrawnLevel(int newval)     { minDrawnLevel = newval; }
+  void SetMaxDrawnLevel(int newval)     { maxDrawnLevel = newval; }
+  void SetFinestLevel(int newval)       { finestLevel = newval; }
+
+  int MinAllowableLevel() const { Cnsy(minAllowableLevel);
+				  return minAllowableLevel; }
+  int MaxAllowableLevel() const { Cnsy(maxAllowableLevel);
+				  return maxAllowableLevel; }
+  int MinDrawnLevel() const { Cnsy(minDrawnLevel);  return minDrawnLevel; }
+  int MaxDrawnLevel() const { Cnsy(maxDrawnLevel);  return maxDrawnLevel; }
+  int FinestLevel()   const { Cnsy(finestLevel);    return finestLevel; }
+
+
+  //GraphicsAttributes *GetGAptr() const  { return GAptr; }
 
 private:
 
   // state variables
   int currentScale;
+  int maxScale;
+  int currentFrame;
   aString currentDerived;
-  RangeType rangeType;
+  int currentDerivedNumber;
+  bool showBoxes;
   ContourType currentContourType;
+  int nContours;
+  MinMaxRangeType currentMinMaxType;
 
-  //int maxAllowableScale;
-  //bool showBoxes;
+  // mins and maxes
+  Array<Array<Array<CMinMax> > > minMax;   // minMax [frame] [derived] [RangeType]
+
+  Array<Box> subDomains;
+  int minDrawnLevel, maxDrawnLevel, minAllowableLevel, maxAllowableLevel;
+  int finestLevel;
+
 
   //bool datasetShowing, paletteDrawn, writingRGB, interfaceReady;
   //int minDrawnLevel, maxDrawnLevel, minDataLevel, maxDataLevel;
   //int activeView;
-  //aString contourNumString, formatString, fileName, palFilename;
-  //Real		globalMin, globalMax;
+  aString contourNumString, formatString, fileName, palFilename;
   //Array<aString> fileNames, derivedStrings;
   //GraphicsAttributes	*GAptr;
 
 
 
   // observers
-  AmrPicture *amrPicturePtrArray[NPLANES];
+  //AmrPicture *amrPicturePtrArray[NPLANES];
 
   //Palette *pltPaletteptr;
   //Dataset *datasetPtr;
