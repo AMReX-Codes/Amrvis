@@ -72,7 +72,9 @@ endif
 DEFINES += -DBL_PARALLEL_IO
 ifeq ($(COMP),KCC)
 DEFINES += -DBL_USE_NEW_HFILES
+ifeq ($(KCC_VERSION),3.3)
 CXXFLAGS+= --diag_suppress 837
+endif
 endif
 
 ifeq ($(COMP),g++)
