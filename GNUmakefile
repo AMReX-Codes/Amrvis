@@ -16,8 +16,8 @@ DIM       = 3
 USE_ARRAYVIEW = TRUE
 USE_ARRAYVIEW = FALSE
 
-USE_MPI=FALSE
 USE_MPI=TRUE
+USE_MPI=FALSE
 
 USE_VOLRENDER = TRUE
 USE_VOLRENDER = FALSE
@@ -35,139 +35,135 @@ HERE = .
 
 INCLUDE_LOCATIONS += $(HERE)
 INCLUDE_LOCATIONS += ../pBoxLib_2
-#INCLUDE_LOCATIONS += ../amrlib
-#INCLUDE_LOCATIONS += ../bndrylib
 
 ############################################### define vince's home dir
 ifeq ($(MACHINE), OSF1)
-VINCEDIR = /usr/people/vince
+  VINCEDIR = /usr/people/vince
 endif
 ifeq ($(MACHINE), T3E)
-ifeq ($(WHICHT3E), NERSC)
-VINCEDIR = /u1/vince
-endif
-ifeq ($(WHICHT3E), NAVO)
-VINCEDIR = /home/Cvince
-endif
+  ifeq ($(WHICHT3E), NERSC)
+    VINCEDIR = /u1/vince
+  endif
+  ifeq ($(WHICHT3E), NAVO)
+    VINCEDIR = /home/Cvince
+  endif
 endif
 
 ############################################### mpi definitions
 MPI_HOME =
 
 ifeq ($(USE_MPI), TRUE)
-ifeq ($(MACHINE), OSF1)
-MPI_HOME = /usr/local/mpi
-endif
-ifeq ($(MACHINE), AIX)
-MPI_HOME = /usr/lpp/ppe.poe
-endif
-endif
-
-ifeq ($(USE_MPI), TRUE)
-ifeq ($(MACHINE), OSF1)
-INCLUDE_LOCATIONS += $(MPI_HOME)/include
-LIBRARY_LOCATIONS += $(MPI_HOME)/lib/alpha/ch_p4
-endif
-ifeq ($(MACHINE), AIX)
-INCLUDE_LOCATIONS += $(MPI_HOME)/include
-LIBRARY_LOCATIONS += $(MPI_HOME)/lib
-endif
+  ifeq ($(MACHINE), OSF1)
+    MPI_HOME = /usr/local/mpi
+  endif
+  ifeq ($(MACHINE), AIX)
+    MPI_HOME = /usr/lpp/ppe.poe
+  endif
 endif
 
 ifeq ($(USE_MPI), TRUE)
-ifeq ($(USE_UPSHOT), TRUE)
-LIBRARIES += -llmpi -lpmpi
-endif
-ifeq ($(MACHINE), Linux)
-LIBRARIES += -lmpich
-else
-LIBRARIES += -lmpi
-endif
+  ifeq ($(MACHINE), OSF1)
+    INCLUDE_LOCATIONS += $(MPI_HOME)/include
+    LIBRARY_LOCATIONS += $(MPI_HOME)/lib/alpha/ch_p4
+  endif
+  ifeq ($(MACHINE), AIX)
+    INCLUDE_LOCATIONS += $(MPI_HOME)/include
+    LIBRARY_LOCATIONS += $(MPI_HOME)/lib
+  endif
 endif
 
-
+ifeq ($(USE_MPI), TRUE)
+  ifeq ($(USE_UPSHOT), TRUE)
+    LIBRARIES += -llmpi -lpmpi
+  endif
+  ifeq ($(MACHINE), Linux)
+    LIBRARIES += -lmpich
+  else
+    LIBRARIES += -lmpi
+  endif
+endif
 
 DEFINES += -DBL_PARALLEL_IO
 ifeq ($(COMP),KCC)
-#DEFINES += -DBL_USE_NEW_HFILES
-ifeq ($(KCC_VERSION),3.3)
-CXXFLAGS+= --diag_suppress 837
-CXXOPTF += -Olimit 2400
-endif
+  #DEFINES += -DBL_USE_NEW_HFILES
+  ifeq ($(KCC_VERSION),3.3)
+    CXXFLAGS+= --diag_suppress 837
+    CXXOPTF += -Olimit 2400
+  endif
 endif
 
 ifeq ($(COMP),g++)
-DEFINES += -DBL_USE_NEW_HFILES
+  DEFINES += -DBL_USE_NEW_HFILES
 endif
 
 
 ############################################### x includes and libraries
 ifeq ($(MACHINE), OSF1)
-INCLUDE_LOCATIONS += /usr/include/X11 /usr/include/Xm /usr/include/X11/Xaw
-LIBRARIES += -lXm -lXt -lX11
+  INCLUDE_LOCATIONS += /usr/include/X11 /usr/include/Xm /usr/include/X11/Xaw
+  LIBRARIES += -lXm -lXt -lX11
 endif
 
 ifeq ($(MACHINE), Linux)
-INCLUDE_LOCATIONS += /usr/X11R6/include/X11
-INCLUDE_LOCATIONS += /usr/local/include
-INCLUDE_LOCATIONS += /usr/local/include/Xm
-LIBRARY_LOCATIONS += /usr/local/lib
-LIBRARY_LOCATIONS += /usr/X11R6/lib
-LIBRARIES += -lXm -lXt -lX11
+  INCLUDE_LOCATIONS += /usr/X11R6/include/X11
+  INCLUDE_LOCATIONS += /usr/local/include
+  INCLUDE_LOCATIONS += /usr/local/include/Xm
+  LIBRARY_LOCATIONS += /usr/local/lib
+  LIBRARY_LOCATIONS += /usr/X11R6/lib
+  LIBRARIES += -lXm -lXt -lX11
 endif
 
 ifeq ($(MACHINE), AIX)
-#INCLUDE_LOCATIONS += /usr/include/X11 /usr/include/Xm /usr/include/X11/Xaw
-INCLUDE_LOCATIONS += /usr/include/X11 /usr/include/Xm
-LIBRARIES += -lXm -lXt -lX11
-DEFINES += -D_ALL_SOURCE
+  #INCLUDE_LOCATIONS += /usr/include/X11 /usr/include/Xm /usr/include/X11/Xaw
+  INCLUDE_LOCATIONS += /usr/include/X11 /usr/include/Xm
+  LIBRARIES += -lXm -lXt -lX11
+  DEFINES += -D_ALL_SOURCE
 endif
 
 ifeq ($(MACHINE), T3E)
-ifeq ($(WHICHT3E), NERSC)
-INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/X11
-INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/Xm
-INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/X11/Xaw
-LIBRARY_LOCATIONS += /opt/ctl/cvt/cvt/lib
-LIBRARIES += -lXm -lSM -lICE -lXt -lX11
-endif
+  ifeq ($(WHICHT3E), NERSC)
+    INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/X11
+    INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/Xm
+    INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/X11/Xaw
+    LIBRARY_LOCATIONS += /opt/ctl/cvt/cvt/lib
+    LIBRARIES += -lXm -lSM -lICE -lXt -lX11
+  endif
 endif
 
 
 ############################################### arrayview
 ifeq (USE_ARRAYVIEW, TRUE)
-DEFINES += -DBL_USE_ARRAYVIEW
-#ARRAYVIEWDIR = $(VINCEDIR)/ArrayView
-ARRAYVIEWDIR = .
-INCLUDE_LOCATIONS += $(ARRAYVIEWDIR)
-#LIBRARY_LOCATIONS += $(ARRAYVIEWDIR)
-#LIBRARIES += -larrayview$(DIM)d.$(machineSuffix)
+  DEFINES += -DBL_USE_ARRAYVIEW
+  #ARRAYVIEWDIR = $(VINCEDIR)/ArrayView
+  ARRAYVIEWDIR = .
+  INCLUDE_LOCATIONS += $(ARRAYVIEWDIR)
+  #LIBRARY_LOCATIONS += $(ARRAYVIEWDIR)
+  #LIBRARIES += -larrayview$(DIM)d.$(machineSuffix)
 endif
 
 
 ############################################### volume rendering
 ifeq ($(DIM),3)
-ifeq ($(MACHINE), T3E)
-USE_VOLRENDER = FALSE
-endif
-ifeq ($(MACHINE), AIX)
-USE_VOLRENDER = FALSE
-endif
-ifeq ($(USE_VOLRENDER), TRUE)
-DEFINES += -DBL_VOLUMERENDER
-VOLPACKDIR = $(VINCEDIR)/volpack
-INCLUDE_LOCATIONS += $(VOLPACKDIR)
-LIBRARY_LOCATIONS += $(VOLPACKDIR)/lib
-LIBRARIES += -lvolpack
-#DEFINES += -DVOLUMEBOXES
-endif
+  ifeq ($(MACHINE), T3E)
+    USE_VOLRENDER = FALSE
+  endif
+  ifeq ($(MACHINE), AIX)
+    USE_VOLRENDER = FALSE
+  endif
+  ifeq ($(USE_VOLRENDER), TRUE)
+    DEFINES += -DBL_VOLUMERENDER
+    VOLPACKDIR = $(VINCEDIR)/volpack
+    INCLUDE_LOCATIONS += $(VOLPACKDIR)
+    LIBRARY_LOCATIONS += $(VOLPACKDIR)/lib
+    LIBRARIES += -lvolpack
+    #DEFINES += -DVOLUMEBOXES
+  endif
 endif
 
 ############################################### parallel volume rendering
 ifeq ($(DIM),3)
-ifeq ($(USE_PARALLELVOLRENDER), TRUE)
-DEFINES += -DBL_PARALLELVOLUMERENDER
-endif
+  ifeq ($(USE_PARALLELVOLRENDER), TRUE)
+    DEFINES += -DBL_PARALLELVOLUMERENDER
+  endif
 endif
 
 ############################################### other defines
@@ -177,21 +173,21 @@ endif
 ############################################### float fix
 # if we are using float override FOPTF which sets -real_size 64
 ifeq ($(PRECISION), FLOAT)
-ifeq ($(MACHINE), OSF1)
-FDEBF += -C -fpe2
-FOPTF  = -fast -O5 -tune ev5
-endif
+  ifeq ($(MACHINE), OSF1)
+    FDEBF += -C -fpe2
+    #FDEBF += -C -fpe0
+    FOPTF  = -fast -O5 -tune ev5
+  endif
 endif
 
-#FDEBF += -C -fpe0
 
 ############################################### 3rd analyzer
 #CXXDEBF = +K0 --link_command_prefix 3rd
 #LIBRARIES += -ldnet_stub
 
-CFLAGS += -g
+#CFLAGS += -g
 
-XTRALIBS += 
+#XTRALIBS += 
 
 include $(HERE)/Make.package
 include $(TOP)/pBoxLib_2/Make.package
@@ -203,4 +199,3 @@ vpath %.a $(LIBRARY_LOCATIONS)
 all: $(executable)
 
 include ../mk/Make.rules
-
