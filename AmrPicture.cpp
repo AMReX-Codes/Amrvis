@@ -1120,15 +1120,15 @@ void AmrPicture::CBFrameTimeOut(XtPointer client_data, XtIntervalId *) {
 void AmrPicture::DoFrameUpdate() {
   if(sweepDirection == ANIMPOSDIR) {
     if(slice < subDomain[maxAllowableLevel].bigEnd(sliceDir)) {
-      ++slice;
+        ++slice;
     } else {
-      slice = subDomain[maxAllowableLevel].smallEnd(sliceDir);
+        slice = subDomain[maxAllowableLevel].smallEnd(sliceDir);
     }
   } else {
     if(slice > subDomain[maxAllowableLevel].smallEnd(sliceDir)) {
-      --slice;
+        --slice;
     } else {
-      slice = subDomain[maxAllowableLevel].bigEnd(sliceDir);
+        slice = subDomain[maxAllowableLevel].bigEnd(sliceDir);
     }
   } 
   int iRelSlice(slice - subDomain[maxAllowableLevel].smallEnd(sliceDir));
@@ -1212,6 +1212,17 @@ void AmrPicture::ShowFrameImage(int iSlice) {
     apXZ->SetHLine(apXZ->ImageSizeV() - 1 - iRelSlice * pltAppPtr->CurrentScale());
     apXZ->DoExposePicture();
   }
+
+# if (BL_SPACEDIM == 3)
+  for(int nP = 0; nP < 3; nP++)
+      pltAppPtr->GetProjPicturePtr()->
+          ChangeSlice(nP, pltAppPtr->GetAmrPicturePtr(nP)->GetSlice());
+  pltAppPtr->GetProjPicturePtr()->MakeSlices();
+  XClearWindow(XtDisplay(pltAppPtr->GetWTransDA()), 
+               XtWindow(pltAppPtr->GetWTransDA()));
+  pltAppPtr->DoExposeTransDA();
+# endif
+
   pltAppPtr->DoExposeRef();
 }  // end ShowFrameImage()
 

@@ -143,6 +143,7 @@ public:
 	static void SetReserveSystemColors(int reservesystemcolors);
 
 	Widget WId()                     { return wAmrVisTopLevel; }
+        Widget GetWTransDA() { return wTransDA; }
 	aString GetFormatString() const  { return formatString; }
 	void SetFormatString(aString str) { formatString = str; }
 	AmrPicture *GetAmrPicturePtr(int plane)
@@ -174,7 +175,8 @@ public:
 
 	void  SetGlobalMinMax(Real specifiedMin, Real specifiedMax);
     GC GetRbgc() { return rbgc; }
-
+    ProjectionPicture *GetProjPicturePtr() { return projPicturePtr; }
+    
 private:
 	Widget 		wTopLevel, wAmrVisTopLevel, wAmrVisMenu;
 	Widget 		wScaleMenu, wScaleOptions;
