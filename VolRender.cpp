@@ -35,6 +35,7 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
   swfDataValid    = false;
   swfDataAllocated = false;
 
+  volData = NULL;
 
   voxelFields = 3;
 
@@ -72,6 +73,7 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
 
     densityRampX  = NULL;
     densityRampY  = NULL;
+
     aString rampFileName("vpramps.dat");
     ReadTransferFile(rampFileName);
 
@@ -455,26 +457,35 @@ void VolRender::MakeSWFDataOneProc(DataServices *dataServicesPtr,
 
 // -------------------------------------------------------------------
 void VolRender::WriteSWFData(const aString &filenamebase) {
+    cout<<"VolRender::WriteSWFData"<<endl;
   assert(bVolRenderDefined);
   if(ParallelDescriptor::IOProcessor()) {
     cout << "vpClassify Scalars..." << endl;           // --- classify
     clock_t time0 = clock();
     vpResult vpret;
     if (lightingModel) {
+//        if (preClassify) {
         vpret = vpClassifyScalars(vpc, swfData, swfDataSize,
                                   densityField, gradientField, normalField);
         CheckVP(vpret, 3);
+//        } else {
+//            vpret = vpVolumeNormals(vpc, ...);
+//            CheckVP(vpret, 3.1);
+//        }
     } else {
+//        if (preClassify) {
+//        } else {
         MakeVPData();
         vpret = vpClassifyVolume(vpc);
-        CheckVP(vpret, 9.501);
+        CheckVP(vpret, 3.2);
+//    }
     }
-
-    cout << "----- make vp data time = " << ((clock()-time0)/1000000.0) << endl;
-    aString filename = "swf.";
-    filename += filenamebase;
-    filename += ".vpdat";
-    cout << "----- storing classified volume into file:  " << filename << endl;
+  
+  cout << "----- make vp data time = " << ((clock()-time0)/1000000.0) << endl;
+  aString filename = "swf.";
+  filename += filenamebase;
+  filename += ".vpdat";
+  cout << "----- storing classified volume into file:  " << filename << endl;
 #ifndef S_IRUSR  /* the T3E does not define this */
 #define S_IRUSR 0000400
 #endif
@@ -530,6 +541,13 @@ void VolRender::SetLightingModel(bool lightOn) {
     }*/
 }
 
+void VolRender::SetPreClassifyAlgorithm(bool pC)
+{
+//    if ( preClassify == pC )
+//        return;
+    preClassify = pC;
+}
+
 void VolRender::SetImage(unsigned char *image_data, int width, int height,
                          int pixel_type)
 {
@@ -560,17 +578,21 @@ void VolRender::MakePicture(Real mvmat[4][4], Real Aspect, Real longWinLen,
   
 
   vpResult vpret;
+  
   if(lightingModel) {
-       vpret = vpShadeTable(vpc);
-       CheckVP(vpret, 12);
-       vpret = vpRenderClassifiedVolume(vpc);   // --- render
-       CheckVP(vpret, 13);
-   } else {
-       vpret = vpRenderRawVolume(vpc);    // --- render
-       CheckVP(vpret, 11);
-   }
-
-
+      vpret = vpShadeTable(vpc);
+      CheckVP(vpret, 12);
+  }
+  
+  if (preClassify) {
+      vpret = vpRenderClassifiedVolume(vpc);   // --- render
+      CheckVP(vpret, 11);
+  } else {
+      vpret = vpClassifyVolume(vpc);  // --- classify and then render
+      CheckVP(vpret, 11.1);
+      vpret = vpRenderRawVolume(vpc);
+      CheckVP(vpret, 11.2);
+  }
 }
 
 // -------------------------------------------------------------------
@@ -585,12 +607,80 @@ void VolRender::MakeVPData() {
     cout << "vpClassifyScalars..." << endl;           // --- classify
 
     vpResult vpret;
-    if (lightingModel) {
-        vpret = vpClassifyScalars(vpc, swfData, swfDataSize,
-                                  densityField, gradientField, normalField);
-        CheckVP(vpret, 6);
-    } 
+    if (preClassify) {
+        if (lightingModel) {
+            vpret = vpClassifyScalars(vpc, swfData, swfDataSize,
+                                      densityField, gradientField, normalField);
+            CheckVP(vpret, 6);
+        } else {
+            // the classification and loading of the value model
+            delete [] volData;
+            volData = new RawVoxel[swfDataSize]; // volpack will delete this
+            // there is a memory leak with volData if vpDestroyContext is not called
+            //cout << endl << "********** volData = " << volData << endl << endl;
+            int xStride, yStride, zStride;
+            xStride = sizeof(RawVoxel);
+            yStride = drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel);
+            zStride = drawnDomain[maxDataLevel].length(XDIR) *
+                drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel);
+            vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
+                                   xStride, yStride, zStride);
+            CheckVP(vpret, 9.4);
+            for(int vindex = 0; vindex<swfDataSize; vindex++) {
+                volData[vindex].normal  = swfData[vindex];
+                volData[vindex].density = swfData[vindex];
+            }
+            
+            vpret = vpClassifyVolume(vpc);
+            CheckVP(vpret, 9.5);
+        
+        }
+    } else { //load the volume data and precompute the minmax octree
+        if (lightingModel) {
+            delete [] volData;
+            volData = new RawVoxel[swfDataSize]; 
+            int xStride, yStride, zStride;
+            xStride = sizeof(RawVoxel);
+            yStride = drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel);
+            zStride = drawnDomain[maxDataLevel].length(XDIR) *
+                drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel);
+            vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
+                                   xStride, yStride, zStride);
+            CheckVP(vpret, 9.45);
+            vpret = vpVolumeNormals(vpc, swfData, swfDataSize,
+                                    densityField, gradientField, normalField);
+            CheckVP(vpret, 6.1);
 
+        } else {
+            delete [] volData;
+            volData = new RawVoxel[swfDataSize]; 
+            int xStride, yStride, zStride;
+            xStride = sizeof(RawVoxel);
+            yStride = drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel);
+            zStride = drawnDomain[maxDataLevel].length(XDIR) *
+                drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel);
+            vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
+                                   xStride, yStride, zStride);
+            CheckVP(vpret, 9.4);
+            for(int vindex = 0; vindex<swfDataSize; vindex++) {
+                volData[vindex].normal  = swfData[vindex];
+                volData[vindex].density = swfData[vindex];
+            }
+        }     
+            vpret = vpMinMaxOctreeThreshold(vpc, DENSITY_PARAM, 
+                                            OCTREE_DENSITY_THRESH);
+            CheckVP(vpret, 9.41);
+            
+            if (classifyFields == 2) {
+                vpret = vpMinMaxOctreeThreshold(vpc, GRADIENT_PARAM, 
+                                                OCTREE_GRADIENT_THRESH);
+                CheckVP(vpret, 9.42);
+            }
+            
+            vpret = vpCreateMinMaxOctree(vpc, 1, OCTREE_BASE_NODE_SIZE);
+            CheckVP(vpret, 9.43);
+    }
+    
     // --- set the shading parameters
     
     if (lightingModel) {
@@ -611,6 +701,7 @@ void VolRender::MakeVPData() {
         // --- compute shading lookup table
         vpret = vpShadeTable(vpc);
         CheckVP(vpret, 8);
+
     } else {
         for(int sn=0; sn<maxShadeRampPts; sn++) {
             shade_table[sn] = (float)sn;
@@ -631,49 +722,15 @@ void VolRender::MakeVPData() {
                                   maxShadeRampPts * sizeof(float), 0, NULL, 0);
         CheckVP(vpret, 9);
         
-        //RawVoxel *volData = new RawVoxel[swfDataSize]; // volpack will delete this
-        volData = new RawVoxel[swfDataSize]; // volpack will delete this
-        // there is a memory leak with volData if vpDestroyContext is not called
-        //cout << endl << "********** volData = " << volData << endl << endl;
-        int xStride, yStride, zStride;
-        xStride = sizeof(RawVoxel);
-        yStride = drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel);
-        zStride = drawnDomain[maxDataLevel].length(XDIR) *
-            drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel);
-        vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
-                               xStride, yStride, zStride);
-        CheckVP(vpret, 9.4);
-        for(int vindex = 0; vindex<swfDataSize; vindex++) {
-            volData[vindex].normal  = swfData[vindex];
-            volData[vindex].density = swfData[vindex];
-        }
-
-        vpret = vpMinMaxOctreeThreshold(vpc, DENSITY_PARAM, 
-                                        OCTREE_DENSITY_THRESH);
-        CheckVP(vpret, 9.41);
-
-        if (classifyFields == 2) {
-            vpret = vpMinMaxOctreeThreshold(vpc, GRADIENT_PARAM, 
-                                            OCTREE_GRADIENT_THRESH);
-            CheckVP(vpret, 9.42);
-        }
-
-        vpret = vpCreateMinMaxOctree(vpc, 1, OCTREE_BASE_NODE_SIZE);
-        CheckVP(vpret, 9.43);
-
-        vpret = vpClassifyVolume(vpc);
-        CheckVP(vpret, 9.5);
-        
         vpSetMaterial(vpc, VP_MATERIAL0, VP_AMBIENT, VP_BOTH_SIDES, 1.00, 1.00, 1.00);
-        vpSetMaterial(vpc, VP_MATERIAL0, VP_AMBIENT,   VP_BOTH_SIDES, 0.28, 0.28, 0.28);
-        vpSetMaterial(vpc, VP_MATERIAL0, VP_DIFFUSE,   VP_BOTH_SIDES, 0.35, 0.35, 0.35);
+        vpSetMaterial(vpc, VP_MATERIAL0, VP_AMBIENT, VP_BOTH_SIDES, 0.28, 0.28, 0.28);
+        vpSetMaterial(vpc, VP_MATERIAL0, VP_DIFFUSE, VP_BOTH_SIDES, 0.35, 0.35, 0.35);
         
         vpSetLight(vpc, VP_LIGHT0, VP_DIRECTION, 0.3, 0.3, 1.0);
         vpSetLight(vpc, VP_LIGHT0, VP_COLOR, 1.0, 1.0, 1.0);
         vpEnable(vpc, VP_LIGHT0, 1);
         
         vpSeti(vpc, VP_CONCAT_MODE, VP_CONCAT_LEFT);
-
     }
     cout << "----- make vp data time = " << ((clock()-time0)/1000000.0) << endl;
   }

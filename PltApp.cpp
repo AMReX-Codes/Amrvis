@@ -277,6 +277,7 @@ void PltApp::PltAppInit() {
   }
   lightingModel = true;
   showing3dRender = false;
+  preClassify = false;
   char tempFormat[32];
   strcpy(tempFormat, PltApp::initialFormatString.c_str());
   XmString sFormatString = XmStringCreateSimple(tempFormat);
@@ -563,53 +564,6 @@ void PltApp::PltAppInit() {
   AddStaticCallback(wFABFileButton, XmNactivateCallback, &PltApp::DoOutput);
 
   XtManageChild(wOutputMenuBar);
-
-// ****************************************** Lighting Menu
-
-/*
-# if (BL_SPACEDIM == 3)
-  i=0;
-  wLightOptions = XmCreatePulldownMenu(wAmrVisMenu,"lightingoptions", args, i);
-  XtVaSetValues(wLightOptions, XmNuserData, this, NULL);
-  XmString LightItems[2];
-  LightItems[0] = XmStringCreateSimple("Light");
-  LightItems[1] = XmStringCreateSimple("Value");
-  
-
-  for(int j = 0; j<2; j++)
-  {
-    XtSetArg(args[0], XmNlabelString, LightItems[j]);
-    wLightItems[j] = XmCreatePushButtonGadget(wLightOptions,
-                                              "light", args, 1);
-    XtAddCallback(wLightItems[j], XmNactivateCallback,
-                &PltApp::CBRenderModeMenu, (XtPointer)j);
-  }
-  XmStringFree(LightItems[0]); XmStringFree(LightItems[1]);
-  XtManageChildren(wLightItems, 2);
-  
-
-
-  i=0;
-  XtSetArg(args[i], XmNsubMenuId, wLightOptions); i++;
-  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
-  XtSetArg(args[i], XmNtopOffset, 2);      i++;
-  XtSetArg(args[i], XmNleftWidget, wOutputMenu);      i++;
-  XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET);      i++;
-  XtSetArg(args[i], XmNleftOffset, 0);      i++;
-  XtSetArg(args[i], XmNmenuHistory, wLightItems[0]);  i++;
-  wLight = XmCreateOptionMenu(wAmrVisMenu, "Lightmenu", args, i);
-
-
-  // set this string to "" for cray
-  XmString newLtring = XmStringCreateSimple("");
-  XtVaSetValues(XmOptionLabelGadget(wLight),
-                XmNlabelString, newLtring,
-                NULL);
-  XmStringFree(newLtring);
-
-# endif
-*/
-
 
 // ****************************************** wPicArea
 
@@ -902,7 +856,51 @@ void PltApp::PltAppInit() {
   XmStringFree(newLtring);
   
   XtManageChild(wLight);
+
+
+// ****************************************** Classification Menu
+
+
+  i=0;
+  wClassifyOptions = XmCreatePulldownMenu(wPlotArea,"classoptions", args, i);
+  XtVaSetValues(wClassifyOptions, XmNuserData, this, NULL);
+  XmString ClassifyItems[2];
+  ClassifyItems[0] = XmStringCreateSimple("OT");
+  ClassifyItems[1] = XmStringCreateSimple("PC");
   
+
+  for(int j = 0; j<2; j++)
+  {
+    XtSetArg(args[0], XmNlabelString, ClassifyItems[j]);
+    wClassifyItems[j] = XmCreatePushButtonGadget(wClassifyOptions,
+                                              "class", args, 1);
+    XtAddCallback(wClassifyItems[j], XmNactivateCallback,
+		  &PltApp::CBClassifyMenu, (XtPointer)j);
+  }
+  XmStringFree(ClassifyItems[0]); XmStringFree(ClassifyItems[1]);
+  XtManageChildren(wClassifyItems, 2);
+  
+  
+
+    i=0;
+    XtSetArg(args[i], XmNsubMenuId, wClassifyOptions); i++;
+    XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET); i++;
+    XtSetArg(args[i], XmNleftWidget, wLight); i++;
+    XtSetArg(args[i], XmNleftOffset, WOFFSET); i++;
+    XtSetArg(args[i], XmNtopAttachment, XmATTACH_POSITION); i++;
+    XtSetArg(args[i], XmNtopPosition, 50); i++;
+    XtSetArg(args[i], XmNmenuHistory, wClassifyItems[0]);  i++;
+    wClassify = XmCreateOptionMenu(wPlotArea, "lighting", args, i);
+
+    //set this string to "" for cray
+  XmString newCtring = XmStringCreateSimple("");
+  XtVaSetValues(XmOptionLabelGadget(wClassify),
+                XmNlabelString, newCtring,
+                NULL);
+  XmStringFree(newCtring);
+  
+  XtManageChild(wClassify);
+
 #endif
 
     i=0;
@@ -1141,7 +1139,6 @@ void PltApp::PltAppInit() {
   XtManageChild(wPaletteButton);
   XtManageChild(wSetRangeButton);
   XtManageChild(wBoxesButton);
-//  XtManageChild(wLight);
   XtManageChild(wPicArea);
   XtManageChild(wPalArea);
   XtManageChild(wPlotArea);
@@ -1636,6 +1633,7 @@ void PltApp::DoChangeDerived(int V, Widget, XtPointer client_data, XtPointer) {
 
     currentDerived = derivedStrings[derivedNumber];
     const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+
 
     if(animating2d) {
       ResetAnimation();

@@ -614,7 +614,7 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
   assert(palptr != NULL);
   palPtr = palptr;
   AmrData &amrData = dataServicesPtr->AmrDataRef();
-  if(/*currentDerived != derived ||*/ whichRange == USEFILE) {
+  if(currentDerived != derived || whichRange == USEFILE) {
     maxsFound = false;
     pltAppPtr->PaletteDrawn(false);
   }

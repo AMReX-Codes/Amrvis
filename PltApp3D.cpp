@@ -188,6 +188,10 @@ void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
   XtVaGetValues(wDLight, XmNmenuHistory, &getHistory, NULL);
   int renderMode = ( getHistory == wDLightItems[0] ? 0 : 1 );
 
+  //Query wDClassify for its state:
+  XtVaGetValues(wDClassify, XmNmenuHistory, &getHistory, NULL);
+  int classMode = ( getHistory == wDClassifyItems[0] ? 0 : 1 );
+
   XtRemoveCallback(wTransDA, XmNinputCallback, &PltApp::CBTransInput, NULL);
   XtRemoveCallback(wTransDA, XmNresizeCallback, &PltApp::CBTransResize, NULL);
   XtRemoveEventHandler(wTransDA, ExposureMask, false,
@@ -203,8 +207,10 @@ void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
   XtManageChild(wReadTransfer);
 
   XtVaSetValues(wLight, XmNmenuHistory, wLightItems[renderMode], NULL);
+  XtVaSetValues(wClassify, XmNmenuHistory, wClassifyItems[classMode], NULL);
 
   XtManageChild(wLight);
+  XtManageChild(wClassify);
 #endif
   XtManageChild(wDetach);
 
@@ -249,11 +255,15 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   Position xpos, ypos;
   Dimension wdth, hght;
 
-//Query wLight here for its integer value
+  //Query wLight here for its state:
   Widget getHistory;
   XtVaGetValues(wLight, XmNmenuHistory, &getHistory, NULL);
   int renderMode = ( getHistory == wLightItems[0] ? 0 : 1 );
 
+  //Query wClassify here for its state:
+  XtVaGetValues(wClassify, XmNmenuHistory, &getHistory, NULL);
+  int classMode = ( getHistory == wClassifyItems[0] ? 0 : 1 );
+  
   transDetached = true;
   XtUnmanageChild(wTransDA);
   XtUnmanageChild(wOrient);
@@ -263,6 +273,7 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   XtUnmanageChild(wAutoDraw);
   XtUnmanageChild(wReadTransfer);
   XtUnmanageChild(wLight);
+  XtUnmanageChild(wClassify);
 #endif
   XtUnmanageChild(wDetach);
   XtRemoveCallback(wTransDA, XmNinputCallback, &PltApp::CBTransInput, NULL);
@@ -377,6 +388,7 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
                     &PltApp::DoReadTransferFile);
   XtManageChild(wDReadTransfer);
 
+// Render Mode Menu
   i=0;
   wDLightOptions = XmCreatePulldownMenu(wDetachForm,"lightingoptions", args, i);
   XtVaSetValues(wDLightOptions, XmNuserData, this, NULL);
@@ -417,6 +429,50 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   
   XtManageChild(wDLight);
 
+
+
+// Classification Mode Menu
+
+  i=0;
+  wDClassifyOptions = XmCreatePulldownMenu(wDetachForm,"classoptions", args, i);
+  XtVaSetValues(wDClassifyOptions, XmNuserData, this, NULL);
+  XmString DClassifyItems[2];
+  DClassifyItems[0] = XmStringCreateSimple("OT");
+  DClassifyItems[1] = XmStringCreateSimple("PC");
+  
+
+  for(int j = 0; j<2; j++)
+  {
+    XtSetArg(args[0], XmNlabelString, DClassifyItems[j]);
+    wDClassifyItems[j] = XmCreatePushButtonGadget(wDClassifyOptions,
+                                              "class", args, 1);
+    XtAddCallback(wDClassifyItems[j], XmNactivateCallback,
+		  &PltApp::CBClassifyMenu, (XtPointer)j);
+  }
+  XmStringFree(DClassifyItems[0]); XmStringFree(DClassifyItems[1]);
+  XtManageChildren(wDClassifyItems, 2);
+  
+  
+
+    i=0;
+    XtSetArg(args[i], XmNsubMenuId, wDClassifyOptions); i++;
+    XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET); i++;
+    XtSetArg(args[i], XmNleftWidget, wDLight); i++;
+    XtSetArg(args[i], XmNleftOffset, WOFFSET); i++;
+    XtSetArg(args[i], XmNtopAttachment, XmATTACH_POSITION); i++;
+    XtSetArg(args[i], XmNtopPosition, 0); i++;
+    XtSetArg(args[i], XmNmenuHistory, wDClassifyItems[classMode]);  i++;
+    wDClassify = XmCreateOptionMenu(wDetachForm, "lighting", args, i);
+
+    //set this string to "" for cray
+  XmString newDCtring = XmStringCreateSimple("");
+  XtVaSetValues(XmOptionLabelGadget(wDClassify),
+                XmNlabelString, newDCtring,
+                NULL);
+  XmStringFree(newDCtring);
+  
+  XtManageChild(wDClassify);
+ 
 #endif
 
   wTransDA = XtVaCreateManagedWidget("detachDA", xmDrawingAreaWidgetClass,
@@ -563,6 +619,16 @@ void PltApp::SetValueModel() {
     projPicturePtr->GetVolRenderPtr()->SetLightingModel(false);
 }
 
+void PltApp::SetOctreeAlgorithm() {
+    preClassify = false;
+    projPicturePtr->GetVolRenderPtr()->SetPreClassifyAlgorithm(false);
+}
+
+void PltApp::SetPreClassifyAlgorithm() {
+    preClassify = true;
+    projPicturePtr->GetVolRenderPtr()->SetPreClassifyAlgorithm(true);
+}
+
 void PltApp::CBTransInput(Widget w, XtPointer client_data, XtPointer call_data) {
   PltApp *obj = (PltApp *) client_data;
   obj->DoTransInput(w, client_data, (XmDrawingAreaCallbackStruct *) call_data);
@@ -581,7 +647,7 @@ void PltApp::DoRenderModeMenu(Widget w, XtPointer item_no, XtPointer client_data
             return;
         SetLightingModel();
     } else if (item_no == (XtPointer)1) { //Use Value model
-        if (!lightingModel)
+        if ( ! lightingModel)
             return;
         SetValueModel();
     }
@@ -590,6 +656,34 @@ void PltApp::DoRenderModeMenu(Widget w, XtPointer item_no, XtPointer client_data
         DoRender(w, NULL, NULL);
     }
 }
+
+
+void PltApp::CBClassifyMenu(Widget w, XtPointer item_no, XtPointer client_data) 
+{
+    unsigned long getobj;
+    XtVaGetValues(XtParent(w), XmNuserData, &getobj, NULL);
+    PltApp *obj = (PltApp *) getobj;
+    obj->DoClassifyMenu(w, item_no, client_data);
+}
+
+void PltApp::DoClassifyMenu(Widget w, XtPointer item_no, XtPointer client_data) 
+{
+    if(item_no == (XtPointer)0) { //Use Octree Mode
+        if ( ! preClassify )
+            return;
+        SetOctreeAlgorithm();
+    } else if (item_no == (XtPointer)1) { //Use Pre-Classified Mode
+        if ( preClassify )
+            return;
+        SetPreClassifyAlgorithm();
+    }
+    projPicturePtr->GetVolRenderPtr()->InvalidateVPData();
+    
+    if (XmToggleButtonGetState(wAutoDraw)||showing3dRender) {
+        DoRender(w, NULL, NULL);
+    }
+}
+
 
 // -------------------------------------------------------------------
 void PltApp::DoLabelAxes(Widget, XtPointer, XtPointer) {

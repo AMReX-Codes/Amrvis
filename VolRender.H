@@ -85,8 +85,10 @@ public:
     float          *DensityRampY() { return densityRampY; }
     void            SetLightingModel(bool);
     bool            GetLightingModel() { return lightingModel; }
+    void            SetPreClassifyAlgorithm(bool);
+    bool            GetPreClassifyAlgorithm() { return preClassify; }
 private:
-    bool            lightingModel;
+    bool            lightingModel, preClassify;
     int voxelFields;
     int normalField, normalOffset, normalSize, normalMax;
     int densityField, densityOffset, densitySize, densityMax;
