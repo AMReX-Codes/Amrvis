@@ -51,7 +51,6 @@ endif
 MPI_HOME =
 
 ifeq ($(USE_MPI), TRUE)
-DEFINES += -DBL_USE_MPI
 ifeq ($(MACHINE), OSF1)
 MPI_HOME = /usr/local/mpi
 endif
