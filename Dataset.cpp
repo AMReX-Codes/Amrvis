@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.53 2004-04-16 23:50:43 vince Exp $
+// $Id: Dataset.cpp,v 1.54 2004-04-30 21:08:56 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -769,6 +769,7 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
   int ycell((int) (cbs->event->xbutton.y) / CHARACTERHEIGHT);
   Box pictureBox(amrPicturePtr->GetSubDomain()[maxDrawnLevel]);
   Box regionBox(datasetRegion[maxDrawnLevel]);
+  BL_ASSERT(pictureBox.ixType() == regionBox.ixType());
   
   if(cbs->event->xany.type == ButtonPress) {
     ++serverControlOK;
@@ -822,7 +823,7 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
       //IntVect boxLocation(boxCoor[XDIR], boxCoor[YDIR]);
 # endif
       IntVect boxLocation(boxCoor);
-      Box chosenBox(boxLocation, boxLocation);
+      Box chosenBox(boxLocation, boxLocation, regionBox.ixType());
       int finestCLevel(amrData.FinestContainingLevel(chosenBox, maxDrawnLevel));
       finestCLevel = 
         ( finestCLevel >= minDrawnLevel ? finestCLevel : minDrawnLevel );
