@@ -75,6 +75,11 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
 			NULL);
 
   GAptr = new GraphicsAttributes(wDatasetTopLevel);
+  if(GAptr->PVisual() !=
+     XDefaultVisual(GAptr->PDisplay(),GAptr->PScreenNumber())) {
+      XtVaSetValues(wDatasetTopLevel, XmNvisual, GAptr->PVisual(),
+                    XmNdepth, GAptr->PDepth(), NULL);
+  }
 
   wDatasetForm = XtVaCreateManagedWidget("datasetform",
 			xmFormWidgetClass, wDatasetTopLevel,

@@ -234,6 +234,19 @@ void CreateMainWindow(int argc, char *argv[]) {
 			XmNheight,	150,
 			NULL);
 
+
+  GraphicsAttributes *TheGAptr = new GraphicsAttributes(wTopLevel);
+  if(TheGAptr->PVisual() != XDefaultVisual(TheGAptr->PDisplay(), 
+                                        TheGAptr->PScreenNumber() ) ){
+      cout<<"Setting visualid to 0x"<<hex
+          <<TheGAptr->PVisual()->visualid<<dec<<"in main window"<<endl;
+      Colormap colormap = XCreateColormap(TheGAptr->PDisplay(), 
+                                          RootWindow(TheGAptr->PDisplay(),
+                                                     TheGAptr->PScreenNumber()),
+                                          TheGAptr->PVisual(), AllocNone);
+      XtVaSetValues(wTopLevel, XmNvisual, TheGAptr->PVisual(), XmNdepth, 8,
+                    XmNcolormap, colormap, NULL);
+  }
   wMainWindow = XtVaCreateManagedWidget ("mainWindow", 
 	          xmFormWidgetClass,   wTopLevel, 
 	          XmNscrollBarDisplayPolicy, XmAS_NEEDED,
@@ -304,7 +317,6 @@ void CreateMainWindow(int argc, char *argv[]) {
 
   //XmMainWindowSetAreas(wMainWindow, wMenuBar, NULL, NULL, NULL, wTextOut);
   XtRealizeWidget(wTopLevel);
-
 }  // end CreateMainWindow()
 
  
@@ -575,6 +587,8 @@ void CBHelpMenu(Widget, XtPointer client_data, XtPointer) {
 			XmNx,		250,
 			XmNy,		150,
 			NULL);
+
+  }
 
     wTypeRowCol = XtVaCreateManagedWidget("typerowcol", xmRowColumnWidgetClass,
     			wHelpWindow, NULL);

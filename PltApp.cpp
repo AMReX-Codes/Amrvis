@@ -69,8 +69,8 @@ PltApp::~PltApp() {
 PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
 	       DataServices *dataservicesptr, bool isAnim)
 {
-    if (! dataservicesptr->AmrDataOk() ) // checks if the Dataservices 
-        return;                          // are open and working
+  if (! dataservicesptr->AmrDataOk() ) // checks if the Dataservices 
+      return;                          // are open and working
   int i;
   anim = isAnim;
   paletteDrawn = false;
@@ -102,7 +102,11 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
 		  	NULL);
 
   GAptr = new GraphicsAttributes(wAmrVisTopLevel);
-  
+  if(GAptr->PVisual() 
+     != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber())) {
+      XtVaSetValues(wAmrVisTopLevel, XmNvisual, GAptr->PVisual(),
+                    XmNdepth, 8, NULL);
+  }
   FileType fileType = GetDefaultFileType();
   assert(fileType != INVALIDTYPE);
   dataServicesPtr = dataservicesptr;
@@ -214,7 +218,11 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 		  	NULL);
 
   GAptr = new GraphicsAttributes(wAmrVisTopLevel);
-
+  if (GAptr->PVisual() 
+      != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber())) {
+      XtVaSetValues(wAmrVisTopLevel, XmNvisual, GAptr->PVisual(),
+                    XmNdepth, 8, NULL);
+  }
   int np;
   for(np = 0; np < NPLANES; np++) {
     amrPicturePtrArray[np] = new AmrPicture(np, minAllowableLevel, GAptr, region,
@@ -229,7 +237,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 
 // -------------------------------------------------------------------
 void PltApp::PltAppInit() {
-
   placementOffsetX += 4;
   placementOffsetY += 8;
 
@@ -338,7 +345,6 @@ void PltApp::PltAppInit() {
                 NULL);
   XmStringFree(newOString);
 
-  
 // ****************************************** Level Menu
   char levelItem[LINELENGTH];
   XmStringTable levelStringList;
@@ -382,7 +388,6 @@ void PltApp::PltAppInit() {
                 XmNlabelString, newLString,
                 NULL);
   XmStringFree(newLString);
-
 
 // ****************************************** Derive Menu
 
@@ -470,7 +475,6 @@ void PltApp::PltAppInit() {
   XmStringFree(sSubregion);
 
   AddStaticCallback(wSubregionButton, XmNactivateCallback, &PltApp::DoSubregion);
-
 // ****************************************** Palette Button 
   i=0;
   XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      i++;
@@ -546,7 +550,6 @@ void PltApp::PltAppInit() {
   AddStaticCallback(wFABFileButton, XmNactivateCallback, &PltApp::DoOutput);
 
   XtManageChild(wOutputMenuBar);
-
 
 // ****************************************** wPicArea
 
@@ -909,7 +912,6 @@ void PltApp::PltAppInit() {
 		    NULL); 
     }
 #endif
-
     int adjustHeight2D;
     if(BL_SPACEDIM == 2) {
       adjustHeight2D = centerY;
@@ -946,7 +948,6 @@ void PltApp::PltAppInit() {
 		      NULL); 
       }
     }  // end if(anim)
-
 #if (BL_SPACEDIM == 3)
 
     for(wc=WCSTOP; wc<=WCZPOS; wc++) {
@@ -978,7 +979,6 @@ void PltApp::PltAppInit() {
 	              NULL);
       XtAddCallback(wSpeedScale, XmNvalueChangedCallback,
     	  &PltApp::CBSpeedScale, (XtPointer) this);
-
      }  // end if(anim || BL_SPACEDIM == 3)
 
      if(anim) {
@@ -1019,7 +1019,6 @@ void PltApp::PltAppInit() {
       }
 
    }  // end if(anim)
-
 #if (BL_SPACEDIM == 2)
     XtVaSetValues(wScrollArea[ZPLANE], 
 		XmNrightAttachment,	XmATTACH_FORM,
@@ -1030,7 +1029,7 @@ void PltApp::PltAppInit() {
 
 
 // ***************************************************************** 
-
+    
   XtManageChild(wScaleMenu);
   XtManageChild(wLevelMenu);
   XtManageChild(wDerivedMenu);
@@ -1044,7 +1043,7 @@ void PltApp::PltAppInit() {
   XtManageChild(wPalArea);
   XtManageChild(wPlotArea);
   XtPopup(wAmrVisTopLevel, XtGrabNone);
-
+  XSync(XtDisplay(wTopLevel), false);
   int palListLength = PALLISTLENGTH;
   int palWidth = PALWIDTH;
   int palHeight = PALHEIGHT;
@@ -1066,7 +1065,6 @@ void PltApp::PltAppInit() {
 #if (BL_SPACEDIM == 3)
     pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wTransDA));
 #endif
-
   if(anim) {
   ParallelDescriptor::Abort("PltApp::anim not yet supported.");
   /*
@@ -1178,7 +1176,6 @@ void PltApp::PltAppInit() {
     amrPicturePtrArray[np]->SetDataMin(amrPicturePtrArray[np]->GetRegionMin());
     amrPicturePtrArray[np]->SetDataMax(amrPicturePtrArray[np]->GetRegionMax());
   }  
-
 }	// end of PltAppInit
 
 
@@ -1762,11 +1759,18 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			XmNx,			xpos+width/2,
 			XmNy,			ypos,
 			NULL);
-
-	wSetRangeForm = XtVaCreateManagedWidget("setrangeform",
-			    xmFormWidgetClass, wSetRangeTopLevel,
-			    NULL);
-
+        //set visual in case the default isn't 256 pseudocolor
+        if(GAptr->PVisual() 
+           != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber())) {
+            XtVaSetValues(wSetRangeTopLevel, XmNvisual, GAptr->PVisual(),
+                          XmNdepth, 8, NULL);
+        }
+        
+        wSetRangeForm = XtVaCreateManagedWidget("setrangeform",
+                                                xmFormWidgetClass, 
+                                                wSetRangeTopLevel,
+                                                NULL);
+        
 	// make the buttons
 	i=0;
 	XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);   i++;

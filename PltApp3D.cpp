@@ -255,6 +255,12 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
 	XmNy,			ypos+hght/2,
 	NULL);
 
+  if(GAptr->PVisual() 
+     != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber())) {
+      XtVaSetValues(wDetachTopLevel, XmNvisual, GAptr->PVisual(),
+                    XmNdepth, 8, NULL);
+  }
+
   wDetachForm = XtVaCreateManagedWidget("detachform",
 	xmFormWidgetClass, wDetachTopLevel,
 	NULL);

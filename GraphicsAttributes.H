@@ -49,7 +49,6 @@ class GraphicsAttributes {
     int      PDepth()         { return depth; }
     int      PScreenNumber()  { return screennumber;  }
     int      PBytesPerPixel() { return bytesPerPixel; }
-
 };
 
 #endif
