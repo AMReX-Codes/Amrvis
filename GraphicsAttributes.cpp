@@ -1,6 +1,6 @@
 
 //
-// $Id: GraphicsAttributes.cpp,v 1.18 2003-07-11 22:37:55 vince Exp $
+// $Id: GraphicsAttributes.cpp,v 1.19 2004-05-05 20:39:11 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -48,8 +48,8 @@ GraphicsAttributes::GraphicsAttributes(Widget topLevel)
     red_shift = blue_shift = green_shift = 0;
   } else {
     int status = XMatchVisualInfo(display, DefaultScreen(display),
-				  DefaultDepth(display, screennumber),
-				  TrueColor, &visual_info);
+                                  DefaultDepth(display, screennumber),
+                                  TrueColor, &visual_info);
     if(status != 0) {
       visual = visual_info.visual;
       depth = DefaultDepth(display, screennumber);

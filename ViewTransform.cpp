@@ -1,6 +1,6 @@
 
 //
-// $Id: ViewTransform.cpp,v 1.23 2002-12-10 20:12:23 vince Exp $
+// $Id: ViewTransform.cpp,v 1.24 2004-05-05 20:39:11 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -178,7 +178,7 @@ void ViewTransform::ViewRenderRotationMat() const {
 
 
 // -------------------------------------------------------------------
-ostream& operator << (ostream &o, const ViewTransform &v) {
+std::ostream& operator << (std::ostream &o, const ViewTransform &v) {
   v.Print();
   return o;
 }
