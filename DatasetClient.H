@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: DatasetClient.H,v 1.2 1998-10-29 23:56:07 vince Exp $
+// $Id: DatasetClient.H,v 1.3 2000-04-21 17:54:06 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -11,9 +11,8 @@
 #define _DATASETCLIENT_H_
 
 #include "REAL.H"
-
-class FArrayBox;
-class MultiFab;
+#include <FArrayBox.H>
+#include <MultiFab.H>
 
 #ifdef BL_ARRAYVIEW_TAGBOX
 class TagBox;

@@ -41,6 +41,7 @@
 #include <Xm/Protocols.h>
 #include <Xm/FileSB.h>
 #include <Xm/MessageB.h>
+#undef index
 
 #include "AmrvisConstants.H"
 #include "List.H"

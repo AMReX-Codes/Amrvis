@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: ProjectionPicture.H,v 1.14 1998-10-29 23:56:10 vince Exp $
+// $Id: ProjectionPicture.H,v 1.15 2000-04-21 17:54:06 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -12,6 +12,7 @@
 
 #include <Xm.h>
 #include <DrawingA.h>
+#undef index
 
 #include "AmrPicture.H" 
 #include "ViewTransform.H" 

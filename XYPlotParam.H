@@ -18,6 +18,7 @@
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
 #include <X11/cursorfont.h>
+#undef index
 
 /////////////////////////////////////////////
 // D E F I N I T I O N S

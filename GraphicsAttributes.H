@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GraphicsAttributes.H,v 1.8 1998-10-29 23:56:08 vince Exp $
+// $Id: GraphicsAttributes.H,v 1.9 2000-04-21 17:54:06 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -16,6 +16,7 @@
 #include <Xlib.h>
 #include <Intrinsic.h>
 #include <StringDefs.h>
+#undef index
 
 extern "C" {
   int close(int);

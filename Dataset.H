@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Dataset.H,v 1.19 1999-10-05 21:53:10 vince Exp $
+// $Id: Dataset.H,v 1.20 2000-04-21 17:54:06 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -26,6 +26,7 @@
 #include <DialogS.h>
 #include <Form.h>
 #include <Label.h>
+#undef index
 
 #include "GraphicsAttributes.H"
 #include "AmrPicture.H"

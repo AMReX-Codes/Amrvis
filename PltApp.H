@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.H,v 1.33 2000-04-04 00:18:23 vince Exp $
+// $Id: PltApp.H,v 1.34 2000-04-21 17:54:06 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -12,6 +12,7 @@
 
 #include <Xm.h>
 #include <Intrinsic.h>
+#undef index
 
 #include "AmrvisConstants.H"
 #include "AmrPicture.H"

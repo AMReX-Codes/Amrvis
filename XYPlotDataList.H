@@ -2,13 +2,14 @@
 #define XYPLOTDATALIST_H
 
 #include <Xm/Xm.h>
+#undef index
 #include <stdlib.h>
 #include <stdio.h>
 #include <float.h>
 
 #include <List.H>
 #include <Array.H>
-#include <Assert.H>
+#include <BLassert.H>
 #include <REAL.H>
 #include <IntVect.H>
 #include <FArrayBox.H>
