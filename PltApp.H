@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.H,v 1.30 1999-04-28 23:42:47 vince Exp $
+// $Id: PltApp.H,v 1.31 1999-06-08 20:46:29 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -86,7 +86,7 @@ public:
   static void	CBUpdateFrame(XtPointer, XtIntervalId *);
   static void	CBToggleRange(Widget, XtPointer, XtPointer);
   static void	CBChangePlane(Widget, XtPointer, XtPointer);
-  static void CBReadContourString(Widget, XtPointer, XtPointer);
+  static void   CBReadContourString(Widget, XtPointer, XtPointer);
   void DestroySetRangeWindow(Widget, XtPointer, XtPointer);
   void DestroyInfoWindow(Widget, XtPointer, XtPointer);
   void CloseInfoWindow(Widget, XtPointer, XtPointer);
@@ -143,11 +143,10 @@ public:
   void		DoCancelSetRange(Widget, XtPointer, XtPointer);
   void		DoUserMin(Widget, XtPointer, XtPointer);
   void		DoUserMax(Widget, XtPointer, XtPointer);
-  void		DoToggleRange(Widget, Range,
-                              XmToggleButtonCallbackStruct *);
+  void		DoToggleRange(Widget, Range, XmToggleButtonCallbackStruct *);
   void		DoOpenPalFile(Widget, XtPointer, XtPointer);
   void		DoSubregion(Widget, XtPointer, XtPointer);
-  void DoInfoButton(Widget, XtPointer, XtPointer);
+  void          DoInfoButton(Widget, XtPointer, XtPointer);
   void		DoOutput(Widget, XtPointer, XtPointer);
   void		DoCreatePSFile(Widget, XtPointer, XtPointer);
   void		DoCreateRGBFile(Widget, XtPointer, XtPointer);

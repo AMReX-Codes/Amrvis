@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.H,v 1.24 1999-04-28 23:42:46 vince Exp $
+// $Id: AmrPicture.H,v 1.25 1999-06-08 20:46:28 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -73,7 +73,7 @@ class AmrPicture {
   void	DrawDatasetPoint(int hplot, int vplot, int size);
   void	UnDrawDatasetPoint();
   void	Sweep(AnimDirection direction);
-  void SetHVLine();
+  void  SetHVLine();
   void	SetHLine(int hl)    { hLine = hl; }
   void	SetVLine(int vl)    { vLine = vl; }
   int	GetHLine()          { return hLine; }
@@ -98,10 +98,10 @@ class AmrPicture {
   Real	GetRegionMin()       { return dataMinRegion; }
   Real	GetRegionMax()       { return dataMaxRegion; }
   void	SetWhichRange(Range which);
-  void SetContourNumber(int);
-  int GetContourNumber() { return numberOfContours; }
-  int MinDrawnLevel() { return minDrawnLevel; }
-  int MaxDrawnLevel() { return maxDrawnLevel; }
+  void  SetContourNumber(int);
+  int   GetContourNumber() { return numberOfContours; }
+  int   MinDrawnLevel() { return minDrawnLevel; }
+  int   MaxDrawnLevel() { return maxDrawnLevel; }
   Range	GetWhichRange()         { return whichRange; }
   Real	GetWhichMin();
   Real	GetWhichMax();
@@ -109,23 +109,23 @@ class AmrPicture {
   void	SetVColor(int c)          { vColor = c; }
   Box	&GetSliceBox()            { return sliceBox[finestLevel]; }
   int	GetMyView()               { return myView; }
-  Array<Box> &GetSubDomain()        { return subDomain; }
+  Array<Box> &GetSubDomain()      { return subDomain; }
   bool	FramesMade()              { return framesMade; }
   void	SetFrameSpeed(int toThis) { frameSpeed = toThis; }
   int	GetFrameSpeed()           { return frameSpeed; }
-  GraphicsAttributes *GetGAPtr()    { return GAptr; }
-  Palette *GetPalPtr()              { return palPtr; }
+  GraphicsAttributes *GetGAPtr()  { return GAptr; }
+  Palette *GetPalPtr()            { return palPtr; }
   Real	MinUsing()                { return minUsing; }
   Real	MaxUsing()                { return maxUsing; }
-  Window	PictureWindow()           { return pictureWindow; }
+  Window	PictureWindow()   { return pictureWindow; }
   void	SetMaxDrawnLevel(int lev) { maxDrawnLevel = lev; }
   void  SetCartGridSmoothing(bool tf);
-  PltApp *GetPltAppPtr() {return pltAppPtr; }
+  PltApp *GetPltAppPtr()          { return pltAppPtr; }
   void ChangeContour(int);
-  bool Contours() { return contours; }
-  bool Raster() {return raster; }
+  bool Contours()     { return contours; }
+  bool Raster()       { return raster; }
   bool ColorContour() { return colContour; }
-  bool VectorField() { return vectorField; }
+  bool VectorField()  { return vectorField; }
   VectorDerived FindVectorDerived(Array<aString> &aVectorDeriveNames);
 
  private:
@@ -139,36 +139,36 @@ class AmrPicture {
   Range			whichRange;
   int			myView, hLine, vLine;
   int			hColor, vColor, myColor, slice, sliceDir;
-  Array<unsigned long>   	dataSize, dataSizeH, dataSizeV;
-  unsigned int   		imageSize, imageSizeH, imageSizeV;
-  aString			currentDerived;
+  Array<unsigned long>  dataSize, dataSizeH, dataSizeV;
+  unsigned int   	imageSize, imageSizeH, imageSizeV;
+  aString		currentDerived;
   bool			showBoxes;
   int			minDrawnLevel, maxDrawnLevel, maxAllowableLevel;
   int			maxLevelWithGrids, maxsFound;
   int			hdspoint, vdspoint, dsBoxSize;
   int			datasetPointShowing, datasetPointColor;
-  Pixmap 			pixMap;
+  Pixmap 		pixMap;
   char			buffer[BUFSIZ];
   bool			pixMapCreated, isSubDomain, findSubRange;
   Array< Array<GridPicture> > gpArray;
   Array< Array< Array<GridPicture> > > frameGrids;
-  PltApp			*pltAppPtr;
+  PltApp	        *pltAppPtr;
   DataServices		*dataServicesPtr;
   int			regionX, regionY, region2ndX, region2ndY;
   int			subCutShowing;
   int			subcutX, subcutY, subcut2ndX, subcut2ndY;
   Array<Box>		subDomain, sliceBox;
-  Array<XImage *>	        frameBuffer;
+  Array<XImage *>	frameBuffer;
   bool			framesMade;
   int			frameSpeed;
   AnimDirection		sweepDirection;
   XtIntervalId		pendingTimeOut;
   GraphicsAttributes	*GAptr;
-  Palette			*palPtr;
+  Palette		*palPtr;
   Array<FArrayBox *>	sliceFab;
   Array<unsigned char *>  imageData, scaledImageData;
-  Array<XImage *>         xImageArray;
-  Array<bool >            xImageCreated;
+  Array<XImage *>       xImageArray;
+  Array<bool >           xImageCreated;
   bool contours, raster, colContour, vectorField, bCartGridSmoothing;
   
   

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Palette.H,v 1.11 1999-03-08 22:00:48 vince Exp $
+// $Id: Palette.H,v 1.12 1999-06-08 20:46:29 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -35,24 +35,24 @@ protected:
   Array<XColor> ccells;
   Pixmap 	palPixmap;
   int	  	totalPalWidth, palWidth, totalPalHeight;
-  Array<Real> dataList;
+  Array<Real>   dataList;
   Window 	palWindow;
-  Colormap    colmap;
-  int         totalColorSlots, colorSlots;
-  int         reserveSystemColors, colorOffset, paletteStart;
+  Colormap      colmap;
+  int           totalColorSlots, colorSlots;
+  int           reserveSystemColors, colorOffset, paletteStart;
   int		blackIndex, whiteIndex;
-  Real	pmin, pmax;
+  Real	        pmin, pmax;
   aString	defaultFormat;
   int		transSet;
-  Array<float> transferArray;
+  Array<float>  transferArray;
   unsigned char *remapTable; // for remapping to a smaller color index set
-  Display    *display;
-  Visual     *visual;
-  Screen     *screen;
-  XVisualInfo visualInfo;
-  GC          gc;
-  Window      root;
-  int         screenNumber;
+  Display       *display;
+  Visual        *visual;
+  Screen        *screen;
+  XVisualInfo   visualInfo;
+  GC            gc;
+  Window        root;
+  int           screenNumber;
   Array<XColor> sysccells;
   
   static Colormap systemColmap;

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Dataset.H,v 1.17 1998-10-29 23:56:07 vince Exp $
+// $Id: Dataset.H,v 1.18 1999-06-08 20:46:28 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -66,8 +66,8 @@ class Dataset {
   AmrPicture *GetAmrPicturePtr() { return amrPicturePtr; }
 
  private:
-  Widget		wAmrVisTopLevel, wDatasetTopLevel, wDatasetForm;
-  Widget		wDatasetTools, wScrollArea, wPixArea;
+  Widget	wAmrVisTopLevel, wDatasetTopLevel, wDatasetForm;
+  Widget	wDatasetTools, wScrollArea, wPixArea;
   Widget wFormat, wColorButton, wQuitButton, wLevels, wMinValue, wMaxValue;
   Arg		args[MAXARGS];
   Box		*datasetRegion;
@@ -76,17 +76,17 @@ class Dataset {
   int		maxAllowableLevel, maxDrawnLevel, minDrawnLevel, stringOk;
   int		noData, hDIR, vDIR, sDIR, numStrings, *myStringCount;
   char		buffer[BUFSIZ], dataString[MAXSTRINGWIDTH];
-  aString		formatString;
+  aString	formatString;
   StringLoc	*dataStringArray, **myDataStringArray;
-  bool        bDataStringArrayAllocated;
+  bool          bDataStringArrayAllocated;
   AmrPicture	*amrPicturePtr;
   DataServices	*dataServicesPtr;
-  PltApp		*pltAppPtr;
+  PltApp	*pltAppPtr;
   GraphicsAttributes	*GAptr;
   int 		dragging, drags;
   int		 hStringOffset, vStringOffset;
   aString	 hAxisString, vAxisString;
-  int indexWidth, indexHeight;
+  int            indexWidth, indexHeight;
   int		 hScrollBarPos, vScrollBarPos;
   int		 hIndexAreaHeight, hIndexAreaStart, hIndexAreaEnd;
   int		 vIndexAreaWidth,  vIndexAreaStart, vIndexAreaEnd;
@@ -95,7 +95,7 @@ class Dataset {
   StringLoc    **hIndexArray, **vIndexArray;    
   bool datasetPoint;
   
-  int          blackIndex, whiteIndex;
+  int            blackIndex, whiteIndex;
   
   void DrawGrid(int startX, int startY, int finishX, int finishY,
                 int gridspacingX, int gridspacingY,

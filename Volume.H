@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: Volume.H,v 1.12 1998-10-29 23:56:11 vince Exp $
+// $Id: Volume.H,v 1.13 1999-06-08 20:46:29 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -48,6 +48,6 @@ static RawVoxel *dummy_voxel;
 	  if(vpret != VP_OK) { \
             cerr << "VolPack error " << n << ":  " \
 		 << vpGetErrorString(vpGetError(vpc)) << endl; \
-          exit(-4); \
+            exit(-4); \
 	  }
 #endif
