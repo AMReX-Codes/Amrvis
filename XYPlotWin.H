@@ -81,6 +81,7 @@ class XYPlotWin {
 
     void PopUp(void) { XtPopup(wXYPlotTopLevel, XtGrabNone); }
     void SetPalette(void);
+    void DoASCIIDump(FILE *fs, const char *plotname);
 
   private:
     XtAppContext            appContext;
@@ -172,7 +173,6 @@ class XYPlotWin {
     void CBdoSetListColor(Widget, XtPointer, XtPointer);
     void CBdoExportFileDialog(Widget, XtPointer, XtPointer);
     void CBdoExportFile(Widget, XtPointer, XtPointer data);
-    void CBdoASCIIDump(Widget, XtPointer, XtPointer data);
     void CBdoDrawPlot(Widget, XtPointer, XtPointer);
     void CBdoRedrawPlot(Widget, XtPointer, XtPointer);
     void CBdoDrawLegendItem(Widget, XtPointer data, XtPointer);
@@ -188,6 +188,7 @@ class XYPlotWin {
     void CBdoCopyDataList(Widget, XtPointer data, XtPointer);
     void CBdoRemoveDataList(Widget, XtPointer data, XtPointer);
     void CBdoDrawLocation(Widget, XtPointer, XtPointer);
+    void CBdoASCIIDump(Widget, XtPointer, XtPointer data);
 
     class XYCBData {  // callback data
       public:

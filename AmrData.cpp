@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.67 2004-04-20 00:44:11 vince Exp $
+// $Id: AmrData.cpp,v 1.68 2004-07-09 22:05:42 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1196,7 +1196,7 @@ void AmrData::FillVar(MultiFab &destMultiFab, int finestFillLevel,
                 tempCurrentFillPatchedFab.resize(intersectDestBox, nFillComps);
                 tempCurrentFillPatchedFab.setVal(1.e30);
 		BL_ASSERT(intersectDestBox.ok());
-		BL_ASSERT( tempCoarseDestFab.box().ok());
+		BL_ASSERT(tempCoarseDestFab.box().ok());
 		PcInterp(tempCurrentFillPatchedFab,
 			 tempCoarseDestFab, intersectDestBox,
 			 cumulativeRefRatios[currentLevel]);
@@ -1829,7 +1829,11 @@ void AmrData::PcInterp(FArrayBox &fine, const FArrayBox &crse,
       fine_temp.refine(lrat);
       int tlo = fine_temp.smallEnd()[0];
       int thi = fine_temp.bigEnd()[0];
-      Real *tempSpace = new Real[thi-tlo+1];
+      int inextra(0);
+      if(fine_temp.ixType().test(0) == true) {  // node type
+        inextra = 1;
+      }
+      Real *tempSpace = new Real[thi-tlo+1+inextra];
       FORT_PCINTERP(fine.dataPtr(0),ARLIM(fine.loVect()),ARLIM(fine.hiVect()),
                    fblo,fbhi, lrat,fine.nComp(),
                    crse.dataPtr(),ARLIM(crse.loVect()),ARLIM(crse.hiVect()),

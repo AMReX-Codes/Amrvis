@@ -509,6 +509,11 @@ void XYPlotWin::InitializeAnimation(int curr_frame, int num_frames) {
 void XYPlotWin::UpdateFrame(int frame) {
   XYPlotDataList *tempList;
   int num_lists_changed(0);
+  char buffer[BUFSIZE];
+  sprintf(buffer, "%s %c Value 1D plot",
+          AVGlobals::StripSlashes(pltParent->GetFileName()).c_str(),
+	  whichType + 'X');
+  XtVaSetValues(wXYPlotTopLevel, XmNtitle, buffer, NULL);
   if( ! animatingQ && zoomedInQ == false) {
     lloY =  std::numeric_limits<Real>::max();
     hhiY = -std::numeric_limits<Real>::max();
@@ -1497,14 +1502,27 @@ void XYPlotWin::CBdoASCIIDump(Widget, XtPointer client_data, XtPointer data) {
     Widget wid = XmCreateErrorDialog(wXYPlotTopLevel, filename, args, 1);
     XmStringFree(label_str);
     XtUnmanageChild(XmMessageBoxGetChild(wid, XmDIALOG_CANCEL_BUTTON));
-    XtUnmanageChild(XmMessageBoxGetChild(wid, XmDIALOG_HELP_BUTTON));    
+    XtUnmanageChild(XmMessageBoxGetChild(wid, XmDIALOG_HELP_BUTTON));
     XtManageChild(wid);
     XtFree(filename);
     return;
   }
+ 
+  DoASCIIDump(fs, AVGlobals::StripSlashes(filename).c_str());
+  fclose(fs);
   XtFree(filename);
-  
-  fprintf(fs, "TitleText: %s\n", pltTitle);
+
+  XtPopdown(wExportFileDialog);
+}
+
+
+// -------------------------------------------------------------------
+void XYPlotWin::DoASCIIDump(FILE *fs, const char *plotname) {
+  if(fs == NULL) {
+    cerr << "*** Error in XYPlotWin::DoASCIIDump:  fs == NULL" << endl;
+    return;
+  }
+  fprintf(fs, "TitleText: %s\n", plotname);
   fprintf(fs, "YUnitText: %s\n", YUnitText);
   fprintf(fs, "XUnitText: %s\n", XUnitText);
   if( ! plotLinesQ) {
@@ -1541,9 +1559,6 @@ void XYPlotWin::CBdoASCIIDump(Widget, XtPointer client_data, XtPointer data) {
     }
     fprintf(fs, "\n");
   }
-  fclose(fs);
-
-  XtPopdown(wExportFileDialog);
 }
 
 
@@ -1848,7 +1863,6 @@ void XYPlotWin::CBdoOptionsOKButton(Widget, XtPointer data, XtPointer) {
   sprintf(buffer, "%d", lineW);
   XmTextSetString(wOptionsWidgets[8], buffer);
 
-  //XtPopdown(wOptionsDialog);
   XtDestroyWidget(wOptionsDialog);
   wOptionsDialog = None;
 }

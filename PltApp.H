@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.63 2004-04-16 23:50:43 vince Exp $
+// $Id: PltApp.H,v 1.64 2004-07-09 22:05:42 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -108,7 +108,6 @@ public:
   int GetActiveView() const        { return activeView;    }
   XtAppContext GetAppContext()     { return appContext;    }
   Widget GetStopButtonWidget()     { return wControls[WCSTOP]; }
-  bool IsAnim()       const        { return animating2d; }
   bool Animating()    const        { return ((bool) animationIId); }
   int CurrentFrame()  const        { return currentFrame; }
   XImage *CurrentFrameXImage()     { return frameBuffer[currentFrame]; }

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltAppOutput.cpp,v 1.34 2003-11-06 22:19:49 vince Exp $
+// $Id: PltAppOutput.cpp,v 1.35 2004-07-09 22:05:42 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -16,6 +16,7 @@
 #include "DataServices.H"
 #include "ProjectionPicture.H"
 #include "Output.H"
+#include "XYPlotWin.H"
 
 using std::cout;
 using std::cerr;
@@ -274,33 +275,57 @@ void PltApp::DoCreateFABFile(Widget w, XtPointer, XtPointer call_data) {
 
 // -------------------------------------------------------------------
 void PltApp::DoCreateAnimRGBFile() {
-  char rgbfilename[BUFSIZ];
+  char outFileName[BUFSIZ];
   int imageSizeX, imageSizeY;
   XImage *printImage;
 
   ResetAnimation();
 
-  char suffix[4];
+  char suffix[32];
   if(AVGlobals::IsSGIrgbFile()) {
     strcpy(suffix, "rgb");
   } else {
     strcpy(suffix, "ppm");
   }
-  sprintf(rgbfilename, "%s_%s.%s", pltAppState->CurrentDerived().c_str(),
+  sprintf(outFileName, "%s_%s.%s", pltAppState->CurrentDerived().c_str(),
 	  AVGlobals::StripSlashes(fileNames[currentFrame]).c_str(),
 	  suffix);
 
-  cout << "******* Creating file:  " << rgbfilename << endl;
+  cout << "******* Creating file:  " << outFileName << endl;
 
   // write the picture
   printImage = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[ZPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[ZPLANE]->ImageSizeV();
   if(AVGlobals::IsSGIrgbFile()) {
-    WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+    WriteRGBFile(outFileName, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
   } else {
-    WritePPMFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+    WritePPMFile(outFileName, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
   }
+
+#if (BL_SPACEDIM == 2)
+  for(int dim(0); dim < BL_SPACEDIM; ++dim) {
+    if(XYplotwin[dim]) {
+      if(dim == 0) {
+        strcpy(suffix, "X.dat");
+      } else {
+        strcpy(suffix, "Y.dat");
+      }
+      sprintf(outFileName, "%s_%s.%s", pltAppState->CurrentDerived().c_str(),
+	      AVGlobals::StripSlashes(fileNames[currentFrame]).c_str(),
+	      suffix);
+      cout << "******* Creating xyline file:  " << outFileName << endl;
+      FILE *fs = fopen(outFileName, "w");
+      if(fs == NULL) {
+        cerr << "*** Error:  could not open file:  " << outFileName << endl;
+      } else {
+        XYplotwin[dim]->DoASCIIDump(fs, outFileName);
+        fclose(fs);
+      }
+    }
+  }
+#endif
+
 }  // end DoCreateAnimRGBFile
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------

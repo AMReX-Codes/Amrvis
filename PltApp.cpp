@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.123 2004-04-20 00:44:11 vince Exp $
+// $Id: PltApp.cpp,v 1.124 2004-07-09 22:05:42 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -478,7 +478,6 @@ void PltApp::PltAppInit(bool bSubVolume) {
   endX = 0;
   endY = 0;
 
-  //currentFrame = 0;
   animationIId = 0;
   frameSpeed = 300;
 
@@ -3551,7 +3550,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	    newlist->SetLevel(maxDrawnLevel);
 	    if(XYplotwin[sdir] == NULL) {
               char cTempFN[BUFSIZ];
-              strcpy(cTempFN, AVGlobals::StripSlashes(fileNames[0]).c_str());
+              strcpy(cTempFN,
+	             AVGlobals::StripSlashes(fileNames[currentFrame]).c_str());
 	      XYplotwin[sdir] = new XYPlotWin(cTempFN, appContext, wAmrVisTopLevel,
 					      this, sdir, currentFrame);
 	    }
@@ -3712,7 +3712,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	    newlist->SetLevel(maxDrawnLevel);
 	    if(XYplotwin[sdir] == NULL) {
               char cTempFN[BUFSIZ];
-              strcpy(cTempFN, AVGlobals::StripSlashes(fileNames[0]).c_str());
+              strcpy(cTempFN,
+	             AVGlobals::StripSlashes(fileNames[currentFrame]).c_str());
 	      XYplotwin[sdir] = new XYPlotWin(cTempFN, appContext, wAmrVisTopLevel,
 					      this, sdir, currentFrame);
 	    }
@@ -4096,7 +4097,7 @@ void PltApp::StopAnimation() {
     animationIId = 0;
   }
 #if (BL_SPACEDIM == 2)
-  for(int dim = 0; dim != 2; ++dim) {
+  for(int dim(0); dim < BL_SPACEDIM; ++dim) {
     if(XYplotwin[dim]) {
       XYplotwin[dim]->StopAnimation();
     }
