@@ -25,7 +25,6 @@ aString initialDerived;
 aString initialFormat;
 aString initialPalette;
 int fileCount;
-int nProcs;
 int sleepTime;
 bool givenBox;
 bool givenBoxSlice;
@@ -232,15 +231,6 @@ void GetDefaults(const aString &defaultsFile) {
         sscanf(buffer, "%s%d", defaultString, &tempInt);
         boundaryWidth = tempInt;
       }
-      else if(strcmp(defaultString, "nprocs") == 0) {
-        sscanf(buffer, "%s%d", defaultString, &tempInt);
-        nProcs = tempInt;
-        if(nProcs < 1 || nProcs > 512) {
-          cerr << "Error in defaults file:  invalid parameter for nProcs:  "
-               << nProcs << endl;
-          nProcs = 1;
-        }
-      }
       else if(strcmp(defaultString, "maxlev") == 0) {
         sscanf(buffer, "%s%d", defaultString, &tempInt);
         maxLevel = tempInt;
@@ -307,7 +297,7 @@ void PrintUsage(char *exname) {
 # else
   cout << "       [-boxslice xlo ylo zlo xhi yhi zhi]" << endl;
 #endif
-  cout << "       [-nprocs n] [-maxlev n]" << endl;
+  cout << "       [-maxlev n]" << endl;
   cout << "       [-palette palname] [-initialderived dername]" << endl;
   cout << "       [-initialscale n] [-showboxes tf] [-numberformat fmt]" << endl;
   cout << "       [-lowblack]"<< endl;
@@ -348,7 +338,6 @@ void PrintUsage(char *exname) {
 #if(BL_SPACEDIM == 2)
   cout << "  -a                 load files as an animation." << endl; 
 #endif
-  cout << "  -nprocs n          specify number of processors." << endl;
   //cout << "  -sleep  n          specify sleep time (for attaching parallel debuggers)." << endl;
   cout << "  -maxlev n          specify the maximum drawn level." << endl;
   cout << "  -palette palname   set the initial palette." << endl; 
@@ -397,7 +386,6 @@ void ParseCommandLine(int argc, char *argv[]) {
   sliceAllVars = false;
   verbose = false;
   fileCount = 0;
-  nProcs = 1;
   maxLevel = -1;
   useMaxLevel = false;
   sleepTime = 0;
@@ -422,13 +410,6 @@ void ParseCommandLine(int argc, char *argv[]) {
         PrintUsage(argv[0]);
       } else {
 	boundaryWidth = atoi(argv[i+1]);
-      }
-      i++;
-    } else if(strcmp(argv[i], "-nprocs") == 0) {
-      if(argc-1<i+1 || atoi(argv[i+1]) < 1 || atoi(argv[i+1]) > 512) {
-        PrintUsage(argv[0]);
-      } else {
-        nProcs = atoi(argv[i+1]);
       }
       i++;
     } else if(strcmp(argv[i], "-maxlev") == 0) {
@@ -673,10 +654,6 @@ void ParseCommandLine(int argc, char *argv[]) {
 #endif
   }
 
-  if(fileType == FAB) {
-    nProcs = 1;
-  }
-
 }  // end ParseCommandLine
 
 
@@ -695,8 +672,6 @@ void SetVerbose() { verbose = true; }
 bool Verbose()    { return verbose; }
 
 int GetFileCount() { return fileCount; }
-int NProcs() { return nProcs; }
-void SetNProcs(int nprocs) { nProcs = nprocs; }
 int SleepTime() { return sleepTime; }
 
 int  GetMaxLevel() { return maxLevel; }

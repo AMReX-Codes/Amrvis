@@ -105,22 +105,15 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
                        AmrPicture *parentPicturePtr,
                        PltApp *parentPltAppPtr, PltApp *pltappptr)
 {
-  if (parentPltAppPtr != NULL && parentPltAppPtr->GetAmrPicturePtr(0) != NULL) {
-    contours = parentPltAppPtr->GetAmrPicturePtr(0)->Contours();
-    raster = parentPltAppPtr->GetAmrPicturePtr(0)->Raster();
-    colContour = parentPltAppPtr->GetAmrPicturePtr(0)->ColorContour();
-    vectorField = parentPltAppPtr->GetAmrPicturePtr(0)->VectorField();
-  } else {
-    if(parentPltAppPtr == NULL) {
-      contours = false;
-      raster = true;
-      colContour = false;
-      vectorField = false;
-    } else {
-      cerr << "error:  can't access the parent pictures" << endl;
-    }
-  }
+  assert(parentPicturePtr != NULL);
+  assert(pltappptr != NULL);
   int ilev;
+
+  contours = parentPicturePtr->Contours();
+  raster = parentPicturePtr->Raster();
+  colContour = parentPicturePtr->ColorContour();
+  vectorField = parentPicturePtr->VectorField();
+
   myView = view;
   minDrawnLevel = mindrawnlevel;
   GAptr = gaptr;
@@ -195,16 +188,16 @@ AmrPicture::AmrPicture(int view, int mindrawnlevel,
     }
 
 
-    if (parentPltAppPtr != NULL) {
+    if(parentPltAppPtr != NULL) {
       int tempSlice = parentPltAppPtr->GetAmrPicturePtr(myView)->GetSlice();
       tempSlice *= CRRBetweenLevels(parentPltAppPtr->MaxDrawnLevel(), 
                                     maxDrawnLevel, amrData.RefRatio());
       slice = Max(Min(tempSlice,
                       subDomain[maxAllowableLevel].bigEnd(YZ-myView)), 
                   subDomain[maxAllowableLevel].smallEnd(YZ-myView));
-    }
-    else
+    } else {
       slice = subDomain[maxAllowableLevel].smallEnd(YZ-myView);
+    }
     
 # else
     vLine = 0;
@@ -264,7 +257,7 @@ void AmrPicture::AmrPictureInit() {
   }
   for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
     imageData[iLevel] = new unsigned char[dataSize[iLevel]];
-    scaledImageData[iLevel] = (unsigned char *)malloc(imageSize);
+    scaledImageData[iLevel] = (unsigned char *) malloc(imageSize);
   }
 
   pendingTimeOut = 0;
@@ -303,7 +296,7 @@ void AmrPicture::SetHVLine() {
     if(i == myView) {
       // do nothing
     } else {
-      if (first == 0) {
+      if(first == 0) {
         hLine = imageSizeV-1 -
 		((pltAppPtr->GetAmrPicturePtr(i)->GetSlice() -
 		pltAppPtr->GetAmrPicturePtr(YZ - i)->
@@ -326,16 +319,15 @@ AmrPicture::~AmrPicture() {
   if(framesMade) {
     for(int iSlice = 0;
         iSlice < subDomain[maxAllowableLevel].length(sliceDir); ++iSlice)
-      {
-        XDestroyImage(frameBuffer[iSlice]);
-      }
-  }
-  for(int iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) 
     {
-      delete [] imageData[iLevel];
-      free(scaledImageData[iLevel]);
-      delete sliceFab[iLevel];
+      XDestroyImage(frameBuffer[iSlice]);
     }
+  }
+  for(int iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
+    delete [] imageData[iLevel];
+    free(scaledImageData[iLevel]);
+    delete sliceFab[iLevel];
+  }
 
   if(pixMapCreated) {
     XFreePixmap(GAptr->PDisplay(), pixMap);
@@ -359,24 +351,10 @@ void AmrPicture::SetSlice(int view, int here) {
       if(sliceFab[lev]->box() != sliceBox[lev]) {
         if(sliceFab[lev]->box().numPts() != sliceBox[lev].numPts()) {
           delete [] imageData[lev];
-	/*
-          if(myView==XZ) {
-            dataSizeH[lev] = sliceBox[lev].length(XDIR);
-            dataSizeV[lev] = sliceBox[lev].length(ZDIR);
-          } else if(myView==YZ) {
-            dataSizeH[lev] = sliceBox[lev].length(YDIR);
-            dataSizeV[lev] = sliceBox[lev].length(ZDIR);
-          } else {
-            dataSizeH[lev] = sliceBox[lev].length(XDIR);
-            dataSizeV[lev] = sliceBox[lev].length(YDIR);
-          }
-          dataSize[ilev]  = dataSizeH[lev] * dataSizeV[lev];
-
-          imageData[lev] = new unsigned char[dataSize[lev]];
-	*/
 	  cerr << endl;
 	  cerr << "Suspicious sliceBox in AmrPicture::SetSlice" << endl;
-	  cerr << "sliceFab[" << lev << "].box() = " << sliceFab[lev]->box() << endl;
+	  cerr << "sliceFab[" << lev << "].box() = "
+	       << sliceFab[lev]->box() << endl;
 	  cerr << "sliceBox[" << lev << "]       = " << sliceBox[lev]       << endl;
 	  cerr << endl;
 
@@ -387,7 +365,7 @@ void AmrPicture::SetSlice(int view, int here) {
     }
 # endif
 
-  for(lev = minDrawnLevel; lev < gpArray.length(); lev++) {
+  for(lev = minDrawnLevel; lev < gpArray.length(); ++lev) {
     gpArray[lev].clear();
   }
   gpArray.clear();
@@ -415,7 +393,7 @@ void AmrPicture::SetSlice(int view, int here) {
   }
 
   int gridNumber;
-  for(lev = minDrawnLevel; lev <= maxLevelWithGrids; lev++) {
+  for(lev = minDrawnLevel; lev <= maxLevelWithGrids; ++lev) {
     gridNumber = 0;
     for(int iBox = 0; iBox < amrData.boxArray(lev).length(); ++iBox) {
       Box temp(amrData.boxArray(lev)[iBox]);
@@ -424,9 +402,9 @@ void AmrPicture::SetSlice(int view, int here) {
 	Box sliceDataBox(temp);
 	temp.shift(XDIR, -subDomain[lev].smallEnd(XDIR));
 	temp.shift(YDIR, -subDomain[lev].smallEnd(YDIR));
-#	if (BL_SPACEDIM==3)
+#if (BL_SPACEDIM == 3)
 	  temp.shift(ZDIR, -subDomain[lev].smallEnd(ZDIR));
-#       endif
+#endif
         gpArray[lev][gridNumber].GridPictureInit(lev,
 		CRRBetweenLevels(lev, maxAllowableLevel, amrData.RefRatio()),
 		pltAppPtr->CurrentScale(), imageSizeH, imageSizeV,
@@ -440,9 +418,7 @@ void AmrPicture::SetSlice(int view, int here) {
 
 // ---------------------------------------------------------------------
 void AmrPicture::ChangeContour(int array_val) {
-  //  bool tmp_contours = contours;
   bool tmp_raster(raster);
-  //bool tmp_colContour = colContour;
   if(array_val == 0) {
     SetRasterOnly();
   } else if(array_val == 1) {
@@ -451,7 +427,7 @@ void AmrPicture::ChangeContour(int array_val) {
     SetColorContour();
   } else if(array_val == 3) {
     SetBWContour();
-  } else if (array_val == 4) {
+  } else if(array_val == 4) {
     SetVectorField();
   }
   // raster hasn't changed the image so all we
@@ -468,27 +444,48 @@ void AmrPicture::ChangeContour(int array_val) {
 
 // ---------------------------------------------------------------------
 void AmrPicture::SetRasterOnly() {
-  contours = false; raster = true; colContour = false; vectorField = false;
+  contours = false;
+  raster = true;
+  colContour = false;
+  vectorField = false;
 }
+
  
 // ---------------------------------------------------------------------
 void AmrPicture::SetRasterContour() {
-  contours = true; raster = true; colContour = false; vectorField = false;
+  contours = true;
+  raster = true;
+  colContour = false;
+  vectorField = false;
 }
+
 
 // ---------------------------------------------------------------------
 void AmrPicture::SetColorContour() {
-  contours = true; raster = false; colContour = true; vectorField = false;
+  contours = true;
+  raster = false;
+  colContour = true;
+  vectorField = false;
 }
+
 
 // ---------------------------------------------------------------------
 void AmrPicture::SetBWContour() {
-  contours = true; raster = false; colContour = false; vectorField = false;
+  contours = true;
+  raster = false;
+  colContour = false;
+  vectorField = false;
 }
 
+
+// ---------------------------------------------------------------------
 void AmrPicture::SetVectorField() {
-  contours = false; raster = true; colContour = false; vectorField = true;
+  contours = false;
+  raster = true;
+  colContour = false;
+  vectorField = true;
 }
+
 
 // ---------------------------------------------------------------------
 void AmrPicture::DrawBoxes(Array< Array<GridPicture> > &gp,
@@ -502,7 +499,8 @@ void AmrPicture::DrawBoxes(Array< Array<GridPicture> > &gp,
       if(level == minDrawnLevel) {
         XSetForeground(GAptr->PDisplay(), GAptr->PGC(), palPtr->WhiteIndex());
       } else {
-        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), MaxPaletteIndex()-80*(level-1));
+        XSetForeground(GAptr->PDisplay(), GAptr->PGC(),
+		       MaxPaletteIndex()-80*(level-1));
       }
       for(int i = 0; i < gp[level].length(); ++i) {
 	xbox = gp[level][i].HPositionInPicture();
@@ -533,9 +531,9 @@ void AmrPicture::Draw(int fromLevel, int toLevel) {
   XPutImage(GAptr->PDisplay(), pixMap, GAptr->PGC(),
             xImageArray[toLevel], 0, 0, 0, 0, imageSizeH, imageSizeV);
            
-  if (contours) {
+  if(contours) {
     DrawContour(sliceFab, GAptr->PDisplay(), pixMap, GAptr->PGC());
-  } else if (vectorField) {
+  } else if(vectorField) {
     DrawVectorField(GAptr->PDisplay(), pixMap, GAptr->PGC());
   }
 
@@ -543,6 +541,7 @@ void AmrPicture::Draw(int fromLevel, int toLevel) {
     DoExposePicture();
   }
 }  // end AmrPicture::Draw.
+
 
 // ---------------------------------------------------------------------
 void AmrPicture::SyncPicture() {
@@ -627,8 +626,8 @@ void AmrPicture::DoExposePicture() {
 		  region2ndX, regionY, region2ndX, region2ndY);
       }
 
-#     if (BL_SPACEDIM == 3)
-        // draw plane "cutting" lines
+#if (BL_SPACEDIM == 3)
+      // draw plane "cutting" lines
       XSetForeground(GAptr->PDisplay(), GAptr->PGC(), hColor);
       XDrawLine(GAptr->PDisplay(), pictureWindow,
                 GAptr->PGC(), 0, hLine, imageSizeH, hLine); 
@@ -644,28 +643,28 @@ void AmrPicture::DoExposePicture() {
                 GAptr->PGC(), vLine+1, 0, vLine+1, imageSizeV); 
       
       if(subCutShowing) {
-          // draw subvolume cutting border 
-          XSetForeground(GAptr->PDisplay(), GAptr->PGC(), 90);
-          XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
-		    subcutX+1, subcutY+1, subcut2ndX+1, subcutY+1); 
-          XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
-		    subcutX+1, subcutY+1, subcutX+1, subcut2ndY+1); 
-          XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
-		    subcutX+1, subcut2ndY+1, subcut2ndX+1, subcut2ndY+1); 
-          XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
-		    subcut2ndX+1, subcutY+1, subcut2ndX+1, subcut2ndY+1);
+        // draw subvolume cutting border 
+        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), 90);
+        XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
+		  subcutX+1, subcutY+1, subcut2ndX+1, subcutY+1); 
+        XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
+		  subcutX+1, subcutY+1, subcutX+1, subcut2ndY+1); 
+        XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
+		  subcutX+1, subcut2ndY+1, subcut2ndX+1, subcut2ndY+1); 
+        XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
+		  subcut2ndX+1, subcutY+1, subcut2ndX+1, subcut2ndY+1);
           
-          XSetForeground(GAptr->PDisplay(), GAptr->PGC(), 155);
-          XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
-		    subcutX, subcutY, subcut2ndX, subcutY); 
-          XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
-		    subcutX, subcutY, subcutX, subcut2ndY); 
-          XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
-		    subcutX, subcut2ndY, subcut2ndX, subcut2ndY); 
-          XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
-		    subcut2ndX, subcutY, subcut2ndX, subcut2ndY);
-        }
-#     endif
+        XSetForeground(GAptr->PDisplay(), GAptr->PGC(), 155);
+        XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
+		  subcutX, subcutY, subcut2ndX, subcutY); 
+        XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
+		  subcutX, subcutY, subcutX, subcut2ndY); 
+        XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
+		  subcutX, subcut2ndY, subcut2ndX, subcut2ndY); 
+        XDrawLine(GAptr->PDisplay(), pictureWindow, GAptr->PGC(),
+		  subcut2ndX, subcutY, subcut2ndX, subcut2ndY);
+      }
+#endif
     }
   }
 }  // end DoExposePicture
@@ -706,11 +705,10 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
   }
 
   if( ! maxsFound) {
-    if (framesMade) {
-      for(int i=0;i<subDomain[maxAllowableLevel].length(sliceDir);++i)
-        {
-          XDestroyImage(frameBuffer[i]);
-        }
+    if(framesMade) {
+      for(int i=0;i<subDomain[maxAllowableLevel].length(sliceDir);++i) {
+        XDestroyImage(frameBuffer[i]);
+      }
       framesMade = false;
     }
     if(pendingTimeOut != 0) {
@@ -738,8 +736,6 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
 	  if(Verbose()) {
             cout << "Deriving into Grids at level " << lev << endl;
 	  }
-          //amrData.MinMax(amrData.ProbDomain()[lev], currentDerived, lev,
-			     //dataMin, dataMax);
 	  bool minMaxValid(false);
           DataServices::Dispatch(DataServices::MinMaxRequest,
 			         dataServicesPtr,
@@ -749,8 +745,7 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
           dataMaxAllGrids = Max(dataMaxAllGrids, dataMax);
           dataMinFile = Min(dataMinFile, dataMin);
           dataMaxFile = Max(dataMaxFile, dataMax);
-	  if(findSubRange && lev <= maxAllowableLevel && lev <= maxLevelWithGrids)
-	  {
+	  if(findSubRange && lev <= maxAllowableLevel && lev <= maxLevelWithGrids) {
             DataServices::Dispatch(DataServices::MinMaxRequest,
 			           dataServicesPtr,
                                    subDomain[lev], currentDerived, lev,
@@ -824,16 +819,16 @@ void AmrPicture::ChangeDerived(aString derived, Palette *palptr) {
     pltAppPtr->PaletteDrawn(true);
     palptr->Draw(minUsing, maxUsing, pltAppPtr->GetFormatString());
   }
- Draw(minDrawnLevel, maxDrawnLevel);
+  Draw(minDrawnLevel, maxDrawnLevel);
   if(printDone) {
-     sprintf(buffer, "done.\n");
-     PrintMessage(buffer);
+    sprintf(buffer, "done.\n");
+    PrintMessage(buffer);
   }
 
 }  // end ChangeDerived
 
-// **************************************************
 
+// -------------------------------------------------------------------
 void AmrPicture::ChangeRasterImage() {
   AmrData &amrData = dataServicesPtr->AmrDataRef();
   for(int iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
@@ -853,6 +848,7 @@ void AmrPicture::ChangeRasterImage() {
   Draw(minDrawnLevel, maxDrawnLevel);
   
 }  // end ChangeRasterImage
+
 
 // -------------------------------------------------------------------
 // convert Real to char in imagedata from fab
@@ -900,13 +896,10 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
       }else {
         imagedata[iIndex] = whiteIndex;
       }
-//if((unsigned int) (imagedata[iIndex]) > 252) {
-//cout << "============ imageData = " << (unsigned int) (imagedata[iIndex]) << endl;
-//}
-     
     }
   }
 }  // end CreateImage(...)
+
 
 // ---------------------------------------------------------------------
 void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
@@ -915,12 +908,12 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 				   int datasizeh, int datasizev,
 				   int imagesizeh, int imagesizev)
 { 
-  int jish, jtmp;
+  int i, j, jish, jtmp;
 
-  for(int j = 0; j < imagesizev; ++j) {
+  for(j = 0; j < imagesizev; ++j) {
     jish = j*imagesizeh;
     jtmp =  datasizeh * (j/scale);
-    for(int i = 0; i < imagesizeh; i++) {
+    for(i = 0; i < imagesizeh; ++i) {
       scaledimagedata[i+jish] = imagedata [ (i/scale) + jtmp ];
     }
   }
@@ -939,11 +932,10 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 // ---------------------------------------------------------------------
 void AmrPicture::ChangeScale(int newScale) { 
   int iLevel;
-  if (framesMade) {
-    for(int i=0;i<subDomain[maxAllowableLevel].length(sliceDir);++i)
-      {
-        XDestroyImage(frameBuffer[i]);
-      }
+  if(framesMade) {
+    for(int i = 0; i < subDomain[maxAllowableLevel].length(sliceDir); ++i) {
+      XDestroyImage(frameBuffer[i]);
+    }
     framesMade = false;
   }
   if(pendingTimeOut != 0) {
@@ -970,17 +962,12 @@ void AmrPicture::ChangeScale(int newScale) {
   AmrData &amrData = dataServicesPtr->AmrDataRef();
   for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
     free(scaledImageData[iLevel]);
-    scaledImageData[iLevel] = (unsigned char *)malloc(imageSize);
-    //if(xImageCreated[iLevel]) {
-      //XDestroyImage(xImageArray[iLevel]);
-      //xImageCreated[iLevel] = false;
-    //}
+    scaledImageData[iLevel] = (unsigned char *) malloc(imageSize);
     CreateScaledImage(&xImageArray[iLevel], newScale *
                 CRRBetweenLevels(iLevel, maxAllowableLevel, amrData.RefRatio()),
                 imageData[iLevel], scaledImageData[iLevel],
                 dataSizeH[iLevel], dataSizeV[iLevel],
                 imageSizeH, imageSizeV);
-    //xImageCreated[iLevel] = true;
   }
 
   hLine = ((hLine / (pltAppPtr->PreviousScale())) * newScale) + (newScale - 1);
@@ -993,11 +980,10 @@ void AmrPicture::ChangeScale(int newScale) {
 void AmrPicture::ChangeLevel(int lowLevel, int hiLevel) { 
   minDrawnLevel = lowLevel;
   maxDrawnLevel = hiLevel;
-  if (framesMade) {
-    for(int i=0;i<subDomain[maxAllowableLevel].length(sliceDir);++i)
-      {
-        XDestroyImage(frameBuffer[i]);
-      }
+  if(framesMade) {
+    for(int i = 0; i < subDomain[maxAllowableLevel].length(sliceDir); ++i) {
+      XDestroyImage(frameBuffer[i]);
+    }
     framesMade = false;
   }
   if(pendingTimeOut != 0) {
@@ -1146,39 +1132,37 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
            dataSizeH[maxDrawnLevel], dataSizeV[maxDrawnLevel],
            imageSizeH, imageSizeV);
     ShowFrameImage(islice);
-#   if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
     
     if( ! framesMade) {
-        pltAppPtr->GetProjPicturePtr()->ChangeSlice(YZ-sliceDir, islice+start);
-        pltAppPtr->GetProjPicturePtr()->MakeSlices();
-        XClearWindow(XtDisplay(pltAppPtr->GetWTransDA()),
-                     XtWindow(pltAppPtr->GetWTransDA()));
-        pltAppPtr->DoExposeTransDA();
+      pltAppPtr->GetProjPicturePtr()->ChangeSlice(YZ-sliceDir, islice+start);
+      pltAppPtr->GetProjPicturePtr()->MakeSlices();
+      XClearWindow(XtDisplay(pltAppPtr->GetWTransDA()),
+                   XtWindow(pltAppPtr->GetWTransDA()));
+      pltAppPtr->DoExposeTransDA();
     }
     XEvent event;
     if(XCheckMaskEvent(GAptr->PDisplay(), ButtonPressMask, &event)) {
-        if(event.xany.window == XtWindow(pltAppPtr->GetStopButtonWidget())) {
-            XPutBackEvent(GAptr->PDisplay(), &event);
-            cancelled = true;
-            iEnd = i;
-            break;
-	}
+      if(event.xany.window == XtWindow(pltAppPtr->GetStopButtonWidget())) {
+        XPutBackEvent(GAptr->PDisplay(), &event);
+        cancelled = true;
+        iEnd = i;
+        break;
+      }
     }
-#   endif
+#endif
   }  // end for(i=0; ...)
 
   delete [] frameImageData;
 
   if(cancelled) {
-    for(int i=0;i<=iEnd;++i)
-      {
-        int iDestroySlice=(((slice - start + (posneg * i)) + length) % length);
-        XDestroyImage(frameBuffer[iDestroySlice]);
-      }
+    for(int i = 0; i <= iEnd; ++i) {
+      int iDestroySlice((((slice - start + (posneg * i)) + length) % length));
+      XDestroyImage(frameBuffer[iDestroySlice]);
+    }
     framesMade = false;
     sprintf(buffer, "Cancelled.\n"); 
     PrintMessage(buffer);
-    //cout << "anim cancelled, setting slice to " << start+islice << endl;
     ChangeSlice(start+islice);
     AmrPicture *apXY = pltAppPtr->GetAmrPicturePtr(XY);
     AmrPicture *apXZ = pltAppPtr->GetAmrPicturePtr(XZ);
@@ -1222,8 +1206,7 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
 
 
 // ---------------------------------------------------------------------
-void AmrPicture::DrawDatasetPoint(int hplot, int vplot, int size)
-{
+void AmrPicture::DrawDatasetPoint(int hplot, int vplot, int size) {
   hdspoint = hplot;
   vdspoint = vplot;
   dsBoxSize = size;
@@ -1235,6 +1218,7 @@ void AmrPicture::DrawDatasetPoint(int hplot, int vplot, int size)
 }
 
 
+// ---------------------------------------------------------------------
 void AmrPicture::UnDrawDatasetPoint() {
   int hpoint = hdspoint * pltAppPtr->CurrentScale();
   int vpoint = imageSizeV-1 - vdspoint * pltAppPtr->CurrentScale();
@@ -1244,12 +1228,13 @@ void AmrPicture::UnDrawDatasetPoint() {
 }
 
 
-
 // ---------------------------------------------------------------------
 void AmrPicture::CBFrameTimeOut(XtPointer client_data, XtIntervalId *) {
   ((AmrPicture *) client_data)->DoFrameUpdate();
 }
 
+
+// ---------------------------------------------------------------------
 void AmrPicture::CBContourSweep(XtPointer client_data, XtIntervalId *) {
   ((AmrPicture *) client_data)->DoContourSweep();
 }
@@ -1259,16 +1244,15 @@ void AmrPicture::CBContourSweep(XtPointer client_data, XtIntervalId *) {
 void AmrPicture::DoFrameUpdate() {
   if(sweepDirection == ANIMPOSDIR) {
     if(slice < subDomain[maxAllowableLevel].bigEnd(sliceDir)) {
-        ++slice;
+      ++slice;
     } else {
-        slice = subDomain[maxAllowableLevel].smallEnd(sliceDir);
+      slice = subDomain[maxAllowableLevel].smallEnd(sliceDir);
     }
   } else {
     if(slice > subDomain[maxAllowableLevel].smallEnd(sliceDir)) {
-        --slice;
+      --slice;
     } else {
-        slice = subDomain[maxAllowableLevel].bigEnd(sliceDir);
-    
+      slice = subDomain[maxAllowableLevel].bigEnd(sliceDir);
     }
   } 
   assert( ! contours);
@@ -1281,6 +1265,7 @@ void AmrPicture::DoFrameUpdate() {
 }  // end DoFrameUpdate()
 
 
+// ---------------------------------------------------------------------
 void AmrPicture::DoContourSweep() {
   if(sweepDirection == ANIMPOSDIR) {
     pltAppPtr->DoForwardStep(myView);
@@ -1292,6 +1277,7 @@ void AmrPicture::DoContourSweep() {
                                    (XtPointer) this);
 }
 
+
 // ---------------------------------------------------------------------
 void AmrPicture::DoStop() {
   if(pendingTimeOut != 0) {
@@ -1302,13 +1288,12 @@ void AmrPicture::DoStop() {
 }
 
 
-
 // ---------------------------------------------------------------------
 void AmrPicture::Sweep(AnimDirection direction) {
   if(pendingTimeOut != 0) {
     DoStop();
   }
-  if (contours) {
+  if(contours) {
     pendingTimeOut = XtAppAddTimeOut(pltAppPtr->GetAppContext(),
                                      frameSpeed, &AmrPicture::CBContourSweep,
                                      (XtPointer) this);
@@ -1316,7 +1301,7 @@ void AmrPicture::Sweep(AnimDirection direction) {
     return; 
   }
   if( ! framesMade) {
-      CreateFrames(direction);
+    CreateFrames(direction);
   }
   if(framesMade) {
     pendingTimeOut = XtAppAddTimeOut(pltAppPtr->GetAppContext(),
@@ -1326,12 +1311,13 @@ void AmrPicture::Sweep(AnimDirection direction) {
   }
 }
 
-void AmrPicture::UndrawSlice(int iSlice) {
-}
+
+// ---------------------------------------------------------------------
 void AmrPicture::DrawSlice(int iSlice) {
   XDrawLine(GAptr->PDisplay(), pictureWindow, GetPltAppPtr()->GetRbgc(),
             0, 30, imageSizeH, 30);
 }
+
 
 // ---------------------------------------------------------------------
 void AmrPicture::ShowFrameImage(int iSlice) {
@@ -1345,7 +1331,7 @@ void AmrPicture::ShowFrameImage(int iSlice) {
 
   DrawBoxes(frameGrids[iRelSlice], pictureWindow);
 
-  if (contours) {
+  if(contours) {
     DrawContour(sliceFab, GAptr->PDisplay(), pictureWindow, GAptr->PGC());
   }
 
@@ -1383,8 +1369,8 @@ void AmrPicture::ShowFrameImage(int iSlice) {
     apXZ->DoExposePicture();
   }
 
-# if (BL_SPACEDIM == 3)
-  if (framesMade) {
+#if (BL_SPACEDIM == 3)
+  if(framesMade) {
       for(int nP = 0; nP < 3; nP++)
           pltAppPtr->GetProjPicturePtr()->
               ChangeSlice(nP, pltAppPtr->GetAmrPicturePtr(nP)->GetSlice());
@@ -1393,7 +1379,7 @@ void AmrPicture::ShowFrameImage(int iSlice) {
                    XtWindow(pltAppPtr->GetWTransDA()));
       pltAppPtr->DoExposeTransDA();
   }
-# endif
+#endif
 
   pltAppPtr->DoExposeRef();
 }  // end ShowFrameImage()
@@ -1417,9 +1403,9 @@ Real AmrPicture::GetWhichMin() {
 Real AmrPicture::GetWhichMax() {
   if(whichRange == USEGLOBAL) {
     return dataMaxAllGrids;
-  } else if (whichRange == USELOCAL) {
+  } else if(whichRange == USELOCAL) {
     return dataMaxRegion;
-  } else if (whichRange == USEFILE) {
+  } else if(whichRange == USEFILE) {
     return dataMaxFile;
   } else {
     return dataMaxSpecified;
@@ -1430,18 +1416,18 @@ Real AmrPicture::GetWhichMax() {
 // ---------------------------------------------------------------------
 void AmrPicture::SetWhichRange(Range newRange) {
   whichRange = newRange;
-  if (framesMade) {
-    for(int i=0;i<subDomain[maxAllowableLevel].length(sliceDir);++i)
-      {
-        XDestroyImage(frameBuffer[i]);
-      }
+  if(framesMade) {
+    for(int i = 0; i < subDomain[maxAllowableLevel].length(sliceDir); ++i) {
+      XDestroyImage(frameBuffer[i]);
+    }
     framesMade = false;
   }
   DoStop();
 }
 
-void AmrPicture::SetContourNumber(int newContours) 
-{
+
+// ---------------------------------------------------------------------
+void AmrPicture::SetContourNumber(int newContours) {
   numberOfContours = newContours;
 }
 
@@ -1527,10 +1513,10 @@ void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
     }
 
     int drawColor(palPtr->BlackIndex());
-    for(int icont = 0; icont < (int)numberOfContours; ++icont) {
+    for(int icont = 0; icont < (int) numberOfContours; ++icont) {
       Real frac((Real) icont / numberOfContours);
       Real value(v_off + frac*(v_max - v_min));
-      if (colContour) {
+      if(colContour) {
         if(value > maxUsing) {  // clip
           drawColor = paletteEnd;
         } else if(value < minUsing) {  // clip
@@ -1548,12 +1534,7 @@ void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
               xlft, ybot, xrgt, ytop);
     }
   } // loop over levels
-  
-  //  if (r.show_grids == 2) {
-  //    draw_vector_field(r, time);
-  //  }
 }
-
 
 
 // contour plotting
@@ -1566,40 +1547,40 @@ int AmrPicture::contour(const FArrayBox &fab, Real value,
                         Real rightEdge, Real topEdge)
 {
   // data     = data to be contoured
-// value    = value to contour
-// has_mask = true if mask array available
-// mask     = array of mask values.  will not contour in masked off cells
-// xLength       = dimension of arrays in X direction
-// yLength       = dimension of arrays in Y direction
-// leftEdge     = position of left   edge of grid in domain
-// rightEdge     = position of right  edge of grid in domain
-// bottomEdge     = position of bottom edge of grid in domain
-// topEdge     = position of top    edge of grid in domain
-  //  cout<<"Entering contour... "; 
+  // value    = value to contour
+  // has_mask = true if mask array available
+  // mask     = array of mask values.  will not contour in masked off cells
+  // xLength       = dimension of arrays in X direction
+  // yLength       = dimension of arrays in Y direction
+  // leftEdge     = position of left   edge of grid in domain
+  // rightEdge     = position of right  edge of grid in domain
+  // bottomEdge     = position of bottom edge of grid in domain
+  // topEdge     = position of top    edge of grid in domain
   const Real *data = fab.dataPtr();
-  Real xDiff = (rightEdge-leftEdge)/(xLength-1);
-  Real yDiff = (topEdge-bottomEdge)/(yLength-1);
+  Real xDiff((rightEdge - leftEdge) / (xLength - 1));
+  Real yDiff((topEdge - bottomEdge) / (yLength - 1));
   
-  bool left, right, bottom, top;   // does contour line intersect this side?
-  Real  xLeft, yLeft;         // where contour line intersects left side
-  Real  xRight, yRight;       // where contour line intersects right side
-  Real  xBottom, yBottom;     // where contour line intersects bottom side
-  Real  xTop, yTop;               // where contour line intersects top side
+  bool left, right, bottom, top;  // does contour line intersect this side?
+  Real xLeft, yLeft;              // where contour line intersects left side
+  Real xRight, yRight;            // where contour line intersects right side
+  Real xBottom, yBottom;          // where contour line intersects bottom side
+  Real xTop, yTop;                // where contour line intersects top side
   bool failure_status = false;
-  for (int j = 0; j < yLength-1; j++) {
-    for (int i = 0; i < xLength-1; i++) {
-      if ( has_mask ) {
-        if ( mask[(i)+(j)*xLength] ||
-             mask[(i+1)+(j)*xLength] ||
-             mask[(i+1)+(j+1)*xLength] ||
-             mask[(i)+(j+1)*xLength] ) {
+  for(int j = 0; j < yLength - 1; ++j) {
+    for(int i = 0; i < xLength - 1; ++i) {
+      if(has_mask) {
+        if(mask[(i)+(j)*xLength] ||
+           mask[(i+1)+(j)*xLength] ||
+           mask[(i+1)+(j+1)*xLength] ||
+           mask[(i)+(j+1)*xLength])
+	{
           continue;
         }
       }
-      Real  left_bottom = data[(i)+(j)*xLength];         // left bottom value
-      Real  left_top = data[(i)+(j+1)*xLength];          // left top value
-      Real  right_bottom = data[(i+1)+(j)*xLength];      // right bottom value
-      Real  right_top = data[(i+1)+(j+1)*xLength];       // right top value
+      Real left_bottom = data[(i)+(j)*xLength];         // left bottom value
+      Real left_top = data[(i)+(j+1)*xLength];          // left top value
+      Real right_bottom = data[(i+1)+(j)*xLength];      // right bottom value
+      Real right_top = data[(i+1)+(j+1)*xLength];       // right top value
       xLeft = leftEdge + xDiff*(i);
       xRight = xLeft + xDiff;
       yBottom = bottomEdge + yDiff*(j);
@@ -1611,32 +1592,32 @@ int AmrPicture::contour(const FArrayBox &fab, Real value,
       top = Between(left_top,value,right_top);
       
       // figure out where things intersect the cell
-      if (left) {
-        if (left_bottom != left_top) {
-          yLeft = yBottom + yDiff*(value-left_bottom)/(left_top-left_bottom);
+      if(left) {
+        if(left_bottom != left_top) {
+          yLeft = yBottom + yDiff * (value - left_bottom) / (left_top-left_bottom);
         } else {
           yLeft = yBottom;
           failure_status = true;
         }
       }
-      if (right) {
-        if (right_bottom != right_top) {
+      if(right) {
+        if(right_bottom != right_top) {
           yRight = yBottom + yDiff*(value-right_bottom)/(right_top-right_bottom);
         } else {
           yRight = yBottom;
           failure_status = true;
         }
       }
-      if (bottom) {
-        if (left_bottom != right_bottom) {
+      if(bottom) {
+        if(left_bottom != right_bottom) {
           xBottom = xLeft + xDiff*(value-left_bottom)/(right_bottom-left_bottom);
         } else {
           xBottom = xRight;
           failure_status = true;
         }
       }
-      if (top) {
-        if (left_top != right_top) {
+      if(top) {
+        if(left_top != right_top) {
           xTop = xLeft + xDiff*(value-left_top)/(right_top-left_top);
         } else {
           xTop = xRight;
@@ -1650,47 +1631,47 @@ int AmrPicture::contour(const FArrayBox &fab, Real value,
       hReal2X = (Real)imageSizeH /(rightEdge - leftEdge);
       vReal2X = (Real)imageSizeV /(topEdge - bottomEdge);
       
-      if (left) { 
+      if(left) { 
         xLeft -= leftEdge; yLeft -= bottomEdge;
         xLeft *= hReal2X; yLeft *= vReal2X;
       }
-      if (right) {
+      if(right) {
         xRight -= leftEdge; yRight -= bottomEdge;
         xRight *= hReal2X; yRight *= vReal2X;
       }
-      if (top) {
+      if(top) {
         xTop -= leftEdge; yTop -= bottomEdge;
         xTop *= hReal2X; yTop *= vReal2X; 
       }
-      if (bottom) {
+      if(bottom) {
         xBottom -= leftEdge; yBottom -= bottomEdge;
         xBottom *= hReal2X; yBottom *= vReal2X; 
       }
       
       // finally, draw contour line
-      if (left && right && bottom && top) {
+      if(left && right && bottom && top) {
         // intersects all sides, generate saddle point
         XDrawLine(display, dPixMap, gc, 
                   xLeft, imageSizeV-yLeft,xRight, imageSizeV-yRight);
         XDrawLine(display, dPixMap, gc,
                   xTop, imageSizeV-yTop,xBottom,imageSizeV-yBottom);
-      } else if (top && bottom) {
+      } else if(top && bottom) {
         // only intersects top and bottom sides
         XDrawLine(display, dPixMap, gc,
                   xTop,imageSizeV-yTop,xBottom,imageSizeV-yBottom);
-      } else if (left) {
-        if (right) {
+      } else if(left) {
+        if(right) {
           XDrawLine(display, dPixMap, gc,
                     xLeft,imageSizeV-yLeft,xRight,imageSizeV-yRight);
-        } else if (top) {
+        } else if(top) {
           XDrawLine(display, dPixMap, gc,
                     xLeft,imageSizeV-yLeft,xTop,imageSizeV-yTop);
         } else {
           XDrawLine(display, dPixMap, gc,
                     xLeft,imageSizeV-yLeft,xBottom,imageSizeV-yBottom);
         }
-      } else if (right) {
-        if (top) {
+      } else if(right) {
+        if(top) {
           XDrawLine(display, dPixMap, gc,
                     xRight,imageSizeV-yRight,xTop,imageSizeV-yTop);
         } else {
@@ -1699,38 +1680,37 @@ int AmrPicture::contour(const FArrayBox &fab, Real value,
         }
       }
       
-    } // for I
-  } // for J
-  //  cout<<"leaving contour"<<endl;
+    }  // end for(i...)
+  }  // end for(j...)
   return failure_status;
 }
 
 
+// ---------------------------------------------------------------------
 void AmrPicture::DrawVectorField(Display *pDisplay, 
                                  Drawable &pDrawable, GC pGC)
 {
   int hDir, vDir;
-  if (myView == XY) {
+  if(myView == XY) {
     hDir = 0;
     vDir = 1;
-  } else if (myView == XZ) {
+  } else if(myView == XZ) {
     hDir = 0;
     vDir = 2;
-  } else if (myView == YZ) {
+  } else if(myView == YZ) {
     hDir = 1;
     vDir = 2;
   } else {
     assert(0);
   }
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
-  //int maxLength = amrData.ProbDomain()[maxDrawnLevel].longside();
-  int DVFscale = pltAppPtr->CurrentScale();
-  int DVFRatio = CRRBetweenLevels(maxDrawnLevel, 
+  int DVFscale(pltAppPtr->CurrentScale());
+  int DVFRatio(CRRBetweenLevels(maxDrawnLevel, 
                                   maxAllowableLevel, 
-                                  amrData.RefRatio());
+                                  amrData.RefRatio()));
   // get velocity field
   Box DVFSliceBox(sliceFab[maxDrawnLevel]->box());
-  int maxLength = DVFSliceBox.longside();
+  int maxLength(DVFSliceBox.longside());
   FArrayBox density(DVFSliceBox);
   FArrayBox hVelocity(DVFSliceBox);
   FArrayBox vVelocity(DVFSliceBox);
@@ -1759,18 +1739,18 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
   vVelocity /= density;
   
   // compute maximum speed
-  Real smax = 0.0;
-  int npts = hVelocity.box().numPts();
-  const Real* hdat = hVelocity.dataPtr();
-  const Real* vdat = vVelocity.dataPtr();
+  Real smax(0.0);
+  int npts(hVelocity.box().numPts());
+  const Real *hdat = hVelocity.dataPtr();
+  const Real *vdat = vVelocity.dataPtr();
 
-  for (int k = 0; k < npts; k++) {
-    Real s = sqrt(hdat[k]*hdat[k]+vdat[k]*hdat[k]);
+  for(int k = 0; k < npts; ++k) {
+    Real s = sqrt(hdat[k] * hdat[k] + vdat[k] * hdat[k]);
     smax = Max(smax,s);
   }
   
   
-  if (smax < 1.0e-8) {
+  if(smax < 1.0e-8) {
     cout << "CONTOUR: zero velocity field" << endl;
   } else {
     draw_vector_field(pDisplay, pDrawable, pGC, hDir, vDir, maxLength,
@@ -1779,54 +1759,56 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
 }
 
 
-
-
-
+// ---------------------------------------------------------------------
 void AmrPicture::draw_vector_field(Display *pDisplay, Drawable &pDrawable, 
                                    GC pGC, int hDir, int vDir, int maxLength,
                                    const Real *hdat, const Real *vdat, 
                                    Real velocityMax, Box dvfSliceBox,
                                    int dvfFactor){
-  int maxpoints= numberOfContours;  // partition longest side into 20 parts
-  Real sight_h=maxLength/maxpoints;
-  int stride = sight_h;
-  if (stride<1) 
-    { stride = 1; }
-  Real Amax=1.25*sight_h;
-  Real eps = 1.0e-3;
-  Real arrowLength = 0.25;
+  int maxpoints(numberOfContours);  // partition longest side into 20 parts
+  assert(maxpoints > 0);
+  Real sight_h(maxLength / maxpoints);
+  int stride(sight_h);
+  if(stride < 1) {
+    stride = 1;
+  }
+  Real Amax(1.25 * sight_h);
+  Real eps(1.0e-3);
+  Real arrowLength(0.25);
   XSetForeground(pDisplay, pGC, palPtr->WhiteIndex());
   Box theBox(dvfSliceBox);
-  int ilo = theBox.smallEnd(hDir);
-  int leftEdge = ilo;
-  int ihi = theBox.bigEnd(hDir);
-  int nx = ihi-ilo+1;
-  int jlo = theBox.smallEnd(vDir);
-  int bottomEdge = jlo;
-  int jhi = theBox.bigEnd(vDir);
-  Real xlft = (ilo + 0.5);
-  Real ybot = (jlo + 0.5);
-  for (int jj = jlo; jj <= jhi; jj+=stride) {
-    Real y = ybot + (jj-jlo);
-    for (int ii = ilo; ii <= ihi; ii+=stride) {
-      Real x = xlft + (ii-ilo);
-      Real x1 = hdat[ii-ilo + nx*(jj-jlo)];
-      Real y1 = vdat[ii-ilo + nx*(jj-jlo)];
-      Real s = sqrt(x1*x1 + y1*y1);
-      if (s < eps) continue;
-      Real a = Amax*(x1/velocityMax);
-      Real b = Amax*(y1/velocityMax);
-      int x2 = x + a;
-      int y2 = y + b; 
+  int ilo(theBox.smallEnd(hDir));
+  int leftEdge(ilo);
+  int ihi(theBox.bigEnd(hDir));
+  int nx(ihi - ilo + 1);
+  int jlo(theBox.smallEnd(vDir));
+  int bottomEdge(jlo);
+  int jhi(theBox.bigEnd(vDir));
+  Real xlft(ilo + 0.5);
+  Real ybot(jlo + 0.5);
+  for(int jj = jlo; jj <= jhi; jj += stride) {
+    Real y(ybot + (jj-jlo));
+    for(int ii = ilo; ii <= ihi; ii += stride) {
+      Real x(xlft + (ii-ilo));
+      Real x1(hdat[ii-ilo + nx*(jj-jlo)]);
+      Real y1(vdat[ii-ilo + nx*(jj-jlo)]);
+      Real s(sqrt(x1*x1 + y1*y1));
+      if(s < eps) {
+        continue;
+      }
+      Real a(Amax * (x1 / velocityMax));
+      Real b(Amax * (y1 / velocityMax));
+      int x2(x + a);
+      int y2(y + b); 
       XDrawLine(pDisplay, pDrawable, pGC, 
                 (x-leftEdge)*dvfFactor, 
                 imageSizeV-((y-bottomEdge)*dvfFactor), 
                 (x2-leftEdge)*dvfFactor, 
                 imageSizeV-((y2-bottomEdge)*dvfFactor));
-      Real p1 = x2 - arrowLength*a;
-      Real p2 = y2 - arrowLength*b;
-      p1 = p1 - (arrowLength/2.0)*b;
-      p2 = p2 + (arrowLength/2.0)*a;
+      Real p1 = x2 - arrowLength * a;
+      Real p2 = y2 - arrowLength * b;
+      p1 = p1 - (arrowLength / 2.0) * b;
+      p2 = p2 + (arrowLength / 2.0) * a;
       XDrawLine(pDisplay, pDrawable, pGC, 
                 (x2-leftEdge)*dvfFactor, 
                 imageSizeV-((y2-bottomEdge)*dvfFactor), 
@@ -1837,6 +1819,3 @@ void AmrPicture::draw_vector_field(Display *pDisplay, Drawable &pDrawable,
 }
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
-
-
-

@@ -294,7 +294,7 @@ void ProjectionPicture::DrawBoxesIntoDrawable(const Drawable &drawable,
 
 // -------------------------------------------------------------------
 void ProjectionPicture::DrawAuxiliaries(const Drawable &drawable) {
-  if (showSubCut) {
+  if(showSubCut) {
     XSetForeground(XtDisplay(drawingArea), XtScreen(drawingArea)->default_gc,
                    subCutColor);
     transSubCutBox.Draw(XtDisplay(drawingArea),drawable,
@@ -332,7 +332,7 @@ void ProjectionPicture::LoadSlices(const Box &surroundingBox) {
 // -------------------------------------------------------------------
 void ProjectionPicture::ChangeSlice(int Dir, int newSlice) {
   for(int j = 0; j < 3; ++j) {
-    if (Dir == j) {
+    if(Dir == j) {
       realSlice[j].ChangeSlice(newSlice);
     }
   }
@@ -460,9 +460,10 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
 
 //--------------------------------------------------------------------
 RealBox::RealBox() {
-    RealPoint zero(0., 0., 0.);
-    for (int i = 0; i < 8 ; i++)
-        vertices[i] = zero;
+  RealPoint zero(0., 0., 0.);
+  for(int i = 0; i < 8 ; ++i) {
+    vertices[i] = zero;
+  }
 }
 
 //--------------------------------------------------------------------
@@ -492,10 +493,10 @@ RealBox::RealBox(const Box& theBox) {
 
 //--------------------------------------------------------------------
 TransBox::TransBox() {
-    TransPoint zero(0,0);
-    for(int i = 0; i < 8 ; ++i) {
-      vertices[i] = zero;
-    }
+  TransPoint zero(0,0);
+  for(int i = 0; i < 8 ; ++i) {
+    vertices[i] = zero;
+  }
 }
 
 
@@ -503,38 +504,37 @@ TransBox::TransBox() {
 TransBox::TransBox(TransPoint p1, TransPoint p2, TransPoint p3, TransPoint p4, 
                    TransPoint p5, TransPoint p6, TransPoint p7, TransPoint p8)
 {
-    vertices[0] = p1; vertices[1] = p2; vertices[2] = p3; vertices[3] = p4;
-    vertices[4] = p5; vertices[5] = p6; vertices[6] = p7; vertices[7] = p8;
+  vertices[0] = p1; vertices[1] = p2; vertices[2] = p3; vertices[3] = p4;
+  vertices[4] = p5; vertices[5] = p6; vertices[6] = p7; vertices[7] = p8;
 }
 
 
 //--------------------------------------------------------------------
 void TransBox::Draw(Display *display, Window window, GC gc)
 {
-    for(int j = 0; j < 2; ++j) {
-        for(int i = 0; i < 3; ++i){
-            XDrawLine(display, window, gc,
-                      vertices[j*4+i].x, vertices[j*4+i].y,
-                      vertices[j*4+i+1].x, vertices[j*4+i+1].y);
-        }
-        XDrawLine(display, window, gc, vertices[j*4].x, vertices[j*4].y, 
-                  vertices[j*4+3].x, vertices[j*4+3].y);
+  for(int j = 0; j < 2; ++j) {
+    for(int i = 0; i < 3; ++i){
+      XDrawLine(display, window, gc,
+                vertices[j*4+i].x, vertices[j*4+i].y,
+                vertices[j*4+i+1].x, vertices[j*4+i+1].y);
     }
-    for(int k = 0; k < 4; ++k) {
-        XDrawLine(display, window, gc,
-                  vertices[k].x, vertices[k].y,
-                  vertices[k+4].x, vertices[k+4].y);
-    }
+    XDrawLine(display, window, gc, vertices[j*4].x, vertices[j*4].y, 
+              vertices[j*4+3].x, vertices[j*4+3].y);
+  }
+  for(int k = 0; k < 4; ++k) {
+    XDrawLine(display, window, gc, vertices[k].x, vertices[k].y,
+              vertices[k+4].x, vertices[k+4].y);
+  }
             
 }
 
 
 //--------------------------------------------------------------------
 RealSlice::RealSlice() {
-    RealPoint zero(0,0,0);
-    for(int i = 0; i < 4; ++i) {
-      edges[i] = zero;
-    }
+  RealPoint zero(0,0,0);
+  for(int i = 0; i < 4; ++i) {
+    edges[i] = zero;
+  }
 }
 
 

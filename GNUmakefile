@@ -12,9 +12,6 @@ DIM       = 3
 USE_ARRAYVIEW = TRUE
 USE_ARRAYVIEW = FALSE
 
-USE_BSP=TRUE
-USE_BSP=FALSE
-
 USE_MPI=FALSE
 USE_MPI=TRUE
 
@@ -77,6 +74,7 @@ ifeq ($(COMP),KCC)
 #DEFINES += -DBL_USE_NEW_HFILES
 ifeq ($(KCC_VERSION),3.3)
 CXXFLAGS+= --diag_suppress 837
+CXXOPTF += -Olimit 2400
 endif
 endif
 

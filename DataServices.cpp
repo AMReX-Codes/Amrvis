@@ -127,7 +127,6 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     whichDSIndex = ds->dsArrayIndex;
   }
 
-
   ParallelDescriptor::Broadcast(ioProcNumber, &whichDSIndex, &whichDSIndex,
 				sizeof(int));
   if( ! ParallelDescriptor::IOProcessor()) {

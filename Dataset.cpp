@@ -49,7 +49,6 @@ Dataset::Dataset(Widget top, const Box &alignedRegion, AmrPicture *apptr,
   hStringOffset = 12;
   vStringOffset = -4;
 
-
   XmStringFree(sFormatString);
 
   whiteIndex = int(pltAppPtr->GetPalettePtr()->WhiteIndex());

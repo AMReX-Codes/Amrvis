@@ -121,16 +121,13 @@ void WritePSPaletteFile(char *filename, XImage *image,
                 sprintf(buf+charindex, "\n");
                 charindex++;
             }
-            //fout << setw(2) << setfill('0') << (color.red >> 8);
-            //fout << setw(2) << setfill('0') << (color.green >> 8);
-            //fout << setw(2) << setfill('0') << (color.blue >> 8) << ' ';
             sprintf(buf+charindex, "%02x%02x%02x ",
                     (color.red   >> 8),
                     (color.green >> 8),
                     (color.blue  >> 8));
             charindex += 7;
         }
-            fout << buf;
+        fout << buf;
     }
     fout << dec;
     fout << "grestore"  << '\n';
@@ -144,7 +141,7 @@ void WritePSPaletteFile(char *filename, XImage *image,
     int palSpacing(ceil(pSpacing) + 1);
     fout << "/Palatino-Roman findfont" << '\n' << "20 scalefont"
         << '\n' << "setfont\n1 setgray" << '\n';
-    for (int j = 0; j < palValueList.length() ; ++j) {
+    for(int j = 0; j < palValueList.length(); ++j) {
         fout << "40 " << topOfPalette - ( j * palSpacing) << " moveto" << '\n';
         fout << "(";
         char dummyString[50];//should be big enough
@@ -243,7 +240,7 @@ IMAGE *iopen(char *file, unsigned int type, unsigned int dim,
   }
   image->x = image->y = image->z = 0;
   image->file = fdesc;
-  image->offset = 512L;                   /* set up for img_optseek */
+  image->offset = 512L;                   // set up for img_optseek
   lseek(image->file, 512L, 0);
   return(image);
 }  // end iopen
@@ -290,7 +287,7 @@ int putrow(IMAGE *image, unsigned short *buffer, unsigned int y, unsigned int z)
 		} else {
                     return cnt;
 		}
-                /* NOTREACHED */
+                // NOTREACHED
 
             case 2:
 		cerr << "2 bytes per pixel not supported" << endl;

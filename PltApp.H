@@ -87,7 +87,6 @@ public:
   void DoChangeContour(int, int);
 
 #if (BL_SPACEDIM==3)
-  void DestroyLightingWindow(Widget, XtPointer, XtPointer);
   static void CBRenderModeMenu(Widget, XtPointer, XtPointer);
   static void CBClassifyMenu(Widget, XtPointer, XtPointer);
   static void CBTransResize(Widget, XtPointer, XtPointer);
@@ -109,15 +108,19 @@ public:
   void DoTransResize(Widget, XtPointer, XtPointer);
   void DoAttach(Widget, XtPointer, XtPointer);
   void DoDetach(Widget, XtPointer, XtPointer);
+#if defined(BL_VOLUMERENDER)
   void DoCreateLightingWindow(Widget, XtPointer, XtPointer);
   void DoDoneLightingWindow(Widget, XtPointer, XtPointer);
   void DoApplyLightingWindow(Widget, XtPointer, XtPointer);
   void DoCancelLightingWindow(Widget, XtPointer, XtPointer);
+  void DestroyLightingWindow(Widget, XtPointer, XtPointer);
+#endif
   void Clear();
   ProjectionPicture *GetProjPicturePtr() { return projPicturePtr; }
 #endif
   
-  void DoReadContourString(Widget, XmSelectionBoxCallbackStruct *);
+  void DoReadContourString(Widget, XmSelectionBoxCallbackStruct *unused,
+			   bool bRedrawAmrPicture = true);
   int CurrentContour() { return currentContour; }
   void SetCurrentContour(int newContour) { currentContour = newContour; }
   

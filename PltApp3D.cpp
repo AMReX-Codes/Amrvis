@@ -76,7 +76,9 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
           DoRender(w, NULL, NULL);
       } else {
           viewTrans.MakeTransform();
-          if (showing3dRender) showing3dRender = false;
+          if(showing3dRender) {
+	    showing3dRender = false;
+	  }
           projPicturePtr->MakeBoxes();
           XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
       }
@@ -114,7 +116,9 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
           DoRender(w, NULL, NULL);
       } else {
           viewTrans.MakeTransform();
-          if (showing3dRender) showing3dRender = false;
+          if(showing3dRender) {
+	    showing3dRender = false;
+	  }
           projPicturePtr->MakeBoxes();
           XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
       }
@@ -147,7 +151,9 @@ void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
           DoRender(w, NULL, NULL);
       } else {
           viewTrans.MakeTransform();
-          if (showing3dRender) showing3dRender = false;
+          if(showing3dRender) {
+	    showing3dRender = false;
+	  }
           projPicturePtr->MakeBoxes();
           XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
       }
@@ -250,6 +256,7 @@ void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
 }
 
 
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
 // -------------------------------------------------------------------
 void PltApp::DoApplyLightingWindow(Widget, XtPointer, XtPointer) {
   //read new input
@@ -260,26 +267,28 @@ void PltApp::DoApplyLightingWindow(Widget, XtPointer, XtPointer) {
   Real minray = atof(XmTextFieldGetString(wLWminOpacity));
   Real maxray = atof(XmTextFieldGetString(wLWmaxOpacity));
 
-  if (0.0 > ambient || ambient > 1.0 ||
+  if(0.0 > ambient || ambient > 1.0 ||
       0.0 > diffuse || diffuse > 1.0 ||
       0.0 > specular || specular > 1.0 ||
       0.0 > minray || minray > 1.0 ||
-      0.0 > maxray || maxray > 1.0 ) {
+      0.0 > maxray || maxray > 1.0 )
+  {
     //rewrite old values...
   } else {
     VolRender *volRenderPtr = projPicturePtr->GetVolRenderPtr();
     
-    if (ambient != volRenderPtr->GetAmbient() ||
+    if(ambient != volRenderPtr->GetAmbient() ||
         diffuse != volRenderPtr->GetDiffuse() ||
         specular != volRenderPtr->GetSpecular() ||
         shiny != volRenderPtr->GetShiny() ||
         minray != volRenderPtr->GetMinRayOpacity() ||
-        maxray != volRenderPtr->GetMaxRayOpacity()) { 
+        maxray != volRenderPtr->GetMaxRayOpacity())
+    {
       volRenderPtr->SetLighting(ambient, diffuse, specular, shiny, 
                                 minray, maxray);
       //update render image if necessary
       projPicturePtr->GetVolRenderPtr()->InvalidateVPData();
-      if (XmToggleButtonGetState(wAutoDraw)) {
+      if(XmToggleButtonGetState(wAutoDraw)) {
         DoRender(wAutoDraw, NULL, NULL);
       }
     }
@@ -310,7 +319,7 @@ void PltApp::DoCancelLightingWindow(Widget, XtPointer, XtPointer) {
 void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   Position xpos, ypos;
   Dimension wdth, hght;
-  if ( ! lightingWindowExists ) {
+  if( ! lightingWindowExists ) {
     lightingWindowExists = true;
     //create lighting window
     XtVaGetValues(wAmrVisTopLevel, XmNx, &xpos, XmNy, &ypos,
@@ -509,7 +518,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
     XtSetArg(args[i], XmNbottomPosition, 62);    i++;
     XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      i++;
     XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
-    wLWminOpacityLabel = XtCreateManagedWidget("minOpacityOpacity: ",
+    wLWminOpacityLabel = XtCreateManagedWidget("minRayOpacity: ",
                                            xmLabelGadgetClass, wLWForm,
                                            args, i);
     
@@ -564,6 +573,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
     XRaiseWindow(GAptr->PDisplay(), XtWindow(wLWTopLevel));
   }
 }
+#endif
 
 
 // -------------------------------------------------------------------
@@ -763,8 +773,8 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   wDClassifyOptions = XmCreatePulldownMenu(wDetachForm,"classoptions", args, i);
   XtVaSetValues(wDClassifyOptions, XmNuserData, this, NULL);
   XmString DClassifyItems[2];
-  DClassifyItems[0] = XmStringCreateSimple("OT");
-  DClassifyItems[1] = XmStringCreateSimple("PC");
+  DClassifyItems[0] = XmStringCreateSimple("PC");
+  DClassifyItems[1] = XmStringCreateSimple("OT");
   
 
   for(int j = 0; j < 2; ++j) {
@@ -774,7 +784,8 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
     XtAddCallback(wDClassifyItems[j], XmNactivateCallback,
 		  &PltApp::CBClassifyMenu, (XtPointer)j);
   }
-  XmStringFree(DClassifyItems[0]); XmStringFree(DClassifyItems[1]);
+  XmStringFree(DClassifyItems[0]);
+  XmStringFree(DClassifyItems[1]);
   XtManageChildren(wDClassifyItems, 2);
   
   
@@ -1001,16 +1012,16 @@ void PltApp::CBClassifyMenu(Widget w, XtPointer item_no, XtPointer client_data)
 void PltApp::DoClassifyMenu(Widget w, XtPointer item_no, XtPointer client_data) 
 {
 #if defined(BL_VOLUMERENDER)
-    if(item_no == (XtPointer) 0) {  // Use Octree Mode
-        if( ! preClassify ) {
-          return;
-	}
-        SetOctreeAlgorithm();
-    } else if (item_no == (XtPointer)1) { //Use Pre-Classified Mode
+    if(item_no == (XtPointer) 0) {  // Use Pre-Classified Mode
         if(preClassify) {
           return;
 	}
         SetPreClassifyAlgorithm();
+    } else if(item_no == (XtPointer) 1) {  // Use Octree Mode
+        if( ! preClassify ) {
+          return;
+	}
+        SetOctreeAlgorithm();
     }
     projPicturePtr->GetVolRenderPtr()->InvalidateVPData();
     

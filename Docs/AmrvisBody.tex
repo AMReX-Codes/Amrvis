@@ -175,6 +175,16 @@ the subregion will not appear.}
 \item[Output Menu]  This menu allows output of the current image(s) or
 data to one of several formats.
 
+\item[Contour Menu]  This menu controls how data is displayed.  Current
+options are {\em raster}, {\em raster \& contours}, {\em color contours},
+{\em b/w contours}, and {\em velocity vectors}.
+
+\item[Number of Contour setting]  This edit box allows the user to set
+the number of contour lines or velocity vectors.
+
+\item[Information Button]  This button displays a window with information
+about the plot file.
+
 \item[Close Button]  This button destroys the Data View Window.
 
 \item[Set Range Button]  This button allows the user to set the color
@@ -184,22 +194,23 @@ mapping range of the data.
 of the isometric image in 3D (boxes or volumetric rendering).
 
 \begin{description}
-    \item [0]              Reset the viewing angle to the original view.
-    \item [XYZ]            Draw axis labels.
-    \item [Draw]           Draw the volume rendered image.  This may entail
-		           creating internal data structures and could take
-		           several seconds to minutes for the first frame
-			   to draw.
-    \item [Autodraw]       Automatically render the image while rotating.
-			   As with {\bf Draw}, the first image takes longer.
-    \item [Trans]          Reread the transfer functions.
-    \item[Light/Value]     This menu shows the volume rendering
-                           model currently in effect.
-    \item[OT/PC]           This menu affect how the volume rendering
-                           stores data internally (OctTree/PreClassified).
-			   PreClassified provides the fastest volume rendering.
-    \item [Detach]         Detach the isometric view into its own window.
-    \item [Attach]         Attach the isometric view.
+    \item [0]           Reset the viewing angle to the original view.
+    \item [XYZ]         Draw axis labels.
+    \item [Draw]        Draw the volume rendered image.  This may entail
+		        creating internal data structures and could take
+		        several seconds to minutes for the first frame
+			to draw.
+    \item [Autodraw]    Automatically render the image while rotating.
+			As with {\bf Draw}, the first image takes longer.
+    \item [Trans]       Reread the transfer functions.
+    \item [Lights]      Allows the user to set the rendering lighting parameters.
+    \item[Light/Value]  This menu shows the volume rendering
+                        model currently in effect.
+    \item[OT/PC]        This menu affect how the volume rendering
+                        stores data internally (OctTree/PreClassified).
+			PreClassified provides the fastest volume rendering.
+    \item [Detach]      Detach the isometric view into its own window.
+    \item [Attach]      Attach the isometric view.
 \end{description}
 
 \end{description}
@@ -258,7 +269,7 @@ This feature operates in batch mode.
 
 \item [Making Volumetric Data Files]  Use the {\bf -makeswf\_light}
 and {\bf -makeswf\_value} options to write a data file for fast volume
-rendering.  This option uses the current transfer function and either the
+rendering.  This option uses the transfer function from the palette and either the
 value model or lighting model.  The files are postprocessed with
 {\em AmrMovie}.
 
@@ -338,10 +349,8 @@ current default visual.
 
 \subsection{Files and Directories}
 
-{\em Amrvis} looks for the files {\bf amrvis.defaults} and
-{\bf vpramps.dat} (3D only) to
-set default values and transfer functions for volume rendering.
-If these files do not exist, {\em amrvis} will use standard default values.
+{\em Amrvis} looks for the file {\bf amrvis.defaults} to set default values.
+If this file does not exist, {\em amrvis} will use standard default values.
 The {\bf amrvis.defaults} file has the following structure and options
 (in general: {\em keyword   value}).
 
@@ -387,24 +396,32 @@ The search path for {\bf amrvis.defaults} is (in this order):
 \end{verbatim}
 
 
-Transfer functions are set in {\bf vpramps.dat}, which has the following structure
-(annotation is added here--do not annotate the {\bf vpramps.dat} file).
+Transfer functions are now part of the palette (they were formerly set
+in {\bf vpramps.dat}).  A palette tool named {\em icol.trans} is
+available to create and modify palettes.  If the palette does not
+contain the transfer function values, a default will be used.
 
-\begin{verbatim}
-1                    (classify fields:  1==use value, 2==use value and gradient)
-2                    (shade fields:     use 2 for now)
-5                    (number of points in the following two lines)
-0   24  180 210 255  (value field x:  first and last must be 0 and 255 for now)
-0.0 0.0 0.6 0.8 1.0  (value field y:  0.0 == transparent, 1.0 == opaque)
-4                    (number of points in the following two lines)
-0   64  128 255      (gradient field x)
-0.0 0.6 1.0 1.0      (gradient field y)
-0.05                 (minRayOpacity)
-0.95                 (maxRayOpacity)
-\end{verbatim}
+The {\bf Lights} window allows the user to set the following lighting
+values.
+
+\begin{description}
+\item [ambient]  Sets the ambient lighting value.
+
+\item [diffuse]  Sets the diffuse lighting value.
+
+\item [specular]  Sets the specular lighting value.
+
+\item [shiny]  Sets the material shinyness.
+
+\item [minRayOpacity]  Sets the minimum ray opacity cutoff.  The
+minimum value for this parameter is 0.0.  A good value is 0.05.
+
+\item [maxRayOpacity]  Sets the maximum ray opacity cutoff.  The
+maximum value for this parameter is 1.0.  A good value is 0.95.
+\end{description}
 
 
-Note:  For volume rendering, the VolPack library from Stanford University
+Note:  For volume rendering, the {\em VolPack} library from Stanford University
 must be linked with {\em amrvis}.  It currently can be obtained from
 
 \begin{verbatim}
@@ -412,7 +429,7 @@ http://www-graphics.stanford.edu/software/volpack
 \end{verbatim}
 
 {\em Amrvis} has been tested with VolPack version 1.0beta3 (the
-latest release.
+latest release).
 
 
 \subsection{Examples}
@@ -424,7 +441,7 @@ amrvis <return>           opens the main window with default file type (-newplt)
 amrvis -newplt <return>   opens the main window with file type set to -newplt.
 amrvis -newplt plt1560    opens plt1560 (which is a new plot file).
 amrvis -fab *.fab         opens multiple fab files in separate windows.
-amrvis -a plt*            opens an animation for plt*.
+amrvis -a plt*            opens an animation for plt* (2D only).
 \end{verbatim}
 
 

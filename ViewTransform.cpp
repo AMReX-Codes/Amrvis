@@ -14,6 +14,7 @@ using std::cout;
 #include <assert.h>
 #endif
 
+
 // -------------------------------------------------------------------
 ViewTransform::ViewTransform() {
   rotation = AmrQuaternion();
@@ -106,13 +107,13 @@ void ViewTransform::MakeTransform() {  //ugh -- why this constant?
 
 // -------------------------------------------------------------------
 void ViewTransform::SetAdjustments(Real len, int width, int height) {
-    if (width < height) {
-        txAdjust = len * vtAspect;
-        tyAdjust = len;
-    } else {
-        txAdjust = len;
-        tyAdjust = len * vtAspect;
-    }
+  if(width < height) {
+    txAdjust = len * vtAspect;
+    tyAdjust = len;
+  } else {
+    txAdjust = len;
+    tyAdjust = len * vtAspect;
+  }
 }
 
 
@@ -132,9 +133,9 @@ Real ViewTransform::InfNorm() {
 
 // -------------------------------------------------------------------
 void ViewTransform::GetRotationMat(MatrixFour m) {
-    for(int i = 0; i< 4; ++i) {
-        for (int j = 0; j < 4 ; ++j) {
-            m[i][j] = mRotation[i][j];
+    for(int i = 0; i < 4; ++i) {
+        for(int j = 0; j < 4; ++j) {
+          m[i][j] = mRotation[i][j];
         }
     }
 }
@@ -142,34 +143,34 @@ void ViewTransform::GetRotationMat(MatrixFour m) {
 
 // -------------------------------------------------------------------
 void ViewTransform::GetRenderRotationMat(MatrixFour m) {
-    for(int i = 0; i < 4; ++i) {
-        for (int j = 0; j < 4; ++j) {
-            m[i][j] = mRenderRotation[i][j];
-        }
+  for(int i = 0; i < 4; ++i) {
+    for(int j = 0; j < 4; ++j) {
+      m[i][j] = mRenderRotation[i][j];
     }
+  }
 }
     
 
 // -------------------------------------------------------------------
 void ViewTransform::ViewRotationMat() const {
-  printf("%s\n", "Rotation matrix:");
+  cout << "Rotation matrix:" << endl;
   for(int i = 0; i < 4; ++i) {
     for(int j = 0; j < 4; ++j) {
-      printf("%7.2f", mRotation[i][j]);
+      cout << mRotation[i][j] << "  ";
     }
-    printf("\n");
+    cout << endl;
   }
 }
 
 
 // -------------------------------------------------------------------
 void ViewTransform::ViewRenderRotationMat() const {
-  printf("%s\n", "Render Rotation matrix:");
+  cout << "Render Rotation matrix:" << endl;
   for(int i = 0; i < 4; ++i) {
     for(int j = 0; j < 4; ++j) {
-      printf("%7.2f", mRenderRotation[i][j]);
+      cout << mRenderRotation[i][j] << "  ";
     }
-    printf("\n");
+    cout << endl;
   }
 }
 

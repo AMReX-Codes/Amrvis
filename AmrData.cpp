@@ -108,7 +108,6 @@ AmrData::~AmrData() {
 
 // ---------------------------------------------------------------
 bool AmrData::ReadData(const aString &filename, FileType filetype) {
-
    fileType = filetype;
    if(filetype == FAB || filetype == MULTIFAB) {
      return ReadNonPlotfileData(filename, filetype);
@@ -644,8 +643,6 @@ bool AmrData::ReadData(const aString &filename, FileType filetype) {
 }  // end ReadData
 
 
-
-
 // ---------------------------------------------------------------
 bool AmrData::ReadNonPlotfileData(const aString &filename, FileType filetype) {
   int i;
@@ -821,7 +818,6 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
       }
     }
 
-
     MultiFabCopyDescriptor multiFabCopyDesc;
     Array<MultiFabId> stateDataMFId(finestFillLevel + 1);
     for(currentLevel = 0; currentLevel <= finestFillLevel; ++currentLevel) {
@@ -847,18 +843,14 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
     IndexType boxType(destBoxes[0].ixType());
     BoxList unfilledBoxesOnThisLevel(boxType);
     BoxList unfillableBoxesOnThisLevel(boxType);
-    //
     // Do this for all local fab boxes.
-    //
     for(int ibox = 0; ibox < localMFBoxes.length(); ++ibox) {
         unfilledBoxesOnThisLevel.clear();
         assert(unfilledBoxesOnThisLevel.ixType() == boxType);
         assert(unfilledBoxesOnThisLevel.ixType() == localMFBoxes[ibox].ixType());
         unfilledBoxesOnThisLevel.add(localMFBoxes[ibox]);
-        //
         // Find the boxes that can be filled on each level--these are all
         // defined at their level of refinement.
-        //
         bool needsFilling = true;
         for(currentLevel = finestFillLevel; currentLevel >= 0 && needsFilling;
             --currentLevel)
@@ -1049,6 +1041,7 @@ int AmrData::NIntersectingGrids(int level, const Box &b) const {
   }
   return nGrids;
 }
+
 
 // ---------------------------------------------------------------
 int AmrData::FinestContainingLevel(const Box &b, int startLevel) const {

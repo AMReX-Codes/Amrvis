@@ -341,8 +341,6 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
 
   (void) close(fd);
 
-  
-
   rbuff[blackIndex] = 0;   gbuff[blackIndex] = 0;   bbuff[blackIndex] = 0;
   rbuff[whiteIndex] = 255; gbuff[whiteIndex] = 255; bbuff[whiteIndex] = 255;
 
@@ -363,19 +361,21 @@ int Palette::ReadSeqPalette(const aString &fileName, bool bRedraw) {
 
   // set Transfer function here  NOTE:  doesn't call
   transferArray.resize(iSeqPalSize);
-  if (paletteType == NON_ALPHA) {
+  if(paletteType == NON_ALPHA) {
     for(int j = 0; j<iSeqPalSize; j++) {
       indexArray[j] = j; 
       transferArray[j] = (float) j / (float)(iSeqPalSize-1);
     }
-  } else if (paletteType == ALPHA) {
+  } else if(paletteType == ALPHA) {
     for(int j = 0; j<iSeqPalSize; j++) {
       indexArray[j] = j; 
       int tmp = (unsigned short) abuff[j];
       transferArray[j] = (float) tmp/100.0;
     }
   }
-  transSet = true;
+  if(BL_SPACEDIM == 3) {
+    transSet = true;
+  }
 
   if(bRedraw) {
     Redraw();
@@ -391,6 +391,5 @@ XImage *Palette::GetPictureXImage() {
   return (XGetImage(display, palPixmap, 0, 0,
                 totalPalWidth, totalPalHeight, AllPlanes, ZPixmap));
 }
-
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------

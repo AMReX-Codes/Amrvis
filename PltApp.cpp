@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------
-// PltApp.C 
+// PltApp.cpp 
 // -------------------------------------------------------------------
 #include "PltApp.H"
 
@@ -24,6 +24,10 @@
 #include <ArrowB.h>
 #include <CascadeB.h>
 #include <Frame.h>
+
+#ifdef BL_T3E
+#include <ctype.h>
+#endif
 
 #if defined(BL_PARALLELVOLUMERENDER)
 #include <PVolRender.H>
@@ -176,11 +180,10 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
   }
   
   contourNumString = aString("5");
-  for (int j = 0; j<NPLANES ; j++) {
+  for(int j = 0; j < NPLANES; ++j) {
     amrPicturePtrArray[j]->SetContourNumber(5);
   }
 
-  
   palFilename = PltApp::defaultPaletteString;
   PltAppInit();
 }
@@ -251,27 +254,23 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
       XtVaSetValues(wAmrVisTopLevel, XmNvisual, GAptr->PVisual(),
                     XmNdepth, 8, NULL);
   }
-//cout << "------ _in PltApp(subregion):  region = " << region << endl;
-  for(int np = 0; np < NPLANES; np++) {
+  for(int np = 0; np < NPLANES; ++np) {
     amrPicturePtrArray[np] = new AmrPicture(np, minAllowableLevel, 
                                             GAptr, region,
-					    parentPtr, pltParent,
-                                            this);
+					    parentPtr, pltParent, this);
   }
   
-  int newContourNum = pltParent->GetAmrPicturePtr(0)->GetContourNumber();
+  int newContourNum(pltParent->GetAmrPicturePtr(0)->GetContourNumber());
   char contourString[4];
   sprintf(contourString, "%i", newContourNum);
   contourNumString = aString(contourString);
-  for (int j = 0; j<NPLANES ; j++) {
+  for(int j = 0; j < NPLANES; ++j) {
     amrPicturePtrArray[j]->SetContourNumber(newContourNum);
   }
   
-
-
-# if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
   SetHVLine(amrPicturePtrArray);
-# endif
+#endif
   ivLowOffsetMAL = offset;
   currentDerived = newderived;
   PltAppInit();
@@ -315,7 +314,7 @@ void PltApp::PltAppInit() {
   }
   lightingModel = true;
   showing3dRender = false;
-  preClassify = false;
+  preClassify = true;
   char tempFormat[32];
   strcpy(tempFormat, PltApp::initialFormatString.c_str());
   XmString sFormatString = XmStringCreateSimple(tempFormat);
@@ -529,11 +528,11 @@ void PltApp::PltAppInit() {
   XtSetArg(args[i], XmNleftAttachment, XmATTACH_WIDGET);      i++;
   XtSetArg(args[i], XmNleftOffset, WOFFSET);      i++;
   XmString sSubregion;
-# if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
     sSubregion = XmStringCreateSimple("SubVolume");
-# else
+#else
     sSubregion = XmStringCreateSimple("SubRegion");
-# endif
+#endif
   XtSetArg(args[i], XmNlabelString, sSubregion);       i++;
   wSubregionButton = XmCreatePushButton(wAmrVisMenu, "Subregion", args, i);
   XmStringFree(sSubregion);
@@ -631,22 +630,20 @@ void PltApp::PltAppInit() {
                 NULL);
   XmString ContourItems[5];
   ContourItems[0] = XmStringCreateSimple("raster");
-  ContourItems[1] = XmStringCreateSimple("raster w/contours");
+  ContourItems[1] = XmStringCreateSimple("raster & contours");
   ContourItems[2] = XmStringCreateSimple("color contours");
   ContourItems[3] = XmStringCreateSimple("b/w contours");
   ContourItems[4] = XmStringCreateSimple("velocity vectors");
   
-  for(int j = 0; j<5; j++)
-    {
-      XtSetArg(args[0], XmNlabelString, ContourItems[j]);
-      wContourItems[j] = XmCreatePushButtonGadget(wContourOptions,
-                                              "contour", args, 3);
-      XtAddCallback(wContourItems[j], XmNactivateCallback,
-                    &PltApp::CBChangeContour, (XtPointer)j);
-      XmStringFree(ContourItems[j]);
-    }
+  for(int j = 0; j < 5; ++j) {
+    XtSetArg(args[0], XmNlabelString, ContourItems[j]);
+    wContourItems[j] = XmCreatePushButtonGadget(wContourOptions,
+                                                "contour", args, 3);
+    XtAddCallback(wContourItems[j], XmNactivateCallback,
+                  &PltApp::CBChangeContour, (XtPointer)j);
+    XmStringFree(ContourItems[j]);
+  }
   XtManageChildren(wContourItems, 5);
-  
   
   
   i=0;
@@ -970,8 +967,7 @@ void PltApp::PltAppInit() {
   LightItems[1] = XmStringCreateSimple("Value");
   
 
-  for(int j = 0; j<2; j++)
-  {
+  for(int j = 0; j < 2; ++j) {
     XtSetArg(args[0], XmNlabelString, LightItems[j]);
     XtSetArg(args[1], XmNmarginHeight, 0);
     XtSetArg(args[2], XmNspacing, 0);
@@ -1014,19 +1010,19 @@ void PltApp::PltAppInit() {
   wClassifyOptions = XmCreatePulldownMenu(wPlotArea,"classoptions", args, i);
   XtVaSetValues(wClassifyOptions, XmNuserData, this, NULL);
   XmString ClassifyItems[2];
-  ClassifyItems[0] = XmStringCreateSimple("OT");
-  ClassifyItems[1] = XmStringCreateSimple("PC");
+  ClassifyItems[0] = XmStringCreateSimple("PC");
+  ClassifyItems[1] = XmStringCreateSimple("OT");
   
 
-  for(int j = 0; j<2; j++)
-  {
+  for(int j = 0; j < 2; ++j) {
     XtSetArg(args[0], XmNlabelString, ClassifyItems[j]);
     wClassifyItems[j] = XmCreatePushButtonGadget(wClassifyOptions,
                                               "class", args, 1);
     XtAddCallback(wClassifyItems[j], XmNactivateCallback,
-		  &PltApp::CBClassifyMenu, (XtPointer)j);
+		  &PltApp::CBClassifyMenu, (XtPointer) j);
   }
-  XmStringFree(ClassifyItems[0]); XmStringFree(ClassifyItems[1]);
+  XmStringFree(ClassifyItems[0]);
+  XmStringFree(ClassifyItems[1]);
   XtManageChildren(wClassifyItems, 2);
   
   
@@ -1460,7 +1456,7 @@ void PltApp::DoExposeRef() {
   	strcpy(sZ, "Z");
 
 	DrawAxes(wControlForm, zPlanePosX, zPlanePosY, 0, sX, sY, zpColor);
-#     if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
 	int axisLength = 20;
 	int ypColor = whiteColor, xpColor = whiteColor;
 	int xyzAxisLength = 50;
@@ -1514,7 +1510,7 @@ void PltApp::DoExposeRef() {
 		  centerX, centerY,
 		  (int) centerX-0.9*xyzAxisLength,
 		  (int) centerY+0.9*xyzAxisLength);
-#     endif
+#endif
 }
 
 
@@ -1596,26 +1592,35 @@ void PltApp::CBChangeLevel(Widget w, XtPointer client_data,
   obj->DoExposeRef();
 }
 
+
+// -------------------------------------------------------------------
 void PltApp::CBReadContourString(Widget w, XtPointer client_data,
                                  XtPointer call_data)
 {
   PltApp *obj = (PltApp *) client_data;
+  if(obj->animating2d) {
+    obj->ResetAnimation();
+    obj->DirtyFrames(); 
+  }
   obj->DoReadContourString(w, (XmSelectionBoxCallbackStruct *) call_data);
 }
 
-void PltApp::DoReadContourString(Widget w, XmSelectionBoxCallbackStruct *) {
+
+// -------------------------------------------------------------------
+void PltApp::DoReadContourString(Widget w, XmSelectionBoxCallbackStruct *unused,
+				 bool bRedrawAmrPicture)
+{
   char temp[64];
   strcpy(temp, XmTextFieldGetString(w));
   aString tmpContourNumString(temp);
   // unexhaustive string check to prevent errors 
-  bool stringOk = true;
-  if (tmpContourNumString.length() < 3) {
-    for(int i=0; i < tmpContourNumString.length(); i++) {
+  bool stringOk(true);
+  if(tmpContourNumString.length() < 3) {
+    for(int i = 0; i < tmpContourNumString.length(); ++i) {
       //check to make sure the input is an integer
-      if( ! isdigit(tmpContourNumString[i]) )
-        {
+      if( ! isdigit(tmpContourNumString[i])) {
           stringOk = false;
-        }
+      }
     }
   } else {
     stringOk = false;
@@ -1623,11 +1628,13 @@ void PltApp::DoReadContourString(Widget w, XmSelectionBoxCallbackStruct *) {
 
   if(stringOk) {
     contourNumString = tmpContourNumString;
-    int newContourNumber = atoi(contourNumString.c_str());
-    for (int ii = 0; ii<NPLANES ; ii++) {
+    int newContourNumber(atoi(contourNumString.c_str()));
+    for(int ii = 0; ii < NPLANES; ++ii) {
       amrPicturePtrArray[ii]->SetContourNumber(newContourNumber);
-      amrPicturePtrArray[ii]->Draw(amrPicturePtrArray[ii]->MinDrawnLevel(), 
-                                   amrPicturePtrArray[ii]->MaxDrawnLevel());
+      if(bRedrawAmrPicture) {
+        amrPicturePtrArray[ii]->Draw(amrPicturePtrArray[ii]->MinDrawnLevel(), 
+                                     amrPicturePtrArray[ii]->MaxDrawnLevel());
+      }
     }
   }
   char cNbuff[10];
@@ -1669,32 +1676,37 @@ void PltApp::CBChangeDerived(Widget w, XtPointer client_data,
 
 
 // -------------------------------------------------------------------
-void PltApp::CBChangeContour(Widget w, XtPointer input_data,
-				XtPointer)
-{
+void PltApp::CBChangeContour(Widget w, XtPointer input_data, XtPointer) {
   int array_value;
   unsigned long getobj;
   XtVaGetValues(XtParent(w), XmNuserData, &getobj, NULL);
   PltApp *obj = (PltApp *) getobj;
-  if (input_data == (XtPointer)0) {
+  if(input_data == (XtPointer) 0) {
     array_value = 0;
-  } else if (input_data == (XtPointer)1) {
+  } else if(input_data == (XtPointer) 1) {
     array_value = 1;
-  } else if (input_data == (XtPointer)2) {
+  } else if(input_data == (XtPointer) 2) {
     array_value = 2;
-  } else if (input_data == (XtPointer)3) {
+  } else if(input_data == (XtPointer) 3) {
     array_value = 3; 
-  } else if (input_data == (XtPointer)4) {
+  } else if(input_data == (XtPointer) 4) {
     array_value = 4;
-  } else assert(0);
+  } else {
+    // error
+  }
+  if(obj->animating2d) {
+    obj->ResetAnimation();
+    obj->DirtyFrames(); 
+  }
   obj->SetCurrentContour(array_value);
   for(int np = 0; np < NPLANES; ++np) {
     obj->DoChangeContour(array_value, np);
   }  
 }
 
-void PltApp::DoChangeContour(int input_data, int plane) 
-{
+
+// -------------------------------------------------------------------
+void PltApp::DoChangeContour(int input_data, int plane) {
   GetAmrPicturePtr(plane)->ChangeContour(input_data);
 }
 
@@ -1791,13 +1803,6 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
     // if not -- choose the limit
 
     // then pass the slices to the subregion constructor below...
-
-//cout << "++++++++ _in  PltApp::DoSubregion:  about to SubregionPltApp." << endl;
-//cout << "         subregionBox         = " << subregionBox << endl;
-//cout << "         subregionBoxMAL      = " << subregionBoxMAL << endl;
-//cout << "         maxAllowableLevel    = " << maxAllowableLevel << endl;
-//cout << "         newMinAllowableLevel = " << newMinAllowableLevel << endl;
-//cout << endl;
     SubregionPltApp(wTopLevel, subregionBox, ivOffset, amrPicturePtrArray[ZPLANE],
 		    this, palFilename, animating2d, currentDerived, fileName);
   }
@@ -1894,7 +1899,6 @@ void PltApp::DoChangeDerived(int V, Widget, XtPointer client_data, XtPointer) {
     currentDerived = derivedStrings[derivedNumber];
     const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
 
-
     if(animating2d) {
       ResetAnimation();
       DirtyFrames();
@@ -1905,8 +1909,6 @@ void PltApp::DoChangeDerived(int V, Widget, XtPointer client_data, XtPointer) {
         int coarseLevel(0);
         int fineLevel(maxDrawnLevel);
         for(int lev = coarseLevel; lev <= fineLevel; lev++) {
-          //temp->MinMax(amrData.ProbDomain()[lev],
-                         //derivedStrings[derivedNumber], lev, dataMin, dataMax);
           bool minMaxValid(false);
           DataServices::Dispatch(DataServices::MinMaxRequest,
                                  dataServicesPtr[currentFrame],
@@ -1935,8 +1937,6 @@ void PltApp::DoChangeDerived(int V, Widget, XtPointer client_data, XtPointer) {
         int fineLevel(maxDrawnLevel);
         for(int iFrame = 0; iFrame < animFrames; ++iFrame) {
           for(int lev = coarseLevel; lev <= fineLevel; ++lev) {
-            //temp->MinMax(amrData.ProbDomain()[lev],
-                         //derivedStrings[derivedNumber], lev, dataMin, dataMax);
             bool minMaxValid(false);
             DataServices::Dispatch(DataServices::MinMaxRequest,
                                    dataServicesPtr[iFrame],
@@ -1950,7 +1950,8 @@ void PltApp::DoChangeDerived(int V, Widget, XtPointer client_data, XtPointer) {
           }
         }
       } 
-    }
+    }  // end if(animating2d)
+
     amrPicturePtrArray[V]->ChangeDerived(derivedStrings[derivedNumber],
                                          pltPaletteptr);
   }
@@ -1999,10 +2000,10 @@ void PltApp::DoDatasetButton(Widget, XtPointer, XtPointer) {
 
 	trueRegion = selectionBox;
 	
-#       if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
     	  trueRegion.setSmall(ZDIR, amrPicturePtrArray[ZPLANE]->GetSlice()); 
     	  trueRegion.setBig(ZDIR,   amrPicturePtrArray[ZPLANE]->GetSlice()); 
-#       endif
+#endif
 
 	if(activeView==ZPLANE) {         // orient box to view and shift
 	  trueRegion.shift(XDIR, ivLowOffsetMAL[XDIR]);
@@ -2078,7 +2079,7 @@ void PltApp::CloseInfoWindow(Widget, XtPointer, XtPointer) {
 }
 
 void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
-  if (infoShowing) {
+  if(infoShowing) {
     XtPopup(wInfoTopLevel, XtGrabNone);
     XMapRaised(XtDisplay(wInfoTopLevel), XtWindow(wInfoTopLevel));
   } else {
@@ -2307,21 +2308,21 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 					  xmToggleButtonWidgetClass,
 					  wSetRangeRadioBox, NULL);
 	XtAddCallback(wRangeRadioButton[USEGLOBAL], XmNvalueChangedCallback,
-		      CBToggleRange, (XtPointer)USEGLOBAL);
+		      CBToggleRange, (XtPointer) USEGLOBAL);
 	wRangeRadioButton[USELOCAL] = XtVaCreateManagedWidget("Local",
 			  xmToggleButtonWidgetClass, wSetRangeRadioBox, NULL);
 	XtAddCallback(wRangeRadioButton[USELOCAL], XmNvalueChangedCallback,
-		      CBToggleRange, (XtPointer)USELOCAL);
+		      CBToggleRange, (XtPointer) USELOCAL);
 	wRangeRadioButton[USESPECIFIED] = XtVaCreateManagedWidget("User",
 			  xmToggleButtonWidgetClass, wSetRangeRadioBox, NULL);
 	XtAddCallback(wRangeRadioButton[USESPECIFIED], XmNvalueChangedCallback,
-		      CBToggleRange, (XtPointer)USESPECIFIED);
+		      CBToggleRange, (XtPointer) USESPECIFIED);
 	if(animating2d) {
 	  wRangeRadioButton[USEFILE] = XtVaCreateManagedWidget("File",
 					  xmToggleButtonWidgetClass,
 					  wSetRangeRadioBox, NULL);
 	  XtAddCallback(wRangeRadioButton[USEFILE], XmNvalueChangedCallback,
-		        CBToggleRange, (XtPointer)USEFILE);
+		        CBToggleRange, (XtPointer) USEFILE);
 	}
 	
 	XtVaSetValues(wSetRangeRadioBox, XmNuserData, this, NULL);
@@ -2515,7 +2516,7 @@ void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
     DirtyFrames(); 
   }
   amrPicturePtrArray[ZPLANE]->ToggleBoxes();
-# if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
     projPicturePtr->MakeBoxes(); 
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
     if(! XmToggleButtonGetState(wAutoDraw)) {
@@ -2528,7 +2529,7 @@ void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
 #endif
     amrPicturePtrArray[YPLANE]->ToggleBoxes();
     amrPicturePtrArray[XPLANE]->ToggleBoxes();
-# endif
+#endif
 
   // draw a bounding box around the image
   int imageSizeX = amrPicturePtrArray[ZPLANE]->ImageSizeH();
@@ -2631,7 +2632,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
               XDrawRectangle(display,
 			     amrPicturePtrArray[V]->PictureWindow(),
 		             rbgc, rStartX, rStartY, rWidth, rHeight);
-#           if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
                 // 3D sub domain selecting
 	        if(V==ZPLANE) {
                   XDrawRectangle(display,
@@ -2666,7 +2667,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 		             rbgc, startcutX[YPLANE], rStartY,
 			     abs(finishcutX[YPLANE]-startcutX[YPLANE]), rHeight);
 		}
-#           endif
+#endif
 	    }
 
 	    // get rid of those pesky extra MotionNotify events
@@ -2691,7 +2692,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 	    oldX = newX;
 	    oldY = newY;
 
-#           if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
                 // 3D sub domain selecting
 	        startcutX[V]  = rStartX;
 	        startcutY[V]  = rStartY;
@@ -2772,7 +2773,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
                   XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
     	          DoExposeTransDA();
                 }
-#           endif
+#endif
 
 	  break;
 
@@ -2899,7 +2900,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 
               amrPicturePtrArray[V]->SetRegion(startX, startY, endX, endY);
 
-#             if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
 	        if(V == ZPLANE) {
                   amrPicturePtrArray[V]->SetSubCut(startcutX[V], startcutY[V],
 					finishcutX[V], finishcutY[V]);
@@ -2924,7 +2925,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
                   amrPicturePtrArray[YPLANE]->SetSubCut(-1, startcutY[V], 
 					-1, finishcutY[V]);
 	        }
-#             endif
+#endif
 
               for(np = 0; np < NPLANES; np++) {
                 amrPicturePtrArray[np]->DoExposePicture();
@@ -2961,7 +2962,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 	    if(lineDrawnH) {   // undraw the old line
                 XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
                           rbgc, 0, oldY, imageWidth, oldY);
-#             if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
 	      if(V==ZPLANE) {  // undraw in other planes
                   XDrawLine(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
                             rbgc, imageHeight-oldY, 0, imageHeight-oldY,
@@ -2977,7 +2978,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
                             rbgc, 0, oldY,
                             amrPicturePtrArray[YPLANE]->ImageSizeH() - 1, oldY);
 	      }
-#             endif
+#endif
 	    }
 
 	    while(XCheckTypedEvent(display, MotionNotify, &nextEvent)) {
@@ -2991,7 +2992,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 	    // draw the new line
             XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
                       rbgc, 0, newY, imageWidth, newY);
-#             if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
 	      if(V==ZPLANE) {
                   XDrawLine(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
                             rbgc, imageHeight-newY, 0, imageHeight-newY,
@@ -3007,7 +3008,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
                             rbgc, 0, newY,
                             amrPicturePtrArray[YPLANE]->ImageSizeH() - 1, newY);
 	      }
-#             endif
+#endif
 	    lineDrawnH = true;
 
 	    oldX = newX;
@@ -3021,12 +3022,12 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 	    if(V==ZPLANE) {
 	      XYxz = Max(0, Min(imageHeight, nextEvent.xbutton.y));
 	      amrPicturePtrArray[V]->SetHLine(XYxz);
-#             if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
 	      YZxz = amrPicturePtrArray[XPLANE]->ImageSizeH()-1 - XYxz; 
 	      amrPicturePtrArray[XPLANE]->SetVLine(YZxz);
 	      amrPicturePtrArray[YPLANE]->
 		  ChangeSlice((imageHeight - XYxz)/scale + ivLowOffsetMAL[YDIR]);
-#             endif
+#endif
 	    }
 	    if(V==YPLANE) {
 	      XZxy = Max(0, Min(imageHeight, nextEvent.xbutton.y));
@@ -3048,14 +3049,14 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
               amrPicturePtrArray[np]->DoExposePicture();
             }
 
-#           if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
             for(int nP = 0; nP < 3; nP++)
                 projPicturePtr->
                     ChangeSlice(nP, amrPicturePtrArray[nP]->GetSlice());
             projPicturePtr->MakeSlices();
             XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
             DoExposeTransDA();
-#           endif
+#endif
 	    DoExposeRef();
 
 	    return;
@@ -3089,7 +3090,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 	    if(lineDrawnV) {   // undraw the old line
               XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
 		        rbgc, oldX, 0, oldX, imageHeight);
-#             if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
 	      if(V==ZPLANE) {  // undraw in other planes
                 XDrawLine(display, amrPicturePtrArray[YPLANE]->PictureWindow(),
 		          rbgc, oldX, 0,
@@ -3106,7 +3107,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 			  amrPicturePtrArray[ZPLANE]->ImageSizeH() - 1,
 			  imageWidth-oldX);
 	      }
-#             endif
+#endif
 	    }
 
 	    while(XCheckTypedEvent(display, MotionNotify, &nextEvent)) {
@@ -3120,7 +3121,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 	    // draw the new line
             XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
 		           rbgc, newX, 0, newX, imageHeight);
-#             if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
 	      if(V==ZPLANE) {  // undraw in other planes
                 XDrawLine(display, amrPicturePtrArray[YPLANE]->PictureWindow(),
 		          rbgc, newX, 0,
@@ -3137,7 +3138,7 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 			  amrPicturePtrArray[ZPLANE]->ImageSizeH() - 1,
 			  imageWidth-newX);
 	      }
-#             endif
+#endif
 	    lineDrawnV = true;
 
 	    oldX = newX;
@@ -3152,11 +3153,11 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
 	      XYyz = Max(0, Min(imageWidth, nextEvent.xbutton.x));
 	      XZyz = XYyz;
 	      amrPicturePtrArray[ZPLANE]->SetVLine(XYyz);
-#             if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
 	      amrPicturePtrArray[YPLANE]->SetVLine(XZyz);
 	      amrPicturePtrArray[XPLANE]->
 			 ChangeSlice(XYyz/scale + ivLowOffsetMAL[XDIR]);
-#             endif
+#endif
 	    }
 	    if(V==YPLANE) {
 	      XZyz = Max(0, Min(imageWidth, nextEvent.xbutton.x));
@@ -3179,14 +3180,14 @@ void PltApp::DoRubberBanding(Widget w, XtPointer, XtPointer call_data) {
               amrPicturePtrArray[np]->DoExposePicture();
             }
 
-#           if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
             for(int nP = 0; nP < 3; nP++)
                 projPicturePtr->
                     ChangeSlice(nP, amrPicturePtrArray[nP]->GetSlice());
             projPicturePtr->MakeSlices();
             XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
             DoExposeTransDA();
-#           endif
+#endif
 	    DoExposeRef();
 
 	    return;
@@ -3298,8 +3299,8 @@ void PltApp::DoBackStep(int plane) {
           amrPicturePtrArray[ZPLANE]->SetHLine(0);
           amrPicturePtrArray[ZPLANE]->DoExposePicture();
           amrPicturePtrArray[plane]->ChangeSlice(amrPicturePtrArray[plane]->
-                                                 GetSubDomain()[amrPicturePtrArray[plane]->
-                                                               MaxAllowableLevel()].bigEnd(YDIR));
+                                       GetSubDomain()[amrPicturePtrArray[plane]->
+                                         MaxAllowableLevel()].bigEnd(YDIR));
       }
   }
   if(plane == ZPLANE) {
@@ -3321,8 +3322,8 @@ void PltApp::DoBackStep(int plane) {
           amrPicturePtrArray[YPLANE]->SetHLine(0);
           amrPicturePtrArray[YPLANE]->DoExposePicture();
           amrPicturePtrArray[plane]->ChangeSlice(amrPicturePtrArray[plane]->
-                                                 GetSubDomain()[amrPicturePtrArray[plane]->
-                                                               MaxAllowableLevel()].bigEnd(ZDIR));
+                                       GetSubDomain()[amrPicturePtrArray[plane]->
+                                         MaxAllowableLevel()].bigEnd(ZDIR));
       }
   }
 #if (BL_SPACEDIM == 3)
@@ -3409,13 +3410,13 @@ void PltApp::DoForwardStep(int plane) {
 				MaxAllowableLevel()].smallEnd(ZDIR));
     }
   }
-# if (BL_SPACEDIM == 3)
+#if (BL_SPACEDIM == 3)
   //what about voume rendering?
   projPicturePtr->ChangeSlice(plane, amrPicturePtrArray[plane]->GetSlice());
   projPicturePtr->MakeSlices();
   XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
   DoExposeTransDA();
-# endif
+#endif
   DoExposeRef();
 }
 
@@ -3544,6 +3545,7 @@ void PltApp::ResetAnimation() {
   if( ! interfaceReady) {
 #   if(BL_SPACEDIM == 2)
       int maxAllowableLevel(amrPicturePtrArray[ZPLANE]->MaxAllowableLevel());
+      int newContourNum(amrPicturePtrArray[ZPLANE]->GetContourNumber());
       AmrPicture *tempap = amrPicturePtrArray[ZPLANE];
       Array<Box> domain = tempap->GetSubDomain();
       char tempString[BUFSIZ];
@@ -3558,6 +3560,8 @@ void PltApp::ResetAnimation() {
                                                   GAptr, fineDomain, 
                                                   tempap, NULL, this);
       amrPicturePtrArray[ZPLANE]->SetMaxDrawnLevel(maxDrawnLevel);
+      DoReadContourString(wNumberContours, NULL, false);
+  
 
       XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
   	                   (XtEventHandler) CBDoExposePicture, (XtPointer) tempap);
@@ -3643,6 +3647,7 @@ void PltApp::ShowFrame() {
       strcpy(tempString, tempap->CurrentDerived().c_str());
 
       tempap->SetDataServicesPtr(dataServicesPtr[currentFrame]);
+      int newContourNum(tempap->GetContourNumber());
 
       const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
       int finestLevel(amrData.FinestLevel());
@@ -3657,6 +3662,7 @@ void PltApp::ShowFrame() {
                                                   tempap, NULL, this);
       XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
   	                (XtEventHandler) CBDoExposePicture, (XtPointer) tempap);
+      DoReadContourString(wNumberContours, NULL, false);
       delete tempap;
 
       amrPicturePtrArray[ZPLANE]->SetMaxDrawnLevel(maxDrawnLevel);
@@ -3722,10 +3728,14 @@ void PltApp::SetGlobalMinMax(Real specifiedMin, Real specifiedMax) {
   }
 }
 
+
+// -------------------------------------------------------------------
 void PltApp::SetHVLine(AmrPicture **apArray) {
-    for (int i = 0; i<3 ; i++)
-        apArray[i]->SetHVLine();
+  for(int i = 0; i < 3; ++i) {
+    apArray[i]->SetHVLine();
+  }
 }
+
 
 // -------------------------------------------------------------------
 int  PltApp::initialScale;

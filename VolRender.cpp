@@ -43,6 +43,7 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
   shinyMat = 10.0;
   minRayOpacity = 0.05;
   maxRayOpacity = 0.95;
+  preClassify = true;
   
   volData = NULL;
 
@@ -261,7 +262,7 @@ void VolRender::MakeSWFDataNProcs(DataServices *dataServicesPtr,
         }
       }
     }  // end for(gp...)
-    cout<<endl;
+    cout << endl;
     cout << "--------------- make swfData time = "
          << ((clock()-time0)/1000000.0) << endl;
   }
@@ -457,10 +458,10 @@ void VolRender::WriteSWFData(const aString &filenamebase, bool SWFLight) {
         cout << "vpClassify Scalars..." << endl;           // --- classify
         clock_t time0 = clock();
         vpResult vpret;
-        bool PCtemp = preClassify;
+        bool PCtemp(preClassify);
         preClassify = true;
         //here set lighting or value model
-        bool LMtemp = lightingModel;
+        bool LMtemp(lightingModel);
         lightingModel = SWFLight;
  
         MakeVPData();
@@ -537,7 +538,6 @@ void VolRender::SetImage(unsigned char *image_data, int width, int height,
 void VolRender::MakePicture(Real mvmat[4][4], Real Length,
                             int width, int height)
 {
-cout << "_in VolRender::MakePicture" << endl;
     vpCurrentMatrix(vpc, VP_MODEL);
     vpIdentityMatrix(vpc);
     vpSetMatrix(vpc, mvmat);
@@ -562,14 +562,14 @@ cout << "_in VolRender::MakePicture" << endl;
         CheckVP(vpret, 12);
     }
     
-    if (preClassify) {
-        vpret = vpRenderClassifiedVolume(vpc);   // --- render
-        CheckVP(vpret, 11);
+    if(preClassify) {
+      vpret = vpRenderClassifiedVolume(vpc);   // --- render
+      CheckVP(vpret, 11);
     } else {
-        vpret = vpClassifyVolume(vpc);  // - classify and then render
-        CheckVP(vpret, 11.1);
-        vpret = vpRenderRawVolume(vpc);
-        CheckVP(vpret, 11.2);
+      vpret = vpClassifyVolume(vpc);  // - classify and then render
+      CheckVP(vpret, 11.1);
+      vpret = vpRenderRawVolume(vpc);
+      CheckVP(vpret, 11.2);
     }
 }
 
@@ -587,8 +587,8 @@ void VolRender::MakeVPData() {
     vpSetd(vpc, VP_MAX_RAY_OPACITY,   maxRayOpacity);
 
     vpResult vpret;
-    if (preClassify) {
-      if (lightingModel) {
+    if(preClassify) {
+      if(lightingModel) {
         vpret = vpClassifyScalars(vpc, swfData, swfDataSize,
                                   densityField, gradientField, normalField);
         CheckVP(vpret, 6);
@@ -614,7 +614,7 @@ void VolRender::MakeVPData() {
       }
     } else {  // value rendering --
       // load the volume data and precompute the minmax octree
-      if (lightingModel) {
+      if(lightingModel) {
         delete [] volData;
         volData = new RawVoxel[swfDataSize]; 
         int xStride(sizeof(RawVoxel));
@@ -647,7 +647,7 @@ void VolRender::MakeVPData() {
                                       OCTREE_DENSITY_THRESH);
       CheckVP(vpret, 9.41);
       
-      if (classifyFields == 2) {
+      if(classifyFields == 2) {
         vpret = vpMinMaxOctreeThreshold(vpc, GRADIENT_PARAM, 
                                         OCTREE_GRADIENT_THRESH);
         CheckVP(vpret, 9.42);
@@ -659,7 +659,7 @@ void VolRender::MakeVPData() {
     
     // --- set the shading parameters
 
-    if (lightingModel) {
+    if(lightingModel) {
       vpret = vpSetLookupShader(vpc, 1, 1, normalField, shade_table.dataPtr(),
                               maxShadeRampPts * sizeof(float), 0, NULL, 0);
       CheckVP(vpret, 7);
@@ -746,7 +746,6 @@ void VolRender::MakeDefaultTransProperties() {
 
 // -------------------------------------------------------------------
 void VolRender::SetTransferProperties() {
-  cout << "_in VolRender::SetTransferProperties()" << endl;
   assert(palettePtr != NULL);
   density_ramp = palettePtr->GetTransferArray();
   vpSetClassifierTable(vpc, DENSITY_PARAM, densityField,
@@ -765,6 +764,7 @@ void VolRender::SetTransferProperties() {
   vpSetd(vpc, VP_MAX_RAY_OPACITY,   maxRayOpacity);
 }
 
+
 // -------------------------------------------------------------------
 void VolRender::SetProperties() {
   // some init -- should be placed elsewhere
@@ -775,7 +775,7 @@ void VolRender::SetProperties() {
   vpResult vpret = vpSetVoxelSize(vpc, BYTES_PER_VOXEL, voxelFields,
                         shadeFields, classifyFields);
   CheckVP(vpret, 14);
-  if (lightingModel) {
+  if(lightingModel) {
     vpSetVoxelField(vpc,  normalField, normalSize, normalOffset,
                   maxShadeRampPts-1);
   } else {
@@ -790,10 +790,12 @@ void VolRender::SetProperties() {
   SetTransferProperties();
 }
 
+
 // -------------------------------------------------------------------
 void VolRender::SetLighting(Real ambient, Real diffuse, 
                             Real specular, Real shiny,
-                            Real minRay, Real maxRay) {
+                            Real minRay, Real maxRay)
+{
   ambientMat = ambient;
   diffuseMat = diffuse;
   specularMat = specular;

@@ -1,6 +1,6 @@
 palette               grayscale
 palette               Pal8.new
-initialderived        tracer
+initialderived        density
 initialscale          4
 initialscale          1
 numberformat          %8.5f
@@ -8,7 +8,7 @@ maxpixmapsize         200000
 reservesystemcolors   38
 reservesystemcolors   24
 showboxes             FALSE
-windowheight          850
-windowwidth           1000
+windowheight          550
+windowwidth           800
 filetype              newplt
 cliptoppalette

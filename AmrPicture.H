@@ -47,8 +47,7 @@ public:
   void	CreatePicture(Window drawPictureHere, Palette *palptr,
                       const aString &derived);
   void	Draw(int fromLevel, int toLevel);
-  void    DrawSlice(int);
-  void    UndrawSlice(int);
+  void  DrawSlice(int);
   void	DoExposePicture();
   void	ToggleBoxes();
   void	ChangeDerived(aString derived, Palette *palptr);

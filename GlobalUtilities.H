@@ -21,8 +21,6 @@ void GetDefaults(const aString &defaultsfilename);
 void SetAnimation();
 bool IsAnimation();
 int GetFileCount();
-int NProcs();
-void SetNProcs(int nprocs);
 int SleepTime();
 const aString &GetComlineFilename(int index);
 FileType GetDefaultFileType();

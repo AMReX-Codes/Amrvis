@@ -79,11 +79,7 @@ void main(int argc, char *argv[]) {
   Box		comlineBox;
   aString	comlineFileName;
 
-#ifdef BL_USE_MPI
-    int nprocs = 1;
-    ParallelDescriptor::StartParallel(nprocs,&argc,&argv);
-    SetNProcs(ParallelDescriptor::NProcs());
-#endif
+    ParallelDescriptor::StartParallel(1,&argc,&argv);
 
   ParmParse pp(0, argv, NULL, NULL);
 
@@ -96,10 +92,6 @@ void main(int argc, char *argv[]) {
   }
   AmrData::SetSkipPltLines(GetSkipPltLines());
   AmrData::SetStaticBoundaryWidth(GetBoundaryWidth());
-
-#ifndef BL_USE_MPI
-  ParallelDescriptor::StartParallel(NProcs(), &argc, &argv);
-#endif
 
   if(SleepTime() > 0) {
     sleep(SleepTime());
@@ -337,7 +329,7 @@ void BatchFunctions() {
   aString	comlineFileName;
 
   // loop through the command line list of plot files
-  for(int nPlots = 0; nPlots < GetFileCount(); nPlots++) {
+  for(int nPlots = 0; nPlots < GetFileCount(); ++nPlots) {
     comlineFileName = GetComlineFilename(nPlots);
     cout << "FileName = " << comlineFileName << endl;
     FileType fileType = GetDefaultFileType();
@@ -466,8 +458,8 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
     DataServices::Dispatch(DataServices::ExitRequest, NULL);
   }
   if(item == OPENITEM) {
-    i=0;
-    FileType fileType = GetDefaultFileType();
+    i = 0;
+    FileType fileType(GetDefaultFileType());
     XmString sMask;
     if(fileType==NEWPLT) {
       sMask = XmStringCreateSimple("plt*");
@@ -573,7 +565,5 @@ void CBQuitPltApp(Widget ofPltApp, XtPointer client_data, XtPointer) {
 
   delete obj;
 }
-
-
 // ---------------------------------------------------------------
 // ---------------------------------------------------------------
