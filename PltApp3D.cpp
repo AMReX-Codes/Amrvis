@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.35 2001-03-14 00:41:54 vince Exp $
+// $Id: PltApp3D.cpp,v 1.36 2001-03-23 20:51:21 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -218,8 +218,7 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   outbuf += &fileName[fnl+1];
   strcpy(buffer, outbuf.c_str());
 
-  wDetachTopLevel =
-    XtVaCreatePopupShell(buffer,
+  wDetachTopLevel = XtVaCreatePopupShell(buffer,
 			 topLevelShellWidgetClass, wAmrVisTopLevel,
 			 XmNwidth,		500,
 			 XmNheight,		500,
@@ -229,8 +228,7 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   
   AddStaticCallback(wDetachTopLevel, XmNdestroyCallback, &PltApp::DoAttach);
 
-  if(GAptr->PVisual() != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber()))
-  {
+  if(GAptr->PVisual() != XDefaultVisual(display, GAptr->PScreenNumber())) {
     XtVaSetValues(wDetachTopLevel, XmNvisual, GAptr->PVisual(), XmNdepth, 8, NULL);
   }
 
@@ -285,7 +283,7 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
 
   wTransDA = XtVaCreateManagedWidget("detachDA", xmDrawingAreaWidgetClass,
 				     wDetachForm,
-				     XmNtranslations,	  XtParseTranslationTable(trans),
+				     XmNtranslations, XtParseTranslationTable(trans),
 				     XmNleftAttachment,   XmATTACH_FORM,
 				     XmNleftOffset,	  WOFFSET,
 				     XmNtopAttachment,	  XmATTACH_WIDGET,
@@ -299,14 +297,12 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   projPicturePtr->SetDrawingArea(wTransDA);
 
   XtPopup(wDetachTopLevel, XtGrabNone);
-  XSetWindowColormap(GAptr->PDisplay(), XtWindow(wDetachTopLevel),
+  XSetWindowColormap(display, XtWindow(wDetachTopLevel),
 		     pltPaletteptr->GetColormap());
-  XSetWindowColormap(GAptr->PDisplay(), XtWindow(wTransDA),
-		     pltPaletteptr->GetColormap());
+  XSetWindowColormap(display, XtWindow(wTransDA), pltPaletteptr->GetColormap());
   AddStaticCallback(wTransDA, XmNinputCallback, &PltApp::DoTransInput);
   AddStaticCallback(wTransDA, XmNresizeCallback, &PltApp::DoTransResize);
   AddStaticEventHandler(wTransDA, ExposureMask, &PltApp::DoExposeTransDA);
-
 
   DoTransResize(wTransDA, NULL, NULL);
 }
@@ -407,7 +403,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   Position xpos, ypos;
   Dimension wdth, hght;
   if(lightingWindowExists) {
-    XRaiseWindow(GAptr->PDisplay(), XtWindow(wLWTopLevel));
+    XRaiseWindow(display, XtWindow(wLWTopLevel));
     return;
   }
 
@@ -419,8 +415,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   aString LWtitlebar = "Lighting";
   strcpy(buffer, LWtitlebar.c_str());
   
-  wLWTopLevel = 
-    XtVaCreatePopupShell(buffer,
+  wLWTopLevel = XtVaCreatePopupShell(buffer,
 			 topLevelShellWidgetClass, 
 			 wAmrVisTopLevel,
 			 XmNwidth, 200,
@@ -432,8 +427,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   AddStaticCallback(wLWTopLevel, XmNdestroyCallback,
 		    &PltApp::DestroyLightingWindow);
   
-  if(GAptr->PVisual() != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber()))
-  {
+  if(GAptr->PVisual() != XDefaultVisual(display, GAptr->PScreenNumber())) {
     XtVaSetValues(wLWTopLevel, XmNvisual, GAptr->PVisual(), XmNdepth, 8, NULL);
   }
   
@@ -442,8 +436,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 				    NULL);
   
   // make the buttons
-  Widget wLWDoneButton =
-    XtVaCreateManagedWidget(" Ok ",
+  Widget wLWDoneButton = XtVaCreateManagedWidget(" Ok ",
 			    xmPushButtonGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_POSITION,
 			    XmNtopPosition, 87,
@@ -454,8 +447,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   AddStaticCallback(wLWDoneButton, XmNactivateCallback,
 		    &PltApp::DoDoneLightingWindow);
   
-  Widget wLWApplyButton =
-    XtVaCreateManagedWidget("Apply",
+  Widget wLWApplyButton = XtVaCreateManagedWidget("Apply",
 			    xmPushButtonGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_POSITION,
 			    XmNtopPosition, 87,
@@ -468,8 +460,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   AddStaticCallback(wLWApplyButton, XmNactivateCallback,
 		    &PltApp::DoApplyLightingWindow);
   
-  Widget wLWCancelButton =
-    XtVaCreateManagedWidget("Cancel",
+  Widget wLWCancelButton = XtVaCreateManagedWidget("Cancel",
 			    xmPushButtonGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_POSITION,
 			    XmNtopPosition, 87,
@@ -483,8 +474,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   
   VolRender *volRenderPtr = projPicturePtr->GetVolRenderPtr();
   //make the input forms
-  Widget wLWambientLabel =
-    XtVaCreateManagedWidget("ambient: ",
+  Widget wLWambientLabel = XtVaCreateManagedWidget("ambient: ",
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_FORM,
 			    XmNtopOffset, WOFFSET,
@@ -495,8 +485,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   
   char cNbuff[64];
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetAmbient());
-  wLWambient =
-    XtVaCreateManagedWidget("variable",
+  wLWambient = XtVaCreateManagedWidget("variable",
 			    xmTextFieldWidgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_FORM,
 			    XmNtopOffset, WOFFSET,
@@ -507,8 +496,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNvalue, cNbuff,
 			    XmNcolumns, 6, NULL);
     
-  Widget wLWdiffuseLabel =
-    XtVaCreateManagedWidget("diffuse: ",
+  Widget wLWdiffuseLabel = XtVaCreateManagedWidget("diffuse: ",
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
 			    XmNtopWidget, wLWambient,
@@ -518,8 +506,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftAttachment, XmATTACH_FORM,
 			    XmNleftOffset, WOFFSET, NULL);
   
-  wLWdiffuse =
-    XtVaCreateManagedWidget("variable",
+  wLWdiffuse = XtVaCreateManagedWidget("variable",
 			    xmTextFieldWidgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
 			    XmNtopWidget, wLWambient,
@@ -531,8 +518,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNvalue, cNbuff,
 			    XmNcolumns, 6, NULL);
   
-  Widget wLWspecularLabel =
-    XtVaCreateManagedWidget("specular: ",
+  Widget wLWspecularLabel = XtVaCreateManagedWidget("specular: ",
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
 			    XmNtopWidget, wLWdiffuse,
@@ -543,8 +529,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftOffset, WOFFSET, NULL);
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetSpecular());
-  wLWspecular =
-    XtVaCreateManagedWidget("variable",
+  wLWspecular = XtVaCreateManagedWidget("variable",
 			    xmTextFieldWidgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
 			    XmNtopWidget, wLWdiffuse,
@@ -556,8 +541,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNvalue, cNbuff,
 			    XmNcolumns, 6, NULL);
   
-  Widget wLWshinyLabel =
-    XtVaCreateManagedWidget("shiny: ",
+  Widget wLWshinyLabel = XtVaCreateManagedWidget("shiny: ",
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
 			    XmNtopWidget, wLWspecular,
@@ -568,8 +552,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftOffset, WOFFSET, NULL);
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetShiny());
-  wLWshiny =
-    XtVaCreateManagedWidget("variable",
+  wLWshiny = XtVaCreateManagedWidget("variable",
 			    xmTextFieldWidgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
 			    XmNtopWidget, wLWspecular,
@@ -582,8 +565,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNcolumns, 6, NULL);
 
   
-  Widget wLWminOpacityLabel =
-    XtVaCreateManagedWidget("minRayOpacity: ",
+  Widget wLWminOpacityLabel = XtVaCreateManagedWidget("minRayOpacity: ",
 			    xmLabelGadgetClass, wLWForm,
 			    xmTextFieldWidgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
@@ -595,8 +577,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftOffset, WOFFSET, NULL);
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetMinRayOpacity());
-  wLWminOpacity =
-    XtVaCreateManagedWidget("minray",
+  wLWminOpacity = XtVaCreateManagedWidget("minray",
 			    xmTextFieldWidgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
 			    XmNtopOffset, WOFFSET,
@@ -608,8 +589,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNvalue, cNbuff,
 			    XmNcolumns, 6, NULL);
   
-  Widget wLWmaxOpacityLabel =
-    XtVaCreateManagedWidget("maxRayOpacity: ",
+  Widget wLWmaxOpacityLabel = XtVaCreateManagedWidget("maxRayOpacity: ",
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
 			    XmNtopOffset, WOFFSET,
@@ -620,8 +600,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftOffset, WOFFSET, NULL);
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetMaxRayOpacity());
-  wLWmaxOpacity =
-    XtVaCreateManagedWidget("variable", xmTextFieldWidgetClass,
+  wLWmaxOpacity = XtVaCreateManagedWidget("variable", xmTextFieldWidgetClass,
 			    wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
 			    XmNtopOffset, WOFFSET,
@@ -639,8 +618,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   XtManageChild(wLWDoneButton);
   XtManageChild(wLWApplyButton);
   XtPopup(wLWTopLevel, XtGrabNone);
-  XSetWindowColormap(GAptr->PDisplay(), XtWindow(wLWTopLevel),
-		     pltPaletteptr->GetColormap());
+  XSetWindowColormap(display, XtWindow(wLWTopLevel), pltPaletteptr->GetColormap());
 }
 
 
@@ -741,7 +719,7 @@ void PltApp::DoRender(Widget, XtPointer, XtPointer) {
 void PltApp::DoTransResize(Widget, XtPointer, XtPointer) {
   Dimension wdth, hght;
 
-  XSetWindowColormap(GAptr->PDisplay(), XtWindow(wTransDA),
+  XSetWindowColormap(display, XtWindow(wTransDA),
                      pltPaletteptr->GetColormap());
 
   XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
@@ -780,7 +758,6 @@ void PltApp::Clear() {
 
 
 // -------------------------------------------------------------------
-
 void PltApp::DoOrient(Widget w, XtPointer, XtPointer) {
   viewTrans.SetRotation(AmrQuaternion());
   viewTrans.SetRenderRotation(AmrQuaternion());

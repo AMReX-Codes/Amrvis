@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.H,v 1.35 2001-03-15 19:32:43 vince Exp $
+// $Id: AmrPicture.H,v 1.36 2001-03-23 20:51:20 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -92,8 +92,8 @@ class AmrPicture {
   void	SetDataMax(Real max) { dataMaxSpecified[currDerivedNumber] = max; }
   Real	GetSpecifiedMin() const { return dataMinSpecified[currDerivedNumber]; }
   Real	GetSpecifiedMax() const { return dataMaxSpecified[currDerivedNumber]; }
-  Real	GetMin() const       { return dataMinAllGrids; }
-  Real	GetMax() const       { return dataMaxAllGrids; }
+  Real	GetGlobalMin() const       { return dataMinAllGrids; }
+  Real	GetGlobalMax() const       { return dataMaxAllGrids; }
   Real	GetRegionMin() const { return dataMinRegion; }
   Real	GetRegionMax() const { return dataMaxRegion; }
   void	SetWhichRange(RangeType which);
@@ -136,7 +136,6 @@ class AmrPicture {
   int			hdspoint, vdspoint, dsBoxSize;
   int			datasetPointShowing, datasetPointColor;
   Pixmap 		pixMap;
-  char			buffer[BUFSIZ];
   Array< Array<GridPicture> > gpArray;
   Array< Array< Array<GridPicture> > > frameGrids;
   int			regionX, regionY, region2ndX, region2ndY;

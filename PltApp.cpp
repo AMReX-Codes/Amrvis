@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.75 2001-03-15 19:32:43 vince Exp $
+// $Id: PltApp.cpp,v 1.76 2001-03-23 20:51:21 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -80,11 +80,13 @@ PltApp::~PltApp() {
   delete XYplotparameters;
   delete pltPaletteptr;
   delete GAptr;
+  delete pltAppState;
   if(datasetShowing) {
     delete datasetPtr;
   }
   XtDestroyWidget(wAmrVisTopLevel);
 }
+
 
 // -------------------------------------------------------------------
 PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
@@ -152,8 +154,9 @@ PltApp::PltApp(XtAppContext app, Widget w, const aString &filename,
 			 NULL);
 
   GAptr = new GraphicsAttributes(wAmrVisTopLevel);
-  if(GAptr->PVisual() != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber()))
-  {
+  display = GAptr->PDisplay();
+  xgc = GAptr->PGC();
+  if(GAptr->PVisual() != XDefaultVisual(display, GAptr->PScreenNumber())) {
     XtVaSetValues(wAmrVisTopLevel, XmNvisual, GAptr->PVisual(),
 		  XmNdepth, GAptr->PDepth(), NULL);
   }
@@ -298,9 +301,10 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 					 NULL);
 
   GAptr = new GraphicsAttributes(wAmrVisTopLevel);
+  display = GAptr->PDisplay();
+  xgc = GAptr->PGC();
 
-  if(GAptr->PVisual() != XDefaultVisual(GAptr->PDisplay(),
-					GAptr->PScreenNumber())) {
+  if(GAptr->PVisual() != XDefaultVisual(display, GAptr->PScreenNumber())) {
       XtVaSetValues(wAmrVisTopLevel, XmNvisual, GAptr->PVisual(),
                     XmNdepth, 8, NULL);
   }
@@ -334,7 +338,7 @@ void PltApp::PltAppInit() {
   // User defined widget destroy callback -- will free all memory used to create
   // window.
   XmAddWMProtocolCallback(wAmrVisTopLevel,
-			  XmInternAtom(GAptr->PDisplay(),"WM_DELETE_WINDOW", false),
+			  XmInternAtom(display,"WM_DELETE_WINDOW", false),
 			  (XtCallbackProc) CBQuitPltApp, (XtPointer) this);
 
   for(np = 0; np != BL_SPACEDIM; ++np) {
@@ -397,9 +401,9 @@ void PltApp::PltAppInit() {
 			      reserveSystemColors);
   
   // gc for gxxor rubber band line drawing
-  rbgc = XCreateGC(GAptr->PDisplay(), GAptr->PRoot(), 0, NULL);
-  XSetFunction(GAptr->PDisplay(), rbgc, GXxor);
-  cursor = XCreateFontCursor(GAptr->PDisplay(), XC_left_ptr);
+  rbgc = XCreateGC(display, GAptr->PRoot(), 0, NULL);
+  XSetFunction(display, rbgc, GXxor);
+  cursor = XCreateFontCursor(display, XC_left_ptr);
 
   // No need to store these widgets in the class after this function is called.
   Widget wMainArea, wPalFrame, wPlotFrame, wPalForm;
@@ -672,7 +676,7 @@ void PltApp::PltAppInit() {
 
 #endif
 
-  // ------------------------------- help menu
+  // --------------------------------------------------------------- help menu
   wMenuPulldown = XmCreatePulldownMenu(wMenuBar, "MenuPulldown", NULL, 0);
   XtVaCreateManagedWidget("Help", xmCascadeButtonWidgetClass, wMenuBar,
 			  XmNmnemonic, 'H', XmNsubMenuId,   wMenuPulldown, NULL);
@@ -683,21 +687,18 @@ void PltApp::PltAppInit() {
   XtManageChild(wMenuBar);
 
 
-  // ****************** Palette frame and drawing area
-  wPalFrame =
-    XtVaCreateManagedWidget("paletteframe", xmFrameWidgetClass, wMainArea,
+  // --------------------------------------------Palette frame and drawing area
+  wPalFrame = XtVaCreateManagedWidget("paletteframe", xmFrameWidgetClass, wMainArea,
 			    XmNtopAttachment,   XmATTACH_WIDGET,
 			    XmNtopWidget,       wMenuBar,
 			    XmNrightAttachment, XmATTACH_FORM,
 			    XmNrightOffset,     1,
 			    XmNshadowType,      XmSHADOW_ETCHED_IN,
 			    NULL);
-  wPalForm =
-    XtVaCreateManagedWidget("paletteform", xmFormWidgetClass, wPalFrame,
+  wPalForm = XtVaCreateManagedWidget("paletteform", xmFormWidgetClass, wPalFrame,
 			    NULL);
 
-  wPalArea =
-    XtVaCreateManagedWidget("palarea", xmDrawingAreaWidgetClass, wPalForm,
+  wPalArea = XtVaCreateManagedWidget("palarea", xmDrawingAreaWidgetClass, wPalForm,
 			    XmNtopAttachment,    XmATTACH_FORM,
 			    XmNtopOffset,        30,
 			    XmNleftAttachment,   XmATTACH_FORM,
@@ -713,8 +714,7 @@ void PltApp::PltAppInit() {
   // Indicate the unit type of the palette (legend) area above it.
   strcpy(buffer, pltAppState->CurrentDerived().c_str());
   label_str = XmStringCreateSimple(buffer);
-  wPlotLabel = 
-    XtVaCreateManagedWidget("plotlabel", xmLabelWidgetClass, wPalForm,
+  wPlotLabel = XtVaCreateManagedWidget("plotlabel", xmLabelWidgetClass, wPalForm,
 			    XmNtopAttachment,    XmATTACH_FORM,
 			    XmNleftAttachment,   XmATTACH_FORM,
 			    XmNrightAttachment,  XmATTACH_FORM,
@@ -731,8 +731,8 @@ void PltApp::PltAppInit() {
 
   // ************************************** Controls frame and area
   Widget wControlsFrame;
-  wControlsFrame =
-    XtVaCreateManagedWidget("controlsframe", xmFrameWidgetClass, wMainArea,
+  wControlsFrame = XtVaCreateManagedWidget("controlsframe",
+			    xmFrameWidgetClass, wMainArea,
 			    XmNrightAttachment, XmATTACH_FORM,
 			    XmNrightOffset,     1,
 			    XmNtopAttachment,   XmATTACH_WIDGET,
@@ -745,8 +745,8 @@ void PltApp::PltAppInit() {
   int centerX = wcfWidth/2, centerY = wcfHeight / 2 - 16;
   int controlSize = 16;
   int halfbutton = controlSize/2;
-  wControlForm =
-    XtVaCreateManagedWidget("refArea", xmDrawingAreaWidgetClass, wControlsFrame,
+  wControlForm = XtVaCreateManagedWidget("refArea",
+			    xmDrawingAreaWidgetClass, wControlsFrame,
 			    XmNwidth,	wcfWidth,
 			    XmNheight,	wcfHeight,
 			    XmNresizePolicy, XmRESIZE_NONE,
@@ -881,8 +881,7 @@ void PltApp::PltAppInit() {
     }
 
     XmString fileString = XmStringCreateSimple(&fileName[fnl+1]);
-    wWhichFileLabel =
-      XtVaCreateManagedWidget("whichFileLabel",
+    wWhichFileLabel = XtVaCreateManagedWidget("whichFileLabel",
 			      xmLabelWidgetClass, wControlForm,	
 			      XmNx, 0,
 			      XmNy, wcfHeight -4*halfbutton-3-adjustHeight2D,
@@ -891,12 +890,11 @@ void PltApp::PltAppInit() {
     XmStringFree(fileString);
 
     // We add a which-time label to indicate the time of each plot file.
-    char tempTimeName[100];
-    ostrstream tempTimeOut(tempTimeName, 100);
+    char tempTimeName[LINELENGTH];
+    ostrstream tempTimeOut(tempTimeName, LINELENGTH);
     tempTimeOut << "T=" << amrData.Time() << ends;
     XmString timeString = XmStringCreateSimple(tempTimeName);
-    wWhichTimeLabel =
-      XtVaCreateManagedWidget("whichTimeLabel",
+    wWhichTimeLabel = XtVaCreateManagedWidget("whichTimeLabel",
 			      xmLabelWidgetClass, wControlForm,
 			      XmNx, 0,
 			      XmNy, wcfHeight - 2*halfbutton-3-adjustHeight2D,
@@ -932,8 +930,7 @@ void PltApp::PltAppInit() {
 
   // ************************** Plot frame and area
 
-  wPlotFrame =
-    XtVaCreateManagedWidget("plotframe",
+  wPlotFrame = XtVaCreateManagedWidget("plotframe",
 			    xmFrameWidgetClass,   wMainArea,
 			    XmNrightAttachment,	  XmATTACH_WIDGET,
 			    XmNrightWidget,	  wPalFrame,
@@ -946,19 +943,18 @@ void PltApp::PltAppInit() {
 			    XmNmarginHeight,      0,
 			    NULL);
 
-  Widget wPicArea =
-    XtVaCreateManagedWidget("picarea", xmFormWidgetClass, wPlotFrame, NULL);
+  Widget wPicArea = XtVaCreateManagedWidget("picarea",
+			    xmFormWidgetClass, wPlotFrame,
+			    NULL);
 
-  wLocArea =
-    XtVaCreateManagedWidget("locarea",xmDrawingAreaWidgetClass, wPicArea,
+  wLocArea = XtVaCreateManagedWidget("locarea",xmDrawingAreaWidgetClass, wPicArea,
 			    XmNleftAttachment,   XmATTACH_FORM,
 			    XmNrightAttachment,  XmATTACH_FORM,
 			    XmNbottomAttachment, XmATTACH_FORM,
 			    XmNheight,	         30,
 			    NULL);
 
-  wPlotArea =
-    XtVaCreateManagedWidget("plotarea", xmFormWidgetClass, wPicArea,
+  wPlotArea = XtVaCreateManagedWidget("plotarea", xmFormWidgetClass, wPicArea,
 			    XmNtopAttachment,    XmATTACH_FORM,
 			    XmNleftAttachment,   XmATTACH_FORM,
 			    XmNrightAttachment,  XmATTACH_FORM,
@@ -990,8 +986,8 @@ void PltApp::PltAppInit() {
     XtVaCreateManagedWidget("plotArea",
 			    xmDrawingAreaWidgetClass, wScrollArea[ZPLANE],
 			    XmNtranslations,  XtParseTranslationTable(trans),
-			    XmNwidth,         amrPicturePtrArray[ZPLANE]->ImageSizeH() + 1,
-			    XmNheight,        amrPicturePtrArray[ZPLANE]->ImageSizeV() + 1,
+			    XmNwidth, amrPicturePtrArray[ZPLANE]->ImageSizeH() + 1,
+			    XmNheight, amrPicturePtrArray[ZPLANE]->ImageSizeV() + 1,
 			    NULL);
   XtVaSetValues(wScrollArea[ZPLANE], XmNworkWindow, wPlotPlane[ZPLANE], NULL); 
 #if (BL_SPACEDIM == 2)
@@ -1068,8 +1064,8 @@ void PltApp::PltAppInit() {
   XtManageChild(wOrient);
   
   int whiteColor(pltPaletteptr->WhiteIndex());
-  //XSetForeground(GAptr->PDisplay(), GAptr->PGC(), pltPaletteptr->pixelate(whiteColor));
-  //XSetForeground(GAptr->PDisplay(), GAptr->PGC(), pltPaletteptr->pixelate(100));
+  //XSetForeground(display, xgc, pltPaletteptr->pixelate(whiteColor));
+  //XSetForeground(display, xgc, pltPaletteptr->pixelate(100));
   wLabelAxes = XtVaCreateManagedWidget("XYZ",
 				       xmPushButtonGadgetClass, wPlotArea,
 				       XmNleftAttachment, XmATTACH_WIDGET,
@@ -1110,15 +1106,15 @@ void PltApp::PltAppInit() {
   XtManageChild(wDetach);
   
   wTransDA = XtVaCreateManagedWidget("transDA", xmDrawingAreaWidgetClass,
-				     wPlotArea,
-				     XmNtranslations,	XtParseTranslationTable(trans),
-				     XmNleftAttachment,	XmATTACH_WIDGET,
-				     XmNleftWidget,		wScrollArea[XPLANE],
-				     XmNtopAttachment,	XmATTACH_WIDGET,
-				     XmNtopWidget,		wOrient,
-				     XmNrightAttachment,	XmATTACH_FORM,
-				     XmNbottomAttachment,	XmATTACH_FORM,
-				     NULL);
+			     wPlotArea,
+			     XmNtranslations, XtParseTranslationTable(trans),
+			     XmNleftAttachment,	        XmATTACH_WIDGET,
+			     XmNleftWidget,		wScrollArea[XPLANE],
+			     XmNtopAttachment,	        XmATTACH_WIDGET,
+			     XmNtopWidget,		wOrient,
+			     XmNrightAttachment,	XmATTACH_FORM,
+			     XmNbottomAttachment,	XmATTACH_FORM,
+			     NULL);
 
 #endif
   
@@ -1243,7 +1239,7 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   int zpColor(whiteColor);
   char sX[LINELENGTH], sY[LINELENGTH], sZ[LINELENGTH];
   
-  XClearWindow(GAptr->PDisplay(), XtWindow(wControlForm));
+  XClearWindow(display, XtWindow(wControlForm));
   
   strcpy(sX, "X");
   strcpy(sY, "Y");
@@ -1271,34 +1267,34 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   //                (amrPicturePtrArray[YPLANE]->
   //		ImageSizeV()-1 - amrPicturePtrArray[YPLANE]->GetHLine())/
   //		currentScale + ivLowOffsetMAL[ZDIR]);
-  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), pltPaletteptr->pixelate(zpColor));
-  XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
+  XSetForeground(display, xgc, pltPaletteptr->pixelate(zpColor));
+  XDrawString(display, XtWindow(wControlForm), xgc,
 	      centerX-xyzAxisLength+12, centerY+xyzAxisLength+4,
 	      temp, strlen(temp));
   
   sprintf(temp, "Y=%i", amrPicturePtrArray[YPLANE]->GetSlice());
   //amrPicturePtrArray[XPLANE]->GetVLine()/
   //		currentScale + ivLowOffsetMAL[YDIR]);
-  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), pltPaletteptr->pixelate(ypColor));
-  XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
+  XSetForeground(display, xgc, pltPaletteptr->pixelate(ypColor));
+  XDrawString(display, XtWindow(wControlForm), xgc,
 	      centerX+stringOffsetX, centerY-xyzAxisLength+4,
 	      temp, strlen(temp));
   
   sprintf(temp, "X=%i", amrPicturePtrArray[XPLANE]->GetSlice());
   //amrPicturePtrArray[ZPLANE]->GetVLine()/
   //currentScale + ivLowOffsetMAL[XDIR]);
-  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), pltPaletteptr->pixelate(xpColor));
-  XDrawString(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
+  XSetForeground(display, xgc, pltPaletteptr->pixelate(xpColor));
+  XDrawString(display, XtWindow(wControlForm), xgc,
 	      centerX+4*stringOffsetX, centerY+stringOffsetY+2,
 	      temp, strlen(temp));
   
-  XSetForeground(XtDisplay(wControlForm), GAptr->PGC(),
+  XSetForeground(XtDisplay(wControlForm), xgc,
 		 pltPaletteptr->pixelate(ypColor));
-  XDrawLine(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
+  XDrawLine(display, XtWindow(wControlForm), xgc,
 	    centerX, centerY, centerX, centerY-xyzAxisLength);
-  XDrawLine(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
+  XDrawLine(display, XtWindow(wControlForm), xgc,
 	    centerX, centerY, centerX+xyzAxisLength, centerY);
-  XDrawLine(GAptr->PDisplay(), XtWindow(wControlForm), GAptr->PGC(),
+  XDrawLine(display, XtWindow(wControlForm), xgc,
 	    centerX, centerY,
 	    (int) (centerX - 0.9 * xyzAxisLength),
 	    (int) (centerY + 0.9 * xyzAxisLength));
@@ -1314,14 +1310,14 @@ void PltApp::DrawAxes(Widget wArea, int xpos, int ypos, int /* orientation */ ,
   char hLabel[LINELENGTH], vLabel[LINELENGTH];
   strcpy(hLabel, hlabel);
   strcpy(vLabel, vlabel);
-  XSetForeground(XtDisplay(wArea), GAptr->PGC(), pltPaletteptr->pixelate(color));
-  XDrawLine(XtDisplay(wArea), XtWindow(wArea), GAptr->PGC(),
+  XSetForeground(XtDisplay(wArea), xgc, pltPaletteptr->pixelate(color));
+  XDrawLine(XtDisplay(wArea), XtWindow(wArea), xgc,
 	    xpos+5, ypos, xpos+5, ypos+axisLength);
-  XDrawLine(XtDisplay(wArea), XtWindow(wArea), GAptr->PGC(),
+  XDrawLine(XtDisplay(wArea), XtWindow(wArea), xgc,
 	    xpos+5, ypos+axisLength, xpos+5+axisLength, ypos+axisLength);
-  XDrawString(XtDisplay(wArea), XtWindow(wArea), GAptr->PGC(),
+  XDrawString(XtDisplay(wArea), XtWindow(wArea), xgc,
 	      xpos+5+axisLength, ypos+5+axisLength, hLabel, strlen(hLabel));
-  XDrawString(XtDisplay(wArea), XtWindow(wArea), GAptr->PGC(),
+  XDrawString(XtDisplay(wArea), XtWindow(wArea), xgc,
 	      xpos, ypos, vLabel, strlen(vLabel));
 }  
 
@@ -1827,10 +1823,9 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   AddStaticCallback(wInfoTopLevel, XmNdestroyCallback, &PltApp::DestroyInfoWindow);
   
   //set visual in case the default isn't 256 pseudocolor
-  if(GAptr->PVisual() 
-     != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber()))
-    XtVaSetValues(wInfoTopLevel, XmNvisual, GAptr->PVisual(),
-		  XmNdepth, 8, NULL);
+  if(GAptr->PVisual() != XDefaultVisual(display, GAptr->PScreenNumber())) {
+    XtVaSetValues(wInfoTopLevel, XmNvisual, GAptr->PVisual(), XmNdepth, 8, NULL);
+  }
   
   Widget wInfoForm =
     XtVaCreateManagedWidget("infoform", xmFormWidgetClass, wInfoTopLevel, NULL);
@@ -1967,8 +1962,7 @@ void PltApp::DoContoursButton(Widget, XtPointer, XtPointer) {
 		    &PltApp::DestroyContoursWindow);
   
   //set visual in case the default isn't 256 pseudocolor
-  if(GAptr->PVisual() != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber()))
-  {
+  if(GAptr->PVisual() != XDefaultVisual(display, GAptr->PScreenNumber())) {
     XtVaSetValues(wContoursTopLevel, XmNvisual, GAptr->PVisual(), XmNdepth, 8,NULL);
   }
         
@@ -2081,15 +2075,14 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 
   
   // do these here to set XmNwidth of wSetRangeTopLevel
-  sprintf(fMin, format, amrPicturePtrArray[ZPLANE]->GetMin());
-  sprintf(fMax, format, amrPicturePtrArray[ZPLANE]->GetMax());
+  sprintf(fMin, format, amrPicturePtrArray[ZPLANE]->GetGlobalMin());
+  sprintf(fMax, format, amrPicturePtrArray[ZPLANE]->GetGlobalMax());
   sprintf (range, "Min: %s  Max: %s", fMin, fMax);
   
   XtVaGetValues(wAmrVisTopLevel, XmNx, &xpos, XmNy, &ypos,
 		XmNwidth, &width, XmNheight, &height, NULL);
   
-  wSetRangeTopLevel =
-    XtVaCreatePopupShell("Set Range",
+  wSetRangeTopLevel = XtVaCreatePopupShell("Set Range",
 			 topLevelShellWidgetClass, wAmrVisTopLevel,
 			 XmNwidth,		12*(strlen(range)+2),
 			 XmNheight,		150,
@@ -2101,8 +2094,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 		    &PltApp::DestroySetRangeWindow);
   
   //set visual in case the default isn't 256 pseudocolor
-  if(GAptr->PVisual() != XDefaultVisual(GAptr->PDisplay(), GAptr->PScreenNumber()))
-  {
+  if(GAptr->PVisual() != XDefaultVisual(display, GAptr->PScreenNumber())) {
     XtVaSetValues(wSetRangeTopLevel, XmNvisual, GAptr->PVisual(),
 		  XmNdepth, 8, NULL);
   }
@@ -2170,8 +2162,8 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			    XmNorientation,     XmHORIZONTAL,
 			    NULL);
   // make the strings representing data min and maxes
-  sprintf(fMin, format, amrPicturePtrArray[ZPLANE]->GetMin());
-  sprintf(fMax, format, amrPicturePtrArray[ZPLANE]->GetMax());
+  sprintf(fMin, format, amrPicturePtrArray[ZPLANE]->GetGlobalMin());
+  sprintf(fMax, format, amrPicturePtrArray[ZPLANE]->GetGlobalMax());
   sprintf(range, "Min: %s", fMin);
   XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
   sprintf(range, "Max: %s", fMax);
@@ -2340,10 +2332,10 @@ void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
   /*
   int imageSizeX = amrPicturePtrArray[ZPLANE]->ImageSizeH();
   int imageSizeY = amrPicturePtrArray[ZPLANE]->ImageSizeV();
-  XSetForeground(GAptr->PDisplay(), GAptr->PGC(), pltPaletteptr->WhiteIndex());
-  XDrawLine(GAptr->PDisplay(), XtWindow(wPlotPlane[ZPLANE]), GAptr->PGC(),
+  XSetForeground(display, xgc, pltPaletteptr->WhiteIndex());
+  XDrawLine(display, XtWindow(wPlotPlane[ZPLANE]), xgc,
             0, imageSizeY, imageSizeX, imageSizeY);
-  XDrawLine(GAptr->PDisplay(), XtWindow(wPlotPlane[ZPLANE]), GAptr->PGC(),
+  XDrawLine(display, XtWindow(wPlotPlane[ZPLANE]), xgc,
             imageSizeX, 0, imageSizeX, imageSizeY);
   */
 }
@@ -2491,7 +2483,6 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
   int oldY(Max(0, Min(imageHeight, cbs->event->xbutton.y)));
   int mal(amrPicturePtrArray[ZPLANE]->MaxAllowableLevel());
   const AmrData &amrData(dataServicesPtr[currentFrame]->AmrDataRef());
-  Display *display(GAptr->PDisplay());
   int rootX, rootY;
   unsigned int inputMask;
   Window whichRoot, whichChild;
@@ -2531,43 +2522,36 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  rHeight = abs(oldY-anchorY);
 	  rStartX = (anchorX < oldX) ? anchorX : oldX;
 	  rStartY = (anchorY < oldY) ? anchorY : oldY;
-	  XDrawRectangle(display,
-			 amrPicturePtrArray[V]->PictureWindow(),
+	  XDrawRectangle(display, amrPicturePtrArray[V]->PictureWindow(),
 			 rbgc, rStartX, rStartY, rWidth, rHeight);
 #if (BL_SPACEDIM == 3)
 	  // 3D sub domain selecting
 	  switch (V) {
 	  case ZPLANE:
-	    XDrawRectangle(display,
-			   amrPicturePtrArray[YPLANE]->PictureWindow(),
+	    XDrawRectangle(display, amrPicturePtrArray[YPLANE]->PictureWindow(),
 			   rbgc, rStartX, startcutY[YPLANE], rWidth,
 			   abs(finishcutY[YPLANE]-startcutY[YPLANE]));
 	    rStartPlane = (anchorY < oldY) ? oldY : anchorY;
-	    XDrawRectangle(display,
-			   amrPicturePtrArray[XPLANE]->PictureWindow(),
+	    XDrawRectangle(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
 			   rbgc, imageHeight-rStartPlane, startcutY[XPLANE],
 			   rHeight,
 			   abs(finishcutY[XPLANE]-startcutY[XPLANE]));
 	    break;
 	  case YPLANE:
-	    XDrawRectangle(display,
-			   amrPicturePtrArray[ZPLANE]->PictureWindow(),
+	    XDrawRectangle(display, amrPicturePtrArray[ZPLANE]->PictureWindow(),
 			   rbgc, rStartX, startcutY[ZPLANE], rWidth,
 			   abs(finishcutY[ZPLANE]-startcutY[ZPLANE]));
-	    XDrawRectangle(display,
-			   amrPicturePtrArray[XPLANE]->PictureWindow(),
+	    XDrawRectangle(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
 			   rbgc, startcutX[XPLANE], rStartY,
 			   abs(finishcutX[XPLANE]-startcutX[XPLANE]),
 			   rHeight);
 	    break;
 	  default: // XPLANE
 	    rStartPlane = (anchorX < oldX) ? oldX : anchorX;
-	    XDrawRectangle(display,
-			   amrPicturePtrArray[ZPLANE]->PictureWindow(),
+	    XDrawRectangle(display, amrPicturePtrArray[ZPLANE]->PictureWindow(),
 			   rbgc, startcutX[ZPLANE], imageWidth-rStartPlane,
 			   abs(finishcutX[ZPLANE]-startcutX[ZPLANE]), rWidth);
-	    XDrawRectangle(display,
-			   amrPicturePtrArray[YPLANE]->PictureWindow(),
+	    XDrawRectangle(display, amrPicturePtrArray[YPLANE]->PictureWindow(),
 			   rbgc, startcutX[YPLANE], rStartY,
 			   abs(finishcutX[YPLANE]-startcutX[YPLANE]),
 			   rHeight);
@@ -2611,13 +2595,11 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  startcutX[XPLANE] = imageHeight - startcutY[V];
 	  finishcutX[XPLANE] = imageHeight - finishcutY[V];
 	  // draw in other planes
-	  XDrawRectangle(display,
-			 amrPicturePtrArray[YPLANE]->PictureWindow(),
+	  XDrawRectangle(display, amrPicturePtrArray[YPLANE]->PictureWindow(),
 			 rbgc, rStartX, startcutY[YPLANE], rWidth,
 			 abs(finishcutY[YPLANE]-startcutY[YPLANE]));
 	  rStartPlane = (anchorY < newY) ? newY : anchorY;
-	  XDrawRectangle(display,
-			 amrPicturePtrArray[XPLANE]->PictureWindow(),
+	  XDrawRectangle(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
 			 rbgc, imageHeight-rStartPlane, startcutY[XPLANE],
 			 rHeight,
 			 abs(finishcutY[XPLANE]-startcutY[XPLANE]));
@@ -2627,12 +2609,10 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  finishcutX[ZPLANE] = finishcutX[V];
 	  startcutY[XPLANE] = startcutY[V];
 	  finishcutY[XPLANE] = finishcutY[V];
-	  XDrawRectangle(display,
-			 amrPicturePtrArray[ZPLANE]->PictureWindow(),
+	  XDrawRectangle(display, amrPicturePtrArray[ZPLANE]->PictureWindow(),
 			 rbgc, rStartX, startcutY[ZPLANE], rWidth,
 			 abs(finishcutY[ZPLANE]-startcutY[ZPLANE]));
-	  XDrawRectangle(display,
-			 amrPicturePtrArray[XPLANE]->PictureWindow(),
+	  XDrawRectangle(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
 			 rbgc, startcutX[XPLANE], rStartY,
 			 abs(finishcutX[XPLANE]-startcutX[XPLANE]), rHeight);
 	  break;
@@ -2642,12 +2622,10 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  startcutY[ZPLANE] = imageWidth - startcutX[V];
 	  finishcutY[ZPLANE] = imageWidth - finishcutX[V];
 	  rStartPlane = (anchorX < newX) ? newX : anchorX;
-	  XDrawRectangle(display,
-			 amrPicturePtrArray[ZPLANE]->PictureWindow(),
+	  XDrawRectangle(display, amrPicturePtrArray[ZPLANE]->PictureWindow(),
 			 rbgc, startcutX[ZPLANE], imageWidth-rStartPlane,
 			 abs(finishcutX[ZPLANE]-startcutX[ZPLANE]), rWidth);
-	  XDrawRectangle(display,
-			 amrPicturePtrArray[YPLANE]->PictureWindow(),
+	  XDrawRectangle(display, amrPicturePtrArray[YPLANE]->PictureWindow(),
 			 rbgc, startcutX[YPLANE], rStartY,
 			 abs(finishcutX[YPLANE]-startcutX[YPLANE]), rHeight);
 	}
@@ -3178,10 +3156,9 @@ void PltApp::PADoExposePicture(Widget w, XtPointer client_data, XtPointer) {
   /*
   int isX = amrPicturePtrArray[np]->ImageSizeH();
   int isY = amrPicturePtrArray[np]->ImageSizeV();
-  XSetForeground(GAptr->PDisplay(), GAptr->PGC(),
-		 pltPaletteptr->WhiteIndex());
-  XDrawLine(GAptr->PDisplay(), XtWindow(w), GAptr->PGC(), 0, isY, isX, isY);
-  XDrawLine(GAptr->PDisplay(), XtWindow(w), GAptr->PGC(), isX, 0, isX, isY);
+  XSetForeground(display, xgc, pltPaletteptr->WhiteIndex());
+  XDrawLine(display, XtWindow(w), xgc, 0, isY, isX, isY);
+  XDrawLine(display, XtWindow(w), xgc, isX, 0, isX, isY);
   */
 }
 
@@ -3191,8 +3168,8 @@ void PltApp::DoDrawPointerLocation(Widget, XtPointer data, XtPointer cbe) {
   XEvent *event = (XEvent *) cbe;
   unsigned long V = (unsigned long) data;
 
-  if(event->type == LeaveNotify){
-    XClearWindow(GAptr->PDisplay(), XtWindow(wLocArea));
+  if(event->type == LeaveNotify) {
+    XClearWindow(display, XtWindow(wLocArea));
     return;
   }
 
@@ -3201,8 +3178,7 @@ void PltApp::DoDrawPointerLocation(Widget, XtPointer data, XtPointer cbe) {
   unsigned int inputMask;
   int currentScale(pltAppState->CurrentScale());
   
-  XQueryPointer(GAptr->PDisplay(), XtWindow(wPlotPlane[V]),
-		&whichRoot, &whichChild,
+  XQueryPointer(display, XtWindow(wPlotPlane[V]), &whichRoot, &whichChild,
 		&rootX, &rootY, &newX, &newY, &inputMask);
 
   int Yloci = ((amrPicturePtrArray[V]->ImageSizeV())/currentScale) -
@@ -3239,11 +3215,10 @@ void PltApp::DoDrawPointerLocation(Widget, XtPointer data, XtPointer cbe) {
   sprintf(locText, "(%.4E, %.4E)", Xloc, Yloc);
 #endif
 
-  XSetForeground(GAptr->PDisplay(), GAptr->PGC(),
-		 pltPaletteptr->WhiteIndex());
-  XClearWindow(GAptr->PDisplay(), XtWindow(wLocArea));
-  XDrawString(GAptr->PDisplay(), XtWindow(wLocArea),
-	      GAptr->PGC(), 10, 20, locText, strlen(locText));
+  XSetForeground(display, xgc, pltPaletteptr->WhiteIndex());
+  XClearWindow(display, XtWindow(wLocArea));
+  XDrawString(display, XtWindow(wLocArea),
+	      xgc, 10, 20, locText, strlen(locText));
   
 } 
 
@@ -3256,7 +3231,7 @@ void PltApp::DoSpeedScale(Widget, XtPointer, XtPointer call_data) {
     amrPicturePtrArray[v]->SetFrameSpeed(600 - cbs->value);
   }
 # endif
-  XSync(GAptr->PDisplay(), false);
+  XSync(display, false);
 }
 
 
@@ -3620,7 +3595,7 @@ void PltApp::DoUpdateFrame(Widget, XtPointer, XtPointer) {
     }
   }
   ShowFrame();
-  XSync(GAptr->PDisplay(), false);
+  XSync(display, false);
   animationIId = AddStaticTimeOut(frameSpeed, &PltApp::DoUpdateFrame);
 }
 
@@ -3668,7 +3643,7 @@ void PltApp::ShowFrame() {
     paletteDrawn = (rangeType == USEFILE) ? false : true;
   }
   
-  XPutImage(GAptr->PDisplay(), XtWindow(wPlotPlane[ZPLANE]), GAptr->PGC(),
+  XPutImage(display, XtWindow(wPlotPlane[ZPLANE]), xgc,
 	    frameBuffer[currentFrame], 0, 0, 0, 0,
 	    amrPicturePtrArray[ZPLANE]->ImageSizeH(),
 	    amrPicturePtrArray[ZPLANE]->ImageSizeV());

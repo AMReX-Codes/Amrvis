@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.55 2001-03-15 19:32:43 vince Exp $
+// $Id: AmrPicture.cpp,v 1.56 2001-03-23 20:51:20 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -825,6 +825,7 @@ void AmrPicture::CreatePicture(Window drawPictureHere, Palette *palptr,
 // ---------------------------------------------------------------------
 void AmrPicture::APChangeDerived(aString derived, Palette *palptr) {
   int lev;
+  char buffer[BUFSIZ];
   Real dataMin, dataMax;
   bool printDone(false);
   BL_ASSERT(palptr != NULL);
@@ -905,8 +906,8 @@ void AmrPicture::APChangeDerived(aString derived, Palette *palptr) {
 	dataMaxRegion = dataMaxAllGrids;
       }
     } else {
-      dataMinAllGrids = pltAppPtr->GetAmrPicturePtr(XY)->GetMin();
-      dataMaxAllGrids = pltAppPtr->GetAmrPicturePtr(XY)->GetMax();
+      dataMinAllGrids = pltAppPtr->GetAmrPicturePtr(XY)->GetGlobalMin();
+      dataMaxAllGrids = pltAppPtr->GetAmrPicturePtr(XY)->GetGlobalMax();
       dataMinRegion   = pltAppPtr->GetAmrPicturePtr(XY)->GetRegionMin();
       dataMaxRegion   = pltAppPtr->GetAmrPicturePtr(XY)->GetRegionMax();
     }
@@ -1048,7 +1049,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
   *ximage = XCreateImage(display, GAptr->PVisual(),
 		GAptr->PDepth(), ZPixmap, 0, (char *) scaledimagedata,
 		widthpad, imagesizev,
-		XBitmapPad(display), widthpad*GAptr->PBytesPerPixel());
+		XBitmapPad(display), widthpad * GAptr->PBytesPerPixel());
 
   if( ! bCartGridSmoothing) {
     if(true) {
@@ -1587,6 +1588,7 @@ void AmrPicture::CoarsenSliceBox() {
 // ---------------------------------------------------------------------
 void AmrPicture::CreateFrames(AnimDirection direction) {
   int start, length;
+  char buffer[BUFSIZ];
   bool cancelled(false);
   int islice, i, j, lev, gridNumber;
   Array<int> intersectGrids;

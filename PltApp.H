@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.42 2001-03-15 19:32:43 vince Exp $
+// $Id: PltApp.H,v 1.43 2001-03-23 20:51:21 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -219,6 +219,8 @@ private:
   int startcutX[3], startcutY[3], finishcutX[3], finishcutY[3];
   PltApp *pltParent;
   PltAppState *pltAppState;
+  Display *display;
+  GC xgc;
   
   // baggage for fast rubber banding
   GC		rbgc;
