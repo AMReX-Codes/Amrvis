@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.cpp,v 1.51 2004-04-16 23:50:43 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.52 2004-04-20 23:34:25 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -51,8 +51,8 @@ Array< std::list<int> > dumpSliceList;
 bool specifiedMinMax;
 Real specifiedMin;
 Real specifiedMax;
-bool useMaxLevel;
-int  maxLevel;
+bool useMaxLevel(false);
+int  maxLevel(-1);
 int  maxPaletteIndex;
 bool SGIrgbfile(true);
 int  fabIOSize;
@@ -527,8 +527,6 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
   sliceAllVars = false;
   verbose = false;
   fileCount = 0;
-  maxLevel = -1;
-  useMaxLevel = false;
   sleepTime = 0;
   animation = false;
   specifiedMinMax = false;
@@ -554,10 +552,13 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       }
       ++i;
     } else if(strcmp(argv[i], "-maxlev") == 0) {
-      if(argc-1<i+1 || atoi(argv[i+1]) < 0) {
+      int imaxlev = atoi(argv[i+1]);
+      if(argc-1 < i+1) {
         PrintUsage(argv[0]);
+      } else if(imaxlev < 0) {
+        cerr << "Error:  invalid parameter for maxlev:  " << imaxlev << endl;
       } else {
-        maxLevel = atoi(argv[i+1]);
+        maxLevel = imaxlev;
         useMaxLevel = true;
       }
       ++i;
@@ -983,7 +984,14 @@ int AVGlobals::DetermineMaxAllowableLevel(const Box &finestbox,
       break;
     }
   }
-  return(maxallowablelevel);
+  int imaxlev(maxallowablelevel);
+  if(useMaxLevel) {
+    imaxlev = std::min(maxLevel, maxallowablelevel);
+    if(verbose) {
+      std::cout << "-------- using maxLevel = " << imaxlev << std::endl;
+    }
+  }
+  return(imaxlev);
 }
 
 
@@ -1007,7 +1015,3 @@ string AVGlobals::StripSlashes(const string &inString) {
 }
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
-
-
-
-
