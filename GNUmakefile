@@ -8,15 +8,15 @@ COMP      = mpKCC
 
 COMP      = KCC
 COMP      = g++
-DEBUG     = FALSE
 DEBUG     = TRUE
+DEBUG     = FALSE
 DIM       = 2
 DIM       = 3
-NAMESPACE = TRUE
 NAMESPACE = FALSE
+NAMESPACE = TRUE
 
-STRICTLY  = TRUE
 STRICTLY  = FALSE
+STRICTLY  = TRUE
 
 USE_ARRAYVIEW = TRUE
 USE_ARRAYVIEW = FALSE
@@ -98,9 +98,12 @@ ifeq ($(MACHINE), T3E)
 endif
 
 ifeq ($(MACHINE), CYGWIN_NT)
-  INCLUDE_LOCATIONS += /cygdrive/c/usr/X11R6.4/include
-  LIBRARY_LOCATIONS += /cygdrive/c/usr/X11R6.4/lib
-  CXXFLAGS += -fpermissive
+  #INCLUDE_LOCATIONS += /cygdrive/c/usr/X11R6/include
+  #LIBRARY_LOCATIONS += /cygdrive/c/usr/X11R6/lib
+  INCLUDE_LOCATIONS += /usr/X11R6/include
+  LIBRARY_LOCATIONS += /usr/X11R6/lib
+  #CXXFLAGS += -fpermissive
+  #CXXFLAGS += -x c++
 #  LDFLAGS += -noinhibit-exec
   LIBRARIES += -lXm -lXt -lSM -lICE -lXpm -lX11
 endif
@@ -129,7 +132,8 @@ ifeq ($(DIM),3)
     # VOLPACKDIR = ../../volpack/volpack-1.0b3
     #VOLPACKDIR = $(PBOXLIB_HOME)/volpack
     #VOLPACKDIR = ../volpack
-    VOLPACKDIR = ../../volpack.test
+    #VOLPACKDIR = ../../volpack.test
+    VOLPACKDIR = ../../volpack
     INCLUDE_LOCATIONS += $(VOLPACKDIR)
     LIBRARY_LOCATIONS += $(VOLPACKDIR)
     LIBRARIES += -lvolpack
