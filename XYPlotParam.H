@@ -132,7 +132,7 @@ public:
   //
   // Reads in from a file.
   //
-  void ReadFromFile(char *filename = NULL);
+  void ReadFromFile(const char *filename);
 
   //
   // Resets the palette and its dependent parameters.

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.125 2004-07-19 21:05:12 vince Exp $
+// $Id: PltApp.cpp,v 1.126 2004-07-19 22:33:16 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -386,7 +386,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   }
   // now set each frame's SUBREGIONMINMAX to the overall subregion minmax
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
-    pltAppState->SetMinMax(FILEUSERMINMAX, iFrame, iCDerNum, rSMin, rSMax);
+    pltAppState->SetMinMax(SUBREGIONMINMAX, iFrame, iCDerNum, rSMin, rSMax);
   }
 // ---------------
 

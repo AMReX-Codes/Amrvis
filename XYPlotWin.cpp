@@ -575,7 +575,7 @@ void XYPlotWin::UpdateFrame(int frame) {
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::StopAnimation(void) {
+void XYPlotWin::StopAnimation() {
   if( ! animatingQ) {
     return;
   }
@@ -1076,7 +1076,7 @@ void XYPlotWin::drawGridAndAxis() {
   Xspot = devInfo.bdrPad + (2 * devInfo.axisW);
   Yspot = 2 * devInfo.bdrPad;
   if(expY != 0) {
-    (void) sprintf(final, "%s x 10^%d", YUnitText, expY);
+    sprintf(final, "%s x 10^%d", YUnitText, expY);
     textX(wPlotWin, Xspot, Yspot, final, T_LEFT, T_AXIS);
   } else {
     textX(wPlotWin, Xspot, Yspot, YUnitText, T_LEFT, T_AXIS);
@@ -1085,7 +1085,7 @@ void XYPlotWin::drawGridAndAxis() {
   Xspot = devInfo.areaW - devInfo.bdrPad;
   Yspot = devInfo.areaH - (2*devInfo.bdrPad);
   if(expX != 0) {
-    (void) sprintf(final, "%s x 10^%d", XUnitText, expX);
+    sprintf(final, "%s x 10^%d", XUnitText, expX);
     textX(wPlotWin, Xspot, Yspot, final, T_RIGHT, T_AXIS);
   } else {
     textX(wPlotWin, Xspot, Yspot, XUnitText, T_RIGHT, T_AXIS);
@@ -2046,7 +2046,7 @@ void XYPlotWin::CBdoSetListLevel(Widget, XtPointer data, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::SetPalette(void) {
+void XYPlotWin::SetPalette() {
   Palette *pal = pltParent->GetPalettePtr();
   pal->SetWindowPalette(pltParent->GetPaletteName(), XtWindow(wXYPlotTopLevel));
   pal->SetWindowPalette(pltParent->GetPaletteName(), pWindow);
@@ -2156,7 +2156,7 @@ void XYPlotWin::CBdoDeselectAllData(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::drawHint(void) {
+void XYPlotWin::drawHint() {
   if(devInfo.areaW < 50 * devInfo.axisW) {
     return;
   }

@@ -76,11 +76,11 @@ class XYPlotWin {
 #if (BL_SPACEDIM == 2)
     void InitializeAnimation(int curr_frame, int num_frames);
     void UpdateFrame(int frame);
-    void StopAnimation(void);
+    void StopAnimation();
 #endif
 
-    void PopUp(void) { XtPopup(wXYPlotTopLevel, XtGrabNone); }
-    void SetPalette(void);
+    void PopUp() { XtPopup(wXYPlotTopLevel, XtGrabNone); }
+    void SetPalette();
     void DoASCIIDump(FILE *fs, const char *plotname);
 
   private:

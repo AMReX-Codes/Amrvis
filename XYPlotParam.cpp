@@ -52,8 +52,13 @@ XYPlotParameters::XYPlotParameters(Palette *palPtr,
     param_table.bins[idx] = NULL;
   }
   GetHardWiredDefaults();
-  ReadFromFile("~/.XYPlot.Defaults"); // First read "global" defaults
-  ReadFromFile(".XYPlot.Defaults");   // Then read "local" defaults
+  string fullDefaultsFile;
+  fullDefaultsFile  = getenv("HOME");
+  fullDefaultsFile += "/";
+  fullDefaultsFile += ".XYPlot.Defaults";
+  ReadFromFile(fullDefaultsFile.c_str()); // First read "global" defaults
+  fullDefaultsFile = "./.XYPlot.Defaults";
+  ReadFromFile(fullDefaultsFile.c_str());   // Then read "local" defaults
 }
 
 
@@ -440,7 +445,7 @@ int XYPlotParameters::do_bool(char *name, int *val) {
 
 
 // -------------------------------------------------------------------
-void XYPlotParameters::ReadFromFile(char *filename) {
+void XYPlotParameters::ReadFromFile(const char *filename) {
   FILE *fs;
   if((fs = fopen(filename, "r")) != NULL) {
     char linebuffer[100], keybuffer[50], typebuffer[50], valbuffer[50];
