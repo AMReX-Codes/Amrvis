@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltAppOutput.cpp,v 1.16 1999-05-10 18:54:18 car Exp $
+// $Id: PltAppOutput.cpp,v 1.17 2000-04-04 00:18:24 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -11,7 +11,7 @@
 #include "Output.H"
 
 // -------------------------------------------------------------------
-void PltApp::DoOutput(Widget w, XtPointer, XtPointer) {
+void PltApp::DoOutput(Widget w, XtPointer data, XtPointer) {
   int i;
   char tempfilename[BUFSIZ];
   static Widget wGetFileName;
@@ -22,17 +22,19 @@ void PltApp::DoOutput(Widget w, XtPointer, XtPointer) {
   XtSetArg(args[i], XmNselectionLabelString, sMessage); i++;
   XtSetArg(args[i], XmNautoUnmanage, false); i++;
   XtSetArg(args[i], XmNkeyboardFocusPolicy, XmPOINTER); i++;
-  wGetFileName = XmCreatePromptDialog(wAmrVisMenu, "Save as", args, i);
+  wGetFileName = XmCreatePromptDialog(wAmrVisTopLevel, "Save as", args, i);
   XmStringFree(sMessage);
 
-  if(w == wPSFileButton) {
-      AddStaticCallback(wGetFileName, XmNokCallback, &PltApp::DoCreatePSFile);
-  } else if(w == wRGBFileButton) {
-      AddStaticCallback(wGetFileName, XmNokCallback, &PltApp::DoCreateRGBFile);
-  } else if(w == wFABFileButton) {
-      AddStaticCallback(wGetFileName, XmNokCallback, &PltApp::DoCreateFABFile);
-  } else {
-    cerr << "Error in PltApp::DoOutput:  bad widget = " << w << endl;
+  unsigned long which = (unsigned long) data;
+  switch(which) {
+  case 0:
+    AddStaticCallback(wGetFileName, XmNokCallback,&PltApp::DoCreatePSFile); break;
+  case 1:
+    AddStaticCallback(wGetFileName, XmNokCallback,&PltApp::DoCreateRGBFile); break;
+  case 2:
+    AddStaticCallback(wGetFileName, XmNokCallback,&PltApp::DoCreateFABFile); break;
+  default:
+    cerr << "Error in PltApp::DoOutput:  bad selection = " << data << endl;
     return;
   }
 

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: DataServices.cpp,v 1.21 1999-05-10 18:54:17 car Exp $
+// $Id: DataServices.cpp,v 1.22 2000-04-04 00:18:22 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -10,6 +10,7 @@
 #include "AmrvisConstants.H"
 #include "DataServices.H"
 #include "ParallelDescriptor.H"
+#include "XYPlotDataList.H"
 
 #ifdef BL_USE_NEW_HFILES
 #include <iostream>
@@ -542,6 +543,90 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     }
     break;
 
+    case LineValuesRequest:
+    {
+      // interface: (requestType, dsPtr,
+      //             lineBoxArraySize, lineBoxArray *,
+      //             derivedName,
+      //             coarsestLevelToSearch, finestLevelToSearch,
+      //             dataList,          /* modify this value */
+      //             bLineIsValid)      /* return this value */
+
+      // need to broadcast lineBoxArraySize, lineBoxArray, derivedName,
+      // coarsestLevelToSearch, and finestLevelToSearch
+
+      int lineBoxArraySize;
+      Box *lineBoxArrayPtr, *lineBoxArrayTempPtr;
+      int coarsestLevelToSearch, finestLevelToSearch, whichDir;
+      XYPlotDataList *dataList;
+
+      aString derivedTemp;
+      char *derivedCharPtr;
+      int derivedLength, derivedLengthPadded;
+
+      if(ParallelDescriptor::IOProcessor()) {
+        lineBoxArraySize = va_arg(ap, int);
+        lineBoxArrayTempPtr = (Box *) va_arg(ap, void *);
+        whichDir = va_arg(ap, int);
+        const aString *derivedRef = (const aString *) va_arg(ap, void *);
+        derivedTemp = *derivedRef;
+        derivedLength = derivedTemp.length();
+        coarsestLevelToSearch = va_arg(ap, int);
+        finestLevelToSearch   = va_arg(ap, int);
+        dataList = (XYPlotDataList *) va_arg(ap, void *);
+      }
+
+      ParallelDescriptor::Broadcast(ioProcNumber, &lineBoxArraySize,
+                                    &lineBoxArraySize,
+                                    sizeof(int));
+      ParallelDescriptor::Broadcast(ioProcNumber, &derivedLength, &derivedLength,
+                                    sizeof(int));
+      ParallelDescriptor::Broadcast(ioProcNumber, &coarsestLevelToSearch,
+                                    &coarsestLevelToSearch,
+                                    sizeof(int));
+      ParallelDescriptor::Broadcast(ioProcNumber, &finestLevelToSearch,
+                                    &finestLevelToSearch,
+                                    sizeof(int));
+      lineBoxArrayPtr = new Box[lineBoxArraySize];
+
+      derivedLengthPadded = derivedLength + 1;
+      derivedLengthPadded += derivedLengthPadded % 8;
+      derivedCharPtr = new char[derivedLengthPadded];
+      if(ParallelDescriptor::IOProcessor()) {
+        strcpy(derivedCharPtr, derivedTemp.c_str());
+        for(int iBox = 0; iBox < lineBoxArraySize; ++iBox) {
+          lineBoxArrayPtr[iBox] = lineBoxArrayTempPtr[iBox];
+        }
+      }
+      ParallelDescriptor::Broadcast(ioProcNumber, derivedCharPtr, derivedCharPtr,
+                                    derivedLengthPadded);
+      ParallelDescriptor::Broadcast(ioProcNumber,
+                                    lineBoxArrayPtr, lineBoxArrayPtr,
+                                    lineBoxArraySize * sizeof(Box));
+
+      aString derived(derivedCharPtr);
+      delete [] derivedCharPtr;
+
+      // return values
+      bool bLineIsValid;
+
+      ds->LineValues(lineBoxArraySize, lineBoxArrayPtr, whichDir,
+                     derived,
+                     coarsestLevelToSearch,
+                     finestLevelToSearch,
+                     dataList,
+                     bLineIsValid);
+
+      // set the return values
+      if(ParallelDescriptor::IOProcessor()) {
+        bool *bLineIsValidRef    = va_arg(ap, bool *);
+        *bLineIsValidRef         = bLineIsValid;
+      }
+      // dont need to broadcast the return values--only the IOProcessor uses them
+
+      delete [] lineBoxArrayPtr;
+
+    } 
   }  // end switch
 
   if(ParallelDescriptor::IOProcessor()) {
@@ -926,6 +1011,39 @@ void DataServices::PointValue(int pointBoxArraySize, Box *pointBoxArray,
   bPointIsValid = true;
 
 }  // end PointValue
+
+
+// ---------------------------------------------------------------
+void DataServices::LineValues(int lineBoxArraySize, Box *lineBoxArray, int whichDir,
+                              const aString &currentDerived,
+                              int coarsestLevelToSearch, int finestLevelToSearch,
+                              XYPlotDataList *dataList, bool &bLineIsValid) {
+  bLineIsValid = false;
+  if( ! bAmrDataOk) {
+    return;
+  }
+
+  for(int lev = coarsestLevelToSearch; lev <= finestLevelToSearch; ++lev) {
+    const BoxArray &intersectedBA = amrData.boxArray(lev);
+    int numGrids = intersectedBA.length();
+    for(int iGrid = 0; iGrid != numGrids; ++iGrid) {
+      if(lineBoxArray[lev].intersects(intersectedBA[iGrid])) {
+        bLineIsValid = true;
+        FArrayBox *destFab(NULL);
+        if(ParallelDescriptor::IOProcessor()) {
+          destFab = new FArrayBox(lineBoxArray[lev] & intersectedBA[iGrid], 1);
+        }
+        amrData.FillVar(destFab, destFab->box(),
+                        lev, currentDerived,
+                        ParallelDescriptor::IOProcessorNumber());
+        if(ParallelDescriptor::IOProcessor()) {
+          dataList->AddFArrayBox(*destFab, whichDir, lev);
+          delete destFab;
+        }
+      }
+    }
+  }
+}
 
 
 // ---------------------------------------------------------------

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrPicture.cpp,v 1.41 1999-12-01 22:55:43 vince Exp $
+// $Id: AmrPicture.cpp,v 1.42 2000-04-04 00:18:22 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -688,6 +688,22 @@ void AmrPicture::Draw(int fromLevel, int toLevel) {
   } else if(vectorField) {
     DrawVectorField(GAptr->PDisplay(), pixMap, GAptr->PGC());
   }
+
+/*
+char *fontName = "12x24";
+XFontStruct *fontInfo;
+fontInfo = XLoadQueryFont(GAptr->PDisplay(), fontName);
+
+GC fontGC = XCreateGC(GAptr->PDisplay(), GAptr->PRoot(), 0, NULL);
+XSetFont(GAptr->PDisplay(), fontGC, fontInfo->fid);
+
+XSetForeground(GAptr->PDisplay(), fontGC, palPtr->WhiteIndex());
+  XDrawString(GAptr->PDisplay(), pixMap,
+              fontGC,
+              imageSizeH / 2,
+              imageSizeV / 2,
+              currentDerived.c_str(), currentDerived.length());
+*/
 
   if( ! pltAppPtr->Animating()) {
     DoExposePicture();

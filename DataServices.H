@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: DataServices.H,v 1.11 1999-12-01 22:55:43 vince Exp $
+// $Id: DataServices.H,v 1.12 2000-04-04 00:18:22 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -19,6 +19,8 @@
 #else
 #include <stdarg.h>
 #endif
+
+class XYPlotDataList;
 
 
 class DataServices {
@@ -40,7 +42,8 @@ class DataServices {
       DumpSliceBoxOneVar,
       DumpSliceBoxAllVars,
       MinMaxRequest,
-      PointValueRequest
+      PointValueRequest,
+      LineValuesRequest
     };
 
     DataServices(const aString &filename, const FileType &filetype);
@@ -98,6 +101,12 @@ class DataServices {
 		      int coarsestLevelToSearch, int finestLevelToSearch,
 		      int &intersectedLevel, Box &intersectedGrid,
 		      Real &dataPointValue, bool &bPointIsValid);
+
+      // LineValuesRequest
+      void LineValues(int lineBoxArraySize, Box *lineBoxArray, int whichDir,
+                      const aString &currentDerived,
+                      int coarsestLevelToSearch, int finestLevelToSearch,
+                      XYPlotDataList *dataList, bool &lineIsValid);
 
   public:
 

@@ -8,16 +8,16 @@ COMP      = mpKCC
 
 COMP      = g++
 COMP      = KCC
-DEBUG     = FALSE
 DEBUG     = TRUE
-DIM       = 3
+DEBUG     = FALSE
 DIM       = 2
+DIM       = 3
 
 USE_ARRAYVIEW = TRUE
 USE_ARRAYVIEW = FALSE
 
-USE_MPI=FALSE
 USE_MPI=TRUE
+USE_MPI=FALSE
 
 USE_VOLRENDER = FALSE
 USE_VOLRENDER = TRUE
@@ -47,6 +47,9 @@ ifeq ($(MACHINE), T3E)
   ifeq ($(WHICHT3E), NAVO)
     VINCEDIR = /home/Cvince
   endif
+  ifeq ($(WHICHT3E), ARSC)
+    VINCEDIR = /u2/wes/beckner
+  endif
 endif
 
 
@@ -56,6 +59,7 @@ ifeq ($(COMP),KCC)
   ifeq ($(KCC_VERSION),3.3)
     CXXFLAGS += --diag_suppress 837
     CXXOPTF  += -Olimit 2400
+    #CXXFLAGS += -fprm n -fptm u
   endif
 endif
 
@@ -86,6 +90,13 @@ endif
 
 ifeq ($(MACHINE), T3E)
   ifeq ($(WHICHT3E), NERSC)
+    INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/X11
+    INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/Xm
+    INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/X11/Xaw
+    LIBRARY_LOCATIONS += /opt/ctl/cvt/cvt/lib
+    LIBRARIES += -lXm -lSM -lICE -lXt -lX11
+  endif
+  ifeq ($(WHICHT3E), ARSC)
     INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/X11
     INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/Xm
     INCLUDE_LOCATIONS += /opt/ctl/cvt/3.1.0.0/include/X11/Xaw
@@ -146,6 +157,8 @@ ifeq ($(PRECISION), FLOAT)
   endif
 endif
 
+#FDEBF += -fpe1
+#FOPTF  = -fpe1
 
 ############################################### 3rd analyzer
 #CXXDEBF = +K0 --link_command_prefix 3rd

@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: GlobalUtilities.cpp,v 1.31 1999-12-01 22:55:43 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.32 2000-04-04 00:18:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,6 +9,7 @@
 // ---------------------------------------------------------------
 #include "GlobalUtilities.H"
 #include "FArrayBox.H"
+#include "FabConv.H"
 #ifdef BL_USE_NEW_HFILES
 #include <fstream>
 using std::ifstream;
@@ -149,7 +150,6 @@ void GetDefaults(const aString &defaultsFile) {
   fileType = NEWPLT;  // default
   fabIOSize = 0;
 
-
   // try to find the defaultsFile
   aString fullDefaultsFile;
 
@@ -274,6 +274,9 @@ void GetDefaults(const aString &defaultsFile) {
       else if(strcmp(defaultString, "cliptoppalette") == 0) {
         maxPaletteIndex = 254;  // clip the top palette index
       }
+      else if(strcmp(defaultString, "fixdenormals") == 0) {
+        RealDescriptor::SetFixDenormals();
+      }
       else {
         cout << "bad default argument:  " << defaultString << endl;
       }
@@ -307,6 +310,7 @@ void PrintUsage(char *exname) {
   cout << "       [-initialscale n] [-showboxes tf] [-numberformat fmt]" << endl;
   cout << "       [-lowblack]"<< endl;
   cout << "       [-cliptoppalette]"<< endl;
+  cout << "       [-fixdenormals]"<< endl;
 #if (BL_SPACEDIM == 3)
 #ifdef BL_VOLUMERENDER
     cout << "       [-boxcolor n]" << endl;
@@ -355,6 +359,7 @@ void PrintUsage(char *exname) {
   cout << "  -numberformat fmt  set the initial format to fmt (ex:  %4.2f)." << endl; 
   cout << "  -lowblack          sets the lowest color in the palette to black."<<endl;
   cout << "  -cliptoppalette    do not use the top palette index (for exceed)."<<endl;
+  cout << "  -fixdenormals      always fix denormals when reading fabs."<<endl;
 #if (BL_SPACEDIM == 3)
 #ifdef BL_VOLUMERENDER
   cout << "  -makeswf_light     make volume rendering data using the" << endl;
@@ -615,6 +620,8 @@ void ParseCommandLine(int argc, char *argv[]) {
       ++i;
     } else if(strcmp(argv[i], "-cliptoppalette") == 0) {
       maxPaletteIndex = 254;  // clip the top palette index
+    } else if(strcmp(argv[i], "-fixdenormals") == 0) {
+      RealDescriptor::SetFixDenormals();
     } else if(strcmp(argv[i], "-sliceallvars") == 0) {
       sliceAllVars = true;
     } else if(i < argc) {
@@ -714,23 +721,23 @@ bool GivenBoxSlice() { return givenBoxSlice;     }
 bool MakeSWFData() { return makeSWFData;  }
 bool MakeSWFLight() { return makeSWFLight; }
 bool LowBlack() { return lowBlack; }
-bool DumpSlices()  { return dumpSlices;   }
-bool SliceAllVars(){ return sliceAllVars; }
+bool DumpSlices() { return dumpSlices;   }
+bool SliceAllVars() { return sliceAllVars; }
 
 bool GivenFilename() { return givenFilename; }
 
 void SetBoundaryWidth(int width) { boundaryWidth = width; }
-int GetBoundaryWidth()           { return boundaryWidth;  }
+int GetBoundaryWidth() { return boundaryWidth;  }
 
 void SetSkipPltLines(int nlines) { skipPltLines = nlines; }
-int GetSkipPltLines()  { return skipPltLines; }
+int GetSkipPltLines() { return skipPltLines; }
 
 void SetBoxColor(int boxcolor) { boxColor = boxcolor; }
-int GetBoxColor()  { return boxColor; }
+int GetBoxColor() { return boxColor; }
 
 Array< List<int> > &GetDumpSlices() { return dumpSliceList; }
 
-int  GetFabOutFormat()           { return fabIOSize;  }
+int  GetFabOutFormat() { return fabIOSize;  }
 
 bool UseSpecifiedMinMax() { return specifiedMinMax; }
 void SetSpecifiedMinMax(Real  specifiedmin, Real  specifiedmax) {

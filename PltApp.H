@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: PltApp.H,v 1.32 1999-10-05 21:53:10 vince Exp $
+// $Id: PltApp.H,v 1.33 2000-04-04 00:18:23 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -27,6 +27,9 @@
 # include "ProjectionPicture.H"
 #endif
 
+#include "XYPlotWin.H"
+#include "XYPlotParam.H"
+
 #include "DataServices.H"
 //class DataServices;
 
@@ -47,7 +50,7 @@ const int WCARGB  = 10;
 
 const int WCN     = 11;  // number of control widget
 
-const int NFRAMES = 20;
+const int NFRAMES = 19;
 const int MAXDERIVED = 64;
 
 struct ClientDataStruct {   // for passing information through client_data
@@ -77,85 +80,6 @@ public:
   
   ~PltApp();
   
-  static void	CBQuitButton(Widget, XtPointer, XtPointer);
-  static void	CBChangeScale(Widget, XtPointer, XtPointer);
-  static void	CBChangeLevel(Widget, XtPointer, XtPointer);
-  static void	CBChangeContour(Widget, XtPointer, XtPointer);
-  static void	CBChangeDerived(Widget, XtPointer, XtPointer);
-  static void	CBSpeedScale(Widget, XtPointer, XtPointer);
-  static void	CBUpdateFrame(XtPointer, XtIntervalId *);
-  static void	CBToggleRange(Widget, XtPointer, XtPointer);
-  static void	CBChangePlane(Widget, XtPointer, XtPointer);
-  static void   CBReadContourString(Widget, XtPointer, XtPointer);
-  void DestroySetRangeWindow(Widget, XtPointer, XtPointer);
-  void DestroyInfoWindow(Widget, XtPointer, XtPointer);
-  void CloseInfoWindow(Widget, XtPointer, XtPointer);
-  void DoChangeContour(int, int);
-
-#if (BL_SPACEDIM==3)
-  static void CBRenderModeMenu(Widget, XtPointer, XtPointer);
-  static void CBClassifyMenu(Widget, XtPointer, XtPointer);
-  static void CBTransResize(Widget, XtPointer, XtPointer);
-  static void CBTransInput(Widget, XtPointer, XtPointer);
-  static void CBAttach(Widget, XtPointer, XtPointer);
-
-  void DoRenderModeMenu(Widget, XtPointer, XtPointer);
-  void DoClassifyMenu(Widget, XtPointer, XtPointer);
-  void SetLightingModel();
-  void SetValueModel();
-  void SetOctreeAlgorithm();
-  void SetPreClassifyAlgorithm();
-  void DoAutoDraw(Widget, XtPointer, XtPointer);
-  void DoExposeTransDA();
-  void DoOrient(Widget, XtPointer, XtPointer);
-  void DoRender(Widget, XtPointer, XtPointer);
-  void DoLabelAxes(Widget, XtPointer, XtPointer);
-  void DoTransInput(Widget, XtPointer, XtPointer);
-  void DoTransResize(Widget, XtPointer, XtPointer);
-  void DoAttach(Widget, XtPointer, XtPointer);
-  void DoDetach(Widget, XtPointer, XtPointer);
-#if defined(BL_VOLUMERENDER)
-  void DoCreateLightingWindow(Widget, XtPointer, XtPointer);
-  void DoDoneLightingWindow(Widget, XtPointer, XtPointer);
-  void DoApplyLightingWindow(Widget, XtPointer, XtPointer);
-  void DoCancelLightingWindow(Widget, XtPointer, XtPointer);
-  void DestroyLightingWindow(Widget, XtPointer, XtPointer);
-#endif
-  void Clear();
-  ProjectionPicture *GetProjPicturePtr() { return projPicturePtr; }
-#endif
-  
-  void DoReadContourString(Widget, XmSelectionBoxCallbackStruct *unused,
-			   bool bRedrawAmrPicture = true);
-  int CurrentContour() { return currentContour; }
-  void SetCurrentContour(int newContour) { currentContour = newContour; }
-  
-  void DoUpdateFrame();
-  void DoSpeedScale(XmScaleCallbackStruct *);
-  void DoQuitButton(Widget, XtPointer, XtPointer);
-  void DoChangeScale(int view);
-  void DoChangeLevel(int, Widget, XtPointer, XtPointer);
-  void DoChangeDerived(int, Widget, XtPointer, XtPointer);
-  void DoDatasetButton(Widget, XtPointer, XtPointer);
-  void DoPaletteButton(Widget, XtPointer, XtPointer);
-  void DoSetRangeButton(Widget, XtPointer, XtPointer);
-  void DoDoneSetRange(Widget, XtPointer, XtPointer);
-  void DoCancelSetRange(Widget, XtPointer, XtPointer);
-  void DoUserMin(Widget, XtPointer, XtPointer);
-  void DoUserMax(Widget, XtPointer, XtPointer);
-  void DoToggleRange(Widget, Range, XmToggleButtonCallbackStruct *);
-  void DoOpenPalFile(Widget, XtPointer, XtPointer);
-  void DoSubregion(Widget, XtPointer, XtPointer);
-  void DoInfoButton(Widget, XtPointer, XtPointer);
-  void DoOutput(Widget, XtPointer, XtPointer);
-  void DoCreatePSFile(Widget, XtPointer, XtPointer);
-  void DoCreateRGBFile(Widget, XtPointer, XtPointer);
-  void DoCreateFABFile(Widget, XtPointer, XtPointer);
-  void DoCreateAnimRGBFile();
-  void QuitDataset();
-  void DoExposeRef(); // RefArea (axis pictures) 
-
-  static void DoChangePlane(XtPointer, XtIntervalId *);
   static void SetDefaultPalette(const aString &palString);
   static void SetInitialDerived(const aString &initialderived);
   static aString &GetInitialDerived();
@@ -170,11 +94,11 @@ public:
   static void SetReserveSystemColors(int reservesystemcolors);
   
   Widget WId()                     { return wAmrVisTopLevel; }
-  Widget GetWTransDA() { return wTransDA; }
   aString GetFormatString() const  { return formatString; }
   void SetFormatString(aString str) { formatString = str; }
   AmrPicture *GetAmrPicturePtr(int plane) { return amrPicturePtrArray[plane]; }
   Palette *GetPalettePtr()         { return pltPaletteptr; }
+  aString GetPaletteName()         { return palFilename; }
   DataServices *GetDataServicesPtr() { return dataServicesPtr[currentFrame]; }
   Array<DataServices *> &GetDataServicesPtrArray() { return dataServicesPtr; }
   int GetActiveView() const        { return activeView;    }
@@ -191,159 +115,229 @@ public:
   int MinAllowableLevel() const    { return minAllowableLevel; }
   int MinDrawnLevel() const        { return minDrawnLevel; }
   int MaxDrawnLevel() const        { return maxDrawnLevel; }
-  
   bool GetShowBoxes() const        { return showBoxes; }
   void SetShowBoxes(bool showing)  { showBoxes = showing; }
+  GraphicsAttributes * GetGAptr()  { return GAptr; }
+
   const aString &GetFileName();
   bool  PaletteDrawn();
+  bool  PaletteCBQ() { return paletteCBQ; }
+  void  SetPaletteCBQ() { paletteCBQ = true; }
+  void  ClearPaletteCBQ() { paletteCBQ = false; }
+  Widget GetPalArea() { return wPalArea; }
   void  PaletteDrawn(bool trueOrFalse);
   
+  XYPlotDataList* CreateLinePlot(int V, int sdir, int mal, int ixY,
+				 aString *derived);
   void  SetGlobalMinMax(Real specifiedMin, Real specifiedMax);
   GC GetRbgc() { return rbgc; }
 
+  void QuitDataset();
   void DoBackStep(int);
   void DoForwardStep(int);
-  
- private:
-  Widget wTopLevel, wAmrVisTopLevel, wAmrVisMenu;
-  Widget wScaleMenu, wScaleOptions;
-  Widget wLevelMenu, wLevelOptions;
-  Widget wContourMenu, wContourItems[5], wContourOptions;
-  Widget wDerivedMenu, wDerivedOptions;
-  Widget wQuitButton, wSubregionButton;
-  Widget wPicArea, wPalArea, wPlotArea;
+  void DoExposeRef(Widget = None, XtPointer = NULL, XtPointer = NULL);
+
+#if (BL_SPACEDIM == 3)
+  void DoExposeTransDA(Widget = None, XtPointer = NULL, XtPointer = NULL);
+  ProjectionPicture *GetProjPicturePtr() { return projPicturePtr; }
+  Widget GetWTransDA() { return wTransDA; }
+#endif
+
+  void DetachXYPlotWin(int dir) { XYplotwin[dir] = NULL; }
+  class XYPlotParameters *GetXYPlotParameters() { return XYplotparameters; }
+  class XYPlotWin * GetXYPlotWin(int dir) { return XYplotwin[dir]; }
+
+private:
+  Widget wTopLevel, wAmrVisTopLevel;
   Widget wScrollArea[NPLANES], wPlotPlane[NPLANES];
-  Widget wBoxesButton, wPaletteButton, wDatasetButton;
-  Widget wCartGridSmoothButton, wControlArea, wSetRangeButton;
   Widget wRangeRadioButton[NRANGES];
-  Widget wOutputMenuBar, wOutputMenu, wOutputButton;
-  Widget wPSFileButton, wFABFileButton, wRGBFileButton;
-  Widget wSetRangeTopLevel, wAxesPic;
-  Widget wSetRangeForm, wDoneButton, wCancelButton;
-  Widget wSetRangeRadioBox, wGlobalRange, wLocalRange;
-  Widget wUserMin, wUserMax, wMin, wMax;
-  Widget wSpeedScale, wLabelSlow, wLabelFast, wDetach;
-  Widget wAnimSpeedScale, wAnimLabelSlow, wAnimLabelFast;
-  Widget wWhichFileLabel, wWhichFileScale;
-  Widget wAnimControl, wControlForm, wControls[WCN];
-  Widget wFrames[NFRAMES];
+  Widget wUserMin, wUserMax;
+  Widget wWhichFileLabel, wWhichFileScale, wWhichTimeLabel;
+  Widget wControlForm;
   Widget wNumberContours;
-  Widget wInfoButton, wInfoTopLevel, wInfoForm, wInfoCloseButton;
-  Widget wInfoList;
-  Array<Widget>	wLevelItems, wScaleItems, wDerivedItems;
-  
-  aString contourNumString;
-  Arg		args[MAXARGS];
-  Palette	       *pltPaletteptr;
-  Array<DataServices *> dataServicesPtr;
-  AmrPicture     *amrPicturePtrArray[NPLANES];
-  IntVect		ivLowOffsetMAL;  // at maxAllowableLevel
-  Range		rangeType;
-  bool animating2d, setRangeShowing, infoShowing, datasetShowing, paletteDrawn;
-  bool showBoxes, lightingModel, showing3dRender, preClassify;
-  bool writingRGB;
-  int minDrawnLevel, maxDrawnLevel;
-  int	minDataLevel,  maxDataLevel;
+  Widget wContoursTopLevel, wInfoTopLevel, wSetRangeTopLevel;
+  Widget wLocArea, wPlotArea;
+  Widget wControls[WCN];
+  Widget wCurrScale, wCurrLevel, wCurrDerived;
+  Widget wPlotLabel, wContourLabel;
+  Widget wPalArea;
+
+#if (BL_SPACEDIM == 3)
+  Widget wTransDA, wRender, wLabelAxes, wOrient, wDetach;
+  Widget wLWTopLevel, wLWForm;
+  Widget wAttach, wDetachTopLevel;
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
+  Widget wAutoDraw;
+  Widget wLWambient, wLWdiffuse, wLWspecular, wLWshiny;
+  Widget wLWminOpacity, wLWmaxOpacity;
+  Widget wCurrentRenderMode, wCurrentClassify;
+#endif
+#endif
+
+  class XYPlotParameters *XYplotparameters;
+  class XYPlotWin *XYplotwin[BL_SPACEDIM];
+
+  XtAppContext appContext;
+  Arg args[MAXARGS];
+  Palette *pltPaletteptr;
+  AmrPicture *amrPicturePtrArray[NPLANES];
+  IntVect ivLowOffsetMAL;  // at maxAllowableLevel
+  Range rangeType;
+  bool animating2d, setRangeShowing, contoursShowing, infoShowing,
+    datasetShowing, paletteDrawn, showBoxes,  writingRGB, interfaceReady,
+    paletteCBQ;
+  int servingButton;
+  int numContours;
+  int minDrawnLevel, maxDrawnLevel, minDataLevel, maxDataLevel;
+  int currentFrame, animFrames, frameSpeed;
   int currentContour;
-  aString fileName, palFilename;
-  Array<aString> fileNames, derivedStrings;
+  int activeView;
+  int startX, startY, endX, endY;
+  int currentScale, previousScale, maxAllowableScale;
+  int minAllowableLevel;
+  bool bCartGridSmoothing;
+  aString contourNumString, formatString, fileName, palFilename, currentDerived;
   char buffer[BUFSIZ];
-  aString formatString;
-  int	XYyz, XYxz, XZxy, XZyz, YZxz, YZxy;
-  int	servingButton, activeView;
-  int	startX, startY, endX, endY;
-  int	startcutX[3], startcutY[3], finishcutX[3], finishcutY[3];
   Box	trueRegion, selectionBox;
   Dataset *datasetPtr;
-  ClientDataStruct	clientData;
   GraphicsAttributes	*GAptr;
-  Array<XImage *>	frameBuffer;
-  int		currentFrame, animFrames, frameSpeed;
-  AnimDirection	animDirection;
-  bool		interfaceReady;
+  Array<DataServices *> dataServicesPtr;
+  Array<aString> fileNames, derivedStrings;
+  Array<XImage *> frameBuffer;
   Array<bool>	readyFrames;
+  // Array<XYPlotDataList *> 
+  AnimDirection	animDirection;
   XtIntervalId	animationIId, multiclickIId;
   Real		globalMin, globalMax;
-  aString	currentDerived;
-  String	trans;
-  int		multiclickInterval;
-  int		currentScale, previousScale, maxAllowableScale;
-  int		minAllowableLevel;
-  bool          bCartGridSmoothing;
+  Real finestDx[BL_SPACEDIM],
+    gridOffset[BL_SPACEDIM];
+  String trans;
+  int startcutX[3], startcutY[3], finishcutX[3], finishcutY[3];
+  PltApp *pltParent;
   
   // baggage for fast rubber banding
   GC		rbgc;
   XEvent	nextEvent;
   int 		rWidth, rHeight, rStartX, rStartY;
-  int		anchorX, anchorY, rectDrawn;
-  int		oldX, oldY, newX, newY;
-  int		rootX, rootY;  // place holders for x call
-  unsigned int	inputMask;
-  Window	whichRoot, whichChild;
   Cursor	cursor;
-  
-  
-  static aString defaultPaletteString;
-  static aString initialDerived;
-  static aString initialFormatString;
-  static int	initialScale;
-  static int	initialWindowHeight;
-  static int	initialWindowWidth;
-  static int	defaultShowBoxes;
-  static int	placementOffsetX;
-  static int	placementOffsetY;
-  static int	reserveSystemColors;
-  bool lightingWindowExists;
-  bool bPltAppIsClosing;
+    
+  static aString defaultPaletteString,
+    initialDerived,
+    initialFormatString;
+  static int initialScale,
+    initialWindowHeight,
+    initialWindowWidth,
+    defaultShowBoxes,
+    placementOffsetX,
+    placementOffsetY,
+    reserveSystemColors;
   
 #if (BL_SPACEDIM==3)
+  int acc, labelAxes, transDetached;
+  int daWidth, daHeight;
   ProjectionPicture	*projPicturePtr;
   ViewTransform	viewTrans;
+//#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
+  bool lightingModel, showing3dRender, preClassify, lightingWindowExists;
+//#endif
+
 #endif
-  Widget wTransDA, wRender, wLabelAxes, wOrient;
-  Widget wLWTopLevel, wLWForm;
-  Widget wDetachTopLevel, wDetachForm;
-  Widget wAttach, wDRender, wDLabelAxes, wDOrient;
-  Widget wAutoDraw, wDAutoDraw;
-  Widget wLightButton, wDLightButton;
-  Widget wLWCancelButton, wLWDoneButton, wLWApplyButton;
-  Widget wLWambient, wLWdiffuse, wLWspecular, wLWshiny;
-  Widget wLWminOpacity, wLWmaxOpacity; 
-  Widget wLWambientLabel, wLWdiffuseLabel, wLWspecularLabel, wLWshinyLabel;
-  Widget wLWminOpacityLabel, wLWmaxOpacityLabel;
-  Widget wLight, wLightItems[2], wLightOptions;
-  Widget wDLight, wDLightItems[2], wDLightOptions;
-  Widget wClassify, wClassifyItems[2], wClassifyOptions;
-  Widget wDClassify, wDClassifyItems[2], wDClassifyOptions;
-  int daWidth, daHeight;
-  int	acc, labelAxes, transDetached;
-  XtAppContext appContext;
-  
   
   void PltAppInit();           // called by constructors
+
+  void DoDrawPointerLocation(Widget, XtPointer, XtPointer);
+  void ChangeScale(Widget, XtPointer, XtPointer);
+  void ChangeLevel(Widget, XtPointer, XtPointer);
+  void ChangeDerived(Widget, XtPointer, XtPointer);
+  void ChangeContour(Widget, XtPointer, XtPointer);
+  void ChangePlane(Widget, XtPointer, XtPointer);
+  void SetNumContours(bool bRedrawAmrPicture = true);
+
   void DrawAxes(Widget, int, int, int, char *, char *, int);
   void ResetAnimation();
   void StopAnimation();
   void Animate(AnimDirection direction);
   void ShowFrame();
   void DirtyFrames();
-  void DoCartGridSmooth(Widget, XtPointer, XtPointer);
   void DoRubberBanding(Widget, XtPointer, XtPointer);
   void DoBoxesButton(Widget, XtPointer, XtPointer);
   void DoAnimBackStep();
   void DoAnimForwardStep();
   void DoAnimFileScale(Widget, XtPointer, XtPointer);
+    
+  void DoReadContourString(Widget, XmSelectionBoxCallbackStruct *unused,
+			   bool bRedrawAmrPicture = true);
+  int CurrentContour() { return currentContour; }
+  void SetCurrentContour(int newContour) { currentContour = newContour; }
   
+  void DoUpdateFrame(Widget, XtPointer, XtPointer);
+  void DoSpeedScale(Widget, XtPointer, XtPointer);
+  void DoDatasetButton(Widget, XtPointer, XtPointer);
+  void DoPaletteButton(Widget, XtPointer, XtPointer);
+  void DoSetRangeButton(Widget, XtPointer, XtPointer);
+  void DoContoursButton(Widget, XtPointer, XtPointer);
+  void DoDoneSetRange(Widget, XtPointer, XtPointer);
+  void DoCancelSetRange(Widget, XtPointer, XtPointer);
+  void DoUserMin(Widget, XtPointer, XtPointer);
+  void DoUserMax(Widget, XtPointer, XtPointer);
+  void DoOpenPalFile(Widget, XtPointer, XtPointer);
+  void DoSubregion(Widget, XtPointer, XtPointer);
+  void DoInfoButton(Widget, XtPointer, XtPointer);
+  void DoOutput(Widget, XtPointer, XtPointer);
+  void DoCreatePSFile(Widget, XtPointer, XtPointer);
+  void DoCreateRGBFile(Widget, XtPointer, XtPointer);
+  void DoCreateFABFile(Widget, XtPointer, XtPointer);
+  void DoCreateAnimRGBFile();
+
+  void ToggleRange(Widget, XtPointer, XtPointer);
+  void ReadContourString(Widget, XtPointer, XtPointer);
+  void DestroySetRangeWindow(Widget, XtPointer, XtPointer);
+  void DestroyContoursWindow(Widget, XtPointer, XtPointer);
+  void DestroyInfoWindow(Widget, XtPointer, XtPointer);
+  void CloseInfoWindow(Widget, XtPointer, XtPointer);
+  void CloseContoursWindow(Widget, XtPointer, XtPointer);
+  void DoExposePalette(Widget, XtPointer, XtPointer);
+  void DoExposePicture(Widget, XtPointer, XtPointer);
+
+#if (BL_SPACEDIM==3)
+  void DoOrient(Widget, XtPointer, XtPointer);
+  void DoLabelAxes(Widget, XtPointer, XtPointer);
+  void DoTransInput(Widget, XtPointer, XtPointer);
+  void DoTransResize(Widget, XtPointer, XtPointer);
+  void DoAttach(Widget, XtPointer, XtPointer);
+  void DoDetach(Widget, XtPointer, XtPointer);
+#if defined(BL_VOLUMERENDER)
+  void DoRender(Widget = None, XtPointer = NULL, XtPointer = NULL);
+  void DoRenderModeMenu(Widget, XtPointer, XtPointer);
+  void DoClassifyMenu(Widget, XtPointer, XtPointer);
+  void DoAutoDraw(Widget, XtPointer, XtPointer);
+  void DoCreateLightingWindow(Widget, XtPointer, XtPointer);
+  void DoDoneLightingWindow(Widget, XtPointer, XtPointer);
+  void DoApplyLightingWindow(Widget, XtPointer, XtPointer);
+  void DoCancelLightingWindow(Widget, XtPointer, XtPointer);
+  void DestroyLightingWindow(Widget, XtPointer, XtPointer);
+#endif
+  void Clear();
+#endif
+
+  // RefArea (axis pictures) 
+
   void SetHVLine(AmrPicture **);
-  // these replace inidvidual static indirection callbacks
-  void AddStaticCallback(Widget w, String whichcb, memberCB whichf);
+
+  void AddStaticCallback(Widget w, String whichcb, memberCB whichf, void *d = NULL);
+  void AddStaticEventHandler(Widget w, EventMask mask, memberCB cbf, void *d = NULL);
+  XtIntervalId AddStaticTimeOut(int time, memberCB whichf, void *d = NULL);
   static void StaticCallback(Widget, XtPointer, XtPointer);
+  static void StaticEvent(Widget w, XtPointer client_data, XEvent *event, char*);
+  static void StaticTimeOut(XtPointer client_data, XtIntervalId *);
   
   class CBData {  // callback data
-    public:
-      CBData(PltApp *p, memberCB mcb): instance(p), cbFunc(mcb) { }
-      PltApp *instance;
-      memberCB cbFunc;
+  public:
+    CBData(PltApp *p, XtPointer d, memberCB mcb)
+      : instance(p), data(d), cbFunc(mcb) { }
+    PltApp *instance;
+    XtPointer data;
+    memberCB cbFunc;
   };
 };
 
@@ -352,10 +346,6 @@ void	SubregionPltApp(Widget toplevel, const Box &region, const IntVect &offset,
 			int isanim, const aString &derived,
 			const aString &filename);
 void	CBQuitPltApp(Widget, XtPointer, XtPointer);
-void	CBDoExposePalette(Widget, XtPointer, XExposeEvent);
-void	CBDoExposePicture(Widget, XtPointer, XExposeEvent);
-void	CBDoExposeRef(Widget, XtPointer, XExposeEvent);
-void	CBExposeTransDA(Widget, XtPointer, XExposeEvent);
 void	PrintMessage(char *);
 
 #endif

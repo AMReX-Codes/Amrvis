@@ -1,7 +1,7 @@
 //BL_COPYRIGHT_NOTICE
 
 //
-// $Id: AmrData.cpp,v 1.38 1999-11-30 20:53:20 car Exp $
+// $Id: AmrData.cpp,v 1.39 2000-04-04 00:18:22 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -12,6 +12,25 @@
 #include "BoxDomain.H"
 #include "Misc.H"
 #include "VisMF.H"
+
+#define BL_ALWAYS_FIX_DENORMALS
+#ifdef BL_ALWAYS_FIX_DENORMALS
+#include <float.h>
+#if defined(BL_T3E)
+#  if (BL_USE_FLOAT)
+#    define DS_FP_CLASS fpclassify
+#  else
+#    define DS_FP_CLASS fpclassify
+#  endif
+#else
+#  if (BL_USE_FLOAT)
+#    define DS_FP_CLASS fp_classf
+#  else
+#    define DS_FP_CLASS fp_class
+#  endif
+#endif
+
+#endif
 
 #ifdef BL_USE_NEW_HFILES
 #include <iostream>
@@ -1595,6 +1614,16 @@ bool AmrData::MinMax(const Box &onBox, const aString &derived, int level,
 		    whichVisMFComponent));
       Real visMFMax(visMF[level][whichVisMF]->max(gpli.index(),
 		    whichVisMFComponent));
+#ifdef BL_ALWAYS_FIX_DENORMALS
+      int dsFpClassMin(DS_FP_CLASS(visMFMin));
+      if(dsFpClassMin == FP_POS_DENORM || dsFpClassMin == FP_NEG_DENORM) {
+	visMFMin = 0.0;
+      }
+      int dsFpClassMax(DS_FP_CLASS(visMFMax));
+      if(dsFpClassMax == FP_POS_DENORM || dsFpClassMax == FP_NEG_DENORM) {
+	visMFMax = 0.0;
+      }
+#endif
       if(onBox.contains(gpli.validbox())) {
         dataMin = Min(dataMin, visMFMin);
         dataMax = Max(dataMax, visMFMax);
