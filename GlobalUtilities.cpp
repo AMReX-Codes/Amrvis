@@ -5,6 +5,7 @@
 #include "FArrayBox.H"
 #ifdef BL_USE_NEW_HFILES
 #include <fstream>
+using std::ifstream;
 #else
 #include <fstream.h>
 #endif

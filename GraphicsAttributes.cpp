@@ -24,6 +24,7 @@ GraphicsAttributes::GraphicsAttributes(Widget topLevel) {
 			    8, PseudoColor, &visual_info);
   if( ! status) {
     cerr << "Error: bad XMatchVisualInfo" << endl;
+    exit(1);
   }
   visual = visual_info.visual;
   gc = screen->default_gc;

@@ -4,7 +4,11 @@
 #ifndef _VOLUME_H_
 #define _VOLUME_H_
 
-#include <stdio.h>
+#ifdef BL_USE_NEW_HFILES
+#include <iostream>
+#else
+#include <iostream.h>
+#endif
 
 #ifdef BL_VOLUMERENDER
 #include <volpack.h>
