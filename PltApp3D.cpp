@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.52 2002-08-31 00:06:46 vince Exp $
+// $Id: PltApp3D.cpp,v 1.53 2002-09-26 23:20:06 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -480,15 +480,7 @@ void PltApp::DoOpenLightingFile(Widget w, XtPointer oos, XtPointer call_data)
 
       DoApplyLightingWindow(NULL, NULL, NULL);
 
-      char tempfilename[BUFSIZ], ctemp[BUFSIZ];
-      strcpy(tempfilename, asLFile.c_str());
-      int i(strlen(tempfilename) - 1);
-      while(i > -1 && tempfilename[i] != '/') {
-        --i;
-      }
-      ++i;  // skip first (bogus) character
-      strcpy(ctemp, &tempfilename[i]);
-      lightingFilename = ctemp;
+      lightingFilename = AVGlobals::StripSlashes(asLFile);
     }
   } else {
     BL_ASSERT(ioos == savingLW);
@@ -496,15 +488,7 @@ void PltApp::DoOpenLightingFile(Widget w, XtPointer oos, XtPointer call_data)
     bFileOk = AVGlobals::WriteLightingFile(asLFile, ambient, diffuse, specular,
                                            shiny, minray, maxray);
     if(bFileOk) {
-      char tempfilename[BUFSIZ], ctemp[BUFSIZ];
-      strcpy(tempfilename, asLFile.c_str());
-      int i(strlen(tempfilename) - 1);
-      while(i > -1 && tempfilename[i] != '/') {
-        --i;
-      }
-      ++i;  // skip first (bogus) character
-      strcpy(ctemp, &tempfilename[i]);
-      lightingFilename = ctemp;
+      lightingFilename = AVGlobals::StripSlashes(asLFile);
     }
   }
   XtFree(lightingfile);

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.111 2002-09-26 18:13:29 vince Exp $
+// $Id: PltApp.cpp,v 1.112 2002-09-26 23:20:06 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -4102,8 +4102,8 @@ void PltApp::ShowFrame() {
   XtVaSetValues(wWhichFileLabel, XmNlabelString, fileString, NULL);
   XmStringFree(fileString);
   
-  char tempTimeName[100];
-  ostrstream tempTimeOut(tempTimeName, 100);
+  char tempTimeName[BUFSIZ];
+  ostrstream tempTimeOut(tempTimeName, BUFSIZ);
   tempTimeOut << "T=" << amrData.Time() << ends;
   XmString timeString = XmStringCreateSimple(tempTimeName);
   XtVaSetValues(wWhichTimeLabel, XmNlabelString, timeString, NULL);

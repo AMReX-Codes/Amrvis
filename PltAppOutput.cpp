@@ -1,6 +1,6 @@
 
 //
-// $Id: PltAppOutput.cpp,v 1.30 2002-02-19 20:39:41 vince Exp $
+// $Id: PltAppOutput.cpp,v 1.31 2002-09-26 23:20:06 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -27,7 +27,6 @@ using std::max;
 // -------------------------------------------------------------------
 void PltApp::DoOutput(Widget w, XtPointer data, XtPointer) {
   int i;
-  char tempfilename[BUFSIZ];
   static Widget wGetFileName;
   XmString sMessage;
   sMessage = XmStringCreateSimple("Please enter a filename base:");
@@ -60,33 +59,13 @@ void PltApp::DoOutput(Widget w, XtPointer data, XtPointer) {
   XtSetSensitive(XmSelectionBoxGetChild(wGetFileName,
   		XmDIALOG_HELP_BUTTON), false);
 
-  char tempstr[BUFSIZ], timestep[BUFSIZ];
-  char cder[BUFSIZ];
+  char tempstr[BUFSIZ], tempfilename[BUFSIZ];
   if(animating2d) {
-    strcpy(tempfilename, fileNames[currentFrame].c_str());
+    strcpy(tempfilename, AVGlobals::StripSlashes(fileNames[currentFrame]).c_str());
   } else {
-    strcpy(tempfilename, fileNames[0].c_str());
+    strcpy(tempfilename, AVGlobals::StripSlashes(fileNames[0]).c_str());
   }
-  i = strlen(tempfilename) - 1;
-  while(i > -1 && tempfilename[i] != '/') {
-    --i;
-  }
-  ++i;  // skip first (bogus) character
-
-  FileType fileType = dataServicesPtr[currentFrame]->GetFileType();
-  BL_ASSERT(fileType != INVALIDTYPE);
-  if(fileType == FAB || fileType == MULTIFAB) {
-    strcpy(timestep, &tempfilename[i]);
-  } else {  // plt file
-    strcpy(timestep, &tempfilename[i+3]);  // skip plt
-  }
-  i = 0;
-  while(timestep[i] != '\0' && timestep[i] != '.') {
-    ++i;
-  }
-  timestep[i] = '\0';
-  strcpy(cder, pltAppState->CurrentDerived().c_str());
-  sprintf(tempstr, "%s.%s", cder, timestep);
+  sprintf(tempstr, "%s.%s", pltAppState->CurrentDerived().c_str(), tempfilename);
 
   XmTextSetString(XmSelectionBoxGetChild(wGetFileName, XmDIALOG_TEXT), tempstr);
   XtManageChild(wGetFileName);
@@ -270,37 +249,14 @@ void PltApp::DoCreateAnimRGBFile() {
   char rgbfilename[BUFSIZ];
   int imageSizeX, imageSizeY;
   XImage *printImage;
-  char tempstr[BUFSIZ], timestep[BUFSIZ];
-  char tempfilename[BUFSIZ];
-  char cder[BUFSIZ];
-  int i;
 
   ResetAnimation();
 
-  strcpy(tempfilename, fileNames[currentFrame].c_str());
-  i = strlen(tempfilename) - 1;
-  while(i > -1 && tempfilename[i] != '/') {
-    --i;
-  }
-  ++i;  // skip first (bogus) character
-
-  FileType fileType = dataServicesPtr[currentFrame]->GetFileType();
-  BL_ASSERT(fileType != INVALIDTYPE);
-  if(fileType == FAB || fileType == MULTIFAB) {
-    strcpy(timestep, &tempfilename[i]);
-  } else {  // plt file
-    strcpy(timestep, &tempfilename[i+3]);  // skip plt
-  }
-  i = 0;
-  while(timestep[i] != '\0' && timestep[i] != '.') {
-    ++i;
-  }
-  timestep[i] = '\0';
-  strcpy(cder, pltAppState->CurrentDerived().c_str());
-  sprintf(tempstr, "%s.%s", cder, timestep);
-  sprintf(rgbfilename, "%s.rgb", tempstr);
+  sprintf(rgbfilename, "%s.%s.rgb", pltAppState->CurrentDerived().c_str(),
+                AVGlobals::StripSlashes(fileNames[currentFrame]).c_str());
 
   cout << "******* Creating file:  " << rgbfilename << endl;
+
   // write the picture
   printImage = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[ZPLANE]->ImageSizeH();
