@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.45 2002-12-10 20:12:23 vince Exp $
+// $Id: VolRender.cpp,v 1.46 2003-01-15 00:56:43 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -287,8 +287,8 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
           dat = dataPoint[gcgrowstmp + gr];
           dat = max(dat,gmin); // clip data if out of range
           dat = min(dat,gmax);
-          chardat = (char)(((dat-gmin)*oneOverGDiff)*cSlotsAvail);
-          chardat += (char)iPaletteStart;
+          chardat = (char) (((dat-gmin)*oneOverGDiff)*cSlotsAvail);
+          chardat += (char) iPaletteStart;
 	  gprev = gostartp + goendp - gp;
           sindexbase =
             //(((gp+gstartp)-sstartp) * scolssrowstmp) +
@@ -585,6 +585,31 @@ cout << "+++++ _here 0:  crr = " << crr << endl;
          << ((clock()-time0)/1000000.0) << endl;
   }
   
+  // fix up cartgrid body
+  AmrData &amrData = dataServicesPtr->AmrDataRef();
+  const string vfracName = "vfrac";
+  if(amrData.CartGrid() && derivedName != vfracName) {
+    // reuse swfFabData
+    DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
+                           (void *) &swfFabData,
+			   (void *) &swfDataBox,
+			   maxDrawnLevel,
+			   (void *) &vfracName);
+
+    if(ParallelDescriptor::IOProcessor()) {
+      char bodyColor = (char) iBlackIndex;
+      Real *dataPoint = swfFabData.dataPtr();
+      Real vfeps = amrData.VfEps(maxDrawnLevel);
+      for(int i(0); i < swfFabData.box().numPts(); ++i) {
+        if(dataPoint[i] < vfeps) {
+          swfData[i] = bodyColor;
+	}
+      }
+    }
+  
+  }
+
+
 }  // end MakeSWFData(...)
 
 

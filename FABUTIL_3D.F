@@ -3,11 +3,41 @@ c ::: SCCS stuff "@(#)FABUTIL_3D.F	3.1\t6/25/93"
 #define   FORT_CINTERP   cinterp3d
 #define   FORT_PCINTERP  pcinterp3d
 #define   FORT_VCINTERP  vcinterp3d
+#define   FORT_CARTGRIDMINMAX  cartgridminmax3d
 
 #include "REAL.H"
 #include "CONSTANTS.H"
 
 #define IX_PROJ(A,B) (A+B*iabs(A))/B-iabs(A)
+
+
+c ::: --------------------------------------------------------------
+      subroutine FORT_CARTGRIDMINMAX (data, dlo1, dlo2, dlo3, dhi1, dhi2, dhi3,
+     $                                vfracdata, vfeps, dmin, dmax)
+      implicit none
+
+      integer dlo1, dlo2, dlo3, dhi1, dhi2, dhi3
+      REAL_T data(dlo1:dhi1 ,dlo2:dhi2, dlo3:dhi3)
+      REAL_T vfracdata(dlo1:dhi1 ,dlo2:dhi2, dlo3:dhi3)
+      REAL_T vfeps, dmin, dmax
+
+      integer i, j, k
+
+      dmax = -bigreal
+      dmin = bigreal
+      do 410 k = dlo3, dhi3
+        do 420 j = dlo2, dhi2
+          do 430 i = dlo1, dhi1
+              if ( .not. (vfracdata(i,j,k).lt.vfeps)) then
+                dmax = max(dmax,data(i,j,k))
+                dmin = min(dmin,data(i,j,k))
+              endif
+430       continue
+420     continue
+410   continue
+
+      return
+      end
 
 
 c ::: --------------------------------------------------------------
@@ -705,34 +735,4 @@ c                                 --- break ---
       return
       end
 
-
-
-
-
-      subroutine cartgridminmax3d (data, lo1, lo2, lo3, hi1, hi2, hi3,
-     $                         vfracdata, vfeps, dmin, dmax)
-      implicit none
-
-      integer lo1, lo2, lo3, hi1, hi2, hi3
-      REAL_T data(lo1:hi1 ,lo2:hi2, lo3:hi3)
-      REAL_T vfracdata(lo1:hi1 ,lo2:hi2, lo3:hi3)
-      REAL_T vfeps, dmin, dmax
-
-      integer i, j, k
-
-      dmax = -bigreal
-      dmin = bigreal
-      do 410 k = lo3, hi3
-        do 420 j = lo2, hi2
-          do 430 i = lo1, hi1
-              if ( .not. (vfracdata(i,j,k).lt.vfeps)) then
-                dmax = max(dmax,data(i,j,k))
-                dmin = min(dmin,data(i,j,k))
-              endif
-430       continue
-420     continue
-410   continue
-
-      return
-      end
 
