@@ -1,11 +1,13 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.45 2000-10-05 20:18:07 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.46 2001-02-20 21:42:00 vince Exp $
 //
 
 // ---------------------------------------------------------------
 // AmrVisTool.cpp
 // ---------------------------------------------------------------
+
+#include <stdio.h>
 
 // X/Motif headers
 #include <Xm/Xm.h>
