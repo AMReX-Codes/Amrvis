@@ -57,24 +57,29 @@ void WritePSFile(char *filename, XImage *image,
   fout << "colorimage";   // no << '\n';
 
   fout << hex;
-  char buf[256];
+  char *buf = new char[8*imagesizehoriz+1];
   for(j = 0; j < imagesizevert; j++) {
+    int charindex = 0;
     for(i = 0; i < imagesizehoriz; i++) {
+      //assert(charindex>8*imagesizehoriz+1);
       index = (int) XGetPixel(image, i, j);
       color = colorcells[index];
       if(i % 10 == 0) {
-        fout << '\n';
+        sprintf(buf+charindex, "\n");
+        charindex++;
       }
       //fout << setw(2) << setfill('0') << (color.red >> 8);
       //fout << setw(2) << setfill('0') << (color.green >> 8);
       //fout << setw(2) << setfill('0') << (color.blue >> 8) << ' ';
-      sprintf(buf, "%02x%02x%02x ",
+      sprintf(buf+charindex, "%02x%02x%02x ",
 	      (color.red   >> 8),
 	      (color.green >> 8),
 	      (color.blue  >> 8));
-      fout << buf;
+      charindex += 7;
     }
+    fout << buf;
   }
+  delete [] buf;
   fout << "grestore" << '\n';
   fout << "showpage" << '\n';
   fout.close();
@@ -106,23 +111,26 @@ void WritePSPaletteFile(char *filename, XImage *image,
     fout << "colorimage";   // no << '\n';
     
     fout << hex;
-    char buf[256];
+    char *buf = new char[8*imagesizehoriz+1];
     for(j = 0; j < imagesizevert; ++j) {
+      int charindex = 0;
         for(i = 0; i < imagesizehoriz; ++i) {
             index = (int) XGetPixel(image, i, j);
             color = colorcells[index];
             if(i % 10 == 0) {
-                fout << '\n';
+                sprintf(buf+charindex, "\n");
+                charindex++;
             }
             //fout << setw(2) << setfill('0') << (color.red >> 8);
             //fout << setw(2) << setfill('0') << (color.green >> 8);
             //fout << setw(2) << setfill('0') << (color.blue >> 8) << ' ';
-            sprintf(buf, "%02x%02x%02x ",
+            sprintf(buf+charindex, "%02x%02x%02x ",
                     (color.red   >> 8),
                     (color.green >> 8),
                     (color.blue  >> 8));
-            fout << buf;
+            charindex += 7;
         }
+            fout << buf;
     }
     fout << dec;
     fout << "grestore"  << '\n';

@@ -1,11 +1,11 @@
 PRECISION = FLOAT
 PRECISION = DOUBLE
-PROFILE   = TRUE
 PROFILE   = FALSE
+PROFILE   = TRUE
 
 COMP      = KCC
-DEBUG     = FALSE
 DEBUG     = TRUE
+DEBUG     = FALSE
 DIM       = 2
 DIM       = 3
 
@@ -71,8 +71,8 @@ endif
 
 DEFINES += -DBL_PARALLEL_IO
 ifeq ($(COMP),KCC)
-##DEFINES += -UBL_USE_SETBUF -DBL_USE_NEW_HFILES
-##CXXFLAGS+= --diag_suppress 837
+DEFINES += -UBL_USE_SETBUF -DBL_USE_NEW_HFILES
+CXXFLAGS+= --diag_suppress 837
 endif
 
 ifeq ($(COMP),g++)
