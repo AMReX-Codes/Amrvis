@@ -1,6 +1,6 @@
 
 //
-// $Id: ViewTransform.H,v 1.16 2005-02-23 23:41:46 vince Exp $
+// $Id: ViewTransform.H,v 1.17 2005-04-07 20:34:15 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -10,7 +10,6 @@
 #define _VIEWTRANSFORM_H_
 
 #include <iostream>
-//using std::iostream;
 
 #include "REAL.H" 
 #include "Quaternion.H"
@@ -35,12 +34,12 @@ class ViewTransform {
     void ViewRenderRotationMat() const;
   
     void SetAspect(Real apct) { vtAspect = apct; }
-    AmrQuaternion GetRotation() { return rotation; }
+    AmrQuaternion GetRotation() const { return rotation; }
     void SetRotation(AmrQuaternion quat) { rotation = quat; }
     AmrQuaternion GetRenderRotation() { return renderRotation; }
     void SetRenderRotation(AmrQuaternion quat) { renderRotation = quat; }
   
-    void SetObjCenter(Real x, Real y, Real z) 
+    void SetObjCenter(const Real x, const Real y, const Real z) 
       { objCenterX = x; objCenterY = y; objCenterZ = z; }
     void SetScreenPosition(int x, int y) 
       { screenPositionX = x; screenPositionY = y; }
@@ -52,8 +51,8 @@ class ViewTransform {
     void ResetTranslation() { boxTransX = renTransX = boxTransY = renTransY = 0.0; }
     Real GetRenTransX() const { return renTransX; }
     Real GetRenTransY() const { return renTransY; }
-    void SetRenTransX(Real newRenTransX) { renTransX = newRenTransX; }
-    void SetRenTransY(Real newRenTransY) { renTransY = newRenTransY; }
+    void SetRenTransX(const Real newRenTransX) { renTransX = newRenTransX; }
+    void SetRenTransY(const Real newRenTransY) { renTransY = newRenTransY; }
   
     Real InfNorm();
     AmrQuaternion Screen2Quat(int, int, int, int, Real);

@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.64 2004-07-09 22:05:42 vince Exp $
+// $Id: PltApp.H,v 1.65 2005-04-07 20:34:15 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -346,7 +346,9 @@ private:
 class AVXGrab {
   public:
     AVXGrab(Display *display) : bIsGrabbed(true), cachedDisplay(display) {
+      XSync(cachedDisplay, False);
       XGrabServer(display);
+      XSync(cachedDisplay, False);
     }
 
     ~AVXGrab() {
@@ -354,6 +356,7 @@ class AVXGrab {
         std::cout << "_______in ~AVXGrab:  implicit ungrab." << std::endl;
       }
       XUngrabServer(cachedDisplay);
+      XSync(cachedDisplay, False);
       bIsGrabbed = false;
     }
 
@@ -363,6 +366,7 @@ class AVXGrab {
                   << std::endl;
       }
       XUngrabServer(cachedDisplay);
+      XSync(cachedDisplay, False);
       bIsGrabbed = false;
     }
 
