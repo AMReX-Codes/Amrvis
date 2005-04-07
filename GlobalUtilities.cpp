@@ -1,6 +1,5 @@
-
 //
-// $Id: GlobalUtilities.cpp,v 1.57 2004-09-30 20:03:38 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.58 2005-04-07 20:34:50 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -92,12 +91,12 @@ const string &AVGlobals::GetLightingFileName() {
 // -------------------------------------------------------------------
 void AddSlices(int dir, char *sliceset) {
   int rangeStart(-1), rangeEnd(-1), slice(-1);
-  bool rangeSpecified(false);
+  bool bRangeSpecified(false);
   dumpSlices = true;
 
   for(int ipos(1); ipos <= strlen(sliceset); ++ipos) { // skip first char for neg
     if(sliceset[ipos] == '-') {  // we have a range of values specified
-      rangeSpecified = true;
+      bRangeSpecified = true;
       rangeStart = atoi(sliceset);
       rangeEnd   = atoi(sliceset + ipos + 1);
       sliceset[ipos] = '\0';
@@ -106,16 +105,16 @@ void AddSlices(int dir, char *sliceset) {
   }
 
   list<int>::iterator dsliter;
-  if(rangeSpecified) {
+  if(bRangeSpecified) {
     if(BL_SPACEDIM == 2 && dir == ZDIR) {
       slice = 0;
-      dsliter =  find(dumpSliceList[dir].begin(), dumpSliceList[dir].end(), slice);
+      dsliter = find(dumpSliceList[dir].begin(), dumpSliceList[dir].end(), slice);
       if(dsliter == dumpSliceList[dir].end()) {
         dumpSliceList[dir].push_back(slice);
       }
     } else {
       for(slice = rangeStart; slice <= rangeEnd; ++slice) {
-        dsliter =  find(dumpSliceList[dir].begin(),dumpSliceList[dir].end(),slice);
+        dsliter = find(dumpSliceList[dir].begin(),dumpSliceList[dir].end(),slice);
         if(dsliter == dumpSliceList[dir].end()) {
           dumpSliceList[dir].push_back(slice);
         }
