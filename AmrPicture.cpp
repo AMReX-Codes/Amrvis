@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.87 2004-12-07 22:27:30 vince Exp $
+// $Id: AmrPicture.cpp,v 1.88 2005-04-14 21:22:48 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -2140,48 +2140,48 @@ bool AmrPicture::DrawContour(const FArrayBox &fab, Real value,
           continue;
         }
       }
-      Real left_bottom(data[(i) + (j) * xLength]);         // left bottom value
-      Real left_top(data[(i) + (j+1) * xLength]);          // left top value
-      Real right_bottom(data[(i+1) + (j) * xLength]);      // right bottom value
-      Real right_top(data[(i+1) + (j+1) * xLength]);       // right top value
-      xLeft = leftEdge + xDiff*(i);
-      xRight = xLeft + xDiff;
+      Real leftBottom(data[(i) + (j) * xLength]);         // left bottom value
+      Real leftTop(data[(i) + (j+1) * xLength]);          // left top value
+      Real rightBottom(data[(i+1) + (j) * xLength]);      // right bottom value
+      Real rightTop(data[(i+1) + (j+1) * xLength]);       // right top value
+      xLeft   = leftEdge + xDiff*(i);
+      xRight  = xLeft + xDiff;
       yBottom = bottomEdge + yDiff * j;
-      yTop = yBottom + yDiff;
+      yTop    = yBottom + yDiff;
       
-      left = Between(left_bottom,value,left_top);
-      right = Between(right_bottom,value,right_top);
-      bottom = Between(left_bottom,value,right_bottom);
-      top = Between(left_top,value,right_top);
+      left   = Between(leftBottom, value, leftTop);
+      right  = Between(rightBottom, value, rightTop);
+      bottom = Between(leftBottom, value, rightBottom);
+      top    = Between(leftTop, value, rightTop);
       
       // figure out where things intersect the cell
       if(left) {
-        if(left_bottom != left_top) {
-          yLeft = yBottom + yDiff * (value - left_bottom) / (left_top-left_bottom);
+        if(leftBottom != leftTop) {
+          yLeft = yBottom + yDiff * (value - leftBottom) / (leftTop-leftBottom);
         } else {
           yLeft = yBottom;
           bFailureStatus = true;
         }
       }
       if(right) {
-        if(right_bottom != right_top) {
-          yRight = yBottom + yDiff*(value-right_bottom)/(right_top-right_bottom);
+        if(rightBottom != rightTop) {
+          yRight = yBottom + yDiff * (value-rightBottom) / (rightTop-rightBottom);
         } else {
           yRight = yBottom;
           bFailureStatus = true;
         }
       }
       if(bottom) {
-        if(left_bottom != right_bottom) {
-          xBottom = xLeft + xDiff*(value-left_bottom)/(right_bottom-left_bottom);
+        if(leftBottom != rightBottom) {
+          xBottom = xLeft + xDiff * (value-leftBottom) / (rightBottom-leftBottom);
         } else {
           xBottom = xRight;
           bFailureStatus = true;
         }
       }
       if(top) {
-        if(left_top != right_top) {
-          xTop = xLeft + xDiff*(value-left_top)/(right_top-left_top);
+        if(leftTop != rightTop) {
+          xTop = xLeft + xDiff * (value - leftTop) / (rightTop - leftTop);
         } else {
           xTop = xRight;
           bFailureStatus = true;
