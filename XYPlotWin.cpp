@@ -66,15 +66,14 @@ static char markBits[8][8] = {
 static param_style param_null_style = {STYLE, 0, (char *) 0};
 
 #include <cctype>
-#include <strstream>
-using std::ostrstream;
+
 using std::ends;
 using std::endl;
 
 // Some macros for obtaining parameters.
 #define PM_INT(name) ((parameters->Get_Parameter(name, &param_temp)) ? \
    param_temp.intv.value : (BL_ASSERT(0), (int) 0))
-#define PM_STR(name) ((parameters->Get_Parameter(name, &param_temp)) ? \
+#define PM_STRING(name) ((parameters->Get_Parameter(name, &param_temp)) ? \
    param_temp.strv.value : (BL_ASSERT(0), (char *) 0))
 #define PM_COLOR(name) ((parameters->Get_Parameter(name, &param_temp)) ? \
    param_temp.pixv.value : (BL_ASSERT(0), param_null_color))
@@ -403,24 +402,24 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
   char *str;
 
   if(whichType == XDIR) {
-    str = PM_STR("XUnitTextX");
+    str = PM_STRING("XUnitTextX");
   } else if(whichType == YDIR) {
-    str = PM_STR("XUnitTextY");
+    str = PM_STRING("XUnitTextY");
   } else {
-    str = PM_STR("XUnitTextZ");
+    str = PM_STRING("XUnitTextZ");
   }
   XUnitText = new char[strlen(str) + 1];
   strcpy(XUnitText, str);
 
-  str = PM_STR("YUnitText");
+  str = PM_STRING("YUnitText");
   YUnitText = new char[strlen(str) + 1];
   strcpy(YUnitText, str);
 
-  str = PM_STR("FormatX");
+  str = PM_STRING("FormatX");
   formatX = new char[strlen(str) + 1];
   strcpy(formatX, str);
 
-  str = PM_STR("FormatY");
+  str = PM_STRING("FormatY");
   formatY = new char[strlen(str) + 1];
   strcpy(formatY, str);
 

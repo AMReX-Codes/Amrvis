@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.cpp,v 1.33 2004-12-07 22:27:30 vince Exp $
+// $Id: Output.cpp,v 1.34 2005-09-16 17:12:29 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -19,11 +19,10 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
-#include <strstream>
+
 using std::hex;
 using std::dec;
 using std::ofstream;
-using std::ostrstream;
 using std::cout;
 using std::cerr;
 using std::endl;
