@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.73 2005-02-04 00:53:39 vince Exp $
+// $Id: AmrData.cpp,v 1.74 2005-10-10 18:22:47 car Exp $
 //
 
 // ---------------------------------------------------------------
@@ -10,7 +10,6 @@
 
 #include "AmrData.H"
 #include "ArrayLim.H"
-#include "BoxDomain.H"
 #include "VisMF.H"
 
 #include <string>
