@@ -62,6 +62,12 @@ ifeq ($(MACHINE), OSF1)
   LIBRARIES += -lXm -lXt -lX11
 endif
 
+# Joe Grcar 10/29/05: per Vince, these 4 lines are needed on davinci
+# INCLUDE_LOCATIONS += /usr/common/graphics/openmotif/include
+# INCLUDE_LOCATIONS += /usr/common/graphics/openmotif/include/Xm
+# LIBRARY_LOCATIONS += /usr/X11R6/lib 
+# LIBRARY_LOCATIONS += /usr/common/graphics/openmotif/lib
+
 ifeq ($(MACHINE), Darwin)
   INCLUDE_LOCATIONS += /usr/X11R6/include
   LIBRARY_LOCATIONS += /usr/X11R6/lib
