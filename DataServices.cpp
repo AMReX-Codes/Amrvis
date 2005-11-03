@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.40 2004-12-07 22:27:30 vince Exp $
+// $Id: DataServices.cpp,v 1.41 2005-11-03 01:48:48 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -980,6 +980,7 @@ bool DataServices::WriteFab(const string &fname, const Box &region, int lev) {
     if(ParallelDescriptor::IOProcessor()) {
       data.copy(tempdata, srccomp, destcomp, ncomp);
     }
+    amrData.FlushGrids(ivar);
   }
 
   if(ParallelDescriptor::IOProcessor()) {
