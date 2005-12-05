@@ -44,6 +44,8 @@ XYPlotDataList::XYPlotDataList(XYPlotDataList *src)
     intersectPoint(src->intersectPoint),
     xypdlLoY(src->xypdlLoY),
     xypdlHiY(src->xypdlHiY),
+    xypdlXVal(src->xypdlXVal),
+    xypdlYVal(src->xypdlYVal),
     numPoints(src->numPoints),
     maxLevel(src->maxLevel),
     curLevel(src->curLevel),
