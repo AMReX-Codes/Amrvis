@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.71 2004-12-07 22:27:30 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.72 2005-12-07 23:41:30 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -78,14 +78,11 @@ int main(int argc, char *argv[]) {
   Box		comlineBox;
   string	comlineFileName;
 
-  //BoxLib::Initialize(argc,argv);
-
   // here we trick boxlib
   int argcNoPP(1);
   BoxLib::Initialize(argcNoPP, argv);
 
   AVGlobals::GetDefaults("amrvis.defaults");
-  //GetLightingDefaults("amrvis.lighting");
 
   AVGlobals::ParseCommandLine(argc, argv);
 

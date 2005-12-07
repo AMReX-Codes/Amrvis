@@ -231,7 +231,6 @@ c ::: local var
       integer ixproj,ii,ll
       ixproj(ii,ll) = (ii + ll*iabs(ii))/ll - iabs(ii)
 
-
       do 120 j = fblo(2), fbhi(2) 
           jc = ixproj(j,lrat)
           do 130 n = 1, nvar 
@@ -251,10 +250,7 @@ c ::: local var
       end
 
 
-
-
-
-
+c ::: --------------------------------------------------------------
       subroutine cartgridminmax2d (data, lo1, lo2, hi1, hi2,
      $                         vfracdata, vfeps, dmin, dmax)
       implicit none
