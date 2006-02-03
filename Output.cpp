@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.cpp,v 1.34 2005-09-16 17:12:29 car Exp $
+// $Id: Output.cpp,v 1.35 2006-02-03 18:42:18 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -14,6 +14,7 @@
 
 #include <fcntl.h>
 #include <unistd.h>
+#include <time.h>
 #include <fstream>
 #include <iomanip>
 #include <cmath>

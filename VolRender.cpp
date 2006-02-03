@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.52 2004-12-07 22:27:30 vince Exp $
+// $Id: VolRender.cpp,v 1.53 2006-02-03 18:42:18 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -22,6 +22,7 @@ using std::min;
 
 #include <unistd.h>
 #include <fcntl.h>
+#include <time.h>
 
 extern Real RadToDeg(Real angle);
 extern Real DegToRad(Real angle);
@@ -785,9 +786,28 @@ void VolRender::MakeVPData() {
       if(lightingModel) {
 //#define AV_LOWMEMRENDER
 #ifdef AV_LOWMEMRENDER
-        vpret = vpClassifyScalars(vpc, swfData, swfDataSize,
-                                  densityField, gradientField, normalField);
-        CheckVP(vpret, 6);
+        int xStride(sizeof(RawVoxel));
+        int yStride(drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel));
+        //int zStride(drawnDomain[maxDataLevel].length(XDIR) *
+                    //drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel));
+	long int nrc(drawnDomain[maxDataLevel].length(YDIR) *
+	             drawnDomain[maxDataLevel].length(ZDIR));
+	RawVoxel *vscanline = volData;
+	cout << "****** classifying " << nrc << " scanlines." << endl;
+	for(int ix(0); ix < nrc; ++ix) {
+	  if(ix % 1000 == 0) {
+	    cout << "----- vscanline = " << ix << endl;
+	  }
+          vpret = vpClassifyScanline(vpc, (void *) vscanline);
+          CheckVP(vpret, 6.05);
+	  vscanline += yStride;
+	}
+        //CheckVP(vpret, 6);
+
+
+        //vpret = vpClassifyScalars(vpc, swfData, swfDataSize,
+                                  //densityField, gradientField, normalField);
+        //CheckVP(vpret, 6);
 #else
         vpret = vpClassifyScalars(vpc, swfData, swfDataSize,
                                   densityField, gradientField, normalField);
@@ -815,10 +835,12 @@ void VolRender::MakeVPData() {
 	RawVoxel *vscanline = volData;
 	cout << "****** classifying " << nrc << " scanlines." << endl;
 	for(int ix(0); ix < nrc; ++ix) {
-	  if(ix < 5) cout << "----- vscanline = " << vscanline << endl;
+	  if(ix % 1000 == 0) {
+	    cout << "----- vscanline = " << ix << endl;
+	  }
           vpret = vpClassifyScanline(vpc, (void *) vscanline);
           CheckVP(vpret, 9.5);
-	  vscanline += xStride;
+	  vscanline += yStride;
 	}
 #else
         // the classification and loading of the value model

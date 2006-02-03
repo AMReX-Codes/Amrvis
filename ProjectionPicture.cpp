@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.cpp,v 1.53 2003-12-13 00:35:31 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.54 2006-02-03 18:42:18 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -13,6 +13,7 @@
 #include "PltAppState.H"
 #include "DataServices.H"
 #include "Volume.H"
+#include <time.h>
 
 #include <cmath>
 #include <ctime>
