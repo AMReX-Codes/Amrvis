@@ -2,23 +2,14 @@ PRECISION = FLOAT
 PRECISION = DOUBLE
 PROFILE   = TRUE
 PROFILE   = FALSE
-
+COMP	  = xlC
+FCOMP     = xlf
 COMP      = CC
-COMP      = Intel
-COMP      = g++
-FCOMP     = f77
-FCOMP     = Intel
 FCOMP     = ftn
-FCOMP     = g77
-DEBUG     = FALSE
 DEBUG     = TRUE
-DIM       = 2
+DEBUG     = FALSE
 DIM       = 3
-NAMESPACE = FALSE
-NAMESPACE = TRUE
-
-STRICTLY  = FALSE
-STRICTLY  = TRUE
+DIM       = 2
 
 USE_ARRAYVIEW = TRUE
 USE_ARRAYVIEW = FALSE
@@ -45,21 +36,22 @@ INCLUDE_LOCATIONS += ../BoxLib
 
 DEFINES += -DBL_PARALLEL_IO
 
-ifeq ($(MACHINE),OSF1)
-  ifeq ($(COMP),KCC)
-    CXXFLAGS += --diag_suppress 837
-  endif
-endif
-
-ifeq ($(MACHINE),AIX)
-  ifeq ($(COMP),KCC)
-    CXXFLAGS += --diag_suppress 837
-  endif
-endif
-
 ############################################### x includes and libraries
 ifeq ($(MACHINE), OSF1)
   LIBRARIES += -lXm -lXt -lX11
+endif
+
+#USE_XT3=TRUE
+ifeq ($(USE_XT3),TRUE)
+  CXX = pgCC
+  FC  = pgf77
+  fC  = pgf77
+  FOPTF = -O
+  CXXOPTF = -O
+  CPPFLAGS += -DBL_PGI
+  LIBRARY_LOCATIONS += /usr/X11R6/lib64
+# LIBRARIES += -lpgf90 -lpgf90_rpm1 -lpgf902 -lpgf90rtl -lpgftnrtl 
+  LIBRARIES += -lpgftnrtl 
 endif
 
 # Joe Grcar 10/29/05: per Vince, these 4 lines are needed on davinci
@@ -127,6 +119,12 @@ endif
 
 ############################################### volume rendering
 ifeq ($(DIM),3)
+  ifeq ($(MACHINE), T3E)
+    USE_VOLRENDER = FALSE
+  endif
+  ifeq ($(MACHINE), AIX)
+#   USE_VOLRENDER = FALSE
+  endif
   ifeq ($(USE_VOLRENDER), TRUE)
     DEFINES += -DBL_VOLUMERENDER
     #VOLPACKDIR = ../../volpack-1.0b3
