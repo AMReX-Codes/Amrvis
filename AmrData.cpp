@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.74 2005-10-10 18:22:47 car Exp $
+// $Id: AmrData.cpp,v 1.75 2006-02-16 23:24:49 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -12,6 +12,7 @@
 #include "ArrayLim.H"
 #include "VisMF.H"
 
+#include <iostream>
 #include <string>
 using std::string;
 using std::cout;
