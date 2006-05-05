@@ -58,7 +58,7 @@ ifeq ($(USE_XT3),TRUE)
   LIBRARIES += -lpgftnrtl 
 endif
 
-# Joe Grcar 10/29/05: per Vince, these 4 lines are needed on davinci
+# JFG 10/29/05: per Vince, these 4 lines are needed on davinci
 # INCLUDE_LOCATIONS += /usr/common/graphics/openmotif/include
 # INCLUDE_LOCATIONS += /usr/common/graphics/openmotif/include/Xm
 # LIBRARY_LOCATIONS += /usr/X11R6/lib 
@@ -110,6 +110,9 @@ ifeq ($(MACHINE), CYGWIN_NT)
 #  LDFLAGS += -noinhibit-exec
   LIBRARIES += -lXm -lXt -lSM -lICE -lXpm -lX11
 endif
+
+# JFG: this line is needed on hive
+# LIBRARY_LOCATIONS += /usr/X11R6/lib64
 
 ############################################### arrayview
 ifeq (USE_ARRAYVIEW, TRUE)
