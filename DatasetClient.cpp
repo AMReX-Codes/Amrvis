@@ -1,6 +1,6 @@
 
 //
-// $Id: DatasetClient.cpp,v 1.8 2004-12-07 22:27:30 vince Exp $
+// $Id: DatasetClient.cpp,v 1.9 2006-05-08 22:11:30 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -10,6 +10,7 @@
 #include <cstring>
 #include <cstdlib>
 #include <cstdio>
+#include <sstream>
 
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -18,7 +19,6 @@
 #include <netdb.h>
 #include <signal.h>
 #include <fcntl.h>
-#include <strstream.h>
 #include <unistd.h>
 
 #include "DatasetClient.H"
@@ -48,13 +48,13 @@ bool CreateSocket(int &newsocket) {
     perror("Bad client socket create");
     return false;
   }
-  //cout << "=== after opening socket." << endl;
+  //cout << "=== after opening socket." << std::endl;
 
   // set up the socket structures
   bzero((char *) &serveraddr, sizeof(struct sockaddr_in));
   serveraddr.sin_family = AF_INET;
   if((serverhostp = gethostbyname(serverhost)) == (struct hostent *) NULL) {
-    cerr << "gethostbyname on " << serverhost << " failed" << endl;
+    std::cerr << "gethostbyname on " << serverhost << " failed" << std::endl;
     return false;
   }
   u_long sAddr(serveraddr.sin_addr.s_addr);
@@ -67,7 +67,7 @@ bool CreateSocket(int &newsocket) {
     perror ("Bad client connect");
     return false;
   }
-  //cout << "=== connection successful." << endl;
+  //cout << "=== connection successful." << std::endl;
 
   newsocket = sockfd;
   return true;
@@ -90,7 +90,7 @@ bool SendString(int sockfd, const char *sendstring) {
     return false;
   }
   ptrbuffer[count] = '\0';
-  //cout << "<<< received sendstring ack:  " << ptrbuffer << endl;
+  //cout << "<<< received sendstring ack:  " << ptrbuffer << std::endl;
   return true;
 }
 
@@ -108,10 +108,13 @@ bool SendRealArray(int sockfd, Real *data[], int nvar,    // size nvar
   Box dataBox(ivlo, ivhi);
 
   // --------------------------------------------------- send the box
-  //cout << ">>> sending box." << endl;
-  ostrstream bufferstream(buffer, sizeof(buffer));
-  bufferstream << dataBox << ends;
-  if(send(sockfd, buffer, strlen(buffer), 0) < 0) {
+  //cout << ">>> sending box." << std::endl;
+
+  std::ostringstream bufferstream;
+
+  bufferstream << dataBox;
+
+  if(send(sockfd, bufferstream.str().c_str(), bufferstream.str().size(), 0) < 0) {
     perror("Bad client box send");
     return false;
   }
@@ -122,10 +125,10 @@ bool SendRealArray(int sockfd, Real *data[], int nvar,    // size nvar
     return false;
   }
   buffer[count] = '\0';
-  //cout << "<<< received box ack:  " << buffer << endl;
+  //cout << "<<< received box ack:  " << buffer << std::endl;
 
   // --------------------------------------------------- send nComp
-  //cout << ">>> sending nComp." << endl;
+  //cout << ">>> sending nComp." << std::endl;
   sprintf(buffer, "%d", nvar);
   if(send(sockfd, buffer, strlen(buffer), 0) < 0) {
     perror("Bad client nComp send");
@@ -138,10 +141,10 @@ bool SendRealArray(int sockfd, Real *data[], int nvar,    // size nvar
     return false;
   }
   buffer[count] = '\0';
-  //cout << "<<< received nComp ack:  " << buffer << endl;
+  //cout << "<<< received nComp ack:  " << buffer << std::endl;
 
   // --------------------------------------------------- send the data.
-  //cout << ">>> sending data." << endl;
+  //cout << ">>> sending data." << std::endl;
 
   long t_long = sizeof(Real) * dataBox.numPts();
   BL_ASSERT(t_long < INT_MAX);
@@ -151,7 +154,7 @@ bool SendRealArray(int sockfd, Real *data[], int nvar,    // size nvar
   char *getDataHere, *dataComponentStartingAddress;
 
   for(int dataComponent = 0; dataComponent < nvar; ++dataComponent) {
-    //cout << "dataComponent = " << dataComponent << endl;
+    //cout << "dataComponent = " << dataComponent << std::endl;
     totalBytesSent = 0;
     dataBytesRemaining = totalDataBytes;
     dataComponentStartingAddress = (char *) (data[dataComponent]);
@@ -163,16 +166,17 @@ bool SendRealArray(int sockfd, Real *data[], int nvar,    // size nvar
         perror("Bad client data send");
         return false;
       }
-      //cout << "  bytes sent = " << count << endl;
+      //cout << "  bytes sent = " << count << std::endl;
       totalBytesSent        += count;
       dataBytesRemaining -= count;
     }  // end while
   }  // end for
 
   // --------------------------------------------------- send the pointer
-  ostrstream ptrbufferstream(ptrbuffer, sizeof(ptrbuffer));
-  ptrbufferstream << data[0] << ends;
-  if(send(sockfd, ptrbuffer, strlen(ptrbuffer), 0) < 0) {
+  std::ostringstream ptrbufferstream;
+
+  ptrbufferstream << data[0];
+  if(send(sockfd, ptrbufferstream.str().c_str(), ptrbufferstream.str().size(), 0) < 0) {
     perror("Bad client data ptr send");
     return false;
   }
@@ -183,7 +187,7 @@ bool SendRealArray(int sockfd, Real *data[], int nvar,    // size nvar
     return false;
   }
   ptrbuffer[count] = '\0';
-  //cout << "<<< received data ptr ack:  " << ptrbuffer << endl;
+  //cout << "<<< received data ptr ack:  " << ptrbuffer << std::endl;
 
   // --------------------------------------------------- done sending data
 
@@ -215,11 +219,11 @@ bool ArrayViewFabFormatLabel(FArrayBox *debugFab, const char *format,
   bool returnValue;
   int nvar = debugFab->nComp();
   if(nvar < 1) {
-    cerr << "Error in ArrayView:  fab nComp < 1:  fab->nComp = " << nvar << endl;
+    std::cerr << "Error in ArrayView:  fab nComp < 1:  fab->nComp = " << nvar << std::endl;
     return false;
   }
   if( ! debugFab->box().ok()) {
-    cerr << "Error in ArrayView:  bad fab box = " << debugFab->box() << endl;
+    std::cerr << "Error in ArrayView:  bad fab box = " << debugFab->box() << std::endl;
     return false;
   }
 
@@ -258,14 +262,14 @@ bool ArrayViewMultiFabElementFormatLabel(MultiFab *debugMultiFab, int element,
                                          const char *format, const char *label)
 {
   if( ! debugMultiFab->ok()) {
-    cerr << "Error in ArrayViewMultiFabComp:  MultiFab is not ok()." << endl;
+    std::cerr << "Error in ArrayViewMultiFabComp:  MultiFab is not ok()." << std::endl;
     return false;
   }
-  if(element < 0 || element >= debugMultiFab->length()) {
-    cerr << "Error in ArrayViewMultiFabElement:  element index is not" << endl;
-    cerr << "  within range of MultiFab.length()." << endl;
-    cerr << "  MultiFab.length() = " << debugMultiFab->length() << endl;
-    cerr << "  Requested element = " << element << endl;
+  if(element < 0 || element >= debugMultiFab->size()) {
+    std::cerr << "Error in ArrayViewMultiFabElement:  element index is not" << std::endl;
+    std::cerr << "  within range of MultiFab.length()." << std::endl;
+    std::cerr << "  MultiFab.length() = " << debugMultiFab->size() << std::endl;
+    std::cerr << "  Requested element = " << element << std::endl;
     return false;
   }
 
@@ -283,11 +287,11 @@ bool ArrayViewTagBox(TagBox *debugTagBox) {
   bool returnValue;
   int nvar = debugTagBox->nComp();
   if(nvar < 1) {
-    cerr << "Error in ArrayView:  fab nComp < 1:  fab->nComp = " << nvar << endl;
+    std::cerr << "Error in ArrayView:  fab nComp < 1:  fab->nComp = " << nvar << std::endl;
     return false;
   }
   if( ! debugTagBox->box().ok()) {
-    cerr << "Error in ArrayView:  bad fab box = " << debugTagBox->box() << endl;
+    std::cerr << "Error in ArrayView:  bad fab box = " << debugTagBox->box() << std::endl;
     return false;
   }
 
@@ -323,11 +327,11 @@ bool ArrayViewTagBoxArray(TagBoxArray *debugTagBoxArray) {
   bool returnValue;
   int nvar = debugTagBoxArray->nComp();
   if(nvar < 1) {
-    cerr << "Error in ArrayView:  fab nComp < 1:  fab->nComp = " << nvar << endl;
+    std::cerr << "Error in ArrayView:  fab nComp < 1:  fab->nComp = " << nvar << std::endl;
     return false;
   }
   if( ! debugTagBoxArray->ok()) {
-    cerr << "Error in ArrayView:  bad TagBoxArray." << endl;
+    std::cerr << "Error in ArrayView:  bad TagBoxArray." << std::endl;
     return false;
   }
 
@@ -388,11 +392,11 @@ bool ArrayViewRealNVarFormatLabel(Real *data, int nvar,
   bool returnValue;
 
   if(data == NULL) {
-    cerr << "Error in ArrayView:  data pointer == NULL" << endl;
+    std::cerr << "Error in ArrayView:  data pointer == NULL" << std::endl;
     return false;
   }
   if(nvar < 1) {
-    cerr << "Error in ArrayView:  nComp < 1:  nvar = " << nvar << endl;
+    std::cerr << "Error in ArrayView:  nComp < 1:  nvar = " << nvar << std::endl;
     return false;
   }
 
@@ -448,20 +452,20 @@ bool ArrayViewRealNVarDimsFormatLabel(Real *data, int nvar,
 {
   int lodims[BL_SPACEDIM], hidims[BL_SPACEDIM];
   if(data == NULL) {
-    cerr << "Error in ArrayView:  data pointer == NULL" << endl;
+    std::cerr << "Error in ArrayView:  data pointer == NULL" << std::endl;
     return false;
   }
   if(nvar < 1) {
-    cerr << "Error in ArrayView:  nComp < 1:  nvar = " << nvar << endl;
+    std::cerr << "Error in ArrayView:  nComp < 1:  nvar = " << nvar << std::endl;
     return false;
   }
 
   if(xlo > xhi) {
-    cerr << "Error in ArrayView:  xlo > xhi:  " << xlo << " > " << xhi << endl;
+    std::cerr << "Error in ArrayView:  xlo > xhi:  " << xlo << " > " << xhi << std::endl;
     return false;
   }
   if(ylo > yhi) {
-    cerr << "Error in ArrayView:  ylo > yhi:  " << ylo << " > " << yhi << endl;
+    std::cerr << "Error in ArrayView:  ylo > yhi:  " << ylo << " > " << yhi << std::endl;
     return false;
   }
   lodims[0] = xlo;
@@ -515,23 +519,23 @@ bool ArrayViewRealNVarDimsFormatLabel(Real *data, int nvar,
   int lodims[BL_SPACEDIM], hidims[BL_SPACEDIM];
 
   if(data == NULL) {
-    cerr << "Error in ArrayView:  data pointer == NULL" << endl;
+    std::cerr << "Error in ArrayView:  data pointer == NULL" << std::endl;
     return false;
   }
   if(nvar < 1) {
-    cerr << "Error in ArrayView:  nComp < 1:  nvar = " << nvar << endl;
+    std::cerr << "Error in ArrayView:  nComp < 1:  nvar = " << nvar << std::endl;
     return false;
   }
   if(xlo > xhi) {
-    cerr << "Error in ArrayView:  xlo > xhi:  " << xlo << " > " << xhi << endl;
+    std::cerr << "Error in ArrayView:  xlo > xhi:  " << xlo << " > " << xhi << std::endl;
     return false;
   }
   if(ylo > yhi) {
-    cerr << "Error in ArrayView:  ylo > yhi:  " << ylo << " > " << yhi << endl;
+    std::cerr << "Error in ArrayView:  ylo > yhi:  " << ylo << " > " << yhi << std::endl;
     return false;
   }
   if(zlo > zhi) {
-    cerr << "Error in ArrayView:  zlo > zhi:  " << zlo << " > " << zhi << endl;
+    std::cerr << "Error in ArrayView:  zlo > zhi:  " << zlo << " > " << zhi << std::endl;
     return false;
   }
   lodims[0] = xlo;
@@ -610,14 +614,14 @@ bool ArrayViewMultiFabFormatLabel(MultiFab *multifab, const char *format,
   }
 
   // --------------------------------------------------- send nElements
-  //cout << ">>> sending nElements." << endl;
-  sprintf(buffer, "%d", multifab->length());
+  //cout << ">>> sending nElements." << std::endl;
+  sprintf(buffer, "%d", multifab->size());
   if( ! SendString(sockfd, buffer)) {
     return false;
   }
 
   // --------------------------------------------------- send the data
-  for(int element(0); element < multifab->length(); ++element) {
+  for(int element(0); element < multifab->size(); ++element) {
     // construct dataArray for this element
     FArrayBox &fab = (*multifab)[element];
     int nvar = fab.nComp();
