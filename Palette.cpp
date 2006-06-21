@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.50 2003-12-11 01:48:51 vince Exp $
+// $Id: Palette.cpp,v 1.51 2006-06-21 20:47:48 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -373,6 +373,120 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
 
   }  // end if(bReadPalette)
 
+  // =====================================
+    bool bCCPal(false);
+    if(bCCPal) {
+      cout << "making a CCPal colormap" << endl;
+      for(i = 0; i < totalColorSlots; ++i) {
+        if(bTrueColor) {
+	  ccells[i].pixel = (((rbuff[i] >> (8 - bprgb)) << 2 * bprgb)
+			   | ((gbuff[i] >> (8 - bprgb)) << bprgb)
+			   | ((bbuff[i] >> (8 - bprgb)) << 0) );
+        } else {
+	  ccells[i].pixel = i;
+        }
+        mcells[ccells[i].pixel] = ccells[i];
+        ccells[i].red   = (unsigned short) 0 * 256;
+        ccells[i].green = (unsigned short) 0 * 256;
+        ccells[i].blue  = (unsigned short) 0 * 256;
+        ccells[i].flags = DoRed | DoGreen | DoBlue;
+      }
+
+      int nold(0), nnew(0), npts(0);
+      Real delr, delg, delb;
+      Real rtmp, gtmp, btmp;
+
+      //int ncolor(3);
+      //int nptsc[] = { 125, 125 };
+      //Real ccRed[]   = { 0.2, 1.0, 1.0 };
+      //Real ccGreen[] = { 0.5, 0.0, 1.0 };
+      //Real ccBlue[]  = { 1.0, 0.0, 0.0 };
+
+      //int ncolor(3);
+      //int nptsc[] = { 125, 125 };
+      //Real ccRed[]   = { 1.0, 1.0, 0.2 };
+      //Real ccGreen[] = { 1.0, 0.0, 0.5 };
+      //Real ccBlue[]  = { 0.0, 0.0, 1.0 };
+
+      int ncolor(3);
+      int nptsc[] = { 125, 130 };
+      Real ccRed[]   = { 1.0, 0.8, 0.0 };
+      Real ccGreen[] = { 1.0, 0.0, 0.0 };
+      Real ccBlue[]  = { 0.0, 0.0, 1.0 };
+
+      //int ncolor(13);
+      //int nptsc[] = { 31,13,22,22,22,13,13,22,22,22,0,48};
+      //Real ccRed[]   = { 1.,1.,1.,1.,1.,.6,0.,0.,0.,0.,0.,.8,.4};
+      //Real ccGreen[] = { 1.,.6,0.,0.,0.,0.,0.,.6,1.,1.,1.,.8,.4};
+      //Real ccBlue[]  = { 0.,0.,0.,.6,1.,1.,1.,1.,1.,.6,0.,.8,.4};
+
+      nnew = 0;
+      for(int nc(1); nc < ncolor; ++nc) {
+        npts = nptsc[nc-1];
+	nold = nnew;
+	nnew = nold + npts;
+        delr = ccRed[nc]   - ccRed[nc-1];
+        delg = ccGreen[nc] - ccGreen[nc-1];
+        delb = ccBlue[nc]  - ccBlue[nc-1];
+         if(npts > 0) {
+            for(int n(nold); n < nnew; ++n) {
+               rtmp = ccRed[nc-1]   + delr * (n-nold+1) / (nnew-nold+1);
+               gtmp = ccGreen[nc-1] + delg * (n-nold+1) / (nnew-nold+1);
+               btmp = ccBlue[nc-1]  + delb * (n-nold+1) / (nnew-nold+1);
+
+               rtmp = min(max(rtmp,0.),1.);
+               gtmp = min(max(gtmp,0.),1.);
+               btmp = min(max(btmp,0.),1.);
+
+               ccells[n].red   = (unsigned short) (rtmp * 256);
+               ccells[n].green = (unsigned short) (gtmp * 256);
+               ccells[n].blue  = (unsigned short) (btmp * 256);
+
+	    }  // 200
+	 }
+      }  // 300
+      cout << "******* nnew = " << nnew << endl;
+
+      // set low value to black
+      //ccells[paletteStart].red   = 0;
+      //ccells[paletteStart].green = 0;
+      //ccells[paletteStart].blue  = 0;
+
+      ccells[bodyIndex].red    = (unsigned short) 0;
+      ccells[bodyIndex].green  = (unsigned short) 0;
+      ccells[bodyIndex].blue   = (unsigned short) 0;
+      ccells[blackIndex].red   = (unsigned short) 0;
+      ccells[blackIndex].green = (unsigned short) 0;
+      ccells[blackIndex].blue  = (unsigned short) 0;
+      ccells[whiteIndex].red   = (unsigned short) 65535;
+      ccells[whiteIndex].green = (unsigned short) 65535;
+      ccells[whiteIndex].blue  = (unsigned short) 65535;
+
+      paletteType = ALPHA;
+
+      transferArray.resize(iSeqPalSize);
+      for(int j(0); j < iSeqPalSize; ++j) {
+        int ij(min(j+paletteStart,ccells.size()-1));
+        indexArray[j] = j; 
+        rbuff[j] = (char) ccells[ij].red;
+        gbuff[j] = (char) ccells[ij].green;
+        bbuff[j] = (char) ccells[ij].blue;
+        abuff[j] = static_cast<unsigned char> (100.0 *
+	                           ((float) j / (float) (iSeqPalSize - 1)));
+      }
+      rbuff[bodyIndex] = 0;
+      gbuff[bodyIndex] = 0;
+      bbuff[bodyIndex] = 0;
+      rbuff[blackIndex] = 0;
+      gbuff[blackIndex] = 0;
+      bbuff[blackIndex] = 0;
+      rbuff[whiteIndex] = 255;
+      gbuff[whiteIndex] = 255;
+      bbuff[whiteIndex] = 255;
+    }
+  // =====================================
+
+
   //rbuff[bodyIndex] = 127;
   //gbuff[bodyIndex] = 127;
   //bbuff[bodyIndex] = 127;
@@ -515,6 +629,8 @@ void Palette::unpixelate(Pixel index, unsigned char &r,
 			 unsigned char &g, unsigned char &b) const
 {
   if(gaPtr->IsTrueColor()) {
+//#define AV_UNPIXV1
+#ifdef AV_UNPIXV1
     map<Pixel, XColor>::const_iterator mi = mcells.find(index);
     if(mi != mcells.end()) {
       r = mi->second.red   >> 8;
@@ -522,10 +638,15 @@ void Palette::unpixelate(Pixel index, unsigned char &r,
       b = mi->second.blue  >> 8;
       return;
     }
+    r = (index&gaPtr->PRedMask()) >> gaPtr->PRedShift();
+    g = (index&gaPtr->PGreenMask()) >> gaPtr->PGreenShift();
+    b = (index&gaPtr->PBlueMask()) >> gaPtr->PBlueShift();
+#else
     //cout << "bad index = " << index << endl;
     r = (index&gaPtr->PRedMask()) >> gaPtr->PRedShift();
     g = (index&gaPtr->PGreenMask()) >> gaPtr->PGreenShift();
     b = (index&gaPtr->PBlueMask()) >> gaPtr->PBlueShift();
+#endif
   } else {
     int vIndex = std::max(0, std::min(static_cast<int> (index),
                                       (totalColorSlots - 1)));
