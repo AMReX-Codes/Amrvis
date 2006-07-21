@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.88 2005-04-14 21:22:48 vince Exp $
+// $Id: AmrPicture.cpp,v 1.89 2006-07-21 22:45:06 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -339,6 +339,12 @@ void AmrPicture::AmrPictureInit() {
   // dont use imageBox.length() because of node centered boxes
   imageSizeH = pltAppStatePtr->CurrentScale() * dataSizeH[maxAllowableLevel];
   imageSizeV = pltAppStatePtr->CurrentScale() * dataSizeV[maxAllowableLevel];
+  if(imageSizeH > 65528 || imageSizeV > 65528) {  // not quite sizeof(short)
+    // XImages cannot be larger than this
+    cerr << "*** imageSizeH = " << imageSizeH << endl;
+    cerr << "*** imageSizeV = " << imageSizeV << endl;
+    BoxLib::Abort("Error in AmrPicture:  Image size too large.  Exiting.");
+  }
   int widthpad = gaPtr->PBitmapPaddedWidth(imageSizeH);
   imageSize = imageSizeV * widthpad * gaPtr->PBytesPerPixel();
 
@@ -1987,7 +1993,7 @@ void AmrPicture::ShowFrameImage(int iSlice) {
 
 
 // ---------------------------------------------------------------------
-void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
+void AmrPicture::DrawContour(Array<FArrayBox *> passedSliceFab,
                              Display *passed_display, 
                              Drawable &passedPixMap, 
                              const GC &passedGC)
@@ -2014,8 +2020,8 @@ void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
   
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
 
-  Array <Real> pos_low(BL_SPACEDIM);
-  Array <Real> pos_high(BL_SPACEDIM);
+  Array<Real> pos_low(BL_SPACEDIM);
+  Array<Real> pos_high(BL_SPACEDIM);
   int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
   int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
   amrData.LoNodeLoc(maxDrawnLevel, passedSliceFab[maxDrawnLevel]->smallEnd(), 
@@ -2063,7 +2069,27 @@ void AmrPicture::DrawContour(Array <FArrayBox *> passedSliceFab,
     int csm1(palPtr->ColorSlots() - 1);
     Real oneOverGDiff;
     Real minUsing, maxUsing;
+#ifdef AV_ALTCONTOUR
+    Box fabBox(passedSliceFab[maxDrawnLevel]->box());
+    FArrayBox altDerFab(fabBox, 1);
+    string whichAltDerived("pressure");
+    AmrData &amrData = dataServicesPtr->AmrDataRef();
+    DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
+                           (void *) &altDerFab,
+                           (void *) (&(altDerFab.box())),
+                           maxDrawnLevel,
+                           (void *) &whichAltDerived);
+    amrData.MinMax(fabBox, whichAltDerived, maxDrawnLevel, minUsing, maxUsing);
+cout << "(((((((((((((((( using minmax = " << minUsing << "  " << maxUsing << endl;
+SHOWVAL(fabBox);
+SHOWVAL(whichAltDerived);
+SHOWVAL(maxDrawnLevel);
+//minUsing = 1.37e-11;
+//maxUsing = 3.96e-09;
+
+#else
     pltAppStatePtr->GetMinMax(minUsing, maxUsing);
+#endif
     if((maxUsing - minUsing) < FLT_MIN) {
       oneOverGDiff = 0.0;
     } else {
