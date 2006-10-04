@@ -1,5 +1,5 @@
 //
-// $Id: GlobalUtilities.cpp,v 1.58 2005-04-07 20:34:50 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.59 2006-10-04 20:58:18 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -34,11 +34,12 @@ string initialDerived;
 string initialFormat;
 string initialPalette;
 string initialLightingFile;
+bool startWithValueModel;
 int fileCount;
 int sleepTime;
 bool givenBox;
 bool givenBoxSlice;
-bool makeSWFData;
+bool createSWFData;
 bool makeSWFLight;
 bool lowBlack;
 bool dumpSlices;
@@ -247,6 +248,7 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
   fabIOSize = 0;
   lowBlack = false;
   bShowBody = true;
+  startWithValueModel = false;
 
   // try to find the defaultsFile
   string fullDefaultsFile;
@@ -399,6 +401,9 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
       else if(strcmp(defaultString, "lowblack") == 0) {
         lowBlack = true;
       }
+      else if(strcmp(defaultString, "valuemodel") == 0) {
+        startWithValueModel = true;
+      }
 #if (BL_SPACEDIM == 3)
       else if(strcmp(defaultString, "initplanes") == 0) {
 	int tempX, tempY, tempZ;
@@ -450,6 +455,7 @@ void PrintUsage(char *exname) {
     cout << "       [-boxcolor n]" << endl;
     cout << "       [-makeswf_light]" << endl;
     cout << "       [-makeswf_value]" << endl;
+    cout << "       [-valuemodel]" << endl;
 #endif
     cout << "       [-useminmax min max]" << endl;
     cout << "       [-initplanes xp yp zp]" << endl;
@@ -507,6 +513,7 @@ void PrintUsage(char *exname) {
   cout << "                     to a file, using the lighting model."<<endl
        << "                     note:  works in batch mode." << endl;
   cout << "  -makeswf_value     same as above, with value model rendering."<<endl;
+  cout << "  -valuemodel        start with the value model for rendering."<<endl;
 #endif
   cout << "  -useminmax min max       use min and max as the global min max values" << endl;
   cout << "  -initplanes xp yp zp     set initial planes" << endl;
@@ -533,7 +540,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
   givenFilename = false;
   givenBox = false;
   givenBoxSlice = false;
-  makeSWFData = false;
+  createSWFData = false;
   makeSWFLight = false;
   dumpSlices = false;
   sliceAllVars = false;
@@ -657,11 +664,13 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
 #   endif
 
     } else if(strcmp(argv[i], "-makeswf_light") == 0) {
-        makeSWFData = true;
+        createSWFData = true;
 	makeSWFLight = true;
     } else if(strcmp(argv[i], "-makeswf_value") == 0) {
-        makeSWFData = true;
+        createSWFData = true;
 	makeSWFLight = false;
+    } else if(strcmp(argv[i], "-valuemodel") == 0) {
+        startWithValueModel = true;
     } else if(strcmp(argv[i], "-lowblack") == 0) {
         lowBlack = true;
     } else if(strcmp(argv[i], "-useminmax") == 0) {
@@ -924,8 +933,9 @@ FileType AVGlobals::GetDefaultFileType()   { return fileType;    }
 
 bool AVGlobals::GivenBox()    { return givenBox;     }
 bool AVGlobals::GivenBoxSlice() { return givenBoxSlice;     }
-bool AVGlobals::MakeSWFData() { return makeSWFData;  }
+bool AVGlobals::CreateSWFData() { return createSWFData;  }
 bool AVGlobals::MakeSWFLight() { return makeSWFLight; }
+bool AVGlobals::StartWithValueModel() { return startWithValueModel; }
 bool AVGlobals::LowBlack() { return lowBlack; }
 bool AVGlobals::DumpSlices() { return dumpSlices;   }
 bool AVGlobals::SliceAllVars() { return sliceAllVars; }

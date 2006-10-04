@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.72 2005-12-07 23:41:30 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.73 2006-10-04 20:58:18 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -108,7 +108,7 @@ int main(int argc, char *argv[]) {
   }
 
   bool bBatchMode(false);
-  if(AVGlobals::MakeSWFData() || AVGlobals::DumpSlices() ||
+  if(AVGlobals::CreateSWFData() || AVGlobals::DumpSlices() ||
      AVGlobals::GivenBoxSlice())
   {
     bBatchMode = true;
@@ -341,7 +341,7 @@ void BatchFunctions() {
 
 #if (BL_SPACEDIM == 3)
 #ifdef BL_VOLUMERENDER
-    if(AVGlobals::MakeSWFData()) {
+    if(AVGlobals::CreateSWFData()) {
       AmrData &amrData = dataServices.AmrDataRef();
       BL_ASSERT(dataServices.CanDerive(AVGlobals::GetInitialDerived()));
       int minDrawnLevel = 0;

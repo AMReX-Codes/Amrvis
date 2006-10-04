@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.128 2005-01-12 22:04:38 vince Exp $
+// $Id: PltApp.cpp,v 1.129 2006-10-04 20:58:18 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -769,7 +769,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   }  
 
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
-  lightingModel = true;
+  lightingModel = ! AVGlobals::StartWithValueModel();
   showing3dRender = false;
   preClassify = true;
 
@@ -792,14 +792,19 @@ void PltApp::PltAppInit(bool bSubVolume) {
   XtVaCreateManagedWidget("Render Mode", xmCascadeButtonWidgetClass, wMenuPulldown,
 			  XmNmnemonic, 'M', XmNsubMenuId, wCascade, NULL);
   wid = XtVaCreateManagedWidget("Light", xmToggleButtonGadgetClass,
-				wCascade, XmNset, true, NULL);
+				wCascade, XmNset, lightingModel, NULL);
   AddStaticCallback(wid, XmNvalueChangedCallback,
 		    &PltApp::DoRenderModeMenu, (XtPointer) 0);
-  wCurrentRenderMode = wid;
+  if(lightingModel == true) {
+    wCurrentRenderMode = wid;
+  }
   wid = XtVaCreateManagedWidget("Value", xmToggleButtonGadgetClass,
-				wCascade, XmNset, false, NULL);
+				wCascade, XmNset,( ! lightingModel), NULL);
   AddStaticCallback(wid, XmNvalueChangedCallback,
 		    &PltApp::DoRenderModeMenu, (XtPointer) 1);
+  if(lightingModel == false) {
+    wCurrentRenderMode = wid;
+  }
   
   wCascade = XmCreatePulldownMenu(wMenuPulldown, "classifymenu", NULL, 0);
   XtVaCreateManagedWidget("Classify", xmCascadeButtonWidgetClass, wMenuPulldown,
@@ -1341,6 +1346,11 @@ void PltApp::PltAppInit(bool bSubVolume) {
 
   projPicturePtr->ToggleShowSubCut(); 
   projPicturePtr->MakeBoxes(); 
+
+#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
+  projPicturePtr->GetVolRenderPtr()->SetLightingModel(lightingModel);
+#endif
+
 #endif
 
   interfaceReady = true;
@@ -3314,6 +3324,9 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	    dataValueString = "no data";
 	  }
 
+cout << "******** trueRegion[isl] = " << trueRegion[intersectedLevel] << endl;
+cout << "******** gridOffset[0] = " << gridOffset[0] << endl;
+cout << "******** dx[isl] = " << amrData.DxLevel()[intersectedLevel][0] << endl;
 	  ostrstream buffout(buffer, BUFSIZ);
 	  if(goodIntersect) {
 	    buffout << '\n';

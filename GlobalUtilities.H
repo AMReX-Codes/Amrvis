@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.H,v 1.22 2004-09-30 20:03:38 vince Exp $
+// $Id: GlobalUtilities.H,v 1.23 2006-10-04 20:58:18 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -52,8 +52,9 @@ namespace AVGlobals {
   bool GivenBoxSlice();
   bool GivenFilename();
   int GetFileCount();
-  bool MakeSWFData();
+  bool CreateSWFData();
   bool MakeSWFLight();
+  bool StartWithValueModel();
   bool LowBlack();
   bool UseSpecifiedMinMax();
   void SetSpecifiedMinMax(Real  specifiedmin, Real  specifiedmax);
