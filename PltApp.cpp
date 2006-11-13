@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.129 2006-10-04 20:58:18 vince Exp $
+// $Id: PltApp.cpp,v 1.130 2006-11-13 23:49:28 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -3324,9 +3324,6 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	    dataValueString = "no data";
 	  }
 
-cout << "******** trueRegion[isl] = " << trueRegion[intersectedLevel] << endl;
-cout << "******** gridOffset[0] = " << gridOffset[0] << endl;
-cout << "******** dx[isl] = " << amrData.DxLevel()[intersectedLevel][0] << endl;
 	  ostrstream buffout(buffer, BUFSIZ);
 	  if(goodIntersect) {
 	    buffout << '\n';
@@ -3339,13 +3336,18 @@ cout << "******** dx[isl] = " << amrData.DxLevel()[intersectedLevel][0] << endl;
 	      if(idx != 0) {
 	        buffout << ", ";
 	      }
-	      buffout << gridOffset[idx] +
-		(0.5 + trueRegion[intersectedLevel].smallEnd()[idx]) *
-		amrData.DxLevel()[intersectedLevel][idx];
+	      double dLoc = gridOffset[idx] +
+		           (0.5 + trueRegion[mal].smallEnd()[idx]) *
+		           amrData.DxLevel()[mal][idx];
+	      char dLocStr[LINELENGTH];
+	      sprintf(dLocStr, pltAppState->GetFormatString().c_str(), dLoc);
+	      buffout << dLocStr;
 	    }
 	    buffout << ")\n";
 	    buffout << "value = " << dataValueString << '\n';
-	  } else buffout << "Bad point at mouse click" << '\n';
+	  } else {
+            buffout << "Bad point at mouse click" << '\n';
+          }
 	  
 	  buffout << ends;  // end the string
 	  PrintMessage(buffer);
@@ -3777,51 +3779,67 @@ void PltApp::DoDrawPointerLocation(Widget, XtPointer data, XtPointer cbe) {
   }
 
   Window whichRoot, whichChild;
-  int rootX, rootY, newX, newY;
-  unsigned int inputMask;
+  int rootX(0), rootY(0), newX(0), newY(0);
+  unsigned int inputMask(0);
   int currentScale(pltAppState->CurrentScale());
   
   XQueryPointer(display, XtWindow(wPlotPlane[V]), &whichRoot, &whichChild,
 		&rootX, &rootY, &newX, &newY, &inputMask);
 
-  int Yloci = ((amrPicturePtrArray[V]->ImageSizeV())/currentScale) -
-              1 - (newY / currentScale) + ivLowOffsetMAL[YDIR];
-  int Xloci = newX / currentScale + ivLowOffsetMAL[XDIR];
-  char locText[40];
+  int iVertLoc, iHorizLoc;
+  char locText[LINELENGTH], locTextFormat[LINELENGTH];
 
 #if (BL_SPACEDIM == 3)
-  int Zloci = amrPicturePtrArray[V]->GetSlice();
+  int iPlaneLoc(amrPicturePtrArray[V]->GetSlice());
 
-  double Xloc = gridOffset[XDIR];
-  double Yloc = gridOffset[YDIR];
-  double Zloc = gridOffset[ZDIR];
+  double Xloc(gridOffset[XDIR]);
+  double Yloc(gridOffset[YDIR]);
+  double Zloc(gridOffset[ZDIR]);
   switch(V) {
-  case ZPLANE:
-    Xloc += (0.5 + Xloci) * finestDx[XDIR];
-    Yloc += (0.5 + Yloci) * finestDx[YDIR];
-    Zloc += (0.5 + Zloci) * finestDx[ZDIR];
+    case ZPLANE:
+      iVertLoc = ((amrPicturePtrArray[V]->ImageSizeV())/currentScale) -
+                  1 - (newY / currentScale) + ivLowOffsetMAL[YDIR];
+      iHorizLoc = newX / currentScale + ivLowOffsetMAL[XDIR];
+      Xloc += (0.5 + iHorizLoc) * finestDx[XDIR];
+      Yloc += (0.5 + iVertLoc)  * finestDx[YDIR];
+      Zloc += (0.5 + iPlaneLoc) * finestDx[ZDIR];
     break;
-  case YPLANE:
-    Xloc += (0.5 + Xloci) * finestDx[XDIR];
-    Yloc += (0.5 + Zloci) * finestDx[YDIR];
-    Zloc += (0.5 + Yloci) * finestDx[ZDIR];
+
+    case YPLANE:
+      iVertLoc = ((amrPicturePtrArray[V]->ImageSizeV())/currentScale) -
+                  1 - (newY / currentScale) + ivLowOffsetMAL[ZDIR];
+      iHorizLoc = newX / currentScale + ivLowOffsetMAL[XDIR];
+      Xloc += (0.5 + iHorizLoc) * finestDx[XDIR];
+      Yloc += (0.5 + iPlaneLoc) * finestDx[YDIR];
+      Zloc += (0.5 + iVertLoc)  * finestDx[ZDIR];
     break;
-  case XPLANE:
-    Xloc += (0.5 + Zloci) * finestDx[XDIR];
-    Yloc += (0.5 + Xloci) * finestDx[YDIR];
-    Zloc += (0.5 + Yloci) * finestDx[ZDIR];
+
+    case XPLANE:
+      iVertLoc = ((amrPicturePtrArray[V]->ImageSizeV())/currentScale) -
+                  1 - (newY / currentScale) + ivLowOffsetMAL[ZDIR];
+      iHorizLoc = newX / currentScale + ivLowOffsetMAL[YDIR];
+      Xloc += (0.5 + iPlaneLoc) * finestDx[XDIR];
+      Yloc += (0.5 + iHorizLoc) * finestDx[YDIR];
+      Zloc += (0.5 + iVertLoc)  * finestDx[ZDIR];
+    break;
   }
-  sprintf(locText, "(%.4E, %.4E, %.4E)", Xloc, Yloc, Zloc);
+  string fstr = pltAppState->GetFormatString();
+  sprintf(locTextFormat, "(%s, %s, %s)", fstr.c_str(), fstr.c_str(), fstr.c_str());
+  sprintf(locText, locTextFormat, Xloc, Yloc, Zloc);
 #elif (BL_SPACEDIM == 2)
-  double Xloc = gridOffset[XDIR] + (0.5 + Xloci) * finestDx[XDIR];
-  double Yloc = gridOffset[YDIR] + (0.5 + Yloci) * finestDx[YDIR];
-  sprintf(locText, "(%.4E, %.4E)", Xloc, Yloc);
+  iVertLoc = ((amrPicturePtrArray[V]->ImageSizeV())/currentScale) -
+             1 - (newY / currentScale) + ivLowOffsetMAL[YDIR];
+  iHorizLoc = newX / currentScale + ivLowOffsetMAL[XDIR];
+  double Xloc(gridOffset[XDIR] + (0.5 + iHorizLoc) * finestDx[XDIR]);
+  double Yloc(gridOffset[YDIR] + (0.5 + iVertLoc) * finestDx[YDIR]);
+  string fstr = pltAppState->GetFormatString();
+  sprintf(locTextFormat, "(%s, %s)", fstr.c_str(), fstr.c_str());
+  sprintf(locText, locTextFormat, Xloc, Yloc);
 #endif
 
   XSetForeground(display, xgc, pltPaletteptr->WhiteIndex());
   XClearWindow(display, XtWindow(wLocArea));
-  XDrawString(display, XtWindow(wLocArea),
-	      xgc, 10, 20, locText, strlen(locText));
+  XDrawString(display, XtWindow(wLocArea), xgc, 10, 20, locText, strlen(locText));
   
 } 
 
