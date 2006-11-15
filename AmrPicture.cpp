@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.89 2006-07-21 22:45:06 vince Exp $
+// $Id: AmrPicture.cpp,v 1.90 2006-11-15 22:17:35 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -480,6 +480,16 @@ void AmrPicture::SetSlice(int view, int here) {
   gpArray.resize(numberOfLevels);
   maxLevelWithGrids = maxAllowableLevel;
 
+  if(minDrawnLevel > maxAllowableLevel) {
+    cerr << "**** Error:  minDrawnLevel > maxAllowableLevel = "
+         << minDrawnLevel << "  " <<  maxAllowableLevel << endl;
+    minDrawnLevel = maxAllowableLevel;
+  }
+  if(numberOfLevels < maxAllowableLevel + 1) {
+    cerr << "*** Error:  bad index:  numberOfLevels  maxAllowableLevel = "
+         << numberOfLevels << "  " << maxAllowableLevel << endl;
+    numberOfLevels = maxAllowableLevel + 1;
+  }
   Array<int> nGrids(numberOfLevels);
   for(lev = minDrawnLevel; lev <= maxAllowableLevel; ++lev) {
     nGrids[lev] = amrData.NIntersectingGrids(lev, sliceBox[lev]);

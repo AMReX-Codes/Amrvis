@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.130 2006-11-13 23:49:28 vince Exp $
+// $Id: PltApp.cpp,v 1.131 2006-11-15 22:17:35 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -331,6 +331,11 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 					             amrData.RefRatio());
   int minAllowableLevel = amrData.FinestContainingLevel(region, finestLevel);
 
+  if(minAllowableLevel > maxlev) {
+    maxlev = minAllowableLevel;
+    cout << "**** Conflict with allowable levels and pixmap size:  using maxlev = "
+         << maxlev << endl;
+  }
   pltAppState->SetMinAllowableLevel(minAllowableLevel);
   pltAppState->SetMaxAllowableLevel(maxlev);
   pltAppState->SetMinDrawnLevel(minAllowableLevel);
