@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.51 2006-06-21 20:47:48 vince Exp $
+// $Id: Palette.cpp,v 1.52 2007-01-23 23:45:33 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -395,6 +395,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
       int nold(0), nnew(0), npts(0);
       Real delr, delg, delb;
       Real rtmp, gtmp, btmp;
+      const Real rZero(0.0), rOne(1.0);
 
       //int ncolor(3);
       //int nptsc[] = { 125, 125 };
@@ -434,9 +435,9 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
                gtmp = ccGreen[nc-1] + delg * (n-nold+1) / (nnew-nold+1);
                btmp = ccBlue[nc-1]  + delb * (n-nold+1) / (nnew-nold+1);
 
-               rtmp = min(max(rtmp,0.),1.);
-               gtmp = min(max(gtmp,0.),1.);
-               btmp = min(max(btmp,0.),1.);
+               rtmp = min(max(rtmp,rZero),rOne);
+               gtmp = min(max(gtmp,rZero),rOne);
+               btmp = min(max(btmp,rZero),rOne);
 
                ccells[n].red   = (unsigned short) (rtmp * 256);
                ccells[n].green = (unsigned short) (gtmp * 256);
