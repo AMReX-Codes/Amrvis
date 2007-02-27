@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.131 2006-11-15 22:17:35 vince Exp $
+// $Id: PltApp.cpp,v 1.132 2007-02-27 01:10:08 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1749,6 +1749,13 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
     datasetPtr->DoExpose(false);
   }
 
+  if(setRangeShowing) {
+    bSetRangeRedraw = true;
+    XtDestroyWidget(wSetRangeTopLevel);
+    setRangeShowing = false;
+    DoSetRangeButton(NULL, NULL, NULL);
+    setRangeShowing = true;
+  }
 }  // end ChangeDerived(...)
 
 
