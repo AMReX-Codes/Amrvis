@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.H,v 1.24 2004-05-05 20:44:31 vince Exp $
+// $Id: AmrData.H,v 1.25 2007-04-24 17:03:50 marc Exp $
 //
 
 // ---------------------------------------------------------------
@@ -60,6 +60,7 @@ class AmrData {
   FileType fileType;
   bool bCartGrid;
   bool bTerrain;
+  Array<int> levelSteps;
   
  public:
   AmrData();
@@ -106,6 +107,7 @@ class AmrData {
   const Array< Array< Array<Real> > > &GridLocLo() const { return gridLocLo; }
   const Array< Array< Array<Real> > > &GridLocHi() const { return gridLocHi; }
   const Array< Array<Real> > &DxLevel() const { return dxLevel; }
+  const Array<int> &LevelSteps() const { return levelSteps; }
   
   int NComp() const		{ return nComp; }
   int BoundaryWidth() const	{ return boundaryWidth; }

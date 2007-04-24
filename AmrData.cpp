@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.75 2006-02-16 23:24:49 lijewski Exp $
+// $Id: AmrData.cpp,v 1.76 2007-04-24 17:03:50 marc Exp $
 //
 
 // ---------------------------------------------------------------
@@ -20,6 +20,9 @@ using std::cerr;
 using std::endl;
 using std::min;
 using std::max;
+#ifndef WIN32
+using std::strlen;
+#endif
 
 #if ! (defined(BL_Linux) || defined(BL_Darwin) || defined(BL_AIX) || defined(BL_IRIX64) || defined(WIN32) || defined(BL_CYGWIN_NT) || defined(BL_CRAYX1))
 #define BL_ALWAYS_FIX_DENORMALS
@@ -165,7 +168,7 @@ AmrData::~AmrData() {
 // ---------------------------------------------------------------
 namespace {
   void mytrim(char *str) {
-    int i(std::strlen(str));
+    int i(strlen(str));
     for(int n(i - 1); n >= 0; --n) {
       if( str[n] > ' ' ) {
         break;
@@ -393,18 +396,39 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
         }
       }
 
-      char lstepbuff[128];
       while(isPltIn.get() != '\n') {
         ;  // do nothing
       }
+#if 0      
+      char lstepbuff[128];
       isPltIn.getline(lstepbuff, 128);  // ignore levelsteps--some files have
 				   // finestlevel of these, others have
 				   // finestlevel + 1
+
+          
       if(verbose) {
         if(ParallelDescriptor::IOProcessor()) {
 	  cout << "Ignored levelSteps = " << lstepbuff << endl;
 	}
       }
+#else
+      // Get level steps - why do some have fl+1 ? (note above...just throw away last one here)
+      levelSteps.resize(finestLevel+1);
+      for(i = 0; i <= finestLevel; ++i) {
+          isPltIn >> levelSteps[i];
+      }
+      while(isPltIn.get() != '\n') {
+        ;  // do nothing
+      }
+
+      if(verbose) {
+        if(ParallelDescriptor::IOProcessor()) {
+            for(i = 0; i <= finestLevel; ++i) {
+                cout << "LevelSteps[" << i << "] = " << levelSteps[i] <<  endl;
+            }
+	}
+      }
+#endif
       
       dxLevel.resize(finestLevel + 1);
       for(i = 0; i <= finestLevel; ++i) {
