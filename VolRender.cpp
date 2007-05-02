@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.53 2006-02-03 18:42:18 vince Exp $
+// $Id: VolRender.cpp,v 1.54 2007-05-02 20:47:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -784,23 +784,28 @@ void VolRender::MakeVPData() {
     vpResult vpret;
     if(preClassify) {
       if(lightingModel) {
-//#define AV_LOWMEMRENDER
+//  #define AV_LOWMEMRENDER
 #ifdef AV_LOWMEMRENDER
         int xStride(sizeof(RawVoxel));
-        int yStride(drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel));
+        //int yStride(drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel));
+        int yStride(drawnDomain[maxDataLevel].length(XDIR));
         //int zStride(drawnDomain[maxDataLevel].length(XDIR) *
                     //drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel));
 	long int nrc(drawnDomain[maxDataLevel].length(YDIR) *
 	             drawnDomain[maxDataLevel].length(ZDIR));
 	RawVoxel *vscanline = volData;
+	cout << "****** volData =  " << volData << endl;
 	cout << "****** classifying " << nrc << " scanlines." << endl;
 	for(int ix(0); ix < nrc; ++ix) {
-	  if(ix % 1000 == 0) {
-	    cout << "----- vscanline = " << ix << endl;
-	  }
-          vpret = vpClassifyScanline(vpc, (void *) vscanline);
-          CheckVP(vpret, 6.05);
-	  vscanline += yStride;
+	//for(int iz(0); iz < drawnDomain[maxDataLevel].length(ZDIR); ++iz) {
+	  //for(int iy(0); iy < drawnDomain[maxDataLevel].length(YDIR); ++iy) {
+	    if(ix % 100 == 0) {
+	      cout << "----- vscanline = " << ix << endl;
+	    }
+            vpret = vpClassifyScanline(vpc, (void *) vscanline);
+            CheckVP(vpret, 6.05);
+	    vscanline += yStride;
+	  //}
 	}
         //CheckVP(vpret, 6);
 
@@ -819,7 +824,8 @@ void VolRender::MakeVPData() {
         delete [] volData;
         volData = new RawVoxel[swfDataSize]; // volpack will delete this
         int xStride(sizeof(RawVoxel));
-        int yStride(drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel));
+        //int yStride(drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel));
+        int yStride(drawnDomain[maxDataLevel].length(XDIR));
         int zStride(drawnDomain[maxDataLevel].length(XDIR) *
                     drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel));
         vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
@@ -835,7 +841,7 @@ void VolRender::MakeVPData() {
 	RawVoxel *vscanline = volData;
 	cout << "****** classifying " << nrc << " scanlines." << endl;
 	for(int ix(0); ix < nrc; ++ix) {
-	  if(ix % 1000 == 0) {
+	  if(ix % 100 == 0) {
 	    cout << "----- vscanline = " << ix << endl;
 	  }
           vpret = vpClassifyScanline(vpc, (void *) vscanline);

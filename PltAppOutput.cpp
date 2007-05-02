@@ -1,6 +1,6 @@
 
 //
-// $Id: PltAppOutput.cpp,v 1.36 2004-07-29 16:30:32 car Exp $
+// $Id: PltAppOutput.cpp,v 1.37 2007-05-02 20:47:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -101,6 +101,7 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
 
 #ifndef NDEBUG
+/*
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   sprintf(psfilename, "%s_XY_new.ps", fileNameBase);
   bool bDrawBoxesIntoImage(false);
@@ -109,6 +110,7 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   amrPicturePtrArray[ZPLANE]->GetGridBoxes(gridBoxes, minDrawnLevel, maxDrawnLevel);
   WriteNewPSFile(psfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr,
 		 amrData, minDrawnLevel, maxDrawnLevel, gridBoxes);
+*/
 #endif
 
 #if (BL_SPACEDIM==3)

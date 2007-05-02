@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp3D.cpp,v 1.58 2004-11-15 22:48:07 vince Exp $
+// $Id: PltApp3D.cpp,v 1.59 2007-05-02 20:47:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -850,14 +850,6 @@ void PltApp::DoRender(Widget, XtPointer, XtPointer) {
     int iColorSlots   = pltPaletteptr->ColorSlots();
     Real minUsing, maxUsing;
     pltAppState->GetMinMax(minUsing, maxUsing);
-//SHOWVAL(minUsing);
-//SHOWVAL(maxUsing);
-//SHOWVAL(pltAppState->CurrentDerived());
-//SHOWVAL(iPaletteStart);
-//SHOWVAL(iPaletteEnd);
-//SHOWVAL(iBlackIndex);
-//SHOWVAL(iWhiteIndex);
-//SHOWVAL(iColorSlots);
 
     volRender->MakeSWFData(dataServicesPtr[currentFrame],
 			   minUsing, maxUsing,

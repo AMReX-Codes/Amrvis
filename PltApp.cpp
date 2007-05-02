@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.132 2007-02-27 01:10:08 vince Exp $
+// $Id: PltApp.cpp,v 1.133 2007-05-02 20:47:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1409,6 +1409,12 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   int zpColor(whiteColor);
   char sX[LINELENGTH], sY[LINELENGTH], sZ[LINELENGTH];
   
+  int maxAllowLev(pltAppState->MaxAllowableLevel());
+  int maxDrawnLev(pltAppState->MaxDrawnLevel());
+  const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+  int crrDiff(AVGlobals::CRRBetweenLevels(maxDrawnLev, maxAllowLev,
+              amrData.RefRatio()));
+
   XClearWindow(display, XtWindow(wControlForm));
 
   strcpy(sX, "X");
@@ -1433,26 +1439,19 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   DrawAxes(wControlForm, yPlanePosX, yPlanePosY, 0, sX, sZ, ypColor);
   DrawAxes(wControlForm, xPlanePosX, xPlanePosY, 0, sY, sZ, xpColor);
   
-  sprintf(temp, "Z=%i", amrPicturePtrArray[ZPLANE]->GetSlice());
-  //                (amrPicturePtrArray[YPLANE]->
-  //		ImageSizeV()-1 - amrPicturePtrArray[YPLANE]->GetHLine())/
-  //		currentScale + ivLowOffsetMAL[ZDIR]);
+  sprintf(temp, "Z=%i", amrPicturePtrArray[ZPLANE]->GetSlice() / crrDiff);
   XSetForeground(display, xgc, pltPaletteptr->makePixel(zpColor));
   XDrawString(display, XtWindow(wControlForm), xgc,
 	      centerX-xyzAxisLength+12, centerY+xyzAxisLength+4,
 	      temp, strlen(temp));
   
-  sprintf(temp, "Y=%i", amrPicturePtrArray[YPLANE]->GetSlice());
-  //amrPicturePtrArray[XPLANE]->GetVLine()/
-  //		currentScale + ivLowOffsetMAL[YDIR]);
+  sprintf(temp, "Y=%i", amrPicturePtrArray[YPLANE]->GetSlice() / crrDiff);
   XSetForeground(display, xgc, pltPaletteptr->makePixel(ypColor));
   XDrawString(display, XtWindow(wControlForm), xgc,
 	      centerX+stringOffsetX, centerY-xyzAxisLength+4,
 	      temp, strlen(temp));
   
-  sprintf(temp, "X=%i", amrPicturePtrArray[XPLANE]->GetSlice());
-  //amrPicturePtrArray[ZPLANE]->GetVLine()/
-  //currentScale + ivLowOffsetMAL[XDIR]);
+  sprintf(temp, "X=%i", amrPicturePtrArray[XPLANE]->GetSlice() / crrDiff);
   XSetForeground(display, xgc, pltPaletteptr->makePixel(xpColor));
   XDrawString(display, XtWindow(wControlForm), xgc,
 	      centerX+4*stringOffsetX, centerY+stringOffsetY+2,
@@ -2658,6 +2657,7 @@ void PltApp::DoNumberFormatButton(Widget, XtPointer, XtPointer) {
 			    XmNleftWidget, wid,
 			    XmNleftOffset, WOFFSET,
 			    NULL);
+  bKillNFWindow = true;
   AddStaticCallback(wFormat, XmNactivateCallback, &PltApp::DoDoneNumberFormat,
 		    (XtPointer) bKillNFWindow);
   
@@ -3037,6 +3037,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
   Window whichRoot, whichChild;
   bool bShiftDown(cbs->event->xbutton.state & ShiftMask);
   bool bControlDown(cbs->event->xbutton.state & ControlMask);
+
 #if (BL_SPACEDIM == 3)
   int x1, y1, z1, x2, y2, z2, rStartPlane;
   for(int np = 0; np != BL_SPACEDIM; ++np) {
@@ -3545,6 +3546,9 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  XClearWindow(display, XtWindow(wTransDA));
 	  DoExposeTransDA();
 	  DoExposeRef();
+          if(datasetShowing) {
+            DoDatasetButton(NULL, NULL, NULL);
+          }
 	  return;
 	}
 #endif
@@ -3708,6 +3712,9 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  XClearWindow(display, XtWindow(wTransDA));
 	  DoExposeTransDA();
 	  DoExposeRef();
+          if(datasetShowing) {
+            DoDatasetButton(NULL, NULL, NULL);
+          }
 	  return;
 	}
 #endif
@@ -3860,7 +3867,7 @@ void PltApp::DoSpeedScale(Widget, XtPointer, XtPointer call_data) {
   XmScaleCallbackStruct *cbs = (XmScaleCallbackStruct *) call_data;
   frameSpeed = 600 - cbs->value;
 # if(BL_SPACEDIM == 3)
-  for(int v = 0; v != 3; ++v) {
+  for(int v(0); v != 3; ++v) {
     amrPicturePtrArray[v]->SetFrameSpeed(600 - cbs->value);
   }
 # endif
@@ -3871,58 +3878,67 @@ void PltApp::DoSpeedScale(Widget, XtPointer, XtPointer call_data) {
 // -------------------------------------------------------------------
 void PltApp::DoBackStep(int plane) {
   int currentScale(pltAppState->CurrentScale());
-  int maLev(pltAppState->MaxAllowableLevel());
+  int maxAllowLev(pltAppState->MaxAllowableLevel());
+  int maxDrawnLev(pltAppState->MaxDrawnLevel());
+  const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+  int crrDiff(AVGlobals::CRRBetweenLevels(maxDrawnLev, maxAllowLev,
+              amrData.RefRatio()));
   AmrPicture *appX = amrPicturePtrArray[XPLANE];
   AmrPicture *appY = amrPicturePtrArray[YPLANE];
   AmrPicture *appZ = amrPicturePtrArray[ZPLANE];
   switch(plane) {
    case XPLANE:
-    if(appX->GetSlice() > appX->GetSubDomain()[maLev].smallEnd(XDIR)) {
-      appZ->SetVLine(appZ->GetVLine() - currentScale);
+    if(appX->GetSlice() / crrDiff >
+       appX->GetSubDomain()[maxAllowLev].smallEnd(XDIR) / crrDiff)
+    {
+      appZ->SetVLine(appZ->GetVLine() - currentScale * crrDiff);
       appZ->DoExposePicture();
-      appY->SetVLine(appY->GetVLine() - currentScale);
+      appY->SetVLine(appY->GetVLine() - currentScale * crrDiff);
       appY->DoExposePicture();
-      appX->APChangeSlice(appX->GetSlice() - 1);
+      appX->APChangeSlice(appX->GetSlice() - crrDiff);
       break;
     }
     appZ->SetVLine(appY->ImageSizeH() - 1);
     appZ->DoExposePicture();
     appY->SetVLine(appY->ImageSizeH() - 1);
     appY->DoExposePicture();
-    appX-> APChangeSlice(appX->GetSubDomain()[maLev].bigEnd(XDIR));
+    appX-> APChangeSlice(appX->GetSubDomain()[maxAllowLev].bigEnd(XDIR));
    break;
 
    case YPLANE:
-    if(appY->GetSlice() > appY->GetSubDomain()[maLev].smallEnd(YDIR))
+    if(appY->GetSlice() / crrDiff >
+       appY->GetSubDomain()[maxAllowLev].smallEnd(YDIR) / crrDiff)
     {
-      appX->SetVLine(appX->GetVLine() - currentScale);
+      appX->SetVLine(appX->GetVLine() - currentScale * crrDiff);
       appX->DoExposePicture();
-      appZ->SetHLine(appZ->GetHLine() + currentScale);
+      appZ->SetHLine(appZ->GetHLine() + currentScale * crrDiff);
       appZ->DoExposePicture();
-      appY->APChangeSlice(appY->GetSlice() - 1);
+      appY->APChangeSlice(appY->GetSlice() - crrDiff);
       break;
     }
     appX->SetVLine(appX->ImageSizeH() - 1);
     appX->DoExposePicture();
     appZ->SetHLine(0);
     appZ->DoExposePicture();
-    appY->APChangeSlice(appY->GetSubDomain()[maLev].bigEnd(YDIR));
+    appY->APChangeSlice(appY->GetSubDomain()[maxAllowLev].bigEnd(YDIR));
    break;
 
    case ZPLANE:
-    if(appZ->GetSlice() > appZ->GetSubDomain()[maLev].smallEnd(ZDIR)) {
-      appX->SetHLine(appX->GetHLine() + currentScale);
+    if(appZ->GetSlice() / crrDiff >
+       appZ->GetSubDomain()[maxAllowLev].smallEnd(ZDIR) / crrDiff)
+    {
+      appX->SetHLine(appX->GetHLine() + currentScale * crrDiff);
       appX->DoExposePicture();
-      appY->SetHLine(appY->GetHLine() + currentScale);
+      appY->SetHLine(appY->GetHLine() + currentScale * crrDiff);
       appY->DoExposePicture();
-      appZ->APChangeSlice(appZ->GetSlice() - 1);
+      appZ->APChangeSlice(appZ->GetSlice() - crrDiff);
       break;
     }
     appX->SetHLine(0);
     appX->DoExposePicture();
     appY->SetHLine(0);
     appY->DoExposePicture();
-    appZ->APChangeSlice(appZ->GetSubDomain()[maLev].bigEnd(ZDIR));
+    appZ->APChangeSlice(appZ->GetSubDomain()[maxAllowLev].bigEnd(ZDIR));
   }
 
 #if (BL_SPACEDIM == 3)
@@ -3930,6 +3946,9 @@ void PltApp::DoBackStep(int plane) {
   projPicturePtr->MakeSlices();
   XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
   DoExposeTransDA();
+  if(datasetShowing) {
+    DoDatasetButton(NULL, NULL, NULL);
+  }
 #endif
   DoExposeRef();
 }
@@ -3938,63 +3957,76 @@ void PltApp::DoBackStep(int plane) {
 // -------------------------------------------------------------------
 void PltApp::DoForwardStep(int plane) {
   int currentScale(pltAppState->CurrentScale());
-  int maLev(pltAppState->MaxAllowableLevel());
+  int maxAllowLev(pltAppState->MaxAllowableLevel());
+  int maxDrawnLev(pltAppState->MaxDrawnLevel());
+  const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+  int crrDiff(AVGlobals::CRRBetweenLevels(maxDrawnLev, maxAllowLev,
+              amrData.RefRatio()));
   AmrPicture *appX = amrPicturePtrArray[XPLANE];
   AmrPicture *appY = amrPicturePtrArray[YPLANE];
   AmrPicture *appZ = amrPicturePtrArray[ZPLANE];
   switch(plane) {
    case XPLANE:
-    if(appX->GetSlice() < appX->GetSubDomain()[maLev].bigEnd(XDIR)) {
-      appZ->SetVLine(appZ->GetVLine() + currentScale);
+    if(appX->GetSlice() / crrDiff <
+       appX->GetSubDomain()[maxAllowLev].bigEnd(XDIR) / crrDiff)
+    {
+      appZ->SetVLine(appZ->GetVLine() + currentScale * crrDiff);
       appZ->DoExposePicture();
-      appY->SetVLine(appY->GetVLine() + currentScale);
+      appY->SetVLine(appY->GetVLine() + currentScale * crrDiff);
       appY->DoExposePicture();
-      appX->APChangeSlice(appX->GetSlice() + 1);
+      appX->APChangeSlice(appX->GetSlice() + crrDiff);
       break;
     }
     appZ->SetVLine(0);
     appZ->DoExposePicture();
     appY->SetVLine(0);
     appY->DoExposePicture();
-    appX->APChangeSlice(appX->GetSubDomain()[maLev].smallEnd(XDIR));
+    appX->APChangeSlice(appX->GetSubDomain()[maxAllowLev].smallEnd(XDIR));
    break;
 
    case YPLANE:
-    if(appY->GetSlice() < appY->GetSubDomain()[maLev].bigEnd(YDIR)) {
-      appX->SetVLine(appX->GetVLine() + currentScale);
+    if(appY->GetSlice() / crrDiff <
+       appY->GetSubDomain()[maxAllowLev].bigEnd(YDIR) / crrDiff)
+    {
+      appX->SetVLine(appX->GetVLine() + currentScale * crrDiff);
       appX->DoExposePicture();
-      appZ->SetHLine(appZ->GetHLine() - currentScale);
+      appZ->SetHLine(appZ->GetHLine() - currentScale * crrDiff);
       appZ->DoExposePicture();
-      appY->APChangeSlice(appY->GetSlice() + 1);
+      appY->APChangeSlice(appY->GetSlice() + crrDiff);
       break;
     }
     appX->SetVLine(0);
     appX->DoExposePicture();
     appZ->SetHLine(appX->ImageSizeV() - 1);
     appZ->DoExposePicture();
-    appY->APChangeSlice(appY->GetSubDomain()[maLev].smallEnd(YDIR));
+    appY->APChangeSlice(appY->GetSubDomain()[maxAllowLev].smallEnd(YDIR));
    break;
 
    case ZPLANE:
-    if(appZ->GetSlice() < appZ->GetSubDomain()[maLev].bigEnd(ZDIR)) {
-      appX->SetHLine(appX->GetHLine() - currentScale);
+    if(appZ->GetSlice() / crrDiff <
+       appZ->GetSubDomain()[maxAllowLev].bigEnd(ZDIR) / crrDiff)
+    {
+      appX->SetHLine(appX->GetHLine() - currentScale * crrDiff);
       appX->DoExposePicture();
-      appY->SetHLine(appY->GetHLine() - currentScale);
+      appY->SetHLine(appY->GetHLine() - currentScale * crrDiff);
       appY->DoExposePicture();
-      appZ->APChangeSlice(appZ->GetSlice() + 1);
+      appZ->APChangeSlice(appZ->GetSlice() + crrDiff);
       break;
     }
     appX->SetHLine(appX->ImageSizeV() - 1);
     appX->DoExposePicture();
     appY->SetHLine(appY->ImageSizeV() - 1);
     appY->DoExposePicture();
-    appZ->APChangeSlice(appZ->GetSubDomain()[maLev].smallEnd(ZDIR));
+    appZ->APChangeSlice(appZ->GetSubDomain()[maxAllowLev].smallEnd(ZDIR));
   }
 #if (BL_SPACEDIM == 3)
   projPicturePtr->ChangeSlice(plane, amrPicturePtrArray[plane]->GetSlice());
   projPicturePtr->MakeSlices();
   XClearWindow(XtDisplay(wTransDA), XtWindow(wTransDA));
   DoExposeTransDA();
+  if(datasetShowing) {
+    DoDatasetButton(NULL, NULL, NULL);
+  }
 #endif
   DoExposeRef();
 }
@@ -4054,6 +4086,7 @@ void PltApp::ChangePlane(Widget, XtPointer data, XtPointer cbs) {
     case WCARGB: writingRGB = true; DoAnimForwardStep(); return;
   }
 }
+
 
 // -------------------------------------------------------------------
 void PltApp::DoAnimBackStep() {

@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.57 2004-09-21 22:50:34 vince Exp $
+// $Id: Dataset.cpp,v 1.58 2007-05-02 20:47:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -349,7 +349,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   ostrstream outstr(header, sizeof(header));
   outstr << AVGlobals::StripSlashes(pltAppPtr->GetFileName())
          << "  " << pltAppStatePtr->CurrentDerived()
-         << "  " << alignedRegion << ends;
+         << "  " << datasetRegion[maxDrawnLevel] << ends;
   
   XtVaSetValues(wDatasetTopLevel, XmNtitle, header, NULL);
   // find largest data width and count # of data strings 
@@ -400,7 +400,8 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
     largestWidth = max(8, largestWidth);  // for no data string
   }
 
-  char levelInfo[15], maxInfo[20], minInfo[20], maxInfoV[25], minInfoV[25];
+  char levelInfo[LINELENGTH], maxInfo[LINELENGTH], minInfo[LINELENGTH];
+  char maxInfoV[LINELENGTH],  minInfoV[LINELENGTH];
   sprintf(levelInfo, "Level: %i", maxDrawnLevel);
 
   XmString sNewLevel = XmStringCreateSimple(levelInfo);
@@ -408,7 +409,6 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
                 XmNlabelString, sNewLevel, 
                 NULL);
   XmStringFree(sNewLevel);
-  
   
   sprintf(minInfoV, fstring, dataFab[maxDrawnLevel]->min());
   sprintf(minInfo, "Min:%s", minInfoV);

@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.90 2006-11-15 22:17:35 vince Exp $
+// $Id: AmrPicture.cpp,v 1.91 2007-05-02 20:47:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1643,7 +1643,7 @@ void AmrPicture::CoarsenSliceBox() {
 void AmrPicture::CreateFrames(AnimDirection direction) {
   char buffer[BUFSIZ];
   bool cancelled(false);
-  int islice, i, j, lev, gridNumber;
+  int islice(0), i, j, lev, gridNumber;
   Array<int> intersectGrids;
   int maxLevelWithGridsHere;
   int posneg(1);
@@ -1670,7 +1670,6 @@ void AmrPicture::CreateFrames(AnimDirection direction) {
   int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
   unsigned char *frameImageData = new unsigned char[dataSize[maxDrawnLevel]];
   int iEnd(0);
-  islice = -100000;  // bogus init value
   for(i = 0; i < length; ++i) {
     islice = (((slice - start + (posneg * i)) + length) % length);
 			          // ^^^^^^^^ + length for negative values
