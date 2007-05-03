@@ -1523,6 +1523,10 @@ void XYPlotWin::DoASCIIDump(FILE *fs, const char *plotname) {
     cerr << "*** Error in XYPlotWin::DoASCIIDump:  fs == NULL" << endl;
     return;
   }
+  PltAppState *pas = pltParent->GetPltAppState();
+  char format[LINELENGTH];
+  sprintf(format, "%s %s\n", pas->GetFormatString().c_str(),
+                             pas->GetFormatString().c_str());
   fprintf(fs, "TitleText: %s\n", plotname);
   fprintf(fs, "YUnitText: %s\n", YUnitText);
   fprintf(fs, "XUnitText: %s\n", XUnitText);
@@ -1556,7 +1560,7 @@ void XYPlotWin::DoASCIIDump(FILE *fs, const char *plotname) {
     Array<double> &xvals = xypdList->XVal(xypdList->CurLevel());
     Array<double> &yvals = xypdList->YVal(xypdList->CurLevel());
     for(int ii(0); ii < xvals.size(); ++ii) {
-      fprintf(fs, "%lf %lf\n", xvals[ii], yvals[ii]);
+      fprintf(fs, format, xvals[ii], yvals[ii]);
     }
     fprintf(fs, "\n");
   }
