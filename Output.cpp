@@ -1,6 +1,6 @@
 
 //
-// $Id: Output.cpp,v 1.37 2006-06-21 20:47:48 vince Exp $
+// $Id: Output.cpp,v 1.38 2007-06-18 21:31:03 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -63,6 +63,10 @@ void WriteNewPSFile(const char *filename, XImage *image,
   char newfilename[BUFSIZ];
   sprintf(newfilename, "%s.new.ps", filename);
   ofstream fout(newfilename);
+  if( ! fout) {
+    cerr << "*** Error:  cannot create file:  " << newfilename << endl;
+    return;
+  }
   fout.precision(3);
   fout << "%!PS-Adobe-2.0" << '\n';
   fout <<  "%%BoundingBox: 0 0 " << imagesizehoriz-1 << " "
@@ -134,6 +138,10 @@ void WritePSFile(const char *filename, XImage *image,
   clock_t time0 = clock();
 
   ofstream fout(filename);
+  if( ! fout) {
+    cerr << "*** Error:  cannot create file:  " << filename << endl;
+    return;
+  }
   fout << "%!PS-Adobe-2.0" << '\n';
   fout <<  "%%BoundingBox: 0 0 " << imagesizehoriz-1 << " "
        << imagesizevert-1 << '\n';
@@ -185,6 +193,10 @@ void WritePSPaletteFile(const char *filename, XImage *image,
 			const string &palNumFormat, const Palette &palette)
 {
     ofstream fout(filename);
+    if( ! fout) {
+      cerr << "*** Error:  cannot create file:  " << filename << endl;
+      return;
+    }
     fout << "%!PS-Adobe-2.0" << '\n';
     fout <<  "%%BoundingBox: 0 0 " << imagesizehoriz-1 << " "
          << imagesizevert-1 << '\n';
@@ -258,6 +270,10 @@ void WriteRGBFile(const char *filename, XImage *ximage,
   //image = iopen(filename, RLE(1), 3, xsize, ysize, 3);
   // no support for RLE.
   image = iopen(filename, VERBATIM(1), 3, xsize, ysize, 3);
+  if(image == NULL) {
+    //cerr << "*** Error:  cannot create file:  " << filename << endl;
+    return;
+  }
 
   Pixel index;
   unsigned char r, g, b;
@@ -285,7 +301,8 @@ void WritePPMFile(const char *filename, XImage *ximage,
 {
     std::ofstream img(filename, std::ios::binary);
     if( ! img) {
-      BoxLib::Error("failed to open image file for writing");
+      cerr << "*** Error:  cannot create file:  " << filename << endl;
+      return;
     }
     int xsize(imagesizehoriz);
     int ysize(imagesizevert);
@@ -340,7 +357,7 @@ IMAGE *iopen(const char *file, unsigned int type, unsigned int dim,
   image = new IMAGE;
   fdesc = creat(file, 0666);
   if(fdesc < 0) {
-    cerr << "iopen: can't open output file " << file << endl;
+    cerr << "*** Error:  cannot create file:  " << file << endl;
     return NULL;
   }
   image->imagic = IMAGIC;

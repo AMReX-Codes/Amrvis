@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.41 2005-11-03 01:48:48 vince Exp $
+// $Id: DataServices.cpp,v 1.42 2007-06-18 21:31:03 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -722,8 +722,8 @@ bool DataServices::DumpSlice(int slicedir, int slicenum,
 	 << endl;
     return false;
   }
-  WriteFab(sliceFile, sliceBox, iWTL, varname);
-  return true;
+  bool bWF = WriteFab(sliceFile, sliceBox, iWTL, varname);
+  return bWF;
 }
 
 
@@ -778,8 +778,8 @@ bool DataServices::DumpSlice(int slicedir, int slicenum) {  // dump all vars
 	 << endl;
     return false;
   }
-  WriteFab(sliceFile, sliceBox, iWTL);
-  return true;
+  bool bWF = WriteFab(sliceFile, sliceBox, iWTL);
+  return bWF;
 }
 
 
@@ -823,8 +823,8 @@ bool DataServices::DumpSlice(const Box &b, const string &varname) {
 	 << endl;
     return false;
   }
-  WriteFab(sliceFile, b, iWTL, varname);
-  return true;
+  bool bWF = WriteFab(sliceFile, b, iWTL, varname);
+  return bWF;
 }
 
 
@@ -866,8 +866,8 @@ bool DataServices::DumpSlice(const Box &b) {  // dump all vars
 	 << endl;
     return false;
   }
-  WriteFab(sliceFile, b, iWTL);
-  return true;
+  bool bWF = WriteFab(sliceFile, b, iWTL);
+  return bWF;
 }
 
 
@@ -925,6 +925,7 @@ bool DataServices::WriteFab(const string &fname, const Box &region, int lev,
   amrData.FillVar(destFabs, destBoxes, lev, varname,
 		  ParallelDescriptor::IOProcessorNumber());
 
+  bool bWF(true);
   if(ParallelDescriptor::IOProcessor()) {
     FABio::Format oldFabFormat = FArrayBox::getFormat();
     if(dsFabOutSize == 8) {
@@ -936,13 +937,18 @@ bool DataServices::WriteFab(const string &fname, const Box &region, int lev,
 
     ofstream os;
     os.open(fname.c_str(), ios::out);
-    data.writeOn(os);
-    os.close();
+    if(os) {
+      data.writeOn(os);
+      os.close();
+    } else {
+      cerr << "*** Error:  cannot open file:  " << fname << endl;
+      bWF = false;
+    }
 
     FArrayBox::setFormat(oldFabFormat);
   }
 
-  return true;
+  return bWF;
 }  // end WriteFab
 
 
@@ -983,6 +989,7 @@ bool DataServices::WriteFab(const string &fname, const Box &region, int lev) {
     amrData.FlushGrids(ivar);
   }
 
+  bool bWF(true);
   if(ParallelDescriptor::IOProcessor()) {
     FABio::Format oldFabFormat = FArrayBox::getFormat();
     if(dsFabOutSize == 8) {
@@ -994,13 +1001,18 @@ bool DataServices::WriteFab(const string &fname, const Box &region, int lev) {
 
     ofstream os;
     os.open(fname.c_str(), ios::out);
-    data.writeOn(os);
-    os.close();
+    if(os) {
+      data.writeOn(os);
+      os.close();
+    } else {
+      cerr << "*** Error:  cannot open file:  " << fname << endl;
+      bWF = false;
+    }
 
     FArrayBox::setFormat(oldFabFormat);
   }
 
-  return true;
+  return bWF;
 }  // end WriteFab
 
 
