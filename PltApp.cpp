@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.133 2007-05-02 20:47:37 vince Exp $
+// $Id: PltApp.cpp,v 1.134 2007-07-13 20:46:31 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -2910,6 +2910,10 @@ void PltApp::DoOpenPalFile(Widget w, XtPointer, XtPointer call_data) {
   }
   if(datasetShowing) {
     datasetPtr->DoExpose(false);
+  }
+  if(animating2d) {
+    ResetAnimation();
+    DirtyFrames(); 
   }
 }
 
