@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.76 2007-04-24 17:03:50 marc Exp $
+// $Id: AmrData.cpp,v 1.77 2007-08-28 00:35:24 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1519,12 +1519,27 @@ int AmrData::NumDeriveFunc() const {
 // that can be derived from what is known.
 // ---------------------------------------------------------------
 bool AmrData::CanDerive(const string &name) const {
-   for(int i(0); i < plotVars.size(); ++i) {
-     if(plotVars[i] == name) {
-       return true;
-     }
-   }
-   return false;
+  for(int i(0); i < plotVars.size(); ++i) {
+    if(plotVars[i] == name) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
+// ---------------------------------------------------------------
+bool AmrData::CanDerive(const Array<string> &names) const {
+  int nFound(0);
+  for(int n(0); n < names.size(); ++n) {
+    for(int i(0); i < plotVars.size(); ++i) {
+      if(plotVars[i] == names[n]) {
+        ++nFound;
+        continue;
+      }
+    }
+  }
+  return(nFound == names.size());
 }
 
 

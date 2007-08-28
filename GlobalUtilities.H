@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.H,v 1.23 2006-10-04 20:58:18 vince Exp $
+// $Id: GlobalUtilities.H,v 1.24 2007-08-28 00:35:24 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -20,6 +20,11 @@ using std::string;
 
 
 namespace AVGlobals {
+
+  enum ENUserVectorNames { enUserVelocities, enUserMomentums, enUserNone };
+
+  const ENUserVectorNames &GivenUserVectorNames();
+  const Array<string> &UserVectorNames();
 
   Box GetBoxFromCommandLine();
   void SetMaxPictureSize(int size);

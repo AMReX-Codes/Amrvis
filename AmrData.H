@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.H,v 1.25 2007-04-24 17:03:50 marc Exp $
+// $Id: AmrData.H,v 1.26 2007-08-28 00:35:24 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -138,6 +138,7 @@ class AmrData {
   void SetBoundaryWidth(int width) { boundaryWidth = width; }
   
   bool CanDerive(const string &name) const;
+  bool CanDerive(const Array<string> &names) const;
   int  NumDeriveFunc() const;
   void ListDeriveFunc(std::ostream &os) const;
   int  StateNumber(const string &statename) const;

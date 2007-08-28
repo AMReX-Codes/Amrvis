@@ -1,5 +1,5 @@
 //
-// $Id: GlobalUtilities.cpp,v 1.59 2006-10-04 20:58:18 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.60 2007-08-28 00:35:24 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -60,10 +60,25 @@ bool bShowBody(true);
 Real bodyOpacity(0.05);
 bool givenInitialPlanes(false);
 IntVect ivInitialPlanes;
+AVGlobals::ENUserVectorNames givenUserVectorNames(AVGlobals::enUserNone);
+Array<string> userVectorNames(BL_SPACEDIM);
 
 char *FileTypeString[] = {
   "invalidtype", "fab", "multifab", "newplt"
 };
+
+
+// -------------------------------------------------------------------
+const AVGlobals::ENUserVectorNames &AVGlobals::GivenUserVectorNames() {
+  return givenUserVectorNames;
+}
+
+
+// -------------------------------------------------------------------
+const Array<string> &AVGlobals::UserVectorNames() {
+  return userVectorNames;
+}
+
 
 // -------------------------------------------------------------------
 const string &AVGlobals::GetInitialDerived() {
@@ -226,6 +241,7 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
   char buffer[BUFSIZ];
   char defaultString[LINELENGTH];
   char tempString[LINELENGTH];
+  char tempStringSDim[BL_SPACEDIM][LINELENGTH];
   int  tempInt;
 
   // standard defaults
@@ -414,6 +430,42 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
         givenInitialPlanes = true;
       }
 #endif
+      else if(strcmp(defaultString, "setvelnames") == 0) {
+#if (BL_SPACEDIM == 2)
+        sscanf(buffer, "%s%s%s", defaultString,
+	       tempStringSDim[0], tempStringSDim[1]);
+#else
+        sscanf(buffer, "%s%s%s%s", defaultString,
+	       tempStringSDim[0], tempStringSDim[1], tempStringSDim[2]);
+#endif
+        givenUserVectorNames = enUserVelocities;
+	for(int ii(0); ii < BL_SPACEDIM; ++ii) {
+          userVectorNames[ii] = tempStringSDim[ii];
+	}
+	cout << "Using velnames:  ";
+	for(int ii(0); ii < BL_SPACEDIM; ++ii) {
+          cout << userVectorNames[ii] << "  ";
+	}
+	cout << endl;
+      }
+      else if(strcmp(defaultString, "setmomnames") == 0) {
+#if (BL_SPACEDIM == 2)
+        sscanf(buffer, "%s%s%s", defaultString,
+	       tempStringSDim[0], tempStringSDim[1]);
+#else
+        sscanf(buffer, "%s%s%s%s", defaultString,
+	       tempStringSDim[0], tempStringSDim[1], tempStringSDim[2]);
+#endif
+        givenUserVectorNames = enUserMomentums;
+	for(int ii(0); ii < BL_SPACEDIM; ++ii) {
+          userVectorNames[ii] = tempStringSDim[ii];
+	}
+	cout << "Using momnames:  ";
+	for(int ii(0); ii < BL_SPACEDIM; ++ii) {
+          cout << userVectorNames[ii] << "  ";
+	}
+	cout << endl;
+      }
       else {
         cout << "bad default argument:  " << defaultString << endl;
       }
@@ -438,8 +490,12 @@ void PrintUsage(char *exname) {
 # if (BL_SPACEDIM == 2)
   cout << "       [-boxslice xlo ylo xhi yhi]" << endl;
   cout << "       [-a]" << endl;
+  cout << "       [-setvelnames xname yname]" << endl;
+  cout << "       [-setmomnames xname yname]" << endl;
 # else
   cout << "       [-boxslice xlo ylo zlo xhi yhi zhi]" << endl;
+  cout << "       [-setvelnames xname yname zname]" << endl;
+  cout << "       [-setmomnames xname yname zname]" << endl;
 #endif
   cout << "       [-fabiosize nbits]" << endl;
   cout << "       [-maxlev n]" << endl;
@@ -491,6 +547,10 @@ void PrintUsage(char *exname) {
   cout << "  -a                 load files as an animation." << endl; 
 #endif
   //cout << "  -sleep  n          specify sleep time (for attaching parallel debuggers)." << endl;
+  cout << "  -setvelnames xname yname (zname)   specify velocity names for" << endl;
+  cout << "                                     drawing vector plots." << endl;
+  cout << "  -setmomnames xname yname (zname)   specify momentum names for" << endl;
+  cout << "                                     drawing vector plots." << endl;
   cout << "  -fabiosize nbits   write fabs with nbits (valid values are 8 and 32." << endl;
   cout << "                     the default is native (usually 64)." << endl;
   cout << "  -maxlev n          specify the maximum drawn level." << endl;
@@ -673,9 +733,40 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
         startWithValueModel = true;
     } else if(strcmp(argv[i], "-lowblack") == 0) {
         lowBlack = true;
+
+    } else if(strcmp(argv[i], "-setvelnames") == 0) {
+      if(argc-1<i+BL_SPACEDIM) {
+        PrintUsage(argv[0]);
+      } else {
+        givenUserVectorNames = enUserVelocities;
+	for(int ii(0); ii < BL_SPACEDIM; ++ii) {
+          userVectorNames[ii] = argv[i+1 + ii];
+	}
+	cout << "Using velnames:  ";
+	for(int ii(0); ii < BL_SPACEDIM; ++ii) {
+	  cout << userVectorNames[ii] << "  ";
+	}
+	cout << endl;
+      }
+      i += BL_SPACEDIM;
+    } else if(strcmp(argv[i], "-setmomnames") == 0) {
+      if(argc-1<i+BL_SPACEDIM) {
+        PrintUsage(argv[0]);
+      } else {
+        givenUserVectorNames = enUserMomentums;
+	for(int ii(0); ii < BL_SPACEDIM; ++ii) {
+          userVectorNames[ii] = argv[i+1 + ii];
+	}
+	cout << "Using momnames:  ";
+	for(int ii(0); ii < BL_SPACEDIM; ++ii) {
+	  cout << userVectorNames[ii] << "  ";
+	}
+	cout << endl;
+      }
+      i += BL_SPACEDIM;
     } else if(strcmp(argv[i], "-useminmax") == 0) {
       specifiedMinMax = true;
-      if(argc-2<i+2) {
+      if(argc-1<i+2) {
         PrintUsage(argv[0]);
       } else {
         specifiedMin = atof(argv[i+1]);

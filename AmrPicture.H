@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.H,v 1.44 2002-12-10 20:12:23 vince Exp $
+// $Id: AmrPicture.H,v 1.45 2007-08-28 00:35:24 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -48,7 +48,6 @@ class AmrPicture {
   
   AmrPicture(int view,
              GraphicsAttributes *gaptr, const Box &region, 
-             //AmrPicture *parentPicturePtr, 
              PltApp *parentPltAppPtr, PltApp *pltappptr,
 	     PltAppState *pltappstateptr,
 	     bool bcartgridsmoothing);
@@ -132,6 +131,7 @@ class AmrPicture {
   int			hColor, vColor, myColor, slice, sliceDir;
   bool                  bCartGridSmoothing;
   bool                  pixMapCreated, isSubDomain, findSubRange;
+  Array< Array<string> > vecNames;
   
   
   // private functions

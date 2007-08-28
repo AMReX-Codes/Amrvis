@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.91 2007-05-02 20:47:37 vince Exp $
+// $Id: AmrPicture.cpp,v 1.92 2007-08-28 00:35:24 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -27,6 +27,13 @@ using std::min;
 #ifdef BL_USE_ARRAYVIEW
 #include "ArrayView.H"
 #endif
+
+
+static std::string dimNameBase[] = { "x", "y", "z" };
+static std::string vecNameBase[] = { "vel", "_vel", "velocity", "_velocity",
+                                     "mom", "_mom", "momentum", "_momentum" };
+static bool vecIsMom[]           = { false, false, false, false,
+                                     true, true, true, true };
 
 // ---------------------------------------------------------------------
 bool DrawRaster(ContourType cType) {
@@ -383,6 +390,20 @@ void AmrPicture::AmrPictureInit() {
   pixMapCreated = false;
 
   SetSlice(myView, slice);
+
+  int nVecNames(sizeof(vecNameBase)/sizeof(*vecNameBase));
+  int nIsMom(sizeof(vecIsMom)/sizeof(*vecIsMom));
+  if(nVecNames != nIsMom) {
+    BoxLib::Abort("Error:  nVecNames != nIsMom.");
+  }
+  vecNames.resize(nVecNames);
+  for(int ivn(0); ivn < vecNames.size(); ++ivn) {
+    vecNames[ivn].resize(BL_SPACEDIM);
+    for(int idim(0); idim < BL_SPACEDIM; ++idim) {
+      vecNames[ivn][idim] = dimNameBase[idim] + vecNameBase[ivn];
+    }
+  }
+
 }  // end AmrPictureInit()
 
 
@@ -2316,105 +2337,65 @@ bool AmrPicture::DrawContour(const FArrayBox &fab, Real value,
 
 // ---------------------------------------------------------------------
 VectorDerived AmrPicture::FindVectorDerived(Array<string> &aVectorDeriveNames) {
-  // figure out if we are using velocities, momentums, or if neither are available
-  // first try velocities
-
-  if(dataServicesPtr->CanDerive("x_velocity") &&
-     dataServicesPtr->CanDerive("y_velocity")
+  // use the user specified names if available, otherwise try to
+  // guess some common names
+  
+  if(AVGlobals::GivenUserVectorNames() != AVGlobals::enUserNone) {
+    if(dataServicesPtr->CanDerive(AVGlobals::UserVectorNames()[0]) &&
+       dataServicesPtr->CanDerive(AVGlobals::UserVectorNames()[1])
 #if (BL_SPACEDIM == 3)
-     && dataServicesPtr->CanDerive("z_velocity")
+       && dataServicesPtr->CanDerive(AVGlobals::UserVectorNames()[2])
 #endif
-    )
-  {
-    aVectorDeriveNames[0] = "x_velocity";
-    aVectorDeriveNames[1] = "y_velocity";
-#if (BL_SPACEDIM == 3)
-    aVectorDeriveNames[2] = "z_velocity";
-#endif
-    return enVelocity;
-
-  } else
-    if(dataServicesPtr->CanDerive("xvel") &&
-       dataServicesPtr->CanDerive("yvel")
-#if (BL_SPACEDIM == 3)
-       && dataServicesPtr->CanDerive("zvel")
-#endif
-    )
-  {
-    aVectorDeriveNames[0] = "xvel";
-    aVectorDeriveNames[1] = "yvel";
-#if (BL_SPACEDIM == 3)
-    aVectorDeriveNames[2] = "zvel";
-#endif
-    return enVelocity;
-
-  } else
-    if(dataServicesPtr->CanDerive("x_vel") &&
-       dataServicesPtr->CanDerive("y_vel")
-#if (BL_SPACEDIM == 3)
-       && dataServicesPtr->CanDerive("z_vel")
-#endif
-    )
-  {
-    aVectorDeriveNames[0] = "x_vel";
-    aVectorDeriveNames[1] = "y_vel";
-#if (BL_SPACEDIM == 3)
-    aVectorDeriveNames[2] = "z_vel";
-#endif
-    return enVelocity;
-
-  } else
-    if(dataServicesPtr->CanDerive("x_momentum") &&
-       dataServicesPtr->CanDerive("y_momentum")
-#if (BL_SPACEDIM == 3)
-       && dataServicesPtr->CanDerive("z_momentum")
-#endif
-       && dataServicesPtr->CanDerive("density")
-    )
-  {
-    aVectorDeriveNames[0] = "x_momentum";
-    aVectorDeriveNames[1] = "y_momentum";
-#if (BL_SPACEDIM == 3)
-    aVectorDeriveNames[2] = "z_momentum";
-#endif
-    return enMomentum;
-
-  } else
-    if(dataServicesPtr->CanDerive("xmom") &&
-       dataServicesPtr->CanDerive("ymom")
-#if (BL_SPACEDIM == 3)
-       && dataServicesPtr->CanDerive("zmom")
-#endif
-       && dataServicesPtr->CanDerive("density")
-    )
-  {
-    aVectorDeriveNames[0] = "xmom";
-    aVectorDeriveNames[1] = "ymom";
-#if (BL_SPACEDIM == 3)
-    aVectorDeriveNames[2] = "zmom";
-#endif
-    return enMomentum;
-
-  } else
-    if(dataServicesPtr->CanDerive("x_mom") &&
-       dataServicesPtr->CanDerive("y_mom")
-#if (BL_SPACEDIM == 3)
-       && dataServicesPtr->CanDerive("z_mom")
-#endif
-       && dataServicesPtr->CanDerive("density")
-    )
-  {
-    aVectorDeriveNames[0] = "x_mom";
-    aVectorDeriveNames[1] = "y_mom";
-#if (BL_SPACEDIM == 3)
-    aVectorDeriveNames[2] = "z_mom";
-#endif
-    return enMomentum;
-
-  } else {
-    return enNoneFound;
+      )
+    {
+      aVectorDeriveNames = AVGlobals::UserVectorNames();
+      if(AVGlobals::GivenUserVectorNames() == AVGlobals::enUserVelocities) {
+        return enVelocity;
+      } else if(AVGlobals::GivenUserVectorNames() == AVGlobals::enUserMomentums) {
+        if(dataServicesPtr->CanDerive("density")) {
+          return enMomentum;
+	} else {
+          if(myView == XY) {
+	    cerr << "*** Error:  found momentums but not density." << endl;
+	  }
+          return enNoneFound;
+	}
+      } else {
+	cerr << "*** Error in FindVectorDerived:  bad user type." << endl;
+        return enNoneFound;  // something is wrong if we get here
+      }
+    } else {
+      aVectorDeriveNames = AVGlobals::UserVectorNames();
+      if(myView == XY) {
+        cerr << "*** Error:  cannot find components:  ";
+        for(int ii(0); ii < BL_SPACEDIM; ++ii) {
+          cerr << aVectorDeriveNames[ii] << "  ";
+        }
+        cerr << endl;
+      }
+      return enNoneFound;  // bad component names were specified by the user
+    }
   }
 
+  for(int ivn(0); ivn < vecNames.size(); ++ivn) {
+    if(dataServicesPtr->CanDerive(vecNames[ivn])) {
+      aVectorDeriveNames = vecNames[ivn];
+      if(vecIsMom[ivn]) {
+        if(dataServicesPtr->CanDerive("density")) {
+          return enMomentum;
+	} else {
+          if(myView == XY) {
+	    cerr << "*** Error:  found momentums but not density." << endl;
+          }
+          return enNoneFound;
+	}
+      } else {
+        return enVelocity;
+      }
+    }
+  }
+
+  return enNoneFound;
 }
 
 
@@ -2453,8 +2434,10 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
   whichVectorDerived = FindVectorDerived(choice);
 
   if(whichVectorDerived == enNoneFound) {
-    cerr << "Could not find suitable quantities to create velocity vectors."
-	 << endl;
+    if(myView == XY) {
+      cerr << "Could not find suitable quantities to create velocity vectors."
+	   << endl;
+    }
     return;
   }
 

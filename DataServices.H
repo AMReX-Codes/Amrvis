@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.H,v 1.19 2003-03-12 07:40:56 vince Exp $
+// $Id: DataServices.H,v 1.20 2007-08-28 00:35:24 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -114,6 +114,7 @@ class DataServices {
     const string &GetFileName() const { return fileName; }
     FileType GetFileType()      const { return fileType; }
     bool CanDerive(const string &name) const;
+    bool CanDerive(const Array<string> &names) const;
     int  NumDeriveFunc() const;
     void ListDeriveFunc(std::ostream &os) const;
     const Array<string> &PlotVarNames() const { return amrData.PlotVarNames(); }

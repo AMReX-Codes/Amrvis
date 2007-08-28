@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.42 2007-06-18 21:31:03 vince Exp $
+// $Id: DataServices.cpp,v 1.43 2007-08-28 00:35:24 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1022,6 +1022,15 @@ bool DataServices::CanDerive(const string &name) const {
     return false;
   }
   return amrData.CanDerive(name);
+}
+
+
+// ---------------------------------------------------------------
+bool DataServices::CanDerive(const Array<string> &names) const {
+  if( ! bAmrDataOk) {
+    return false;
+  }
+  return amrData.CanDerive(names);
 }
 
 
