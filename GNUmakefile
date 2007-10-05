@@ -45,19 +45,6 @@ ifeq ($(MACHINE), OSF1)
   LIBRARIES += -lXm -lXt -lX11
 endif
 
-#USE_XT3=TRUE
-ifeq ($(USE_XT3),TRUE)
-  CXX = pgCC
-  FC  = pgf77
-  fC  = pgf77
-  FOPTF = -O
-  CXXOPTF = -O
-  CPPFLAGS += -DBL_PGI
-  LIBRARY_LOCATIONS += /usr/X11R6/lib64
-# LIBRARIES += -lpgf90 -lpgf90_rpm1 -lpgf902 -lpgf90rtl -lpgftnrtl 
-  LIBRARIES += -lpgftnrtl 
-endif
-
 ifeq ($(WHICHLINUX), DAVINCI)
   INCLUDE_LOCATIONS += /usr/common/graphics/openmotif/include
   INCLUDE_LOCATIONS += /usr/common/graphics/openmotif/include/Xm
