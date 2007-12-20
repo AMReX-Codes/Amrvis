@@ -45,6 +45,10 @@ ifeq ($(MACHINE), OSF1)
   LIBRARIES += -lXm -lXt -lX11
 endif
 
+ifeq ($(WHICHLINUX), ATLAS)
+  LIBRARY_LOCATIONS += /usr/X11R6/lib64
+endif 
+
 ifeq ($(WHICHLINUX), DAVINCI)
   INCLUDE_LOCATIONS += /usr/common/graphics/openmotif/include
   INCLUDE_LOCATIONS += /usr/common/graphics/openmotif/include/Xm
