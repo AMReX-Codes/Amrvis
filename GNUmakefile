@@ -6,10 +6,10 @@ COMP	  = xlC
 FCOMP     = xlf
 COMP      = CC
 FCOMP     = ftn
-COMP      = Intel
-FCOMP     = Intel
 COMP      = g++
 FCOMP     = g77
+COMP      = Intel
+FCOMP     = Intel
 DEBUG     = TRUE
 DEBUG     = FALSE
 DIM       = 3
@@ -64,8 +64,14 @@ ifeq ($(MACHINE), Darwin)
   LDFLAGS   += -bind_at_load
 endif
 ifeq ($(MACHINE), Linux)
+  ifeq ($(WHICHLINUX), HOMER)
+  LIBRARY_LOCATIONS += /usr/lib64
+  INCLUDE_LOCATIONS += /usr/include/Xm
+  INCLUDE_LOCATIONS += /usr/include/
+  else
   INCLUDE_LOCATIONS += /usr/X11R6/include
   LIBRARY_LOCATIONS += /usr/X11R6/lib
+  endif
   LIBRARIES += -lXm -lXp -lXt -lXext -lSM -lICE -lXpm -lX11
   # Joe Grcar 1/9/03: per Vince, the following line is needed on battra
   # so I have left it here in commented-out form.
