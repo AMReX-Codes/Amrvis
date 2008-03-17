@@ -617,6 +617,7 @@ void XYPlotWin::StopAnimation() {
     (((int) (((userX) - dUsrOrgX)/dXUnitsPerPixel + 0.5)) + iXOrgX)
 #define SCREENY(userY) \
     (iXOppY - ((int) (((userY) - dUsrOrgY)/dYUnitsPerPixel + 0.5)))
+//    (iXOppY - ((int) (log10(((userY) - dUsrOrgY)/dYUnitsPerPixel + 0.5))))
 
 
 // -------------------------------------------------------------------
@@ -655,12 +656,12 @@ void XYPlotWin::SetBoundingBox(double lowXIn,  double lowYIn,
   
   // Increase the padding for aesthetics
   if(hiX - loX == 0.0) {
-    pad = max(0.5, fabs(hiX / 2.0));
+    pad = max(0.5, fabs(hiX * 0.5));
     hiX += pad;
     loX -= pad;
   }
   if(hiY - loY == 0.0) {
-    pad = max(0.5, fabs(hiY / 2.0));
+    pad = max(0.5, fabs(hiY * 0.5));
     hiY += pad;
     loY -= pad;
   }
@@ -734,10 +735,10 @@ void XYPlotWin::CalculateBox() {
   
   // Find origin in user coordinate space.  We keep the center of the
   // original bounding box in the same place.
-  double bbCenX = (loX + hiX) / 2.0;
-  double bbCenY = (loY + hiY) / 2.0;
-  double bbHalfWidth = ((double) (iXOppX - iXOrgX))  * 0.5 * dXUnitsPerPixel;
-  double bbHalfHeight = ((double) (iXOppY - iXOrgY)) * 0.5 * dYUnitsPerPixel;
+  double bbCenX((loX + hiX) * 0.5);
+  double bbCenY((loY + hiY) * 0.5);
+  double bbHalfWidth(((double) (iXOppX - iXOrgX))  * 0.5 * dXUnitsPerPixel);
+  double bbHalfHeight(((double) (iXOppY - iXOrgY)) * 0.5 * dYUnitsPerPixel);
   dUsrOrgX = bbCenX - bbHalfWidth;
   dUsrOrgY = bbCenY - bbHalfHeight;
   dUsrOppX = bbCenX + bbHalfWidth;
@@ -811,7 +812,7 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
   pltParent->GetPalettePtr()->SetWindowPalette(pltParent->GetPaletteName(),
 					       XtWindow(new_item->wid));
   Widget wid, levelmenu;
-  char buffer[128];
+  char buffer[BUFSIZ];
   new_item->menu = XmCreatePopupMenu(new_item->wid, "popup", NULL, 0);
   if(new_list->MaxLevel() != 0) {
     XmString label_str = XmStringCreateSimple("Level");
@@ -993,7 +994,7 @@ double XYPlotWin::roundUp(double val) {
     }
   } else {
     for(idx = 0; idx < exponent; ++idx) {
-      val /= 10.0;
+      val *= 0.10;
     }
   }
   if(val > 5.0) {
@@ -1007,7 +1008,7 @@ double XYPlotWin::roundUp(double val) {
   }
   if(exponent < 0) {
     for(idx = exponent; idx < 0; ++idx) {
-      val /= 10.0;
+      val *= 0.10;
     }
   } else {
     for(idx = 0; idx < exponent; ++idx) {
