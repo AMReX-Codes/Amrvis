@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.92 2007-08-28 00:35:24 vince Exp $
+// $Id: AmrPicture.cpp,v 1.93 2008-03-17 22:00:52 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -29,6 +29,7 @@ using std::min;
 #endif
 
 
+std::string densityName("density");
 static std::string dimNameBase[] = { "x", "y", "z" };
 static std::string vecNameBase[] = { "vel", "_vel", "velocity", "_velocity",
                                      "mom", "_mom", "momentum", "_momentum" };
@@ -2352,11 +2353,11 @@ VectorDerived AmrPicture::FindVectorDerived(Array<string> &aVectorDeriveNames) {
       if(AVGlobals::GivenUserVectorNames() == AVGlobals::enUserVelocities) {
         return enVelocity;
       } else if(AVGlobals::GivenUserVectorNames() == AVGlobals::enUserMomentums) {
-        if(dataServicesPtr->CanDerive("density")) {
+        if(dataServicesPtr->CanDerive(densityName)) {
           return enMomentum;
 	} else {
           if(myView == XY) {
-	    cerr << "*** Error:  found momentums but not density." << endl;
+	    cerr << "*** Error:  found momentums but not " << densityName  << endl;
 	  }
           return enNoneFound;
 	}
@@ -2381,11 +2382,11 @@ VectorDerived AmrPicture::FindVectorDerived(Array<string> &aVectorDeriveNames) {
     if(dataServicesPtr->CanDerive(vecNames[ivn])) {
       aVectorDeriveNames = vecNames[ivn];
       if(vecIsMom[ivn]) {
-        if(dataServicesPtr->CanDerive("density")) {
+        if(dataServicesPtr->CanDerive(densityName)) {
           return enMomentum;
 	} else {
           if(myView == XY) {
-	    cerr << "*** Error:  found momentums but not density." << endl;
+	    cerr << "*** Error:  found momentums but not " << densityName << endl;
           }
           return enNoneFound;
 	}
@@ -2425,7 +2426,7 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
   // get velocity field
   Box DVFSliceBox(sliceFab[maxDrawnLevel]->box());
   int maxLength(DVFSliceBox.longside());
-  FArrayBox density(DVFSliceBox);
+  FArrayBox densityFab(DVFSliceBox);
   FArrayBox hVelocity(DVFSliceBox);
   FArrayBox vVelocity(DVFSliceBox);
   VectorDerived whichVectorDerived;
@@ -2459,9 +2460,9 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
   } else {  // using momentums
     BL_ASSERT(whichVectorDerived == enMomentum);
     // fill the density and momentum:
-    string sDensity("density");
+    string sDensity(densityName);
     if( ! dataServicesPtr->CanDerive(sDensity)) {
-      cerr << "Found momentums in the plot file but not density." << endl;
+      cerr << "Found momentums in the plot file but not " << densityName << endl;
       return;
     }
 
@@ -2469,8 +2470,8 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
     string vMom(choice[vDir]);
 
     DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
-                           (void *) &density,
-			   (void *) (&(density.box())),
+                           (void *) &densityFab,
+			   (void *) (&(densityFab.box())),
                            maxDrawnLevel,
 			   (void *) &sDensity);
     DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
@@ -2485,8 +2486,8 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
 			   (void *) &vMom);
 
     // then divide to get velocity
-    hVelocity /= density;
-    vVelocity /= density;
+    hVelocity /= densityFab;
+    vVelocity /= densityFab;
   }
   
   // compute maximum speed

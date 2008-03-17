@@ -1,5 +1,5 @@
 //
-// $Id: GlobalUtilities.cpp,v 1.60 2007-08-28 00:35:24 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.61 2008-03-17 22:00:52 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -513,9 +513,9 @@ void PrintUsage(char *exname) {
     cout << "       [-makeswf_value]" << endl;
     cout << "       [-valuemodel]" << endl;
 #endif
-    cout << "       [-useminmax min max]" << endl;
     cout << "       [-initplanes xp yp zp]" << endl;
 #endif
+  cout << "       [-useminmax min max]" << endl;
   cout << "       [<filename(s)>]" << endl;
   cout << endl;
 
@@ -575,9 +575,9 @@ void PrintUsage(char *exname) {
   cout << "  -makeswf_value     same as above, with value model rendering."<<endl;
   cout << "  -valuemodel        start with the value model for rendering."<<endl;
 #endif
-  cout << "  -useminmax min max       use min and max as the global min max values" << endl;
   cout << "  -initplanes xp yp zp     set initial planes" << endl;
 #endif
+  cout << "  -useminmax min max       use min and max as the global min max values" << endl;
   cout << "  <filename(s)>      must be included if box is specified." << endl;
   cout << endl;
 
