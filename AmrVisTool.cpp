@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.73 2006-10-04 20:58:18 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.74 2008-03-19 23:09:08 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -157,6 +157,25 @@ int main(int argc, char *argv[]) {
 	    }
 	  } else {
             pltAppList.push_back(temp);
+              if(AVGlobals::GivenBox()) {
+		DataServices *dsp = temp->GetDataServicesPtr();
+	        const AmrData &amrData = dsp->AmrDataRef();
+		Box bPD(amrData.ProbDomain()[amrData.FinestLevel()]);
+		Box itypComlineBox(bPD);  // for correct box type
+		itypComlineBox.setSmall(comlineBox.smallEnd());
+		itypComlineBox.setBig(comlineBox.bigEnd());
+		Box comlineBoxErr(itypComlineBox);
+		itypComlineBox &= bPD;
+		if(itypComlineBox.ok()) {
+                  SubregionPltApp(wTopLevel, comlineBox, comlineBox.smallEnd(),
+		         temp, temp->GetPaletteName(), AVGlobals::IsAnimation(),
+		         temp->GetPltAppState()->CurrentDerived(), comlineFileName);
+		  CBQuitPltApp(NULL, temp, NULL);
+		} else {
+	          cerr << "Error:  bad subregion box on the command line:  "
+		       << comlineBoxErr << endl;
+		}
+              }
 	  }
 	} else {
           if(ParallelDescriptor::IOProcessor()) {
@@ -200,6 +219,7 @@ int main(int argc, char *argv[]) {
                   SubregionPltApp(wTopLevel, comlineBox, comlineBox.smallEnd(),
 		         temp, temp->GetPaletteName(), AVGlobals::IsAnimation(),
 		         temp->GetPltAppState()->CurrentDerived(), comlineFileName);
+		  CBQuitPltApp(NULL, temp, NULL);
 		} else {
 	          cerr << "Error:  bad subregion box on the command line:  "
 		       << comlineBoxErr << endl;
