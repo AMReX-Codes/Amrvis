@@ -8,6 +8,7 @@ COMP      = CC
 FCOMP     = ftn
 COMP      = g++
 FCOMP     = g77
+# for davinci (after module load intel)
 COMP      = Intel
 FCOMP     = Intel
 DEBUG     = TRUE
