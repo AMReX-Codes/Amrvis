@@ -11,6 +11,9 @@ FCOMP     = g77
 # for davinci (after module load intel)
 COMP      = Intel
 FCOMP     = Intel
+# for hive (and must un-comment a line far below)
+COMP      = g++
+FCOMP     = g77
 DEBUG     = TRUE
 DEBUG     = FALSE
 DIM       = 3
