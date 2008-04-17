@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.134 2007-07-13 20:46:31 vince Exp $
+// $Id: PltApp.cpp,v 1.135 2008-04-17 22:09:19 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -2209,9 +2209,7 @@ void PltApp::DoContoursButton(Widget, XtPointer, XtPointer) {
   char *conItems[NCONTOPTIONS] = {"Raster", "Raster & Contours", "Color Contours",
 		                  "B/W Contours", "Velocity Vectors"};
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
-  int nItems = (amrData.NComp() < (BL_SPACEDIM + 1)) ?
-				    (NCONTOPTIONS - 1) : NCONTOPTIONS;
-  for(int j(0); j < nItems; ++j) {
+  for(int j(0); j < NCONTOPTIONS; ++j) {
     wid = XtVaCreateManagedWidget(conItems[j], xmToggleButtonGadgetClass,
 				  wContourRadio, NULL);
     if(j == (int) pltAppState->GetContourType()) {
