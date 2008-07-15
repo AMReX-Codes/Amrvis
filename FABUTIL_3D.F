@@ -28,7 +28,7 @@ c ::: --------------------------------------------------------------
       do 410 k = dlo3, dhi3
         do 420 j = dlo2, dhi2
           do 430 i = dlo1, dhi1
-              if ( .not. (vfracdata(i,j,k).lt.vfeps)) then
+              if ( (vfracdata(i,j,k).ge.vfeps)) then
                 dmax = max(dmax,data(i,j,k))
                 dmin = min(dmin,data(i,j,k))
               endif
