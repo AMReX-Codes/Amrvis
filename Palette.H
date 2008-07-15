@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.H,v 1.30 2003-12-11 01:48:51 vince Exp $
+// $Id: Palette.H,v 1.31 2008-07-15 20:55:35 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -36,6 +36,7 @@ class Palette {
   protected:
     Array<XColor> ccells;
     map<Pixel, XColor> mcells;
+    Array<Pixel> pixelCache;
     Pixmap 	palPixmap;
     int	  	totalPalWidth, palWidth, totalPalHeight;
     Array<Real> dataList;
@@ -112,7 +113,8 @@ class Palette {
     Pixel pixelate(int i) const;
     void unpixelate(Pixel p, unsigned char &r, unsigned char &g,
 		    unsigned char& b) const;
-    Pixel makePixel(unsigned char index) const;
+    //Pixel makePixel(unsigned char index) const;
+    Pixel makePixel(unsigned char index) const { return pixelCache[index]; }
 
   private:
     void ReadPalette(const string &palNam, bool bRedraw = true);

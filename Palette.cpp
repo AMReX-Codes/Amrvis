@@ -1,6 +1,6 @@
 
 //
-// $Id: Palette.cpp,v 1.52 2007-01-23 23:45:33 vince Exp $
+// $Id: Palette.cpp,v 1.53 2008-07-15 20:55:35 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -507,6 +507,28 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
     bbuff[paletteStart] = 0;
   }
 
+
+
+  pixelCache.resize(iSeqPalSize);
+  assert( gaPtr->PBitsPerRGB() <= 8 );
+  if(bTrueColor) {
+    Pixel r, g, b;
+    unsigned long rs(gaPtr->PRedShift());
+    unsigned long gs(gaPtr->PGreenShift());
+    unsigned long bs(gaPtr->PBlueShift());
+    for(i = 0; i < iSeqPalSize; ++i) {
+      r = rbuff[i] >> (8 - bprgb);
+      g = gbuff[i] >> (8 - bprgb);
+      b = bbuff[i] >> (8 - bprgb);
+      pixelCache[i] = ( (r << rs) | (g << gs) | (b << bs) );
+    }
+  } else {
+    for(i = 0; i < iSeqPalSize; ++i) {
+      pixelCache[i] =  Pixel(i);
+    }
+  }
+
+
   for(i = 0; i < totalColorSlots; ++i) {
     if(bTrueColor) {
       // FIXME: not 24 bit!
@@ -610,6 +632,7 @@ Pixel Palette::pixelate(int i) const {
 
 
 // -------------------------------------------------------------------
+/*
 Pixel Palette::makePixel(unsigned char ind) const {
   if(gaPtr->IsTrueColor()) {
     assert( gaPtr->PBitsPerRGB() <= 8 );
@@ -623,6 +646,7 @@ Pixel Palette::makePixel(unsigned char ind) const {
     return Pixel(ind);
   }
 }
+*/
 
 
 // -------------------------------------------------------------------
