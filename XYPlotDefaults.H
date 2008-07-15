@@ -27,8 +27,8 @@
 #define DEF_FMT_Y		"%.2f"
 
 #define DEF_GRID_STYLE		"10"
-#define DEF_LABEL_FONT		"helvetica-10"
-#define DEF_TITLE_FONT		"helvetica-18"
+#define DEF_LABEL_FONT		"fixed"
+#define DEF_TITLE_FONT		"fixed"
 
 #define DEF_INIT_WIN_WIDTH      "250"
 #define DEF_INIT_WIN_HEIGHT     "275"
