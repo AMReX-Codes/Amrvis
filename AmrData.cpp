@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.77 2007-08-28 00:35:24 vince Exp $
+// $Id: AmrData.cpp,v 1.78 2008-07-15 20:59:45 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1708,35 +1708,15 @@ bool AmrData::MinMax(const Box &onBox, const string &derived, int level,
           dataMax = max(dataMax, maxVal);
       }
     }
+
   } else if(bCartGrid && (compIndex != StateNumber("vfrac"))) {
+    int iCount(0), iCountAllBody(0), iCountAllFluid(0), iCountMixed(0);
+    int iCountMixedSkipped(0), iCountMixedFort(0);
+    int cCount(0), cCountAllBody(0), cCountAllFluid(0), cCountMixed(0);
+    int cCountMixedSkipped(0), cCountMixedFort(0);
+    int allCount(0), outsideCount(0);
     for(MFIter gpli(*dataGrids[level][compIndex]); gpli.isValid(); ++gpli) {
     /*
-      int whichVisMF(compIndexToVisMFMap[compIndex]);
-      int whichVisMFComponent(compIndexToVisMFComponentMap[compIndex]);
-      Real visMFMin(visMF[level][whichVisMF]->min(gpli.index(),
-		    whichVisMFComponent));
-      Real visMFMax(visMF[level][whichVisMF]->max(gpli.index(),
-		    whichVisMFComponent));
-      if(onBox.contains(gpli.validbox())) {
-        dataMin = min(dataMin, visMFMin);
-        dataMax = max(dataMax, visMFMax);
-        valid = true;
-      } else if(onBox.intersects(visMF[level][whichVisMF]->
-				 boxArray()[gpli.index()]))
-      {
-        if(visMFMin < dataMin || visMFMax > dataMax) {  // do it the hard way
-	  DefineFab(level, compIndex, gpli.index());
-          valid = true;
-          overlap = onBox;
-          overlap &= gpli.validbox();
-          minVal = (*dataGrids[level][compIndex])[gpli].min(overlap, 0);
-          maxVal = (*dataGrids[level][compIndex])[gpli].max(overlap, 0);
-
-          dataMin = min(dataMin, minVal);
-          dataMax = max(dataMax, maxVal);
-        }  // end if(visMFMin...)
-      }
-    */
       if(onBox.intersects(gpli.validbox())) {
         int vfIndex(StateNumber("vfrac"));
         DefineFab(level, compIndex, gpli.index());
@@ -1749,6 +1729,7 @@ bool AmrData::MinMax(const Box &onBox, const string &derived, int level,
         overlap = onBox;
         overlap &= gpli.validbox();
         Real vfMaxVal = (*dataGrids[level][vfIndex])[gpli].max(overlap, 0);
+        Real vfMinVal = (*dataGrids[level][vfIndex])[gpli].min(overlap, 0);
         if(vfMaxVal >= vfEps[level]) {
           valid = true;
 
@@ -1758,7 +1739,109 @@ bool AmrData::MinMax(const Box &onBox, const string &derived, int level,
           dataMax = max(dataMax, maxVal);
         }
       }
+    */
+      ++allCount;
+      int gdx(gpli.index());
+      int whichVisMF(compIndexToVisMFMap[compIndex]);
+      int whichVisMFComponent(compIndexToVisMFComponentMap[compIndex]);
+      Real visMFMin(visMF[level][whichVisMF]->min(gdx, whichVisMFComponent));
+      Real visMFMax(visMF[level][whichVisMF]->max(gdx, whichVisMFComponent));
+      int vfIndex(StateNumber("vfrac"));
+      if(onBox.contains(gpli.validbox())) {
+        ++cCount;
+        int vfWhichVisMF(compIndexToVisMFMap[vfIndex]);
+        int vfWhichVisMFComponent(compIndexToVisMFComponentMap[vfIndex]);
+        Real vfVisMFMin(visMF[level][vfWhichVisMF]->min(gdx, vfWhichVisMFComponent));
+        Real vfVisMFMax(visMF[level][vfWhichVisMF]->max(gdx, vfWhichVisMFComponent));
+        if(vfVisMFMin > (1.0 - vfEps[level])) {  // no cg body in this grid
+	  ++cCountAllFluid;
+          dataMin = min(dataMin, visMFMin);
+          dataMax = max(dataMax, visMFMax);
+          valid = true;
+	} else if(vfVisMFMax >= vfEps[level] ) {
+	  ++cCountMixed;
+          if(visMFMin < dataMin || visMFMax > dataMax) {  // do it the hard way
+            DefineFab(level, compIndex, gdx);
+            DefineFab(level, vfIndex, gdx);
+            Real *ddat = (*dataGrids[level][compIndex])[gpli].dataPtr();
+            Real *vdat = (*dataGrids[level][vfIndex])[gpli].dataPtr();
+            const int *dlo = (*dataGrids[level][compIndex])[gpli].loVect();
+            const int *dhi = (*dataGrids[level][compIndex])[gpli].hiVect();
+
+            overlap = onBox;
+            overlap &= gpli.validbox();
+            Real vfMaxVal = (*dataGrids[level][vfIndex])[gpli].max(overlap, 0);
+            Real vfMinVal = (*dataGrids[level][vfIndex])[gpli].min(overlap, 0);
+            if(vfMaxVal >= vfEps[level]) {
+	      ++cCountMixedFort;
+              valid = true;
+
+              FORT_CARTGRIDMINMAX(ddat, ARLIM(dlo), ARLIM(dhi), vdat, vfEps[level],
+                                  minVal, maxVal);
+              dataMin = min(dataMin, minVal);
+              dataMax = max(dataMax, maxVal);
+            }
+	  } else {
+	    ++cCountMixedSkipped;
+	  }
+	} else {  // all body
+	  ++cCountAllBody;
+	}
+      } else if(onBox.intersects(visMF[level][whichVisMF]->boxArray()[gdx])) {
+	++iCount;
+        if(visMFMin < dataMin || visMFMax > dataMax) {  // do it the hard way
+          DefineFab(level, compIndex, gdx);
+          DefineFab(level, vfIndex, gdx);
+          Real *ddat = (*dataGrids[level][compIndex])[gpli].dataPtr();
+          Real *vdat = (*dataGrids[level][vfIndex])[gpli].dataPtr();
+          const int *dlo = (*dataGrids[level][compIndex])[gpli].loVect();
+          const int *dhi = (*dataGrids[level][compIndex])[gpli].hiVect();
+
+          overlap = onBox;
+          overlap &= gpli.validbox();
+          Real vfMaxVal = (*dataGrids[level][vfIndex])[gpli].max(overlap, 0);
+          Real vfMinVal = (*dataGrids[level][vfIndex])[gpli].min(overlap, 0);
+          if(vfMaxVal >= vfEps[level]) {
+	    ++iCountMixedFort;
+            valid = true;
+
+            FORT_CARTGRIDMINMAX(ddat, ARLIM(dlo), ARLIM(dhi), vdat, vfEps[level],
+                                minVal, maxVal);
+            dataMin = min(dataMin, minVal);
+            dataMax = max(dataMax, maxVal);
+          } else {
+	    ++iCountAllBody;
+	  }
+	} else {
+	  ++iCountMixedSkipped;
+	}
+      } else {
+        ++outsideCount;
+      }
     }
+    if(verbose) {
+      cout << "*** Level:  " << level << endl;
+      SHOWVAL(allCount);
+      SHOWVAL(outsideCount);
+      cout << "--------------" << endl;
+
+      SHOWVAL(cCount);
+      SHOWVAL(cCountAllBody);
+      SHOWVAL(cCountAllFluid);
+      SHOWVAL(cCountMixed);
+      SHOWVAL(cCountMixedSkipped);
+      SHOWVAL(cCountMixedFort);
+      cout << "--------------" << endl;
+      if(iCount > 0) {
+        SHOWVAL(iCount);
+        SHOWVAL(iCountAllBody);
+        SHOWVAL(iCountMixedSkipped);
+        SHOWVAL(iCountMixedFort);
+        cout << "--------------" << endl;
+      }
+      cout << endl << endl;
+    }
+
   } else {
     for(MFIter gpli(*dataGrids[level][compIndex]); gpli.isValid(); ++gpli) {
       int whichVisMF(compIndexToVisMFMap[compIndex]);
