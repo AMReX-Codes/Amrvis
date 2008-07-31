@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.135 2008-04-17 22:09:19 vince Exp $
+// $Id: PltApp.cpp,v 1.136 2008-07-31 22:12:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -4271,6 +4271,13 @@ void PltApp::ShowFrame() {
 	    amrPicturePtrArray[ZPLANE]->ImageSizeH(),
 	    amrPicturePtrArray[ZPLANE]->ImageSizeV());
   
+
+  if(AVGlobals::CacheAnimFrames() == false) {
+    XDestroyImage(frameBuffer[currentFrame]);
+    readyFrames[currentFrame] = false;
+  }
+
+
   string fileName(fileNames[currentFrame]);
 
   char cTempFN[BUFSIZ];

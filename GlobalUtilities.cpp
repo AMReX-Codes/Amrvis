@@ -1,5 +1,5 @@
 //
-// $Id: GlobalUtilities.cpp,v 1.61 2008-03-17 22:00:52 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.62 2008-07-31 22:12:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -29,6 +29,7 @@ int boxColor;
 int maxPictureSize;
 FileType fileType;
 bool animation;
+bool bCacheAnimFrames;
 Array<string> comlinefilename;
 string initialDerived;
 string initialFormat;
@@ -545,6 +546,7 @@ void PrintUsage(char *exname) {
   cout << "                     Note:  slices are written in batch mode." << endl;
 #if(BL_SPACEDIM == 2)
   cout << "  -a                 load files as an animation." << endl; 
+  cout << "  -anc               load files as an animation, dont cache frames." << endl; 
 #endif
   //cout << "  -sleep  n          specify sleep time (for attaching parallel debuggers)." << endl;
   cout << "  -setvelnames xname yname (zname)   specify velocity names for" << endl;
@@ -608,6 +610,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
   fileCount = 0;
   sleepTime = 0;
   animation = false;
+  bCacheAnimFrames = false;
   specifiedMinMax = false;
   specifiedMin = 0.0;
   specifiedMax = 1.0;
@@ -671,6 +674,10 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
 #    if (BL_SPACEDIM == 2)
     } else if(strcmp(argv[i],"-a") == 0) {
       animation = true; 
+      bCacheAnimFrames = true;
+    } else if(strcmp(argv[i],"-anc") == 0) {
+      animation = true; 
+      bCacheAnimFrames = false;
 #   endif
     } else if(strcmp(argv[i],"-fab") == 0) {
       fileType = FAB;
@@ -998,6 +1005,7 @@ bool AVGlobals::IsSGIrgbFile() { return SGIrgbfile; }
 
 void AVGlobals::SetAnimation() { animation = true; }
 bool AVGlobals::IsAnimation()  { return animation; }
+bool AVGlobals::CacheAnimFrames()  { return bCacheAnimFrames; }
 
 Box AVGlobals::GetBoxFromCommandLine() { return comlinebox; }
 

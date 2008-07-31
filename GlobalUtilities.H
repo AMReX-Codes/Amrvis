@@ -1,6 +1,6 @@
 
 //
-// $Id: GlobalUtilities.H,v 1.24 2007-08-28 00:35:24 vince Exp $
+// $Id: GlobalUtilities.H,v 1.25 2008-07-31 22:12:37 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -45,6 +45,7 @@ namespace AVGlobals {
 			 const Real &maxRayOpacityDef);
   void SetAnimation();
   bool IsAnimation();
+  bool CacheAnimFrames();
   void SetSGIrgbFile();
   void ClearSGIrgbFile();
   bool IsSGIrgbFile();
