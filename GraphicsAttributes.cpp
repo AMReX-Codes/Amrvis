@@ -1,6 +1,6 @@
 
 //
-// $Id: GraphicsAttributes.cpp,v 1.20 2008-07-15 20:55:35 vince Exp $
+// $Id: GraphicsAttributes.cpp,v 1.21 2008-07-31 22:14:28 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -78,11 +78,12 @@ GraphicsAttributes::GraphicsAttributes(Widget topLevel)
     red_shift = buildShift(visual_info.red_mask);
     green_shift = buildShift(visual_info.green_mask);
     blue_shift = buildShift(visual_info.blue_mask);
+    //cout << "***************** depth = " << depth << endl;
   } else {
     status = XMatchVisualInfo(display, DefaultScreen(display),
 			      8, PseudoColor, &visual_info);
     if(status != 0) {
-      //cout << "***************** using PseudoColor visual" << endl;
+      cout << "***************** using PseudoColor visual" << endl;
       visual = visual_info.visual;
       depth = 8;
       red_shift   = 0;
