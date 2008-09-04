@@ -55,6 +55,7 @@ ifeq ($(WHICHLINUX), DAVINCI)
   INCLUDE_LOCATIONS += /usr/common/graphics/openmotif/include/Xm
   LIBRARY_LOCATIONS += /usr/X11R6/lib 
   LIBRARY_LOCATIONS += /usr/common/graphics/openmotif/lib
+  LIBRARIES += -lXm -lXp -lXt -lXext -lSM -lICE -lXpm -lX11
 endif
 
 ifeq ($(MACHINE), Darwin)
