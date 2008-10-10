@@ -1,6 +1,6 @@
 
 //
-// $Id: VolRender.cpp,v 1.54 2007-05-02 20:47:37 vince Exp $
+// $Id: VolRender.cpp,v 1.55 2008-10-10 21:58:59 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -666,8 +666,7 @@ void VolRender::WriteSWFData(const string &filenamebase, bool SWFLight) {
     lightingModel = bLMtemp;
    
     cout << "----- make vp data time = " << ((clock() - time0)/1000000.0) << endl;
-    string filename = "swf.";
-    filename += filenamebase;
+    string filename = filenamebase;
     filename += (SWFLight ? ".lt" : ".val" );
     filename += ".vpdat";
     cout << "----- storing classified volume into file:  " << filename << endl;
