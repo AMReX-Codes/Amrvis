@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.136 2008-07-31 22:12:37 vince Exp $
+// $Id: PltApp.cpp,v 1.137 2008-10-29 23:08:44 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -195,7 +195,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   pltAppState->SetMinDrawnLevel(minAllowableLevel);
   pltAppState->SetMaxDrawnLevel(maxlev);
   Box maxDomain(amrData.ProbDomain()[maxlev]);
-  unsigned long dataSize(maxDomain.length(XDIR) * maxDomain.length(YDIR));
+  unsigned long dataSize(static_cast<unsigned long>(maxDomain.length(XDIR)) *
+                         static_cast<unsigned long>(maxDomain.length(YDIR)));
   if(AVGlobals::MaxPictureSize() == 0) {
     maxAllowableScale = 1;
   } else  {

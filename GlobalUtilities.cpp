@@ -1,5 +1,5 @@
 //
-// $Id: GlobalUtilities.cpp,v 1.62 2008-07-31 22:12:37 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.63 2008-10-29 23:08:44 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1098,23 +1098,25 @@ int AVGlobals::DetermineMaxAllowableLevel(const Box &finestbox,
   unsigned long boxpoints;
   while(maxallowablelevel > 0) {
 #   if (BL_SPACEDIM == 2)
-      boxpoints = levelDomain.length(XDIR) * levelDomain.length(YDIR);
+      boxpoints = static_cast<unsigned long>(levelDomain.length(XDIR)) *
+                  static_cast<unsigned long>(levelDomain.length(YDIR));
 #   else
       unsigned long tempLength;
-      boxpoints = (unsigned long) levelDomain.length(XDIR) *
-                  (unsigned long) levelDomain.length(YDIR);
-      tempLength = (unsigned long) levelDomain.length(YDIR) *
-                   (unsigned long) levelDomain.length(ZDIR);
-      boxpoints = max(boxpoints, tempLength);
-      tempLength = levelDomain.length(XDIR) * levelDomain.length(ZDIR);
+      boxpoints  = static_cast<unsigned long>(levelDomain.length(XDIR)) *
+                   static_cast<unsigned long>(levelDomain.length(YDIR));
+      tempLength = static_cast<unsigned long>(levelDomain.length(YDIR)) *
+                   static_cast<unsigned long>(levelDomain.length(ZDIR));
+      boxpoints  = max(boxpoints, tempLength);
+      tempLength = static_cast<unsigned long>(levelDomain.length(XDIR)) *
+                   static_cast<unsigned long>(levelDomain.length(ZDIR));
       boxpoints = max(boxpoints, tempLength);
 #   endif
 
     if(boxpoints > maxpoints) {  // try next coarser level
       --maxallowablelevel;
       levelDomain = finestbox;
-      levelDomain.coarsen
-              (CRRBetweenLevels(maxallowablelevel, finestlevel, refratios));
+      levelDomain.coarsen(CRRBetweenLevels(maxallowablelevel, finestlevel,
+                                           refratios));
     } else {
       break;
     }
