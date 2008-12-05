@@ -41,6 +41,8 @@ INCLUDE_LOCATIONS += ../BoxLib
 
 DEFINES += -DBL_PARALLEL_IO
 
+CXXFLAGS += -wd1881
+
 ############################################### x includes and libraries
 ifeq ($(MACHINE), OSF1)
   LIBRARIES += -lXm -lXt -lX11
@@ -55,7 +57,7 @@ ifeq ($(WHICHLINUX), DAVINCI)
   INCLUDE_LOCATIONS += /usr/common/graphics/openmotif/include/Xm
   LIBRARY_LOCATIONS += /usr/X11R6/lib 
   LIBRARY_LOCATIONS += /usr/common/graphics/openmotif/lib
-  LIBRARIES += -lXm -lXp -lXt -lXext -lSM -lICE -lXpm -lX11
+# LIBRARIES += -lXm -lXp -lXt -lXext -lSM -lICE -lXpm -lX11
 endif
 
 ifeq ($(MACHINE), Darwin)
@@ -65,11 +67,22 @@ ifeq ($(MACHINE), Darwin)
   LIBRARIES += -lXm -lXp -lXt                         -lX11
   LDFLAGS   += -bind_at_load
 endif
-ifeq ($(WHICHLINUX), HOMER)
+ifeq ($(MACHINE), Linux)
+  ifeq ($(WHICHLINUX), HOMER)
   LIBRARY_LOCATIONS += /usr/lib64
   INCLUDE_LOCATIONS += /usr/include/Xm
   INCLUDE_LOCATIONS += /usr/include/
+  else
+  #INCLUDE_LOCATIONS += /usr/X11R6/include
+  #LIBRARY_LOCATIONS += /usr/X11R6/lib
+  LIBRARY_LOCATIONS += /usr/lib64
+  INCLUDE_LOCATIONS += /usr/include/Xm
+  INCLUDE_LOCATIONS += /usr/include/
+  endif
   LIBRARIES += -lXm -lXp -lXt -lXext -lSM -lICE -lXpm -lX11
+  # Joe Grcar 1/9/03: per Vince, the following line is needed on battra
+  # so I have left it here in commented-out form.
+  # LIBRARIES += -LlibXm.so.2.1
 endif
 
 ifeq ($(MACHINE), AIX)
@@ -105,9 +118,6 @@ endif
 
 # JFG: this line is needed on hive
 # LIBRARY_LOCATIONS += /usr/X11R6/lib64
-#  # Joe Grcar 1/9/03: per Vince, the following line is needed on battra
-#  # so I have left it here in commented-out form.
-#  # LIBRARIES += -LlibXm.so.2.1
 
 ############################################### arrayview
 ifeq (USE_ARRAYVIEW, TRUE)
