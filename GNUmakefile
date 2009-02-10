@@ -2,19 +2,20 @@ PRECISION = FLOAT
 PRECISION = DOUBLE
 PROFILE   = TRUE
 PROFILE   = FALSE
-COMP	  = xlC
-FCOMP     = xlf
 COMP      = CC
 FCOMP     = ftn
-COMP      = g++
-FCOMP     = g77
 # for davinci (after module load intel)
 COMP      = Intel
 FCOMP     = Intel
+COMP	  = xlC
+FCOMP     = xlf
+COMP      = g++
+FCOMP     = gfortran
 DEBUG     = TRUE
 DEBUG     = FALSE
 DIM       = 2
 DIM       = 3
+
 
 USE_ARRAYVIEW = TRUE
 USE_ARRAYVIEW = FALSE
@@ -68,17 +69,17 @@ ifeq ($(MACHINE), Darwin)
   LDFLAGS   += -bind_at_load
 endif
 ifeq ($(MACHINE), Linux)
-  ifeq ($(WHICHLINUX), HOMER)
-  LIBRARY_LOCATIONS += /usr/lib64
-  INCLUDE_LOCATIONS += /usr/include/Xm
-  INCLUDE_LOCATIONS += /usr/include/
+  ifeq ($(WHICHLINUX), INTREPID)
+  # NOTE: on intrepid, use g++ and gfortran
+  LIBRARY_LOCATIONS += /usr/X11/lib
+  INCLUDE_LOCATIONS += /usr/X11/include
+  LIBRARY_LOCATIONS += /usr/lib
   else
-  #INCLUDE_LOCATIONS += /usr/X11R6/include
-  #LIBRARY_LOCATIONS += /usr/X11R6/lib
   LIBRARY_LOCATIONS += /usr/lib64
   INCLUDE_LOCATIONS += /usr/include/Xm
   INCLUDE_LOCATIONS += /usr/include/
   endif
+
   LIBRARIES += -lXm -lXp -lXt -lXext -lSM -lICE -lXpm -lX11
   # Joe Grcar 1/9/03: per Vince, the following line is needed on battra
   # so I have left it here in commented-out form.
