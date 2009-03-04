@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.78 2008-07-15 20:59:45 vince Exp $
+// $Id: AmrData.cpp,v 1.79 2009-03-04 23:19:48 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -110,6 +110,7 @@ using std::ifstream;
 #endif
 
 
+#if (BL_SPACEDIM != 1)
 extern "C" {
   void FORT_CINTERP(Real *fine, ARLIM_P(flo), ARLIM_P(fhi),
                   const int *fblo, const int *fbhi,
@@ -132,6 +133,7 @@ extern "C" {
 		            const Real *vfrac, const Real &vfeps,
 		            Real &dmin, Real &dmax);
 }
+#endif
 
 
 bool AmrData::verbose = false;
@@ -1291,6 +1293,7 @@ void AmrData::FillVar(Array<FArrayBox *> &destFabs, const Array<Box> &destBoxes,
 //
 
    BL_ASSERT(finestFillLevel >= 0 && finestFillLevel <= finestLevel);
+   BL_ASSERT(procWithFabs >= 0 && procWithFabs < ParallelDescriptor::NProcs());
    for(int iIndex(0); iIndex < destBoxes.size(); ++iIndex) {
      BL_ASSERT(probDomain[finestFillLevel].contains(destBoxes[iIndex]));
    }
@@ -1710,6 +1713,9 @@ bool AmrData::MinMax(const Box &onBox, const string &derived, int level,
     }
 
   } else if(bCartGrid && (compIndex != StateNumber("vfrac"))) {
+#if (BL_SPACEDIM == 1)
+    BoxLib::Abort("AmrData::MinMax:  should not be here for 1d.");
+#else
     int iCount(0), iCountAllBody(0), iCountAllFluid(0), iCountMixed(0);
     int iCountMixedSkipped(0), iCountMixedFort(0);
     int cCount(0), cCountAllBody(0), cCountAllFluid(0), cCountMixed(0);
@@ -1841,6 +1847,7 @@ bool AmrData::MinMax(const Box &onBox, const string &derived, int level,
       }
       cout << endl << endl;
     }
+#endif
 
   } else {
     for(MFIter gpli(*dataGrids[level][compIndex]); gpli.isValid(); ++gpli) {
@@ -1915,6 +1922,9 @@ int AmrData::StateNumber(const string &statename) const {
 void AmrData::Interp(FArrayBox &fine, FArrayBox &crse,
                      const Box &fine_box, int lrat)
 {
+#if (BL_SPACEDIM == 1)
+    BoxLib::Abort("AmrData::MinMax:  should not be here for 1d.");
+#else
    BL_ASSERT(fine.box().contains(fine_box));
    Box crse_bx(BoxLib::coarsen(fine_box,lrat));
    Box fslope_bx(BoxLib::refine(crse_bx,lrat));
@@ -1955,6 +1965,7 @@ void AmrData::Interp(FArrayBox &fine, FArrayBox &crse,
 
    delete [] fdat;
    delete [] cslope;
+#endif
 }
 
 
@@ -1962,6 +1973,9 @@ void AmrData::Interp(FArrayBox &fine, FArrayBox &crse,
 void AmrData::PcInterp(FArrayBox &fine, const FArrayBox &crse,
                        const Box &subbox, int lrat)
 {
+#if (BL_SPACEDIM == 1)
+    BoxLib::Abort("AmrData::MinMax:  should not be here for 1d.");
+#else
    BL_ASSERT(fine.box().contains(subbox));
    BL_ASSERT(fine.nComp() == crse.nComp());
    Box cfine(crse.box());
@@ -1991,6 +2005,7 @@ void AmrData::PcInterp(FArrayBox &fine, const FArrayBox &crse,
 
       delete [] tempSpace;
    }
+#endif
 }
 
 
