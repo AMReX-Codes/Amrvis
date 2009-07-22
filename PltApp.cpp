@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.137 2008-10-29 23:08:44 vince Exp $
+// $Id: PltApp.cpp,v 1.138 2009-07-22 19:34:08 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -872,8 +872,8 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			    XmNleftOffset,       0,
 			    XmNrightOffset,      0,
 			    XmNbottomOffset,     0,
-			    //XmNbackground,       pltPaletteptr->BlackIndex(),
 			    XmNbackground,       pltPaletteptr->AVBlackPixel(),
+			    XmNforeground,       pltPaletteptr->AVWhitePixel(),
 			    XmNlabelString,      label_str,
 			    NULL);
   XmStringFree(label_str);
