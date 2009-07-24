@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.43 2007-08-28 00:35:24 vince Exp $
+// $Id: DataServices.cpp,v 1.44 2009-07-24 23:19:57 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1121,10 +1121,11 @@ void DataServices::LineValues(int lineBoxArraySize, Box *lineBoxArray, int which
       if(lineBoxArray[lev].intersects(intersectedBA[iGrid])) {
         bLineIsValid = true;
         FArrayBox *destFab = NULL;
+        Box destFabBox(lineBoxArray[lev] & intersectedBA[iGrid]);
         if(ParallelDescriptor::IOProcessor()) {
-          destFab = new FArrayBox(lineBoxArray[lev] & intersectedBA[iGrid], 1);
+          destFab = new FArrayBox(destFabBox, 1);
         }
-        amrData.FillVar(destFab, destFab->box(),
+        amrData.FillVar(destFab, destFabBox,
                         lev, currentDerived,
                         ParallelDescriptor::IOProcessorNumber());
         if(ParallelDescriptor::IOProcessor()) {
