@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.H,v 1.20 2007-08-28 00:35:24 vince Exp $
+// $Id: DataServices.H,v 1.21 2009-08-18 22:23:47 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -45,6 +45,8 @@ class DataServices {
     };
 
     DataServices(const string &filename, const FileType &filetype);
+    DataServices();
+    void Init(const string &filename, const FileType &filetype);
     ~DataServices();
 
     static void SetBatchMode();
@@ -129,8 +131,8 @@ class DataServices {
 
 
   private:
-    const string fileName;
-    const FileType fileType;
+    string fileName;
+    FileType fileType;
     AmrData amrData;
     bool bAmrDataOk;
     int dsArrayIndex;

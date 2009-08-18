@@ -1096,7 +1096,17 @@ void XYPlotWin::drawGridAndAxis() {
   dYStart = InitGrid(dUsrOrgY, dUsrOppY, dYIncr);
   int iLoopCheck(0);
   for(dYIndex = 0.0; dYIndex < (dUsrOppY - dYStart); dYIndex += dGridStep) {
-    Yspot = SCREENY(dYIndex + dYStart);
+    //Yspot = SCREENY(dYIndex + dYStart);
+Yspot = (iXOppY - ((int) (((dYIndex + dYStart) - dUsrOrgY)/dYUnitsPerPixel + 0.5)));
+/*
+VSHOWVAL(iXOppY);
+VSHOWVAL(dYIndex);
+VSHOWVAL(dYStart);
+VSHOWVAL(dUsrOrgY);
+VSHOWVAL(dYUnitsPerPixel);
+VSHOWVAL(Yspot);
+cout << endl;
+*/
     // Write the axis label
     writeValue(value, formatY, (dYIndex + dYStart), expY);
     textX(wPlotWin, iXOrgX - devInfo.bdrPad, Yspot, value, T_RIGHT, T_AXIS);

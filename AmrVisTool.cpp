@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.74 2008-03-19 23:09:08 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.75 2009-08-18 22:23:47 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -189,23 +189,28 @@ int main(int argc, char *argv[]) {
       // loop through the command line list of plot files
       FileType fileType = AVGlobals::GetDefaultFileType();
       BL_ASSERT(fileType != INVALIDTYPE);
+
+      Array<DataServices *> dspArray(AVGlobals::GetFileCount());
       for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {
         comlineFileName = AVGlobals::GetComlineFilename(nPlots);
         if(ParallelDescriptor::IOProcessor()) {
           cout << endl << "FileName = " << comlineFileName << endl;
         }
-	Array<DataServices *> dspArray(1);
-	dspArray[0] = new DataServices(comlineFileName, fileType);
+	dspArray[nPlots] = new DataServices(comlineFileName, fileType);
+      }
 
+      for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {
         if(ParallelDescriptor::IOProcessor()) {
-	  if(dspArray[0]->AmrDataOk()) {
+	  if(dspArray[nPlots]->AmrDataOk()) {
+	    Array<DataServices *> dspArrayOne(1);
+	    dspArrayOne[0] = dspArray[nPlots];
             PltApp *temp = new PltApp(app, wTopLevel, comlineFileName,
-			              dspArray, AVGlobals::IsAnimation());
+			              dspArrayOne, AVGlobals::IsAnimation());
 	    if(temp == NULL) {
 	      cerr << "Error:  could not make a new PltApp." << endl;
 	    } else {
               pltAppList.push_back(temp);
-              dspArray[0]->IncrementNumberOfUsers();
+              dspArray[nPlots]->IncrementNumberOfUsers();
               if(AVGlobals::GivenBox()) {
 		DataServices *dsp = temp->GetDataServicesPtr();
 	        const AmrData &amrData = dsp->AmrDataRef();
@@ -570,14 +575,17 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
   sprintf(buffer, "Selected file = %s\n", filename);
   messageText.PrintText(buffer);
 
-  DataServices *dataServicesPtr = new DataServices(filename,
-                                          AVGlobals::GetDefaultFileType());
+  DataServices *dataServicesPtr = new DataServices();
+  dataServicesPtr->Init(filename, AVGlobals::GetDefaultFileType());
+
   DataServices::Dispatch(DataServices::NewRequest, dataServicesPtr, NULL);
 
   Array<DataServices *> dspArray(1);
   dspArray[0] = dataServicesPtr;
   bool bIsAnim(false);
+
   PltApp *temp = new PltApp(app, wTopLevel, filename, dspArray, bIsAnim);
+
   if(temp == NULL) {
     cerr << "Error:  could not make a new PltApp." << endl;
   } else {

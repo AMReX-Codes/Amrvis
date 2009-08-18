@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.138 2009-07-22 19:34:08 vince Exp $
+// $Id: PltApp.cpp,v 1.139 2009-08-18 22:23:47 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1368,7 +1368,6 @@ void PltApp::PltAppInit(bool bSubVolume) {
     XtVaSetValues(wTempDrawLevel, XmNset, true, NULL);
     ChangeLevel(wTempDrawLevel, (XtPointer)(pltAppState->MaxAllowableLevel()), NULL);
   }
-
 }  // end PltAppInit()
 
 

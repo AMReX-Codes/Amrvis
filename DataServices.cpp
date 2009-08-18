@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.44 2009-07-24 23:19:57 vince Exp $
+// $Id: DataServices.cpp,v 1.45 2009-08-18 22:23:47 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -32,6 +32,8 @@ int DataServices::dsArrayIndexCounter = 0;
 int DataServices::dsFabOutSize = 0;
 bool DataServices::dsBatchMode = false;
 
+
+// ---------------------------------------------------------------
 namespace ParallelDescriptor {
   template <> void Bcast (Box *b, size_t n, int root) {
     const int n3SDim(n * 3 * BL_SPACEDIM);
@@ -95,6 +97,25 @@ DataServices::DataServices(const string &filename, const FileType &filetype)
 
 
 // ---------------------------------------------------------------
+DataServices::DataServices() {
+  // must call init
+  bAmrDataOk = false;
+  iWriteToLevel = -1;
+}
+
+
+// ---------------------------------------------------------------
+void DataServices::Init(const string &filename, const FileType &filetype) {
+  fileName = filename;
+  fileType = filetype;
+  bAmrDataOk = false;
+  iWriteToLevel = -1;
+
+  numberOfUsers = 0;  // the user must do all incrementing and decrementing
+}
+
+
+// ---------------------------------------------------------------
 DataServices::~DataServices() {
   BL_ASSERT(numberOfUsers == 0);
   DataServices::dsArray[dsArrayIndex] = NULL;
@@ -131,7 +152,7 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     bContinueLooping = false;
   }
 
-  ParallelDescriptor::Barrier();  // procs 1 - N wait here
+  ParallelDescriptor::Barrier();  // nonioprocessors wait here
 
   {
     int tmp = requestType;
@@ -141,15 +162,14 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
 
   // handle new request
   if(requestType == NewRequest) {
-    // broadcast the fileName and fileType to procs 1 - N
+    // broadcast the fileName and fileType to nonioprocessors
     char *fileNameCharPtr;
-    int   fileNameLength, fileNameLengthPadded, checkArrayIndex;
-    FileType newFileType;
+    int   fileNameLength(-1), fileNameLengthPadded(-1);
+    FileType newFileType(INVALIDTYPE);
 
     if(ParallelDescriptor::IOProcessor()) {
       fileNameLength = ds->fileName.length();
       newFileType = ds->fileType;
-      checkArrayIndex = ds->dsArrayIndex;
     }
 
     ParallelDescriptor::Bcast(&fileNameLength, 1, 0);
@@ -159,8 +179,6 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
       ParallelDescriptor::Bcast(&tmp, 1, 0);
       newFileType = static_cast<FileType>(tmp);
     }
-
-    ParallelDescriptor::Bcast(&checkArrayIndex, 1, 0);
 
     fileNameLengthPadded = fileNameLength + 1;    // for the null
     fileNameLengthPadded += fileNameLengthPadded % 8;  // for alignment on the t3e
@@ -174,13 +192,23 @@ void DataServices::Dispatch(DSRequestType requestType, DataServices *ds, ...) {
     string newFileName(fileNameCharPtr);
     delete [] fileNameCharPtr;
 
-    // make a new DataServices for procs 1 - N
+    // make a new DataServices for nonioprocessors
     if( ! ParallelDescriptor::IOProcessor()) {
-      ds = new DataServices(newFileName, newFileType);
+      ds = new DataServices();
+      ds->Init(newFileName, newFileType);
     }
 
-    // verify dsArrayIndex is correct
-    BL_ASSERT(ds->dsArrayIndex == checkArrayIndex);
+    ds->bAmrDataOk = ds->amrData.ReadData(ds->fileName, ds->fileType);
+
+    if(ds->bAmrDataOk) {
+      ds->dsArrayIndex = DataServices::dsArrayIndexCounter;
+      ++DataServices::dsArrayIndexCounter;
+      DataServices::dsArray.resize(DataServices::dsArrayIndexCounter);
+      DataServices::dsArray[ds->dsArrayIndex] = ds;
+    } else {
+      cerr << "*** Error in DataServices NewRequest:  Bad AmrData." << endl;
+      continue;  // go to the top of the while loop
+    }
 
     continue;  // go to the top of the while loop
   }  // end NewRequest

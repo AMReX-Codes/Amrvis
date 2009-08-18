@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.93 2008-03-17 22:00:52 vince Exp $
+// $Id: AmrPicture.cpp,v 1.94 2009-08-18 22:23:47 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -2117,6 +2117,7 @@ SHOWVAL(whichAltDerived);
 SHOWVAL(maxDrawnLevel);
 //minUsing = 1.37e-11;
 //maxUsing = 3.96e-09;
+    passedSliceFab[lev]->copy(altDerFab);
 
 #else
     pltAppStatePtr->GetMinMax(minUsing, maxUsing);
