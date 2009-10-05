@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.79 2009-03-04 23:19:48 vince Exp $
+// $Id: AmrData.cpp,v 1.80 2009-10-05 22:48:03 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -195,10 +195,12 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
 
     string File = filename;
 
-#ifdef BL_PARALLEL_IO
+#ifdef BL_NO_PARALLEL_IO
+    // do nothing
+#else
     File += '/';
     File += "Header";
-#endif /*BL_PARALLEL_IO*/
+#endif
 
     VisMF::IO_Buffer io_buffer(VisMF::IO_Buffer_Size);
 
@@ -592,12 +594,14 @@ bool AmrData::ReadData(const string &filename, FileType filetype) {
         string mfNameRelative;
         isPltIn >> mfNameRelative;
         string mfName(fileName);
-#ifdef BL_PARALLEL_IO
+#ifdef BL_NO_PARALLEL_IO
+        // do nothing
+#else
         mfName += '/';
         mfName += mfNameRelative;
         VSHOWVAL(verbose, mfName);
         VSHOWVAL(verbose, mfNameRelative);
-#endif /* BL_PARALLEL_IO */
+#endif
 
         visMF[i].resize(currentVisMF + 1);  // this preserves previous ones
         visMF[i][currentVisMF] = new VisMF(mfName);
