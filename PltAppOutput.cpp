@@ -1,6 +1,6 @@
 
 //
-// $Id: PltAppOutput.cpp,v 1.37 2007-05-02 20:47:37 vince Exp $
+// $Id: PltAppOutput.cpp,v 1.38 2010-03-10 19:47:26 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -292,9 +292,9 @@ void PltApp::DoCreateAnimRGBFile() {
   } else {
     strcpy(suffix, "ppm");
   }
-  sprintf(outFileName, "%s_%s.%s", pltAppState->CurrentDerived().c_str(),
+  sprintf(outFileName, "%s_%s.F%05i.%s", pltAppState->CurrentDerived().c_str(),
 	  AVGlobals::StripSlashes(fileNames[currentFrame]).c_str(),
-	  suffix);
+	  currentFrame, suffix);
 
   cout << "******* Creating file:  " << outFileName << endl;
 
