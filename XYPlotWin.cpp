@@ -1700,8 +1700,8 @@ void XYPlotWin::CBdoOptions(Widget, XtPointer, XtPointer) {
 			      XmNleftWidget,       wOkButton,
 			      XmNleftOffset,       WOFFSET,
 			      NULL);
-    //AddStaticCallback(wApplyButton, XmNactivateCallback,
-		      //&XYPlotWin::CBdoOptionsOKButton, (XtPointer) 0);
+    AddStaticCallback(wApplyButton, XmNactivateCallback,
+		      &XYPlotWin::CBdoOptionsOKButton, (XtPointer) 1);
     
     Widget wCancelButton =
       XtVaCreateManagedWidget(" Cancel ", xmPushButtonGadgetClass,
