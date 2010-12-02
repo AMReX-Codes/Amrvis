@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.75 2009-08-18 22:23:47 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.76 2010-12-02 18:46:42 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -204,7 +204,7 @@ int main(int argc, char *argv[]) {
 	  if(dspArray[nPlots]->AmrDataOk()) {
 	    Array<DataServices *> dspArrayOne(1);
 	    dspArrayOne[0] = dspArray[nPlots];
-            PltApp *temp = new PltApp(app, wTopLevel, comlineFileName,
+            PltApp *temp = new PltApp(app, wTopLevel, dspArrayOne[0]->GetFileName(),
 			              dspArrayOne, AVGlobals::IsAnimation());
 	    if(temp == NULL) {
 	      cerr << "Error:  could not make a new PltApp." << endl;
@@ -223,7 +223,7 @@ int main(int argc, char *argv[]) {
 		if(itypComlineBox.ok()) {
                   SubregionPltApp(wTopLevel, comlineBox, comlineBox.smallEnd(),
 		         temp, temp->GetPaletteName(), AVGlobals::IsAnimation(),
-		         temp->GetPltAppState()->CurrentDerived(), comlineFileName);
+		         temp->GetPltAppState()->CurrentDerived(), dsp->GetFileName());
 		  CBQuitPltApp(NULL, temp, NULL);
 		} else {
 	          cerr << "Error:  bad subregion box on the command line:  "
