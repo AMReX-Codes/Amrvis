@@ -1,11 +1,13 @@
 
 //
-// $Id: ProjectionPicture.cpp,v 1.54 2006-02-03 18:42:18 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.55 2010-12-15 23:10:27 vince Exp $
 //
 
 // ---------------------------------------------------------------
 // ProjectionPicture.cpp
 // ---------------------------------------------------------------
+#include "ParallelDescriptor.H"
+
 #include <X11/X.h>
 
 #include "ProjectionPicture.H"

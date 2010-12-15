@@ -1,6 +1,8 @@
 // ---------------------------------------------------------------
 // XYPlotWin.cpp
 // ---------------------------------------------------------------
+#include "ParallelDescriptor.H"
+
 #include <Xm/AtomMgr.h>
 #include <Xm/Protocols.h>
 #include <Xm/Form.h>

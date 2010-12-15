@@ -1,6 +1,6 @@
 
 //
-// $Id: PltAppOutput.cpp,v 1.38 2010-03-10 19:47:26 vince Exp $
+// $Id: PltAppOutput.cpp,v 1.39 2010-12-15 23:10:27 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -8,6 +8,8 @@
 // ---------------------------------------------------------------
 
 #include <winstd.H>
+
+#include "ParallelDescriptor.H"
 
 #include <Xm/Xm.h>
 #include <Xm/SelectioB.h>

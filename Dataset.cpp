@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.cpp,v 1.58 2007-05-02 20:47:37 vince Exp $
+// $Id: Dataset.cpp,v 1.59 2010-12-15 23:10:27 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,6 +9,8 @@
 const int CHARACTERWIDTH  = 13;
 const int CHARACTERHEIGHT = 22;
 const int MAXINDEXCHARS   = 4;
+
+#include "ParallelDescriptor.H"
 
 #include <winstd.H>
 

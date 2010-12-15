@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.cpp,v 1.139 2009-08-18 22:23:47 vince Exp $
+// $Id: PltApp.cpp,v 1.140 2010-12-15 23:10:27 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -16,6 +16,7 @@
 #include "GraphicsAttributes.H"
 #include "ProjectionPicture.H"
 #include "XYPlotWin.H"
+#include "ParallelDescriptor.H"
 
 #include <Xm/Protocols.h>
 #include <Xm/ToggleBG.h>

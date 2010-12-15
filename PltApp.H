@@ -1,6 +1,6 @@
 
 //
-// $Id: PltApp.H,v 1.65 2005-04-07 20:34:15 vince Exp $
+// $Id: PltApp.H,v 1.66 2010-12-15 23:10:27 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -8,6 +8,8 @@
 // ---------------------------------------------------------------
 #ifndef _PLTAPP_H_
 #define _PLTAPP_H_
+
+#include "ParallelDescriptor.H"
 
 #include <Xm/Xm.h>
 #include <X11/Intrinsic.h>

@@ -1,11 +1,13 @@
 
 //
-// $Id: Output.cpp,v 1.38 2007-06-18 21:31:03 vince Exp $
+// $Id: Output.cpp,v 1.39 2010-12-15 23:10:27 vince Exp $
 //
 
 // ---------------------------------------------------------------
 // Output.cpp
 // ---------------------------------------------------------------
+#include "ParallelDescriptor.H"
+
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>

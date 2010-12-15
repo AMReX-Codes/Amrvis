@@ -1,6 +1,6 @@
 
 //
-// $Id: Dataset.H,v 1.31 2003-05-21 23:02:25 vince Exp $
+// $Id: Dataset.H,v 1.32 2010-12-15 23:10:27 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -9,10 +9,11 @@
 #ifndef _DATASET_H_
 #define _DATASET_H_
 
+#include "ParallelDescriptor.H"
+
 #include <Xm/Xm.h>
 #undef index
 
-#include "Dataset.H"
 #include "GlobalUtilities.H"
 #include "GraphicsAttributes.H"
 

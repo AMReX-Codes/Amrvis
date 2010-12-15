@@ -1,11 +1,13 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.76 2010-12-02 18:46:42 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.77 2010-12-15 23:10:27 vince Exp $
 //
 
 // ---------------------------------------------------------------
 // AmrVisTool.cpp
 // ---------------------------------------------------------------
+
+#include "ParallelDescriptor.H"
 
 #include <stdio.h>
 #if ! (defined(BL_OSF1) || defined(BL_Darwin) || defined(BL_AIX) || defined(BL_IRIX64) || defined(BL_CYGWIN_NT) || defined(BL_CRAYX1))
@@ -26,7 +28,6 @@
 #include "PltApp.H"
 #include "GlobalUtilities.H"
 #include "ParmParse.H"
-#include "ParallelDescriptor.H"
 #include "DataServices.H"
 #include "PltAppState.H"
 

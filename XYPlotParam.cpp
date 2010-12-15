@@ -1,6 +1,8 @@
 // -------------------------------------------------------------------
 // XYPlotParam.cpp -- implementation of XYPlotParameters class
 // -------------------------------------------------------------------
+#include "ParallelDescriptor.H"
+
 #include <X11/X.h>
 #include <limits>
 #undef index
