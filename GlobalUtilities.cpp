@@ -1,5 +1,5 @@
 //
-// $Id: GlobalUtilities.cpp,v 1.63 2008-10-29 23:08:44 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.64 2011-01-13 18:56:40 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -163,10 +163,14 @@ bool AVGlobals::ReadLightingFile(const string &lightdefaultsFile,
   ifstream defs(lightdefaultsFile.c_str());
 
   if(defs.fail()) {
-    cout << "Cannot find lighting defaults file:  " << lightdefaultsFile << endl;
+    if(ParallelDescriptor::IOProcessor()) {
+      cout << "Cannot find lighting defaults file:  " << lightdefaultsFile << endl;
+    }
     return false;
   } else {
-    cout << "Reading lighting defaults from:  " << lightdefaultsFile << endl;
+    if(ParallelDescriptor::IOProcessor()) {
+      cout << "Reading lighting defaults from:  " << lightdefaultsFile << endl;
+    }
 
     ws(defs);
     defs.getline(buffer, BUFSIZ, '\n');
@@ -275,22 +279,28 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
   defs.open(fullDefaultsFile.c_str());
 
   if(defs.fail()) {  // try ~ (tilde)
-    cout << "Cannot find amrvis defaults file:  " << fullDefaultsFile << endl;
+    if(ParallelDescriptor::IOProcessor()) {
+      cout << "Cannot find amrvis defaults file:  " << fullDefaultsFile << endl;
+    }
     fullDefaultsFile  = getenv("HOME");
     fullDefaultsFile += "/";
     fullDefaultsFile += defaultsFile;
     defs.clear();  // must do this to clear the fail bit
     defs.open(fullDefaultsFile.c_str());
     if(defs.fail()) {  // try ~/.  (hidden file)
-      cout << "Cannot find amrvis defaults file:  " << fullDefaultsFile << endl;
+      if(ParallelDescriptor::IOProcessor()) {
+        cout << "Cannot find amrvis defaults file:  " << fullDefaultsFile << endl;
+      }
       fullDefaultsFile  = getenv("HOME");
       fullDefaultsFile += "/.";
       fullDefaultsFile += defaultsFile;
       defs.clear();  // must do this to clear the fail bit
       defs.open(fullDefaultsFile.c_str());
       if(defs.fail()) {  // punt
-        cout << "Cannot find amrvis defaults file:  " << fullDefaultsFile << endl;
-        cout << "Using standard defaults." << endl;
+        if(ParallelDescriptor::IOProcessor()) {
+          cout << "Cannot find amrvis defaults file:  " << fullDefaultsFile << endl;
+          cout << "Using standard defaults." << endl;
+	}
         return;
       }
     }
@@ -443,11 +453,13 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
 	for(int ii(0); ii < BL_SPACEDIM; ++ii) {
           userVectorNames[ii] = tempStringSDim[ii];
 	}
-	cout << "Using velnames:  ";
-	for(int ii(0); ii < BL_SPACEDIM; ++ii) {
-          cout << userVectorNames[ii] << "  ";
+        if(ParallelDescriptor::IOProcessor()) {
+	  cout << "Using velnames:  ";
+	  for(int ii(0); ii < BL_SPACEDIM; ++ii) {
+            cout << userVectorNames[ii] << "  ";
+	  }
+	  cout << endl;
 	}
-	cout << endl;
       }
       else if(strcmp(defaultString, "setmomnames") == 0) {
 #if (BL_SPACEDIM == 2)
@@ -461,14 +473,17 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
 	for(int ii(0); ii < BL_SPACEDIM; ++ii) {
           userVectorNames[ii] = tempStringSDim[ii];
 	}
-	cout << "Using momnames:  ";
-	for(int ii(0); ii < BL_SPACEDIM; ++ii) {
-          cout << userVectorNames[ii] << "  ";
+        if(ParallelDescriptor::IOProcessor()) {
+	  cout << "Using momnames:  ";
+	  for(int ii(0); ii < BL_SPACEDIM; ++ii) {
+            cout << userVectorNames[ii] << "  ";
+	  }
+	  cout << endl;
 	}
-	cout << endl;
-      }
-      else {
-        cout << "bad default argument:  " << defaultString << endl;
+      } else {
+        if(ParallelDescriptor::IOProcessor()) {
+          cout << "bad default argument:  " << defaultString << endl;
+	}
       }
     }
 
@@ -482,6 +497,7 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
 
 // -------------------------------------------------------------------
 void PrintUsage(char *exname) {
+ if(ParallelDescriptor::IOProcessor()) {
   cout << endl;
   cout << exname << " [-help]" << endl;
   cout << "       [<file type flag>] [-v]" << endl;
@@ -553,7 +569,7 @@ void PrintUsage(char *exname) {
   cout << "                                     drawing vector plots." << endl;
   cout << "  -setmomnames xname yname (zname)   specify momentum names for" << endl;
   cout << "                                     drawing vector plots." << endl;
-  cout << "  -fabiosize nbits   write fabs with nbits (valid values are 8 and 32." << endl;
+  cout << "  -fabiosize nbits   write fabs with nbits (valid values are 1 (ascii), 8 or 32." << endl;
   cout << "                     the default is native (usually 64)." << endl;
   cout << "  -maxlev n          specify the maximum drawn level." << endl;
   cout << "  -palette palname   set the initial palette." << endl; 
@@ -582,6 +598,7 @@ void PrintUsage(char *exname) {
   cout << "  -useminmax min max       use min and max as the global min max values" << endl;
   cout << "  <filename(s)>      must be included if box is specified." << endl;
   cout << endl;
+ }
 
   exit(0);
 }
@@ -649,10 +666,10 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       ++i;
     } else if(strcmp(argv[i], "-fabiosize") == 0) {
       int iSize = atoi(argv[i+1]);
-      if(iSize == 8 || iSize == 32) {
+      if(iSize == 1 || iSize == 8 || iSize == 32) {
         fabIOSize = iSize;
       } else {
-	cerr << "Warning:  -fabiosize must be 8 or 32.  Defaulting to native."
+	cerr << "Warning:  -fabiosize must be 1, 8 or 32.  Defaulting to native."
 	     << endl;
         fabIOSize = 0;
       }
@@ -749,11 +766,13 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
 	for(int ii(0); ii < BL_SPACEDIM; ++ii) {
           userVectorNames[ii] = argv[i+1 + ii];
 	}
-	cout << "Using velnames:  ";
-	for(int ii(0); ii < BL_SPACEDIM; ++ii) {
-	  cout << userVectorNames[ii] << "  ";
+        if(ParallelDescriptor::IOProcessor()) {
+	  cout << "Using velnames:  ";
+	  for(int ii(0); ii < BL_SPACEDIM; ++ii) {
+	    cout << userVectorNames[ii] << "  ";
+	  }
+	  cout << endl;
 	}
-	cout << endl;
       }
       i += BL_SPACEDIM;
     } else if(strcmp(argv[i], "-setmomnames") == 0) {
@@ -764,11 +783,13 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
 	for(int ii(0); ii < BL_SPACEDIM; ++ii) {
           userVectorNames[ii] = argv[i+1 + ii];
 	}
-	cout << "Using momnames:  ";
-	for(int ii(0); ii < BL_SPACEDIM; ++ii) {
-	  cout << userVectorNames[ii] << "  ";
+        if(ParallelDescriptor::IOProcessor()) {
+	  cout << "Using momnames:  ";
+	  for(int ii(0); ii < BL_SPACEDIM; ++ii) {
+	    cout << userVectorNames[ii] << "  ";
+	  }
+	  cout << endl;
 	}
-	cout << endl;
       }
       i += BL_SPACEDIM;
     } else if(strcmp(argv[i], "-useminmax") == 0) {
@@ -778,8 +799,10 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       } else {
         specifiedMin = atof(argv[i+1]);
         specifiedMax = atof(argv[i+2]);
-	cout << "******* using min max = " << specifiedMin
-	     << "  " << specifiedMax << endl;
+        if(ParallelDescriptor::IOProcessor()) {
+	  cout << "******* using min max = " << specifiedMin
+	       << "  " << specifiedMax << endl;
+	}
       }
       i += 2;
     } else if(strcmp(argv[i],"-help") == 0) {
@@ -910,7 +933,9 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
         PrintUsage(argv[0]);
       } else {
         bodyOpacity = atof(argv[i+1]);
-	cout << "******* using bodyOpacity = " << bodyOpacity << endl;
+        if(ParallelDescriptor::IOProcessor()) {
+	  cout << "******* using bodyOpacity = " << bodyOpacity << endl;
+	}
       }
       ++i;
     } else if(strcmp(argv[i], "-cliptoppalette") == 0) {
@@ -950,8 +975,10 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
   if(givenBox || givenBoxSlice) {
 #if (BL_SPACEDIM == 2)
       if(atoi(clsx) > atoi(clbx) || atoi(clsy) > atoi(clby)) {
-        cout << "A sub-region box must be specified as:\n\t <small x> <small y> "
-	     << "<big x> <big y>\n" << endl;
+        if(ParallelDescriptor::IOProcessor()) {
+          cout << "A sub-region box must be specified as:\n\t <small x> <small y> "
+	       << "<big x> <big y>\n" << endl;
+	}
         exit(0);
       }
       comlinebox.setSmall(XDIR, atoi(clsx));
@@ -962,8 +989,10 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       if(atoi(clsx) > atoi(clbx) || atoi(clsy) > atoi(clby) || 
 	 atoi(clsz) > atoi(clbz))
       {
-        cout << "A sub-region box must be specified as:\n\t<small x> <small y>"
-	     << " <small z> <big x> <big y> <big z>" << endl;
+        if(ParallelDescriptor::IOProcessor()) {
+          cout << "A sub-region box must be specified as:\n\t<small x> <small y>"
+	       << " <small z> <big x> <big y> <big z>" << endl;
+	}
         exit(0);
       }
       comlinebox.setSmall(XDIR, atoi(clsx));
@@ -989,8 +1018,10 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
   } else {
     if(ParallelDescriptor::IOProcessor()) {
       if(verbose) {
-        cout << ">>>>>>> Setting file type to "
-             << FileTypeString[fileType] << "." << endl << endl;
+        if(ParallelDescriptor::IOProcessor()) {
+          cout << ">>>>>>> Setting file type to "
+               << FileTypeString[fileType] << "." << endl << endl;
+	}
       }
     }
   }
@@ -1125,7 +1156,9 @@ int AVGlobals::DetermineMaxAllowableLevel(const Box &finestbox,
   if(useMaxLevel) {
     imaxlev = std::min(maxLevel, maxallowablelevel);
     if(verbose) {
-      std::cout << "-------- using maxLevel = " << imaxlev << std::endl;
+      if(ParallelDescriptor::IOProcessor()) {
+        std::cout << "-------- using maxLevel = " << imaxlev << std::endl;
+      }
     }
   }
   return(imaxlev);

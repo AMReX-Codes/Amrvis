@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrPicture.cpp,v 1.94 2009-08-18 22:23:47 vince Exp $
+// $Id: AmrPicture.cpp,v 1.95 2011-01-13 18:56:40 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -836,6 +836,12 @@ void AmrPicture::DoExposePicture() {
     if(pendingTimeOut == 0) {
       XCopyArea(display, pixMap, pictureWindow, 
  		xgc, 0, 0, imageSizeH, imageSizeV, 0, 0); 
+
+    // alekstest:
+    //int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
+    //XPutImage(display, pictureWindow, xgc, xImageArray[maxDrawnLevel],
+              //0, 0, 0, 0, imageSizeH, imageSizeV);
+    //XFlush(display);
 
       DrawBoxes(gpArray, pictureWindow);
 

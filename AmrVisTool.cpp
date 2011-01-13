@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrVisTool.cpp,v 1.77 2010-12-15 23:10:27 vince Exp $
+// $Id: AmrVisTool.cpp,v 1.78 2011-01-13 18:56:40 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -101,6 +101,9 @@ int main(int argc, char *argv[]) {
     comlineBox = AVGlobals::GetBoxFromCommandLine();
   }
 
+  if(AVGlobals::GetFabOutFormat() == 1) {
+    DataServices::SetFabOutSize(1);
+  }
   if(AVGlobals::GetFabOutFormat() == 8) {
     DataServices::SetFabOutSize(8);
   }
@@ -347,7 +350,9 @@ void BatchFunctions() {
   // loop through the command line list of plot files
   for(int nPlots = 0; nPlots < AVGlobals::GetFileCount(); ++nPlots) {
     comlineFileName = AVGlobals::GetComlineFilename(nPlots);
-    cout << "FileName = " << comlineFileName << endl;
+    if(ParallelDescriptor::IOProcessor()) {
+      cout << "FileName = " << comlineFileName << endl;
+    }
     FileType fileType = AVGlobals::GetDefaultFileType();
     BL_ASSERT(fileType != INVALIDTYPE);
     DataServices dataServices(comlineFileName, fileType);
@@ -377,7 +382,9 @@ void BatchFunctions() {
       } else {
         maxDrawnLevel = amrData.FinestLevel();
       }
-      cout << "_in BatchFunctions:  using max level = " << maxDrawnLevel << endl;
+      if(ParallelDescriptor::IOProcessor()) {
+        cout << "_in BatchFunctions:  using max level = " << maxDrawnLevel << endl;
+      }
       Array<Box> drawDomain = amrData.ProbDomain();
 
       if(AVGlobals::GivenBox()) {
@@ -404,8 +411,10 @@ void BatchFunctions() {
       int iWhiteIndex(1);
       int iColorSlots(AVGlobals::MaxPaletteIndex() + 1 - iPaletteStart);
       Palette volPal(PALLISTLENGTH, PALWIDTH, TOTALPALWIDTH, TOTALPALHEIGHT, 0);
-      cout << "_in BatchFunctions:  palette name = "
-           << AVGlobals::GetPaletteName() << endl;
+      if(ParallelDescriptor::IOProcessor()) {
+        cout << "_in BatchFunctions:  palette name = "
+             << AVGlobals::GetPaletteName() << endl;
+      }
       volPal.ReadSeqPalette(AVGlobals::GetPaletteName(), false);
       VolRender volRender(drawDomain, minDrawnLevel, maxDrawnLevel, &volPal,
 			  AVGlobals::GetLightingFileName());

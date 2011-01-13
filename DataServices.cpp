@@ -1,6 +1,6 @@
 
 //
-// $Id: DataServices.cpp,v 1.45 2009-08-18 22:23:47 vince Exp $
+// $Id: DataServices.cpp,v 1.46 2011-01-13 18:56:40 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -130,10 +130,10 @@ void DataServices::SetBatchMode() {
 
 // ---------------------------------------------------------------
 void DataServices::SetFabOutSize(int iSize) {
-  if(iSize == 8 || iSize == 32) {
+  if(iSize == 1 || iSize == 8 || iSize == 32) {
     dsFabOutSize = iSize;
   } else {
-    cerr << "Warning:  DataServices::SetFabOutSize:  size must be 8 or 32 only."
+    cerr << "Warning:  DataServices::SetFabOutSize:  size must be 1, 8 or 32 only."
 	 << "  Defaulting to native." << endl;
     dsFabOutSize = 0;
   }
@@ -956,6 +956,9 @@ bool DataServices::WriteFab(const string &fname, const Box &region, int lev,
   bool bWF(true);
   if(ParallelDescriptor::IOProcessor()) {
     FABio::Format oldFabFormat = FArrayBox::getFormat();
+    if(dsFabOutSize == 1) {
+      FArrayBox::setFormat(FABio::FAB_ASCII);
+    }
     if(dsFabOutSize == 8) {
       FArrayBox::setFormat(FABio::FAB_8BIT);
     }
@@ -1020,6 +1023,9 @@ bool DataServices::WriteFab(const string &fname, const Box &region, int lev) {
   bool bWF(true);
   if(ParallelDescriptor::IOProcessor()) {
     FABio::Format oldFabFormat = FArrayBox::getFormat();
+    if(dsFabOutSize == 1) {
+      FArrayBox::setFormat(FABio::FAB_ASCII);
+    }
     if(dsFabOutSize == 8) {
       FArrayBox::setFormat(FABio::FAB_8BIT);
     }
