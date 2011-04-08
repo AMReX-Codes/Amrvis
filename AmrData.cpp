@@ -1,6 +1,6 @@
 
 //
-// $Id: AmrData.cpp,v 1.80 2009-10-05 22:48:03 vince Exp $
+// $Id: AmrData.cpp,v 1.81 2011-04-08 22:43:21 lijewski Exp $
 //
 
 // ---------------------------------------------------------------
@@ -1720,7 +1720,7 @@ bool AmrData::MinMax(const Box &onBox, const string &derived, int level,
 #if (BL_SPACEDIM == 1)
     BoxLib::Abort("AmrData::MinMax:  should not be here for 1d.");
 #else
-    int iCount(0), iCountAllBody(0), iCountAllFluid(0), iCountMixed(0);
+    int iCount(0), iCountAllBody(0);
     int iCountMixedSkipped(0), iCountMixedFort(0);
     int cCount(0), cCountAllBody(0), cCountAllFluid(0), cCountMixed(0);
     int cCountMixedSkipped(0), cCountMixedFort(0);
@@ -1781,7 +1781,6 @@ bool AmrData::MinMax(const Box &onBox, const string &derived, int level,
             overlap = onBox;
             overlap &= gpli.validbox();
             Real vfMaxVal = (*dataGrids[level][vfIndex])[gpli].max(overlap, 0);
-            Real vfMinVal = (*dataGrids[level][vfIndex])[gpli].min(overlap, 0);
             if(vfMaxVal >= vfEps[level]) {
 	      ++cCountMixedFort;
               valid = true;
@@ -1810,7 +1809,6 @@ bool AmrData::MinMax(const Box &onBox, const string &derived, int level,
           overlap = onBox;
           overlap &= gpli.validbox();
           Real vfMaxVal = (*dataGrids[level][vfIndex])[gpli].max(overlap, 0);
-          Real vfMinVal = (*dataGrids[level][vfIndex])[gpli].min(overlap, 0);
           if(vfMaxVal >= vfEps[level]) {
 	    ++iCountMixedFort;
             valid = true;
