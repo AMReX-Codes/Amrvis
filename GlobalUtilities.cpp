@@ -1,5 +1,5 @@
 //
-// $Id: GlobalUtilities.cpp,v 1.64 2011-01-13 18:56:40 vince Exp $
+// $Id: GlobalUtilities.cpp,v 1.65 2011-08-11 19:27:22 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -55,7 +55,7 @@ Real specifiedMax;
 bool useMaxLevel(false);
 int  maxLevel(-1);
 int  maxPaletteIndex;
-bool SGIrgbfile(true);
+bool SGIrgbfile(false);
 int  fabIOSize;
 bool bShowBody(true);
 Real bodyOpacity(0.05);
@@ -379,6 +379,12 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
           AVGlobals::ClearSGIrgbFile();
         }
       }
+      else if(strcmp(defaultString, "rgb") == 0) {
+        sscanf(buffer, "%s%s", defaultString, tempString);
+        if(*tempString == 't' || *tempString == 'T') {
+          AVGlobals::SetSGIrgbFile();
+        }
+      }
       else if(strcmp(defaultString, "boundarywidth") == 0) {
         sscanf(buffer, "%s%d", defaultString, &tempInt);
         boundaryWidth = tempInt;
@@ -522,7 +528,7 @@ void PrintUsage(char *exname) {
   cout << "       [-lowblack] [-showbody tf]"<< endl;
   cout << "       [-cliptoppalette]"<< endl;
   cout << "       [-fixdenormals]"<< endl;
-  cout << "       [-ppm]" << endl;
+  cout << "       [-ppm] [-rgb]" << endl;
 #if (BL_SPACEDIM == 3)
 #ifdef BL_VOLUMERENDER
     cout << "       [-boxcolor n]" << endl;
@@ -584,6 +590,7 @@ void PrintUsage(char *exname) {
   cout << "  -cliptoppalette    do not use the top palette index (for exceed)."<<endl;
   cout << "  -fixdenormals      always fix denormals when reading fabs."<<endl;
   cout << "  -ppm               output rasters using PPM file format."<<endl;
+  cout << "  -rgb               output rasters using RGB file format."<<endl;
 #if (BL_SPACEDIM == 3)
 #ifdef BL_VOLUMERENDER
   cout << "  -makeswf_light     make volume rendering data using the" << endl;
@@ -944,6 +951,8 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       RealDescriptor::SetFixDenormals();
     } else if(strcmp(argv[i], "-ppm") == 0) {
 	SGIrgbfile = false;
+    } else if(strcmp(argv[i], "-rgb") == 0) {
+	SGIrgbfile = true;
     } else if(strcmp(argv[i], "-sliceallvars") == 0) {
       sliceAllVars = true;
     } else if(i < argc) {
