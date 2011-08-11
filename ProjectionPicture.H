@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.H,v 1.23 2003-12-11 01:48:51 vince Exp $
+// $Id: ProjectionPicture.H,v 1.24 2011-08-11 19:39:05 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -43,11 +43,11 @@ class TransPoint {
 };
 
 
-class RealBox {
+class AVRealBox {
   public:
-    RealBox();
-    ~RealBox() { }
-    RealBox(const Box &theBox);
+    AVRealBox();
+    ~AVRealBox() { }
+    AVRealBox(const Box &theBox);
     RealPoint vertices[8];
 };
 
@@ -117,14 +117,14 @@ private:
   Widget	  drawingArea;
   AmrPicture     *amrPicturePtr;
   ViewTransform  *viewTransformPtr;
-  Array<Array<RealBox> > boxReal;
+  Array<Array<AVRealBox> > boxReal;
   Array<Array<TransBox> > boxTrans;
   Real longestBoxSide;
   
-  RealBox realBoundingBox;
+  AVRealBox realBoundingBox;
   TransBox transBoundingBox;
   
-  RealBox realSubCutBox;
+  AVRealBox realSubCutBox;
   TransBox transSubCutBox;
   
   RealSlice realSlice[3];

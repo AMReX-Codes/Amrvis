@@ -1,6 +1,6 @@
 
 //
-// $Id: ProjectionPicture.cpp,v 1.55 2010-12-15 23:10:27 vince Exp $
+// $Id: ProjectionPicture.cpp,v 1.56 2011-08-11 19:39:05 vince Exp $
 //
 
 // ---------------------------------------------------------------
@@ -99,7 +99,7 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
   Box alignedBox(theDomain[minDrawnLevel]);
   alignedBox.refine(AVGlobals::CRRBetweenLevels(minDrawnLevel, maxDataLevel,
 		     amrData.RefRatio()));
-  realBoundingBox = RealBox(alignedBox);
+  realBoundingBox = AVRealBox(alignedBox);
 
   LoadSlices(alignedBox);
 
@@ -153,7 +153,7 @@ void ProjectionPicture::ResetPalette(Palette *newpally) {
 
 // -------------------------------------------------------------------
 void ProjectionPicture::AddBox(const Box &theBox, int index, int level) {
-  boxReal[level][index] = RealBox(theBox);
+  boxReal[level][index] = AVRealBox(theBox);
 }
 
 
@@ -427,7 +427,7 @@ void ProjectionPicture::ToggleShowSubCut() {
 
 // -------------------------------------------------------------------
 void ProjectionPicture::SetSubCut(const Box &newbox) {
-  realSubCutBox = RealBox(newbox);
+  realSubCutBox = AVRealBox(newbox);
   MakeSubCutBox();
 }
 
@@ -504,12 +504,12 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
 //--------------------------------------------------------------------
 
 //--------------------------------------------------------------------
-RealBox::RealBox() {
+AVRealBox::AVRealBox() {
 }
 
 
 //--------------------------------------------------------------------
-RealBox::RealBox(const Box &theBox) {
+AVRealBox::AVRealBox(const Box &theBox) {
     Real dimensions[6] = { theBox.smallEnd(XDIR), theBox.smallEnd(YDIR),
                            theBox.smallEnd(ZDIR), theBox.bigEnd(XDIR)+1,
                            theBox.bigEnd(YDIR)+1, theBox.bigEnd(ZDIR)+1 };
