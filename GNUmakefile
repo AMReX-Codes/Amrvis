@@ -5,13 +5,15 @@ PRECISION = FLOAT
 PRECISION = DOUBLE
 PROFILE   = TRUE
 PROFILE   = FALSE
+
 COMP      = g++
 FCOMP     = gfortran
+
 DEBUG     = TRUE
 DEBUG     = FALSE
+
 DIM       = 2
 DIM       = 3
-
 
 USE_ARRAYVIEW = TRUE
 USE_ARRAYVIEW = FALSE
