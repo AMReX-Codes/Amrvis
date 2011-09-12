@@ -134,11 +134,6 @@ ifeq ($(PRECISION), FLOAT)
   endif
 endif
 
-#FDEBF += -fpe1
-#FOPTF  = -fpe1
-
-#XTRALIBS += 
-
 include $(HERE)/Make.package
 include $(BOXLIB_HOME)/Src/C_BaseLib/Make.package
 
@@ -151,3 +146,5 @@ vpath %.a   $(LIBRARY_LOCATIONS)
 all: $(executable)
 
 include $(BOXLIB_HOME)/Tools/C_mk/Make.rules
+### ------------------------------------------------------
+### ------------------------------------------------------
