@@ -61,7 +61,6 @@ ifeq ($(MACHINE), Linux)
   endif
 
   LIBRARIES += -lXm -lXp -lXt -lXext -lSM -lICE -lXpm -lX11
-  # LIBRARIES += -LlibXm.so.2.1
 endif
 
 ifeq ($(MACHINE), AIX)
