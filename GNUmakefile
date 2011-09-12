@@ -49,16 +49,9 @@ ifeq ($(WHICHLINUX), ATLAS)
 endif 
 
 ifeq ($(MACHINE), Linux)
-  ifeq ($(WHICHLINUX), INTREPID)
-  # NOTE: on intrepid, use g++ and gfortran
-  LIBRARY_LOCATIONS += /usr/X11/lib
-  INCLUDE_LOCATIONS += /usr/X11/include
-  LIBRARY_LOCATIONS += /usr/lib
-  else
   LIBRARY_LOCATIONS += /usr/lib64
   INCLUDE_LOCATIONS += /usr/include/Xm
   INCLUDE_LOCATIONS += /usr/include/
-  endif
 
   LIBRARIES += -lXm -lXp -lXt -lXext -lSM -lICE -lXpm -lX11
 endif
