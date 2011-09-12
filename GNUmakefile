@@ -1,14 +1,10 @@
+### ------------------------------------------------------
+### GNUmakefile for Amrvis
+### ------------------------------------------------------
 PRECISION = FLOAT
 PRECISION = DOUBLE
 PROFILE   = TRUE
 PROFILE   = FALSE
-COMP      = CC
-FCOMP     = ftn
-# for davinci (after module load intel)
-COMP      = Intel
-FCOMP     = Intel
-COMP	  = xlC
-FCOMP     = xlf
 COMP      = g++
 FCOMP     = gfortran
 DEBUG     = TRUE
@@ -29,20 +25,17 @@ USE_VOLRENDER = TRUE
 USE_PARALLELVOLRENDER = TRUE
 USE_PARALLELVOLRENDER = FALSE
 
-PBOXLIB_HOME = ..
-TOP = $(PBOXLIB_HOME)
+BOXLIB_HOME = ../BoxLib
 
-include ../mk/Make.defs
+include $(BOXLIB_HOME)/Tools/C_mk/Make.defs
 
 EBASE = amrvis
 HERE = .
 
 INCLUDE_LOCATIONS += $(HERE)
-INCLUDE_LOCATIONS += ../BoxLib
+INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/C_BaseLib
 
 DEFINES += -DBL_PARALLEL_IO
-
-CXXFLAGS += -wd1881
 
 ############################################### x includes and libraries
 ifeq ($(MACHINE), OSF1)
@@ -53,21 +46,6 @@ ifeq ($(WHICHLINUX), ATLAS)
   LIBRARY_LOCATIONS += /usr/X11R6/lib64
 endif 
 
-ifeq ($(WHICHLINUX), DAVINCI)
-  INCLUDE_LOCATIONS += /usr/common/graphics/openmotif/include
-  INCLUDE_LOCATIONS += /usr/common/graphics/openmotif/include/Xm
-  LIBRARY_LOCATIONS += /usr/X11R6/lib 
-  LIBRARY_LOCATIONS += /usr/common/graphics/openmotif/lib
-# LIBRARIES += -lXm -lXp -lXt -lXext -lSM -lICE -lXpm -lX11
-endif
-
-ifeq ($(MACHINE), Darwin)
-  INCLUDE_LOCATIONS += /usr/X11R6/include
-  LIBRARY_LOCATIONS += /usr/X11R6/lib
-# LIBRARIES += -lXm -lXp -lXt -lXext -lSM -lICE -lXpm -lX11
-  LIBRARIES += -lXm -lXp -lXt                         -lX11
-  LDFLAGS   += -bind_at_load
-endif
 ifeq ($(MACHINE), Linux)
   ifeq ($(WHICHLINUX), INTREPID)
   # NOTE: on intrepid, use g++ and gfortran
@@ -81,8 +59,6 @@ ifeq ($(MACHINE), Linux)
   endif
 
   LIBRARIES += -lXm -lXp -lXt -lXext -lSM -lICE -lXpm -lX11
-  # Joe Grcar 1/9/03: per Vince, the following line is needed on battra
-  # so I have left it here in commented-out form.
   # LIBRARIES += -LlibXm.so.2.1
 endif
 
@@ -92,18 +68,6 @@ ifeq ($(MACHINE), AIX)
   #INCLUDE_LOCATIONS += /usr/include/X11/Xaw
   LIBRARIES += -lXm -lXt -lX11
   DEFINES += -D_ALL_SOURCE
-endif
-
-ifeq ($(MACHINE),CRAYX1)
-  INCLUDE_LOCATIONS += /opt/ctl/motif/2.1.0.0/include
-  LIBRARY_LOCATIONS += /opt/ctl/motif/2.1.0.0/lib
-  LIBRARIES += -lXm
-  LIBRARIES += -lXp
-  LIBRARIES += -lXext
-  LIBRARIES += -lSM
-  LIBRARIES += -lICE
-  LIBRARIES += -lXt
-  LIBRARIES += -lX11
 endif
 
 ifeq ($(MACHINE), CYGWIN_NT)
@@ -140,11 +104,7 @@ ifeq ($(DIM),3)
   endif
   ifeq ($(USE_VOLRENDER), TRUE)
     DEFINES += -DBL_VOLUMERENDER
-    #VOLPACKDIR = ../../volpack-1.0b3
-    #VOLPACKDIR = $(PBOXLIB_HOME)/volpack
     VOLPACKDIR = ../volpack
-    #VOLPACKDIR = ../../volpack.test
-    #VOLPACKDIR = ../../volpack
     INCLUDE_LOCATIONS += $(VOLPACKDIR)
     LIBRARY_LOCATIONS += $(VOLPACKDIR)
     LIBRARIES += -lvolpack
@@ -180,17 +140,14 @@ endif
 #XTRALIBS += 
 
 include $(HERE)/Make.package
-#include $(PBOXLIB_HOME)/pBoxLib_2/Make.package
-include $(PBOXLIB_HOME)/BoxLib/Make.package
+include $(BOXLIB_HOME)/Src/C_BaseLib/Make.package
 
-#vpath %.cpp $(HERE) ../pBoxLib_2
-#vpath %.H $(HERE) ../pBoxLib_2
-vpath %.cpp $(HERE) ../BoxLib
-vpath %.H $(HERE) ../BoxLib
-vpath %.F $(HERE) ../BoxLib
-vpath %.f $(HERE) ../BoxLib
-vpath %.a $(LIBRARY_LOCATIONS)
+vpath %.cpp $(HERE) $(BOXLIB_HOME)/Src/C_BaseLib
+vpath %.H   $(HERE) $(BOXLIB_HOME)/Src/C_BaseLib
+vpath %.F   $(HERE) $(BOXLIB_HOME)/Src/C_BaseLib
+vpath %.f   $(HERE) $(BOXLIB_HOME)/Src/C_BaseLib
+vpath %.a   $(LIBRARY_LOCATIONS)
 
 all: $(executable)
 
-include ../mk/Make.rules
+include $(BOXLIB_HOME)/Tools/C_mk/Make.rules
