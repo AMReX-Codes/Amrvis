@@ -72,13 +72,8 @@ ifeq ($(MACHINE), AIX)
 endif
 
 ifeq ($(MACHINE), CYGWIN_NT)
-  #INCLUDE_LOCATIONS += /cygdrive/c/usr/X11R6/include
-  #LIBRARY_LOCATIONS += /cygdrive/c/usr/X11R6/lib
   INCLUDE_LOCATIONS += /usr/X11R6/include
   LIBRARY_LOCATIONS += /usr/X11R6/lib
-  #CXXFLAGS += -fpermissive
-  #CXXFLAGS += -x c++
-#  LDFLAGS += -noinhibit-exec
   LIBRARIES += -lXm -lXt -lSM -lICE -lXpm -lX11
 endif
 
