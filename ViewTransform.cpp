@@ -1,13 +1,8 @@
-
-//
-// $Id: ViewTransform.cpp,v 1.24 2004-05-05 20:39:11 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // ViewTransform.cpp
 // ---------------------------------------------------------------
-#include "ViewTransform.H"
-#include "Trackball.H"
+#include <ViewTransform.H>
+#include <Trackball.H>
 
 #include <iostream>
 #include <cmath>

@@ -1,22 +1,17 @@
-
-//
-// $Id: PltApp.cpp,v 1.140 2010-12-15 23:10:27 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // PltApp.cpp
 // ---------------------------------------------------------------
 
 #include <winstd.H>
 
-#include "PltApp.H"
-#include "PltAppState.H"
-#include "AmrPicture.H"
-#include "DataServices.H"
-#include "GraphicsAttributes.H"
-#include "ProjectionPicture.H"
-#include "XYPlotWin.H"
-#include "ParallelDescriptor.H"
+#include <PltApp.H>
+#include <PltAppState.H>
+#include <AmrPicture.H>
+#include <DataServices.H>
+#include <GraphicsAttributes.H>
+#include <ProjectionPicture.H>
+#include <XYPlotWin.H>
+#include <ParallelDescriptor.H>
 
 #include <Xm/Protocols.h>
 #include <Xm/ToggleBG.h>
@@ -65,10 +60,10 @@ const int MAXSCALE(32);
 
 #define MARK fprintf(stderr, "Mark at file %s, line %d.\n", __FILE__, __LINE__)
 
-static bool UsingFileRange(const MinMaxRangeType rt) {
-  return(rt == FILEGLOBALMINMAX    ||
-         rt == FILESUBREGIONMINMAX ||
-         rt == FILEUSERMINMAX);
+static bool UsingFileRange(const Amrvis::MinMaxRangeType rt) {
+  return(rt == Amrvis::FILEGLOBALMINMAX    ||
+         rt == Amrvis::FILESUBREGIONMINMAX ||
+         rt == Amrvis::FILEUSERMINMAX);
 }
 
 
@@ -76,14 +71,14 @@ static bool UsingFileRange(const MinMaxRangeType rt) {
 PltApp::~PltApp() {
   int np;
 #if (BL_SPACEDIM == 3)
-  for(np = 0; np != NPLANES; ++np) {
+  for(np = 0; np != Amrvis::NPLANES; ++np) {
     amrPicturePtrArray[np]->DoStop();
   }
 #endif
   if(animating2d) {
     StopAnimation();
   }
-  for(np = 0; np != NPLANES; ++np) {
+  for(np = 0; np != Amrvis::NPLANES; ++np) {
     delete amrPicturePtrArray[np];
   }
 #if (BL_SPACEDIM == 3)
@@ -110,7 +105,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 	       const Array<DataServices *> &dataservicesptr, bool isAnim)
   : wTopLevel(w),
     appContext(app),
-    currentRangeType(GLOBALMINMAX),
+    currentRangeType(Amrvis::GLOBALMINMAX),
     animating2d(isAnim),
     paletteDrawn(false),
     currentFrame(0),
@@ -130,8 +125,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 
   int i;
 
-  char header[BUFSIZ];
-  ostrstream headerout(header, BUFSIZ);
+  char header[Amrvis::BUFSIZE];
+  ostrstream headerout(header, Amrvis::BUFSIZE);
 
   if(animating2d) {
     animFrames = AVGlobals::GetFileCount(); 
@@ -152,7 +147,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   }
 
   pltAppState = new PltAppState(animFrames, amrData.NumDeriveFunc());
-  pltAppState->SetContourType(RASTERONLY);
+  pltAppState->SetContourType(Amrvis::RASTERONLY);
   pltAppState->SetCurrentFrame(currentFrame);
 
   // Set the delete response to DO_NOTHING so that it can be app defined.
@@ -196,8 +191,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   pltAppState->SetMinDrawnLevel(minAllowableLevel);
   pltAppState->SetMaxDrawnLevel(maxlev);
   Box maxDomain(amrData.ProbDomain()[maxlev]);
-  unsigned long dataSize(static_cast<unsigned long>(maxDomain.length(XDIR)) *
-                         static_cast<unsigned long>(maxDomain.length(YDIR)));
+  unsigned long dataSize(static_cast<unsigned long>(maxDomain.length(Amrvis::XDIR)) *
+                         static_cast<unsigned long>(maxDomain.length(Amrvis::YDIR)));
   if(AVGlobals::MaxPictureSize() == 0) {
     maxAllowableScale = 1;
   } else  {
@@ -208,7 +203,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   pltAppState->SetCurrentScale(currentScale);
   pltAppState->SetMaxScale(maxAllowableScale);
 
-  pltAppState->SetMinMaxRangeType(GLOBALMINMAX);
+  pltAppState->SetMinMaxRangeType(Amrvis::GLOBALMINMAX);
   Real rGlobalMin, rGlobalMax;
   rGlobalMin =  std::numeric_limits<Real>::max();
   rGlobalMax = -std::numeric_limits<Real>::max();
@@ -220,18 +215,18 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
     Real rFileMin, rFileMax;
 
-    FindAndSetMinMax(FILEGLOBALMINMAX, iFrame, asCDer, iCDerNum,
+    FindAndSetMinMax(Amrvis::FILEGLOBALMINMAX, iFrame, asCDer, iCDerNum,
 		     onBox, coarseLevel, fineLevel, false);  // dont reset if set
-    pltAppState->GetMinMax(FILEGLOBALMINMAX, iFrame, iCDerNum,
+    pltAppState->GetMinMax(Amrvis::FILEGLOBALMINMAX, iFrame, iCDerNum,
 			   rFileMin, rFileMax);
     rGlobalMin = min(rFileMin, rGlobalMin);
     rGlobalMax = max(rFileMax, rGlobalMax);
 
     // also set FILESUBREGIONMINMAXs and FILEUSERMINMAXs to the global values
-    pltAppState->SetMinMax(FILESUBREGIONMINMAX, iFrame,
+    pltAppState->SetMinMax(Amrvis::FILESUBREGIONMINMAX, iFrame,
 			   pltAppState->CurrentDerivedNumber(),
 			   rFileMin, rFileMax);
-    pltAppState->SetMinMax(FILEUSERMINMAX, iFrame,
+    pltAppState->SetMinMax(Amrvis::FILEUSERMINMAX, iFrame,
 			   pltAppState->CurrentDerivedNumber(),
 			   rFileMin, rFileMax);
   }  // end for(iFrame...)
@@ -239,43 +234,43 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   // now set global values for each file in the animation
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
     // set GLOBALMINMAXs
-    pltAppState->SetMinMax(GLOBALMINMAX, iFrame,
+    pltAppState->SetMinMax(Amrvis::GLOBALMINMAX, iFrame,
 			   pltAppState->CurrentDerivedNumber(),
 			   rGlobalMin, rGlobalMax);
     // also set SUBREGIONMINMAXs and USERMINMAXs to the global values
-    pltAppState->SetMinMax(SUBREGIONMINMAX, iFrame,
+    pltAppState->SetMinMax(Amrvis::SUBREGIONMINMAX, iFrame,
 			   pltAppState->CurrentDerivedNumber(),
 			   rGlobalMin, rGlobalMax);
-    pltAppState->SetMinMax(USERMINMAX, iFrame,
+    pltAppState->SetMinMax(Amrvis::USERMINMAX, iFrame,
 			   pltAppState->CurrentDerivedNumber(),
 			   rGlobalMin, rGlobalMax);
   }  // end for(iFrame...)
 
   if(AVGlobals::UseSpecifiedMinMax()) {
-    pltAppState->SetMinMaxRangeType(USERMINMAX);
+    pltAppState->SetMinMaxRangeType(Amrvis::USERMINMAX);
     Real specifiedMin, specifiedMax;
     AVGlobals::GetSpecifiedMinMax(specifiedMin, specifiedMax);
     for(int iFrame(0); iFrame < animFrames; ++iFrame) {
-      pltAppState->SetMinMax(USERMINMAX, iFrame,
+      pltAppState->SetMinMax(Amrvis::USERMINMAX, iFrame,
 			     pltAppState->CurrentDerivedNumber(),
 			     specifiedMin, specifiedMax);
-      pltAppState->SetMinMax(FILEUSERMINMAX, iFrame,
+      pltAppState->SetMinMax(Amrvis::FILEUSERMINMAX, iFrame,
 			     pltAppState->CurrentDerivedNumber(),
 			     specifiedMin, specifiedMax);
     }
   }
 
 
-  amrPicturePtrArray[ZPLANE] = new AmrPicture(gaPtr, this, pltAppState,
+  amrPicturePtrArray[Amrvis::ZPLANE] = new AmrPicture(gaPtr, this, pltAppState,
 					dataServicesPtr[currentFrame],
 					bCartGridSmoothing);
 #if (BL_SPACEDIM == 3)
-  amrPicturePtrArray[YPLANE] = new AmrPicture(YPLANE, gaPtr,
+  amrPicturePtrArray[Amrvis::YPLANE] = new AmrPicture(Amrvis::YPLANE, gaPtr,
 					amrData.ProbDomain()[finestLevel],
 					NULL, this,
 					pltAppState,
 					bCartGridSmoothing);
-  amrPicturePtrArray[XPLANE] = new AmrPicture(XPLANE, gaPtr,
+  amrPicturePtrArray[Amrvis::XPLANE] = new AmrPicture(Amrvis::XPLANE, gaPtr,
 					amrData.ProbDomain()[finestLevel],
 					NULL, this,
 					pltAppState,
@@ -323,7 +318,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 #endif
   contourNumString = pltParent->contourNumString.c_str();
 
-  char header[BUFSIZ];
+  char header[Amrvis::BUFSIZE];
 
   bCartGridSmoothing = pltParent->bCartGridSmoothing;
   int finestLevel(amrData.FinestLevel());
@@ -349,7 +344,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
                       amrData.RefRatio()));
   }
 
-  unsigned long dataSize(maxDomain.length(XDIR) * maxDomain.length(YDIR));
+  unsigned long dataSize(maxDomain.length(Amrvis::XDIR) * maxDomain.length(Amrvis::YDIR));
   if(AVGlobals::MaxPictureSize() / dataSize == 0) {
     maxAllowableScale = 1;
   } else {
@@ -384,11 +379,11 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     // these do not change for a subregion
 
     // set FILESUBREGIONMINMAX
-    FindAndSetMinMax(FILESUBREGIONMINMAX, iFrame, asCDer, iCDerNum, onBox,
+    FindAndSetMinMax(Amrvis::FILESUBREGIONMINMAX, iFrame, asCDer, iCDerNum, onBox,
 	             coarseLevel, fineLevel, true);  // reset if already set
 
     Real rTempMin, rTempMax;
-    pltAppState->GetMinMax(FILESUBREGIONMINMAX, iFrame, iCDerNum,
+    pltAppState->GetMinMax(Amrvis::FILESUBREGIONMINMAX, iFrame, iCDerNum,
 			   rTempMin, rTempMax);
     // collect file values
     rSMin = min(rSMin, rTempMin);
@@ -396,7 +391,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   }
   // now set each frame's SUBREGIONMINMAX to the overall subregion minmax
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
-    pltAppState->SetMinMax(SUBREGIONMINMAX, iFrame, iCDerNum, rSMin, rSMax);
+    pltAppState->SetMinMax(Amrvis::SUBREGIONMINMAX, iFrame, iCDerNum, rSMin, rSMax);
   }
 // ---------------
 
@@ -409,7 +404,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     timeOut << "   T = " << amrData.Time() << ends;
   }
 
-  ostrstream headerout(header, BUFSIZ);
+  ostrstream headerout(header, Amrvis::BUFSIZE);
     
   headerout << AVGlobals::StripSlashes(fileName) << timestr << "  Subregion:  "
 	    << maxDomain << "  on level " << maxlev << ends;
@@ -435,7 +430,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   if(gaPtr->PVisual() != XDefaultVisual(display, gaPtr->PScreenNumber())) {
     XtVaSetValues(wAmrVisTopLevel, XmNvisual, gaPtr->PVisual(), XmNdepth, 8, NULL);
   }
-  for(int np(0); np < NPLANES; ++np) {
+  for(int np(0); np < Amrvis::NPLANES; ++np) {
     amrPicturePtrArray[np] = new AmrPicture(np, gaPtr, region,
 					    pltParent, this,
 					    pltAppState,
@@ -458,7 +453,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   int minAllowableLevel(pltAppState->MinAllowableLevel());
   int maxAllowableLevel(pltAppState->MaxAllowableLevel());
-  wRangeRadioButton.resize(BNUMBEROFMINMAX);
+  wRangeRadioButton.resize(Amrvis::BNUMBEROFMINMAX);
 
   // User defined widget destroy callback -- will free all memory used to create
   // window.
@@ -481,7 +476,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   placementOffsetY += 20;
   
   servingButton = 0;
-  activeView = ZPLANE;
+  activeView = Amrvis::ZPLANE;
   int maxDrawnLevel(maxAllowableLevel);
   startX = 0;
   startY = 0;
@@ -498,7 +493,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   selectionBox.setSmall(IntVect::TheZeroVector());
   selectionBox.setBig(IntVect::TheZeroVector());
 
-  for(np = 0; np != NPLANES; ++np) {
+  for(np = 0; np != Amrvis::NPLANES; ++np) {
     amrPicturePtrArray[np]->SetFrameSpeed(frameSpeed);
     amrPicturePtrArray[np]->SetRegion(startX, startY, endX, endY);
   }
@@ -1037,7 +1032,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
     XtVaGetValues(wAnimLabelFast, XmNwidth, &slw, NULL);
     XtVaSetValues(wAnimLabelFast, XmNx, wcfWidth - slw, NULL);
     
-    char cTempFN[BUFSIZ];
+    char cTempFN[Amrvis::BUFSIZE];
     strcpy(cTempFN, AVGlobals::StripSlashes(fileNames[currentFrame]).c_str());
     XmString fileString = XmStringCreateSimple(cTempFN);
     wWhichFileLabel = XtVaCreateManagedWidget("whichFileLabel",
@@ -1049,8 +1044,8 @@ void PltApp::PltAppInit(bool bSubVolume) {
     XmStringFree(fileString);
 
     // We add a which-time label to indicate the time of each plot file.
-    char tempTimeName[LINELENGTH];
-    ostrstream tempTimeOut(tempTimeName, LINELENGTH);
+    char tempTimeName[Amrvis::LINELENGTH];
+    ostrstream tempTimeOut(tempTimeName, Amrvis::LINELENGTH);
     tempTimeOut << "T=" << amrData.Time() << ends;
     XmString timeString = XmStringCreateSimple(tempTimeName);
     wWhichTimeLabel = XtVaCreateManagedWidget("whichTimeLabel",
@@ -1118,7 +1113,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			    XmNbottomAttachment, XmATTACH_WIDGET,
 			    XmNbottomWidget,     wLocArea, NULL);
 
-  wScrollArea[ZPLANE] = XtVaCreateManagedWidget("scrollAreaXY",
+  wScrollArea[Amrvis::ZPLANE] = XtVaCreateManagedWidget("scrollAreaXY",
 		xmScrolledWindowWidgetClass,
 		wPlotArea,
 		XmNleftAttachment,	XmATTACH_FORM,
@@ -1139,20 +1134,20 @@ void PltApp::PltAppInit(bool bSubVolume) {
 	<Btn3Down>: DrawingAreaInput() ManagerGadgetButtonMotion()	\n\
 	<Btn3Up>: DrawingAreaInput() ManagerGadgetButtonMotion()";
 	
-  wPlotPlane[ZPLANE] = XtVaCreateManagedWidget("plotArea",
-			    xmDrawingAreaWidgetClass, wScrollArea[ZPLANE],
+  wPlotPlane[Amrvis::ZPLANE] = XtVaCreateManagedWidget("plotArea",
+			    xmDrawingAreaWidgetClass, wScrollArea[Amrvis::ZPLANE],
 			    XmNtranslations,  XtParseTranslationTable(trans),
-			    XmNwidth, amrPicturePtrArray[ZPLANE]->ImageSizeH() + 1,
-			    XmNheight, amrPicturePtrArray[ZPLANE]->ImageSizeV() + 1,
+			    XmNwidth, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH() + 1,
+			    XmNheight, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV() + 1,
 			    NULL);
-  XtVaSetValues(wScrollArea[ZPLANE], XmNworkWindow, wPlotPlane[ZPLANE], NULL); 
+  XtVaSetValues(wScrollArea[Amrvis::ZPLANE], XmNworkWindow, wPlotPlane[Amrvis::ZPLANE], NULL); 
 #if (BL_SPACEDIM == 2)
-  XtVaSetValues(wScrollArea[ZPLANE], XmNbottomAttachment, XmATTACH_FORM,
+  XtVaSetValues(wScrollArea[Amrvis::ZPLANE], XmNbottomAttachment, XmATTACH_FORM,
 		XmNrightAttachment, XmATTACH_FORM, NULL);		
 #elif (BL_SPACEDIM == 3)
   XtVaSetValues(wAmrVisTopLevel, XmNwidth, 1100, XmNheight, 650, NULL);
   
-  XtVaSetValues(wScrollArea[ZPLANE], 
+  XtVaSetValues(wScrollArea[Amrvis::ZPLANE], 
 		XmNrightAttachment,	XmATTACH_POSITION,
 		XmNrightPosition,	50,	// %
 		XmNbottomAttachment,	XmATTACH_POSITION,
@@ -1160,12 +1155,12 @@ void PltApp::PltAppInit(bool bSubVolume) {
 		NULL);
 
 // ********************************************************* XZ
-  wScrollArea[YPLANE] =
+  wScrollArea[Amrvis::YPLANE] =
     XtVaCreateManagedWidget("scrollAreaXZ",
 			    xmScrolledWindowWidgetClass, wPlotArea,
 			    XmNrightAttachment,	 XmATTACH_FORM,
 			    XmNleftAttachment,	 XmATTACH_WIDGET,
-			    XmNleftWidget,	 wScrollArea[ZPLANE],
+			    XmNleftWidget,	 wScrollArea[Amrvis::ZPLANE],
 			    XmNbottomAttachment, XmATTACH_POSITION,
 			    XmNbottomPosition,	 50,
 			    XmNtopAttachment,	 XmATTACH_FORM,
@@ -1173,16 +1168,16 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			    XmNscrollingPolicy,	 XmAUTOMATIC,
 			    NULL);
   
-  wPlotPlane[YPLANE] = XtVaCreateManagedWidget("plotArea",
-		         xmDrawingAreaWidgetClass, wScrollArea[YPLANE],
+  wPlotPlane[Amrvis::YPLANE] = XtVaCreateManagedWidget("plotArea",
+		         xmDrawingAreaWidgetClass, wScrollArea[Amrvis::YPLANE],
 		         XmNtranslations, XtParseTranslationTable(trans),
-		         XmNwidth,  amrPicturePtrArray[YPLANE]->ImageSizeH() + 1,
-		         XmNheight, amrPicturePtrArray[YPLANE]->ImageSizeV() + 1,
+		         XmNwidth,  amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeH() + 1,
+		         XmNheight, amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeV() + 1,
 		         NULL);
-  XtVaSetValues(wScrollArea[YPLANE], XmNworkWindow, wPlotPlane[YPLANE], NULL); 
+  XtVaSetValues(wScrollArea[Amrvis::YPLANE], XmNworkWindow, wPlotPlane[Amrvis::YPLANE], NULL); 
   
   // ********************************************************* YZ
-  wScrollArea[XPLANE] =
+  wScrollArea[Amrvis::XPLANE] =
     XtVaCreateManagedWidget("scrollAreaYZ",
 			    xmScrolledWindowWidgetClass, wPlotArea,
 			    XmNbottomAttachment,	XmATTACH_FORM,
@@ -1194,20 +1189,20 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			    XmNscrollingPolicy,	XmAUTOMATIC,
 			    NULL);
   
-  wPlotPlane[XPLANE] = XtVaCreateManagedWidget("plotArea",
-			    xmDrawingAreaWidgetClass, wScrollArea[XPLANE],
+  wPlotPlane[Amrvis::XPLANE] = XtVaCreateManagedWidget("plotArea",
+			    xmDrawingAreaWidgetClass, wScrollArea[Amrvis::XPLANE],
 			    XmNtranslations,  XtParseTranslationTable(trans),
-			    XmNwidth,  amrPicturePtrArray[XPLANE]->ImageSizeH() + 1,
-			    XmNheight, amrPicturePtrArray[XPLANE]->ImageSizeV() + 1,
+			    XmNwidth,  amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeH() + 1,
+			    XmNheight, amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeV() + 1,
 			    NULL);
-  XtVaSetValues(wScrollArea[XPLANE], XmNworkWindow, wPlotPlane[XPLANE], NULL); 
+  XtVaSetValues(wScrollArea[Amrvis::XPLANE], XmNworkWindow, wPlotPlane[Amrvis::XPLANE], NULL); 
   
   // ****************************************** Transform Area & buttons
   wOrientXY = XtVaCreateManagedWidget("XY",
 				    xmPushButtonGadgetClass, wPlotArea,
 				    XmNleftAttachment, XmATTACH_WIDGET,
-				    XmNleftWidget, wScrollArea[XPLANE],
-				    XmNleftOffset, WOFFSET,
+				    XmNleftWidget, wScrollArea[Amrvis::XPLANE],
+				    XmNleftOffset, Amrvis::WOFFSET,
 				    XmNtopAttachment, XmATTACH_POSITION,
 				    XmNtopPosition, 50,
 				    NULL);
@@ -1219,7 +1214,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 				    xmPushButtonGadgetClass, wPlotArea,
 				    XmNleftAttachment, XmATTACH_WIDGET,
 				    XmNleftWidget, wOrientXY,
-				    XmNleftOffset, WOFFSET,
+				    XmNleftOffset, Amrvis::WOFFSET,
 				    XmNtopAttachment, XmATTACH_POSITION,
 				    XmNtopPosition, 50,
 				    NULL);
@@ -1231,7 +1226,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 				    xmPushButtonGadgetClass, wPlotArea,
 				    XmNleftAttachment, XmATTACH_WIDGET,
 				    XmNleftWidget, wOrientYZ,
-				    XmNleftOffset, WOFFSET,
+				    XmNleftOffset, Amrvis::WOFFSET,
 				    XmNtopAttachment, XmATTACH_POSITION,
 				    XmNtopPosition, 50,
 				    NULL);
@@ -1243,7 +1238,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 				       xmPushButtonGadgetClass, wPlotArea,
 				       XmNleftAttachment, XmATTACH_WIDGET,
 				       XmNleftWidget, wOrientXZ,
-				       XmNleftOffset, WOFFSET,
+				       XmNleftOffset, Amrvis::WOFFSET,
 				       XmNtopAttachment, XmATTACH_POSITION,
 				       XmNtopPosition, 50,
 				       NULL);
@@ -1255,7 +1250,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 				    xmPushButtonGadgetClass, wPlotArea,
 				    XmNleftAttachment, XmATTACH_WIDGET,
 				    XmNleftWidget, wLabelAxes,
-				    XmNleftOffset, WOFFSET,
+				    XmNleftOffset, Amrvis::WOFFSET,
 				    XmNtopAttachment, XmATTACH_POSITION,
 				    XmNtopPosition, 50, NULL);
   AddStaticCallback(wRender, XmNactivateCallback, &PltApp::DoRender);
@@ -1268,7 +1263,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			    wPlotArea,
 			    XmNlabelString, sDetach,
 			    XmNrightAttachment, XmATTACH_FORM,
-			    XmNrightOffset, WOFFSET,
+			    XmNrightOffset, Amrvis::WOFFSET,
 			    XmNtopAttachment, XmATTACH_POSITION,
 			    XmNtopPosition, 50,
 			    NULL);
@@ -1280,7 +1275,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			     wPlotArea,
 			     XmNtranslations, XtParseTranslationTable(trans),
 			     XmNleftAttachment,	        XmATTACH_WIDGET,
-			     XmNleftWidget,		wScrollArea[XPLANE],
+			     XmNleftWidget,		wScrollArea[Amrvis::XPLANE],
 			     XmNtopAttachment,	        XmATTACH_WIDGET,
 			     XmNtopWidget,		wOrientXY,
 			     XmNrightAttachment,	XmATTACH_FORM,
@@ -1289,7 +1284,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 
 #endif
   
-  for(np = 0; np < NPLANES; ++np) {
+  for(np = 0; np < Amrvis::NPLANES; ++np) {
     AddStaticCallback(wPlotPlane[np], XmNinputCallback,
 		      &PltApp::DoRubberBanding, (XtPointer) np);
     AddStaticEventHandler(wPlotPlane[np], ExposureMask, &PltApp::PADoExposePicture,
@@ -1308,7 +1303,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPalArea));
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotArea));
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wAmrVisTopLevel));
-  for(np = 0; np != NPLANES; ++np) {
+  for(np = 0; np != Amrvis::NPLANES; ++np) {
     pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotPlane[np]));
   }
   
@@ -1333,7 +1328,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   sprintf(plottertitle, "XYPlot%dd", BL_SPACEDIM);
   XYplotparameters = new XYPlotParameters(pltPaletteptr, gaPtr, plottertitle);
 
-  for(np = 0; np < NPLANES; ++np) {
+  for(np = 0; np < Amrvis::NPLANES; ++np) {
     amrPicturePtrArray[np]->CreatePicture(XtWindow(wPlotPlane[np]),
 					  pltPaletteptr);
   }
@@ -1343,7 +1338,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   labelAxes = false;
   transDetached = false;
   
-  for(np = 0; np < NPLANES; ++np) {
+  for(np = 0; np < Amrvis::NPLANES; ++np) {
     startcutX[np] = 0;
     startcutY[np] = amrPicturePtrArray[np]->GetHLine();
     finishcutX[np] = 0;
@@ -1373,7 +1368,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 
 
 // -------------------------------------------------------------------
-void PltApp::FindAndSetMinMax(const MinMaxRangeType mmrangetype,
+void PltApp::FindAndSetMinMax(const Amrvis::MinMaxRangeType mmrangetype,
 			      const int framenumber,
 		              const string &currentderived,
 			      const int derivednumber,
@@ -1408,7 +1403,7 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   int zPlanePosX(10), zPlanePosY(15);
   int whiteColor(pltPaletteptr->WhiteIndex());
   int zpColor(whiteColor);
-  char sX[LINELENGTH], sY[LINELENGTH], sZ[LINELENGTH];
+  char sX[Amrvis::LINELENGTH], sY[Amrvis::LINELENGTH], sZ[Amrvis::LINELENGTH];
   
   int maxAllowLev(pltAppState->MaxAllowableLevel());
   int maxDrawnLev(pltAppState->MaxDrawnLevel());
@@ -1431,7 +1426,7 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   int yPlanePosX(80), yPlanePosY(15);
   int xPlanePosX(10);
   int xPlanePosY((int) (axisLength + zPlanePosY + 1.4 * stringOffsetY));
-  char temp[LINELENGTH];
+  char temp[Amrvis::LINELENGTH];
   Dimension width, height;
   XtVaGetValues(wControlForm, XmNwidth, &width, XmNheight, &height, NULL);
   int centerX((int) width / 2);
@@ -1440,19 +1435,19 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   DrawAxes(wControlForm, yPlanePosX, yPlanePosY, 0, sX, sZ, ypColor);
   DrawAxes(wControlForm, xPlanePosX, xPlanePosY, 0, sY, sZ, xpColor);
   
-  sprintf(temp, "Z=%i", amrPicturePtrArray[ZPLANE]->GetSlice() / crrDiff);
+  sprintf(temp, "Z=%i", amrPicturePtrArray[Amrvis::ZPLANE]->GetSlice() / crrDiff);
   XSetForeground(display, xgc, pltPaletteptr->makePixel(zpColor));
   XDrawString(display, XtWindow(wControlForm), xgc,
 	      centerX-xyzAxisLength+12, centerY+xyzAxisLength+4,
 	      temp, strlen(temp));
   
-  sprintf(temp, "Y=%i", amrPicturePtrArray[YPLANE]->GetSlice() / crrDiff);
+  sprintf(temp, "Y=%i", amrPicturePtrArray[Amrvis::YPLANE]->GetSlice() / crrDiff);
   XSetForeground(display, xgc, pltPaletteptr->makePixel(ypColor));
   XDrawString(display, XtWindow(wControlForm), xgc,
 	      centerX+stringOffsetX, centerY-xyzAxisLength+4,
 	      temp, strlen(temp));
   
-  sprintf(temp, "X=%i", amrPicturePtrArray[XPLANE]->GetSlice() / crrDiff);
+  sprintf(temp, "X=%i", amrPicturePtrArray[Amrvis::XPLANE]->GetSlice() / crrDiff);
   XSetForeground(display, xgc, pltPaletteptr->makePixel(xpColor));
   XDrawString(display, XtWindow(wControlForm), xgc,
 	      centerX+4*stringOffsetX, centerY+stringOffsetY+2,
@@ -1477,7 +1472,7 @@ void PltApp::DrawAxes(Widget wArea, int xpos, int ypos, int /* orientation */ ,
 		      char *hlabel, char *vlabel, int color)
 {
   int axisLength(20);
-  char hLabel[LINELENGTH], vLabel[LINELENGTH];
+  char hLabel[Amrvis::LINELENGTH], vLabel[Amrvis::LINELENGTH];
   strcpy(hLabel, hlabel);
   strcpy(vLabel, vlabel);
   XSetForeground(XtDisplay(wArea), xgc, pltPaletteptr->makePixel(color));
@@ -1509,7 +1504,7 @@ void PltApp::ChangeScale(Widget w, XtPointer client_data, XtPointer) {
     ResetAnimation();
     DirtyFrames(); 
   }
-  for(int whichView(0); whichView < NPLANES; ++whichView) {
+  for(int whichView(0); whichView < Amrvis::NPLANES; ++whichView) {
     if(whichView == activeView) {
       startX = (int) startX / previousScale * currentScale;
       startY = (int) startY / previousScale * currentScale;
@@ -1562,11 +1557,11 @@ void PltApp::ChangeLevel(Widget w, XtPointer client_data, XtPointer) {
 
   pltAppState->SetMinDrawnLevel(minDrawnLevel);
   pltAppState->SetMaxDrawnLevel(maxDrawnLevel);
-  for(int whichView(0); whichView < NPLANES; ++whichView) {
+  for(int whichView(0); whichView < Amrvis::NPLANES; ++whichView) {
     amrPicturePtrArray[whichView]->APChangeLevel();
     
 #if (BL_SPACEDIM == 3)
-    if(whichView == ZPLANE) {
+    if(whichView == Amrvis::ZPLANE) {
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
       if( ! XmToggleButtonGetState(wAutoDraw)) {
 	projPicturePtr->MakeBoxes(); 
@@ -1584,9 +1579,9 @@ void PltApp::ChangeLevel(Widget w, XtPointer client_data, XtPointer) {
 
   if(datasetShowing) {
     int hdir(-1), vdir(-1), sdir(-1);
-    if(activeView==ZPLANE) { hdir = XDIR; vdir = YDIR; sdir = ZDIR; }
-    if(activeView==YPLANE) { hdir = XDIR; vdir = ZDIR; sdir = YDIR; }
-    if(activeView==XPLANE) { hdir = YDIR; vdir = ZDIR; sdir = XDIR; }
+    if(activeView==Amrvis::ZPLANE) { hdir = Amrvis::XDIR; vdir = Amrvis::YDIR; sdir = Amrvis::ZDIR; }
+    if(activeView==Amrvis::YPLANE) { hdir = Amrvis::XDIR; vdir = Amrvis::ZDIR; sdir = Amrvis::YDIR; }
+    if(activeView==Amrvis::XPLANE) { hdir = Amrvis::YDIR; vdir = Amrvis::ZDIR; sdir = Amrvis::XDIR; }
     datasetPtr->DatasetRender(trueRegion, amrPicturePtrArray[activeView],
 		              this, pltAppState, hdir, vdir, sdir);
     datasetPtr->DoExpose(false);
@@ -1614,7 +1609,7 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
 
   // possibly set all six minmax types here
-  const Array<Box> &onSubregionBox = amrPicturePtrArray[ZPLANE]->GetSubDomain();
+  const Array<Box> &onSubregionBox = amrPicturePtrArray[Amrvis::ZPLANE]->GetSubDomain();
   const Array<Box> &onBox(amrData.ProbDomain());
   int iCDerNum(pltAppState->CurrentDerivedNumber());
   int coarseLevel(pltAppState->MinAllowableLevel());
@@ -1628,43 +1623,43 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   const string asCDer(pltAppState->CurrentDerived());
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
     // set FILEGLOBALMINMAX  dont reset if already set
-    FindAndSetMinMax(FILEGLOBALMINMAX, iFrame, asCDer, iCDerNum, onBox,
+    FindAndSetMinMax(Amrvis::FILEGLOBALMINMAX, iFrame, asCDer, iCDerNum, onBox,
 	             coarseLevel, fineLevel, false);
 
     // set FILESUBREGIONMINMAX  dont reset if already set
-    FindAndSetMinMax(FILESUBREGIONMINMAX, iFrame, asCDer, iCDerNum, onSubregionBox,
+    FindAndSetMinMax(Amrvis::FILESUBREGIONMINMAX, iFrame, asCDer, iCDerNum, onSubregionBox,
 	             coarseLevel, fineLevel, false);
 
     // collect file values
     Real rTempMin, rTempMax;
 	       
-    pltAppState->GetMinMax(FILEGLOBALMINMAX, iFrame, iCDerNum,
+    pltAppState->GetMinMax(Amrvis::FILEGLOBALMINMAX, iFrame, iCDerNum,
 			   rTempMin, rTempMax);
     rGlobalMin = min(rGlobalMin, rTempMin);
     rGlobalMax = max(rGlobalMax, rTempMax);
 
-    pltAppState->GetMinMax(FILESUBREGIONMINMAX, iFrame, iCDerNum,
+    pltAppState->GetMinMax(Amrvis::FILESUBREGIONMINMAX, iFrame, iCDerNum,
 			   rTempMin, rTempMax);
     rSubregionMin = min(rSubregionMin, rTempMin);
     rSubregionMax = max(rSubregionMax, rTempMax);
 
     // set FILEUSERMINMAX  dont reset if already set
     // this sets values to FILESUBREGIONMINMAX values if the user has not set them
-    bool isSet(pltAppState->IsSet(FILEUSERMINMAX, iFrame, iCDerNum));
+    bool isSet(pltAppState->IsSet(Amrvis::FILEUSERMINMAX, iFrame, iCDerNum));
     if( ! isSet) {
-      pltAppState->SetMinMax(FILEUSERMINMAX, iFrame, iCDerNum, rTempMin, rTempMax);
+      pltAppState->SetMinMax(Amrvis::FILEUSERMINMAX, iFrame, iCDerNum, rTempMin, rTempMax);
     }
   }
 
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
-    pltAppState->SetMinMax(GLOBALMINMAX, iFrame, iCDerNum, rGlobalMin, rGlobalMax);
-    pltAppState->SetMinMax(SUBREGIONMINMAX, iFrame, iCDerNum,
+    pltAppState->SetMinMax(Amrvis::GLOBALMINMAX, iFrame, iCDerNum, rGlobalMin, rGlobalMax);
+    pltAppState->SetMinMax(Amrvis::SUBREGIONMINMAX, iFrame, iCDerNum,
 			   rSubregionMin, rSubregionMax);
     // set FILEUSERMINMAX  dont reset if already set
     // this sets values to FILESUBREGIONMINMAX values if the user has not set them
-    bool isSet(pltAppState->IsSet(USERMINMAX, iFrame, iCDerNum));
+    bool isSet(pltAppState->IsSet(Amrvis::USERMINMAX, iFrame, iCDerNum));
     if( ! isSet) {
-      pltAppState->SetMinMax(USERMINMAX, iFrame, iCDerNum,
+      pltAppState->SetMinMax(Amrvis::USERMINMAX, iFrame, iCDerNum,
 			     rSubregionMin, rSubregionMax);
     }
   }
@@ -1735,15 +1730,15 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   XtVaSetValues(wPlotLabel, XmNlabelString, label_str, NULL);
   XmStringFree(label_str);
 
-  for(int iv(0); iv < NPLANES; ++iv) {
+  for(int iv(0); iv < Amrvis::NPLANES; ++iv) {
     amrPicturePtrArray[iv]->APMakeImages(pltPaletteptr);
   }
   
   if(datasetShowing) {
     int hdir(-1), vdir(-1), sdir(-1);
-    hdir = (activeView == XPLANE) ? YDIR : XDIR;
-    vdir = (activeView == ZPLANE) ? YDIR : ZDIR;
-    sdir = (activeView == YPLANE) ? YDIR : ((activeView == XYPLANE) ? XDIR : ZDIR);
+    hdir = (activeView == Amrvis::XPLANE) ? Amrvis::YDIR : Amrvis::XDIR;
+    vdir = (activeView == Amrvis::ZPLANE) ? Amrvis::YDIR : Amrvis::ZDIR;
+    sdir = (activeView == Amrvis::YPLANE) ? Amrvis::YDIR : ((activeView == Amrvis::XYPLANE) ? Amrvis::XDIR : Amrvis::ZDIR);
     datasetPtr->DatasetRender(trueRegion, amrPicturePtrArray[activeView],
 		              this, pltAppState, hdir, vdir, sdir);
     datasetPtr->DoExpose(false);
@@ -1761,23 +1756,23 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
 
 // -------------------------------------------------------------------
 void PltApp::ChangeContour(Widget w, XtPointer input_data, XtPointer) {
-  ContourType prevCType(pltAppState->GetContourType());
-  ContourType newCType = ContourType((unsigned long) input_data);
+  Amrvis::ContourType prevCType(pltAppState->GetContourType());
+  Amrvis::ContourType newCType = Amrvis::ContourType((unsigned long) input_data);
   if(newCType == prevCType) {
     return;
   }
   pltAppState->SetContourType(newCType);
   XtVaSetValues(wContourLabel,
-		XmNsensitive, (newCType != RASTERONLY),
+		XmNsensitive, (newCType != Amrvis::RASTERONLY),
 		NULL);
   XtVaSetValues(wNumberContours,
-	        XmNsensitive, (newCType != RASTERONLY),
+	        XmNsensitive, (newCType != Amrvis::RASTERONLY),
 		NULL);
   if(animating2d) {
     ResetAnimation();
     DirtyFrames(); 
   }
-  for(int np(0); np < NPLANES; ++np) {
+  for(int np(0); np < Amrvis::NPLANES; ++np) {
     amrPicturePtrArray[np]->APChangeContour(prevCType);
   }
 }
@@ -1812,7 +1807,7 @@ void PltApp::ReadContourString(Widget w, XtPointer, XtPointer) {
   if(stringOk) {
     contourNumString = tmpContourNumString;
     pltAppState->SetNumContours(atoi(contourNumString.c_str()));
-    for(int ii(0); ii < NPLANES; ++ii) {
+    for(int ii(0); ii < Amrvis::NPLANES; ++ii) {
         amrPicturePtrArray[ii]->APDraw(pltAppState->MinDrawnLevel(), 
 				       pltAppState->MaxDrawnLevel());
     }
@@ -1827,14 +1822,14 @@ void PltApp::ToggleRange(Widget w, XtPointer client_data, XtPointer call_data) {
   unsigned long r = (unsigned long) client_data;
   XmToggleButtonCallbackStruct *state = (XmToggleButtonCallbackStruct *) call_data;
   if(state->set == true) {
-    currentRangeType = (MinMaxRangeType) r;
+    currentRangeType = (Amrvis::MinMaxRangeType) r;
     if(bFileRangeButtonSet) {
-      if(currentRangeType == GLOBALMINMAX) {
-        currentRangeType = FILEGLOBALMINMAX;
-      } else if(currentRangeType == SUBREGIONMINMAX) {
-        currentRangeType = FILESUBREGIONMINMAX;
-      } else if(currentRangeType == USERMINMAX) {
-        currentRangeType = FILEUSERMINMAX;
+      if(currentRangeType == Amrvis::GLOBALMINMAX) {
+        currentRangeType = Amrvis::FILEGLOBALMINMAX;
+      } else if(currentRangeType == Amrvis::SUBREGIONMINMAX) {
+        currentRangeType = Amrvis::FILESUBREGIONMINMAX;
+      } else if(currentRangeType == Amrvis::USERMINMAX) {
+        currentRangeType = Amrvis::FILEUSERMINMAX;
       }
     }
   }
@@ -1852,7 +1847,7 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
   // subregionBox is at the maxAllowableLevel
   
 #if (BL_SPACEDIM == 2)
-  if(selectionBox.bigEnd(XDIR) == 0 || selectionBox.bigEnd(YDIR) == 0) {
+  if(selectionBox.bigEnd(Amrvis::XDIR) == 0 || selectionBox.bigEnd(Amrvis::YDIR) == 0) {
     return;
   }
   subregionBox = selectionBox + ivLowOffsetMAL;
@@ -1861,24 +1856,24 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
 #if (BL_SPACEDIM == 3)
   int np;
   int currentScale(pltAppState->CurrentScale());
-  for(np = 0; np < NPLANES; ++np) {
+  for(np = 0; np < Amrvis::NPLANES; ++np) {
     startcutX[np]  /= currentScale;
     startcutY[np]  /= currentScale;
     finishcutX[np] /= currentScale;
     finishcutY[np] /= currentScale;
   }
   
-  subregionBox.setSmall(XDIR, min(startcutX[ZPLANE], finishcutX[ZPLANE]));
-  subregionBox.setSmall(YDIR, min(startcutX[XPLANE], finishcutX[XPLANE]));
-  subregionBox.setSmall(ZDIR, (amrPicturePtrArray[XPLANE]->ImageSizeV()-1)/
-			currentScale - max(startcutY[XPLANE], finishcutY[XPLANE]));
-  subregionBox.setBig(XDIR, max(startcutX[ZPLANE], finishcutX[ZPLANE]));
-  subregionBox.setBig(YDIR, max(startcutX[XPLANE], finishcutX[XPLANE]));
-  subregionBox.setBig(ZDIR, (amrPicturePtrArray[XPLANE]->ImageSizeV()-1)/
-		      currentScale - min(startcutY[XPLANE], finishcutY[XPLANE]));
+  subregionBox.setSmall(Amrvis::XDIR, min(startcutX[Amrvis::ZPLANE], finishcutX[Amrvis::ZPLANE]));
+  subregionBox.setSmall(Amrvis::YDIR, min(startcutX[Amrvis::XPLANE], finishcutX[Amrvis::XPLANE]));
+  subregionBox.setSmall(Amrvis::ZDIR, (amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeV()-1)/
+			currentScale - max(startcutY[Amrvis::XPLANE], finishcutY[Amrvis::XPLANE]));
+  subregionBox.setBig(Amrvis::XDIR, max(startcutX[Amrvis::ZPLANE], finishcutX[Amrvis::ZPLANE]));
+  subregionBox.setBig(Amrvis::YDIR, max(startcutX[Amrvis::XPLANE], finishcutX[Amrvis::XPLANE]));
+  subregionBox.setBig(Amrvis::ZDIR, (amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeV()-1)/
+		      currentScale - min(startcutY[Amrvis::XPLANE], finishcutY[Amrvis::XPLANE]));
   
   if(subregionBox.numPts() <= 4) {
-    for(np = 0; np < NPLANES; ++np) {
+    for(np = 0; np < Amrvis::NPLANES; ++np) {
       startcutX[np]  *= currentScale;
       startcutY[np]  *= currentScale;
       finishcutX[np] *= currentScale;
@@ -1925,7 +1920,7 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
 		  fileName);
   
 #if (BL_SPACEDIM == 3)
-  for(np = 0; np < NPLANES; ++np) {
+  for(np = 0; np < Amrvis::NPLANES; ++np) {
     startcutX[np]  *= currentScale;
     startcutY[np]  *= currentScale;
     finishcutX[np] *= currentScale;
@@ -1937,7 +1932,7 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
   
 // -------------------------------------------------------------------
 void PltApp::DoDatasetButton(Widget, XtPointer, XtPointer) {
-  if(selectionBox.bigEnd(XDIR) == 0 || selectionBox.bigEnd(YDIR) == 0) {
+  if(selectionBox.bigEnd(Amrvis::XDIR) == 0 || selectionBox.bigEnd(Amrvis::YDIR) == 0) {
     return;
   }
 
@@ -1946,37 +1941,37 @@ void PltApp::DoDatasetButton(Widget, XtPointer, XtPointer) {
   trueRegion = selectionBox;
   
 #if (BL_SPACEDIM == 3)
-  trueRegion.setSmall(ZDIR, amrPicturePtrArray[ZPLANE]->GetSlice()); 
-  trueRegion.setBig(ZDIR,   amrPicturePtrArray[ZPLANE]->GetSlice()); 
+  trueRegion.setSmall(Amrvis::ZDIR, amrPicturePtrArray[Amrvis::ZPLANE]->GetSlice()); 
+  trueRegion.setBig(Amrvis::ZDIR,   amrPicturePtrArray[Amrvis::ZPLANE]->GetSlice()); 
 #endif
 
-  hdir = (activeView == XPLANE) ? YDIR : XDIR;
-  vdir = (activeView == ZPLANE) ? YDIR : ZDIR;
+  hdir = (activeView == Amrvis::XPLANE) ? Amrvis::YDIR : Amrvis::XDIR;
+  vdir = (activeView == Amrvis::ZPLANE) ? Amrvis::YDIR : Amrvis::ZDIR;
   switch (activeView) {
-  case ZPLANE: // orient box to view and shift
-    trueRegion.shift(XDIR, ivLowOffsetMAL[XDIR]);
-    trueRegion.shift(YDIR, ivLowOffsetMAL[YDIR]);
-    sdir = ZDIR;
+  case Amrvis::ZPLANE: // orient box to view and shift
+    trueRegion.shift(Amrvis::XDIR, ivLowOffsetMAL[Amrvis::XDIR]);
+    trueRegion.shift(Amrvis::YDIR, ivLowOffsetMAL[Amrvis::YDIR]);
+    sdir = Amrvis::ZDIR;
     break;
-  case YPLANE:
-    trueRegion.setSmall(ZDIR, trueRegion.smallEnd(YDIR)); 
-    trueRegion.setBig(ZDIR, trueRegion.bigEnd(YDIR)); 
-    trueRegion.setSmall(YDIR, amrPicturePtrArray[YPLANE]->GetSlice()); 
-    trueRegion.setBig(YDIR, amrPicturePtrArray[YPLANE]->GetSlice()); 
-    trueRegion.shift(XDIR, ivLowOffsetMAL[XDIR]);
-    trueRegion.shift(ZDIR, ivLowOffsetMAL[ZDIR]);
-    sdir = YDIR;
+  case Amrvis::YPLANE:
+    trueRegion.setSmall(Amrvis::ZDIR, trueRegion.smallEnd(Amrvis::YDIR)); 
+    trueRegion.setBig(Amrvis::ZDIR, trueRegion.bigEnd(Amrvis::YDIR)); 
+    trueRegion.setSmall(Amrvis::YDIR, amrPicturePtrArray[Amrvis::YPLANE]->GetSlice()); 
+    trueRegion.setBig(Amrvis::YDIR, amrPicturePtrArray[Amrvis::YPLANE]->GetSlice()); 
+    trueRegion.shift(Amrvis::XDIR, ivLowOffsetMAL[Amrvis::XDIR]);
+    trueRegion.shift(Amrvis::ZDIR, ivLowOffsetMAL[Amrvis::ZDIR]);
+    sdir = Amrvis::YDIR;
     break;
-  case XPLANE:
-    trueRegion.setSmall(ZDIR, trueRegion.smallEnd(YDIR)); 
-    trueRegion.setBig(ZDIR, trueRegion.bigEnd(YDIR)); 
-    trueRegion.setSmall(YDIR, trueRegion.smallEnd(XDIR)); 
-    trueRegion.setBig(YDIR, trueRegion.bigEnd(XDIR)); 
-    trueRegion.setSmall(XDIR, amrPicturePtrArray[XPLANE]->GetSlice()); 
-    trueRegion.setBig(XDIR, amrPicturePtrArray[XPLANE]->GetSlice()); 
-    trueRegion.shift(YDIR, ivLowOffsetMAL[YDIR]);
-    trueRegion.shift(ZDIR, ivLowOffsetMAL[ZDIR]);
-    sdir = XDIR;
+  case Amrvis::XPLANE:
+    trueRegion.setSmall(Amrvis::ZDIR, trueRegion.smallEnd(Amrvis::YDIR)); 
+    trueRegion.setBig(Amrvis::ZDIR, trueRegion.bigEnd(Amrvis::YDIR)); 
+    trueRegion.setSmall(Amrvis::YDIR, trueRegion.smallEnd(Amrvis::XDIR)); 
+    trueRegion.setBig(Amrvis::YDIR, trueRegion.bigEnd(Amrvis::XDIR)); 
+    trueRegion.setSmall(Amrvis::XDIR, amrPicturePtrArray[Amrvis::XPLANE]->GetSlice()); 
+    trueRegion.setBig(Amrvis::XDIR, amrPicturePtrArray[Amrvis::XPLANE]->GetSlice()); 
+    trueRegion.shift(Amrvis::YDIR, ivLowOffsetMAL[Amrvis::YDIR]);
+    trueRegion.shift(Amrvis::ZDIR, ivLowOffsetMAL[Amrvis::ZDIR]);
+    sdir = Amrvis::XDIR;
   }
   
   if(datasetShowing) {
@@ -2067,7 +2062,7 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
 		XmNleftAttachment, XmATTACH_FORM,
 		XmNrightAttachment, XmATTACH_FORM,
 		XmNtopAttachment, XmATTACH_FORM,
-		XmNtopOffset, WOFFSET,
+		XmNtopOffset, Amrvis::WOFFSET,
 		XmNbottomAttachment, XmATTACH_POSITION,
 		XmNbottomPosition, 80,
 		NULL);
@@ -2078,12 +2073,12 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   char **entries = new char *[numEntries];
   
   for(int j(0); j < numEntries; ++j) {
-    entries[j] = new char[BUFSIZ];
+    entries[j] = new char[Amrvis::BUFSIZE];
   }
   
   i=0;
-  char buf[BUFSIZ];
-  ostrstream prob(buf, BUFSIZ);
+  char buf[Amrvis::BUFSIZE];
+  ostrstream prob(buf, Amrvis::BUFSIZE);
   prob.precision(15);
   strcpy(entries[i], fileNames[currentFrame].c_str()); ++i;
   strcpy(entries[i], amrData.PlotFileVersion().c_str()); ++i;
@@ -2092,7 +2087,7 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   sprintf(entries[i], "levels: %d", amrData.FinestLevel()+1); ++i;
   sprintf(entries[i], "prob domain"); ++i;
   for(int k(0); k <= amrData.FinestLevel(); ++k, ++i) {
-    ostrstream prob_domain(entries[i], BUFSIZ);
+    ostrstream prob_domain(entries[i], Amrvis::BUFSIZE);
     prob_domain << " level " << k << ": " << amrData.ProbDomain()[k] << ends;
   }
 
@@ -2207,10 +2202,10 @@ void PltApp::DoContoursButton(Widget, XtPointer, XtPointer) {
 		XmNleftAttachment, XmATTACH_FORM,
 		XmNrightAttachment, XmATTACH_FORM, NULL);		
   
-  char *conItems[NCONTOPTIONS] = {"Raster", "Raster & Contours", "Color Contours",
+  char *conItems[Amrvis::NCONTOPTIONS] = {"Raster", "Raster & Contours", "Color Contours",
 		                  "B/W Contours", "Velocity Vectors"};
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
-  for(int j(0); j < NCONTOPTIONS; ++j) {
+  for(int j(0); j < Amrvis::NCONTOPTIONS; ++j) {
     wid = XtVaCreateManagedWidget(conItems[j], xmToggleButtonGadgetClass,
 				  wContourRadio, NULL);
     if(j == (int) pltAppState->GetContourType()) {
@@ -2225,12 +2220,12 @@ void PltApp::DoContoursButton(Widget, XtPointer, XtPointer) {
 			    xmLabelWidgetClass, wContoursForm,
 			    XmNlabelString,     label_str, 
 			    XmNleftAttachment,  XmATTACH_FORM,
-			    XmNleftOffset,      WOFFSET,
+			    XmNleftOffset,      Amrvis::WOFFSET,
 			    XmNtopAttachment,   XmATTACH_WIDGET,
 			    XmNtopWidget,       wContourRadio,
-			    XmNtopOffset,       WOFFSET,
+			    XmNtopOffset,       Amrvis::WOFFSET,
 			    XmNsensitive,
-				  pltAppState->GetContourType() != RASTERONLY,
+			          pltAppState->GetContourType() != Amrvis::RASTERONLY,
 			    NULL);
   XmStringFree(label_str);
 
@@ -2238,14 +2233,14 @@ void PltApp::DoContoursButton(Widget, XtPointer, XtPointer) {
 			    xmTextFieldWidgetClass, wContoursForm,
 			    XmNtopAttachment,    XmATTACH_WIDGET,
 			    XmNtopWidget,        wContourRadio,
-			    XmNtopOffset,        WOFFSET,
+			    XmNtopOffset,        Amrvis::WOFFSET,
 			    XmNleftAttachment,   XmATTACH_WIDGET,
 			    XmNleftWidget,       wContourLabel,
-			    XmNleftOffset,       WOFFSET,
+			    XmNleftOffset,       Amrvis::WOFFSET,
 			    XmNvalue,            contourNumString.c_str(),
 			    XmNcolumns,          4,
 			    XmNsensitive,
-				  pltAppState->GetContourType() != RASTERONLY,
+				  pltAppState->GetContourType() != Amrvis::RASTERONLY,
 			    NULL);
   AddStaticCallback(wNumberContours, XmNactivateCallback,
 		    &PltApp::ReadContourString);
@@ -2253,7 +2248,7 @@ void PltApp::DoContoursButton(Widget, XtPointer, XtPointer) {
   wCloseButton = XtVaCreateManagedWidget(" Close ",
 			    xmPushButtonGadgetClass, wContoursForm,
 			    XmNbottomAttachment, XmATTACH_FORM,
-			    XmNbottomOffset, WOFFSET,
+			    XmNbottomOffset, Amrvis::WOFFSET,
 			    XmNleftAttachment, XmATTACH_POSITION,
 			    XmNleftPosition, 33,
 			    XmNrightAttachment, XmATTACH_POSITION,
@@ -2288,20 +2283,20 @@ void PltApp::DoToggleFileRangeButton(Widget w, XtPointer client_data,
 {
   bFileRangeButtonSet = XmToggleButtonGetState(wFileRangeCheckBox);
   if(bFileRangeButtonSet) {
-    if(currentRangeType == GLOBALMINMAX) {
-      currentRangeType = FILEGLOBALMINMAX;
-    } else if(currentRangeType == SUBREGIONMINMAX) {
-      currentRangeType = FILESUBREGIONMINMAX;
-    } else if(currentRangeType == USERMINMAX) {
-      currentRangeType = FILEUSERMINMAX;
+    if(currentRangeType == Amrvis::GLOBALMINMAX) {
+      currentRangeType = Amrvis::FILEGLOBALMINMAX;
+    } else if(currentRangeType == Amrvis::SUBREGIONMINMAX) {
+      currentRangeType = Amrvis::FILESUBREGIONMINMAX;
+    } else if(currentRangeType == Amrvis::USERMINMAX) {
+      currentRangeType = Amrvis::FILEUSERMINMAX;
     }
   } else {
-    if(currentRangeType == FILEGLOBALMINMAX) {
-      currentRangeType = GLOBALMINMAX;
-    } else if(currentRangeType == FILESUBREGIONMINMAX) {
-      currentRangeType = SUBREGIONMINMAX;
-    } else if(currentRangeType == FILEUSERMINMAX) {
-      currentRangeType = USERMINMAX;
+    if(currentRangeType == Amrvis::FILEGLOBALMINMAX) {
+      currentRangeType = Amrvis::GLOBALMINMAX;
+    } else if(currentRangeType == Amrvis::FILESUBREGIONMINMAX) {
+      currentRangeType = Amrvis::SUBREGIONMINMAX;
+    } else if(currentRangeType == Amrvis::FILEUSERMINMAX) {
+      currentRangeType = Amrvis::USERMINMAX;
     }
   }
 }
@@ -2318,11 +2313,11 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
     return;
   }
 
-  char range[LINELENGTH];
-  char saveRangeString[LINELENGTH];
-  char format[LINELENGTH];
-  char fMin[LINELENGTH];
-  char fMax[LINELENGTH];
+  char range[Amrvis::LINELENGTH];
+  char saveRangeString[Amrvis::LINELENGTH];
+  char format[Amrvis::LINELENGTH];
+  char fMin[Amrvis::LINELENGTH];
+  char fMax[Amrvis::LINELENGTH];
   strcpy(format, pltAppState->GetFormatString().c_str());
   Widget wSetRangeForm, wDoneButton, wApplyButton, wCancelButton;
   Widget wSetRangeRadioBox, wRangeRC, wid;
@@ -2330,7 +2325,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   
   // do these here to set XmNwidth of wSetRangeTopLevel
   Real rtMin, rtMax;
-  pltAppState->GetMinMax(GLOBALMINMAX, currentFrame,
+  pltAppState->GetMinMax(Amrvis::GLOBALMINMAX, currentFrame,
 			 pltAppState->CurrentDerivedNumber(),
 			 rtMin, rtMax);
   sprintf(fMin, format, rtMin);
@@ -2371,9 +2366,9 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   wDoneButton = XtVaCreateManagedWidget(" Ok ",
 					xmPushButtonGadgetClass, wSetRangeForm,
 					XmNbottomAttachment, XmATTACH_FORM,
-					XmNbottomOffset, WOFFSET,
+					XmNbottomOffset, Amrvis::WOFFSET,
 					XmNleftAttachment, XmATTACH_FORM,
-					XmNleftOffset, WOFFSET,
+					XmNleftOffset, Amrvis::WOFFSET,
 					NULL);
   bool bKillSRWindow(true);
   AddStaticCallback(wDoneButton, XmNactivateCallback, &PltApp::DoDoneSetRange,
@@ -2382,10 +2377,10 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   wApplyButton = XtVaCreateManagedWidget(" Apply ",
 					  xmPushButtonGadgetClass, wSetRangeForm,
 					  XmNbottomAttachment, XmATTACH_FORM,
-					  XmNbottomOffset, WOFFSET,
+					  XmNbottomOffset, Amrvis::WOFFSET,
 					  XmNleftAttachment, XmATTACH_WIDGET,
 					  XmNleftWidget, wDoneButton,
-					  XmNleftOffset, WOFFSET,
+					  XmNleftOffset, Amrvis::WOFFSET,
 					  NULL);
   bKillSRWindow = false;
   AddStaticCallback(wApplyButton, XmNactivateCallback, &PltApp::DoDoneSetRange,
@@ -2394,9 +2389,9 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   wCancelButton = XtVaCreateManagedWidget(" Cancel ",
 					  xmPushButtonGadgetClass, wSetRangeForm,
 					  XmNbottomAttachment, XmATTACH_FORM,
-					  XmNbottomOffset, WOFFSET,
+					  XmNbottomOffset, Amrvis::WOFFSET,
 					  XmNrightAttachment, XmATTACH_FORM,
-					  XmNrightOffset, WOFFSET,
+					  XmNrightOffset, Amrvis::WOFFSET,
 					  NULL);
   AddStaticCallback(wCancelButton, XmNactivateCallback, &PltApp::DoCancelSetRange);
   
@@ -2407,26 +2402,26 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   XtVaSetValues(wSetRangeRadioBox, XmNmarginWidth, 4, NULL);
   XtVaSetValues(wSetRangeRadioBox, XmNspacing, 14, NULL);
   
-  wRangeRadioButton[BGLOBALMINMAX] = XtVaCreateManagedWidget("Global",
+  wRangeRadioButton[Amrvis::BGLOBALMINMAX] = XtVaCreateManagedWidget("Global",
 			    xmToggleButtonWidgetClass, wSetRangeRadioBox, NULL);
-  AddStaticCallback(wRangeRadioButton[BGLOBALMINMAX], XmNvalueChangedCallback,
-		    &PltApp::ToggleRange, (XtPointer) BGLOBALMINMAX);
-  wRangeRadioButton[BSUBREGIONMINMAX] = XtVaCreateManagedWidget("Local",
+  AddStaticCallback(wRangeRadioButton[Amrvis::BGLOBALMINMAX], XmNvalueChangedCallback,
+		    &PltApp::ToggleRange, (XtPointer) Amrvis::BGLOBALMINMAX);
+  wRangeRadioButton[Amrvis::BSUBREGIONMINMAX] = XtVaCreateManagedWidget("Local",
 			    xmToggleButtonWidgetClass, wSetRangeRadioBox,
 			    NULL);
-  AddStaticCallback(wRangeRadioButton[BSUBREGIONMINMAX], XmNvalueChangedCallback,
-		    &PltApp::ToggleRange, (XtPointer) BSUBREGIONMINMAX);
-  wRangeRadioButton[BUSERMINMAX] = XtVaCreateManagedWidget("User",
+  AddStaticCallback(wRangeRadioButton[Amrvis::BSUBREGIONMINMAX], XmNvalueChangedCallback,
+		    &PltApp::ToggleRange, (XtPointer) Amrvis::BSUBREGIONMINMAX);
+  wRangeRadioButton[Amrvis::BUSERMINMAX] = XtVaCreateManagedWidget("User",
 			    xmToggleButtonWidgetClass, wSetRangeRadioBox, NULL);
-  AddStaticCallback(wRangeRadioButton[BUSERMINMAX], XmNvalueChangedCallback,
-		    &PltApp::ToggleRange, (XtPointer) BUSERMINMAX);
+  AddStaticCallback(wRangeRadioButton[Amrvis::BUSERMINMAX], XmNvalueChangedCallback,
+		    &PltApp::ToggleRange, (XtPointer) Amrvis::BUSERMINMAX);
   if(animating2d) {
     int i(0);
     XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);  ++i;
-    XtSetArg(args[i], XmNleftOffset, WOFFSET);            ++i;
+    XtSetArg(args[i], XmNleftOffset, Amrvis::WOFFSET);            ++i;
     XtSetArg(args[i], XmNtopAttachment, XmATTACH_WIDGET); ++i;
     XtSetArg(args[i], XmNtopWidget, wSetRangeRadioBox); ++i;
-    XtSetArg(args[i], XmNtopOffset, WOFFSET); ++i;
+    XtSetArg(args[i], XmNtopOffset, Amrvis::WOFFSET); ++i;
     XtSetArg(args[i], XmNset, bFileRangeButtonSet); ++i;
     wFileRangeCheckBox = XmCreateToggleButton(wSetRangeForm, "File_Range",
 			      args, i);
@@ -2435,15 +2430,15 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   }
     
   currentRangeType = pltAppState->GetMinMaxRangeType();
-  MinMaxRangeTypeForButtons mmButton(BINVALIDMINMAX);
-  if(currentRangeType == GLOBALMINMAX || currentRangeType == FILEGLOBALMINMAX) {
-    mmButton = BGLOBALMINMAX;
-  } else if(currentRangeType == SUBREGIONMINMAX ||
-	    currentRangeType == FILESUBREGIONMINMAX)
+  Amrvis::MinMaxRangeTypeForButtons mmButton(Amrvis::BINVALIDMINMAX);
+  if(currentRangeType == Amrvis::GLOBALMINMAX || currentRangeType == Amrvis::FILEGLOBALMINMAX) {
+    mmButton = Amrvis::BGLOBALMINMAX;
+  } else if(currentRangeType == Amrvis::SUBREGIONMINMAX ||
+	    currentRangeType == Amrvis::FILESUBREGIONMINMAX)
   {
-    mmButton = BSUBREGIONMINMAX;
-  } else if(currentRangeType == USERMINMAX || currentRangeType == FILEUSERMINMAX) {
-    mmButton = BUSERMINMAX;
+    mmButton = Amrvis::BSUBREGIONMINMAX;
+  } else if(currentRangeType == Amrvis::USERMINMAX || currentRangeType == Amrvis::FILEUSERMINMAX) {
+    mmButton = Amrvis::BUSERMINMAX;
   } else {
     BoxLib::Abort("Bad button range type.");
   }
@@ -2461,7 +2456,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			    XmNorientation,     XmHORIZONTAL,
 			    NULL);
   // make the strings representing data min and maxes
-  pltAppState->GetMinMax(GLOBALMINMAX, currentFrame,
+  pltAppState->GetMinMax(Amrvis::GLOBALMINMAX, currentFrame,
 			 pltAppState->CurrentDerivedNumber(), rtMin, rtMax);
   sprintf(fMin, format, rtMin);
   sprintf(fMax, format, rtMax);
@@ -2471,7 +2466,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   sprintf(range, "Max: %s", fMax);
   XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
 
-  pltAppState->GetMinMax(SUBREGIONMINMAX, currentFrame,
+  pltAppState->GetMinMax(Amrvis::SUBREGIONMINMAX, currentFrame,
 			 pltAppState->CurrentDerivedNumber(),
 			 rtMin, rtMax);
   sprintf(fMin, format, rtMin);
@@ -2481,7 +2476,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   sprintf(range, "Max: %s", fMax);
   XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
 
-  pltAppState->GetMinMax(USERMINMAX, currentFrame,
+  pltAppState->GetMinMax(Amrvis::USERMINMAX, currentFrame,
 			 pltAppState->CurrentDerivedNumber(),
 			 rtMin, rtMax);
   wid = XtVaCreateManagedWidget("wid", xmRowColumnWidgetClass, wRangeRC,
@@ -2542,9 +2537,9 @@ void PltApp::SetNewFormatString(const string &newformatstring) {
   pltPaletteptr->Redraw();
   if(datasetShowing) {
     int hdir(-1), vdir(-1), sdir(-1);
-    if(activeView == ZPLANE) { hdir = XDIR; vdir = YDIR; sdir = ZDIR; }
-    if(activeView == YPLANE) { hdir = XDIR; vdir = ZDIR; sdir = YDIR; }
-    if(activeView == XPLANE) { hdir = YDIR; vdir = ZDIR; sdir = XDIR; }
+    if(activeView == Amrvis::ZPLANE) { hdir = Amrvis::XDIR; vdir = Amrvis::YDIR; sdir = Amrvis::ZDIR; }
+    if(activeView == Amrvis::YPLANE) { hdir = Amrvis::XDIR; vdir = Amrvis::ZDIR; sdir = Amrvis::YDIR; }
+    if(activeView == Amrvis::XPLANE) { hdir = Amrvis::YDIR; vdir = Amrvis::ZDIR; sdir = Amrvis::XDIR; }
     datasetPtr->DatasetRender(trueRegion, amrPicturePtrArray[activeView],
 		              this, pltAppState, hdir, vdir, sdir);
     datasetPtr->DoExpose(false);
@@ -2570,7 +2565,7 @@ void PltApp::DoNumberFormatButton(Widget, XtPointer, XtPointer) {
     return;
   }
 
-  char format[LINELENGTH];
+  char format[Amrvis::LINELENGTH];
   strcpy(format, pltAppState->GetFormatString().c_str());
   Widget wNumberFormatForm, wDoneButton, wApplyButton, wCancelButton, wid;
 
@@ -2608,9 +2603,9 @@ void PltApp::DoNumberFormatButton(Widget, XtPointer, XtPointer) {
   wDoneButton = XtVaCreateManagedWidget(" Ok ",
 					xmPushButtonGadgetClass, wNumberFormatForm,
 					XmNbottomAttachment, XmATTACH_FORM,
-					XmNbottomOffset, WOFFSET,
+					XmNbottomOffset, Amrvis::WOFFSET,
 					XmNleftAttachment, XmATTACH_FORM,
-					XmNleftOffset, WOFFSET,
+					XmNleftOffset, Amrvis::WOFFSET,
 					NULL);
   bool bKillNFWindow(true);
   AddStaticCallback(wDoneButton, XmNactivateCallback, &PltApp::DoDoneNumberFormat,
@@ -2619,10 +2614,10 @@ void PltApp::DoNumberFormatButton(Widget, XtPointer, XtPointer) {
   wApplyButton = XtVaCreateManagedWidget(" Apply ",
 				  xmPushButtonGadgetClass, wNumberFormatForm,
 				  XmNbottomAttachment, XmATTACH_FORM,
-				  XmNbottomOffset, WOFFSET,
+				  XmNbottomOffset, Amrvis::WOFFSET,
 				  XmNleftAttachment, XmATTACH_WIDGET,
 				  XmNleftWidget, wDoneButton,
-				  XmNleftOffset, WOFFSET,
+				  XmNleftOffset, Amrvis::WOFFSET,
 				  NULL);
   bKillNFWindow = false;
   AddStaticCallback(wApplyButton, XmNactivateCallback, &PltApp::DoDoneNumberFormat,
@@ -2631,9 +2626,9 @@ void PltApp::DoNumberFormatButton(Widget, XtPointer, XtPointer) {
   wCancelButton = XtVaCreateManagedWidget(" Cancel ",
 				  xmPushButtonGadgetClass, wNumberFormatForm,
 				  XmNbottomAttachment, XmATTACH_FORM,
-				  XmNbottomOffset, WOFFSET,
+				  XmNbottomOffset, Amrvis::WOFFSET,
 				  XmNrightAttachment, XmATTACH_FORM,
-				  XmNrightOffset, WOFFSET,
+				  XmNrightOffset, Amrvis::WOFFSET,
 				  NULL);
   AddStaticCallback(wCancelButton, XmNactivateCallback,
 		    &PltApp::DoCancelNumberFormat);
@@ -2641,9 +2636,9 @@ void PltApp::DoNumberFormatButton(Widget, XtPointer, XtPointer) {
   wid = XtVaCreateManagedWidget("Format:",
 			    xmLabelGadgetClass, wNumberFormatForm,
 			    XmNtopAttachment, XmATTACH_FORM,
-			    XmNtopOffset, WOFFSET,
+			    XmNtopOffset, Amrvis::WOFFSET,
 			    XmNleftAttachment, XmATTACH_FORM,
-			    XmNleftOffset, WOFFSET,
+			    XmNleftOffset, Amrvis::WOFFSET,
 			    NULL);
   wFormat = XtVaCreateManagedWidget("format",
 			    xmTextFieldWidgetClass, wNumberFormatForm,
@@ -2651,10 +2646,10 @@ void PltApp::DoNumberFormatButton(Widget, XtPointer, XtPointer) {
 			    XmNeditable,	true,
 			    XmNcolumns,		strlen(format) + 4,
 			    XmNtopAttachment, XmATTACH_FORM,
-			    XmNtopOffset, WOFFSET,
+			    XmNtopOffset, Amrvis::WOFFSET,
 			    XmNleftAttachment, XmATTACH_WIDGET,
 			    XmNleftWidget, wid,
-			    XmNleftOffset, WOFFSET,
+			    XmNleftOffset, Amrvis::WOFFSET,
 			    NULL);
   bKillNFWindow = true;
   AddStaticCallback(wFormat, XmNactivateCallback, &PltApp::DoDoneNumberFormat,
@@ -2729,16 +2724,16 @@ void PltApp::DoDoneSetRange(Widget, XtPointer client_data, XtPointer) {
   Real umax(atof(XmTextFieldGetString(wUserMax)));
 
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
-    pltAppState->SetMinMax(USERMINMAX, iFrame,
+    pltAppState->SetMinMax(Amrvis::USERMINMAX, iFrame,
 			   pltAppState->CurrentDerivedNumber(),
 			   umin, umax);
   }
 
   if(currentRangeType != pltAppState->GetMinMaxRangeType() ||
-     currentRangeType == USERMINMAX || currentRangeType == FILEUSERMINMAX)
+     currentRangeType == Amrvis::USERMINMAX || currentRangeType == Amrvis::FILEUSERMINMAX)
   {
     pltAppState->SetMinMaxRangeType(currentRangeType);	
-    for(np = 0; np < NPLANES; ++np) {
+    for(np = 0; np < Amrvis::NPLANES; ++np) {
       amrPicturePtrArray[np]->APMakeImages(pltPaletteptr);
     }
 #if (BL_SPACEDIM == 3)
@@ -2767,9 +2762,9 @@ void PltApp::DoDoneSetRange(Widget, XtPointer client_data, XtPointer) {
   if(datasetShowing) {
     datasetPtr->DoRaise();
     int hdir(-1), vdir(-1), sdir(-1);
-    if(activeView==ZPLANE) { hdir = XDIR; vdir = YDIR; sdir = ZDIR; }
-    if(activeView==YPLANE) { hdir = XDIR; vdir = ZDIR; sdir = YDIR; }
-    if(activeView==XPLANE) { hdir = YDIR; vdir = ZDIR; sdir = XDIR; }
+    if(activeView==Amrvis::ZPLANE) { hdir = Amrvis::XDIR; vdir = Amrvis::YDIR; sdir = Amrvis::ZDIR; }
+    if(activeView==Amrvis::YPLANE) { hdir = Amrvis::XDIR; vdir = Amrvis::ZDIR; sdir = Amrvis::YDIR; }
+    if(activeView==Amrvis::XPLANE) { hdir = Amrvis::YDIR; vdir = Amrvis::ZDIR; sdir = Amrvis::XDIR; }
     datasetPtr->DatasetRender(trueRegion, amrPicturePtrArray[activeView], this,
                               pltAppState, hdir, vdir, sdir);
     datasetPtr->DoExpose(false);
@@ -2795,19 +2790,19 @@ void PltApp::DestroySetRangeWindow(Widget, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void PltApp::DoUserMin(Widget, XtPointer, XtPointer) {
-  if(currentRangeType == GLOBALMINMAX || currentRangeType == FILEGLOBALMINMAX) {
-    XtVaSetValues(wRangeRadioButton[BGLOBALMINMAX], XmNset, false, NULL);
+  if(currentRangeType == Amrvis::GLOBALMINMAX || currentRangeType == Amrvis::FILEGLOBALMINMAX) {
+    XtVaSetValues(wRangeRadioButton[Amrvis::BGLOBALMINMAX], XmNset, false, NULL);
   }
-  if(currentRangeType == SUBREGIONMINMAX ||
-     currentRangeType == FILESUBREGIONMINMAX)
+  if(currentRangeType == Amrvis::SUBREGIONMINMAX ||
+     currentRangeType == Amrvis::FILESUBREGIONMINMAX)
   {
-    XtVaSetValues(wRangeRadioButton[BSUBREGIONMINMAX], XmNset, false, NULL);
+    XtVaSetValues(wRangeRadioButton[Amrvis::BSUBREGIONMINMAX], XmNset, false, NULL);
   }
-  XtVaSetValues(wRangeRadioButton[BUSERMINMAX], XmNset, true, NULL);
+  XtVaSetValues(wRangeRadioButton[Amrvis::BUSERMINMAX], XmNset, true, NULL);
   if(bFileRangeButtonSet) {
-    currentRangeType = FILEUSERMINMAX;
+    currentRangeType = Amrvis::FILEUSERMINMAX;
   } else {
-    currentRangeType = USERMINMAX;
+    currentRangeType = Amrvis::USERMINMAX;
   }
   bool bKillSRWindow(true);
   DoDoneSetRange(NULL, (XtPointer) bKillSRWindow, NULL);
@@ -2816,19 +2811,19 @@ void PltApp::DoUserMin(Widget, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void PltApp::DoUserMax(Widget, XtPointer, XtPointer) {
-  if(currentRangeType == GLOBALMINMAX || currentRangeType == FILEGLOBALMINMAX) {
-    XtVaSetValues(wRangeRadioButton[BGLOBALMINMAX], XmNset, false, NULL);
+  if(currentRangeType == Amrvis::GLOBALMINMAX || currentRangeType == Amrvis::FILEGLOBALMINMAX) {
+    XtVaSetValues(wRangeRadioButton[Amrvis::BGLOBALMINMAX], XmNset, false, NULL);
   }
-  if(currentRangeType == SUBREGIONMINMAX ||
-     currentRangeType == FILESUBREGIONMINMAX)
+  if(currentRangeType == Amrvis::SUBREGIONMINMAX ||
+     currentRangeType == Amrvis::FILESUBREGIONMINMAX)
   {
-    XtVaSetValues(wRangeRadioButton[BSUBREGIONMINMAX], XmNset, false, NULL);
+    XtVaSetValues(wRangeRadioButton[Amrvis::BSUBREGIONMINMAX], XmNset, false, NULL);
   }
-  XtVaSetValues(wRangeRadioButton[BUSERMINMAX], XmNset, true, NULL);
+  XtVaSetValues(wRangeRadioButton[Amrvis::BUSERMINMAX], XmNset, true, NULL);
   if(bFileRangeButtonSet) {
-    currentRangeType = FILEUSERMINMAX;
+    currentRangeType = Amrvis::FILEUSERMINMAX;
   } else {
-    currentRangeType = USERMINMAX;
+    currentRangeType = Amrvis::USERMINMAX;
   }
   bool bKillSRWindow(true);
   DoDoneSetRange(NULL, (XtPointer) bKillSRWindow, NULL);
@@ -2842,7 +2837,7 @@ void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
     DirtyFrames(); 
   }
   pltAppState->SetShowingBoxes( ! pltAppState->GetShowingBoxes());
-  for(int np(0); np < NPLANES; ++np) {
+  for(int np(0); np < Amrvis::NPLANES; ++np) {
     amrPicturePtrArray[np]->DoExposePicture();
   }
 #if (BL_SPACEDIM == 3)
@@ -2860,12 +2855,12 @@ void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
 
   // draw a bounding box around the image
   /*
-  int imageSizeX = amrPicturePtrArray[ZPLANE]->ImageSizeH();
-  int imageSizeY = amrPicturePtrArray[ZPLANE]->ImageSizeV();
+  int imageSizeX = amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH();
+  int imageSizeY = amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV();
   XSetForeground(display, xgc, pltPaletteptr->WhiteIndex());
-  XDrawLine(display, XtWindow(wPlotPlane[ZPLANE]), xgc,
+  XDrawLine(display, XtWindow(wPlotPlane[Amrvis::ZPLANE]), xgc,
             0, imageSizeY, imageSizeX, imageSizeY);
-  XDrawLine(display, XtWindow(wPlotPlane[ZPLANE]), xgc,
+  XDrawLine(display, XtWindow(wPlotPlane[Amrvis::ZPLANE]), xgc,
             imageSizeX, 0, imageSizeX, imageSizeY);
   */
 }
@@ -2903,7 +2898,7 @@ void PltApp::DoOpenPalFile(Widget w, XtPointer, XtPointer call_data) {
       XYplotwin[np]->SetPalette();
     }
   }
-  for(int npp(0); npp < NPLANES; ++npp) {
+  for(int npp(0); npp < Amrvis::NPLANES; ++npp) {
     amrPicturePtrArray[npp]->CreatePicture(XtWindow(wPlotPlane[npp]),
 					  pltPaletteptr);
   }
@@ -2929,31 +2924,31 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
   int dir2(-1);
 #endif
   switch (V) {
-  case ZPLANE:
-    tdir = (sdir == XDIR) ? YDIR : XDIR;
+  case Amrvis::ZPLANE:
+    tdir = (sdir == Amrvis::XDIR) ? Amrvis::YDIR : Amrvis::XDIR;
     dir1 = tdir;
 #if (BL_SPACEDIM == 3)
-    dir2 = ZDIR;
+    dir2 = Amrvis::ZDIR;
     break;
-  case YPLANE:
-    if(sdir == XDIR) {
-      tdir = ZDIR;
-      dir1 = YDIR;
-      dir2 = ZDIR;
+  case Amrvis::YPLANE:
+    if(sdir == Amrvis::XDIR) {
+      tdir = Amrvis::ZDIR;
+      dir1 = Amrvis::YDIR;
+      dir2 = Amrvis::ZDIR;
     } else {
-      tdir = XDIR;
-      dir1 = XDIR;
-      dir2 = YDIR;
+      tdir = Amrvis::XDIR;
+      dir1 = Amrvis::XDIR;
+      dir2 = Amrvis::YDIR;
     }
     break;
-  case XPLANE:
-    dir1 = XDIR;
-    if(sdir == YDIR) {
-      tdir = ZDIR; 
+  case Amrvis::XPLANE:
+    dir1 = Amrvis::XDIR;
+    if(sdir == Amrvis::YDIR) {
+      tdir = Amrvis::ZDIR; 
     } else {
-      tdir = YDIR;
+      tdir = Amrvis::YDIR;
     }
-    dir1 = XDIR;
+    dir1 = Amrvis::XDIR;
     dir2 = tdir;
     break;
 #endif
@@ -2975,14 +2970,14 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 #if (BL_SPACEDIM == 3)
   char buffer[128];
   sprintf(buffer, "%s%s %s%s",
-	  (dir1 == XDIR) ? "X=" : "Y=", pltAppState->GetFormatString().c_str(),
-	  (dir2 == YDIR) ? "Y=" : "Z=", pltAppState->GetFormatString().c_str());
+	  (dir1 == Amrvis::XDIR) ? "X=" : "Y=", pltAppState->GetFormatString().c_str(),
+	  (dir2 == Amrvis::YDIR) ? "Y=" : "Z=", pltAppState->GetFormatString().c_str());
 #endif
   for(lev = 0; lev <= mal; ++lev) {
     XdX[lev] = amrData.DxLevel()[lev][sdir];
     intersectStr[lev] = new char[128];
 #if (BL_SPACEDIM == 2)
-    sprintf(intersectStr[lev], ((dir1 == XDIR) ? "X=" : "Y="));
+    sprintf(intersectStr[lev], ((dir1 == Amrvis::XDIR) ? "X=" : "Y="));
     sprintf(intersectStr[lev]+2, pltAppState->GetFormatString().c_str(),
 	    gridOffset[dir1] +
 	    (0.5 + trueRegion[lev].smallEnd(dir1))*amrData.DxLevel()[lev][dir1]);
@@ -3088,33 +3083,33 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 #if (BL_SPACEDIM == 3)
 	  // 3D sub domain selecting
 	  switch (V) {
-	  case ZPLANE:
-	    XDrawRectangle(display, amrPicturePtrArray[YPLANE]->PictureWindow(),
-			   rbgc, rStartX, startcutY[YPLANE], rWidth,
-			   abs(finishcutY[YPLANE]-startcutY[YPLANE]));
+	  case Amrvis::ZPLANE:
+	    XDrawRectangle(display, amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(),
+			   rbgc, rStartX, startcutY[Amrvis::YPLANE], rWidth,
+			   abs(finishcutY[Amrvis::YPLANE]-startcutY[Amrvis::YPLANE]));
 	    rStartPlane = (anchorY < oldY) ? oldY : anchorY;
-	    XDrawRectangle(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
-			   rbgc, imageHeight-rStartPlane, startcutY[XPLANE],
+	    XDrawRectangle(display, amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(),
+			   rbgc, imageHeight-rStartPlane, startcutY[Amrvis::XPLANE],
 			   rHeight,
-			   abs(finishcutY[XPLANE]-startcutY[XPLANE]));
+			   abs(finishcutY[Amrvis::XPLANE]-startcutY[Amrvis::XPLANE]));
 	    break;
-	  case YPLANE:
-	    XDrawRectangle(display, amrPicturePtrArray[ZPLANE]->PictureWindow(),
-			   rbgc, rStartX, startcutY[ZPLANE], rWidth,
-			   abs(finishcutY[ZPLANE]-startcutY[ZPLANE]));
-	    XDrawRectangle(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
-			   rbgc, startcutX[XPLANE], rStartY,
-			   abs(finishcutX[XPLANE]-startcutX[XPLANE]),
+	  case Amrvis::YPLANE:
+	    XDrawRectangle(display, amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(),
+			   rbgc, rStartX, startcutY[Amrvis::ZPLANE], rWidth,
+			   abs(finishcutY[Amrvis::ZPLANE]-startcutY[Amrvis::ZPLANE]));
+	    XDrawRectangle(display, amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(),
+			   rbgc, startcutX[Amrvis::XPLANE], rStartY,
+			   abs(finishcutX[Amrvis::XPLANE]-startcutX[Amrvis::XPLANE]),
 			   rHeight);
 	    break;
-	  default: // XPLANE
+	  default: // Amrvis::XPLANE
 	    rStartPlane = (anchorX < oldX) ? oldX : anchorX;
-	    XDrawRectangle(display, amrPicturePtrArray[ZPLANE]->PictureWindow(),
-			   rbgc, startcutX[ZPLANE], imageWidth-rStartPlane,
-			   abs(finishcutX[ZPLANE]-startcutX[ZPLANE]), rWidth);
-	    XDrawRectangle(display, amrPicturePtrArray[YPLANE]->PictureWindow(),
-			   rbgc, startcutX[YPLANE], rStartY,
-			   abs(finishcutX[YPLANE]-startcutX[YPLANE]),
+	    XDrawRectangle(display, amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(),
+			   rbgc, startcutX[Amrvis::ZPLANE], imageWidth-rStartPlane,
+			   abs(finishcutX[Amrvis::ZPLANE]-startcutX[Amrvis::ZPLANE]), rWidth);
+	    XDrawRectangle(display, amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(),
+			   rbgc, startcutX[Amrvis::YPLANE], rStartY,
+			   abs(finishcutX[Amrvis::YPLANE]-startcutX[Amrvis::YPLANE]),
 			   rHeight);
 	  }
 #endif
@@ -3156,67 +3151,67 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	finishcutX[V] = rStartX + rWidth;
 	finishcutY[V] = rStartY + rHeight;
 	switch (V) {
-	case ZPLANE:
-	  startcutX[YPLANE] = startcutX[V];
-	  finishcutX[YPLANE] = finishcutX[V];
-	  startcutX[XPLANE] = imageHeight - startcutY[V];
-	  finishcutX[XPLANE] = imageHeight - finishcutY[V];
+	case Amrvis::ZPLANE:
+	  startcutX[Amrvis::YPLANE] = startcutX[V];
+	  finishcutX[Amrvis::YPLANE] = finishcutX[V];
+	  startcutX[Amrvis::XPLANE] = imageHeight - startcutY[V];
+	  finishcutX[Amrvis::XPLANE] = imageHeight - finishcutY[V];
 	  // draw in other planes
-	  XDrawRectangle(display, amrPicturePtrArray[YPLANE]->PictureWindow(),
-			 rbgc, rStartX, startcutY[YPLANE], rWidth,
-			 abs(finishcutY[YPLANE]-startcutY[YPLANE]));
+	  XDrawRectangle(display, amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(),
+			 rbgc, rStartX, startcutY[Amrvis::YPLANE], rWidth,
+			 abs(finishcutY[Amrvis::YPLANE]-startcutY[Amrvis::YPLANE]));
 	  rStartPlane = (anchorY < newY) ? newY : anchorY;
-	  XDrawRectangle(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
-			 rbgc, imageHeight-rStartPlane, startcutY[XPLANE],
+	  XDrawRectangle(display, amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(),
+			 rbgc, imageHeight-rStartPlane, startcutY[Amrvis::XPLANE],
 			 rHeight,
-			 abs(finishcutY[XPLANE]-startcutY[XPLANE]));
+			 abs(finishcutY[Amrvis::XPLANE]-startcutY[Amrvis::XPLANE]));
 	  break;
-	case YPLANE:
-	  startcutX[ZPLANE] = startcutX[V];
-	  finishcutX[ZPLANE] = finishcutX[V];
-	  startcutY[XPLANE] = startcutY[V];
-	  finishcutY[XPLANE] = finishcutY[V];
-	  XDrawRectangle(display, amrPicturePtrArray[ZPLANE]->PictureWindow(),
-			 rbgc, rStartX, startcutY[ZPLANE], rWidth,
-			 abs(finishcutY[ZPLANE]-startcutY[ZPLANE]));
-	  XDrawRectangle(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
-			 rbgc, startcutX[XPLANE], rStartY,
-			 abs(finishcutX[XPLANE]-startcutX[XPLANE]), rHeight);
+	case Amrvis::YPLANE:
+	  startcutX[Amrvis::ZPLANE] = startcutX[V];
+	  finishcutX[Amrvis::ZPLANE] = finishcutX[V];
+	  startcutY[Amrvis::XPLANE] = startcutY[V];
+	  finishcutY[Amrvis::XPLANE] = finishcutY[V];
+	  XDrawRectangle(display, amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(),
+			 rbgc, rStartX, startcutY[Amrvis::ZPLANE], rWidth,
+			 abs(finishcutY[Amrvis::ZPLANE]-startcutY[Amrvis::ZPLANE]));
+	  XDrawRectangle(display, amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(),
+			 rbgc, startcutX[Amrvis::XPLANE], rStartY,
+			 abs(finishcutX[Amrvis::XPLANE]-startcutX[Amrvis::XPLANE]), rHeight);
 	  break;
-	default: // XPLANE
-	  startcutY[YPLANE] = startcutY[V];
-	  finishcutY[YPLANE] = finishcutY[V];
-	  startcutY[ZPLANE] = imageWidth - startcutX[V];
-	  finishcutY[ZPLANE] = imageWidth - finishcutX[V];
+	default: // Amrvis::XPLANE
+	  startcutY[Amrvis::YPLANE] = startcutY[V];
+	  finishcutY[Amrvis::YPLANE] = finishcutY[V];
+	  startcutY[Amrvis::ZPLANE] = imageWidth - startcutX[V];
+	  finishcutY[Amrvis::ZPLANE] = imageWidth - finishcutX[V];
 	  rStartPlane = (anchorX < newX) ? newX : anchorX;
-	  XDrawRectangle(display, amrPicturePtrArray[ZPLANE]->PictureWindow(),
-			 rbgc, startcutX[ZPLANE], imageWidth-rStartPlane,
-			 abs(finishcutX[ZPLANE]-startcutX[ZPLANE]), rWidth);
-	  XDrawRectangle(display, amrPicturePtrArray[YPLANE]->PictureWindow(),
-			 rbgc, startcutX[YPLANE], rStartY,
-			 abs(finishcutX[YPLANE]-startcutX[YPLANE]), rHeight);
+	  XDrawRectangle(display, amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(),
+			 rbgc, startcutX[Amrvis::ZPLANE], imageWidth-rStartPlane,
+			 abs(finishcutX[Amrvis::ZPLANE]-startcutX[Amrvis::ZPLANE]), rWidth);
+	  XDrawRectangle(display, amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(),
+			 rbgc, startcutX[Amrvis::YPLANE], rStartY,
+			 abs(finishcutX[Amrvis::YPLANE]-startcutX[Amrvis::YPLANE]), rHeight);
 	}
 	
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
 	if( ! XmToggleButtonGetState(wAutoDraw))
 #endif
 	  {
-	    x1 = startcutX[ZPLANE]/scale + ivLowOffsetMAL[XDIR];
-	    y1 = startcutX[XPLANE]/scale + ivLowOffsetMAL[YDIR];
-	    z1 = (amrPicturePtrArray[YPLANE]->ImageSizeV()-1 -
-		  startcutY[YPLANE])/scale + ivLowOffsetMAL[ZDIR];
-	    x2 = finishcutX[ZPLANE]/scale + ivLowOffsetMAL[XDIR];
-	    y2 = finishcutX[XPLANE]/scale + ivLowOffsetMAL[YDIR];
-	    z2 = (amrPicturePtrArray[YPLANE]->ImageSizeV()-1 -
-		  finishcutY[YPLANE])/scale + ivLowOffsetMAL[ZDIR];
+	    x1 = startcutX[Amrvis::ZPLANE]/scale + ivLowOffsetMAL[Amrvis::XDIR];
+	    y1 = startcutX[Amrvis::XPLANE]/scale + ivLowOffsetMAL[Amrvis::YDIR];
+	    z1 = (amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeV()-1 -
+		  startcutY[Amrvis::YPLANE])/scale + ivLowOffsetMAL[Amrvis::ZDIR];
+	    x2 = finishcutX[Amrvis::ZPLANE]/scale + ivLowOffsetMAL[Amrvis::XDIR];
+	    y2 = finishcutX[Amrvis::XPLANE]/scale + ivLowOffsetMAL[Amrvis::YDIR];
+	    z2 = (amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeV()-1 -
+		  finishcutY[Amrvis::YPLANE])/scale + ivLowOffsetMAL[Amrvis::ZDIR];
 	    
 	    if(z2 > 65536) {    // fix bad -z values
-	      z2 = amrPicturePtrArray[ZPLANE]->GetSubDomain()[mal].smallEnd(ZDIR);
+	      z2 = amrPicturePtrArray[Amrvis::ZPLANE]->GetSubDomain()[mal].smallEnd(Amrvis::ZDIR);
 	    }
 	    IntVect ivmin(min(x1,x2), min(y1,y2), min(z1,z2));
 	    IntVect ivmax(max(x1,x2), max(y1,y2), max(z1,z2));
 	    Box xyz12(ivmin, ivmax);
-	    xyz12 &= amrPicturePtrArray[ZPLANE]->GetSubDomain()[mal];
+	    xyz12 &= amrPicturePtrArray[Amrvis::ZPLANE]->GetSubDomain()[mal];
 	    
 	    projPicturePtr->SetSubCut(xyz12); 
 	    //projPicturePtr->MakeBoxes();
@@ -3245,11 +3240,11 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	}
 	
 	// make "aligned" box with correct size, converted to AMR space.
-	selectionBox.setSmall(XDIR, min(startX, endX));
-	selectionBox.setSmall(YDIR, ((imageHeight + 1) / scale) -
+	selectionBox.setSmall(Amrvis::XDIR, min(startX, endX));
+	selectionBox.setSmall(Amrvis::YDIR, ((imageHeight + 1) / scale) -
 				     max(startY, endY) - 1);
-	selectionBox.setBig(XDIR, max(startX, endX));
-	selectionBox.setBig(YDIR, ((imageHeight + 1) / scale)  -
+	selectionBox.setBig(Amrvis::XDIR, max(startX, endX));
+	selectionBox.setBig(Amrvis::YDIR, ((imageHeight + 1) / scale)  -
 				     min(startY, endY) - 1);
 	
 	// selectionBox is now at the maxAllowableLevel because
@@ -3265,42 +3260,42 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  trueRegion[mal] = selectionBox;
 	  
 	  // convert to point box
-	  trueRegion[mal].setBig(XDIR, trueRegion[mal].smallEnd(XDIR));
-	  trueRegion[mal].setBig(YDIR, trueRegion[mal].smallEnd(YDIR));
+	  trueRegion[mal].setBig(Amrvis::XDIR, trueRegion[mal].smallEnd(Amrvis::XDIR));
+	  trueRegion[mal].setBig(Amrvis::YDIR, trueRegion[mal].smallEnd(Amrvis::YDIR));
 	  
-	  if(V == ZPLANE) {
-	    trueRegion[mal].shift(XDIR, ivLowOffsetMAL[XDIR]);
-	    trueRegion[mal].shift(YDIR, ivLowOffsetMAL[YDIR]);
+	  if(V == Amrvis::ZPLANE) {
+	    trueRegion[mal].shift(Amrvis::XDIR, ivLowOffsetMAL[Amrvis::XDIR]);
+	    trueRegion[mal].shift(Amrvis::YDIR, ivLowOffsetMAL[Amrvis::YDIR]);
 	    if(BL_SPACEDIM == 3) {
-	      trueRegion[mal].setSmall(ZDIR, plane);
-	      trueRegion[mal].setBig(ZDIR, plane);
+	      trueRegion[mal].setSmall(Amrvis::ZDIR, plane);
+	      trueRegion[mal].setBig(Amrvis::ZDIR, plane);
 	    }	
 	  }	
-	  if(V == YPLANE) {
-	    trueRegion[mal].setSmall(ZDIR, trueRegion[mal].smallEnd(YDIR));
-	    trueRegion[mal].setBig(ZDIR, trueRegion[mal].bigEnd(YDIR));
-	    trueRegion[mal].setSmall(YDIR, plane);
-	    trueRegion[mal].setBig(YDIR, plane);
-	    trueRegion[mal].shift(XDIR, ivLowOffsetMAL[XDIR]);
-	    trueRegion[mal].shift(ZDIR, ivLowOffsetMAL[ZDIR]);
+	  if(V == Amrvis::YPLANE) {
+	    trueRegion[mal].setSmall(Amrvis::ZDIR, trueRegion[mal].smallEnd(Amrvis::YDIR));
+	    trueRegion[mal].setBig(Amrvis::ZDIR, trueRegion[mal].bigEnd(Amrvis::YDIR));
+	    trueRegion[mal].setSmall(Amrvis::YDIR, plane);
+	    trueRegion[mal].setBig(Amrvis::YDIR, plane);
+	    trueRegion[mal].shift(Amrvis::XDIR, ivLowOffsetMAL[Amrvis::XDIR]);
+	    trueRegion[mal].shift(Amrvis::ZDIR, ivLowOffsetMAL[Amrvis::ZDIR]);
 	  }
-	  if(V == XPLANE) {
-	    trueRegion[mal].setSmall(ZDIR, trueRegion[mal].smallEnd(YDIR));
-	    trueRegion[mal].setBig(ZDIR, trueRegion[mal].bigEnd(YDIR));
-	    trueRegion[mal].setSmall(YDIR, trueRegion[mal].smallEnd(XDIR));
-	    trueRegion[mal].setBig(YDIR, trueRegion[mal].bigEnd(XDIR));
-	    trueRegion[mal].setSmall(XDIR, plane);
-	    trueRegion[mal].setBig(XDIR, plane);
-	    trueRegion[mal].shift(YDIR, ivLowOffsetMAL[YDIR]);
-	    trueRegion[mal].shift(ZDIR, ivLowOffsetMAL[ZDIR]);
+	  if(V == Amrvis::XPLANE) {
+	    trueRegion[mal].setSmall(Amrvis::ZDIR, trueRegion[mal].smallEnd(Amrvis::YDIR));
+	    trueRegion[mal].setBig(Amrvis::ZDIR, trueRegion[mal].bigEnd(Amrvis::YDIR));
+	    trueRegion[mal].setSmall(Amrvis::YDIR, trueRegion[mal].smallEnd(Amrvis::XDIR));
+	    trueRegion[mal].setBig(Amrvis::YDIR, trueRegion[mal].bigEnd(Amrvis::XDIR));
+	    trueRegion[mal].setSmall(Amrvis::XDIR, plane);
+	    trueRegion[mal].setBig(Amrvis::XDIR, plane);
+	    trueRegion[mal].shift(Amrvis::YDIR, ivLowOffsetMAL[Amrvis::YDIR]);
+	    trueRegion[mal].shift(Amrvis::ZDIR, ivLowOffsetMAL[Amrvis::ZDIR]);
 	  }
 	  
 	  for(y = mal - 1; y >= 0; --y) {
 	    trueRegion[y] = trueRegion[mal];
 	    trueRegion[y].coarsen(AVGlobals::CRRBetweenLevels(y, mal,
 	                          amrData.RefRatio()));
-	    trueRegion[y].setBig(XDIR, trueRegion[y].smallEnd(XDIR));
-	    trueRegion[y].setBig(YDIR, trueRegion[y].smallEnd(YDIR));
+	    trueRegion[y].setBig(Amrvis::XDIR, trueRegion[y].smallEnd(Amrvis::XDIR));
+	    trueRegion[y].setBig(Amrvis::YDIR, trueRegion[y].smallEnd(Amrvis::YDIR));
 	  }
 	  bool goodIntersect;
 	  Real dataValue;
@@ -3312,7 +3307,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 				 minDrawnLevel, maxDrawnLevel,
 				 &intersectedLevel, &intersectedGrid,
 				 &dataValue, &goodIntersect);
-	  char dataValueCharString[LINELENGTH];
+	  char dataValueCharString[Amrvis::LINELENGTH];
 	  sprintf(dataValueCharString, pltAppState->GetFormatString().c_str(),
 	          dataValue);
 	  string dataValueString(dataValueCharString);
@@ -3335,12 +3330,12 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	      dataValueString = "body";
 	    }
 	  }
-	  bool bIsMF(dataServicesPtr[currentFrame]->GetFileType() == MULTIFAB);
+	  bool bIsMF(dataServicesPtr[currentFrame]->GetFileType() == Amrvis::MULTIFAB);
 	  if(bIsMF && intersectedLevel == 0) {
 	    dataValueString = "no data";
 	  }
 
-	  ostrstream buffout(buffer, BUFSIZ);
+	  ostrstream buffout(buffer, Amrvis::BUFSIZE);
 	  if(goodIntersect) {
 	    buffout << '\n';
 	    buffout << "level = " << intersectedLevel << '\n';
@@ -3355,7 +3350,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	      double dLoc = gridOffset[idx] +
 		           (0.5 + trueRegion[mal].smallEnd()[idx]) *
 		           amrData.DxLevel()[mal][idx];
-	      char dLocStr[LINELENGTH];
+	      char dLocStr[Amrvis::LINELENGTH];
 	      sprintf(dLocStr, pltAppState->GetFormatString().c_str(), dLoc);
 	      buffout << dLocStr;
 	    }
@@ -3373,22 +3368,22 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  // tell the amrpicture about the box
 	  activeView = V;
 	  if(startX < endX) { // box in scaled pixmap space
-	    startX = selectionBox.smallEnd(XDIR) * scale;
-	    endX   = selectionBox.bigEnd(XDIR)   * scale;
+	    startX = selectionBox.smallEnd(Amrvis::XDIR) * scale;
+	    endX   = selectionBox.bigEnd(Amrvis::XDIR)   * scale;
 	  } else {	
-	    startX = selectionBox.bigEnd(XDIR)   * scale;
-	    endX   = selectionBox.smallEnd(XDIR) * scale;
+	    startX = selectionBox.bigEnd(Amrvis::XDIR)   * scale;
+	    endX   = selectionBox.smallEnd(Amrvis::XDIR) * scale;
 	  }
 	  
 	  if(startY < endY) {
-	    startY = imageHeight - selectionBox.bigEnd(YDIR)   * scale;
-	    endY   = imageHeight - selectionBox.smallEnd(YDIR) * scale;
+	    startY = imageHeight - selectionBox.bigEnd(Amrvis::YDIR)   * scale;
+	    endY   = imageHeight - selectionBox.smallEnd(Amrvis::YDIR) * scale;
 	  } else {
-	    startY = imageHeight - selectionBox.smallEnd(YDIR) * scale;
-	    endY   = imageHeight - selectionBox.bigEnd(YDIR)   * scale;
+	    startY = imageHeight - selectionBox.smallEnd(Amrvis::YDIR) * scale;
+	    endY   = imageHeight - selectionBox.bigEnd(Amrvis::YDIR)   * scale;
 	  }
 	
-	  int nodeAdjustment = (scale - 1) * selectionBox.type()[YDIR];
+	  int nodeAdjustment = (scale - 1) * selectionBox.type()[Amrvis::YDIR];
 	  startY -= nodeAdjustment;
 	  endY   -= nodeAdjustment;
 	  
@@ -3397,27 +3392,27 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 #if (BL_SPACEDIM == 3)
 	  amrPicturePtrArray[V]->SetSubCut(startcutX[V], startcutY[V],
 					   finishcutX[V], finishcutY[V]);
-	  if(V == ZPLANE) {
-	    amrPicturePtrArray[YPLANE]->SetSubCut(startcutX[V], -1,
+	  if(V == Amrvis::ZPLANE) {
+	    amrPicturePtrArray[Amrvis::YPLANE]->SetSubCut(startcutX[V], -1,
 						  finishcutX[V], -1);
-	    amrPicturePtrArray[XPLANE]->SetSubCut(imageHeight-startcutY[V],-1,
+	    amrPicturePtrArray[Amrvis::XPLANE]->SetSubCut(imageHeight-startcutY[V],-1,
 						  imageHeight-finishcutY[V],-1);
 	  }
-	  if(V == YPLANE) {
-	    amrPicturePtrArray[ZPLANE]->SetSubCut(startcutX[V], -1,
+	  if(V == Amrvis::YPLANE) {
+	    amrPicturePtrArray[Amrvis::ZPLANE]->SetSubCut(startcutX[V], -1,
 						  finishcutX[V], -1);
-	    amrPicturePtrArray[XPLANE]->SetSubCut(-1, startcutY[V], 
+	    amrPicturePtrArray[Amrvis::XPLANE]->SetSubCut(-1, startcutY[V], 
 						  -1, finishcutY[V]);
 	  }
-	  if(V == XPLANE) {
-	    amrPicturePtrArray[ZPLANE]->SetSubCut(-1, imageWidth-startcutX[V],
+	  if(V == Amrvis::XPLANE) {
+	    amrPicturePtrArray[Amrvis::ZPLANE]->SetSubCut(-1, imageWidth-startcutX[V],
 						  -1, imageWidth-finishcutX[V]);
-	    amrPicturePtrArray[YPLANE]->SetSubCut(-1, startcutY[V], 
+	    amrPicturePtrArray[Amrvis::YPLANE]->SetSubCut(-1, startcutY[V], 
 						  -1, finishcutY[V]);
 	  }
 #endif
 	  
-	  for(int np(0); np < NPLANES; ++np) {
+	  for(int np(0); np < Amrvis::NPLANES; ++np) {
 	    amrPicturePtrArray[np]->DoExposePicture();
 	  }
 	}
@@ -3440,18 +3435,18 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
     
 #if (BL_SPACEDIM == 3)
     switch (V) {
-    case ZPLANE:
-      XDrawLine(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
+    case Amrvis::ZPLANE:
+      XDrawLine(display, amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(),
 		rbgc, imageHeight-oldY, 0, imageHeight-oldY,
-		amrPicturePtrArray[XPLANE]->ImageSizeV());
+		amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeV());
       break;
-    case YPLANE:
-      XDrawLine(display, amrPicturePtrArray[XPLANE]->PictureWindow(), rbgc,
-		0, oldY, amrPicturePtrArray[XPLANE]->ImageSizeH(), oldY);
+    case Amrvis::YPLANE:
+      XDrawLine(display, amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(), rbgc,
+		0, oldY, amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeH(), oldY);
       break;
-    default: // XPLANE
-      XDrawLine(display, amrPicturePtrArray[YPLANE]->PictureWindow(), rbgc,
-		0, oldY, amrPicturePtrArray[YPLANE]->ImageSizeH(), oldY);
+    default: // Amrvis::XPLANE
+      XDrawLine(display, amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(), rbgc,
+		0, oldY, amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeH(), oldY);
     }
 #endif
     int tempi;
@@ -3466,16 +3461,16 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 		  rbgc, 0, oldY, imageWidth, oldY);
 #if (BL_SPACEDIM == 3)
 	// undraw in other planes
-	if(V == ZPLANE) {
-	  XDrawLine(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
+	if(V == Amrvis::ZPLANE) {
+	  XDrawLine(display, amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(),
 		    rbgc, imageHeight-oldY, 0, imageHeight-oldY,
-		    amrPicturePtrArray[XPLANE]->ImageSizeV());
-	} else if(V == YPLANE) {
-	  XDrawLine(display, amrPicturePtrArray[XPLANE]->PictureWindow(), rbgc,
-		    0, oldY, amrPicturePtrArray[XPLANE]->ImageSizeH(), oldY);
-	} else if(V == XPLANE) {
-	  XDrawLine(display, amrPicturePtrArray[YPLANE]->PictureWindow(), rbgc,
-		    0, oldY, amrPicturePtrArray[YPLANE]->ImageSizeH(), oldY);
+		    amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeV());
+	} else if(V == Amrvis::YPLANE) {
+	  XDrawLine(display, amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(), rbgc,
+		    0, oldY, amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeH(), oldY);
+	} else if(V == Amrvis::XPLANE) {
+	  XDrawLine(display, amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(), rbgc,
+		    0, oldY, amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeH(), oldY);
 	}
 #endif
 
@@ -3492,18 +3487,18 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 		  rbgc, 0, oldY, imageWidth, oldY);
 #if (BL_SPACEDIM == 3)
 	switch (V) {
-	case ZPLANE:
-	  XDrawLine(display, amrPicturePtrArray[XPLANE]->PictureWindow(),
+	case Amrvis::ZPLANE:
+	  XDrawLine(display, amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(),
 		    rbgc, imageHeight-oldY, 0, imageHeight-oldY,
-		    amrPicturePtrArray[XPLANE]->ImageSizeV());
+		    amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeV());
 	  break;
-	case YPLANE:
-	  XDrawLine(display, amrPicturePtrArray[XPLANE]->PictureWindow(), rbgc,
-		    0, oldY, amrPicturePtrArray[XPLANE]->ImageSizeH(), oldY);
+	case Amrvis::YPLANE:
+	  XDrawLine(display, amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(), rbgc,
+		    0, oldY, amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeH(), oldY);
 	  break;
-	default: // XPLANE
-	  XDrawLine(display, amrPicturePtrArray[YPLANE]->PictureWindow(), rbgc,
-		    0, oldY, amrPicturePtrArray[YPLANE]->ImageSizeH(), oldY);
+	default: // Amrvis::XPLANE
+	  XDrawLine(display, amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(), rbgc,
+		    0, oldY, amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeH(), oldY);
 	}
 #endif
 	
@@ -3514,33 +3509,33 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	tempi = max(0, min(imageHeight, nextEvent.xbutton.y));
 	amrPicturePtrArray[V]->SetHLine(tempi);
 #if (BL_SPACEDIM == 3)
-	if(V == ZPLANE) {
-	  amrPicturePtrArray[XPLANE]->SetVLine(amrPicturePtrArray[XPLANE]->
+	if(V == Amrvis::ZPLANE) {
+	  amrPicturePtrArray[Amrvis::XPLANE]->SetVLine(amrPicturePtrArray[Amrvis::XPLANE]->
 				                       ImageSizeH()-1 - tempi);
 	}
-	if(V == YPLANE) {
-	  amrPicturePtrArray[XPLANE]->SetHLine(tempi);
+	if(V == Amrvis::YPLANE) {
+	  amrPicturePtrArray[Amrvis::XPLANE]->SetHLine(tempi);
 	}
-	if(V == XPLANE) {
-	  amrPicturePtrArray[YPLANE]->SetHLine(tempi);
+	if(V == Amrvis::XPLANE) {
+	  amrPicturePtrArray[Amrvis::YPLANE]->SetHLine(tempi);
 	}
 
         if( ! ( (cbs->event->xbutton.state & ShiftMask) ||
                 (cbs->event->xbutton.state & ControlMask) ) )
         {
-	  if(V == ZPLANE) {
-	    amrPicturePtrArray[YPLANE]->
-	      APChangeSlice((imageHeight - tempi)/scale + ivLowOffsetMAL[YDIR]);
+	  if(V == Amrvis::ZPLANE) {
+	    amrPicturePtrArray[Amrvis::YPLANE]->
+	      APChangeSlice((imageHeight - tempi)/scale + ivLowOffsetMAL[Amrvis::YDIR]);
 	  }
-	  if(V == YPLANE) {
-	    amrPicturePtrArray[ZPLANE]->
-	      APChangeSlice((imageHeight - tempi)/scale + ivLowOffsetMAL[ZDIR]);
+	  if(V == Amrvis::YPLANE) {
+	    amrPicturePtrArray[Amrvis::ZPLANE]->
+	      APChangeSlice((imageHeight - tempi)/scale + ivLowOffsetMAL[Amrvis::ZDIR]);
 	  }
-	  if(V == XPLANE) {
-	    amrPicturePtrArray[ZPLANE]->
-	      APChangeSlice((imageHeight - tempi)/scale + ivLowOffsetMAL[ZDIR]);
+	  if(V == Amrvis::XPLANE) {
+	    amrPicturePtrArray[Amrvis::ZPLANE]->
+	      APChangeSlice((imageHeight - tempi)/scale + ivLowOffsetMAL[Amrvis::ZDIR]);
 	  }
-	  for(int np(0); np < NPLANES; ++np) {
+	  for(int np(0); np < Amrvis::NPLANES; ++np) {
 	    amrPicturePtrArray[np]->DoExposePicture();
 	    projPicturePtr->ChangeSlice(np, amrPicturePtrArray[np]->GetSlice());
 	  }
@@ -3556,21 +3551,21 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	}
 #endif
 
-	for(int np(0); np != NPLANES; ++np) {
+	for(int np(0); np != Amrvis::NPLANES; ++np) {
 	  amrPicturePtrArray[np]->DoExposePicture();
 	}
 
 	if(oldY >= 0 && oldY <= imageHeight) {
 	  int sdir(-1);
 	  switch (V) {
-	    case ZPLANE:
-	      sdir = XDIR;
+	    case Amrvis::ZPLANE:
+	      sdir = Amrvis::XDIR;
 	    break;
-	    case YPLANE:
-	      sdir = XDIR;
+	    case Amrvis::YPLANE:
+	      sdir = Amrvis::XDIR;
 	    break;
-	    case XPLANE:
-	      sdir = YDIR;
+	    case Amrvis::XPLANE:
+	      sdir = Amrvis::YDIR;
 	    break;
 	  }
 	  XYPlotDataList *newlist = CreateLinePlot(V, sdir, mal,
@@ -3579,7 +3574,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  if(newlist) {
 	    newlist->SetLevel(maxDrawnLevel);
 	    if(XYplotwin[sdir] == NULL) {
-              char cTempFN[BUFSIZ];
+              char cTempFN[Amrvis::BUFSIZE];
               strcpy(cTempFN,
 	             AVGlobals::StripSlashes(fileNames[currentFrame]).c_str());
 	      XYplotwin[sdir] = new XYPlotWin(cTempFN, appContext, wAmrVisTopLevel,
@@ -3604,17 +3599,17 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
     XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
 	      rbgc, oldX, 0, oldX, imageHeight);
 #if (BL_SPACEDIM == 3)
-    if(V == ZPLANE) {
-      XDrawLine(display, amrPicturePtrArray[YPLANE]->PictureWindow(), rbgc,
-		oldX, 0, oldX, amrPicturePtrArray[YPLANE]->ImageSizeV());
+    if(V == Amrvis::ZPLANE) {
+      XDrawLine(display, amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(), rbgc,
+		oldX, 0, oldX, amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeV());
     }
-    if(V == YPLANE) {
-      XDrawLine(display, amrPicturePtrArray[ZPLANE]->PictureWindow(),rbgc,
-		oldX, 0, oldX, amrPicturePtrArray[ZPLANE]->ImageSizeV());
+    if(V == Amrvis::YPLANE) {
+      XDrawLine(display, amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(),rbgc,
+		oldX, 0, oldX, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV());
     }
-    if(V == XPLANE) {
-      XDrawLine(display, amrPicturePtrArray[ZPLANE]->PictureWindow(), rbgc,
-		0, imageWidth - oldX, amrPicturePtrArray[ZPLANE]->ImageSizeH(),
+    if(V == Amrvis::XPLANE) {
+      XDrawLine(display, amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(), rbgc,
+		0, imageWidth - oldX, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH(),
 		imageWidth - oldX);
     }
 #endif
@@ -3630,17 +3625,17 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 		  rbgc, oldX, 0, oldX, imageHeight);
 #if (BL_SPACEDIM == 3)
 	// undraw in other planes
-	if(V == ZPLANE) {
-	  XDrawLine(display, amrPicturePtrArray[YPLANE]->PictureWindow(), rbgc,
-		    oldX, 0, oldX, amrPicturePtrArray[YPLANE]->ImageSizeV());
+	if(V == Amrvis::ZPLANE) {
+	  XDrawLine(display, amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(), rbgc,
+		    oldX, 0, oldX, amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeV());
 	}
-	if(V == YPLANE) {
-	  XDrawLine(display, amrPicturePtrArray[ZPLANE]->PictureWindow(), rbgc,
-		    oldX, 0, oldX, amrPicturePtrArray[ZPLANE]->ImageSizeV());
+	if(V == Amrvis::YPLANE) {
+	  XDrawLine(display, amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(), rbgc,
+		    oldX, 0, oldX, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV());
 	}
-	if(V == XPLANE) {
-	  XDrawLine(display, amrPicturePtrArray[ZPLANE]->PictureWindow(), rbgc,
-		    0, imageWidth-oldX, amrPicturePtrArray[ZPLANE]->ImageSizeH(),
+	if(V == Amrvis::XPLANE) {
+	  XDrawLine(display, amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(), rbgc,
+		    0, imageWidth-oldX, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH(),
 		    imageWidth-oldX);
 	}
 #endif
@@ -3657,17 +3652,17 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
 		  rbgc, oldX, 0, oldX, imageHeight);
 #if (BL_SPACEDIM == 3)
-	if(V == ZPLANE) {
-	  XDrawLine(display, amrPicturePtrArray[YPLANE]->PictureWindow(), rbgc,
-		    oldX, 0, oldX, amrPicturePtrArray[YPLANE]->ImageSizeV());
+	if(V == Amrvis::ZPLANE) {
+	  XDrawLine(display, amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(), rbgc,
+		    oldX, 0, oldX, amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeV());
 	}
-	if(V == YPLANE) {
-	  XDrawLine(display, amrPicturePtrArray[ZPLANE]->PictureWindow(), rbgc,
-		    oldX, 0, oldX, amrPicturePtrArray[ZPLANE]->ImageSizeV());
+	if(V == Amrvis::YPLANE) {
+	  XDrawLine(display, amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(), rbgc,
+		    oldX, 0, oldX, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV());
 	}
-	if(V == XPLANE) {
-	  XDrawLine(display, amrPicturePtrArray[ZPLANE]->PictureWindow(), rbgc,
-		    0, imageWidth - oldX, amrPicturePtrArray[ZPLANE]->ImageSizeH(),
+	if(V == Amrvis::XPLANE) {
+	  XDrawLine(display, amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(), rbgc,
+		    0, imageWidth - oldX, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH(),
 		    imageWidth - oldX);
 	}
 #endif
@@ -3679,34 +3674,34 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	tempi = max(0, min(imageWidth, nextEvent.xbutton.x));
 	amrPicturePtrArray[V]->SetVLine(tempi);
 #if (BL_SPACEDIM == 3)
-	if(V == ZPLANE) {
-	  amrPicturePtrArray[YPLANE]->SetVLine(tempi);
+	if(V == Amrvis::ZPLANE) {
+	  amrPicturePtrArray[Amrvis::YPLANE]->SetVLine(tempi);
 	}
-	if(V == YPLANE) {
-	  amrPicturePtrArray[ZPLANE]->SetVLine(tempi);
+	if(V == Amrvis::YPLANE) {
+	  amrPicturePtrArray[Amrvis::ZPLANE]->SetVLine(tempi);
 	}
-	if(V == XPLANE) {
-	  amrPicturePtrArray[ZPLANE]->SetHLine(amrPicturePtrArray[ZPLANE]->
+	if(V == Amrvis::XPLANE) {
+	  amrPicturePtrArray[Amrvis::ZPLANE]->SetHLine(amrPicturePtrArray[Amrvis::ZPLANE]->
 				                        ImageSizeV()-1 - tempi);
 	}
         if( ! ( (cbs->event->xbutton.state & ShiftMask) ||
                 (cbs->event->xbutton.state & ControlMask) ) )
         {
 
-	  if(V == ZPLANE) {
-	    amrPicturePtrArray[XPLANE]->
-	      APChangeSlice((tempi / scale) + ivLowOffsetMAL[XDIR]);
+	  if(V == Amrvis::ZPLANE) {
+	    amrPicturePtrArray[Amrvis::XPLANE]->
+	      APChangeSlice((tempi / scale) + ivLowOffsetMAL[Amrvis::XDIR]);
 	  }
-	  if(V == YPLANE) {
-	    amrPicturePtrArray[XPLANE]->
-	      APChangeSlice((tempi / scale) + ivLowOffsetMAL[XDIR]);
+	  if(V == Amrvis::YPLANE) {
+	    amrPicturePtrArray[Amrvis::XPLANE]->
+	      APChangeSlice((tempi / scale) + ivLowOffsetMAL[Amrvis::XDIR]);
 	  }
-	  if(V == XPLANE) {
-	    amrPicturePtrArray[YPLANE]->
-	      APChangeSlice((tempi / scale) + ivLowOffsetMAL[YDIR]);
+	  if(V == Amrvis::XPLANE) {
+	    amrPicturePtrArray[Amrvis::YPLANE]->
+	      APChangeSlice((tempi / scale) + ivLowOffsetMAL[Amrvis::YDIR]);
 	  }
 	  
-	  for(int np(0); np < NPLANES; ++np) {
+	  for(int np(0); np < Amrvis::NPLANES; ++np) {
 	    amrPicturePtrArray[np]->DoExposePicture();
 	    projPicturePtr->ChangeSlice(np, amrPicturePtrArray[np]->GetSlice());
 	  }
@@ -3722,21 +3717,21 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	}
 #endif
 
-	for(int np(0); np != NPLANES; ++np) {
+	for(int np(0); np != Amrvis::NPLANES; ++np) {
 	  amrPicturePtrArray[np]->DoExposePicture();
 	}
 
 	if(oldX >= 0 && oldX <= imageWidth) {
 	  int sdir(-1);
 	  switch (V) {
-	    case ZPLANE:
-	      sdir = YDIR;
+	    case Amrvis::ZPLANE:
+	      sdir = Amrvis::YDIR;
 	    break;
-	    case YPLANE:
-	      sdir = ZDIR;
+	    case Amrvis::YPLANE:
+	      sdir = Amrvis::ZDIR;
 	    break;
-	    case XPLANE:
-	      sdir = ZDIR;
+	    case Amrvis::XPLANE:
+	      sdir = Amrvis::ZDIR;
 	    break;
 	  }
 	  XYPlotDataList *newlist = CreateLinePlot(V, sdir, mal, oldX / scale,
@@ -3744,7 +3739,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  if(newlist) {
 	    newlist->SetLevel(maxDrawnLevel);
 	    if(XYplotwin[sdir] == NULL) {
-              char cTempFN[BUFSIZ];
+              char cTempFN[Amrvis::BUFSIZE];
               strcpy(cTempFN,
 	             AVGlobals::StripSlashes(fileNames[currentFrame]).c_str());
 	      XYplotwin[sdir] = new XYPlotWin(cTempFN, appContext, wAmrVisTopLevel,
@@ -3809,40 +3804,40 @@ void PltApp::DoDrawPointerLocation(Widget, XtPointer data, XtPointer cbe) {
 		&rootX, &rootY, &newX, &newY, &inputMask);
 
   int iVertLoc, iHorizLoc;
-  char locText[LINELENGTH], locTextFormat[LINELENGTH];
+  char locText[Amrvis::LINELENGTH], locTextFormat[Amrvis::LINELENGTH];
 
 #if (BL_SPACEDIM == 3)
   int iPlaneLoc(amrPicturePtrArray[V]->GetSlice());
 
-  double Xloc(gridOffset[XDIR]);
-  double Yloc(gridOffset[YDIR]);
-  double Zloc(gridOffset[ZDIR]);
+  double Xloc(gridOffset[Amrvis::XDIR]);
+  double Yloc(gridOffset[Amrvis::YDIR]);
+  double Zloc(gridOffset[Amrvis::ZDIR]);
   switch(V) {
-    case ZPLANE:
+    case Amrvis::ZPLANE:
       iVertLoc = ((amrPicturePtrArray[V]->ImageSizeV())/currentScale) -
-                  1 - (newY / currentScale) + ivLowOffsetMAL[YDIR];
-      iHorizLoc = newX / currentScale + ivLowOffsetMAL[XDIR];
-      Xloc += (0.5 + iHorizLoc) * finestDx[XDIR];
-      Yloc += (0.5 + iVertLoc)  * finestDx[YDIR];
-      Zloc += (0.5 + iPlaneLoc) * finestDx[ZDIR];
+                  1 - (newY / currentScale) + ivLowOffsetMAL[Amrvis::YDIR];
+      iHorizLoc = newX / currentScale + ivLowOffsetMAL[Amrvis::XDIR];
+      Xloc += (0.5 + iHorizLoc) * finestDx[Amrvis::XDIR];
+      Yloc += (0.5 + iVertLoc)  * finestDx[Amrvis::YDIR];
+      Zloc += (0.5 + iPlaneLoc) * finestDx[Amrvis::ZDIR];
     break;
 
-    case YPLANE:
+    case Amrvis::YPLANE:
       iVertLoc = ((amrPicturePtrArray[V]->ImageSizeV())/currentScale) -
-                  1 - (newY / currentScale) + ivLowOffsetMAL[ZDIR];
-      iHorizLoc = newX / currentScale + ivLowOffsetMAL[XDIR];
-      Xloc += (0.5 + iHorizLoc) * finestDx[XDIR];
-      Yloc += (0.5 + iPlaneLoc) * finestDx[YDIR];
-      Zloc += (0.5 + iVertLoc)  * finestDx[ZDIR];
+                  1 - (newY / currentScale) + ivLowOffsetMAL[Amrvis::ZDIR];
+      iHorizLoc = newX / currentScale + ivLowOffsetMAL[Amrvis::XDIR];
+      Xloc += (0.5 + iHorizLoc) * finestDx[Amrvis::XDIR];
+      Yloc += (0.5 + iPlaneLoc) * finestDx[Amrvis::YDIR];
+      Zloc += (0.5 + iVertLoc)  * finestDx[Amrvis::ZDIR];
     break;
 
-    case XPLANE:
+    case Amrvis::XPLANE:
       iVertLoc = ((amrPicturePtrArray[V]->ImageSizeV())/currentScale) -
-                  1 - (newY / currentScale) + ivLowOffsetMAL[ZDIR];
-      iHorizLoc = newX / currentScale + ivLowOffsetMAL[YDIR];
-      Xloc += (0.5 + iPlaneLoc) * finestDx[XDIR];
-      Yloc += (0.5 + iHorizLoc) * finestDx[YDIR];
-      Zloc += (0.5 + iVertLoc)  * finestDx[ZDIR];
+                  1 - (newY / currentScale) + ivLowOffsetMAL[Amrvis::ZDIR];
+      iHorizLoc = newX / currentScale + ivLowOffsetMAL[Amrvis::YDIR];
+      Xloc += (0.5 + iPlaneLoc) * finestDx[Amrvis::XDIR];
+      Yloc += (0.5 + iHorizLoc) * finestDx[Amrvis::YDIR];
+      Zloc += (0.5 + iVertLoc)  * finestDx[Amrvis::ZDIR];
     break;
   }
   string fstr = pltAppState->GetFormatString();
@@ -3850,10 +3845,10 @@ void PltApp::DoDrawPointerLocation(Widget, XtPointer data, XtPointer cbe) {
   sprintf(locText, locTextFormat, Xloc, Yloc, Zloc);
 #elif (BL_SPACEDIM == 2)
   iVertLoc = ((amrPicturePtrArray[V]->ImageSizeV())/currentScale) -
-             1 - (newY / currentScale) + ivLowOffsetMAL[YDIR];
-  iHorizLoc = newX / currentScale + ivLowOffsetMAL[XDIR];
-  double Xloc(gridOffset[XDIR] + (0.5 + iHorizLoc) * finestDx[XDIR]);
-  double Yloc(gridOffset[YDIR] + (0.5 + iVertLoc) * finestDx[YDIR]);
+             1 - (newY / currentScale) + ivLowOffsetMAL[Amrvis::YDIR];
+  iHorizLoc = newX / currentScale + ivLowOffsetMAL[Amrvis::XDIR];
+  double Xloc(gridOffset[Amrvis::XDIR] + (0.5 + iHorizLoc) * finestDx[Amrvis::XDIR]);
+  double Yloc(gridOffset[Amrvis::YDIR] + (0.5 + iVertLoc) * finestDx[Amrvis::YDIR]);
   string fstr = pltAppState->GetFormatString();
   sprintf(locTextFormat, "(%s, %s)", fstr.c_str(), fstr.c_str());
   sprintf(locText, locTextFormat, Xloc, Yloc);
@@ -3886,13 +3881,13 @@ void PltApp::DoBackStep(int plane) {
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   int crrDiff(AVGlobals::CRRBetweenLevels(maxDrawnLev, maxAllowLev,
               amrData.RefRatio()));
-  AmrPicture *appX = amrPicturePtrArray[XPLANE];
-  AmrPicture *appY = amrPicturePtrArray[YPLANE];
-  AmrPicture *appZ = amrPicturePtrArray[ZPLANE];
+  AmrPicture *appX = amrPicturePtrArray[Amrvis::XPLANE];
+  AmrPicture *appY = amrPicturePtrArray[Amrvis::YPLANE];
+  AmrPicture *appZ = amrPicturePtrArray[Amrvis::ZPLANE];
   switch(plane) {
-   case XPLANE:
+   case Amrvis::XPLANE:
     if(appX->GetSlice() / crrDiff >
-       appX->GetSubDomain()[maxAllowLev].smallEnd(XDIR) / crrDiff)
+       appX->GetSubDomain()[maxAllowLev].smallEnd(Amrvis::XDIR) / crrDiff)
     {
       appZ->SetVLine(appZ->GetVLine() - currentScale * crrDiff);
       appZ->DoExposePicture();
@@ -3905,12 +3900,12 @@ void PltApp::DoBackStep(int plane) {
     appZ->DoExposePicture();
     appY->SetVLine(appY->ImageSizeH() - 1);
     appY->DoExposePicture();
-    appX-> APChangeSlice(appX->GetSubDomain()[maxAllowLev].bigEnd(XDIR));
+    appX-> APChangeSlice(appX->GetSubDomain()[maxAllowLev].bigEnd(Amrvis::XDIR));
    break;
 
-   case YPLANE:
+   case Amrvis::YPLANE:
     if(appY->GetSlice() / crrDiff >
-       appY->GetSubDomain()[maxAllowLev].smallEnd(YDIR) / crrDiff)
+       appY->GetSubDomain()[maxAllowLev].smallEnd(Amrvis::YDIR) / crrDiff)
     {
       appX->SetVLine(appX->GetVLine() - currentScale * crrDiff);
       appX->DoExposePicture();
@@ -3923,12 +3918,12 @@ void PltApp::DoBackStep(int plane) {
     appX->DoExposePicture();
     appZ->SetHLine(0);
     appZ->DoExposePicture();
-    appY->APChangeSlice(appY->GetSubDomain()[maxAllowLev].bigEnd(YDIR));
+    appY->APChangeSlice(appY->GetSubDomain()[maxAllowLev].bigEnd(Amrvis::YDIR));
    break;
 
-   case ZPLANE:
+   case Amrvis::ZPLANE:
     if(appZ->GetSlice() / crrDiff >
-       appZ->GetSubDomain()[maxAllowLev].smallEnd(ZDIR) / crrDiff)
+       appZ->GetSubDomain()[maxAllowLev].smallEnd(Amrvis::ZDIR) / crrDiff)
     {
       appX->SetHLine(appX->GetHLine() + currentScale * crrDiff);
       appX->DoExposePicture();
@@ -3941,7 +3936,7 @@ void PltApp::DoBackStep(int plane) {
     appX->DoExposePicture();
     appY->SetHLine(0);
     appY->DoExposePicture();
-    appZ->APChangeSlice(appZ->GetSubDomain()[maxAllowLev].bigEnd(ZDIR));
+    appZ->APChangeSlice(appZ->GetSubDomain()[maxAllowLev].bigEnd(Amrvis::ZDIR));
   }
 
 #if (BL_SPACEDIM == 3)
@@ -3965,13 +3960,13 @@ void PltApp::DoForwardStep(int plane) {
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   int crrDiff(AVGlobals::CRRBetweenLevels(maxDrawnLev, maxAllowLev,
               amrData.RefRatio()));
-  AmrPicture *appX = amrPicturePtrArray[XPLANE];
-  AmrPicture *appY = amrPicturePtrArray[YPLANE];
-  AmrPicture *appZ = amrPicturePtrArray[ZPLANE];
+  AmrPicture *appX = amrPicturePtrArray[Amrvis::XPLANE];
+  AmrPicture *appY = amrPicturePtrArray[Amrvis::YPLANE];
+  AmrPicture *appZ = amrPicturePtrArray[Amrvis::ZPLANE];
   switch(plane) {
-   case XPLANE:
+   case Amrvis::XPLANE:
     if(appX->GetSlice() / crrDiff <
-       appX->GetSubDomain()[maxAllowLev].bigEnd(XDIR) / crrDiff)
+       appX->GetSubDomain()[maxAllowLev].bigEnd(Amrvis::XDIR) / crrDiff)
     {
       appZ->SetVLine(appZ->GetVLine() + currentScale * crrDiff);
       appZ->DoExposePicture();
@@ -3984,12 +3979,12 @@ void PltApp::DoForwardStep(int plane) {
     appZ->DoExposePicture();
     appY->SetVLine(0);
     appY->DoExposePicture();
-    appX->APChangeSlice(appX->GetSubDomain()[maxAllowLev].smallEnd(XDIR));
+    appX->APChangeSlice(appX->GetSubDomain()[maxAllowLev].smallEnd(Amrvis::XDIR));
    break;
 
-   case YPLANE:
+   case Amrvis::YPLANE:
     if(appY->GetSlice() / crrDiff <
-       appY->GetSubDomain()[maxAllowLev].bigEnd(YDIR) / crrDiff)
+       appY->GetSubDomain()[maxAllowLev].bigEnd(Amrvis::YDIR) / crrDiff)
     {
       appX->SetVLine(appX->GetVLine() + currentScale * crrDiff);
       appX->DoExposePicture();
@@ -4002,12 +3997,12 @@ void PltApp::DoForwardStep(int plane) {
     appX->DoExposePicture();
     appZ->SetHLine(appX->ImageSizeV() - 1);
     appZ->DoExposePicture();
-    appY->APChangeSlice(appY->GetSubDomain()[maxAllowLev].smallEnd(YDIR));
+    appY->APChangeSlice(appY->GetSubDomain()[maxAllowLev].smallEnd(Amrvis::YDIR));
    break;
 
-   case ZPLANE:
+   case Amrvis::ZPLANE:
     if(appZ->GetSlice() / crrDiff <
-       appZ->GetSubDomain()[maxAllowLev].bigEnd(ZDIR) / crrDiff)
+       appZ->GetSubDomain()[maxAllowLev].bigEnd(Amrvis::ZDIR) / crrDiff)
     {
       appX->SetHLine(appX->GetHLine() - currentScale * crrDiff);
       appX->DoExposePicture();
@@ -4020,7 +4015,7 @@ void PltApp::DoForwardStep(int plane) {
     appX->DoExposePicture();
     appY->SetHLine(appY->ImageSizeV() - 1);
     appY->DoExposePicture();
-    appZ->APChangeSlice(appZ->GetSubDomain()[maxAllowLev].smallEnd(ZDIR));
+    appZ->APChangeSlice(appZ->GetSubDomain()[maxAllowLev].smallEnd(Amrvis::ZDIR));
   }
 #if (BL_SPACEDIM == 3)
   projPicturePtr->ChangeSlice(plane, amrPicturePtrArray[plane]->GetSlice());
@@ -4042,9 +4037,9 @@ void PltApp::ChangePlane(Widget, XtPointer data, XtPointer cbs) {
 
 #if (BL_SPACEDIM == 3)
   if(which == WCSTOP) {
-    amrPicturePtrArray[XPLANE]->DoStop();
-    amrPicturePtrArray[YPLANE]->DoStop();
-    amrPicturePtrArray[ZPLANE]->DoStop();
+    amrPicturePtrArray[Amrvis::XPLANE]->DoStop();
+    amrPicturePtrArray[Amrvis::YPLANE]->DoStop();
+    amrPicturePtrArray[Amrvis::ZPLANE]->DoStop();
     return;
   }
 #endif
@@ -4062,27 +4057,27 @@ void PltApp::ChangePlane(Widget, XtPointer data, XtPointer cbs) {
   if(cbstr->click_count > 1 || bShiftDown) {
     switch(which) {
 #if (BL_SPACEDIM == 3)
-      case WCXNEG: amrPicturePtrArray[XPLANE]->Sweep(ANIMNEGDIR); return;
-      case WCXPOS: amrPicturePtrArray[XPLANE]->Sweep(ANIMPOSDIR); return;
-      case WCYNEG: amrPicturePtrArray[YPLANE]->Sweep(ANIMNEGDIR); return;
-      case WCYPOS: amrPicturePtrArray[YPLANE]->Sweep(ANIMPOSDIR); return;
-      case WCZNEG: amrPicturePtrArray[ZPLANE]->Sweep(ANIMNEGDIR); return;
-      case WCZPOS: amrPicturePtrArray[ZPLANE]->Sweep(ANIMPOSDIR); return;
+      case WCXNEG: amrPicturePtrArray[Amrvis::XPLANE]->Sweep(Amrvis::ANIMNEGDIR); return;
+      case WCXPOS: amrPicturePtrArray[Amrvis::XPLANE]->Sweep(Amrvis::ANIMPOSDIR); return;
+      case WCYNEG: amrPicturePtrArray[Amrvis::YPLANE]->Sweep(Amrvis::ANIMNEGDIR); return;
+      case WCYPOS: amrPicturePtrArray[Amrvis::YPLANE]->Sweep(Amrvis::ANIMPOSDIR); return;
+      case WCZNEG: amrPicturePtrArray[Amrvis::ZPLANE]->Sweep(Amrvis::ANIMNEGDIR); return;
+      case WCZPOS: amrPicturePtrArray[Amrvis::ZPLANE]->Sweep(Amrvis::ANIMPOSDIR); return;
 #endif
-      case WCATNEG: Animate(ANIMNEGDIR); return;
-      case WCATPOS: Animate(ANIMPOSDIR); return;
-      case WCARGB: writingRGB = true; Animate(ANIMPOSDIR); return;
+      case WCATNEG: Animate(Amrvis::ANIMNEGDIR); return;
+      case WCATPOS: Animate(Amrvis::ANIMPOSDIR); return;
+      case WCARGB: writingRGB = true; Animate(Amrvis::ANIMPOSDIR); return;
       default: return;
     }
   }
   switch(which) {
 #if (BL_SPACEDIM == 3)
-    case WCXNEG: DoBackStep(XPLANE);    return;
-    case WCXPOS: DoForwardStep(XPLANE); return;
-    case WCYNEG: DoBackStep(YPLANE);    return;
-    case WCYPOS: DoForwardStep(YPLANE); return;
-    case WCZNEG: DoBackStep(ZPLANE);    return;
-    case WCZPOS: DoForwardStep(ZPLANE); return;
+    case WCXNEG: DoBackStep(Amrvis::XPLANE);    return;
+    case WCXPOS: DoForwardStep(Amrvis::XPLANE); return;
+    case WCYNEG: DoBackStep(Amrvis::YPLANE);    return;
+    case WCYPOS: DoForwardStep(Amrvis::YPLANE); return;
+    case WCZNEG: DoBackStep(Amrvis::ZPLANE);    return;
+    case WCZPOS: DoForwardStep(Amrvis::ZPLANE); return;
 #endif
     case WCATNEG: DoAnimBackStep();     return;
     case WCATPOS: DoAnimForwardStep();  return;
@@ -4134,31 +4129,31 @@ void PltApp::ResetAnimation() {
   if( ! interfaceReady) {
 #if(BL_SPACEDIM == 2)
     int maLev(pltAppState->MaxAllowableLevel());
-    AmrPicture *Tempap = amrPicturePtrArray[ZPLANE];
-    XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
+    AmrPicture *Tempap = amrPicturePtrArray[Amrvis::ZPLANE];
+    XtRemoveEventHandler(wPlotPlane[Amrvis::ZPLANE], ExposureMask, false, 
 			 (XtEventHandler) &PltApp::StaticEvent,
 			 (XtPointer) Tempap);
-    Box fineDomain(amrPicturePtrArray[ZPLANE]->GetSubDomain()[maLev]);
+    Box fineDomain(amrPicturePtrArray[Amrvis::ZPLANE]->GetSubDomain()[maLev]);
     delete Tempap;
     
     const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
     fineDomain.refine(AVGlobals::CRRBetweenLevels(maLev, amrData.FinestLevel(),
                                                   amrData.RefRatio()));
-    amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, gaPtr, fineDomain, 
+    amrPicturePtrArray[Amrvis::ZPLANE] = new AmrPicture(Amrvis::ZPLANE, gaPtr, fineDomain, 
 						NULL, this,
 						pltAppState,
 						bCartGridSmoothing);
-    amrPicturePtrArray[ZPLANE]->SetRegion(startX, startY, endX, endY);
+    amrPicturePtrArray[Amrvis::ZPLANE]->SetRegion(startX, startY, endX, endY);
     //pltAppState->SetMaxDrawnLevel(maxDrawnLevel);
     //SetNumContours(false);
-    //XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
+    //XtRemoveEventHandler(wPlotPlane[Amrvis::ZPLANE], ExposureMask, false, 
 			 //(XtEventHandler) &PltApp::StaticEvent,
 			 //(XtPointer) Tempap);
     //delete Tempap;
-    amrPicturePtrArray[ZPLANE]->CreatePicture(XtWindow(wPlotPlane[ZPLANE]),
+    amrPicturePtrArray[Amrvis::ZPLANE]->CreatePicture(XtWindow(wPlotPlane[Amrvis::ZPLANE]),
 					      pltPaletteptr);
-    AddStaticEventHandler(wPlotPlane[ZPLANE], ExposureMask,
-			  &PltApp::PADoExposePicture, (XtPointer) ZPLANE);
+    AddStaticEventHandler(wPlotPlane[Amrvis::ZPLANE], ExposureMask,
+			  &PltApp::PADoExposePicture, (XtPointer) Amrvis::ZPLANE);
     interfaceReady = true;
 #endif
   }
@@ -4182,7 +4177,7 @@ void PltApp::StopAnimation() {
 
 
 // -------------------------------------------------------------------
-void PltApp::Animate(AnimDirection direction) {
+void PltApp::Animate(Amrvis::AnimDirection direction) {
   StopAnimation();
   animationIId = AddStaticTimeOut(frameSpeed, &PltApp::DoUpdateFrame);
   animDirection = direction;
@@ -4210,7 +4205,7 @@ void PltApp::DirtyFrames() {
 
 // -------------------------------------------------------------------
 void PltApp::DoUpdateFrame(Widget, XtPointer, XtPointer) {
-  if(animDirection == ANIMPOSDIR) {
+  if(animDirection == Amrvis::ANIMPOSDIR) {
     if(writingRGB) {
       DoCreateAnimRGBFile();
     }
@@ -4239,9 +4234,9 @@ void PltApp::ShowFrame() {
       UsingFileRange(currentRangeType))
   {
 #if (BL_SPACEDIM == 2)
-    AmrPicture *tempapSF = amrPicturePtrArray[ZPLANE];
-    Array<Box> domain = amrPicturePtrArray[ZPLANE]->GetSubDomain();
-    XtRemoveEventHandler(wPlotPlane[ZPLANE], ExposureMask, false, 
+    AmrPicture *tempapSF = amrPicturePtrArray[Amrvis::ZPLANE];
+    Array<Box> domain = amrPicturePtrArray[Amrvis::ZPLANE]->GetSubDomain();
+    XtRemoveEventHandler(wPlotPlane[Amrvis::ZPLANE], ExposureMask, false, 
 			 (XtEventHandler) &PltApp::StaticEvent,
 			 (XtPointer) tempapSF);
     delete tempapSF;
@@ -4250,27 +4245,27 @@ void PltApp::ShowFrame() {
     fineDomain.refine(AVGlobals::CRRBetweenLevels(pltAppState->MaxAllowableLevel(),
 				                  amrData.FinestLevel(),
 						  amrData.RefRatio()));
-    amrPicturePtrArray[ZPLANE] = new AmrPicture(ZPLANE, gaPtr, fineDomain, 
+    amrPicturePtrArray[Amrvis::ZPLANE] = new AmrPicture(Amrvis::ZPLANE, gaPtr, fineDomain, 
 						NULL, this,
 						pltAppState,
 						bCartGridSmoothing);
-    amrPicturePtrArray[ZPLANE]->SetRegion(startX, startY, endX, endY);
+    amrPicturePtrArray[Amrvis::ZPLANE]->SetRegion(startX, startY, endX, endY);
     
-    amrPicturePtrArray[ZPLANE]->CreatePicture(XtWindow(wPlotPlane[ZPLANE]),
+    amrPicturePtrArray[Amrvis::ZPLANE]->CreatePicture(XtWindow(wPlotPlane[Amrvis::ZPLANE]),
 					      pltPaletteptr);
-    AddStaticEventHandler(wPlotPlane[ZPLANE], ExposureMask,
-			  &PltApp::PADoExposePicture, (XtPointer) ZPLANE);
-    frameBuffer[currentFrame] = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
+    AddStaticEventHandler(wPlotPlane[Amrvis::ZPLANE], ExposureMask,
+			  &PltApp::PADoExposePicture, (XtPointer) Amrvis::ZPLANE);
+    frameBuffer[currentFrame] = amrPicturePtrArray[Amrvis::ZPLANE]->GetPictureXImage();
 #endif
     readyFrames[currentFrame] = true;
     paletteDrawn = ! UsingFileRange(currentRangeType);
     bSyncFrame = false;
   }
   
-  XPutImage(display, XtWindow(wPlotPlane[ZPLANE]), xgc,
+  XPutImage(display, XtWindow(wPlotPlane[Amrvis::ZPLANE]), xgc,
 	    frameBuffer[currentFrame], 0, 0, 0, 0,
-	    amrPicturePtrArray[ZPLANE]->ImageSizeH(),
-	    amrPicturePtrArray[ZPLANE]->ImageSizeV());
+	    amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH(),
+	    amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV());
   
 
   if(AVGlobals::CacheAnimFrames() == false) {
@@ -4281,14 +4276,14 @@ void PltApp::ShowFrame() {
 
   string fileName(fileNames[currentFrame]);
 
-  char cTempFN[BUFSIZ];
+  char cTempFN[Amrvis::BUFSIZE];
   strcpy(cTempFN, AVGlobals::StripSlashes(fileName).c_str());
   XmString fileString = XmStringCreateSimple(cTempFN);
   XtVaSetValues(wWhichFileLabel, XmNlabelString, fileString, NULL);
   XmStringFree(fileString);
   
-  char tempTimeName[BUFSIZ];
-  ostrstream tempTimeOut(tempTimeName, BUFSIZ);
+  char tempTimeName[Amrvis::BUFSIZE];
+  ostrstream tempTimeOut(tempTimeName, Amrvis::BUFSIZE);
   tempTimeOut << "T=" << amrData.Time() << ends;
   XmString timeString = XmStringCreateSimple(tempTimeName);
   XtVaSetValues(wWhichTimeLabel, XmNlabelString, timeString, NULL);
@@ -4298,9 +4293,9 @@ void PltApp::ShowFrame() {
   
   if(datasetShowing) {
     int hdir(-1), vdir(-1), sdir(-1);
-    if(activeView == ZPLANE) { hdir = XDIR; vdir = YDIR; sdir = ZDIR; }
-    if(activeView == YPLANE) { hdir = XDIR; vdir = ZDIR; sdir = YDIR; }
-    if(activeView == XPLANE) { hdir = YDIR; vdir = ZDIR; sdir = XDIR; }
+    if(activeView == Amrvis::ZPLANE) { hdir = Amrvis::XDIR; vdir = Amrvis::YDIR; sdir = Amrvis::ZDIR; }
+    if(activeView == Amrvis::YPLANE) { hdir = Amrvis::XDIR; vdir = Amrvis::ZDIR; sdir = Amrvis::YDIR; }
+    if(activeView == Amrvis::XPLANE) { hdir = Amrvis::YDIR; vdir = Amrvis::ZDIR; sdir = Amrvis::XDIR; }
     datasetPtr->DatasetRender(trueRegion, amrPicturePtrArray[activeView], this,
 		              pltAppState, hdir, vdir, sdir);
     datasetPtr->DoExpose(false);

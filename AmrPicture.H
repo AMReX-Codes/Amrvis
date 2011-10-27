@@ -1,8 +1,3 @@
-
-//
-// $Id: AmrPicture.H,v 1.45 2007-08-28 00:35:24 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // AmrPicture.H
 // ---------------------------------------------------------------
@@ -11,13 +6,13 @@
 
 #include <cstdio>
 
-#include "REAL.H"
-#include "Box.H"
-#include "AmrvisConstants.H"
-#include "GlobalUtilities.H"
-#include "GridPicture.H"
-#include "Array.H"
-#include "FArrayBox.H"
+#include <REAL.H>
+#include <Box.H>
+#include <AmrvisConstants.H>
+#include <GlobalUtilities.H>
+#include <GridPicture.H>
+#include <Array.H>
+#include <FArrayBox.H>
 
 #include <string>
 using std::string;
@@ -72,7 +67,7 @@ class AmrPicture {
   void	ToggleShowSubCut();
   void	DrawDatasetPoint(int hplot, int vplot, int size);
   void	UnDrawDatasetPoint();
-  void	Sweep(AnimDirection direction);
+  void	Sweep(Amrvis::AnimDirection direction);
   void  SetHVLine(int scale);
   void	SetHLine(int hl)    { hLine = hl; }
   void	SetVLine(int vl)    { vLine = vl; }
@@ -90,7 +85,7 @@ class AmrPicture {
   void	SetFrameSpeed(int toThis) { frameSpeed = toThis; }
   Window PictureWindow()          { return pictureWindow; }
   void  SetCartGridSmoothing(bool tf) { bCartGridSmoothing = tf; }
-  void APChangeContour(ContourType prevCType);
+  void APChangeContour(Amrvis::ContourType prevCType);
   void GetGridBoxes(Array< Array<GridBoxes> > &gb,
 		    const int minlev, const int maxlev);
 
@@ -112,7 +107,7 @@ class AmrPicture {
   Array<XImage *>	frameBuffer;
   bool			framesMade;
   int			frameSpeed;
-  AnimDirection		sweepDirection;
+  Amrvis::AnimDirection		sweepDirection;
   XtIntervalId		pendingTimeOut;
   Palette		*palPtr;
   Array<FArrayBox *>	sliceFab;
@@ -138,7 +133,7 @@ class AmrPicture {
   void SetSlice(int view, int here);
   void CoarsenSliceBox();
   void ShowFrameImage(int iSlice);
-  void CreateFrames(AnimDirection direction);
+  void CreateFrames(Amrvis::AnimDirection direction);
   void AmrPictureInit();
   void DrawBoxes(Array< Array<GridPicture> > &gp, Drawable &drawable);
   void DrawTerrBoxes(int level, bool bIsWindow, bool bIsPixmap);

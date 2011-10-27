@@ -1,8 +1,3 @@
-
-//
-// $Id: ProjectionPicture.H,v 1.24 2011-08-11 19:39:05 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // ProjectionPicture.H
 // ---------------------------------------------------------------
@@ -12,12 +7,12 @@
 #include <Xm/Xm.h>
 #undef index
 
-#include "AmrPicture.H" 
-#include "ViewTransform.H" 
-#include "Palette.H"
+#include <AmrPicture.H>
+#include <ViewTransform.H>
+#include <Palette.H>
 
 #ifdef BL_VOLUMERENDER
-#include "VolRender.H" 
+#include <VolRender.H>
 #endif
 
 class PltApp;

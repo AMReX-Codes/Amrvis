@@ -1,15 +1,10 @@
-
-//
-// $Id: GraphicsAttributes.H,v 1.18 2001-11-16 01:48:08 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // GraphicsAttributes.H
 // ---------------------------------------------------------------
 #ifndef _GRAPHICSATTRIBUTES_H
 #define _GRAPHICSATTRIBUTES_H
 
-#include "AmrvisConstants.H"
+#include <AmrvisConstants.H>
 
 #include <iostream>
 using std::ostream;

@@ -1,15 +1,15 @@
 // -------------------------------------------------------------------
-// XYPlotParam.cpp -- implementation of XYPlotParameters class
+// XYPlotParam.cpp
 // -------------------------------------------------------------------
-#include "ParallelDescriptor.H"
+#include <ParallelDescriptor.H>
 
 #include <X11/X.h>
 #include <limits>
 #undef index
 
-#include "XYPlotParam.H"
-#include "Palette.H"
-#include "GraphicsAttributes.H"
+#include <XYPlotParam.H>
+#include <Palette.H>
+#include <GraphicsAttributes.H>
 
 #include <cstdlib>
 #include <cstring>

@@ -1,13 +1,8 @@
-
-//
-// $Id: AmrVisTool.cpp,v 1.78 2011-01-13 18:56:40 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // AmrVisTool.cpp
 // ---------------------------------------------------------------
 
-#include "ParallelDescriptor.H"
+#include <ParallelDescriptor.H>
 
 #include <stdio.h>
 #if ! (defined(BL_OSF1) || defined(BL_Darwin) || defined(BL_AIX) || defined(BL_IRIX64) || defined(BL_CYGWIN_NT) || defined(BL_CRAYX1))
@@ -22,21 +17,21 @@
 // BoxLib has index member functions, Xos might define it (LessTif).
 #undef index
 
-#include "MessageArea.H"
-#include "GraphicsAttributes.H"
-#include "Palette.H"
-#include "PltApp.H"
-#include "GlobalUtilities.H"
-#include "ParmParse.H"
-#include "DataServices.H"
-#include "PltAppState.H"
+#include <MessageArea.H>
+#include <GraphicsAttributes.H>
+#include <Palette.H>
+#include <PltApp.H>
+#include <GlobalUtilities.H>
+#include <ParmParse.H>
+#include <DataServices.H>
+#include <PltAppState.H>
 
 #ifdef BL_VOLUMERENDER
-#include "VolRender.H"
+#include <VolRender.H>
 #endif
 
 #ifdef BL_USE_ARRAYVIEW
-#include "ArrayView.H"
+#include <ArrayView.H>
 #endif
 
 using std::cout;
@@ -62,7 +57,7 @@ Widget		wTopLevel, wTextOut, wDialog;
 Widget	wMainWindow, wMenuBar;
 Arg		args[32];
 cMessageArea	messageText;
-char		buffer[BUFSIZ];
+char		buffer[Amrvis::BUFSIZE];
 XmString	sDirectory = XmStringCreateSimple("none");
 list<PltApp *>  pltAppList;
 
@@ -135,7 +130,7 @@ int main(int argc, char *argv[]) {
     if(AVGlobals::IsAnimation()) {
       BL_ASSERT(AVGlobals::GetFileCount() > 0);
       bool bAmrDataOk(true);
-      FileType fileType = AVGlobals::GetDefaultFileType();
+      Amrvis::FileType fileType = AVGlobals::GetDefaultFileType();
       BL_ASSERT(fileType != INVALIDTYPE);
       Array<DataServices *> dspArray(AVGlobals::GetFileCount());
       for(int nPlots = 0; nPlots < AVGlobals::GetFileCount(); ++nPlots) {
@@ -191,7 +186,7 @@ int main(int argc, char *argv[]) {
       }
     } else {
       // loop through the command line list of plot files
-      FileType fileType = AVGlobals::GetDefaultFileType();
+      Amrvis::FileType fileType = AVGlobals::GetDefaultFileType();
       BL_ASSERT(fileType != INVALIDTYPE);
 
       Array<DataServices *> dspArray(AVGlobals::GetFileCount());
@@ -353,7 +348,7 @@ void BatchFunctions() {
     if(ParallelDescriptor::IOProcessor()) {
       cout << "FileName = " << comlineFileName << endl;
     }
-    FileType fileType = AVGlobals::GetDefaultFileType();
+    Amrvis::FileType fileType = AVGlobals::GetDefaultFileType();
     BL_ASSERT(fileType != INVALIDTYPE);
     DataServices dataServices(comlineFileName, fileType);
 
@@ -515,7 +510,7 @@ void QuitAll() {
  
 // ---------------------------------------------------------------
 void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
-  Arg args[MAXARGS];
+  Arg args[Amrvis::MAXARGS];
   int i = 0;
   unsigned long item = (unsigned long) client_data;
 
@@ -523,11 +518,11 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
     QuitAll();
   } else if(item == OPENITEM) {
     i = 0;
-    FileType fileType(AVGlobals::GetDefaultFileType());
+    Amrvis::FileType fileType(AVGlobals::GetDefaultFileType());
     XmString sMask;
-    if(fileType == FAB) {
+    if(fileType == Amrvis::FAB) {
       sMask = XmStringCreateSimple("*.fab");
-    } else if(fileType == MULTIFAB) {
+    } else if(fileType == Amrvis::MULTIFAB) {
       sMask = XmStringCreateSimple("*_H");
     } else {
       sMask = XmStringCreateSimple("plt*");
@@ -564,8 +559,8 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
     cerr << "CBOpenPltFile : system error" << endl;
     return;
   }
-  FileType fileType(AVGlobals::GetDefaultFileType());
-  if(fileType == MULTIFAB) {
+  Amrvis::FileType fileType(AVGlobals::GetDefaultFileType());
+  if(fileType == Amrvis::MULTIFAB) {
     // delete the _H from the filename if it is there
     const char *uH = "_H";
     char *fm2 = filename + (strlen(filename) - 2);
@@ -573,7 +568,7 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
       filename[strlen(filename) - 2] = '\0';
     }
   }
-  char path[BUFSIZ];
+  char path[Amrvis::BUFSIZE];
   strcpy(path, filename);
   int pathPos(strlen(path) - 1);
   while(pathPos > -1 && path[pathPos] != '/') {

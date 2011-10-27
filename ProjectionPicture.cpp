@@ -1,20 +1,15 @@
-
-//
-// $Id: ProjectionPicture.cpp,v 1.56 2011-08-11 19:39:05 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // ProjectionPicture.cpp
 // ---------------------------------------------------------------
-#include "ParallelDescriptor.H"
+#include <ParallelDescriptor.H>
 
 #include <X11/X.h>
 
-#include "ProjectionPicture.H"
-#include "PltApp.H"
-#include "PltAppState.H"
-#include "DataServices.H"
-#include "Volume.H"
+#include <ProjectionPicture.H>
+#include <PltApp.H>
+#include <PltAppState.H>
+#include <DataServices.H>
+#include <Volume.H>
 #include <time.h>
 
 #include <cmath>
@@ -36,7 +31,7 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
 {
   int lev;
   pltAppPtr = pltappptr;
-  amrPicturePtr = pltAppPtr->GetAmrPicturePtr(XY); 
+  amrPicturePtr = pltAppPtr->GetAmrPicturePtr(Amrvis::XY); 
   minDrawnLevel = pltAppPtr->GetPltAppState()->MinDrawnLevel();
   maxDrawnLevel = pltAppPtr->GetPltAppState()->MaxDrawnLevel();
   drawingArea = da; 
@@ -103,15 +98,15 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
 
   LoadSlices(alignedBox);
 
-  xcenter = (theDomain[maxDataLevel].bigEnd(XDIR) -
-		theDomain[maxDataLevel].smallEnd(XDIR)) / 2 +
-		theDomain[maxDataLevel].smallEnd(XDIR);
-  ycenter = (theDomain[maxDataLevel].bigEnd(YDIR) -
-		theDomain[maxDataLevel].smallEnd(YDIR)) / 2 +
-		theDomain[maxDataLevel].smallEnd(YDIR);
-  zcenter = (theDomain[maxDataLevel].bigEnd(ZDIR) -
-		theDomain[maxDataLevel].smallEnd(ZDIR)) / 2 +
-		theDomain[maxDataLevel].smallEnd(ZDIR);	// center of 3D object
+  xcenter = (theDomain[maxDataLevel].bigEnd(Amrvis::XDIR) -
+		theDomain[maxDataLevel].smallEnd(Amrvis::XDIR)) / 2 +
+		theDomain[maxDataLevel].smallEnd(Amrvis::XDIR);
+  ycenter = (theDomain[maxDataLevel].bigEnd(Amrvis::YDIR) -
+		theDomain[maxDataLevel].smallEnd(Amrvis::YDIR)) / 2 +
+		theDomain[maxDataLevel].smallEnd(Amrvis::YDIR);
+  zcenter = (theDomain[maxDataLevel].bigEnd(Amrvis::ZDIR) -
+		theDomain[maxDataLevel].smallEnd(Amrvis::ZDIR)) / 2 +
+		theDomain[maxDataLevel].smallEnd(Amrvis::ZDIR);	// center of 3D object
 
   viewTransformPtr->SetObjCenter(xcenter, ycenter, zcenter);
   viewTransformPtr->SetScreenPosition(daWidth/2, daHeight/2);
@@ -253,9 +248,9 @@ void ProjectionPicture::MakePicture() {
 #ifdef BL_VOLUMERENDER
   clock_t time0 = clock();
 
-  scale[XDIR] = viewTransformPtr->GetScale();
-  scale[YDIR] = viewTransformPtr->GetScale();
-  scale[ZDIR] = viewTransformPtr->GetScale();
+  scale[Amrvis::XDIR] = viewTransformPtr->GetScale();
+  scale[Amrvis::YDIR] = viewTransformPtr->GetScale();
+  scale[Amrvis::ZDIR] = viewTransformPtr->GetScale();
 
   Real mvmat[4][4];
 
@@ -510,9 +505,9 @@ AVRealBox::AVRealBox() {
 
 //--------------------------------------------------------------------
 AVRealBox::AVRealBox(const Box &theBox) {
-    Real dimensions[6] = { theBox.smallEnd(XDIR), theBox.smallEnd(YDIR),
-                           theBox.smallEnd(ZDIR), theBox.bigEnd(XDIR)+1,
-                           theBox.bigEnd(YDIR)+1, theBox.bigEnd(ZDIR)+1 };
+    Real dimensions[6] = { theBox.smallEnd(Amrvis::XDIR), theBox.smallEnd(Amrvis::YDIR),
+                           theBox.smallEnd(Amrvis::ZDIR), theBox.bigEnd(Amrvis::XDIR)+1,
+                           theBox.bigEnd(Amrvis::YDIR)+1, theBox.bigEnd(Amrvis::ZDIR)+1 };
 
     vertices[0] = RealPoint(dimensions[0], dimensions[1], dimensions[2]);
     vertices[1] = RealPoint(dimensions[3], dimensions[1], dimensions[2]);
@@ -573,9 +568,9 @@ RealSlice::RealSlice(RealPoint p1, RealPoint p2, RealPoint p3, RealPoint p4) {
 
 //--------------------------------------------------------------------
 RealSlice::RealSlice(int count, int slice, const Box &worldBox) {
-  Real dimensions[6] = { worldBox.smallEnd(XDIR), worldBox.smallEnd(YDIR),
-                         worldBox.smallEnd(ZDIR), worldBox.bigEnd(XDIR)+1,
-                         worldBox.bigEnd(YDIR)+1, worldBox.bigEnd(ZDIR)+1 };
+  Real dimensions[6] = { worldBox.smallEnd(Amrvis::XDIR), worldBox.smallEnd(Amrvis::YDIR),
+                         worldBox.smallEnd(Amrvis::ZDIR), worldBox.bigEnd(Amrvis::XDIR)+1,
+                         worldBox.bigEnd(Amrvis::YDIR)+1, worldBox.bigEnd(Amrvis::ZDIR)+1 };
   dirOfFreedom = count;
   if(dirOfFreedom == 0) {
     edges[0] = RealPoint(dimensions[0], dimensions[1], slice);

@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------
 // PltAppState.cpp
 // ---------------------------------------------------------------
-#include "PltAppState.H"
+#include <PltAppState.H>
 
 #include <cctype>
 #include <strstream>
@@ -54,9 +54,9 @@ PltAppState::PltAppState(int numFrames, int numDerived)
 	      maxScale(NOTSETYET),
 	      currentFrame(0),
 	      currentDerivedNumber(NOTSETYET),
-	      currentContourType(INVALIDCONTOURTYPE),
+	      currentContourType(Amrvis::INVALIDCONTOURTYPE),
 	      nContours(NOTSETYET),
-	      currentMinMaxType(INVALIDMINMAX),
+	      currentMinMaxType(Amrvis::INVALIDMINMAX),
 	      minDrawnLevel(NOTSETYET),
 	      maxDrawnLevel(NOTSETYET),
 	      minAllowableLevel(NOTSETYET),
@@ -67,7 +67,7 @@ PltAppState::PltAppState(int numFrames, int numDerived)
   for(int nf(0); nf < numFrames; ++nf) {
     minMax[nf].resize(numDerived);
     for(int nd(0); nd < numDerived; ++nd) {
-      minMax[nf][nd].resize(NUMBEROFMINMAX);
+      minMax[nf][nd].resize(Amrvis::NUMBEROFMINMAX);
     }
   }
 }
@@ -115,7 +115,7 @@ PltAppState &PltAppState::operator=(const PltAppState &rhs) {
 
 
 // -------------------------------------------------------------------
-void PltAppState::SetMinMax(const MinMaxRangeType mmrangetype,
+void PltAppState::SetMinMax(const Amrvis::MinMaxRangeType mmrangetype,
 			    const int framenumber, const int derivednumber,
 		            const Real rmin, const Real rmax)
 {
@@ -124,7 +124,7 @@ void PltAppState::SetMinMax(const MinMaxRangeType mmrangetype,
 
 
 // -------------------------------------------------------------------
-void PltAppState::GetMinMax(const MinMaxRangeType mmrangetype,
+void PltAppState::GetMinMax(const Amrvis::MinMaxRangeType mmrangetype,
 			    const int framenumber, const int derivednumber,
 		            Real &rmin, Real &rmax)
 {
@@ -140,7 +140,7 @@ void PltAppState::GetMinMax(Real &rmin, Real &rmax) {
 
 
 // -------------------------------------------------------------------
-bool PltAppState::IsSet(const MinMaxRangeType mmrangetype,
+bool PltAppState::IsSet(const Amrvis::MinMaxRangeType mmrangetype,
 			const int framenumber, const int derivednumber)
 {
   return (minMax[framenumber][derivednumber][mmrangetype].IsSet());

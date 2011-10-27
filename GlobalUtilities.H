@@ -1,17 +1,12 @@
-
-//
-// $Id: GlobalUtilities.H,v 1.25 2008-07-31 22:12:37 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // GlobalUtilities.H
 // ---------------------------------------------------------------
 #ifndef _GLOBALUTILITIES_H_
 #define _GLOBALUTILITIES_H_
 
-#include "AmrvisConstants.H"
-#include "Box.H"
-#include "Array.H"
+#include <AmrvisConstants.H>
+#include <Box.H>
+#include <Array.H>
 
 #include <list>
 #include <string>
@@ -53,7 +48,7 @@ namespace AVGlobals {
   int SleepTime();
   const string &GetComlineFilename(int index);
   string StripSlashes(const string &inString);
-  FileType GetDefaultFileType();
+  Amrvis::FileType GetDefaultFileType();
   bool GivenBox();
   bool GivenBoxSlice();
   bool GivenFilename();

@@ -1,27 +1,22 @@
-
-//
-// $Id: PltApp.H,v 1.66 2010-12-15 23:10:27 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // PltApp.H
 // ---------------------------------------------------------------
 #ifndef _PLTAPP_H_
 #define _PLTAPP_H_
 
-#include "ParallelDescriptor.H"
+#include <ParallelDescriptor.H>
 
 #include <Xm/Xm.h>
 #include <X11/Intrinsic.h>
 #undef index
 
-#include "AmrvisConstants.H"
-#include "Box.H"
-#include "Dataset.H"
-#include "GlobalUtilities.H"
-#include "Palette.H"
+#include <AmrvisConstants.H>
+#include <Box.H>
+#include <Dataset.H>
+#include <GlobalUtilities.H>
+#include <Palette.H>
 #if (BL_SPACEDIM==3)
-# include "ViewTransform.H"
+# include <ViewTransform.H>
 class ProjectionPicture;
 #endif
 
@@ -145,7 +140,7 @@ public:
 
 private:
   Widget wTopLevel, wAmrVisTopLevel;
-  Widget wScrollArea[NPLANES], wPlotPlane[NPLANES];
+  Widget wScrollArea[Amrvis::NPLANES], wPlotPlane[Amrvis::NPLANES];
   Array<Widget> wRangeRadioButton;
   Widget wFileRangeCheckBox;
   Widget wUserMin, wUserMax;
@@ -178,11 +173,11 @@ private:
   XYPlotWin *XYplotwin[BL_SPACEDIM];
 
   XtAppContext appContext;
-  Arg args[MAXARGS];
+  Arg args[Amrvis::MAXARGS];
   Palette *pltPaletteptr;
-  AmrPicture *amrPicturePtrArray[NPLANES];
+  AmrPicture *amrPicturePtrArray[Amrvis::NPLANES];
   IntVect ivLowOffsetMAL;  // at maxAllowableLevel
-  MinMaxRangeType currentRangeType;
+  Amrvis::MinMaxRangeType currentRangeType;
   bool animating2d, setRangeShowing, contoursShowing, infoShowing, bFormatShowing;
   bool bSetRangeRedraw;
   bool datasetShowing, paletteDrawn, writingRGB, interfaceReady;
@@ -202,7 +197,7 @@ private:
   Array<string> fileNames;
   Array<XImage *> frameBuffer;
   vector<bool>	readyFrames;
-  AnimDirection	animDirection;
+  Amrvis::AnimDirection	animDirection;
   XtIntervalId	animationIId, multiclickIId;
   Real finestDx[BL_SPACEDIM], gridOffset[BL_SPACEDIM];
   String trans;
@@ -250,7 +245,7 @@ private:
   void DrawAxes(Widget, int, int, int, char *, char *, int);
   void ResetAnimation();
   void StopAnimation();
-  void Animate(AnimDirection direction);
+  void Animate(Amrvis::AnimDirection direction);
   void ShowFrame();
   void DirtyFrames();
   void DoRubberBanding(Widget, XtPointer, XtPointer);
@@ -318,7 +313,7 @@ private:
   void Clear();
 #endif
 
-  void FindAndSetMinMax(const MinMaxRangeType mmrangetype, const int framenumber,
+  void FindAndSetMinMax(const Amrvis::MinMaxRangeType mmrangetype, const int framenumber,
 		        const string &currentderived, const int derivednumber,
 		        const Array<Box> &onBox,
 		        const int coarselevel, const int finelevel,

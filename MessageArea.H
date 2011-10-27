@@ -1,8 +1,3 @@
-
-//
-// $Id: MessageArea.H,v 1.9 2002-04-03 01:03:47 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // MessageArea.H
 // ---------------------------------------------------------------
@@ -11,7 +6,7 @@
 
 #include <Xm/Xm.h>
 #include <Xm/Text.h>
-#include "AmrvisConstants.H"
+#include <AmrvisConstants.H>
 
 class cMessageArea {
   private:

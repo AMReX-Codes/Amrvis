@@ -1,15 +1,10 @@
-
-//
-// $Id: Quaternion.cpp,v 1.14 2010-12-09 00:57:20 gpau Exp $
-//
-
 // ---------------------------------------------------------------
 // Quaternion.cpp
 // ---------------------------------------------------------------
 #include <cstdlib>
 #include <cmath>
 
-#include "Quaternion.H"
+#include <Quaternion.H>
 
 // ---------------------------------------------------------------
 //  These constructors reduce smoothly to the identity when the input

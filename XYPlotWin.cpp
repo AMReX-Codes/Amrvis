@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------
 // XYPlotWin.cpp
 // ---------------------------------------------------------------
-#include "ParallelDescriptor.H"
+#include <ParallelDescriptor.H>
 
 #include <Xm/AtomMgr.h>
 #include <Xm/Protocols.h>
@@ -28,12 +28,12 @@
 #include <X11/cursorfont.h>
 #include <X11/keysym.h>
 
-#include "XYPlotWin.H"
-#include "PltApp.H"
-#include "PltAppState.H"
-#include "GraphicsAttributes.H"
-#include "AmrData.H"
-#include "DataServices.H"
+#include <XYPlotWin.H>
+#include <PltApp.H>
+#include <PltAppState.H>
+#include <GraphicsAttributes.H>
+#include <AmrData.H>
+#include <DataServices.H>
 
 #include <iostream>
 #include <iomanip>
@@ -134,7 +134,7 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
             currFrame(curr_frame)
 {
   int idx;
-  char buffer[BUFSIZE];
+  char buffer[Amrvis::BUFSIZE];
   pltTitle = new char[strlen(title) + 1];
   strcpy(pltTitle, title);
   params param_temp;   // temporary parameter grabbing slot
@@ -160,18 +160,20 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
 
   iCurrHint = 1;
   
+  char testc[] = "WM_DELETE_WINDOW";
   WM_DELETE_WINDOW = XmInternAtom(XtDisplay(wTopLevel),
-				  "WM_DELETE_WINDOW", false);
+				  //"WM_DELETE_WINDOW", false);
+				  testc, false);
 
   // --------------------------------------------------------  main window
   int winOffsetX, winOffsetY;
   int winWidth = PM_INT("InitialWindowWidth");
   int winHeight = PM_INT("InitialWindowHeight");
 
-  if(whichType == XDIR) {
+  if(whichType == Amrvis::XDIR) {
     winOffsetX = PM_INT("InitialXWindowOffsetX");
     winOffsetY = PM_INT("InitialXWindowOffsetY");
-  } else if(whichType == YDIR) {
+  } else if(whichType == Amrvis::YDIR) {
     winOffsetX = PM_INT("InitialYWindowOffsetX");
     winOffsetY = PM_INT("InitialYWindowOffsetY");
   } else {
@@ -403,9 +405,9 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
 
   char *str;
 
-  if(whichType == XDIR) {
+  if(whichType == Amrvis::XDIR) {
     str = PM_STRING("XUnitTextX");
-  } else if(whichType == YDIR) {
+  } else if(whichType == Amrvis::YDIR) {
     str = PM_STRING("XUnitTextY");
   } else {
     str = PM_STRING("XUnitTextZ");
@@ -489,7 +491,7 @@ void XYPlotWin::InitializeAnimation(int curr_frame, int num_frames) {
     string sDerName = (*ptr)->XYPLIlist->DerivedName();
     const AmrData &amrData = pltParent->GetDataServicesPtr()->AmrDataRef();
     int snum = amrData.StateNumber(sDerName);
-    MinMaxRangeType mmrt = pas->GetMinMaxRangeType();
+    Amrvis::MinMaxRangeType mmrt = pas->GetMinMaxRangeType();
     for(int iframe(0); iframe < numFrames; ++iframe) {
       pas->GetMinMax(mmrt, iframe, snum, fmin, fmax);
       gmin = min(gmin, fmin);
@@ -511,7 +513,7 @@ void XYPlotWin::InitializeAnimation(int curr_frame, int num_frames) {
 void XYPlotWin::UpdateFrame(int frame) {
   XYPlotDataList *tempList;
   int num_lists_changed(0);
-  char buffer[BUFSIZE];
+  char buffer[Amrvis::BUFSIZE];
   sprintf(buffer, "%s %c Value 1D plot",
           AVGlobals::StripSlashes(pltParent->GetFileName()).c_str(),
 	  whichType + 'X');
@@ -814,7 +816,7 @@ void XYPlotWin::AddDataList(XYPlotDataList *new_list,
   pltParent->GetPalettePtr()->SetWindowPalette(pltParent->GetPaletteName(),
 					       XtWindow(new_item->wid));
   Widget wid, levelmenu;
-  char buffer[BUFSIZ];
+  char buffer[Amrvis::BUFSIZE];
   new_item->menu = XmCreatePopupMenu(new_item->wid, "popup", NULL, 0);
   if(new_list->MaxLevel() != 0) {
     XmString label_str = XmStringCreateSimple("Level");
@@ -1055,7 +1057,7 @@ void XYPlotWin::writeValue(char *str, char *fmt, double val, int expv) {
 void XYPlotWin::drawGridAndAxis() {
   int expX, expY; // Engineering powers
   int Yspot, Xspot;
-  char value[10], final[BUFSIZE + 10];
+  char value[10], final[Amrvis::BUFSIZE + 10];
   double dXIncr, dYIncr, dXStart, dYStart, dYIndex, dXIndex, dLarger;
   XSegment segs[2];
   
@@ -1537,7 +1539,7 @@ void XYPlotWin::DoASCIIDump(FILE *fs, const char *plotname) {
     return;
   }
   PltAppState *pas = pltParent->GetPltAppState();
-  char format[LINELENGTH];
+  char format[Amrvis::LINELENGTH];
   sprintf(format, "%s %s\n", pas->GetFormatString().c_str(),
                              pas->GetFormatString().c_str());
   fprintf(fs, "TitleText: %s\n", plotname);
@@ -1686,9 +1688,9 @@ void XYPlotWin::CBdoOptions(Widget, XtPointer, XtPointer) {
       XtVaCreateManagedWidget("  Ok  ", xmPushButtonGadgetClass,
 			      wOptionsForm,
 			      XmNbottomAttachment, XmATTACH_FORM,
-			      XmNbottomOffset,     WOFFSET,
+			      XmNbottomOffset,     Amrvis::WOFFSET,
 			      XmNleftAttachment,   XmATTACH_FORM,
-			      XmNleftOffset,       WOFFSET,
+			      XmNleftOffset,       Amrvis::WOFFSET,
 			      NULL);
     AddStaticCallback(wOkButton, XmNactivateCallback,
 		      &XYPlotWin::CBdoOptionsOKButton, (XtPointer) 1);
@@ -1697,10 +1699,10 @@ void XYPlotWin::CBdoOptions(Widget, XtPointer, XtPointer) {
       XtVaCreateManagedWidget(" Apply ", xmPushButtonGadgetClass,
 			      wOptionsForm,
 			      XmNbottomAttachment, XmATTACH_FORM,
-			      XmNbottomOffset,     WOFFSET,
+			      XmNbottomOffset,     Amrvis::WOFFSET,
 			      XmNleftAttachment,   XmATTACH_WIDGET,
 			      XmNleftWidget,       wOkButton,
-			      XmNleftOffset,       WOFFSET,
+			      XmNleftOffset,       Amrvis::WOFFSET,
 			      NULL);
     AddStaticCallback(wApplyButton, XmNactivateCallback,
 		      &XYPlotWin::CBdoOptionsOKButton, (XtPointer) 1);
@@ -1709,10 +1711,10 @@ void XYPlotWin::CBdoOptions(Widget, XtPointer, XtPointer) {
       XtVaCreateManagedWidget(" Cancel ", xmPushButtonGadgetClass,
 			      wOptionsForm,
 			      XmNbottomAttachment, XmATTACH_FORM,
-			      XmNbottomOffset,     WOFFSET,
+			      XmNbottomOffset,     Amrvis::WOFFSET,
 			      XmNleftAttachment,   XmATTACH_WIDGET,
 			      XmNleftWidget,       wApplyButton,
-			      XmNleftOffset,       WOFFSET,
+			      XmNleftOffset,       Amrvis::WOFFSET,
 			      NULL);
     AddStaticCallback(wCancelButton, XmNactivateCallback,
 		      &XYPlotWin::CBdoOptionsOKButton, (XtPointer) 0);
@@ -1722,10 +1724,10 @@ void XYPlotWin::CBdoOptions(Widget, XtPointer, XtPointer) {
 			      wOptionsForm,
 			      XmNset,     tbool[6],
 			      XmNbottomAttachment, XmATTACH_FORM,
-			      XmNbottomOffset,     WOFFSET + 4,
+			      XmNbottomOffset,     Amrvis::WOFFSET + 4,
 			      XmNleftAttachment,   XmATTACH_WIDGET,
 			      XmNleftWidget,       wCancelButton,
-			      XmNleftOffset,       2 * WOFFSET,
+			      XmNleftOffset,       2 * Amrvis::WOFFSET,
 			      NULL);
     wOptionsWidgets[6] = wid;
 			      
@@ -1808,9 +1810,9 @@ void XYPlotWin::CBdoOptionsOKButton(Widget, XtPointer data, XtPointer) {
     strcpy(formatY, input);
     XtFree(input);
 
-    if(whichType == XDIR) {
+    if(whichType == Amrvis::XDIR) {
       parameters->Set_Parameter("XUnitTextX", STR, XUnitText);
-    } else if(whichType == YDIR) {
+    } else if(whichType == Amrvis::YDIR) {
       parameters->Set_Parameter("XUnitTextY", STR, XUnitText);
     } else {
       parameters->Set_Parameter("XUnitTextZ", STR, XUnitText);
@@ -1845,10 +1847,10 @@ void XYPlotWin::CBdoOptionsOKButton(Widget, XtPointer data, XtPointer) {
 		    NULL);
       sprintf(buf, "%d", winX);
       sprintf(buf2, "%d", winY);
-      if(whichType == XDIR) {
+      if(whichType == Amrvis::XDIR) {
 	parameters->Set_Parameter("InitialXWindowOffsetX", INT, buf);
 	parameters->Set_Parameter("InitialXWindowOffsetY", INT, buf2);
-      } else if(whichType == YDIR){
+      } else if(whichType == Amrvis::YDIR){
 	parameters->Set_Parameter("InitialYWindowOffsetX", INT, buf);
 	parameters->Set_Parameter("InitialYWindowOffsetY", INT, buf2);
       } else{

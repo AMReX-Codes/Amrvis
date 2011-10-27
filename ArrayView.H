@@ -1,20 +1,15 @@
-
-//
-// $Id: ArrayView.H,v 1.3 2000-10-02 20:53:07 lijewski Exp $
-//
-
 // ---------------------------------------------------------------
 // ArrayView.H
 // ---------------------------------------------------------------
 #ifndef _ARRAYVIEW_H_
 #define _ARRAYVIEW_H_
 
-#include "FArrayBox.H"
-#include "MultiFab.H"
+#include <FArrayBox.H>
+#include <MultiFab.H>
 #ifdef BL_ARRAYVIEW_TAGBOX
-#include "TagBox.H"
+#include <TagBox.H>
 #endif
-#include "DatasetClient.H"
+#include <DatasetClient.H>
 
 // -------------------------------------------------------------
 void NeverCalled() {

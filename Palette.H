@@ -1,8 +1,3 @@
-
-//
-// $Id: Palette.H,v 1.32 2010-12-15 23:10:27 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // Palette.H
 // ---------------------------------------------------------------
@@ -14,10 +9,10 @@
 using std::map;
 using std::string;
 
-#include "REAL.H"
-#include "Array.H"
-#include "Array.H"
-#include "ParallelDescriptor.H"
+#include <REAL.H>
+#include <Array.H>
+#include <Array.H>
+#include <ParallelDescriptor.H>
 
 const int PALLISTLENGTH   = 8;
 const int PALWIDTH        = 24;

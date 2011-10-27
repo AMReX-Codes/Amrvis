@@ -1,8 +1,8 @@
 // -------------------------------------------------------------------
 // GridPicture.cpp
 // -------------------------------------------------------------------
-#include "GridPicture.H"
-#include "GlobalUtilities.H"
+#include <GridPicture.H>
+#include <GlobalUtilities.H>
 #include <climits>
 #include <cfloat>
 
@@ -29,15 +29,15 @@ void GridPicture::GridPictureInit(int level,
   imageBox = overlapBox; 
   imageBox.refine(refRatio * currentScale);
 
-  if(sliceDir == ZDIR) {
-    dataSizeH = boxWithData.length(XDIR);
-    dataSizeV = boxWithData.length(YDIR);
-  } else if(sliceDir == YDIR) {
-    dataSizeV = boxWithData.length(ZDIR);
-    dataSizeH = boxWithData.length(XDIR);
+  if(sliceDir == Amrvis::ZDIR) {
+    dataSizeH = boxWithData.length(Amrvis::XDIR);
+    dataSizeV = boxWithData.length(Amrvis::YDIR);
+  } else if(sliceDir == Amrvis::YDIR) {
+    dataSizeV = boxWithData.length(Amrvis::ZDIR);
+    dataSizeH = boxWithData.length(Amrvis::XDIR);
   } else {
-    dataSizeH = boxWithData.length(YDIR);
-    dataSizeV = boxWithData.length(ZDIR);
+    dataSizeH = boxWithData.length(Amrvis::YDIR);
+    dataSizeV = boxWithData.length(Amrvis::ZDIR);
   }
   imageSizeH = dataSizeH * refRatio * currentScale;
   imageSizeV = dataSizeV * refRatio * currentScale;
@@ -67,12 +67,12 @@ void  GridPicture::ChangeScale(int newScale, int picSizeH, int picSizeV) {
 // -------------------------------------------------------------------
 int GridPicture::HPositionInPicture() {
   int endLoc;
-  if(sliceDir == ZDIR) {
-    endLoc = imageBox.smallEnd()[XDIR];
-  } else if(sliceDir == YDIR) {
-    endLoc = imageBox.smallEnd()[XDIR];
+  if(sliceDir == Amrvis::ZDIR) {
+    endLoc = imageBox.smallEnd()[Amrvis::XDIR];
+  } else if(sliceDir == Amrvis::YDIR) {
+    endLoc = imageBox.smallEnd()[Amrvis::XDIR];
   } else {
-    endLoc = imageBox.smallEnd()[YDIR];
+    endLoc = imageBox.smallEnd()[Amrvis::YDIR];
   }
   return (endLoc - ((int) imageSizeH % refRatio));
 }
@@ -81,15 +81,15 @@ int GridPicture::HPositionInPicture() {
 // -------------------------------------------------------------------
 int GridPicture::VPositionInPicture() {
   int endLoc, nodeAdjustment;
-  if(sliceDir == ZDIR) {
-    endLoc = imageBox.bigEnd()[YDIR];
-    nodeAdjustment = imageBox.type()[YDIR] * (currentScale - 1) * refRatio;
-  } else if(sliceDir == YDIR) {
-    endLoc = imageBox.bigEnd()[ZDIR];
-    nodeAdjustment = imageBox.type()[ZDIR] * (currentScale - 1) * refRatio;
+  if(sliceDir == Amrvis::ZDIR) {
+    endLoc = imageBox.bigEnd()[Amrvis::YDIR];
+    nodeAdjustment = imageBox.type()[Amrvis::YDIR] * (currentScale - 1) * refRatio;
+  } else if(sliceDir == Amrvis::YDIR) {
+    endLoc = imageBox.bigEnd()[Amrvis::ZDIR];
+    nodeAdjustment = imageBox.type()[Amrvis::ZDIR] * (currentScale - 1) * refRatio;
   } else {
-    endLoc = imageBox.bigEnd()[ZDIR];
-    nodeAdjustment = imageBox.type()[ZDIR] * (currentScale - 1) * refRatio;
+    endLoc = imageBox.bigEnd()[Amrvis::ZDIR];
+    nodeAdjustment = imageBox.type()[Amrvis::ZDIR] * (currentScale - 1) * refRatio;
   }
   return ((pictureSizeV-1) - endLoc - ((int) imageSizeV % refRatio) - 
 	  nodeAdjustment);

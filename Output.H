@@ -1,8 +1,3 @@
-
-//
-// $Id: Output.H,v 1.14 2002-10-02 16:51:36 car Exp $
-//
-
 // ---------------------------------------------------------------
 // Output.H
 // ---------------------------------------------------------------
@@ -12,8 +7,8 @@
 #include <X11/Xlib.h>
 #undef index
 
-#include "REAL.H"
-#include "Array.H"
+#include <REAL.H>
+#include <Array.H>
 #include <Palette.H>
 #include <AmrData.H>
 #include <AmrPicture.H>

@@ -1,13 +1,9 @@
-//
-// $Id: GlobalUtilities.cpp,v 1.65 2011-08-11 19:27:22 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // GlobalUtilities.cpp
 // ---------------------------------------------------------------
-#include "GlobalUtilities.H"
-#include "FArrayBox.H"
-#include "FabConv.H"
+#include <GlobalUtilities.H>
+#include <FArrayBox.H>
+#include <FabConv.H>
 #include <fstream>
 #include <iostream>
 using std::ifstream;
@@ -18,8 +14,8 @@ using std::endl;
 using std::min;
 using std::max;
 
-#include "PltApp.H"
-#include "ParallelDescriptor.H"
+#include <PltApp.H>
+#include <ParallelDescriptor.H>
 
 const int DEFAULTMAXPICTURESIZE = 600000;
 
@@ -27,7 +23,7 @@ int boundaryWidth;
 int skipPltLines;
 int boxColor;
 int maxPictureSize;
-FileType fileType;
+Amrvis::FileType fileType;
 bool animation;
 bool bCacheAnimFrames;
 Array<string> comlinefilename;
@@ -123,7 +119,7 @@ void AddSlices(int dir, char *sliceset) {
 
   list<int>::iterator dsliter;
   if(bRangeSpecified) {
-    if(BL_SPACEDIM == 2 && dir == ZDIR) {
+    if(BL_SPACEDIM == 2 && dir == Amrvis::ZDIR) {
       slice = 0;
       dsliter = find(dumpSliceList[dir].begin(), dumpSliceList[dir].end(), slice);
       if(dsliter == dumpSliceList[dir].end()) {
@@ -139,7 +135,7 @@ void AddSlices(int dir, char *sliceset) {
     }
   } else {
     slice = atoi(sliceset);
-    if(BL_SPACEDIM == 2 && dir == ZDIR) {
+    if(BL_SPACEDIM == 2 && dir == Amrvis::ZDIR) {
       slice = 0;
     }
     dsliter =  find(dumpSliceList[dir].begin(),dumpSliceList[dir].end(),slice);
@@ -156,9 +152,9 @@ bool AVGlobals::ReadLightingFile(const string &lightdefaultsFile,
                       Real &shinyDef,
                       Real &minRayOpacityDef, Real &maxRayOpacityDef)
 {
-  char defaultString[LINELENGTH], cRealIn[LINELENGTH];
+  char defaultString[Amrvis::LINELENGTH], cRealIn[Amrvis::LINELENGTH];
   // try to find the defaultsFile
-  char buffer[BUFSIZ];
+  char buffer[Amrvis::BUFSIZE];
 
   ifstream defs(lightdefaultsFile.c_str());
 
@@ -173,7 +169,7 @@ bool AVGlobals::ReadLightingFile(const string &lightdefaultsFile,
     }
 
     ws(defs);
-    defs.getline(buffer, BUFSIZ, '\n');
+    defs.getline(buffer, Amrvis::BUFSIZE, '\n');
   
     while( ! defs.eof()) {
       sscanf(buffer,"%s", defaultString);
@@ -199,7 +195,7 @@ bool AVGlobals::ReadLightingFile(const string &lightdefaultsFile,
           maxRayOpacityDef = atof(cRealIn);
         }
       }
-      defs.getline(buffer, BUFSIZ, '\n');
+      defs.getline(buffer, Amrvis::BUFSIZE, '\n');
     }
   }
   return true;
@@ -243,10 +239,10 @@ bool AVGlobals::WriteLightingFile(const string &lightdefaultsFile,
 
 // -------------------------------------------------------------------
 void AVGlobals::GetDefaults(const string &defaultsFile) {
-  char buffer[BUFSIZ];
-  char defaultString[LINELENGTH];
-  char tempString[LINELENGTH];
-  char tempStringSDim[BL_SPACEDIM][LINELENGTH];
+  char buffer[Amrvis::BUFSIZE];
+  char defaultString[Amrvis::LINELENGTH];
+  char tempString[Amrvis::LINELENGTH];
+  char tempStringSDim[BL_SPACEDIM][Amrvis::LINELENGTH];
   int  tempInt;
 
   // standard defaults
@@ -265,7 +261,7 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
   skipPltLines = 0;
   maxPaletteIndex = 255;  // dont clip the top palette index (default)
   boxColor = -1;  // invalid
-  fileType = NEWPLT;  // default
+  fileType = Amrvis::NEWPLT;  // default
   fabIOSize = 0;
   lowBlack = false;
   bShowBody = true;
@@ -310,7 +306,7 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
   }
 
   ws(defs);
-  defs.getline(buffer, BUFSIZ, '\n');
+  defs.getline(buffer, Amrvis::BUFSIZE, '\n');
   
   while( ! defs.eof()) {
     sscanf(buffer,"%s", defaultString);
@@ -415,11 +411,11 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
       else if(strcmp(defaultString, "filetype") == 0) {
         sscanf(buffer, "%s%s", defaultString, tempString);
 	if(strcmp(tempString, "fab") == 0) {
-          fileType = FAB;
+          fileType = Amrvis::FAB;
 	} else if(strcmp(tempString, "multifab") == 0) {
-          fileType = MULTIFAB;
+          fileType = Amrvis::MULTIFAB;
 	} else if(strcmp(tempString, "newplt") == 0) {
-          fileType = NEWPLT;
+          fileType = Amrvis::NEWPLT;
 	} else {  // error
 	  cerr << "Error in defaults file:  invalid parameter for filetype:  "
 	       << tempString << endl;
@@ -441,9 +437,9 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
       else if(strcmp(defaultString, "initplanes") == 0) {
 	int tempX, tempY, tempZ;
         sscanf(buffer, "%s%d%d%d", defaultString, &tempX, &tempY, &tempZ);
-        ivInitialPlanes.setVal(XDIR, tempX);
-        ivInitialPlanes.setVal(YDIR, tempY);
-        ivInitialPlanes.setVal(ZDIR, tempZ);
+        ivInitialPlanes.setVal(Amrvis::XDIR, tempX);
+        ivInitialPlanes.setVal(Amrvis::YDIR, tempY);
+        ivInitialPlanes.setVal(Amrvis::ZDIR, tempZ);
         givenInitialPlanes = true;
       }
 #endif
@@ -494,7 +490,7 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
     }
 
     ws(defs);
-    defs.getline(buffer, BUFSIZ, '\n');
+    defs.getline(buffer, Amrvis::BUFSIZE, '\n');
   }
   defs.close();
 
@@ -704,15 +700,15 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       bCacheAnimFrames = false;
 #   endif
     } else if(strcmp(argv[i],"-fab") == 0) {
-      fileType = FAB;
+      fileType = Amrvis::FAB;
     } else if(strcmp(argv[i],"-fb") == 0) {
-      fileType = FAB;
+      fileType = Amrvis::FAB;
     } else if(strcmp(argv[i],"-multifab") == 0) {
-      fileType = MULTIFAB;
+      fileType = Amrvis::MULTIFAB;
     } else if(strcmp(argv[i],"-mf") == 0) {
-      fileType = MULTIFAB;
+      fileType = Amrvis::MULTIFAB;
     } else if(strcmp(argv[i],"-newplt") == 0) {
-      fileType = NEWPLT;
+      fileType = Amrvis::NEWPLT;
     } else if(strcmp(argv[i],"-v") == 0) {
       verbose = true;
     } else if(strcmp(argv[i], "-b") == 0 || strcmp(argv[i], "-subdomain") == 0) {
@@ -818,21 +814,21 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       if(argc-1<i+1) {
         PrintUsage(argv[0]);
       } else {
-	AddSlices(XDIR, argv[i+1]);
+	AddSlices(Amrvis::XDIR, argv[i+1]);
       }
       ++i;
     } else if(strcmp(argv[i], "-yslice") == 0) {
       if(argc-1<i+1) {
         PrintUsage(argv[0]);
       } else {
-	AddSlices(YDIR, argv[i+1]);
+	AddSlices(Amrvis::YDIR, argv[i+1]);
       }
       ++i;
     } else if(strcmp(argv[i], "-zslice") == 0) {
       if(argc-1<i+1) {
         PrintUsage(argv[0]);
       } else {
-	AddSlices(ZDIR, argv[i+1]);
+	AddSlices(Amrvis::ZDIR, argv[i+1]);
       }
       ++i;
     } else if(strcmp(argv[i], "-boxslice") == 0) {
@@ -956,7 +952,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
     } else if(strcmp(argv[i], "-sliceallvars") == 0) {
       sliceAllVars = true;
     } else if(i < argc) {
-      if(fileType == MULTIFAB) {
+      if(fileType == Amrvis::MULTIFAB) {
         // delete the _H from the filename if it is there
         char *tempfilename = new char[strlen(argv[i]) + 1];
         strcpy(tempfilename, argv[i]);
@@ -990,10 +986,10 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
 	}
         exit(0);
       }
-      comlinebox.setSmall(XDIR, atoi(clsx));
-      comlinebox.setSmall(YDIR, atoi(clsy));
-      comlinebox.setBig(XDIR, atoi(clbx));
-      comlinebox.setBig(YDIR, atoi(clby));
+      comlinebox.setSmall(Amrvis::XDIR, atoi(clsx));
+      comlinebox.setSmall(Amrvis::YDIR, atoi(clsy));
+      comlinebox.setBig(Amrvis::XDIR, atoi(clbx));
+      comlinebox.setBig(Amrvis::YDIR, atoi(clby));
 #else
       if(atoi(clsx) > atoi(clbx) || atoi(clsy) > atoi(clby) || 
 	 atoi(clsz) > atoi(clbz))
@@ -1004,25 +1000,25 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
 	}
         exit(0);
       }
-      comlinebox.setSmall(XDIR, atoi(clsx));
-      comlinebox.setSmall(YDIR, atoi(clsy));
-      comlinebox.setSmall(ZDIR, atoi(clsz));
-      comlinebox.setBig(XDIR,   atoi(clbx));
-      comlinebox.setBig(YDIR,   atoi(clby));
-      comlinebox.setBig(ZDIR,   atoi(clbz));
+      comlinebox.setSmall(Amrvis::XDIR, atoi(clsx));
+      comlinebox.setSmall(Amrvis::YDIR, atoi(clsy));
+      comlinebox.setSmall(Amrvis::ZDIR, atoi(clsz));
+      comlinebox.setBig(Amrvis::XDIR,   atoi(clbx));
+      comlinebox.setBig(Amrvis::YDIR,   atoi(clby));
+      comlinebox.setBig(Amrvis::ZDIR,   atoi(clbz));
 #endif
   }
 
 #if (BL_SPACEDIM == 3)
   if(givenInitialPlanesOnComline) {
-    ivInitialPlanes.setVal(XDIR, atoi(clPlaneX));
-    ivInitialPlanes.setVal(YDIR, atoi(clPlaneY));
-    ivInitialPlanes.setVal(ZDIR, atoi(clPlaneZ));
+    ivInitialPlanes.setVal(Amrvis::XDIR, atoi(clPlaneX));
+    ivInitialPlanes.setVal(Amrvis::YDIR, atoi(clPlaneY));
+    ivInitialPlanes.setVal(Amrvis::ZDIR, atoi(clPlaneZ));
   }
 #endif
 
 
-  if(fileType == INVALIDTYPE) {
+  if(fileType == Amrvis::INVALIDTYPE) {
     BoxLib::Abort("Error:  invalid file type.  Exiting.");
   } else {
     if(ParallelDescriptor::IOProcessor()) {
@@ -1068,7 +1064,7 @@ bool AVGlobals::GetShowBody()  { return bShowBody; }
 Real AVGlobals::GetBodyOpacity()  { return bodyOpacity; }
 
 const string &AVGlobals::GetComlineFilename(int i) { return comlinefilename[i]; }
-FileType AVGlobals::GetDefaultFileType()   { return fileType;    }
+Amrvis::FileType AVGlobals::GetDefaultFileType()   { return fileType;    }
 
 bool AVGlobals::GivenBox()    { return givenBox;     }
 bool AVGlobals::GivenBoxSlice() { return givenBoxSlice;     }
@@ -1138,17 +1134,17 @@ int AVGlobals::DetermineMaxAllowableLevel(const Box &finestbox,
   unsigned long boxpoints;
   while(maxallowablelevel > 0) {
 #   if (BL_SPACEDIM == 2)
-      boxpoints = static_cast<unsigned long>(levelDomain.length(XDIR)) *
-                  static_cast<unsigned long>(levelDomain.length(YDIR));
+      boxpoints = static_cast<unsigned long>(levelDomain.length(Amrvis::XDIR)) *
+                  static_cast<unsigned long>(levelDomain.length(Amrvis::YDIR));
 #   else
       unsigned long tempLength;
-      boxpoints  = static_cast<unsigned long>(levelDomain.length(XDIR)) *
-                   static_cast<unsigned long>(levelDomain.length(YDIR));
-      tempLength = static_cast<unsigned long>(levelDomain.length(YDIR)) *
-                   static_cast<unsigned long>(levelDomain.length(ZDIR));
+      boxpoints  = static_cast<unsigned long>(levelDomain.length(Amrvis::XDIR)) *
+                   static_cast<unsigned long>(levelDomain.length(Amrvis::YDIR));
+      tempLength = static_cast<unsigned long>(levelDomain.length(Amrvis::YDIR)) *
+                   static_cast<unsigned long>(levelDomain.length(Amrvis::ZDIR));
       boxpoints  = max(boxpoints, tempLength);
-      tempLength = static_cast<unsigned long>(levelDomain.length(XDIR)) *
-                   static_cast<unsigned long>(levelDomain.length(ZDIR));
+      tempLength = static_cast<unsigned long>(levelDomain.length(Amrvis::XDIR)) *
+                   static_cast<unsigned long>(levelDomain.length(Amrvis::ZDIR));
       boxpoints = max(boxpoints, tempLength);
 #   endif
 

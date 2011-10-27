@@ -1,13 +1,13 @@
-CEXE_headers += AmrPicture.H AmrData.H AmrvisConstants.H		\
-                DataServices.H Dataset.H				\
+CEXE_headers += AmrPicture.H AmrvisConstants.H		\
+                Dataset.H				\
 		GlobalUtilities.H GraphicsAttributes.H			\
                 GridPicture.H MessageArea.H				\
                 Palette.H PltApp.H Output.H Quaternion.H Point.H	\
                 Trackball.H XYPlotDataList.H XYPlotDefaults.H \
 		XYPlotWin.H XYPlotParam.H PltAppState.H
 
-CEXE_sources += AmrPicture.cpp AmrData.cpp AmrVisTool.cpp		\
-                DataServices.cpp Dataset.cpp				\
+CEXE_sources += AmrPicture.cpp AmrVisTool.cpp		\
+                Dataset.cpp				\
 		GraphicsAttributes.cpp GridPicture.cpp			\
                 MessageArea.cpp PltApp.cpp				\
                 GlobalUtilities.cpp Palette.cpp PltAppOutput.cpp	\
@@ -35,8 +35,6 @@ endif
 ifeq ($(DIM),3)
   CEXE_sources += ProjectionPicture.cpp ViewTransform.cpp PltApp3D.cpp
 endif
-
-FEXE_sources += FABUTIL_$(DIM)D.F
 
 ifeq ($(USE_ARRAYVIEW),TRUE)
   CEXE_sources += DatasetClient.cpp

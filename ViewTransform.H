@@ -1,8 +1,3 @@
-
-//
-// $Id: ViewTransform.H,v 1.17 2005-04-07 20:34:15 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // ViewTransform.H
 // ---------------------------------------------------------------
@@ -11,8 +6,8 @@
 
 #include <iostream>
 
-#include "REAL.H" 
-#include "Quaternion.H"
+#include <REAL.H>
+#include <Quaternion.H>
 
 typedef Real MatrixFour[4][4];
 

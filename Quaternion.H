@@ -1,8 +1,3 @@
-
-//
-// $Id: Quaternion.H,v 1.11 2004-05-05 20:47:19 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // Quaternion.H
 // ---------------------------------------------------------------
@@ -10,9 +5,9 @@
 #define _AMR_QUATERNION_H_
 
 #include <iostream>
-//using std::ostream;
-#include "REAL.H"
-#include "Point.H"
+
+#include <REAL.H>
+#include <Point.H>
 
 /***************************************************************************
 

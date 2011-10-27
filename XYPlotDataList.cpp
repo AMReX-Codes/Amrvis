@@ -1,8 +1,8 @@
 // -------------------------------------------------------------------
 // XYPlotDataList.cpp 
 // -------------------------------------------------------------------
-#include "XYPlotDataList.H"
-#include "GlobalUtilities.H"
+#include <XYPlotDataList.H>
+#include <GlobalUtilities.H>
 #include <cfloat>
 #include <limits>
 

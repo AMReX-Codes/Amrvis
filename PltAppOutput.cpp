@@ -1,27 +1,22 @@
-
-//
-// $Id: PltAppOutput.cpp,v 1.39 2010-12-15 23:10:27 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // PltAppOutput.cpp
 // ---------------------------------------------------------------
 
 #include <winstd.H>
 
-#include "ParallelDescriptor.H"
+#include <ParallelDescriptor.H>
 
 #include <Xm/Xm.h>
 #include <Xm/SelectioB.h>
 #include <Xm/ToggleB.h>
 #include <Xm/Text.h>
 
-#include "PltApp.H"
-#include "PltAppState.H"
-#include "DataServices.H"
-#include "ProjectionPicture.H"
-#include "Output.H"
-#include "XYPlotWin.H"
+#include <PltApp.H>
+#include <PltAppState.H>
+#include <DataServices.H>
+#include <ProjectionPicture.H>
+#include <Output.H>
+#include <XYPlotWin.H>
 
 using std::cout;
 using std::cerr;
@@ -66,7 +61,7 @@ void PltApp::DoOutput(Widget w, XtPointer data, XtPointer) {
   XtSetSensitive(XmSelectionBoxGetChild(wGetFileName,
   		XmDIALOG_HELP_BUTTON), false);
 
-  char tempstr[BUFSIZ], tempfilename[BUFSIZ];
+  char tempstr[Amrvis::BUFSIZE], tempfilename[Amrvis::BUFSIZE];
   if(animating2d) {
     strcpy(tempfilename, AVGlobals::StripSlashes(fileNames[currentFrame]).c_str());
   } else {
@@ -82,7 +77,7 @@ void PltApp::DoOutput(Widget w, XtPointer data, XtPointer) {
 // -------------------------------------------------------------------
 void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   XmSelectionBoxCallbackStruct *cbs = (XmSelectionBoxCallbackStruct *) call_data;
-  char psfilename[BUFSIZ];
+  char psfilename[Amrvis::BUFSIZE];
   char *fileNameBase;
   int imageSizeX, imageSizeY;
   XImage *printImage;
@@ -95,11 +90,11 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
 
   XmStringGetLtoR(cbs->value, XmSTRING_DEFAULT_CHARSET, &fileNameBase);
 
-  // write the ZPLANE picture
+  // write the Amrvis::ZPLANE picture
   sprintf(psfilename, "%s_XY.ps", fileNameBase);
-  printImage = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
-  imageSizeX = amrPicturePtrArray[ZPLANE]->ImageSizeH();
-  imageSizeY = amrPicturePtrArray[ZPLANE]->ImageSizeV();
+  printImage = amrPicturePtrArray[Amrvis::ZPLANE]->GetPictureXImage();
+  imageSizeX = amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH();
+  imageSizeY = amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV();
   WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
 
 #ifndef NDEBUG
@@ -107,27 +102,27 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   sprintf(psfilename, "%s_XY_new.ps", fileNameBase);
   bool bDrawBoxesIntoImage(false);
-  printImage = amrPicturePtrArray[ZPLANE]->GetPictureXImage(bDrawBoxesIntoImage);
+  printImage = amrPicturePtrArray[Amrvis::ZPLANE]->GetPictureXImage(bDrawBoxesIntoImage);
   Array< Array<GridBoxes> > gridBoxes;
-  amrPicturePtrArray[ZPLANE]->GetGridBoxes(gridBoxes, minDrawnLevel, maxDrawnLevel);
+  amrPicturePtrArray[Amrvis::ZPLANE]->GetGridBoxes(gridBoxes, minDrawnLevel, maxDrawnLevel);
   WriteNewPSFile(psfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr,
 		 amrData, minDrawnLevel, maxDrawnLevel, gridBoxes);
 */
 #endif
 
 #if (BL_SPACEDIM==3)
-  // write the YPLANE picture
+  // write the Amrvis::YPLANE picture
   sprintf(psfilename, "%s_XZ.ps", fileNameBase);
-  printImage = amrPicturePtrArray[YPLANE]->GetPictureXImage();
-  imageSizeX = amrPicturePtrArray[YPLANE]->ImageSizeH();
-  imageSizeY = amrPicturePtrArray[YPLANE]->ImageSizeV();
+  printImage = amrPicturePtrArray[Amrvis::YPLANE]->GetPictureXImage();
+  imageSizeX = amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeH();
+  imageSizeY = amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeV();
   WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
 
-  // write the XPLANE picture
+  // write the Amrvis::XPLANE picture
   sprintf(psfilename, "%s_YZ.ps", fileNameBase);
-  printImage = amrPicturePtrArray[XPLANE]->GetPictureXImage();
-  imageSizeX = amrPicturePtrArray[XPLANE]->ImageSizeH();
-  imageSizeY = amrPicturePtrArray[XPLANE]->ImageSizeV();
+  printImage = amrPicturePtrArray[Amrvis::XPLANE]->GetPictureXImage();
+  imageSizeX = amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeH();
+  imageSizeY = amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeV();
   WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
 
   // write the iso picture
@@ -165,7 +160,7 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
 // -------------------------------------------------------------------
 void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
   XmSelectionBoxCallbackStruct *cbs = (XmSelectionBoxCallbackStruct *) call_data;
-  char rgbfilename[BUFSIZ];
+  char rgbfilename[Amrvis::BUFSIZE];
   char *fileNameBase;
   int imageSizeX, imageSizeY;
   XImage *printImage;
@@ -176,7 +171,7 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
 
   XmStringGetLtoR(cbs->value, XmSTRING_DEFAULT_CHARSET, &fileNameBase);
 
-  // write the ZPLANE picture
+  // write the Amrvis::ZPLANE picture
   char suffix[4];
   if(AVGlobals::IsSGIrgbFile()) {
     strcpy(suffix, "rgb");
@@ -184,9 +179,9 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
     strcpy(suffix, "ppm");
   }
   sprintf(rgbfilename, "%s_XY.%s", fileNameBase,suffix);
-  printImage = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
-  imageSizeX = amrPicturePtrArray[ZPLANE]->ImageSizeH();
-  imageSizeY = amrPicturePtrArray[ZPLANE]->ImageSizeV();
+  printImage = amrPicturePtrArray[Amrvis::ZPLANE]->GetPictureXImage();
+  imageSizeX = amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH();
+  imageSizeY = amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV();
   if(AVGlobals::IsSGIrgbFile()) {
     WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
   } else {
@@ -195,22 +190,22 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
   
 
 #if (BL_SPACEDIM==3)
-  // write the YPLANE picture
+  // write the Amrvis::YPLANE picture
   sprintf(rgbfilename, "%s_XZ.%s", fileNameBase, suffix);
-  printImage = amrPicturePtrArray[YPLANE]->GetPictureXImage();
-  imageSizeX = amrPicturePtrArray[YPLANE]->ImageSizeH();
-  imageSizeY = amrPicturePtrArray[YPLANE]->ImageSizeV();
+  printImage = amrPicturePtrArray[Amrvis::YPLANE]->GetPictureXImage();
+  imageSizeX = amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeH();
+  imageSizeY = amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeV();
   if(AVGlobals::IsSGIrgbFile()) {
     WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
   } else {
     WritePPMFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
   }
 
-  // write the XPLANE picture
+  // write the Amrvis::XPLANE picture
   sprintf(rgbfilename, "%s_YZ.%s", fileNameBase, suffix);
-  printImage = amrPicturePtrArray[XPLANE]->GetPictureXImage();
-  imageSizeX = amrPicturePtrArray[XPLANE]->ImageSizeH();
-  imageSizeY = amrPicturePtrArray[XPLANE]->ImageSizeV();
+  printImage = amrPicturePtrArray[Amrvis::XPLANE]->GetPictureXImage();
+  imageSizeX = amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeH();
+  imageSizeY = amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeV();
   if(AVGlobals::IsSGIrgbFile()) {
     WriteRGBFile(rgbfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
   } else {
@@ -259,7 +254,7 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
 // -------------------------------------------------------------------
 void PltApp::DoCreateFABFile(Widget w, XtPointer, XtPointer call_data) {
   XmSelectionBoxCallbackStruct *cbs = (XmSelectionBoxCallbackStruct *) call_data;
-  char fabfilename[BUFSIZ];
+  char fabfilename[Amrvis::BUFSIZE];
   char *fileNameBase;
   XmStringGetLtoR(cbs->value, XmSTRING_DEFAULT_CHARSET, &fileNameBase);
   sprintf(fabfilename, "%s.fab", fileNameBase);
@@ -282,7 +277,7 @@ void PltApp::DoCreateFABFile(Widget w, XtPointer, XtPointer call_data) {
 
 // -------------------------------------------------------------------
 void PltApp::DoCreateAnimRGBFile() {
-  char outFileName[BUFSIZ];
+  char outFileName[Amrvis::BUFSIZE];
   int imageSizeX, imageSizeY;
   XImage *printImage;
 
@@ -301,9 +296,9 @@ void PltApp::DoCreateAnimRGBFile() {
   cout << "******* Creating file:  " << outFileName << endl;
 
   // write the picture
-  printImage = amrPicturePtrArray[ZPLANE]->GetPictureXImage();
-  imageSizeX = amrPicturePtrArray[ZPLANE]->ImageSizeH();
-  imageSizeY = amrPicturePtrArray[ZPLANE]->ImageSizeV();
+  printImage = amrPicturePtrArray[Amrvis::ZPLANE]->GetPictureXImage();
+  imageSizeX = amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH();
+  imageSizeY = amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV();
   if(AVGlobals::IsSGIrgbFile()) {
     WriteRGBFile(outFileName, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
   } else {

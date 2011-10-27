@@ -1,8 +1,3 @@
-
-//
-// $Id: GraphicsAttributes.cpp,v 1.21 2008-07-31 22:14:28 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // GraphicsAttributes.cpp
 // ---------------------------------------------------------------
@@ -13,7 +8,7 @@ using std::cout;
 using std::cerr;
 using std::endl;
 
-#include "GraphicsAttributes.H"
+#include <GraphicsAttributes.H>
 #include <X11/X.h>
 #include <X11/Xlib.h>
 #include <X11/Intrinsic.h>

@@ -1,15 +1,10 @@
-
-//
-// $Id: VolRender.cpp,v 1.55 2008-10-10 21:58:59 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // VolRender.cpp
 // ---------------------------------------------------------------
-#include "VolRender.H"
-#include "DataServices.H"
-#include "GlobalUtilities.H"
-#include "ParallelDescriptor.H"
+#include <VolRender.H>
+#include <DataServices.H>
+#include <GlobalUtilities.H>
+#include <ParallelDescriptor.H>
 
 #include <iostream>
 #include <cstdlib>
@@ -133,9 +128,9 @@ VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
 
     SetProperties();
 
-    rows   = drawnDomain[maxDataLevel].length(XDIR);
-    cols   = drawnDomain[maxDataLevel].length(YDIR);
-    planes = drawnDomain[maxDataLevel].length(ZDIR);
+    rows   = drawnDomain[maxDataLevel].length(Amrvis::XDIR);
+    cols   = drawnDomain[maxDataLevel].length(Amrvis::YDIR);
+    planes = drawnDomain[maxDataLevel].length(Amrvis::ZDIR);
 
     // --- describe the layout of the volume
     vpResult vpret = vpSetVolumeSize(vpc, rows, cols, planes);
@@ -246,34 +241,34 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
     Real *dataPoint = swfFabData.dataPtr();
     
     int sindexbase;
-    int srows   = swfDataBox.length(XDIR);
-    int scols   = swfDataBox.length(YDIR);
-    //int splanes = swfDataBox.length(ZDIR);
+    int srows   = swfDataBox.length(Amrvis::XDIR);
+    int scols   = swfDataBox.length(Amrvis::YDIR);
+    //int splanes = swfDataBox.length(Amrvis::ZDIR);
     int scolssrowstmp = scols*srows;
-    int sstartr = swfDataBox.smallEnd(XDIR);
-    //int sstartc = swfDataBox.smallEnd(YDIR);
-    int sstartp = swfDataBox.smallEnd(ZDIR);
-    //int sendr   = swfDataBox.bigEnd(XDIR);
-    int sendc   = swfDataBox.bigEnd(YDIR);
-    //int sendp   = swfDataBox.bigEnd(ZDIR);
+    int sstartr = swfDataBox.smallEnd(Amrvis::XDIR);
+    //int sstartc = swfDataBox.smallEnd(Amrvis::YDIR);
+    int sstartp = swfDataBox.smallEnd(Amrvis::ZDIR);
+    //int sendr   = swfDataBox.bigEnd(Amrvis::XDIR);
+    int sendc   = swfDataBox.bigEnd(Amrvis::YDIR);
+    //int sendp   = swfDataBox.bigEnd(Amrvis::ZDIR);
     
     Box gbox(swfDataBox);
     Box goverlap(gbox & drawnDomain[maxDrawnLevel]);
     
-    int gstartr = gbox.smallEnd(XDIR);
-    int gstartc = gbox.smallEnd(YDIR);
-    int gstartp = gbox.smallEnd(ZDIR);
+    int gstartr = gbox.smallEnd(Amrvis::XDIR);
+    int gstartc = gbox.smallEnd(Amrvis::YDIR);
+    int gstartp = gbox.smallEnd(Amrvis::ZDIR);
     
-    int gostartr = goverlap.smallEnd(XDIR) - gstartr;
-    int gostartc = goverlap.smallEnd(YDIR) - gstartc;
-    int gostartp = goverlap.smallEnd(ZDIR) - gstartp;
-    int goendr   = goverlap.bigEnd(XDIR)   - gstartr;
-    int goendc   = goverlap.bigEnd(YDIR)   - gstartc;
-    int goendp   = goverlap.bigEnd(ZDIR)   - gstartp;
+    int gostartr = goverlap.smallEnd(Amrvis::XDIR) - gstartr;
+    int gostartc = goverlap.smallEnd(Amrvis::YDIR) - gstartc;
+    int gostartp = goverlap.smallEnd(Amrvis::ZDIR) - gstartp;
+    int goendr   = goverlap.bigEnd(Amrvis::XDIR)   - gstartr;
+    int goendc   = goverlap.bigEnd(Amrvis::YDIR)   - gstartc;
+    int goendp   = goverlap.bigEnd(Amrvis::ZDIR)   - gstartp;
     
-    int grows   = gbox.length(XDIR);
-    int gcols   = gbox.length(YDIR);
-    //int gplanes = gbox.length(ZDIR);
+    int grows   = gbox.length(Amrvis::XDIR);
+    int gcols   = gbox.length(Amrvis::YDIR);
+    //int gplanes = gbox.length(Amrvis::ZDIR);
     
     int gcolsgrowstmp(gcols * grows);
     int gpgcgrtmp, gcgrowstmp;
@@ -318,33 +313,33 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
 	for(int iGrid(0); iGrid < gridBoxes.size(); ++iGrid) {
           gbox = gridBoxes[iGrid];
 	  // grow high end by one to eliminate overlap
-	  //gbox.growHi(XDIR, 1);
-	  //gbox.growHi(YDIR, 1);
-	  //gbox.growHi(ZDIR, 1);
+	  //gbox.growHi(Amrvis::XDIR, 1);
+	  //gbox.growHi(Amrvis::YDIR, 1);
+	  //gbox.growHi(Amrvis::ZDIR, 1);
 	  //
           Box goverlap(gbox & drawnDomain[lev]);
           grefbox = goverlap;
           grefbox.refine(crr);
 
 	  int gprev;
-          int gstartr(gbox.smallEnd(XDIR));
-          int gstartc(gbox.smallEnd(YDIR));
-          int gstartp(gbox.smallEnd(ZDIR));
+          int gstartr(gbox.smallEnd(Amrvis::XDIR));
+          int gstartc(gbox.smallEnd(Amrvis::YDIR));
+          int gstartp(gbox.smallEnd(Amrvis::ZDIR));
 
-          int gostartr(goverlap.smallEnd(XDIR) - gstartr);
-          int gostartc(goverlap.smallEnd(YDIR) - gstartc);
-          int gostartp(goverlap.smallEnd(ZDIR) - gstartp);
-          int goendr(goverlap.bigEnd(XDIR)   - gstartr);
-          int goendc(goverlap.bigEnd(YDIR)   - gstartc);
-          int goendp(goverlap.bigEnd(ZDIR)   - gstartp);
+          int gostartr(goverlap.smallEnd(Amrvis::XDIR) - gstartr);
+          int gostartc(goverlap.smallEnd(Amrvis::YDIR) - gstartc);
+          int gostartp(goverlap.smallEnd(Amrvis::ZDIR) - gstartp);
+          int goendr(goverlap.bigEnd(Amrvis::XDIR)   - gstartr);
+          int goendc(goverlap.bigEnd(Amrvis::YDIR)   - gstartc);
+          int goendp(goverlap.bigEnd(Amrvis::ZDIR)   - gstartp);
 
-          grows = gbox.length(XDIR);
-          gcols = gbox.length(YDIR);
+          grows = gbox.length(Amrvis::XDIR);
+          gcols = gbox.length(Amrvis::YDIR);
 
         if(crr != 1) {
           int gcolsgrowstmp(gcols * grows);
-	  int ddsez(drawnDomain[lev].smallEnd(ZDIR));
-	  int ddbez(drawnDomain[lev].bigEnd(ZDIR));
+	  int ddsez(drawnDomain[lev].smallEnd(Amrvis::ZDIR));
+	  int ddbez(drawnDomain[lev].bigEnd(Amrvis::ZDIR));
           for(gp = gostartp; gp <= goendp; ++gp) {
             gprev = ddsez + ddbez - (gp + gstartp);
 	    if(gp == gostartp || gp == goendp) {
@@ -407,8 +402,8 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
           }  // end for(gp...)
 
         } else {  // crr == 1
-	  int ddsez(drawnDomain[lev].smallEnd(ZDIR));
-	  int ddbez(drawnDomain[lev].bigEnd(ZDIR));
+	  int ddsez(drawnDomain[lev].smallEnd(Amrvis::ZDIR));
+	  int ddbez(drawnDomain[lev].bigEnd(Amrvis::ZDIR));
           for(gp = gostartp; gp <= goendp; ++gp) {
             gprev = ddsez + ddbez - (gp + gstartp);
 	    if(gp == gostartp || gp == goendp) {
@@ -454,19 +449,19 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
           grefbox = goverlap;
           grefbox.refine(crr);
 
-          int gstartr(gbox.smallEnd(XDIR));
-          int gstartc(gbox.smallEnd(YDIR));
-          int gstartp(gbox.smallEnd(ZDIR));
+          int gstartr(gbox.smallEnd(Amrvis::XDIR));
+          int gstartc(gbox.smallEnd(Amrvis::YDIR));
+          int gstartp(gbox.smallEnd(Amrvis::ZDIR));
 
-          int gostartr(goverlap.smallEnd(XDIR) - gstartr);
-          int gostartc(goverlap.smallEnd(YDIR) - gstartc);
-          int gostartp(goverlap.smallEnd(ZDIR) - gstartp);
-          int goendr(goverlap.bigEnd(XDIR)   - gstartr);
-          int goendc(goverlap.bigEnd(YDIR)   - gstartc);
-          int goendp(goverlap.bigEnd(ZDIR)   - gstartp);
+          int gostartr(goverlap.smallEnd(Amrvis::XDIR) - gstartr);
+          int gostartc(goverlap.smallEnd(Amrvis::YDIR) - gstartc);
+          int gostartp(goverlap.smallEnd(Amrvis::ZDIR) - gstartp);
+          int goendr(goverlap.bigEnd(Amrvis::XDIR)   - gstartr);
+          int goendc(goverlap.bigEnd(Amrvis::YDIR)   - gstartc);
+          int goendp(goverlap.bigEnd(Amrvis::ZDIR)   - gstartp);
 
-          grows = gbox.length(XDIR);
-          gcols = gbox.length(YDIR);
+          grows = gbox.length(Amrvis::XDIR);
+          gcols = gbox.length(Amrvis::YDIR);
 
         if(crr != 1) {
           int gcolsgrowstmp(gcols * grows);
@@ -588,29 +583,29 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
       Real *dataPoint = swfFabData.dataPtr();
       Real vfeps = amrData.VfEps(maxDrawnLevel);
       int sindexbase;
-      int srows   = swfDataBox.length(XDIR);
-      int scols   = swfDataBox.length(YDIR);
+      int srows   = swfDataBox.length(Amrvis::XDIR);
+      int scols   = swfDataBox.length(Amrvis::YDIR);
       int scolssrowstmp = scols*srows;
-      int sstartr = swfDataBox.smallEnd(XDIR);
-      int sstartp = swfDataBox.smallEnd(ZDIR);
-      int sendc   = swfDataBox.bigEnd(YDIR);
+      int sstartr = swfDataBox.smallEnd(Amrvis::XDIR);
+      int sstartp = swfDataBox.smallEnd(Amrvis::ZDIR);
+      int sendc   = swfDataBox.bigEnd(Amrvis::YDIR);
     
       Box gbox(swfDataBox);
       Box goverlap(gbox & drawnDomain[maxDrawnLevel]);
     
-      int gstartr = gbox.smallEnd(XDIR);
-      int gstartc = gbox.smallEnd(YDIR);
-      int gstartp = gbox.smallEnd(ZDIR);
+      int gstartr = gbox.smallEnd(Amrvis::XDIR);
+      int gstartc = gbox.smallEnd(Amrvis::YDIR);
+      int gstartp = gbox.smallEnd(Amrvis::ZDIR);
     
-      int gostartr = goverlap.smallEnd(XDIR) - gstartr;
-      int gostartc = goverlap.smallEnd(YDIR) - gstartc;
-      int gostartp = goverlap.smallEnd(ZDIR) - gstartp;
-      int goendr   = goverlap.bigEnd(XDIR)   - gstartr;
-      int goendc   = goverlap.bigEnd(YDIR)   - gstartc;
-      int goendp   = goverlap.bigEnd(ZDIR)   - gstartp;
+      int gostartr = goverlap.smallEnd(Amrvis::XDIR) - gstartr;
+      int gostartc = goverlap.smallEnd(Amrvis::YDIR) - gstartc;
+      int gostartp = goverlap.smallEnd(Amrvis::ZDIR) - gstartp;
+      int goendr   = goverlap.bigEnd(Amrvis::XDIR)   - gstartr;
+      int goendc   = goverlap.bigEnd(Amrvis::YDIR)   - gstartc;
+      int goendp   = goverlap.bigEnd(Amrvis::ZDIR)   - gstartp;
     
-      int grows   = gbox.length(XDIR);
-      int gcols   = gbox.length(YDIR);
+      int grows   = gbox.length(Amrvis::XDIR);
+      int gcols   = gbox.length(Amrvis::YDIR);
     
       int gcolsgrowstmp(gcols * grows);
       int gpgcgrtmp, gcgrowstmp;
@@ -786,18 +781,18 @@ void VolRender::MakeVPData() {
 //  #define AV_LOWMEMRENDER
 #ifdef AV_LOWMEMRENDER
         int xStride(sizeof(RawVoxel));
-        //int yStride(drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel));
-        int yStride(drawnDomain[maxDataLevel].length(XDIR));
-        //int zStride(drawnDomain[maxDataLevel].length(XDIR) *
-                    //drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel));
-	long int nrc(drawnDomain[maxDataLevel].length(YDIR) *
-	             drawnDomain[maxDataLevel].length(ZDIR));
+        //int yStride(drawnDomain[maxDataLevel].length(Amrvis::XDIR) * sizeof(RawVoxel));
+        int yStride(drawnDomain[maxDataLevel].length(Amrvis::XDIR));
+        //int zStride(drawnDomain[maxDataLevel].length(Amrvis::XDIR) *
+                    //drawnDomain[maxDataLevel].length(Amrvis::YDIR) * sizeof(RawVoxel));
+	long int nrc(drawnDomain[maxDataLevel].length(Amrvis::YDIR) *
+	             drawnDomain[maxDataLevel].length(Amrvis::ZDIR));
 	RawVoxel *vscanline = volData;
 	cout << "****** volData =  " << volData << endl;
 	cout << "****** classifying " << nrc << " scanlines." << endl;
 	for(int ix(0); ix < nrc; ++ix) {
-	//for(int iz(0); iz < drawnDomain[maxDataLevel].length(ZDIR); ++iz) {
-	  //for(int iy(0); iy < drawnDomain[maxDataLevel].length(YDIR); ++iy) {
+	//for(int iz(0); iz < drawnDomain[maxDataLevel].length(Amrvis::ZDIR); ++iz) {
+	  //for(int iy(0); iy < drawnDomain[maxDataLevel].length(Amrvis::YDIR); ++iy) {
 	    if(ix % 100 == 0) {
 	      cout << "----- vscanline = " << ix << endl;
 	    }
@@ -823,10 +818,10 @@ void VolRender::MakeVPData() {
         delete [] volData;
         volData = new RawVoxel[swfDataSize]; // volpack will delete this
         int xStride(sizeof(RawVoxel));
-        //int yStride(drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel));
-        int yStride(drawnDomain[maxDataLevel].length(XDIR));
-        int zStride(drawnDomain[maxDataLevel].length(XDIR) *
-                    drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel));
+        //int yStride(drawnDomain[maxDataLevel].length(Amrvis::XDIR) * sizeof(RawVoxel));
+        int yStride(drawnDomain[maxDataLevel].length(Amrvis::XDIR));
+        int zStride(drawnDomain[maxDataLevel].length(Amrvis::XDIR) *
+                    drawnDomain[maxDataLevel].length(Amrvis::YDIR) * sizeof(RawVoxel));
         vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
                                xStride, yStride, zStride);
         CheckVP(vpret, 9.4);
@@ -835,8 +830,8 @@ void VolRender::MakeVPData() {
           volData[vindex].density = swfData[vindex];
         }
         
-	long int nrc(drawnDomain[maxDataLevel].length(YDIR) *
-	             drawnDomain[maxDataLevel].length(ZDIR));
+	long int nrc(drawnDomain[maxDataLevel].length(Amrvis::YDIR) *
+	             drawnDomain[maxDataLevel].length(Amrvis::ZDIR));
 	RawVoxel *vscanline = volData;
 	cout << "****** classifying " << nrc << " scanlines." << endl;
 	for(int ix(0); ix < nrc; ++ix) {
@@ -852,9 +847,9 @@ void VolRender::MakeVPData() {
         delete [] volData;
         volData = new RawVoxel[swfDataSize]; // volpack will delete this
         int xStride(sizeof(RawVoxel));
-        int yStride(drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel));
-        int zStride(drawnDomain[maxDataLevel].length(XDIR) *
-                    drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel));
+        int yStride(drawnDomain[maxDataLevel].length(Amrvis::XDIR) * sizeof(RawVoxel));
+        int zStride(drawnDomain[maxDataLevel].length(Amrvis::XDIR) *
+                    drawnDomain[maxDataLevel].length(Amrvis::YDIR) * sizeof(RawVoxel));
         vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
                                xStride, yStride, zStride);
         CheckVP(vpret, 9.4);
@@ -873,9 +868,9 @@ void VolRender::MakeVPData() {
         delete [] volData;
         volData = new RawVoxel[swfDataSize]; 
         int xStride(sizeof(RawVoxel));
-        int yStride(drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel));
-        int zStride(drawnDomain[maxDataLevel].length(XDIR) *
-                    drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel));
+        int yStride(drawnDomain[maxDataLevel].length(Amrvis::XDIR) * sizeof(RawVoxel));
+        int zStride(drawnDomain[maxDataLevel].length(Amrvis::XDIR) *
+                    drawnDomain[maxDataLevel].length(Amrvis::YDIR) * sizeof(RawVoxel));
         vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
                                xStride, yStride, zStride);
         CheckVP(vpret, 9.45);
@@ -887,9 +882,9 @@ void VolRender::MakeVPData() {
         delete [] volData;
         volData = new RawVoxel[swfDataSize]; 
         int xStride(sizeof(RawVoxel));
-        int yStride(drawnDomain[maxDataLevel].length(XDIR) * sizeof(RawVoxel));
-        int zStride(drawnDomain[maxDataLevel].length(XDIR) *
-                    drawnDomain[maxDataLevel].length(YDIR) * sizeof(RawVoxel));
+        int yStride(drawnDomain[maxDataLevel].length(Amrvis::XDIR) * sizeof(RawVoxel));
+        int zStride(drawnDomain[maxDataLevel].length(Amrvis::XDIR) *
+                    drawnDomain[maxDataLevel].length(Amrvis::YDIR) * sizeof(RawVoxel));
         vpret = vpSetRawVoxels(vpc, volData, swfDataSize * sizeof(RawVoxel),
                                xStride, yStride, zStride);
         CheckVP(vpret, 9.4);

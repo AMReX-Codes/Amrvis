@@ -1,8 +1,3 @@
-
-//
-// $Id: VolRender.H,v 1.30 2004-12-07 22:27:30 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // VolRender.H
 // ---------------------------------------------------------------
@@ -13,12 +8,12 @@
 #include <string>
 using std::string;
 
-#include "Array.H" 
-#include "REAL.H" 
-#include "Box.H" 
-#include "AmrvisConstants.H" 
-#include "Volume.H" 
-#include "Palette.H"
+#include <Array.H>
+#include <REAL.H>
+#include <Box.H>
+#include <AmrvisConstants.H>
+#include <Volume.H>
+#include <Palette.H>
 
 #ifdef BL_VOLUMERENDER
 #include <volpack.h>

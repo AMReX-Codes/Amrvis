@@ -1,16 +1,11 @@
-
-//
-// $Id: GridPicture.H,v 1.8 2000-10-02 20:53:08 lijewski Exp $
-//
-
 // ---------------------------------------------------------------
 // GridPicture.H
 // ---------------------------------------------------------------
 #ifndef _GRIDPICTURE_H
 #define _GRIDPICTURE_H
 
-#include "AmrvisConstants.H"
-#include "Box.H"
+#include <AmrvisConstants.H>
+#include <Box.H>
 
 
 class GridPicture {

@@ -13,9 +13,9 @@
 #ifndef _PLTAPPSTATE_H_
 #define _PLTAPPSTATE_H_
 
-#include "AmrvisConstants.H"
-#include "Array.H"
-#include "Box.H"
+#include <AmrvisConstants.H>
+#include <Array.H>
+#include <Box.H>
 
 #include <string>
 using std::string;
@@ -80,28 +80,28 @@ public:
   void SetFormatString(const string &newformat)  { formatString = newformat; }
 
   // ------------------------ contours
-  void SetContourType(ContourType newContourType)
+  void SetContourType(Amrvis::ContourType newContourType)
 			     { currentContourType = newContourType; }
-  ContourType GetContourType() const { return currentContourType; }
+  Amrvis::ContourType GetContourType() const { return currentContourType; }
   void SetNumContours(int ncontours) { nContours = ncontours; }
   int  GetNumContours() const        { Cnsy(nContours);  return nContours; }
 
   // ------------------------ mins and maxes
-  MinMaxRangeType GetMinMaxRangeType() const { return currentMinMaxType; }
-  void SetMinMaxRangeType(MinMaxRangeType newmmrtype)
+  Amrvis::MinMaxRangeType GetMinMaxRangeType() const { return currentMinMaxType; }
+  void SetMinMaxRangeType(Amrvis::MinMaxRangeType newmmrtype)
 				       { currentMinMaxType = newmmrtype; }
 
-  void SetMinMax(const MinMaxRangeType mmrangetype,
+  void SetMinMax(const Amrvis::MinMaxRangeType mmrangetype,
 		 const int framenumber,
 		 const int derivednumber,
 		 const Real rmin, const Real rmax);
-  void GetMinMax(const MinMaxRangeType mmrangetype,
+  void GetMinMax(const Amrvis::MinMaxRangeType mmrangetype,
 		 const int framenumber,
 		 const int derivednumber,
 		 Real &rmin, Real &rmax);
   // this one uses the current frame, derived, and range type
   void GetMinMax(Real &rmin, Real &rmax);
-  bool IsSet(const MinMaxRangeType mmrangetype, const int framenumber,
+  bool IsSet(const Amrvis::MinMaxRangeType mmrangetype, const int framenumber,
 	     const int derivednumber);
   void PrintSetMap();
 
@@ -132,9 +132,9 @@ private:
   string currentDerived;
   int currentDerivedNumber;
   bool showBoxes;
-  ContourType currentContourType;
+  Amrvis::ContourType currentContourType;
   int nContours;
-  MinMaxRangeType currentMinMaxType;
+  Amrvis::MinMaxRangeType currentMinMaxType;
   string formatString;
 
   // mins and maxes

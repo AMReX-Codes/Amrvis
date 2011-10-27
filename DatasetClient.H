@@ -1,15 +1,10 @@
-
-//
-// $Id: DatasetClient.H,v 1.4 2000-10-02 20:53:08 lijewski Exp $
-//
-
 // ---------------------------------------------------------------
 // DatasetClient.H
 // ---------------------------------------------------------------
 #ifndef _DATASETCLIENT_H_
 #define _DATASETCLIENT_H_
 
-#include "REAL.H"
+#include <REAL.H>
 #include <FArrayBox.H>
 #include <MultiFab.H>
 

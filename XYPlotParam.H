@@ -1,5 +1,5 @@
 // -------------------------------------------------------------------
-// XYPlotParam.H -- Class definition for XYPlotParameters
+// XYPlotParam.H
 // -------------------------------------------------------------------
 #ifndef _XYPLOT_PARAM_H
 #define _XYPLOT_PARAM_H
@@ -90,8 +90,8 @@ typedef struct st_table_defn {
   st_table_entry **bins;
 } st_table;
 
-#include "XYPlotDefaults.H"
-#include "XYPlotWin.H"
+#include <XYPlotDefaults.H>
+#include <XYPlotWin.H>
 class GraphicsAttributes;
 class Palette;
 

@@ -10,18 +10,14 @@
 #include <list>
 using std::list;
 
-#include "AmrvisConstants.H"
-#include "XYPlotDataList.H"
-#include "XYPlotParam.H"
-#include "xgout.H"
+#include <AmrvisConstants.H>
+#include <XYPlotDataList.H>
+#include <XYPlotParam.H>
+#include <xgout.H>
 
 class PltApp;
 class GraphicsAttributes;
 class XYPlotParameters;
-
-#ifndef BUFSIZE
-#define BUFSIZE 1024
-#endif
 
 #define LEFT_CODE	        0x01
 #define RIGHT_CODE	        0x02

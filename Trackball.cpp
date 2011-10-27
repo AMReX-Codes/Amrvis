@@ -1,14 +1,9 @@
-
-//
-// $Id: Trackball.cpp,v 1.7 2002-02-19 20:39:41 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // Trackball.cpp
 // ---------------------------------------------------------------
-#include "Quaternion.H"
-#include "Point.H"
-#include "REAL.H"
+#include <Quaternion.H>
+#include <Point.H>
+#include <REAL.H>
 
 // ---------------------------------------------------------------
 static Real tb_project(Real x, Real y) {

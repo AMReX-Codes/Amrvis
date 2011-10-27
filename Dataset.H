@@ -1,24 +1,19 @@
-
-//
-// $Id: Dataset.H,v 1.32 2010-12-15 23:10:27 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // Dataset.H
 // ---------------------------------------------------------------
 #ifndef _DATASET_H_
 #define _DATASET_H_
 
-#include "ParallelDescriptor.H"
+#include <ParallelDescriptor.H>
 
 #include <Xm/Xm.h>
 #undef index
 
-#include "GlobalUtilities.H"
-#include "GraphicsAttributes.H"
+#include <GlobalUtilities.H>
+#include <GraphicsAttributes.H>
 
-#include "Box.H"
-#include "AmrvisConstants.H"
+#include <Box.H>
+#include <AmrvisConstants.H>
 
 const int MAXSTRINGWIDTH = 64;
 
@@ -59,7 +54,7 @@ class Dataset {
   Widget	wDatasetTopLevel, wDatasetForm;
   Widget	wDatasetTools, wScrollArea, wPixArea;
   Widget        wFormat, wColorButton, wQuitButton, wLevels, wMinValue, wMaxValue;
-  Arg		args[MAXARGS];
+  Arg		args[Amrvis::MAXARGS];
   Box		*datasetRegion;
   unsigned int	pixSizeX, pixSizeY;
   int		dataItemWidth, dataItemHeight;

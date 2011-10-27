@@ -1,14 +1,9 @@
-
-//
-// $Id: Palette.cpp,v 1.53 2008-07-15 20:55:35 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // Palette.cpp
 // ---------------------------------------------------------------
-#include "Palette.H"
-#include "GlobalUtilities.H"
-#include "GraphicsAttributes.H"
+#include <Palette.H>
+#include <GlobalUtilities.H>
+#include <GraphicsAttributes.H>
 
 #include <fcntl.h>
 #include <unistd.h>

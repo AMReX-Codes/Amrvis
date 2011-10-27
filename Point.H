@@ -1,8 +1,3 @@
-
-//
-// $Id: Point.H,v 1.8 2004-05-05 20:44:31 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // Point.H
 // ---------------------------------------------------------------
@@ -11,9 +6,8 @@
 
 #include <iostream>
 #include <cmath>
-//using std::ostream;
 
-#include "REAL.H"
+#include <REAL.H>
 
 class AmrQuaternion;
 class AmrSpherePoint;

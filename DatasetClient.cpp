@@ -1,8 +1,3 @@
-
-//
-// $Id: DatasetClient.cpp,v 1.9 2006-05-08 22:11:30 lijewski Exp $
-//
-
 // ---------------------------------------------------------------
 // DatasetClient.cpp
 // ---------------------------------------------------------------
@@ -21,12 +16,12 @@
 #include <fcntl.h>
 #include <unistd.h>
 
-#include "DatasetClient.H"
-#include "Box.H"
-#include "FArrayBox.H"
-#include "MultiFab.H"
+#include <DatasetClient.H>
+#include <Box.H>
+#include <FArrayBox.H>
+#include <MultiFab.H>
 #ifdef BL_ARRAYVIEW_TAGBOX
-#include "TagBox.H"
+#include <TagBox.H>
 #endif
 
 const int MAXBUFSIZE  = 1024;

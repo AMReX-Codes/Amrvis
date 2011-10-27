@@ -1,15 +1,10 @@
-
-//
-// $Id: PltApp3D.cpp,v 1.59 2007-05-02 20:47:37 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // PltApp3D.cpp
 // ---------------------------------------------------------------
-#include "PltApp.H"
-#include "PltAppState.H"
-#include "ProjectionPicture.H"
-#include "Quaternion.H"
+#include <PltApp.H>
+#include <PltAppState.H>
+#include <ProjectionPicture.H>
+#include <Quaternion.H>
 
 #include <Xm/Xm.h>
 #include <Xm/Protocols.h>
@@ -248,9 +243,9 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   wAttach = XtVaCreateManagedWidget("Attach", xmPushButtonWidgetClass,
 				    wDetachForm,
 				    XmNtopAttachment, XmATTACH_FORM,
-				    XmNtopOffset, WOFFSET,
+				    XmNtopOffset, Amrvis::WOFFSET,
 				    XmNrightAttachment, XmATTACH_FORM,
-				    XmNrightOffset, WOFFSET,
+				    XmNrightOffset, Amrvis::WOFFSET,
 				    NULL);
   AddStaticCallback(wAttach, XmNactivateCallback, &PltApp::DoAttach);
   XtManageChild(wAttach);
@@ -258,9 +253,9 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
   wDOrientXY = XtVaCreateManagedWidget("XY", xmPushButtonWidgetClass,
 				     wDetachForm,
 				     XmNleftAttachment, XmATTACH_FORM,
-				     XmNleftOffset, WOFFSET,
+				     XmNleftOffset, Amrvis::WOFFSET,
 				     XmNtopAttachment, XmATTACH_FORM,
-				     XmNtopOffset, WOFFSET, NULL);
+				     XmNtopOffset, Amrvis::WOFFSET, NULL);
   AddStaticCallback(wDOrientXY, XmNactivateCallback, &PltApp::DoOrient,
                     (XtPointer) OXY);
   XtManageChild(wDOrientXY);
@@ -269,9 +264,9 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
 				     wDetachForm,
 			             XmNleftAttachment, XmATTACH_WIDGET,
 			             XmNleftWidget, wDOrientXY,
-				     XmNleftOffset, WOFFSET,
+				     XmNleftOffset, Amrvis::WOFFSET,
 				     XmNtopAttachment, XmATTACH_FORM,
-				     XmNtopOffset, WOFFSET, NULL);
+				     XmNtopOffset, Amrvis::WOFFSET, NULL);
   AddStaticCallback(wDOrientYZ, XmNactivateCallback, &PltApp::DoOrient,
                     (XtPointer) OYZ);
   XtManageChild(wDOrientYZ);
@@ -280,9 +275,9 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
 				     wDetachForm,
 			             XmNleftAttachment, XmATTACH_WIDGET,
 			             XmNleftWidget, wDOrientYZ,
-				     XmNleftOffset, WOFFSET,
+				     XmNleftOffset, Amrvis::WOFFSET,
 				     XmNtopAttachment, XmATTACH_FORM,
-				     XmNtopOffset, WOFFSET, NULL);
+				     XmNtopOffset, Amrvis::WOFFSET, NULL);
   AddStaticCallback(wDOrientXZ, XmNactivateCallback, &PltApp::DoOrient,
                     (XtPointer) OXZ);
   XtManageChild(wDOrientXZ);
@@ -291,9 +286,9 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
 					wDetachForm,
 					XmNleftAttachment, XmATTACH_WIDGET,
 					XmNleftWidget, wDOrientXZ,
-					XmNleftOffset, WOFFSET,
+					XmNleftOffset, Amrvis::WOFFSET,
 					XmNtopAttachment, XmATTACH_FORM,
-					XmNtopOffset, WOFFSET, NULL);
+					XmNtopOffset, Amrvis::WOFFSET, NULL);
   AddStaticCallback(wDLabelAxes, XmNactivateCallback, &PltApp::DoLabelAxes);
   XtManageChild(wDLabelAxes);
 
@@ -303,9 +298,9 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
 			     wDetachForm,
 			     XmNleftAttachment, XmATTACH_WIDGET,
 			     XmNleftWidget, wDLabelAxes,
-			     XmNleftOffset, WOFFSET,
+			     XmNleftOffset, Amrvis::WOFFSET,
 			     XmNtopAttachment, XmATTACH_FORM,
-			     XmNtopOffset, WOFFSET,
+			     XmNtopOffset, Amrvis::WOFFSET,
 			     NULL);
   AddStaticCallback(wDRender, XmNactivateCallback, &PltApp::DoRender);
   XtManageChild(wDRender);
@@ -315,14 +310,14 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
 			     wDetachForm,
 			     XmNtranslations, XtParseTranslationTable(trans),
 			     XmNleftAttachment,   XmATTACH_FORM,
-			     XmNleftOffset,	  WOFFSET,
+			     XmNleftOffset,	  Amrvis::WOFFSET,
 			     XmNtopAttachment,	  XmATTACH_WIDGET,
 			     XmNtopWidget,	  wDOrientXY,
-			     XmNtopOffset,	  WOFFSET,
+			     XmNtopOffset,	  Amrvis::WOFFSET,
 			     XmNrightAttachment,  XmATTACH_FORM,
-			     XmNrightOffset,	  WOFFSET,
+			     XmNrightOffset,	  Amrvis::WOFFSET,
 			     XmNbottomAttachment, XmATTACH_FORM,
-			     XmNbottomOffset,	  WOFFSET,
+			     XmNbottomOffset,	  Amrvis::WOFFSET,
 			     NULL);
   projPicturePtr->SetDrawingArea(wTransDA);
 
@@ -355,15 +350,15 @@ void PltApp::DoAttach(Widget, XtPointer, XtPointer) {
 			     wPlotArea,
 			     XmNtranslations,	XtParseTranslationTable(trans),
 			     XmNleftAttachment,	XmATTACH_WIDGET,
-			     XmNleftWidget,	wScrollArea[XPLANE],
-			     XmNleftOffset,	WOFFSET,
+			     XmNleftWidget,	wScrollArea[Amrvis::XPLANE],
+			     XmNleftOffset,	Amrvis::WOFFSET,
 			     XmNtopAttachment,	XmATTACH_WIDGET,
 			     XmNtopWidget,		wOrientXY,
-			     XmNtopOffset,		WOFFSET,
+			     XmNtopOffset,		Amrvis::WOFFSET,
 			     XmNrightAttachment,	XmATTACH_FORM,
-			     XmNrightOffset,		WOFFSET,
+			     XmNrightOffset,		Amrvis::WOFFSET,
 			     XmNbottomAttachment,	XmATTACH_FORM,
-			     XmNbottomOffset,	WOFFSET,
+			     XmNbottomOffset,	Amrvis::WOFFSET,
 			     NULL);
   AddStaticCallback(wTransDA, XmNinputCallback, &PltApp::DoTransInput);
   AddStaticCallback(wTransDA, XmNresizeCallback, &PltApp::DoTransResize);
@@ -556,9 +551,9 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   Widget wLWDoneButton = XtVaCreateManagedWidget(" Ok ",
 			    xmPushButtonGadgetClass, wLWForm,
 			    XmNbottomAttachment, XmATTACH_FORM,
-			    XmNbottomOffset, WOFFSET,
+			    XmNbottomOffset, Amrvis::WOFFSET,
 			    XmNleftAttachment, XmATTACH_FORM,
-			    XmNleftOffset, WOFFSET,
+			    XmNleftOffset, Amrvis::WOFFSET,
 			    NULL);
   AddStaticCallback(wLWDoneButton, XmNactivateCallback,
 		    &PltApp::DoDoneLightingWindow);
@@ -567,7 +562,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   Widget wLWApplyButton = XtVaCreateManagedWidget("Apply",
 			    xmPushButtonGadgetClass, wLWForm,
 			    XmNbottomAttachment, XmATTACH_FORM,
-			    XmNbottomOffset, WOFFSET,
+			    XmNbottomOffset, Amrvis::WOFFSET,
 			    XmNleftAttachment, XmATTACH_WIDGET,
 			    XmNleftWidget,     wLWDoneButton,
 			    NULL);
@@ -577,7 +572,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   Widget wLWOpenButton = XtVaCreateManagedWidget("Open...",
 			    xmPushButtonGadgetClass, wLWForm,
 			    XmNbottomAttachment, XmATTACH_FORM,
-			    XmNbottomOffset, WOFFSET,
+			    XmNbottomOffset, Amrvis::WOFFSET,
 			    XmNleftAttachment, XmATTACH_WIDGET,
 			    XmNleftWidget,     wLWApplyButton,
 			    NULL);
@@ -588,7 +583,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   Widget wLWSaveButton = XtVaCreateManagedWidget("Save...",
 			    xmPushButtonGadgetClass, wLWForm,
 			    XmNbottomAttachment, XmATTACH_FORM,
-			    XmNbottomOffset, WOFFSET,
+			    XmNbottomOffset, Amrvis::WOFFSET,
 			    XmNleftAttachment, XmATTACH_WIDGET,
 			    XmNleftWidget,     wLWOpenButton,
 			    NULL);
@@ -599,9 +594,9 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   Widget wLWCancelButton = XtVaCreateManagedWidget("Cancel",
 			    xmPushButtonGadgetClass, wLWForm,
 			    XmNbottomAttachment, XmATTACH_FORM,
-			    XmNbottomOffset, WOFFSET,
+			    XmNbottomOffset, Amrvis::WOFFSET,
 			    XmNrightAttachment, XmATTACH_FORM,
-			    XmNrightOffset, WOFFSET,
+			    XmNrightOffset, Amrvis::WOFFSET,
 			    NULL);
   AddStaticCallback(wLWCancelButton, XmNactivateCallback,
 		    &PltApp::DoCancelLightingWindow);
@@ -614,11 +609,11 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   wTempLabel = XtVaCreateManagedWidget("ambient: ",
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_FORM,
-			    XmNtopOffset, WOFFSET,
+			    XmNtopOffset, Amrvis::WOFFSET,
 			    XmNbottomAttachment, XmATTACH_POSITION,
 			    XmNbottomPosition, 12,
 			    XmNleftAttachment, XmATTACH_FORM,
-			    XmNleftOffset, WOFFSET,
+			    XmNleftOffset, Amrvis::WOFFSET,
 			    NULL);
   
   char cNbuff[64];
@@ -626,11 +621,11 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   wLWambient = XtVaCreateManagedWidget("variable",
 			    xmTextFieldWidgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_FORM,
-			    XmNtopOffset, WOFFSET,
+			    XmNtopOffset, Amrvis::WOFFSET,
 			    XmNbottomAttachment, XmATTACH_POSITION,
 			    XmNbottomPosition, 12,
 			    XmNrightAttachment, XmATTACH_FORM,
-			    XmNrightOffset, WOFFSET,
+			    XmNrightOffset, Amrvis::WOFFSET,
 			    XmNvalue, cNbuff,
 			    XmNcolumns, 6,
 			    NULL);
@@ -638,11 +633,11 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
 			    XmNtopWidget, wLWambient,
-			    XmNtopOffset, WOFFSET,
+			    XmNtopOffset, Amrvis::WOFFSET,
 			    XmNbottomAttachment, XmATTACH_POSITION,
 			    XmNbottomPosition, 25,
 			    XmNleftAttachment, XmATTACH_FORM,
-			    XmNleftOffset, WOFFSET,
+			    XmNleftOffset, Amrvis::WOFFSET,
 			    NULL);
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetDiffuse());
@@ -650,11 +645,11 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    xmTextFieldWidgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
 			    XmNtopWidget, wLWambient,
-			    XmNtopOffset, WOFFSET,
+			    XmNtopOffset, Amrvis::WOFFSET,
 			    XmNbottomAttachment, XmATTACH_POSITION,
 			    XmNbottomPosition, 25,
 			    XmNrightAttachment, XmATTACH_FORM,
-			    XmNrightOffset, WOFFSET, 
+			    XmNrightOffset, Amrvis::WOFFSET, 
 			    XmNvalue, cNbuff,
 			    XmNcolumns, 6,
 			    NULL);
@@ -662,11 +657,11 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
 			    XmNtopWidget, wLWdiffuse,
-			    XmNtopOffset, WOFFSET,
+			    XmNtopOffset, Amrvis::WOFFSET,
 			    XmNbottomAttachment, XmATTACH_POSITION,
 			    XmNbottomPosition, 37,
 			    XmNleftAttachment, XmATTACH_FORM,
-			    XmNleftOffset, WOFFSET,
+			    XmNleftOffset, Amrvis::WOFFSET,
 			    NULL);
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetSpecular());
@@ -674,11 +669,11 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    xmTextFieldWidgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
 			    XmNtopWidget, wLWdiffuse,
-			    XmNtopOffset, WOFFSET,
+			    XmNtopOffset, Amrvis::WOFFSET,
 			    XmNbottomAttachment, XmATTACH_POSITION,
 			    XmNbottomPosition, 37,
 			    XmNrightAttachment, XmATTACH_FORM,
-			    XmNrightOffset, WOFFSET,
+			    XmNrightOffset, Amrvis::WOFFSET,
 			    XmNvalue, cNbuff,
 			    XmNcolumns, 6,
 			    NULL);
@@ -686,11 +681,11 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
 			    XmNtopWidget, wLWspecular,
-			    XmNtopOffset, WOFFSET,
+			    XmNtopOffset, Amrvis::WOFFSET,
 			    XmNbottomAttachment, XmATTACH_POSITION,
 			    XmNbottomPosition, 50,
 			    XmNleftAttachment, XmATTACH_FORM,
-			    XmNleftOffset, WOFFSET,
+			    XmNleftOffset, Amrvis::WOFFSET,
 			    NULL);
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetShiny());
@@ -698,11 +693,11 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    xmTextFieldWidgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
 			    XmNtopWidget, wLWspecular,
-			    XmNtopOffset, WOFFSET,
+			    XmNtopOffset, Amrvis::WOFFSET,
 			    XmNbottomAttachment, XmATTACH_POSITION,
 			    XmNbottomPosition, 50,
 			    XmNrightAttachment, XmATTACH_FORM,
-			    XmNrightOffset, WOFFSET,
+			    XmNrightOffset, Amrvis::WOFFSET,
 			    XmNvalue, cNbuff,
 			    XmNcolumns, 6,
 			    NULL);
@@ -711,24 +706,24 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    xmLabelGadgetClass, wLWForm,
 			    xmTextFieldWidgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
-			    XmNtopOffset, WOFFSET,
+			    XmNtopOffset, Amrvis::WOFFSET,
 			    XmNtopWidget, wLWshiny,
 			    XmNbottomAttachment, XmATTACH_POSITION,
 			    XmNbottomPosition, 62,
 			    XmNleftAttachment, XmATTACH_FORM,
-			    XmNleftOffset, WOFFSET,
+			    XmNleftOffset, Amrvis::WOFFSET,
 			    NULL);
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetMinRayOpacity());
   wLWminOpacity = XtVaCreateManagedWidget("minray",
 			    xmTextFieldWidgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
-			    XmNtopOffset, WOFFSET,
+			    XmNtopOffset, Amrvis::WOFFSET,
 			    XmNtopWidget, wLWshiny,
 			    XmNbottomAttachment, XmATTACH_POSITION,
 			    XmNbottomPosition, 62,
 			    XmNrightAttachment, XmATTACH_FORM,
-			    XmNrightOffset, WOFFSET,
+			    XmNrightOffset, Amrvis::WOFFSET,
 			    XmNvalue, cNbuff,
 			    XmNcolumns, 6,
 			    NULL);
@@ -736,24 +731,24 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   wTempLabel = XtVaCreateManagedWidget("maxRayOpacity: ",
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
-			    XmNtopOffset, WOFFSET,
+			    XmNtopOffset, Amrvis::WOFFSET,
 			    XmNtopWidget, wLWminOpacity,
 			    XmNbottomAttachment, XmATTACH_POSITION,
 			    XmNbottomPosition, 75,
 			    XmNleftAttachment, XmATTACH_FORM,
-			    XmNleftOffset, WOFFSET,
+			    XmNleftOffset, Amrvis::WOFFSET,
 			    NULL);
   
   sprintf(cNbuff, "%3.2f", volRenderPtr->GetMaxRayOpacity());
   wLWmaxOpacity = XtVaCreateManagedWidget("variable", xmTextFieldWidgetClass,
 			    wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
-			    XmNtopOffset, WOFFSET,
+			    XmNtopOffset, Amrvis::WOFFSET,
 			    XmNtopWidget, wLWminOpacity,
 			    XmNbottomAttachment, XmATTACH_POSITION,
 			    XmNbottomPosition, 75,
 			    XmNrightAttachment, XmATTACH_FORM,
-			    XmNrightOffset, WOFFSET,
+			    XmNrightOffset, Amrvis::WOFFSET,
 			    XmNvalue, cNbuff,
 			    XmNcolumns, 6,
 			    NULL);

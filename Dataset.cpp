@@ -1,8 +1,3 @@
-
-//
-// $Id: Dataset.cpp,v 1.59 2010-12-15 23:10:27 vince Exp $
-//
-
 // ---------------------------------------------------------------
 // Dataset.cpp
 // ---------------------------------------------------------------
@@ -10,7 +5,7 @@ const int CHARACTERWIDTH  = 13;
 const int CHARACTERHEIGHT = 22;
 const int MAXINDEXCHARS   = 4;
 
-#include "ParallelDescriptor.H"
+#include <ParallelDescriptor.H>
 
 #include <winstd.H>
 
@@ -28,11 +23,11 @@ const int MAXINDEXCHARS   = 4;
 #include <Xm/Protocols.h>
 #undef index
 
-#include "Dataset.H"
-#include "PltApp.H"
-#include "PltAppState.H"
-#include "AmrPicture.H"
-#include "DataServices.H"
+#include <Dataset.H>
+#include <PltApp.H>
+#include <PltAppState.H>
+#include <AmrPicture.H>
+#include <DataServices.H>
 
 #include <strstream>
 #include <cfloat>
@@ -84,7 +79,7 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
 
 
   // ************************************************ Dataset Window 
-   char header[BUFSIZ];
+   char header[Amrvis::BUFSIZE];
    ostrstream outstr(header, sizeof(header));
    outstr << AVGlobals::StripSlashes(pltAppPtr->GetFileName())
           << "  " << pltAppStatePtr->CurrentDerived()
@@ -122,9 +117,9 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
   // ************************************************ Color Button
   i=0;
   XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      ++i;
-  XtSetArg(args[i], XmNtopOffset, WOFFSET);      ++i;
+  XtSetArg(args[i], XmNtopOffset, Amrvis::WOFFSET);      ++i;
   XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      ++i;
-  XtSetArg(args[i], XmNleftOffset, WOFFSET);      ++i;
+  XtSetArg(args[i], XmNleftOffset, Amrvis::WOFFSET);      ++i;
   //XtSetArg(args[i], XmNheight, bHeight);      ++i;
   wColorButton = XmCreateToggleButton(wDatasetTools, "Color", args, i);
   XtAddCallback(wColorButton, XmNvalueChangedCallback,
@@ -137,7 +132,7 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
   // ************************************************ Close Button
   i=0;
   XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      ++i;
-  XtSetArg(args[i], XmNtopOffset, WOFFSET);      ++i;
+  XtSetArg(args[i], XmNtopOffset, Amrvis::WOFFSET);      ++i;
   XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      ++i;
   XtSetArg(args[i], XmNrightOffset, 20);      ++i;
   XtSetArg(args[i], XmNheight, bHeight);      ++i;
@@ -153,10 +148,10 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
                                     xmLabelWidgetClass, wDatasetTools,
                                     XmNlabelString, sMax, 
                                     XmNtopAttachment, XmATTACH_FORM, 
-                                    XmNtopOffset, WOFFSET+8,
+                                    XmNtopOffset, Amrvis::WOFFSET+8,
                                     XmNrightAttachment, XmATTACH_WIDGET,
                                     XmNrightWidget, wQuitButton,
-                                    XmNrightOffset, WOFFSET+10,
+                                    XmNrightOffset, Amrvis::WOFFSET+10,
                                     XmNheight, bHeight,
                                     NULL);
   XmStringFree(sMax);
@@ -167,10 +162,10 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
                                     xmLabelWidgetClass, wDatasetTools,
                                     XmNlabelString, sMin, 
                                     XmNtopAttachment, XmATTACH_FORM, 
-                                    XmNtopOffset, WOFFSET+8,
+                                    XmNtopOffset, Amrvis::WOFFSET+8,
                                     XmNrightAttachment, XmATTACH_WIDGET,
                                     XmNrightWidget, wMaxValue,
-                                    XmNrightOffset, WOFFSET+6,
+                                    XmNrightOffset, Amrvis::WOFFSET+6,
                                     XmNheight, bHeight,
                                     NULL);
   XmStringFree(sMin);
@@ -185,10 +180,10 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
                                     xmLabelWidgetClass, wDatasetTools,
                                     XmNlabelString, sLabel, 
                                     XmNtopAttachment, XmATTACH_FORM, 
-                                    XmNtopOffset, WOFFSET+8,
+                                    XmNtopOffset, Amrvis::WOFFSET+8,
                                     XmNrightAttachment, XmATTACH_WIDGET,
                                     XmNrightWidget, wMinValue,
-                                    XmNrightOffset, WOFFSET+6,
+                                    XmNrightOffset, Amrvis::WOFFSET+6,
                                     XmNheight, bHeight,
                                     NULL);
   XmStringFree(sLabel);
@@ -313,7 +308,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
     vAxisString = "error";
   }
 
-  char fstring[BUFSIZ];
+  char fstring[Amrvis::BUFSIZE];
   strcpy(fstring, pltAppStatePtr->GetFormatString().c_str());
   if( ! stringOk) {
     return;
@@ -347,7 +342,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   int paletteStart(palptr->PaletteStart());
   int paletteEnd(palptr->PaletteEnd());
   
-  char header[BUFSIZ];
+  char header[Amrvis::BUFSIZE];
   ostrstream outstr(header, sizeof(header));
   outstr << AVGlobals::StripSlashes(pltAppPtr->GetFileName())
          << "  " << pltAppStatePtr->CurrentDerived()
@@ -397,13 +392,13 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
     largestWidth = max(5, largestWidth);  // for body string
   }
 
-  bool bIsMF(dataServicesPtr->GetFileType() == MULTIFAB);
+  bool bIsMF(dataServicesPtr->GetFileType() == Amrvis::MULTIFAB);
   if(bIsMF) {  // fix level zero data
     largestWidth = max(8, largestWidth);  // for no data string
   }
 
-  char levelInfo[LINELENGTH], maxInfo[LINELENGTH], minInfo[LINELENGTH];
-  char maxInfoV[LINELENGTH],  minInfoV[LINELENGTH];
+  char levelInfo[Amrvis::LINELENGTH], maxInfo[Amrvis::LINELENGTH], minInfo[Amrvis::LINELENGTH];
+  char maxInfoV[Amrvis::LINELENGTH],  minInfoV[Amrvis::LINELENGTH];
   sprintf(levelInfo, "Level: %i", maxDrawnLevel);
 
   XmString sNewLevel = XmStringCreateSimple(levelInfo);
@@ -783,23 +778,23 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
   if(xcell >= 0 && xcell < pixSizeX/dataItemWidth &&
      ycell >= 0 && ycell < pixSizeY/CHARACTERHEIGHT)
   {
-      if(amrPicturePtr->GetMyView() == XY) {
-        hDir = XDIR;
-	vDir = YDIR;
+      if(amrPicturePtr->GetMyView() == Amrvis::XY) {
+        hDir = Amrvis::XDIR;
+	vDir = Amrvis::YDIR;
 # if (BL_SPACEDIM == 3)
-	depthDir = ZDIR;
+	depthDir = Amrvis::ZDIR;
 # endif
-      } else if(amrPicturePtr->GetMyView() == XZ) {
-        hDir = XDIR;
-	vDir = ZDIR;
+      } else if(amrPicturePtr->GetMyView() == Amrvis::XZ) {
+        hDir = Amrvis::XDIR;
+	vDir = Amrvis::ZDIR;
 # if (BL_SPACEDIM == 3)
-	depthDir = YDIR;
+	depthDir = Amrvis::YDIR;
 # endif
-      } else if(amrPicturePtr->GetMyView() == YZ) {
-        hDir = YDIR;
-	vDir = ZDIR;
+      } else if(amrPicturePtr->GetMyView() == Amrvis::YZ) {
+        hDir = Amrvis::YDIR;
+	vDir = Amrvis::ZDIR;
 # if (BL_SPACEDIM == 3)
-	depthDir = XDIR;
+	depthDir = Amrvis::XDIR;
 # endif
       }
       
@@ -820,12 +815,12 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
       boxCoor[hDir] = hplot;
       boxCoor[vDir] = vplot; 
 # if (BL_SPACEDIM == 3)
-      boxCoor[depthDir] = pltAppPtr->GetAmrPicturePtr(YZ - depthDir)->GetSlice();
+      boxCoor[depthDir] = pltAppPtr->GetAmrPicturePtr(Amrvis::YZ - depthDir)->GetSlice();
       boxCoor[depthDir] /= baseRatio;
-      //IntVect boxLocation(boxCoor[XDIR], boxCoor[YDIR], boxCoor[ZDIR]);
+      //IntVect boxLocation(boxCoor[Amrvis::XDIR], boxCoor[Amrvis::YDIR], boxCoor[Amrvis::ZDIR]);
 # endif
 # if (BL_SPACEDIM == 2)
-      //IntVect boxLocation(boxCoor[XDIR], boxCoor[YDIR]);
+      //IntVect boxLocation(boxCoor[Amrvis::XDIR], boxCoor[Amrvis::YDIR]);
 # endif
       IntVect boxLocation(boxCoor);
       Box chosenBox(boxLocation, boxLocation, regionBox.ixType());
