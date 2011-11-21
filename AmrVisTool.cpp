@@ -131,7 +131,7 @@ int main(int argc, char *argv[]) {
       BL_ASSERT(AVGlobals::GetFileCount() > 0);
       bool bAmrDataOk(true);
       Amrvis::FileType fileType = AVGlobals::GetDefaultFileType();
-      BL_ASSERT(fileType != INVALIDTYPE);
+      BL_ASSERT(fileType != Amrvis::INVALIDTYPE);
       Array<DataServices *> dspArray(AVGlobals::GetFileCount());
       for(int nPlots = 0; nPlots < AVGlobals::GetFileCount(); ++nPlots) {
         comlineFileName = AVGlobals::GetComlineFilename(nPlots);
@@ -187,7 +187,7 @@ int main(int argc, char *argv[]) {
     } else {
       // loop through the command line list of plot files
       Amrvis::FileType fileType = AVGlobals::GetDefaultFileType();
-      BL_ASSERT(fileType != INVALIDTYPE);
+      BL_ASSERT(fileType != Amrvis::INVALIDTYPE);
 
       Array<DataServices *> dspArray(AVGlobals::GetFileCount());
       for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {
@@ -349,7 +349,7 @@ void BatchFunctions() {
       cout << "FileName = " << comlineFileName << endl;
     }
     Amrvis::FileType fileType = AVGlobals::GetDefaultFileType();
-    BL_ASSERT(fileType != INVALIDTYPE);
+    BL_ASSERT(fileType != Amrvis::INVALIDTYPE);
     DataServices dataServices(comlineFileName, fileType);
 
     string derived(AVGlobals::GetInitialDerived());
