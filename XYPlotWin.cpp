@@ -478,7 +478,7 @@ void XYPlotWin::InitializeAnimation(int curr_frame, int num_frames) {
   {
     if((*ptr)->XYPLIlist->CopiedFrom() != NULL) {
       XYPlotDataList *tempList = (*ptr)->XYPLIlist;
-      (*ptr)->XYPLIlist = pltParent->CreateLinePlot(ZPLANE, whichType,
+      (*ptr)->XYPLIlist = pltParent->CreateLinePlot(Amrvis::ZPLANE, whichType,
 					    (*ptr)->XYPLIlist->MaxLevel(),
 					    (*ptr)->XYPLIlist->Gridline(),
 					    &((*ptr)->XYPLIlist->DerivedName()));
@@ -540,7 +540,7 @@ void XYPlotWin::UpdateFrame(int frame) {
     }
     
     int level((*ptr)->XYPLIlist->CurLevel());
-    (*ptr)->XYPLIlist = pltParent->CreateLinePlot(ZPLANE, whichType,
+    (*ptr)->XYPLIlist = pltParent->CreateLinePlot(Amrvis::ZPLANE, whichType,
 				          (*ptr)->XYPLIlist->MaxLevel(),
 				          (*ptr)->XYPLIlist->Gridline(),
 				          &(*ptr)->XYPLIlist->DerivedName());
