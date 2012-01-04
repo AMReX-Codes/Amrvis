@@ -28,8 +28,6 @@ using std::cerr;
 using std::endl;
 using std::max;
 
-#define MARK fprintf(stderr, "Mark: file %s, line %d.\n", __FILE__, __LINE__)
-
 
 // -------------------------------------------------------------------
 void PltApp::DoExposeTransDA(Widget, XtPointer, XtPointer) {
