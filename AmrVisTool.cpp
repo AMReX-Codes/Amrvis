@@ -300,7 +300,6 @@ void CreateMainWindow(int argc, char *argv[]) {
   XmVaCreateSimplePulldownMenu(wMenuBar, "fileMenu", 0,
     (XtCallbackProc) CBFileMenu,
     XmVaPUSHBUTTON, sOpen, 'O', "Ctrl<Key>O", sCtrlO,
-    //XmVaSEPARATOR,   // the separator is buggy in old versions of motif
     XmVaPUSHBUTTON, sQuit, 'Q', "Ctrl<Key>Q", sCtrlQ,
     NULL);
 
@@ -314,8 +313,6 @@ void CreateMainWindow(int argc, char *argv[]) {
   XtManageChild(wMenuBar);
 
   i = 0;
-  //XtSetArg(args[i], XmNrows,    20);       ++i;
-  //XtSetArg(args[i], XmNcolumns, 80);       ++i;
   XtSetArg(args[i], XmNeditable, false);       ++i;
   XtSetArg(args[i], XmNeditMode, XmMULTI_LINE_EDIT);       ++i;
   XtSetArg(args[i], XmNwordWrap, true);       ++i;
@@ -333,7 +330,6 @@ void CreateMainWindow(int argc, char *argv[]) {
 
   messageText.Init(wTextOut);
 
-  //XmMainWindowSetAreas(wMainWindow, wMenuBar, NULL, NULL, NULL, wTextOut);
   XtRealizeWidget(wTopLevel);
 }  // end CreateMainWindow()
 
@@ -384,7 +380,6 @@ void BatchFunctions() {
 
       if(AVGlobals::GivenBox()) {
         Box comlineBox = AVGlobals::GetBoxFromCommandLine();
-        //cout << "+++++++++++++++++++++++ comlinebox    = " << comlineBox << endl;
         int finelev(amrData.FinestLevel());
 	if(amrData.ProbDomain()[finelev].contains(comlineBox) == false) {
 	  cerr << "Error:  bad comlineBox:  probDomain(finestLevel) = "
@@ -396,7 +391,6 @@ void BatchFunctions() {
 	  int crr(AVGlobals::CRRBetweenLevels(ilev, finelev, amrData.RefRatio()));
           drawDomain[ilev] = drawDomain[finelev];
           drawDomain[ilev].coarsen(crr);
-        //cout << "++++++ drawDomain[" << ilev << "] = " << drawDomain[ilev] << endl;
         }
       }
 
