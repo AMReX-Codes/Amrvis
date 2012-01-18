@@ -119,7 +119,6 @@ ifeq ($(PRECISION), FLOAT)
   ifeq ($(MACHINE), OSF1)
     FDEBF += -C 
     FDEBF += -fpe2
-    #FDEBF += -fpe0
     FOPTF  = -fast -O5 -tune ev5
   endif
 endif
