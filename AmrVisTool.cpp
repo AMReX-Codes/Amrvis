@@ -82,9 +82,7 @@ int main(int argc, char *argv[]) {
 
   AVGlobals::ParseCommandLine(argc, argv);
 
-  if(AVGlobals::Verbose()) {
-    AmrData::SetVerbose(true);
-  }
+  AmrData::SetVerbose(AVGlobals::Verbose());
   AmrData::SetSkipPltLines(AVGlobals::GetSkipPltLines());
   AmrData::SetStaticBoundaryWidth(AVGlobals::GetBoundaryWidth());
 
@@ -119,7 +117,6 @@ int main(int argc, char *argv[]) {
   if(bBatchMode) {
     DataServices::SetBatchMode();
     BatchFunctions();
-    //ParallelDescriptor::EndParallel();
     BoxLib::Finalize();
   } else {
 
