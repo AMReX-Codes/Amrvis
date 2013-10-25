@@ -154,7 +154,7 @@ class AmrPicture {
                    int xLength, int yLength,
                    Real leftEdge, Real bottomEdge, Real rightEdge, Real topEdge);
   inline bool Between(Real a, Real b, Real c) {
-      return ( (a <= b) && (b <= c) || (a >= b) && (b >= c) );
+      return ( ((a <= b) && (b <= c)) || ((a >= b) && (b >= c)) );
   }
 
   void DrawVectorField(Display *display, Drawable &drawable, const GC &gc);

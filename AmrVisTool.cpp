@@ -495,6 +495,7 @@ void QuitAll() {
     delete obj;
   }
   pltAppList.clear();
+
   DataServices::Dispatch(DataServices::ExitRequest, NULL);
 }
 
