@@ -1040,7 +1040,10 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			      XmNx, 0,
 			      XmNy, wcfHeight -4*halfbutton-3-adjustHeight2D,
 			      XmNlabelString,         fileString,
+			      XmNwordWrap,            true,
+			      XmNmaxLength,           10,
 			      NULL);
+    cout << "File:  " << fileNames[currentFrame] << endl;
     XmStringFree(fileString);
 
     // We add a which-time label to indicate the time of each plot file.
@@ -4280,6 +4283,7 @@ void PltApp::ShowFrame() {
   strcpy(cTempFN, AVGlobals::StripSlashes(fileName).c_str());
   XmString fileString = XmStringCreateSimple(cTempFN);
   XtVaSetValues(wWhichFileLabel, XmNlabelString, fileString, NULL);
+  cout << "File:  " << fileNames[currentFrame] << endl;
   XmStringFree(fileString);
   
   char tempTimeName[Amrvis::BUFSIZE];
