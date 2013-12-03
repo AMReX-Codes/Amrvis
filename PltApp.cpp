@@ -1040,8 +1040,8 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			      XmNx, 0,
 			      XmNy, wcfHeight -4*halfbutton-3-adjustHeight2D,
 			      XmNlabelString,         fileString,
-			      XmNwordWrap,            true,
-			      XmNmaxLength,           10,
+			      //XmNwordWrap,            true,
+			      //XmNmaxLength,           10,
 			      NULL);
     cout << "File:  " << fileNames[currentFrame] << endl;
     XmStringFree(fileString);
