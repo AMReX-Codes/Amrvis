@@ -69,7 +69,6 @@ static param_style param_null_style = {STYLE, 0, (char *) 0};
 
 #include <cctype>
 
-using std::ends;
 using std::endl;
 
 // Some macros for obtaining parameters.

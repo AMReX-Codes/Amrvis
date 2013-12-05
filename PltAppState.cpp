@@ -4,11 +4,8 @@
 #include <PltAppState.H>
 
 #include <cctype>
-#include <strstream>
 #include <iostream>
 #include <limits>
-using std::ostrstream;
-using std::ends;
 using std::cout;
 using std::cerr;
 using std::endl;

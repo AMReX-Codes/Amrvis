@@ -1,7 +1,6 @@
 // ---------------------------------------------------------------
 // PltApp.cpp
 // ---------------------------------------------------------------
-
 #include <winstd.H>
 
 #include <PltApp.H>
@@ -41,10 +40,7 @@
 #endif
 
 #include <cctype>
-#include <strstream>
 #include <sstream>
-using std::ostrstream;
-using std::ends;
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -1712,8 +1708,7 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
       string outbuf("Finding global min & max values for ");
       outbuf += pltAppState->CurrentDerived();
       outbuf += "...\n";
-      strcpy(buffer, outbuf.c_str());
-      PrintMessage(buffer);
+      PrintMessage(const_cast<char *>(outbuf.c_str()));
       
       Real dataMin, dataMax;
       int coarseLevel(0);
@@ -2064,7 +2059,7 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
     XtVaCreateManagedWidget("infoform", xmFormWidgetClass, wInfoTopLevel, NULL);
   
   int i(0);
-  XtSetArg(args[i], XmNlistSizePolicy, XmRESIZE_IF_POSSIBLE);   ++i;
+  XtSetArg(args[i++], XmNlistSizePolicy, XmRESIZE_IF_POSSIBLE);
   Widget wInfoList = XmCreateScrolledList(wInfoForm, "infoscrolledlist", args, i);
   
   XtVaSetValues(XtParent(wInfoList), 
@@ -2078,76 +2073,76 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   
   AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   
-  int numEntries = 9+amrData.FinestLevel()+1;
-  char **entries = new char *[numEntries];
+  int numEntries(9 + amrData.FinestLevel() + 1);
+  XmStringTable strList = (XmStringTable) XtMalloc(numEntries*sizeof(XmString *));
   
-  for(int j(0); j < numEntries; ++j) {
-    entries[j] = new char[Amrvis::BUFSIZE];
-  }
-  
-  i=0;
-  char buf[Amrvis::BUFSIZE];
-  ostrstream prob(buf, Amrvis::BUFSIZE);
-  //std::ostringstream prob;
+  i = 0;
+  std::ostringstream prob;
   prob.precision(15);
-  strcpy(entries[i], AVGlobals::StripSlashes(fileNames[currentFrame]).c_str()); ++i;
-  strcpy(entries[i], amrData.PlotFileVersion().c_str()); ++i;
-  prob << "time: "<< amrData.Time() << ends;
-  strcpy(entries[i], buf); ++i;
-  sprintf(entries[i], "levels: %d", amrData.FinestLevel()+1); ++i;
-  sprintf(entries[i], "prob domain"); ++i;
-  for(int k(0); k <= amrData.FinestLevel(); ++k, ++i) {
-    ostrstream prob_domain(entries[i], Amrvis::BUFSIZE);
-    prob_domain << " level " << k << ": " << amrData.ProbDomain()[k] << ends;
+
+  prob << fileNames[currentFrame];
+  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
+  prob.str(std::string());  // clear prob
+
+  prob << amrData.PlotFileVersion().c_str();
+  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
+  prob.str(std::string());  // clear prob
+
+  prob << "time:  "<< amrData.Time();
+  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
+  prob.str(std::string());  // clear prob
+
+  prob << "levels:  " << amrData.FinestLevel() + 1;
+  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
+  prob.str(std::string());  // clear prob
+
+
+  prob << "prob domain:";
+  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
+  prob.str(std::string());  // clear prob
+
+  for(int k(0); k <= amrData.FinestLevel(); ++k) {
+    prob << "  level " << k << ":  " << amrData.ProbDomain()[k];
+    strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
+    prob.str(std::string());  // clear prob
   }
 
-  prob.seekp(0);
   prob << "refratios: ";
   for(int k(0); k < amrData.FinestLevel(); ++k) {
     prob << " " << amrData.RefRatio()[k];
   }
-  prob << ends;
-  strcpy(entries[i], buf); ++i;
+  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
+  prob.str(std::string());  // clear prob
+
   
-  prob.seekp(0);
   prob << "probsize: ";
   for(int k(0); k < BL_SPACEDIM; ++k) {
     prob << " " << amrData.ProbSize()[k];
   }
-  prob << ends;
-  strcpy(entries[i], buf); ++i;
+  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
+  prob.str(std::string());  // clear prob
+
   
-  prob.seekp(0);
   prob << "prob lo: ";
   for(int k(0); k < BL_SPACEDIM; ++k) {
     prob << " " << amrData.ProbLo()[k];
   }
-  prob << ends;
-  strcpy(entries[i], buf); ++i;
+  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
+  prob.str(std::string());  // clear prob
+
   
-  prob.seekp(0);
   prob << "prob hi:  ";
   for(int k(0); k < BL_SPACEDIM; ++k) {
     prob << " " << amrData.ProbHi()[k];
   }
-  prob << ends;
-  strcpy(entries[i], buf); ++i;
+  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
+  prob.str(std::string());  // clear prob
 
-  XmStringTable str_list = (XmStringTable)XtMalloc(numEntries*sizeof(XmString *));
-  for(int j(0); j < numEntries; ++j) {
-    str_list[j] = XmStringCreateSimple(entries[j]);
-  }
-    
   XtVaSetValues(wInfoList,
 		XmNvisibleItemCount, numEntries,
 		XmNitemCount, numEntries,
-		XmNitems, str_list,
+		XmNitems, strList,
 		NULL);
-  
-  for(int j(0); j < numEntries; ++j) {
-    delete [] entries[j];
-  }
-  delete [] entries;
   
   Widget wInfoCloseButton =
     XtVaCreateManagedWidget("Close",
@@ -2168,6 +2163,7 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   XtManageChild(wInfoCloseButton);
   XtPopup(wInfoTopLevel, XtGrabNone);
 }
+
 
 // -------------------------------------------------------------------
 void PltApp::DoContoursButton(Widget, XtPointer, XtPointer) {
@@ -3345,7 +3341,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	    dataValueString = "no data";
 	  }
 
-	  ostrstream buffout(buffer, Amrvis::BUFSIZE);
+	  std::ostringstream buffout;
 	  if(goodIntersect) {
 	    buffout << '\n';
 	    buffout << "level = " << intersectedLevel << '\n';
@@ -3370,8 +3366,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
             buffout << "Bad point at mouse click" << '\n';
           }
 	  
-	  buffout << ends;  // end the string
-	  PrintMessage(buffer);
+	  PrintMessage(const_cast<char *>(buffout.str().c_str()));
 
 	} else {
 	  

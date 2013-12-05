@@ -29,11 +29,10 @@ const int MAXINDEXCHARS   = 4;
 #include <AmrPicture.H>
 #include <DataServices.H>
 
-#include <strstream>
+#include <sstream>
 #include <cfloat>
 #include <cmath>
-using std::ostrstream;
-using std::ends;
+using std::ostringstream;
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -79,12 +78,12 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
 
 
   // ************************************************ Dataset Window 
-   char header[Amrvis::BUFSIZE];
-   ostrstream outstr(header, sizeof(header));
+   ostringstream outstr;
    outstr << AVGlobals::StripSlashes(pltAppPtr->GetFileName())
           << "  " << pltAppStatePtr->CurrentDerived()
-          << "  " << alignedRegion << ends;
-   wDatasetTopLevel = XtVaCreatePopupShell(header, topLevelShellWidgetClass,
+          << "  " << alignedRegion;
+   wDatasetTopLevel = XtVaCreatePopupShell(outstr.str().c_str(),
+                                           topLevelShellWidgetClass,
                                            pltAppPtr->WId(),
                                            XmNwidth,	800,
                                            XmNheight,	500,
@@ -342,13 +341,14 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   int paletteStart(palptr->PaletteStart());
   int paletteEnd(palptr->PaletteEnd());
   
-  char header[Amrvis::BUFSIZE];
-  ostrstream outstr(header, sizeof(header));
+  ostringstream outstr;
   outstr << AVGlobals::StripSlashes(pltAppPtr->GetFileName())
          << "  " << pltAppStatePtr->CurrentDerived()
-         << "  " << datasetRegion[maxDrawnLevel] << ends;
+         << "  " << datasetRegion[maxDrawnLevel];
   
-  XtVaSetValues(wDatasetTopLevel, XmNtitle, header, NULL);
+  XtVaSetValues(wDatasetTopLevel,
+                XmNtitle, const_cast<char *>(outstr.str().c_str()),
+		NULL);
   // find largest data width and count # of data strings 
   
   int largestWidth(0);
