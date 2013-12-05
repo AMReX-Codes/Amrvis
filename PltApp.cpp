@@ -2115,7 +2115,7 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   prob.str(std::string());  // clear prob
 
   
-  prob << "probsize: ";
+  prob << "probsize:  ";
   for(int k(0); k < BL_SPACEDIM; ++k) {
     prob << " " << amrData.ProbSize()[k];
   }
@@ -2123,7 +2123,7 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   prob.str(std::string());  // clear prob
 
   
-  prob << "prob lo: ";
+  prob << "prob lo:   ";
   for(int k(0); k < BL_SPACEDIM; ++k) {
     prob << " " << amrData.ProbLo()[k];
   }
@@ -2131,7 +2131,7 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   prob.str(std::string());  // clear prob
 
   
-  prob << "prob hi:  ";
+  prob << "prob hi:   ";
   for(int k(0); k < BL_SPACEDIM; ++k) {
     prob << " " << amrData.ProbHi()[k];
   }

@@ -282,7 +282,9 @@ void ProjectionPicture::MakePicture() {
   XPutImage(XtDisplay(drawingArea), pixMap, XtScreen(drawingArea)->
             default_gc, PPXImage, 0, 0, 0, 0, daWidth, daHeight);
 
-  cout << "----- make picture time = " << ((clock()-time0)/1000000.0) << endl;
+  if(AVGlobals::Verbose()) {
+    cout << "----- make picture time = " << ((clock()-time0)/1000000.0) << endl;
+  }
 
 #endif
 
