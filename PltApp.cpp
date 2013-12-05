@@ -42,6 +42,7 @@
 
 #include <cctype>
 #include <strstream>
+#include <sstream>
 using std::ostrstream;
 using std::ends;
 using std::cout;
@@ -125,9 +126,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 
   int i;
 
-  char header[Amrvis::BUFSIZE];
-  ostrstream headerout(header, Amrvis::BUFSIZE);
-
   if(animating2d) {
     animFrames = AVGlobals::GetFileCount(); 
     BL_ASSERT(dataServicesPtr.size() == animFrames);
@@ -135,23 +133,22 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
     for(i = 0; i < animFrames; ++i) {
       fileNames[i] = AVGlobals::GetComlineFilename(i); 
     }
-    headerout << "2D Animation" << ends;
   } else {
     animFrames = 1;
     fileNames.resize(animFrames);
     fileNames[currentFrame] = fileName;
-
-    // Single plot file, so the time is indicated in the title bar.
-    headerout << AVGlobals::StripSlashes(fileName) << "   T ="
-              << amrData.Time() << ends;
   }
+
+  std::ostringstream headerout;
+  headerout << AVGlobals::StripSlashes(fileNames[currentFrame])
+            << "   T = " << amrData.Time() << "  " << headerSuffix;
 
   pltAppState = new PltAppState(animFrames, amrData.NumDeriveFunc());
   pltAppState->SetContourType(Amrvis::RASTERONLY);
   pltAppState->SetCurrentFrame(currentFrame);
 
   // Set the delete response to DO_NOTHING so that it can be app defined.
-  wAmrVisTopLevel = XtVaCreatePopupShell(header, 
+  wAmrVisTopLevel = XtVaCreatePopupShell(headerout.str().c_str(), 
 			 topLevelShellWidgetClass, wTopLevel,
 			 XmNwidth,	    initialWindowWidth,
 			 XmNheight,	    initialWindowHeight,
@@ -286,6 +283,20 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 
   palFilename = PltApp::defaultPaletteString;
   lightingFilename = PltApp::defaultLightingFilename;
+
+  std::ostringstream suffixout;
+  suffixout << "Region:  " << maxDomain << "  Levels:  "
+            << pltAppState->MinAllowableLevel() << ":"
+	    << pltAppState->MaxAllowableLevel();
+  headerSuffix = suffixout.str();
+  headerout.str(std::string());
+  headerout << AVGlobals::StripSlashes(fileNames[currentFrame])
+            << "   T = " << amrData.Time() << "   " << headerSuffix;
+  XtVaSetValues(wAmrVisTopLevel,
+                XmNtitle, const_cast<char *>(headerout.str().c_str()),
+		NULL);
+
+
   PltAppInit();
 }
 
@@ -317,8 +328,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   lightingWindowExists = false;
 #endif
   contourNumString = pltParent->contourNumString.c_str();
-
-  char header[Amrvis::BUFSIZE];
 
   bCartGridSmoothing = pltParent->bCartGridSmoothing;
   int finestLevel(amrData.FinestLevel());
@@ -395,27 +404,22 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   }
 // ---------------
 
-  char timestr[64];
-  // If animating, do not indicate the time.
-  if(animating2d) {
-    timestr[0] = '\0';
-  } else {
-    ostrstream timeOut(timestr, 64);
-    timeOut << "   T = " << amrData.Time() << ends;
-  }
-
-  ostrstream headerout(header, Amrvis::BUFSIZE);
-    
-  headerout << AVGlobals::StripSlashes(fileName) << timestr << "  Subregion:  "
-	    << maxDomain << "  on level " << maxlev << ends;
+  std::ostringstream suffixout;
+  suffixout << "Subregion:  " << maxDomain << "  Levels:  "
+            << pltAppState->MinAllowableLevel() << ":"
+	    << pltAppState->MaxAllowableLevel();
+  headerSuffix = suffixout.str();
+  std::ostringstream headerout;
+  headerout << AVGlobals::StripSlashes(fileNames[currentFrame])
+            << "   T = " << amrData.Time() << "  " << headerSuffix;
 				
-  wAmrVisTopLevel = XtVaCreatePopupShell(header, 
+  wAmrVisTopLevel = XtVaCreatePopupShell(headerout.str().c_str(), 
 					 topLevelShellWidgetClass, wTopLevel,
 					 XmNwidth,	    initialWindowWidth,
 					 XmNheight,	    initialWindowHeight,
 					 XmNx,		    120+placementOffsetX,
 					 XmNy,		    220+placementOffsetY,
-					 XmNdeleteResponse, XmDO_NOTHING,			 
+					 XmNdeleteResponse, XmDO_NOTHING,
 					 NULL);
 
   if(AVGlobals::Verbose()) {
@@ -612,7 +616,6 @@ void PltApp::PltAppInit(bool bSubVolume) {
   wCascade = XmCreatePulldownMenu(wMenuPulldown, "scalemenu", NULL, 0);
   XtVaCreateManagedWidget("Scale", xmCascadeButtonWidgetClass, wMenuPulldown,
 			  XmNmnemonic, 'S', XmNsubMenuId, wCascade, NULL);
-  //for(unsigned long scale(1); scale <= maxallow; ++scale) {
   for(int scale(1); scale <= maxallow; ++scale) {
     sprintf(selectText, "%ix", scale);
     wid = XtVaCreateManagedWidget(selectText, xmToggleButtonGadgetClass, wCascade,
@@ -1032,25 +1035,22 @@ void PltApp::PltAppInit(bool bSubVolume) {
     XtVaGetValues(wAnimLabelFast, XmNwidth, &slw, NULL);
     XtVaSetValues(wAnimLabelFast, XmNx, wcfWidth - slw, NULL);
     
-    char cTempFN[Amrvis::BUFSIZE];
-    strcpy(cTempFN, AVGlobals::StripSlashes(fileNames[currentFrame]).c_str());
-    XmString fileString = XmStringCreateSimple(cTempFN);
+    string fileName(AVGlobals::StripSlashes(fileNames[currentFrame]));
+    XmString fileString =
+        XmStringCreateSimple(const_cast<char *>(fileName.c_str()));
     wWhichFileLabel = XtVaCreateManagedWidget("whichFileLabel",
 			      xmLabelWidgetClass, wControlForm,	
 			      XmNx, 0,
 			      XmNy, wcfHeight -4*halfbutton-3-adjustHeight2D,
 			      XmNlabelString,         fileString,
-			      //XmNwordWrap,            true,
-			      //XmNmaxLength,           10,
 			      NULL);
-    cout << "File:  " << fileNames[currentFrame] << endl;
     XmStringFree(fileString);
 
     // We add a which-time label to indicate the time of each plot file.
-    char tempTimeName[Amrvis::LINELENGTH];
-    ostrstream tempTimeOut(tempTimeName, Amrvis::LINELENGTH);
-    tempTimeOut << "T=" << amrData.Time() << ends;
-    XmString timeString = XmStringCreateSimple(tempTimeName);
+    std::ostringstream tempTimeOut;
+    tempTimeOut << "T = " << amrData.Time();
+    XmString timeString =
+        XmStringCreateSimple(const_cast<char *>(tempTimeOut.str().c_str()));
     wWhichTimeLabel = XtVaCreateManagedWidget("whichTimeLabel",
 			      xmLabelWidgetClass, wControlForm,
 			      XmNx, 0,
@@ -1059,6 +1059,12 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			      NULL);
     XmStringFree(timeString);
     
+    std::ostringstream headerout;
+    headerout << fileName << "  " << tempTimeOut.str() << "  " << headerSuffix;
+    XtVaSetValues(wAmrVisTopLevel,
+                  XmNtitle, const_cast<char *>(headerout.str().c_str()),
+		  NULL);
+
   }  // end if(animating2d)
 
   if(animating2d || BL_SPACEDIM == 3) {   
@@ -2082,8 +2088,9 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   i=0;
   char buf[Amrvis::BUFSIZE];
   ostrstream prob(buf, Amrvis::BUFSIZE);
+  //std::ostringstream prob;
   prob.precision(15);
-  strcpy(entries[i], fileNames[currentFrame].c_str()); ++i;
+  strcpy(entries[i], AVGlobals::StripSlashes(fileNames[currentFrame]).c_str()); ++i;
   strcpy(entries[i], amrData.PlotFileVersion().c_str()); ++i;
   prob << "time: "<< amrData.Time() << ends;
   strcpy(entries[i], buf); ++i;
@@ -2095,7 +2102,7 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   }
 
   prob.seekp(0);
-  prob << "refratios:";
+  prob << "refratios: ";
   for(int k(0); k < amrData.FinestLevel(); ++k) {
     prob << " " << amrData.RefRatio()[k];
   }
@@ -2103,7 +2110,7 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   strcpy(entries[i], buf); ++i;
   
   prob.seekp(0);
-  prob << "probsize:";
+  prob << "probsize: ";
   for(int k(0); k < BL_SPACEDIM; ++k) {
     prob << " " << amrData.ProbSize()[k];
   }
@@ -2111,7 +2118,7 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   strcpy(entries[i], buf); ++i;
   
   prob.seekp(0);
-  prob << "prob lo:";
+  prob << "prob lo: ";
   for(int k(0); k < BL_SPACEDIM; ++k) {
     prob << " " << amrData.ProbLo()[k];
   }
@@ -2119,9 +2126,9 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   strcpy(entries[i], buf); ++i;
   
   prob.seekp(0);
-  prob << "prob hi:";
+  prob << "prob hi:  ";
   for(int k(0); k < BL_SPACEDIM; ++k) {
-    prob<<" "<< amrData.ProbHi()[k];
+    prob << " " << amrData.ProbHi()[k];
   }
   prob << ends;
   strcpy(entries[i], buf); ++i;
@@ -4277,31 +4284,48 @@ void PltApp::ShowFrame() {
   }
 
 
-  string fileName(fileNames[currentFrame]);
+  string fileName(AVGlobals::StripSlashes(fileNames[currentFrame]));
 
-  char cTempFN[Amrvis::BUFSIZE];
-  strcpy(cTempFN, AVGlobals::StripSlashes(fileName).c_str());
-  XmString fileString = XmStringCreateSimple(cTempFN);
-  XtVaSetValues(wWhichFileLabel, XmNlabelString, fileString, NULL);
-  cout << "File:  " << fileNames[currentFrame] << endl;
-  XmStringFree(fileString);
+  XmString xmFileString =
+      XmStringCreateSimple(const_cast<char *>(fileName.c_str()));
+  XtVaSetValues(wWhichFileLabel, XmNlabelString, xmFileString, NULL);
+  XmStringFree(xmFileString);
   
-  char tempTimeName[Amrvis::BUFSIZE];
-  ostrstream tempTimeOut(tempTimeName, Amrvis::BUFSIZE);
-  tempTimeOut << "T=" << amrData.Time() << ends;
-  XmString timeString = XmStringCreateSimple(tempTimeName);
+  std::ostringstream tempTimeOut;
+  tempTimeOut << "T = " << amrData.Time();
+  XmString timeString =
+      XmStringCreateSimple(const_cast<char *>(tempTimeOut.str().c_str()));
   XtVaSetValues(wWhichTimeLabel, XmNlabelString, timeString, NULL);
   XmStringFree(timeString);
+
+
+  std::ostringstream headerout;
+  headerout << fileName << "  " << tempTimeOut.str() << "  " << headerSuffix;
+  XtVaSetValues(wAmrVisTopLevel,
+                XmNtitle, const_cast<char *>(headerout.str().c_str()),
+		NULL);
 
   XmScaleSetValue(wWhichFileScale, currentFrame);
   
   if(datasetShowing) {
     int hdir(-1), vdir(-1), sdir(-1);
-    if(activeView == Amrvis::ZPLANE) { hdir = Amrvis::XDIR; vdir = Amrvis::YDIR; sdir = Amrvis::ZDIR; }
-    if(activeView == Amrvis::YPLANE) { hdir = Amrvis::XDIR; vdir = Amrvis::ZDIR; sdir = Amrvis::YDIR; }
-    if(activeView == Amrvis::XPLANE) { hdir = Amrvis::YDIR; vdir = Amrvis::ZDIR; sdir = Amrvis::XDIR; }
-    datasetPtr->DatasetRender(trueRegion, amrPicturePtrArray[activeView], this,
-		              pltAppState, hdir, vdir, sdir);
+    if(activeView == Amrvis::ZPLANE) {
+      hdir = Amrvis::XDIR;
+      vdir = Amrvis::YDIR;
+      sdir = Amrvis::ZDIR;
+    }
+    if(activeView == Amrvis::YPLANE) {
+      hdir = Amrvis::XDIR;
+      vdir = Amrvis::ZDIR;
+      sdir = Amrvis::YDIR;
+    }
+    if(activeView == Amrvis::XPLANE) {
+      hdir = Amrvis::YDIR;
+      vdir = Amrvis::ZDIR;
+      sdir = Amrvis::XDIR;
+    }
+    datasetPtr->DatasetRender(trueRegion, amrPicturePtrArray[activeView],
+                              this, pltAppState, hdir, vdir, sdir);
     datasetPtr->DoExpose(false);
   }
 #if (BL_SPACEDIM == 2)

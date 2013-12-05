@@ -188,7 +188,7 @@ private:
   int startX, startY, endX, endY;
   int maxAllowableScale;
   bool bCartGridSmoothing;
-  string contourNumString, fileName, palFilename, lightingFilename;
+  string contourNumString, fileName, palFilename, lightingFilename, headerSuffix;
   char buffer[BUFSIZ];
   Box trueRegion, selectionBox;
   Dataset *datasetPtr;
