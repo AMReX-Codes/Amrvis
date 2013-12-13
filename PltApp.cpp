@@ -1617,6 +1617,7 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   const Array<Box> &onSubregionBox = amrPicturePtrArray[Amrvis::ZPLANE]->GetSubDomain();
   const Array<Box> &onBox(amrData.ProbDomain());
   int iCDerNum(pltAppState->CurrentDerivedNumber());
+  int levelZero(0);
   int coarseLevel(pltAppState->MinAllowableLevel());
   int fineLevel(pltAppState->MaxAllowableLevel());
   Real rGlobalMin, rGlobalMax;
@@ -1629,7 +1630,7 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
     // set FILEGLOBALMINMAX  dont reset if already set
     FindAndSetMinMax(Amrvis::FILEGLOBALMINMAX, iFrame, asCDer, iCDerNum, onBox,
-	             coarseLevel, fineLevel, false);
+	             levelZero, pltAppState->FinestLevel(), false);
 
     // set FILESUBREGIONMINMAX  dont reset if already set
     FindAndSetMinMax(Amrvis::FILESUBREGIONMINMAX, iFrame, asCDer, iCDerNum, onSubregionBox,
@@ -3424,8 +3425,10 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	return;
       }
       break;
+
       case NoExpose:
       break;
+
       default:
 	return;
       }  // end switch
@@ -3757,7 +3760,6 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	return;
 	
       default:
-	;  // do nothing
 	break;
       }  // end switch
     }  // end while(true)
