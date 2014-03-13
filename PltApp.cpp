@@ -203,7 +203,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   int coarseLevel(0);
   int iCDerNum(pltAppState->CurrentDerivedNumber());
   string asCDer(pltAppState->CurrentDerived());
-  int fineLevel(pltAppState->MaxAllowableLevel());
+  //int fineLevel(pltAppState->MaxAllowableLevel());
+  int fineLevel(amrData.FinestLevel());
   const Array<Box> &onBox(amrData.ProbDomain());
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
     Real rFileMin, rFileMax;
@@ -334,8 +335,9 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   int minAllowableLevel = amrData.FinestContainingLevel(region, finestLevel);
 
   if(minAllowableLevel > maxlev) {
-    maxlev = minAllowableLevel;
-    cout << "**** Conflict with allowable levels and pixmap size:  using maxlev = "
+    //maxlev = minAllowableLevel;
+    minAllowableLevel = maxlev;
+    cout << "**** Conflict with allowable levels and max pixmap size:  using maxlev = "
          << maxlev << endl;
   }
   pltAppState->SetMinAllowableLevel(minAllowableLevel);
@@ -1630,7 +1632,8 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
     // set FILEGLOBALMINMAX  dont reset if already set
     FindAndSetMinMax(Amrvis::FILEGLOBALMINMAX, iFrame, asCDer, iCDerNum, onBox,
-	             levelZero, pltAppState->FinestLevel(), false);
+	             //levelZero, pltAppState->FinestLevel(), false);
+	             levelZero, amrData.FinestLevel(), false);
 
     // set FILESUBREGIONMINMAX  dont reset if already set
     FindAndSetMinMax(Amrvis::FILESUBREGIONMINMAX, iFrame, asCDer, iCDerNum, onSubregionBox,
