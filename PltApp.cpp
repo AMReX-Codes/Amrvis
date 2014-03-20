@@ -284,7 +284,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   std::ostringstream suffixout;
   suffixout << "Region:  " << maxDomain << "  Levels:  "
             << pltAppState->MinAllowableLevel() << ":"
-	    << pltAppState->MaxAllowableLevel();
+	    << pltAppState->MaxAllowableLevel()
+	    << "  Finest Level:  " << amrData.FinestLevel() << "  ";
   headerSuffix = suffixout.str();
   headerout.str(std::string());
   headerout << AVGlobals::StripSlashes(fileNames[currentFrame])
@@ -405,7 +406,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   std::ostringstream suffixout;
   suffixout << "Subregion:  " << maxDomain << "  Levels:  "
             << pltAppState->MinAllowableLevel() << ":"
-	    << pltAppState->MaxAllowableLevel();
+	    << pltAppState->MaxAllowableLevel()
+	    << "  Finest Level:  " << amrData.FinestLevel() << "  ";
   headerSuffix = suffixout.str();
   std::ostringstream headerout;
   headerout << AVGlobals::StripSlashes(fileNames[currentFrame])
