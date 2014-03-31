@@ -454,7 +454,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 // -------------------------------------------------------------------
 void PltApp::PltAppInit(bool bSubVolume) {
   int np;
-  const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+  AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   int minAllowableLevel(pltAppState->MinAllowableLevel());
   int maxAllowableLevel(pltAppState->MaxAllowableLevel());
   wRangeRadioButton.resize(Amrvis::BNUMBEROFMINMAX);
@@ -520,6 +520,28 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			      totalPalWidth, totalPalHeight,
 			      reserveSystemColors);
   
+  // ------------------------------- handle commprof timeline format
+  string pfVersion(amrData.PlotFileVersion());
+  if(pfVersion.compare(0, 16, "CommProfTimeline") == 0) {
+    cout << ">>>> CommProfTimeline file." << endl;
+    pltPaletteptr->SetTimeline(true);
+    pltAppState->SetFormatString("%2.0f");
+    string mfnFileName(amrData.GetFileName() + "/MPIFuncNames.txt");
+    std::ifstream mfnNames(mfnFileName.c_str());
+    map<int, string> mpiFNames;
+    if(mfnNames.fail()) {
+      cout << "**** Error:  could not open:  " << mfnFileName << endl;
+    } else {
+      int i;
+      string fName;
+      while( ! mfnNames.eof()) {
+        mfnNames >> i >> fName;
+	mpiFNames.insert(std::make_pair(i, fName));
+      }
+      pltPaletteptr->SetMPIFuncNames(mpiFNames);
+    }
+  }
+
   // gc for gxxor rubber band line drawing
   rbgc = XCreateGC(display, gaPtr->PRoot(), 0, NULL);
   XSetFunction(display, rbgc, GXxor);

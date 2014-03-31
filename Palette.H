@@ -47,7 +47,8 @@ class Palette {
     unsigned char *remapTable; // for remapping to a smaller color index set
     GraphicsAttributes *gaPtr;
     Array<XColor> sysccells;
-    bool bReadPalette;
+    map<int, string> mpiFuncNames;
+    bool bReadPalette, bTimeline;
   
     static Colormap systemColmap;
     PaletteType paletteType;
@@ -111,6 +112,10 @@ class Palette {
 		    unsigned char& b) const;
     //Pixel makePixel(unsigned char index) const;
     Pixel makePixel(unsigned char index) const { return pixelCache[index]; }
+
+    bool IsTimeline() const  { return bTimeline; }
+    void SetTimeline(bool b) { bTimeline = b;    }
+    void SetMPIFuncNames(const map<int, string> &mpifnames);
 
   private:
     void ReadPalette(const string &palNam, bool bRedraw = true);
