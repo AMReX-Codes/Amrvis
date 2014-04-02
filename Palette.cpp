@@ -728,7 +728,7 @@ void Palette::unpixelate(Pixel index, unsigned char &r,
 
 // -------------------------------------------------------------------
 void Palette::SetMPIFuncNames(const map<int, string> &mpifnames) {
-  mpiFuncNames.insert(std::make_pair(-1, "calculation"));
+  mpiFuncNames.insert(std::make_pair(-1, "non-mpi"));
   for(std::map<int, string>::const_iterator it = mpifnames.begin();
       it != mpifnames.end(); ++it)
   {
