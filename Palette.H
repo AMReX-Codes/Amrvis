@@ -94,8 +94,9 @@ class Palette {
     Real PaletteMin()    const    { return pmin; }
     Real PaletteMax()    const    { return pmax; }
     const Array<Real> &PaletteDataList() const { return dataList; }
-    string PaletteNumberFormat() { return defaultFormat; }
+    string PaletteNumberFormat()  { return defaultFormat; }
     XImage *GetPictureXImage();
+    Pixmap GetPixmap()   const   { return palPixmap; }
     unsigned char *RemapTable() const  { return remapTable;     }
 
     const Array<unsigned char> &theABuff() const { return abuff; }

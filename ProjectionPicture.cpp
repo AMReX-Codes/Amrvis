@@ -243,6 +243,7 @@ void ProjectionPicture::MakeSlices() {
   }
 }
 
+
 // -------------------------------------------------------------------
 void ProjectionPicture::MakePicture() {
 #ifdef BL_VOLUMERENDER

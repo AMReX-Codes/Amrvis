@@ -85,6 +85,12 @@ void WritePPMFile(const char *filename, XImage *image,
 		  int imagesizehoriz, int imagesizevert,
 		  const Palette& palette);
 
+void WritePPMFileAnnotated(const char *filename, XImage *image,
+		           int imagesizehoriz, int imagesizevert,
+		           const Palette& palette, int frame,
+			   Real time, GraphicsAttributes *gaPtr,
+			   const string &pltFilename, const string &derived);
+
 #endif
 
 

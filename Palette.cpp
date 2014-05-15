@@ -134,7 +134,7 @@ Palette::~Palette() {
 
 // -------------------------------------------------------------------
 void Palette::ExposePalette() {
-    XCopyArea(gaPtr->PDisplay(), palPixmap, palWindow, gaPtr->PGC(),
+  XCopyArea(gaPtr->PDisplay(), palPixmap, palWindow, gaPtr->PGC(),
 	    0, 0, totalPalWidth, totalPalHeight + 50, 0, 0);
 }
 
@@ -162,19 +162,21 @@ void Palette::Redraw() {
 void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
   int i, cy, palOffsetY(14);
   XWindowAttributes winAttribs;
+  Display *display(gaPtr->PDisplay());
+  GC gc(gaPtr->PGC());
 
   pmin = palMin;
   pmax = palMax;
   defaultFormat = numberFormat;
-  XClearWindow(gaPtr->PDisplay(), palWindow);
+  XClearWindow(display, palWindow);
 
   if(palPixmap == 0) {
-    palPixmap = XCreatePixmap(gaPtr->PDisplay(), palWindow, totalPalWidth,
+    palPixmap = XCreatePixmap(display, palWindow, totalPalWidth,
 			      totalPalHeight + 50, gaPtr->PDepth());
   }
-  XGetWindowAttributes(gaPtr->PDisplay(), palWindow, &winAttribs);
-  XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), AVBlackPixel());
-  XFillRectangle(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), 0, 0,
+  XGetWindowAttributes(display, palWindow, &winAttribs);
+  XSetForeground(display, gc, AVBlackPixel());
+  XFillRectangle(display, palPixmap, gc, 0, 0,
                  totalPalWidth, totalPalHeight + 50);
 
 # if (BL_SPACEDIM == 3)
@@ -183,26 +185,25 @@ void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
     for(i = paletteStart; i < totalColorSlots; ++i) {
       cy = ((totalColorSlots - 1) - i) + palOffsetY;
       // draw transparency as black
-      XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), AVBlackPixel());
+      XSetForeground(display, gc, AVBlackPixel());
       transpnt = (int) (zerolinex * (1.0 - transferArray[i]));
-      XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), 0, cy, transpnt, cy);
+      XDrawLine(display, palPixmap, gc, 0, cy, transpnt, cy);
 
       // draw color part of line
-      XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), makePixel(i));
-      XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), transpnt,
-                cy, palWidth, cy);
+      XSetForeground(display, gc, makePixel(i));
+      XDrawLine(display, palPixmap, gc, transpnt, cy, palWidth, cy);
     }
     
     // draw black line represening zero opacity
-    XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), AVBlackPixel());
-    XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), zerolinex, palOffsetY,
+    XSetForeground(display, gc, AVBlackPixel());
+    XDrawLine(display, palPixmap, gc, zerolinex, palOffsetY,
               zerolinex, colorSlots + palOffsetY);
 
 #else
     for(i = paletteStart; i < totalColorSlots; ++i) {
-      XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), makePixel(i));
+      XSetForeground(display, gc, makePixel(i));
       cy = ((totalColorSlots - 1) - i) + palOffsetY;
-      XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), 0, cy, palWidth, cy);
+      XDrawLine(display, palPixmap, gc, 0, cy, palWidth, cy);
     }
 #endif
 
@@ -210,7 +211,7 @@ void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
     int nPalVals(mpiFuncNames.size()), count(0), cftRange(palMax - palMin);
     int nameLocation, palLocation, cftIndex, noffX(18), noffY(20);
     Array<int> palIndex(mpiFuncNames.size(), 0);
-    XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), AVWhitePixel());
+    XSetForeground(display, gc, AVWhitePixel());
 
     for(std::map<int, string>::const_iterator it = mpiFuncNames.begin();
         it != mpiFuncNames.end(); ++it)
@@ -221,9 +222,9 @@ void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
                      (count * totalColorSlots / (nPalVals - 1)) + palOffsetY;
       palLocation  = (totalColorSlots - 1) -
                      (totalColorSlots * (cftIndex - palMin) / cftRange) + palOffsetY;
-      XDrawString(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), palWidth + noffX,
+      XDrawString(display, palPixmap, gc, palWidth + noffX,
 		  nameLocation, fname.c_str(), strlen(fname.c_str()));
-      XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(),
+      XDrawLine(display, palPixmap, gc,
                 palWidth + 2, palLocation, palWidth + noffX - 4, nameLocation - 4);
       palIndex[count] = paletteStart + (((cftIndex - palMin) / cftRange) * colorSlots);
       ++count;
@@ -242,9 +243,9 @@ void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
         iphi = (palIndex[ip] + palIndex[ip + 1]) / 2;
       }
       for(int i(iplo); i <= iphi; ++i) {
-        XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), makePixel(palIndex[ip]));
+        XSetForeground(display, gc, makePixel(palIndex[ip]));
         cy = ((totalColorSlots - 1) - i) + palOffsetY;
-        XDrawLine(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), 0, cy, palWidth, cy);
+        XDrawLine(display, palPixmap, gc, 0, cy, palWidth, cy);
       }
     }
 
@@ -253,14 +254,14 @@ void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
   } else {
     char palString[128];
     for(i = 0; i < dataList.size(); ++i) {
-      XSetForeground(gaPtr->PDisplay(), gaPtr->PGC(), AVWhitePixel());
+      XSetForeground(display, gc, AVWhitePixel());
       dataList[i] = palMin + (dataList.size() - 1 - i) *
 			     (palMax - palMin) / (dataList.size() - 1);
       if(i == 0) {
         dataList[i] = palMax;  // to avoid roundoff
       }
       sprintf(palString, numberFormat.c_str(), dataList[i]);
-      XDrawString(gaPtr->PDisplay(), palPixmap, gaPtr->PGC(), palWidth + 4,
+      XDrawString(display, palPixmap, gc, palWidth + 4,
 		  (i * colorSlots / (dataList.size() - 1)) + 20,
 		  palString, strlen(palString));
     }

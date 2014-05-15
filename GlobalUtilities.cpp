@@ -24,7 +24,8 @@ int skipPltLines;
 int boxColor;
 int maxPictureSize;
 Amrvis::FileType fileType;
-bool animation;
+bool bAnimation;
+bool bAnnotated;
 bool bCacheAnimFrames;
 Array<string> comlinefilename;
 string initialDerived;
@@ -564,6 +565,7 @@ void PrintUsage(char *exname) {
   cout << "                     Note:  slices are written in batch mode." << endl;
 #if(BL_SPACEDIM == 2)
   cout << "  -a                 load files as an animation." << endl; 
+  cout << "  -aa                load files as an animation with annotations." << endl; 
   cout << "  -anc               load files as an animation, dont cache frames." << endl; 
 #endif
   //cout << "  -sleep  n          specify sleep time (for attaching parallel debuggers)." << endl;
@@ -629,7 +631,8 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
   verbose = false;
   fileCount = 0;
   sleepTime = 0;
-  animation = false;
+  bAnimation = false;
+  bAnnotated = false;
   bCacheAnimFrames = false;
   specifiedMinMax = false;
   specifiedMin = 0.0;
@@ -693,11 +696,17 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       ++i;
 #    if (BL_SPACEDIM == 2)
     } else if(strcmp(argv[i],"-a") == 0) {
-      animation = true; 
+      bAnimation = true; 
+      bAnnotated = false;
+      bCacheAnimFrames = true;
+    } else if(strcmp(argv[i],"-aa") == 0) {
+      bAnimation = true; 
+      bAnnotated = true;
       bCacheAnimFrames = true;
     } else if(strcmp(argv[i],"-anc") == 0) {
-      animation = true; 
+      bAnimation = true; 
       bCacheAnimFrames = false;
+      bAnnotated = false;
 #   endif
     } else if(strcmp(argv[i],"-fab") == 0) {
       fileType = Amrvis::FAB;
@@ -1039,8 +1048,10 @@ void AVGlobals::SetSGIrgbFile() { SGIrgbfile = true; }
 void AVGlobals::ClearSGIrgbFile() { SGIrgbfile = false; }
 bool AVGlobals::IsSGIrgbFile() { return SGIrgbfile; }
 
-void AVGlobals::SetAnimation() { animation = true; }
-bool AVGlobals::IsAnimation()  { return animation; }
+void AVGlobals::SetAnimation() { bAnimation = true; }
+bool AVGlobals::IsAnimation()  { return bAnimation; }
+void AVGlobals::SetAnnotated() { bAnnotated = true; }
+bool AVGlobals::IsAnnotated()  { return bAnnotated; }
 bool AVGlobals::CacheAnimFrames()  { return bCacheAnimFrames; }
 
 Box AVGlobals::GetBoxFromCommandLine() { return comlinebox; }

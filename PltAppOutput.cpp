@@ -302,7 +302,16 @@ void PltApp::DoCreateAnimRGBFile() {
   if(AVGlobals::IsSGIrgbFile()) {
     WriteRGBFile(outFileName, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
   } else {
-    WritePPMFile(outFileName, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+    if(AVGlobals::IsAnnotated()) {
+      const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+      Real time(amrData.Time());
+      WritePPMFileAnnotated(outFileName, printImage, imageSizeX, imageSizeY,
+                            *pltPaletteptr, currentFrame, time, gaPtr,
+			    AVGlobals::StripSlashes(fileNames[currentFrame]),
+			    pltAppState->CurrentDerived());
+    } else {
+      WritePPMFile(outFileName, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
+    }
   }
 
 #if (BL_SPACEDIM == 2)

@@ -40,6 +40,8 @@ namespace AVGlobals {
 			 const Real &maxRayOpacityDef);
   void SetAnimation();
   bool IsAnimation();
+  void SetAnnotated();
+  bool IsAnnotated();
   bool CacheAnimFrames();
   void SetSGIrgbFile();
   void ClearSGIrgbFile();

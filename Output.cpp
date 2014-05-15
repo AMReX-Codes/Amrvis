@@ -8,6 +8,7 @@
 #include <X11/Xutil.h>
 
 #include <Output.H>
+#include <GraphicsAttributes.H>
 
 #include <fcntl.h>
 #include <unistd.h>
@@ -18,6 +19,7 @@
 #include <cmath>
 #include <cstdio>
 #include <cstdlib>
+#include <sstream>
 
 using std::hex;
 using std::dec;
@@ -160,7 +162,6 @@ void WritePSFile(const char *filename, XImage *image,
     charindex = 0;
     for(int i(0); i < imagesizehoriz; ++i) {
       //BL_ASSERT(charindex>8*imagesizehoriz+1);
-      //FIXME
       palette.unpixelate(XGetPixel(image, i, j), r, g, b);
       if(i % 10 == 0) {
         sprintf(buf+charindex, "\n");
@@ -320,9 +321,96 @@ void WritePPMFile(const char *filename, XImage *ximage,
     img << "P6" << endl << xsize << " " << ysize << endl << 255 << endl;
     img.write(reinterpret_cast<const char*>(ivdata), xsize*ysize*3);
     if( ! img) {
-      BoxLib::Error("failed to write on image file");
+      BoxLib::Error("WritePPMFile:  failed to write image file.");
     }
     delete [] ivdata;
+}
+
+
+// -------------------------------------------------------------------
+void WritePPMFileAnnotated(const char *filename, XImage *ximage,
+	                   int imagesizehoriz, int imagesizevert,
+	                   const Palette &palette, int frame,
+			   Real time, GraphicsAttributes *gaPtr,
+			   const string &pltFilename, const string &derived)
+{
+    std::ofstream img(filename, std::ios::binary);
+    if( ! img) {
+      cerr << "*** Error:  cannot create file:  " << filename << endl;
+      return;
+    }
+
+    Display *display(gaPtr->PDisplay());
+    GC gc(gaPtr->PGC());
+
+    int palWidth(palette.PaletteWidth()), palHeight(palette.PaletteHeight());
+    int borderL(40);
+    int borderR(palWidth + 48);
+    int borderT(40);
+    int borderB(40);
+    int xsize(imagesizehoriz),  ysize(imagesizevert);
+    int xsizeB(xsize + borderL + borderR), ysizeB(ysize + borderT + borderB);
+
+    Pixmap pMap(XCreatePixmap(display, XtWindow(gaPtr->PTopLevel()),
+                              xsize, ysize, gaPtr->PDepth()));
+    XPutImage(display, pMap, gc, ximage, 0, 0, 0, 0, xsize, ysize);
+
+    Pixmap pMapB(XCreatePixmap(display, XtWindow(gaPtr->PTopLevel()),
+                               xsizeB, ysizeB, gaPtr->PDepth()));
+
+    XSetForeground(display, gc, palette.AVBlackPixel());
+    XFillRectangle(display, pMapB, gc,  0, 0, xsizeB, ysizeB);
+
+    XSetForeground(display, gc, palette.AVWhitePixel());
+
+    std::ostringstream dataString;
+    dataString << std::setprecision(8) << pltFilename
+               << "    Frame = " << std::setw(3) << frame
+               << "    Time = " << time << " s";
+    XDrawString(display, pMapB, gc, borderL, 24, dataString.str().c_str(),
+                dataString.str().length());
+
+    int lineX(2 * borderL + xsize);
+    dataString.str(std::string());
+    dataString << derived;
+    XDrawString(display, pMapB, gc, lineX + 32, 24, dataString.str().c_str(),
+                dataString.str().length());
+    XDrawLine(display, pMapB, gc, lineX, 0, lineX, ysizeB);
+
+    XCopyArea(display, pMap, pMapB, gc, 0, 0, xsize, ysize, borderL, borderT);
+
+    Pixmap pMapPal(palette.GetPixmap());
+    XCopyArea(display, pMapPal, pMapB, gc, 0, 0, palWidth, palHeight,
+              lineX + 24, borderT - 12);
+
+    XImage *ximageB = XGetImage(display, pMapB, 0, 0, xsizeB, ysizeB, AllPlanes, ZPixmap);
+
+    Pixel index;
+    unsigned char r, g, b;
+    unsigned char *ivdataB = new unsigned char[3 * xsizeB * ysizeB];
+    int cnt(0);
+    for(int y(0); y < ysizeB; ++y) {
+      for(int x(0); x < xsizeB; ++x) {
+        index = XGetPixel(ximageB, x, y);
+        palette.unpixelate(index, r, g, b);
+        ivdataB[cnt++] = r;
+        ivdataB[cnt++] = g;
+        ivdataB[cnt++] = b;
+      }
+    }
+    BL_ASSERT(cnt == 3 * xsizeB * ysizeB);
+
+    img << "P6" << '\n' << xsizeB << ' ' << ysizeB << '\n' << 255 << '\n';
+    img.write(reinterpret_cast<const char*>(ivdataB), 3 * xsizeB * ysizeB);
+    if( ! img) {
+      BoxLib::Error("WritePPMFileAnnotated:  failed to write image file.");
+    }
+
+    delete [] ivdataB;
+    cout << "_here 3:  " << endl;
+    XFreePixmap(display, pMap);
+    XFreePixmap(display, pMapB);
+    cout << "_here 4:  " << endl;
 }
 
 
@@ -343,6 +431,7 @@ void WritePPMFile(const char *filename, XImage *ximage,
 #define _IOERR 0040
 #define _IORW  0400
 #endif
+
 
 // -------------------------------------------------------------
 IMAGE *iopen(const char *file, unsigned int type, unsigned int dim,
