@@ -50,6 +50,7 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
   int i;
   stringOk = true;
   datasetPoint = false;
+  bTimeline = pltappptr->IsTimeline();
   hDIR = hdir;
   vDIR = vdir;
   sDIR = sdir;
@@ -542,6 +543,13 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
                 dataStringArray[stringCount].color = palptr->WhiteIndex();
               }
 
+	      if(bTimeline) {
+		int mfnValue(dataPoint[c+ddl]);
+		string mfnString(pltappptr->GetMPIFName(mfnValue));
+                strcpy(dataStringArray[stringCount].ds, mfnString.c_str());
+                dataStringArray[stringCount].dslen = strlen(mfnString.c_str());
+	      }
+
               ++stringCount;
               
             }  // end for(c...)
@@ -599,6 +607,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
       }
     }
   }
+
 
   // now load into **StringLoc
   int sCount(0);

@@ -504,13 +504,14 @@ void PltApp::PltAppInit(bool bSubVolume) {
 
   pltAppState->SetFormatString(PltApp::initialFormatString);
 
-  infoShowing = false;
+  infoShowing     = false;
   contoursShowing = false;
   setRangeShowing = false;
   bSetRangeRedraw = false;
-  datasetShowing = false;
-  bFormatShowing = false;
-  writingRGB = false;
+  datasetShowing  = false;
+  bFormatShowing  = false;
+  writingRGB      = false;
+  bTimeline       = false;
 			  
   int palListLength(PALLISTLENGTH);
   int palWidth(PALWIDTH);
@@ -525,10 +526,12 @@ void PltApp::PltAppInit(bool bSubVolume) {
   if(pfVersion.compare(0, 16, "CommProfTimeline") == 0) {
     cout << ">>>> CommProfTimeline file." << endl;
     pltPaletteptr->SetTimeline(true);
-    pltAppState->SetFormatString("%2.0f");
+    pltAppState->SetFormatString("%8.0f");
+    pltAppState->SetShowingBoxes(false);
     string mfnFileName(amrData.GetFileName() + "/MPIFuncNames.txt");
     std::ifstream mfnNames(mfnFileName.c_str());
-    map<int, string> mpiFNames;
+    mpiFNames.insert(std::make_pair(-1, "non-mpi"));
+    bTimeline = true;
     if(mfnNames.fail()) {
       cout << "**** Error:  could not open:  " << mfnFileName << endl;
     } else {
@@ -3369,6 +3372,11 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	    dataValueString = "no data";
 	  }
 
+	  if(bTimeline) {
+	    int mfnValue(dataValue);
+	    dataValueString = GetMPIFName(mfnValue);
+	  }
+
 	  std::ostringstream buffout;
 	  if(goodIntersect) {
 	    buffout << '\n';
@@ -4360,6 +4368,17 @@ void PltApp::ShowFrame() {
   }
 #endif
 }  // end ShowFrame
+
+
+// -------------------------------------------------------------------
+string PltApp::GetMPIFName(int i) {
+  std::map<int, std::string>::iterator mfnIter = mpiFNames.find(i);
+  if(mfnIter != mpiFNames.end()) {
+    return(mfnIter->second);
+  } else {
+    return("Bad mpiFName value.");
+  }
+}
 
 
 // -------------------------------------------------------------------

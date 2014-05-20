@@ -249,8 +249,6 @@ void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
       }
     }
 
-
-
   } else {
     char palString[128];
     for(i = 0; i < dataList.size(); ++i) {
@@ -729,7 +727,6 @@ void Palette::unpixelate(Pixel index, unsigned char &r,
 
 // -------------------------------------------------------------------
 void Palette::SetMPIFuncNames(const map<int, string> &mpifnames) {
-  mpiFuncNames.insert(std::make_pair(-1, "non-mpi"));
   for(std::map<int, string>::const_iterator it = mpifnames.begin();
       it != mpifnames.end(); ++it)
   {

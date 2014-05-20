@@ -128,6 +128,9 @@ public:
   void DoForwardStep(int);
   void DoExposeRef(Widget = None, XtPointer = NULL, XtPointer = NULL);
 
+  string GetMPIFName(int i);
+  bool IsTimeline() const { return bTimeline; }
+
 #if (BL_SPACEDIM == 3)
   void DoExposeTransDA(Widget = None, XtPointer = NULL, XtPointer = NULL);
   ProjectionPicture *GetProjPicturePtr() const { return projPicturePtr; }
@@ -182,6 +185,8 @@ private:
   bool bSetRangeRedraw;
   bool datasetShowing, paletteDrawn, writingRGB, interfaceReady;
   bool paletteCBQ;
+  bool bTimeline;
+  map<int, string> mpiFNames;
   int servingButton;
   int currentFrame, animFrames, frameSpeed;
   int activeView;

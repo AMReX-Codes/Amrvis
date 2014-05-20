@@ -48,6 +48,8 @@ class Dataset {
   void DoQuitButton();
   void DoPixInput(XmDrawingAreaCallbackStruct *);
 
+  void SetTimeline(bool b) { bTimeline = b; }
+
   AmrPicture *GetAmrPicturePtr() { return amrPicturePtr; }
 
  private:
@@ -77,9 +79,10 @@ class Dataset {
   int		vIndexAreaWidth,  vIndexAreaStart, vIndexAreaEnd;
   int		xh, yv;
   Dimension	width, height;
-  StringLoc    **hIndexArray, **vIndexArray;    
-  bool datasetPoint;
+  StringLoc     **hIndexArray, **vIndexArray;    
+  bool          datasetPoint;
   Atom          WM_DELETE_WINDOW;
+  bool          bTimeline;
 
   
   Pixel blackIndex, whiteIndex;
@@ -94,11 +97,11 @@ class Dataset {
 
 
 class StringLoc {
-public:
-  StringLoc()  { }
-  ~StringLoc() { }
-  char ds[MAXSTRINGWIDTH];
-  int xloc, yloc, color, olflag, dslen;
+  public:
+    StringLoc()  { }
+    ~StringLoc() { }
+    char ds[MAXSTRINGWIDTH];
+    int xloc, yloc, color, olflag, dslen;
 };
 
 #endif
