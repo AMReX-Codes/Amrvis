@@ -60,6 +60,7 @@ bool givenInitialPlanes(false);
 IntVect ivInitialPlanes;
 AVGlobals::ENUserVectorNames givenUserVectorNames(AVGlobals::enUserNone);
 Array<string> userVectorNames(BL_SPACEDIM);
+bool newPltSet(false);
 
 char *FileTypeString[] = {
   "invalidtype", "fab", "multifab", "newplt"
@@ -718,6 +719,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       fileType = Amrvis::MULTIFAB;
     } else if(strcmp(argv[i],"-newplt") == 0) {
       fileType = Amrvis::NEWPLT;
+      newPltSet = true;
     } else if(strcmp(argv[i],"-v") == 0) {
       verbose = true;
     } else if(strcmp(argv[i], "-b") == 0 || strcmp(argv[i], "-subdomain") == 0) {
@@ -963,17 +965,27 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
     } else if(i < argc) {
       if(fileType == Amrvis::MULTIFAB) {
         // delete the _H from the filename if it is there
-        char *tempfilename = new char[strlen(argv[i]) + 1];
-        strcpy(tempfilename, argv[i]);
-        const char *uH = "_H";
-        char *fm2 = tempfilename + (strlen(tempfilename) - 2);
-        if(strcmp(uH, fm2) == 0) {
-          tempfilename[strlen(tempfilename) - 2] = '\0';
-        }
-        comlinefilename[fileCount] = tempfilename;
-	delete tempfilename;
+	string tempfilename(argv[i]);
+	int len(tempfilename.length());
+	if(len >= 3) {
+	  std::size_t found(tempfilename.find("_H", len - 2));
+	  if(found != std::string::npos) {
+	    len -= 2;
+	  }
+	}
+        comlinefilename[fileCount] = tempfilename.substr(0, len);
       } else {
         comlinefilename[fileCount] = argv[i];
+	// if filetypes not set, see if it is a fab file
+	if( ! newPltSet && fileType != Amrvis::MULTIFAB && fileType != Amrvis::FAB) {
+	  int len(comlinefilename[fileCount].length());
+	  if(len >= 5) {  // a.fab or larger
+	    std::size_t found(comlinefilename[fileCount].find(".fab", len - 4));
+	    if(found != std::string::npos) {
+	      fileType = Amrvis::FAB;
+	    }
+	  }
+	}
       }
       ++fileCount;
       givenFilename = true;
