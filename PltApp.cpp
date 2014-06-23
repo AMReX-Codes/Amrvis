@@ -528,6 +528,8 @@ void PltApp::PltAppInit(bool bSubVolume) {
     pltPaletteptr->SetTimeline(true);
     pltAppState->SetFormatString("%8.0f");
     pltAppState->SetShowingBoxes(false);
+
+    {
     string mfnFileName(amrData.GetFileName() + "/MPIFuncNames.txt");
     std::ifstream mfnNames(mfnFileName.c_str());
     mpiFNames.insert(std::make_pair(-1, "non-mpi"));
@@ -541,7 +543,26 @@ void PltApp::PltAppInit(bool bSubVolume) {
         mfnNames >> i >> fName;
 	mpiFNames.insert(std::make_pair(i, fName));
       }
+      mfnNames.close();
       pltPaletteptr->SetMPIFuncNames(mpiFNames);
+    }
+    }
+
+    {
+    string ntnFileName(amrData.GetFileName() + "/NameTagNames.txt");
+    std::ifstream ntnNames(ntnFileName.c_str());
+    if(ntnNames.fail()) {
+      cout << "**** Error:  could not open:  " << ntnFileName << endl;
+    } else {
+      int ntnSize(0), count(0);
+      ntnNames >> ntnSize >> nameTagMultiplier;
+      ntnNames.ignore(1, '\n');
+      nameTagNames.resize(ntnSize);
+      for(int i(0); i < nameTagNames.size(); ++i) {
+        std::getline(ntnNames, nameTagNames[i]);
+      }
+      ntnNames.close();
+    }
     }
   }
 
@@ -3373,8 +3394,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  }
 
 	  if(bTimeline) {
-	    int mfnValue(dataValue);
-	    dataValueString = GetMPIFName(mfnValue);
+	    dataValueString = GetMPIFName(dataValue);
 	  }
 
 	  std::ostringstream buffout;
@@ -4371,10 +4391,16 @@ void PltApp::ShowFrame() {
 
 
 // -------------------------------------------------------------------
-string PltApp::GetMPIFName(int i) {
+string PltApp::GetMPIFName(Real r) {
+  int i(r);
   std::map<int, std::string>::iterator mfnIter = mpiFNames.find(i);
   if(mfnIter != mpiFNames.end()) {
-    return(mfnIter->second);
+    if(mfnIter->second == "NameTag") {
+      int nt(lround((r - i) * nameTagMultiplier));
+      return(mfnIter->second + "::" + nameTagNames[nt]);
+    } else {
+      return(mfnIter->second);
+    }
   } else {
     return("Bad mpiFName value.");
   }

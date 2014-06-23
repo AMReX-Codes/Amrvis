@@ -407,10 +407,8 @@ void WritePPMFileAnnotated(const char *filename, XImage *ximage,
     }
 
     delete [] ivdataB;
-    cout << "_here 3:  " << endl;
     XFreePixmap(display, pMap);
     XFreePixmap(display, pMapB);
-    cout << "_here 4:  " << endl;
 }
 
 

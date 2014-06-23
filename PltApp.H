@@ -128,7 +128,7 @@ public:
   void DoForwardStep(int);
   void DoExposeRef(Widget = None, XtPointer = NULL, XtPointer = NULL);
 
-  string GetMPIFName(int i);
+  string GetMPIFName(Real r);
   bool IsTimeline() const { return bTimeline; }
 
 #if (BL_SPACEDIM == 3)
@@ -187,6 +187,8 @@ private:
   bool paletteCBQ;
   bool bTimeline;
   map<int, string> mpiFNames;
+  vector<string> nameTagNames;
+  Real nameTagMultiplier;
   int servingButton;
   int currentFrame, animFrames, frameSpeed;
   int activeView;

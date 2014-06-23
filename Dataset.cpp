@@ -544,8 +544,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
               }
 
 	      if(bTimeline) {
-		int mfnValue(dataPoint[c+ddl]);
-		string mfnString(pltappptr->GetMPIFName(mfnValue));
+		string mfnString(pltappptr->GetMPIFName(dataPoint[c+ddl]));
                 strcpy(dataStringArray[stringCount].ds, mfnString.c_str());
                 dataStringArray[stringCount].dslen = strlen(mfnString.c_str());
 	      }
