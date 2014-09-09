@@ -752,12 +752,12 @@ void PltApp::PltAppInit(bool bSubVolume) {
 
   // To create (or update and pop up) a dialog indicating the data values
   // of a selected region
-  label_str = XmStringCreateSimple("D");
+  label_str = XmStringCreateSimple("Ctrl+D");
   wid = XtVaCreateManagedWidget("Dataset...",
 				xmPushButtonGadgetClass, wMenuPulldown,
 				XmNmnemonic,  'D',
-				// XmNaccelerator, "<Key>D",
-				// XmNacceleratorText, label_str,
+			        XmNaccelerator, "Ctrl<Key>D",
+				XmNacceleratorText, label_str,
 				NULL);
   XmStringFree(label_str);
   AddStaticCallback(wid, XmNactivateCallback, &PltApp::DoDatasetButton);
