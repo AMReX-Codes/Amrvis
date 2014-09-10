@@ -196,6 +196,60 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   pltAppState->SetCurrentScale(currentScale);
   pltAppState->SetMaxScale(maxAllowableScale);
 
+  // ------------------------------- handle commprof timeline format
+  bTimeline       = false;
+  timelineMin     = -1;
+  timelineMax     = -1;
+  const string &pfVersion(amrData.PlotFileVersion());
+  if(pfVersion.compare(0, 16, "CommProfTimeline") == 0) {
+    cout << ">>>> CommProfTimeline file." << endl;
+    //pltPaletteptr->SetTimeline(true);
+    pltAppState->SetFormatString("%8.0f");
+    pltAppState->SetShowingBoxes(false);
+
+    {
+      string mfnFileName(amrData.GetFileName() + "/MPIFuncNames.txt");
+      std::ifstream mfnNames(mfnFileName.c_str());
+      mpiFNames.insert(std::make_pair(-1, "non-mpi"));
+      bTimeline = true;
+      if(mfnNames.fail()) {
+        cout << "**** Error:  could not open:  " << mfnFileName << endl;
+      } else {
+	int i;
+        string fName;
+        while( ! mfnNames.eof()) {
+          mfnNames >> i >> fName;
+	  SHOWVAL(i);
+	  mpiFNames.insert(std::make_pair(i, fName));
+	  timelineMax = std::max(i, timelineMax);
+        }
+        mfnNames.close();
+        //pltPaletteptr->SetMPIFuncNames(mpiFNames);
+    }
+    }
+
+    {
+    string ntnFileName(amrData.GetFileName() + "/NameTagNames.txt");
+    std::ifstream ntnNames(ntnFileName.c_str());
+    if(ntnNames.fail()) {
+      cout << "**** Error:  could not open:  " << ntnFileName << endl;
+    } else {
+      int ntnSize(0), count(0);
+      ntnNames >> ntnSize >> nameTagMultiplier;
+      ntnNames.ignore(1, '\n');
+      nameTagNames.resize(ntnSize);
+      for(int i(0); i < nameTagNames.size(); ++i) {
+        std::getline(ntnNames, nameTagNames[i]);
+      }
+      ntnNames.close();
+    }
+    }
+  }
+  SHOWVAL(timelineMin);
+  SHOWVAL(timelineMax);
+
+
+
   pltAppState->SetMinMaxRangeType(Amrvis::GLOBALMINMAX);
   Real rGlobalMin, rGlobalMax;
   rGlobalMin =  std::numeric_limits<Real>::max();
@@ -363,6 +417,58 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 			 pltParent->GetPltAppState()->CurrentScale());
   pltAppState->SetCurrentScale(currentScale);
   
+ // ------------------------------- handle commprof timeline format
+  bTimeline       = false;
+  timelineMin     = -1;
+  timelineMax     = -1;
+  const string &pfVersion(amrData.PlotFileVersion());
+  if(pfVersion.compare(0, 16, "CommProfTimeline") == 0) {
+    cout << ">>>> CommProfTimeline file." << endl;
+    //pltPaletteptr->SetTimeline(true);
+    pltAppState->SetFormatString("%8.0f");
+    pltAppState->SetShowingBoxes(false);
+
+    {
+      string mfnFileName(amrData.GetFileName() + "/MPIFuncNames.txt");
+      std::ifstream mfnNames(mfnFileName.c_str());
+      mpiFNames.insert(std::make_pair(-1, "non-mpi"));
+      bTimeline = true;
+      if(mfnNames.fail()) {
+        cout << "**** Error:  could not open:  " << mfnFileName << endl;
+      } else {
+        int i;
+        string fName;
+        while( ! mfnNames.eof()) {
+          mfnNames >> i >> fName;
+          SHOWVAL(i);
+          mpiFNames.insert(std::make_pair(i, fName));
+          timelineMax = std::max(i, timelineMax);
+        }
+        mfnNames.close();
+        //pltPaletteptr->SetMPIFuncNames(mpiFNames);
+    }
+    }
+
+    {
+    string ntnFileName(amrData.GetFileName() + "/NameTagNames.txt");
+    std::ifstream ntnNames(ntnFileName.c_str());
+    if(ntnNames.fail()) {
+      cout << "**** Error:  could not open:  " << ntnFileName << endl;
+    } else {
+      int ntnSize(0), count(0);
+      ntnNames >> ntnSize >> nameTagMultiplier;
+      ntnNames.ignore(1, '\n');
+      nameTagNames.resize(ntnSize);
+      for(int i(0); i < nameTagNames.size(); ++i) {
+        std::getline(ntnNames, nameTagNames[i]);
+      }
+      ntnNames.close();
+    }
+    }
+  }
+  SHOWVAL(timelineMin);
+  SHOWVAL(timelineMax);
+
 // ---------------
   Array<Box> onBox(pltAppState->MaxAllowableLevel() + 1);
   onBox[pltAppState->MaxAllowableLevel()] = maxDomain;
@@ -511,7 +617,6 @@ void PltApp::PltAppInit(bool bSubVolume) {
   datasetShowing  = false;
   bFormatShowing  = false;
   writingRGB      = false;
-  bTimeline       = false;
 			  
   int palListLength(PALLISTLENGTH);
   int palWidth(PALWIDTH);
@@ -522,6 +627,15 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			      reserveSystemColors);
   
   // ------------------------------- handle commprof timeline format
+  if(bTimeline) {
+    pltPaletteptr->SetTimeline(true);
+    pltPaletteptr->SetMPIFuncNames(mpiFNames);
+  }
+  /*
+  // ------------------------------- handle commprof timeline format
+  bTimeline       = false;
+  timelineMin     = -1;
+  timelineMax     = 41;
   string pfVersion(amrData.PlotFileVersion());
   if(pfVersion.compare(0, 16, "CommProfTimeline") == 0) {
     cout << ">>>> CommProfTimeline file." << endl;
@@ -530,21 +644,22 @@ void PltApp::PltAppInit(bool bSubVolume) {
     pltAppState->SetShowingBoxes(false);
 
     {
-    string mfnFileName(amrData.GetFileName() + "/MPIFuncNames.txt");
-    std::ifstream mfnNames(mfnFileName.c_str());
-    mpiFNames.insert(std::make_pair(-1, "non-mpi"));
-    bTimeline = true;
-    if(mfnNames.fail()) {
-      cout << "**** Error:  could not open:  " << mfnFileName << endl;
-    } else {
-      int i;
-      string fName;
-      while( ! mfnNames.eof()) {
-        mfnNames >> i >> fName;
-	mpiFNames.insert(std::make_pair(i, fName));
-      }
-      mfnNames.close();
-      pltPaletteptr->SetMPIFuncNames(mpiFNames);
+      string mfnFileName(amrData.GetFileName() + "/MPIFuncNames.txt");
+      std::ifstream mfnNames(mfnFileName.c_str());
+      mpiFNames.insert(std::make_pair(-1, "non-mpi"));
+      bTimeline = true;
+      if(mfnNames.fail()) {
+        cout << "**** Error:  could not open:  " << mfnFileName << endl;
+      } else {
+	int i;
+        string fName;
+        while( ! mfnNames.eof()) {
+          mfnNames >> i >> fName;
+	  mpiFNames.insert(std::make_pair(i, fName));
+	  timelineMax = std::max(i, timelineMax);
+        }
+        mfnNames.close();
+        pltPaletteptr->SetMPIFuncNames(mpiFNames);
     }
     }
 
@@ -565,6 +680,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
     }
     }
   }
+  */
 
   // gc for gxxor rubber band line drawing
   rbgc = XCreateGC(display, gaPtr->PRoot(), 0, NULL);
@@ -1355,15 +1471,15 @@ void PltApp::PltAppInit(bool bSubVolume) {
   XtPopup(wAmrVisTopLevel, XtGrabNone);
   
   pltPaletteptr->SetWindow(XtWindow(wPalArea));
-  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPalArea));
-  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotArea));
-  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wAmrVisTopLevel));
+  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPalArea), false);
+  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotArea), false);
+  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wAmrVisTopLevel), false);
   for(np = 0; np != Amrvis::NPLANES; ++np) {
-    pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotPlane[np]));
+    pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotPlane[np]), false);
   }
   
 #if (BL_SPACEDIM == 3)
-  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wTransDA));
+  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wTransDA), false);
 
   Dimension width, height;
   XtVaGetValues(wTransDA, XmNwidth, &width, XmNheight, &height, NULL);
@@ -1431,6 +1547,9 @@ void PltApp::FindAndSetMinMax(const Amrvis::MinMaxRangeType mmrangetype,
 		              const int coarselevel, const int finelevel,
 		              const bool resetIfSet)
 {
+  cout << "((((((((((((((((((((" << endl;
+      SHOWVAL(timelineMin);
+      SHOWVAL(timelineMax);
   Real rMin, rMax, levMin, levMax;
   bool isSet(pltAppState->IsSet(mmrangetype, framenumber, derivednumber));
   if(isSet == false || resetIfSet) {  // find and set the mins and maxes
@@ -1448,8 +1567,15 @@ void PltApp::FindAndSetMinMax(const Amrvis::MinMaxRangeType mmrangetype,
         rMax = max(rMax, levMax);
       }
     }
+    if(bTimeline) {
+      SHOWVAL(timelineMin);
+      SHOWVAL(timelineMax);
+      rMin = timelineMin;
+      rMax = timelineMax;
+    }
     pltAppState->SetMinMax(mmrangetype, framenumber, derivednumber, rMin, rMax);
   }
+  cout << "))))))))))))))))))))" << endl;
 }
 
 
@@ -2592,7 +2718,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 void PltApp::SetNewFormatString(const string &newformatstring) {
   pltAppState->SetFormatString(newformatstring);
   pltPaletteptr->SetFormat(newformatstring);
-  pltPaletteptr->Redraw();
+  pltPaletteptr->RedrawPalette();
   if(datasetShowing) {
     int hdir(-1), vdir(-1), sdir(-1);
     if(activeView == Amrvis::ZPLANE) { hdir = Amrvis::XDIR; vdir = Amrvis::YDIR; sdir = Amrvis::ZDIR; }

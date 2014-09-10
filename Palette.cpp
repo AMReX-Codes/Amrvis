@@ -148,18 +148,18 @@ void Palette::SetFormat(const string &newFormat) {
 // -------------------------------------------------------------------
 void Palette::SetReserveSystemColors(int reservesystemcolors) {
   reserveSystemColors = reservesystemcolors;
-  Draw(pmin, pmax, defaultFormat);  // use defaults
+  DrawPalette(pmin, pmax, defaultFormat);  // use defaults
 }
 
 
 // -------------------------------------------------------------------
-void Palette::Redraw() {
-  Draw(pmin, pmax, defaultFormat);  // use defaults
+void Palette::RedrawPalette() {
+  DrawPalette(pmin, pmax, defaultFormat);  // use defaults
 }
 
 
 // -------------------------------------------------------------------
-void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
+void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) {
   int i, cy, palOffsetY(14);
   XWindowAttributes winAttribs;
   Display *display(gaPtr->PDisplay());
@@ -229,11 +229,13 @@ void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
       palIndex[count] = paletteStart + (((cftIndex - palMin) / cftRange) * colorSlots);
       ++count;
     }
+    SHOWVAL(palMin);
+    SHOWVAL(palMax);
 
     int iplo, iphi;
     for(int ip(0); ip < palIndex.size(); ++ip) {
       if(ip == 0) {
-        iplo = 0;
+        iplo = paletteStart;
       } else {
         iplo = (palIndex[ip] + palIndex[ip - 1]) / 2;
       }
@@ -242,7 +244,12 @@ void Palette::Draw(Real palMin, Real palMax, const string &numberFormat) {
       } else {
         iphi = (palIndex[ip] + palIndex[ip + 1]) / 2;
       }
-      for(int i(iplo); i <= iphi; ++i) {
+      cout << "_here 00:  palIndex[" << ip << "] = " << palIndex[ip] << endl;
+      if(iphi > totalColorSlots - 1) {
+        cout << "_here 000:  tCS iphi = " << totalColorSlots << "  " << iphi << endl;
+      }
+      iphi = totalColorSlots - 1;
+      for(int i(iplo); i < iphi; ++i) {
         XSetForeground(display, gc, makePixel(palIndex[ip]));
         cy = ((totalColorSlots - 1) - i) + palOffsetY;
         XDrawLine(display, palPixmap, gc, 0, cy, palWidth, cy);
@@ -604,7 +611,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
   }
 
   if(bRedraw) {
-    Redraw();
+    RedrawPalette();
   }
 
   return(1);

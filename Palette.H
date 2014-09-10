@@ -66,13 +66,13 @@ class Palette {
     PaletteType GetPaletteType() { return paletteType; }
     Array<float> GetTransferArray() { return transferArray; }
     int   ReadSeqPalette(const string &fileName, bool bRedraw = true);
-    void  Draw(Real palMin, Real palMax, const string &numberFormat);
+    void  DrawPalette(Real palMin, Real palMax, const string &numberFormat);
     void  SetWindow(Window drawPaletteHere);
     void  SetWindowPalette(const string &palName, Window newPalWindow,
 			   bool bRedraw = true);
     void  ChangeWindowPalette(const string &palName, Window newPalWindow);
     void  ExposePalette();
-    void  Redraw();
+    void  RedrawPalette();
     void  SetReserveSystemColors(int reservesystemcolors);
     void  SetFormat(const string &newFormat);
     Colormap GetColormap() const  { return colmap; }

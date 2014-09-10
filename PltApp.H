@@ -186,6 +186,7 @@ private:
   bool datasetShowing, paletteDrawn, writingRGB, interfaceReady;
   bool paletteCBQ;
   bool bTimeline;
+  int  timelineMin, timelineMax;
   map<int, string> mpiFNames;
   vector<string> nameTagNames;
   Real nameTagMultiplier;

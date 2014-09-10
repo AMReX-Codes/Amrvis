@@ -584,7 +584,7 @@ void AmrPicture::APChangeContour(Amrvis::ContourType prevCType) {
     }
     if( ! pltAppPtr->PaletteDrawn()) {
       pltAppPtr->PaletteDrawn(true);
-      palPtr->Draw(minUsing, maxUsing, pltAppStatePtr->GetFormatString());
+      palPtr->DrawPalette(minUsing, maxUsing, pltAppStatePtr->GetFormatString());
     }
   }
   int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
@@ -982,7 +982,7 @@ void AmrPicture::APMakeImages(Palette *palptr) {
   }
   if( ! pltAppPtr->PaletteDrawn()) {
     pltAppPtr->PaletteDrawn(true);
-    palptr->Draw(minUsing, maxUsing, pltAppStatePtr->GetFormatString());
+    palptr->DrawPalette(minUsing, maxUsing, pltAppStatePtr->GetFormatString());
   }
   int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
   APDraw(minDrawnLevel, maxDrawnLevel);
