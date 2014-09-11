@@ -229,8 +229,6 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
       palIndex[count] = paletteStart + (((cftIndex - palMin) / cftRange) * colorSlots);
       ++count;
     }
-    SHOWVAL(palMin);
-    SHOWVAL(palMax);
 
     int iplo, iphi;
     for(int ip(0); ip < palIndex.size(); ++ip) {
@@ -243,10 +241,6 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
         iphi = palIndex[ip];
       } else {
         iphi = (palIndex[ip] + palIndex[ip + 1]) / 2;
-      }
-      cout << "_here 00:  palIndex[" << ip << "] = " << palIndex[ip] << endl;
-      if(iphi > totalColorSlots - 1) {
-        cout << "_here 000:  tCS iphi = " << totalColorSlots << "  " << iphi << endl;
       }
       iphi = totalColorSlots - 1;
       for(int i(iplo); i < iphi; ++i) {

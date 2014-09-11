@@ -162,9 +162,9 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   }
 
   if( ! dataServicesPtr[currentFrame]->CanDerive(PltApp::initialDerived)) {
-    cerr << "Bad initial derived:  cannot derive "
+    cerr << "Unknown initial derived:  "
 	 << PltApp::initialDerived << endl;
-    cerr << "defaulting to "
+    cerr << "Defaulting to:  "
 	 << dataServicesPtr[currentFrame]->PlotVarNames()[0] << endl;
     SetInitialDerived(dataServicesPtr[currentFrame]->PlotVarNames()[0]);
   }
@@ -219,7 +219,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
         string fName;
         while( ! mfnNames.eof()) {
           mfnNames >> i >> fName;
-	  SHOWVAL(i);
 	  mpiFNames.insert(std::make_pair(i, fName));
 	  timelineMax = std::max(i, timelineMax);
         }
@@ -245,9 +244,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
     }
     }
   }
-  SHOWVAL(timelineMin);
-  SHOWVAL(timelineMax);
-
 
 
   pltAppState->SetMinMaxRangeType(Amrvis::GLOBALMINMAX);
@@ -440,7 +436,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
         string fName;
         while( ! mfnNames.eof()) {
           mfnNames >> i >> fName;
-          SHOWVAL(i);
           mpiFNames.insert(std::make_pair(i, fName));
           timelineMax = std::max(i, timelineMax);
         }
@@ -466,8 +461,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     }
     }
   }
-  SHOWVAL(timelineMin);
-  SHOWVAL(timelineMax);
 
 // ---------------
   Array<Box> onBox(pltAppState->MaxAllowableLevel() + 1);
@@ -1547,9 +1540,6 @@ void PltApp::FindAndSetMinMax(const Amrvis::MinMaxRangeType mmrangetype,
 		              const int coarselevel, const int finelevel,
 		              const bool resetIfSet)
 {
-  cout << "((((((((((((((((((((" << endl;
-      SHOWVAL(timelineMin);
-      SHOWVAL(timelineMax);
   Real rMin, rMax, levMin, levMax;
   bool isSet(pltAppState->IsSet(mmrangetype, framenumber, derivednumber));
   if(isSet == false || resetIfSet) {  // find and set the mins and maxes
@@ -1568,14 +1558,11 @@ void PltApp::FindAndSetMinMax(const Amrvis::MinMaxRangeType mmrangetype,
       }
     }
     if(bTimeline) {
-      SHOWVAL(timelineMin);
-      SHOWVAL(timelineMax);
       rMin = timelineMin;
       rMax = timelineMax;
     }
     pltAppState->SetMinMax(mmrangetype, framenumber, derivednumber, rMin, rMax);
   }
-  cout << "))))))))))))))))))))" << endl;
 }
 
 

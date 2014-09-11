@@ -348,11 +348,11 @@ void BatchFunctions() {
     string derived(AVGlobals::GetInitialDerived());
     if( ! dataServices.CanDerive(derived)) {
       if(ParallelDescriptor::IOProcessor()) {
-        cerr << "Bad initial derived:  cannot derive " << derived << endl;
+        cerr << "Unknown initial derived:  " << derived << endl;
       }
       derived = dataServices.PlotVarNames()[0];
       if(ParallelDescriptor::IOProcessor()) {
-        cerr << "Defaulting to " << derived << endl;
+        cerr << "Defaulting to:  " << derived << endl;
       }
       AVGlobals::SetInitialDerived(derived);
     }
