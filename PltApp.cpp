@@ -223,7 +223,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 	  timelineMax = std::max(i, timelineMax);
         }
         mfnNames.close();
-        //pltPaletteptr->SetMPIFuncNames(mpiFNames);
     }
     }
 
@@ -270,9 +269,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 	  string si(ss.substr(qpos + 2, ss.length() - qpos + 2));
 	  std::stringstream iString(si);
 	  iString >> i;
-
-	  cout << ")))) fName i = " << fName << " | " << i << endl;
-
 	  regNames.insert(std::make_pair(i, fName));
 	  regionsMax = std::max(i, regionsMax);
         }
