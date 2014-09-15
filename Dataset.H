@@ -49,6 +49,7 @@ class Dataset {
   void DoPixInput(XmDrawingAreaCallbackStruct *);
 
   void SetTimeline(bool b) { bTimeline = b; }
+  void SetRegions(bool b)  { bRegions  = b; }
 
   AmrPicture *GetAmrPicturePtr() { return amrPicturePtr; }
 
@@ -82,7 +83,7 @@ class Dataset {
   StringLoc     **hIndexArray, **vIndexArray;    
   bool          datasetPoint;
   Atom          WM_DELETE_WINDOW;
-  bool          bTimeline;
+  bool          bTimeline, bRegions;
 
   
   Pixel blackIndex, whiteIndex;

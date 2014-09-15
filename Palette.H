@@ -48,7 +48,8 @@ class Palette {
     GraphicsAttributes *gaPtr;
     Array<XColor> sysccells;
     map<int, string> mpiFuncNames;
-    bool bReadPalette, bTimeline;
+    map<int, string> regionNames;
+    bool bReadPalette, bTimeline, bRegions;
   
     static Colormap systemColmap;
     PaletteType paletteType;
@@ -116,7 +117,10 @@ class Palette {
 
     bool IsTimeline() const  { return bTimeline; }
     void SetTimeline(bool b) { bTimeline = b;    }
+    bool IsRegions() const   { return bRegions; }
+    void SetRegions(bool b)  { bRegions = b;    }
     void SetMPIFuncNames(const map<int, string> &mpifnames);
+    void SetRegionNames(const map<int, string> &mpifnames);
 
   private:
     void ReadPalette(const string &palNam, bool bRedraw = true);

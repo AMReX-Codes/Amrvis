@@ -25,6 +25,7 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
 {
   bReadPalette = true;
   bTimeline = false;
+  bRegions = false;
   totalColorSlots = AVGlobals::MaxPaletteIndex() + 1;
   sysccells.resize(totalColorSlots);
   transferArray.resize(totalColorSlots);
@@ -88,6 +89,7 @@ Palette::Palette(int datalistlength, int width, int totalwidth,
   gaPtr = 0;
   bReadPalette = true;
   bTimeline = false;
+  bRegions = false;
   //  bool visTrueColor = false;
   totalColorSlots = AVGlobals::MaxPaletteIndex() + 1;
   sysccells.resize(totalColorSlots);
@@ -215,6 +217,49 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
 
     for(std::map<int, string>::const_iterator it = mpiFuncNames.begin();
         it != mpiFuncNames.end(); ++it)
+    {
+      cftIndex = it->first;
+      string fname(it->second);
+      nameLocation = (totalColorSlots - 1) -
+                     (count * totalColorSlots / (nPalVals - 1)) + palOffsetY;
+      palLocation  = (totalColorSlots - 1) -
+                     (totalColorSlots * (cftIndex - palMin) / cftRange) + palOffsetY;
+      XDrawString(display, palPixmap, gc, palWidth + noffX,
+		  nameLocation, fname.c_str(), strlen(fname.c_str()));
+      XDrawLine(display, palPixmap, gc,
+                palWidth + 2, palLocation, palWidth + noffX - 4, nameLocation - 4);
+      palIndex[count] = paletteStart + (((cftIndex - palMin) / cftRange) * colorSlots);
+      ++count;
+    }
+
+    int iplo, iphi;
+    for(int ip(0); ip < palIndex.size(); ++ip) {
+      if(ip == 0) {
+        iplo = paletteStart;
+      } else {
+        iplo = (palIndex[ip] + palIndex[ip - 1]) / 2;
+      }
+      if(ip == palIndex.size() - 1) {
+        iphi = palIndex[ip];
+      } else {
+        iphi = (palIndex[ip] + palIndex[ip + 1]) / 2;
+      }
+      iphi = totalColorSlots - 1;
+      for(int i(iplo); i < iphi; ++i) {
+        XSetForeground(display, gc, makePixel(palIndex[ip]));
+        cy = ((totalColorSlots - 1) - i) + palOffsetY;
+        XDrawLine(display, palPixmap, gc, 0, cy, palWidth, cy);
+      }
+    }
+
+  } else if(bRegions) {
+    int nPalVals(regionNames.size()), count(0), cftRange(palMax - palMin);
+    int nameLocation, palLocation, cftIndex, noffX(18), noffY(20);
+    Array<int> palIndex(regionNames.size(), 0);
+    XSetForeground(display, gc, AVWhitePixel());
+
+    for(std::map<int, string>::const_iterator it = regionNames.begin();
+        it != regionNames.end(); ++it)
     {
       cftIndex = it->first;
       string fname(it->second);
@@ -736,6 +781,14 @@ void Palette::SetMPIFuncNames(const map<int, string> &mpifnames) {
 }
 
 
+// -------------------------------------------------------------------
+void Palette::SetRegionNames(const map<int, string> &regnames) {
+  for(std::map<int, string>::const_iterator it = regnames.begin();
+      it != regnames.end(); ++it)
+  {
+    regionNames.insert(*it);
+  }
+}
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
 

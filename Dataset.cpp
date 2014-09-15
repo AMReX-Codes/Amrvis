@@ -51,6 +51,7 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
   stringOk = true;
   datasetPoint = false;
   bTimeline = pltappptr->IsTimeline();
+  bRegions = pltappptr->IsRegions();
   hDIR = hdir;
   vDIR = vdir;
   sDIR = sdir;
@@ -545,6 +546,12 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
 
 	      if(bTimeline) {
 		string mfnString(pltappptr->GetMPIFName(dataPoint[c+ddl]));
+                strcpy(dataStringArray[stringCount].ds, mfnString.c_str());
+                dataStringArray[stringCount].dslen = strlen(mfnString.c_str());
+	      }
+
+	      if(bRegions) {
+		string mfnString(pltappptr->GetRegionName(dataPoint[c+ddl]));
                 strcpy(dataStringArray[stringCount].ds, mfnString.c_str());
                 dataStringArray[stringCount].dslen = strlen(mfnString.c_str());
 	      }

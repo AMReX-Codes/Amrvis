@@ -245,6 +245,42 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
     }
   }
 
+  if(pfVersion.compare(0, 11, "RegionsProf") == 0) {
+    cout << ">>>> RegionsProf file." << endl;
+    pltAppState->SetFormatString("%12.0f");
+    pltAppState->SetShowingBoxes(false);
+
+    {
+      string regFileName(amrData.GetFileName() + "/RegionNames.txt");
+      std::ifstream rNames(regFileName.c_str());
+      regNames.insert(std::make_pair(-2, "not in region"));
+      regNames.insert(std::make_pair(-1, "__NoRegion__"));
+      bRegions = true;
+      if(rNames.fail()) {
+        cout << "**** Error:  could not open:  " << regFileName << endl;
+      } else {
+	int i;
+        string fName;
+	char s[Amrvis::BUFSIZE];
+        while( ! rNames.getline(s, Amrvis::BUFSIZE).eof()) {  // deal with quoted names
+	  string ss(s);
+	  const string quote("\"");
+	  unsigned int qpos(ss.rfind(quote));
+	  fName = ss.substr(1, qpos - 1);
+	  string si(ss.substr(qpos + 2, ss.length() - qpos + 2));
+	  std::stringstream iString(si);
+	  iString >> i;
+
+	  cout << ")))) fName i = " << fName << " | " << i << endl;
+
+	  regNames.insert(std::make_pair(i, fName));
+	  regionsMax = std::max(i, regionsMax);
+        }
+        rNames.close();
+    }
+    }
+  }
+
 
   pltAppState->SetMinMaxRangeType(Amrvis::GLOBALMINMAX);
   Real rGlobalMin, rGlobalMax;
@@ -624,6 +660,13 @@ void PltApp::PltAppInit(bool bSubVolume) {
     pltPaletteptr->SetTimeline(true);
     pltPaletteptr->SetMPIFuncNames(mpiFNames);
   }
+
+  // ------------------------------- handle commprof regions format
+  if(bRegions) {
+    pltPaletteptr->SetRegions(true);
+    pltPaletteptr->SetRegionNames(regNames);
+  }
+
   /*
   // ------------------------------- handle commprof timeline format
   bTimeline       = false;
@@ -3510,6 +3553,10 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	    dataValueString = GetMPIFName(dataValue);
 	  }
 
+	  if(bRegions) {
+	    dataValueString = GetRegionName(dataValue);
+	  }
+
 	  std::ostringstream buffout;
 	  if(goodIntersect) {
 	    buffout << '\n';
@@ -4516,6 +4563,18 @@ string PltApp::GetMPIFName(Real r) {
     }
   } else {
     return("Bad mpiFName value.");
+  }
+}
+
+
+// -------------------------------------------------------------------
+string PltApp::GetRegionName(Real r) {
+  int i(r);
+  std::map<int, std::string>::iterator regIter = regNames.find(i);
+  if(regIter != regNames.end()) {
+    return(regIter->second);
+  } else {
+    return("Bad regName value.");
   }
 }
 

@@ -129,7 +129,9 @@ public:
   void DoExposeRef(Widget = None, XtPointer = NULL, XtPointer = NULL);
 
   string GetMPIFName(Real r);
+  string GetRegionName(Real r);
   bool IsTimeline() const { return bTimeline; }
+  bool IsRegions() const  { return bRegions; }
 
 #if (BL_SPACEDIM == 3)
   void DoExposeTransDA(Widget = None, XtPointer = NULL, XtPointer = NULL);
@@ -185,9 +187,11 @@ private:
   bool bSetRangeRedraw;
   bool datasetShowing, paletteDrawn, writingRGB, interfaceReady;
   bool paletteCBQ;
-  bool bTimeline;
+  bool bTimeline, bRegions;
   int  timelineMin, timelineMax;
+  int  regionsMin, regionsMax;
   map<int, string> mpiFNames;
+  map<int, string> regNames;
   vector<string> nameTagNames;
   Real nameTagMultiplier;
   int servingButton;
