@@ -244,6 +244,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
     }
   }
 
+  bRegions = false;
   if(pfVersion.compare(0, 11, "RegionsProf") == 0) {
     cout << ">>>> RegionsProf file." << endl;
     pltAppState->SetFormatString("%12.0f");
@@ -494,6 +495,40 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     }
   }
 
+  bRegions = false;
+  if(pfVersion.compare(0, 11, "RegionsProf") == 0) {
+    cout << ">>>> RegionsProf file." << endl;
+    pltAppState->SetFormatString("%12.0f");
+    pltAppState->SetShowingBoxes(false);
+
+    {
+      string regFileName(amrData.GetFileName() + "/RegionNames.txt");
+      std::ifstream rNames(regFileName.c_str());
+      regNames.insert(std::make_pair(-2, "not in region"));
+      regNames.insert(std::make_pair(-1, "__NoRegion__"));
+      bRegions = true;
+      if(rNames.fail()) {
+        cout << "**** Error:  could not open:  " << regFileName << endl;
+      } else {
+	int i;
+        string fName;
+	char s[Amrvis::BUFSIZE];
+        while( ! rNames.getline(s, Amrvis::BUFSIZE).eof()) {  // deal with quoted names
+	  string ss(s);
+	  const string quote("\"");
+	  unsigned int qpos(ss.rfind(quote));
+	  fName = ss.substr(1, qpos - 1);
+	  string si(ss.substr(qpos + 2, ss.length() - qpos + 2));
+	  std::stringstream iString(si);
+	  iString >> i;
+	  regNames.insert(std::make_pair(i, fName));
+	  regionsMax = std::max(i, regionsMax);
+        }
+        rNames.close();
+    }
+    }
+  }
+
 // ---------------
   Array<Box> onBox(pltAppState->MaxAllowableLevel() + 1);
   onBox[pltAppState->MaxAllowableLevel()] = maxDomain;
@@ -662,57 +697,6 @@ void PltApp::PltAppInit(bool bSubVolume) {
     pltPaletteptr->SetRegions(true);
     pltPaletteptr->SetRegionNames(regNames);
   }
-
-  /*
-  // ------------------------------- handle commprof timeline format
-  bTimeline       = false;
-  timelineMin     = -1;
-  timelineMax     = 41;
-  string pfVersion(amrData.PlotFileVersion());
-  if(pfVersion.compare(0, 16, "CommProfTimeline") == 0) {
-    cout << ">>>> CommProfTimeline file." << endl;
-    pltPaletteptr->SetTimeline(true);
-    pltAppState->SetFormatString("%8.0f");
-    pltAppState->SetShowingBoxes(false);
-
-    {
-      string mfnFileName(amrData.GetFileName() + "/MPIFuncNames.txt");
-      std::ifstream mfnNames(mfnFileName.c_str());
-      mpiFNames.insert(std::make_pair(-1, "non-mpi"));
-      bTimeline = true;
-      if(mfnNames.fail()) {
-        cout << "**** Error:  could not open:  " << mfnFileName << endl;
-      } else {
-	int i;
-        string fName;
-        while( ! mfnNames.eof()) {
-          mfnNames >> i >> fName;
-	  mpiFNames.insert(std::make_pair(i, fName));
-	  timelineMax = std::max(i, timelineMax);
-        }
-        mfnNames.close();
-        pltPaletteptr->SetMPIFuncNames(mpiFNames);
-    }
-    }
-
-    {
-    string ntnFileName(amrData.GetFileName() + "/NameTagNames.txt");
-    std::ifstream ntnNames(ntnFileName.c_str());
-    if(ntnNames.fail()) {
-      cout << "**** Error:  could not open:  " << ntnFileName << endl;
-    } else {
-      int ntnSize(0), count(0);
-      ntnNames >> ntnSize >> nameTagMultiplier;
-      ntnNames.ignore(1, '\n');
-      nameTagNames.resize(ntnSize);
-      for(int i(0); i < nameTagNames.size(); ++i) {
-        std::getline(ntnNames, nameTagNames[i]);
-      }
-      ntnNames.close();
-    }
-    }
-  }
-  */
 
   // gc for gxxor rubber band line drawing
   rbgc = XCreateGC(display, gaPtr->PRoot(), 0, NULL);
