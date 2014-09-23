@@ -678,10 +678,13 @@ void PltApp::PltAppInit(bool bSubVolume) {
   bFormatShowing  = false;
   writingRGB      = false;
 			  
-  int palListLength(PALLISTLENGTH);
-  int palWidth(PALWIDTH);
-  int totalPalWidth(TOTALPALWIDTH);
-  int totalPalHeight(TOTALPALHEIGHT);
+  int palListLength(AVPalette::PALLISTLENGTH);
+  int palWidth(AVPalette::PALWIDTH);
+  int totalPalWidth(AVPalette::TOTALPALWIDTH);
+  int totalPalHeight(AVPalette::TOTALPALHEIGHT);
+  if(bRegions) {
+    totalPalWidth += 100;
+  }
   pltPaletteptr = new Palette(wTopLevel, palListLength, palWidth,
 			      totalPalWidth, totalPalHeight,
 			      reserveSystemColors);
@@ -1032,8 +1035,8 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			    XmNleftAttachment,   XmATTACH_FORM,
 			    XmNrightAttachment,  XmATTACH_FORM,
 			    XmNbottomAttachment, XmATTACH_FORM,
-			    XmNwidth,		 150,
-			    XmNheight,		 290,
+			    XmNwidth,		 totalPalWidth,
+			    XmNheight,		 AVPalette::TOTALPALHEIGHT,
 			    NULL);
   AddStaticEventHandler(wPalArea, ExposureMask, &PltApp::DoExposePalette);
 
@@ -1068,7 +1071,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			    NULL);
 
   unsigned long wc;
-  int wcfWidth(150), wcfHeight(260);
+  int wcfWidth(totalPalWidth), wcfHeight(AVPalette::TOTALPALHEIGHT);
   int centerX(wcfWidth / 2), centerY((wcfHeight / 2) - 16);
   int controlSize(16);
   int halfbutton(controlSize / 2);

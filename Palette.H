@@ -14,11 +14,13 @@ using std::string;
 #include <Array.H>
 #include <ParallelDescriptor.H>
 
+namespace AVPalette {
 const int PALLISTLENGTH   = 8;
 const int PALWIDTH        = 24;
 const int TEXTCOLOR       = 224;
 const int TOTALPALHEIGHT  = 280;
 const int TOTALPALWIDTH   = 150;
+}
 
 #include <X11/Intrinsic.h>
 

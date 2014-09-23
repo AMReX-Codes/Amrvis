@@ -396,7 +396,8 @@ void BatchFunctions() {
       int iBlackIndex(0);
       int iWhiteIndex(1);
       int iColorSlots(AVGlobals::MaxPaletteIndex() + 1 - iPaletteStart);
-      Palette volPal(PALLISTLENGTH, PALWIDTH, TOTALPALWIDTH, TOTALPALHEIGHT, 0);
+      Palette volPal(AVPalette::PALLISTLENGTH, AVPalette::PALWIDTH,
+                     AVPalette::TOTALPALWIDTH, AVPalette::TOTALPALHEIGHT, 0);
       if(ParallelDescriptor::IOProcessor()) {
         cout << "_in BatchFunctions:  palette name = "
              << AVGlobals::GetPaletteName() << endl;
