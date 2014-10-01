@@ -253,8 +253,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
     {
       string regFileName(amrData.GetFileName() + "/RegionNames.txt");
       std::ifstream rNames(regFileName.c_str());
-      regNames.insert(std::make_pair(-2, "not in region"));
-      regNames.insert(std::make_pair(-1, "__NoRegion__"));
+      regNames.insert(std::make_pair(-1, "not in region"));
       bRegions = true;
       if(rNames.fail()) {
         cout << "**** Error:  could not open:  " << regFileName << endl;
@@ -504,8 +503,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     {
       string regFileName(amrData.GetFileName() + "/RegionNames.txt");
       std::ifstream rNames(regFileName.c_str());
-      regNames.insert(std::make_pair(-2, "not in region"));
-      regNames.insert(std::make_pair(-1, "__NoRegion__"));
+      regNames.insert(std::make_pair(-1, "not in region"));
       bRegions = true;
       if(rNames.fail()) {
         cout << "**** Error:  could not open:  " << regFileName << endl;
