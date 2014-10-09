@@ -200,7 +200,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   bTimeline       = false;
   timelineMin     = -1;
   timelineMax     = -1;
-  const string &pfVersion(amrData.PlotFileVersion());
+  const string pfVersion(amrData.PlotFileVersion());
   if(pfVersion.compare(0, 16, "CommProfTimeline") == 0) {
     cout << ">>>> CommProfTimeline file." << endl;
     //pltPaletteptr->SetTimeline(true);
@@ -449,7 +449,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   bTimeline       = false;
   timelineMin     = -1;
   timelineMax     = -1;
-  const string &pfVersion(amrData.PlotFileVersion());
+  const string pfVersion(amrData.PlotFileVersion());
   if(pfVersion.compare(0, 16, "CommProfTimeline") == 0) {
     cout << ">>>> CommProfTimeline file." << endl;
     //pltPaletteptr->SetTimeline(true);
