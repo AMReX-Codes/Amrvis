@@ -9,8 +9,8 @@ PROFILE   = FALSE
 COMP      = g++
 FCOMP     = gfortran
 
-DEBUG     = FALSE
 DEBUG     = TRUE
+DEBUG     = FALSE
 
 DIM       = 3
 DIM       = 2
@@ -43,6 +43,13 @@ INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/Extern/amrdata
 DEFINES += -DBL_PARALLEL_IO
 
 ############################################### x includes and libraries
+
+ifeq ($(__gcc_major_version),4)
+  ifeq ($(__gcc_minor_version),9)
+    LIBRARIES += -lquadmath
+  endif
+endif
+
 ifeq ($(MACHINE), OSF1)
   LIBRARIES += -lXm -lXt -lX11
 endif
