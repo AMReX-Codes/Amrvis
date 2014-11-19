@@ -36,8 +36,6 @@ HERE = .
 
 INCLUDE_LOCATIONS += $(HERE)
 INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/C_BaseLib
-INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/C_AMRLib
-INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/C_BoundaryLib
 INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/Extern/amrdata
 
 DEFINES += -DBL_PARALLEL_IO
@@ -134,20 +132,17 @@ endif
 
 include $(HERE)/Make.package
 include $(BOXLIB_HOME)/Src/C_BaseLib/Make.package
-#include $(BOXLIB_HOME)/Src/C_AMRLib/Make.package
-#include $(BOXLIB_HOME)/Src/C_BoundaryLib/Make.package
 include $(BOXLIB_HOME)/Src/Extern/amrdata/Make.package
 
 VPATH_LOCATIONS += $(HERE)
 VPATH_LOCATIONS += $(BOXLIB_HOME)/Src/C_BaseLib
-VPATH_LOCATIONS += $(BOXLIB_HOME)/Src/C_AMRLib
-VPATH_LOCATIONS += $(BOXLIB_HOME)/Src/C_BoundaryLib
 VPATH_LOCATIONS += $(BOXLIB_HOME)/Src/Extern/amrdata
 
 vpath %.cpp $(VPATH_LOCATIONS)
 vpath %.H   $(VPATH_LOCATIONS)
 vpath %.F   $(VPATH_LOCATIONS)
 vpath %.f   $(VPATH_LOCATIONS)
+vpath %.f90 $(VPATH_LOCATIONS)
 vpath %.a   $(LIBRARY_LOCATIONS)
 
 all: $(executable)

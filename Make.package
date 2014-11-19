@@ -15,9 +15,6 @@ CEXE_sources += AmrPicture.cpp AmrVisTool.cpp		\
 		XYPlotDataList.cpp XYPlotParam.cpp XYPlotWin.cpp        \
 		PltAppState.cpp
 
-CEXE_headers += StateData.H StateDescriptor.H BCRec.H
-CEXE_sources += StateData.cpp StateDescriptor.cpp BCRec.cpp
-
 ifeq ($(DIM),3)
   ifeq ($(USE_VOLRENDER), TRUE)
     CEXE_headers += VolRender.H
