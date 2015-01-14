@@ -55,7 +55,7 @@ ifeq ($(MACHINE), Linux)
   INCLUDE_LOCATIONS += /usr/include/Xm
   INCLUDE_LOCATIONS += /usr/include/
 
-  LIBRARIES += -lXm -lXp -lXt -lXext -lSM -lICE -lXpm -lX11
+  LIBRARIES += -lXm -lXt -lXext -lSM -lICE -lXpm -lX11
 endif
 
 ifeq ($(MACHINE), AIX)
