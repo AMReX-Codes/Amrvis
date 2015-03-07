@@ -192,8 +192,8 @@ private:
   int  regionsMin, regionsMax;
   map<int, string> mpiFNames;
   map<int, string> regNames;
-  vector<string> nameTagNames;
-  Real nameTagMultiplier;
+  vector<string> nameTagNames, barrierNames;
+  Real nameTagMultiplier, barrierMultiplier;
   int servingButton;
   int currentFrame, animFrames, frameSpeed;
   int activeView;

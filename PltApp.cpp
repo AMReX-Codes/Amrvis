@@ -223,24 +223,41 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 	  timelineMax = std::max(i, timelineMax);
         }
         mfnNames.close();
-    }
+      }
     }
 
     {
-    string ntnFileName(amrData.GetFileName() + "/NameTagNames.txt");
-    std::ifstream ntnNames(ntnFileName.c_str());
-    if(ntnNames.fail()) {
-      cout << "**** Error:  could not open:  " << ntnFileName << endl;
-    } else {
-      int ntnSize(0), count(0);
-      ntnNames >> ntnSize >> nameTagMultiplier;
-      ntnNames.ignore(1, '\n');
-      nameTagNames.resize(ntnSize);
-      for(int i(0); i < nameTagNames.size(); ++i) {
-        std::getline(ntnNames, nameTagNames[i]);
+      string ntnFileName(amrData.GetFileName() + "/NameTagNames.txt");
+      std::ifstream ntnNames(ntnFileName.c_str());
+      if(ntnNames.fail()) {
+        cout << "**** Error:  could not open:  " << ntnFileName << endl;
+      } else {
+        int ntnSize(0), count(0);
+        ntnNames >> ntnSize >> nameTagMultiplier;
+        ntnNames.ignore(1, '\n');
+        nameTagNames.resize(ntnSize);
+        for(int i(0); i < nameTagNames.size(); ++i) {
+          std::getline(ntnNames, nameTagNames[i]);
+        }
+        ntnNames.close();
       }
-      ntnNames.close();
     }
+
+    {
+      string bnFileName(amrData.GetFileName() + "/BarrierNames.txt");
+      std::ifstream bnNames(bnFileName.c_str());
+      if(bnNames.fail()) {
+        cout << "**** Error:  could not open:  " << bnFileName << endl;
+      } else {
+        int bnSize(0), count(0);
+        bnNames >> bnSize >> barrierMultiplier;
+        bnNames.ignore(1, '\n');
+        barrierNames.resize(bnSize);
+        for(int i(0); i < barrierNames.size(); ++i) {
+          std::getline(bnNames, barrierNames[i]);
+        }
+        bnNames.close();
+      }
     }
   }
 
@@ -473,24 +490,41 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
         }
         mfnNames.close();
         //pltPaletteptr->SetMPIFuncNames(mpiFNames);
-    }
+      }
     }
 
     {
-    string ntnFileName(amrData.GetFileName() + "/NameTagNames.txt");
-    std::ifstream ntnNames(ntnFileName.c_str());
-    if(ntnNames.fail()) {
-      cout << "**** Error:  could not open:  " << ntnFileName << endl;
-    } else {
-      int ntnSize(0), count(0);
-      ntnNames >> ntnSize >> nameTagMultiplier;
-      ntnNames.ignore(1, '\n');
-      nameTagNames.resize(ntnSize);
-      for(int i(0); i < nameTagNames.size(); ++i) {
-        std::getline(ntnNames, nameTagNames[i]);
+      string ntnFileName(amrData.GetFileName() + "/NameTagNames.txt");
+      std::ifstream ntnNames(ntnFileName.c_str());
+      if(ntnNames.fail()) {
+        cout << "**** Error:  could not open:  " << ntnFileName << endl;
+      } else {
+        int ntnSize(0), count(0);
+        ntnNames >> ntnSize >> nameTagMultiplier;
+        ntnNames.ignore(1, '\n');
+        nameTagNames.resize(ntnSize);
+        for(int i(0); i < nameTagNames.size(); ++i) {
+          std::getline(ntnNames, nameTagNames[i]);
+        }
+        ntnNames.close();
       }
-      ntnNames.close();
     }
+
+    {
+      string bnFileName(amrData.GetFileName() + "/BarrierNames.txt");
+      std::ifstream bnNames(bnFileName.c_str());
+      if(bnNames.fail()) {
+        cout << "**** Error:  could not open:  " << bnFileName << endl;
+      } else {
+        int bnSize(0), count(0);
+        bnNames >> bnSize >> barrierMultiplier;
+        bnNames.ignore(1, '\n');
+        barrierNames.resize(bnSize);
+        for(int i(0); i < barrierNames.size(); ++i) {
+          std::getline(bnNames, barrierNames[i]);
+        }
+        bnNames.close();
+      }
     }
   }
 
@@ -4539,6 +4573,9 @@ string PltApp::GetMPIFName(Real r) {
     if(mfnIter->second == "NameTag") {
       int nt(lround((r - i) * nameTagMultiplier));
       return(mfnIter->second + "::" + nameTagNames[nt]);
+    } else if(mfnIter->second == "Barrier") {
+      int nt(lround((r - i) * barrierMultiplier));
+      return(mfnIter->second + "::" + barrierNames[nt]);
     } else {
       return(mfnIter->second);
     }
