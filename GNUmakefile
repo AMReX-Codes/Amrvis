@@ -1,6 +1,7 @@
 ### ------------------------------------------------------
 ### GNUmakefile for Amrvis
 ### ------------------------------------------------------
+
 PRECISION = FLOAT
 PRECISION = DOUBLE
 PROFILE   = TRUE
