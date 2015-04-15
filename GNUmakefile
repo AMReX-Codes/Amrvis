@@ -56,6 +56,11 @@ ifeq ($(MACHINE), Linux)
   INCLUDE_LOCATIONS += /usr/include/
 
   LIBRARIES += -lXm -lXt -lXext -lSM -lICE -lXpm -lX11
+  ifeq ($(WHICHLINUX), EDISON)
+    ifeq ($(USE_MPI), TRUE)
+        LDFLAGS += -dynamic
+    endif
+  endif
 endif
 
 ifeq ($(MACHINE), AIX)
