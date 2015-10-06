@@ -411,8 +411,6 @@ void AmrPicture::AmrPictureInit() {
       vecNames[ivn][idim] = dimNameBase[idim] + vecNameBase[ivn];
     }
   }
-cout << "sliceBox = " << sliceBox[0] << endl;
-
 }  // end AmrPictureInit()
 
 

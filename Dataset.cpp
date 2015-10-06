@@ -1186,8 +1186,13 @@ void Dataset::DrawIndices() {
                 (boxSize)*dataItemWidth, hIndexAreaHeight, 
                 blackIndex, whiteIndex);
        // draw the vertical box index grid
+#if (BL_SPACEDIM == 1)
+       int vStart((int) (fmod(double(0 + 1),
+			      double(boxSize))));
+#else
        int vStart((int) (fmod(double(datasetRegion[maxDrawnLevel].bigEnd(vDIR) + 1),
 			      double(boxSize))));
+#endif
        vStart = (vStart != 0? vStart - boxSize:vStart);
        DrawGrid(vIndexAreaStart-(count*vIndexAreaWidth)-1,
                 vStart*CHARACTERHEIGHT,
@@ -1232,8 +1237,13 @@ void Dataset::DrawIndices() {
        } // end for(...)
        // vertical
        xloc = vIndexAreaStart + hStringOffset-(count*vIndexAreaWidth);
+#if (BL_SPACEDIM == 1)
+       for(stringCount = 0; stringCount < 1;
+	   ++stringCount)
+#else
        for(stringCount = 0; stringCount < datasetRegion[level].length(vDIR);
 	   ++stringCount)
+#endif
        {
            yloc = vIndexArray[level][stringCount].yloc;
            if((yloc > yv) && (yloc < hIndexAreaStart-(count*hIndexAreaHeight))) {
