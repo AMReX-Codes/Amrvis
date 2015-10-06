@@ -45,7 +45,6 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
 		 PltApp *pltappptr, PltAppState *pltappstateptr,
 		 int hdir, int vdir, int sdir)
 {
-
   // alignedRegion is defined on the maxAllowableLevel
   int i;
   stringOk = true;
@@ -373,9 +372,18 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
         FArrayBox dataFabTemp(dataBox, 1);
         dataFabTemp.copy(*(dataFab[lev]));
         dataPoint = dataFabTemp.dataPtr();
+#if (BL_SPACEDIM == 1)
+        stringCount += 1 * dataBox.length(hDIR);
+        myStringCount[lev] +=  1 * dataBox.length(hDIR);
+#else
         stringCount += dataBox.length(vDIR) * dataBox.length(hDIR);
         myStringCount[lev] +=  dataBox.length(vDIR) * dataBox.length(hDIR);
-        for(d = 0; d < dataBox.length(vDIR); ++d) {
+#endif
+	int highD(1);
+        if(BL_SPACEDIM > 1) {
+	  highD = dataBox.length(vDIR);
+	}
+        for(d = 0; d < highD; ++d) {
           ddl = d * dataBox.length(hDIR);
           for(c = 0; c < dataBox.length(hDIR); ++c) {
             sprintf(dataString, fstring, dataPoint[c+ddl]);
@@ -445,7 +453,11 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   bDataStringArrayAllocated = true;
 
   // determine the length of the character labels for the indices
+#if (BL_SPACEDIM == 1)
+  Real vItemCount((Real) (1));
+#else
   Real vItemCount((Real) (datasetRegion[maxDrawnLevel].bigEnd(vDIR)));
+#endif
   int vIndicesWidth((int) (ceil(log10(vItemCount + 1))));
   Real hItemCount((Real) (datasetRegion[maxDrawnLevel].bigEnd(hDIR)));
   int hIndicesWidth((int) (ceil(log10(hItemCount + 1))));
@@ -457,8 +469,13 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   dataItemWidth = largestWidth * CHARACTERWIDTH;
   pixSizeX = datasetRegion[maxDrawnLevel].length(hDIR) * dataItemWidth +
              ((maxDrawnLevel - minDrawnLevel + 1) * indexWidth);
+#if (BL_SPACEDIM == 1)
+  pixSizeY = 1 * CHARACTERHEIGHT +
+             ((maxDrawnLevel - minDrawnLevel + 1) * indexHeight);
+#else
   pixSizeY = datasetRegion[maxDrawnLevel].length(vDIR) * CHARACTERHEIGHT +
              ((maxDrawnLevel - minDrawnLevel + 1) * indexHeight);
+#endif
   
   // create StringLoc array and define color scheme 
   if(pixSizeX == 0 || pixSizeY == 0) {
@@ -499,7 +516,9 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
           boxTemp.refine(AVGlobals::CRRBetweenLevels(lev, maxDrawnLevel,
 	              amrData.RefRatio()));
           boxTemp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
+#if (BL_SPACEDIM != 1)
           boxTemp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
+#endif
           FArrayBox dataFabTemp(dataBox, 1);
           dataFabTemp.copy(*(dataFab[lev]));
           dataPoint = dataFabTemp.dataPtr();
@@ -508,7 +527,11 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
 	                                        amrData.RefRatio());
 	  Real amrmin(datamin), amrmax(datamax);
           
-          for(d = 0; d < dataBox.length(vDIR); ++d) {
+	  int highD(1);
+          if(BL_SPACEDIM > 1) {
+	    highD = dataBox.length(vDIR);
+	  }
+          for(d = 0; d < highD; ++d) {
             ddl = d * dataBox.length(hDIR);
             for(c = 0; c < dataBox.length(hDIR); ++c) {
               sprintf(dataString, fstring, dataPoint[c+ddl]);
@@ -523,8 +546,13 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
               }	
               dataStringArray[stringCount].xloc = (boxTemp.smallEnd(hDIR)
                                                    + c * crr) * dataItemWidth + 5;
+#if (BL_SPACEDIM == 1)
+              dataStringArray[stringCount].yloc = pixSizeY-1 -
+                (0 + d * crr) * CHARACTERHEIGHT - 4;
+#else
               dataStringArray[stringCount].yloc = pixSizeY-1 -
                 (boxTemp.smallEnd(vDIR) + d * crr) * CHARACTERHEIGHT - 4;
+#endif
 
               for(i = lastLevLow; i < lastLevHigh; ++i) { // remove overlap
                 if(dataStringArray[i].xloc == dataStringArray[stringCount].xloc &&
@@ -590,12 +618,18 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
           Box dataBox(boxTemp);
           boxTemp.refine(crr);
           boxTemp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
+#if (BL_SPACEDIM != 1)
           boxTemp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
+#endif
           FArrayBox cgDataFabTemp(dataBox, 1);
           cgDataFabTemp.copy(cgDataFab);
           Real *dataPoint = cgDataFabTemp.dataPtr();
           
-          for(int d(0); d < dataBox.length(vDIR); ++d) {
+	  int highD(1);
+          if(BL_SPACEDIM > 1) {
+	    highD = dataBox.length(vDIR);
+	  }
+          for(int d(0); d < highD; ++d) {
             int ddl(d * dataBox.length(hDIR));
             for(int c(0); c < dataBox.length(hDIR); ++c) {
 	      if(dataPoint[c+ddl] < vfeps) {
@@ -633,7 +667,9 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   
   Box tempBox = datasetRegion[maxDrawnLevel];
   tempBox.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
+#if (BL_SPACEDIM != 1)
   tempBox.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
+#endif
   
   hIndexArray = new StringLoc *[maxDrawnLevel + 1];
   vIndexArray = new StringLoc *[maxDrawnLevel + 1];
@@ -647,20 +683,31 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
       temp.refine(AVGlobals::CRRBetweenLevels(level, maxDrawnLevel,
                   amrData.RefRatio()));
       temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
+#if (BL_SPACEDIM != 1)
       temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
+#endif
       
       double dBoxSize((double) AVGlobals::CRRBetweenLevels(level, maxDrawnLevel,
 						           amrData.RefRatio()));
       int boxSize(((int) (ceil(dBoxSize)-dBoxSize >= 0.5 ?
                      floor(dBoxSize): ceil(dBoxSize))));
+#if (BL_SPACEDIM == 1)
+      int vStartPos((int) (fmod(double(0+1),
+				double(boxSize))));
+#else
       int vStartPos((int) (fmod(double(datasetRegion[maxDrawnLevel].bigEnd(vDIR)+1),
 				double(boxSize))));
+#endif
       vStartPos = (vStartPos != 0 ? vStartPos - boxSize:vStartPos);
       // fill the box index arrays 
       Box iABox(datasetRegion[level]);
       
       hIndexArray[level] = new StringLoc[iABox.length(hDIR)];
+#if (BL_SPACEDIM == 1)
+      vIndexArray[level] = new StringLoc[1];
+#else
       vIndexArray[level] = new StringLoc[iABox.length(vDIR)];
+#endif
       
       // horizontal
       for(d = 0; d < iABox.length(hDIR); ++d) {
@@ -675,13 +722,27 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
       }  // end for(d...)
       
       // vertical
-      for(d = 0; d < iABox.length(vDIR); ++d) {
+      int highD(1);
+      if(BL_SPACEDIM > 1) {
+        highD = iABox.length(vDIR);
+      }
+      for(d = 0; d < highD; ++d) {
+#if (BL_SPACEDIM == 1)
+        sprintf(dataString, "%d", d + 0);
+#else
         sprintf(dataString, "%d", d + iABox.smallEnd(vDIR));
+#endif
         vIndexArray[level][d].color = blackIndex;
         vIndexArray[level][d].xloc = 0;// find this dynamically when drawing
+#if (BL_SPACEDIM == 1)
+        vIndexArray[level][d].yloc =
+          ((vStartPos+boxSize*(1-d))
+           * CHARACTERHEIGHT)+vStringOffset;
+#else
         vIndexArray[level][d].yloc =
           ((vStartPos+boxSize*(datasetRegion[level].length(vDIR)-d))
            * CHARACTERHEIGHT)+vStringOffset;
+#endif
         strcpy(vIndexArray[level][d].ds, dataString);
         vIndexArray[level][d].dslen = strlen(dataString);
         vIndexArray[level][d].olflag = false;
@@ -774,6 +835,10 @@ void Dataset::CBPixInput(Widget, XtPointer client_data, XtPointer call_data)
 
 // -------------------------------------------------------------------
 void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
+# if (BL_SPACEDIM == 1)
+  cout << "---- fix Dataset::DoPixInput for 1d." << endl;
+  return;
+# endif
   int hplot(-1), vplot(-1);
   int hDir(-1), vDir(-1);
 # if (BL_SPACEDIM == 3)
@@ -978,7 +1043,20 @@ void Dataset::DoExpose(int fromExpose) {
                     temp.refine(AVGlobals::CRRBetweenLevels(lev,
                                             maxDrawnLevel, amrData.RefRatio()));
                     temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
+#if (BL_SPACEDIM != 1)
                     temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR));
+#endif
+#if (BL_SPACEDIM == 1)
+                    DrawGrid(temp.smallEnd(hDIR) * dataItemWidth,
+                           (pixSizeY-1 - (0+1) * CHARACTERHEIGHT)
+                           -((level_diff+1)*hIndexAreaHeight),
+                           (temp.bigEnd(hDIR)+1) * dataItemWidth,
+                           (pixSizeY-1 - 0 * CHARACTERHEIGHT)
+                           -((level_diff+1)*hIndexAreaHeight),
+                           AVGlobals::CRRBetweenLevels(lev, maxDrawnLevel,
+			                               amrData.RefRatio()),
+                           whiteIndex, blackIndex);
+#else
                     DrawGrid(temp.smallEnd(hDIR) * dataItemWidth,
                            (pixSizeY-1 - (temp.bigEnd(vDIR)+1) * CHARACTERHEIGHT)
                            -((level_diff+1)*hIndexAreaHeight),
@@ -988,7 +1066,7 @@ void Dataset::DoExpose(int fromExpose) {
                            AVGlobals::CRRBetweenLevels(lev, maxDrawnLevel,
 			                               amrData.RefRatio()),
                            whiteIndex, blackIndex);
-                                        
+#endif
                 }
             }
         }
@@ -1091,7 +1169,9 @@ void Dataset::DrawIndices() {
        boxTemp.refine(AVGlobals::CRRBetweenLevels(level, maxDrawnLevel,
                    amrData.RefRatio()));
        boxTemp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
+#if (BL_SPACEDIM != 1)
        boxTemp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR));
+#endif
 
        double dBoxSize((double) AVGlobals::CRRBetweenLevels(level, maxDrawnLevel,
 						            amrData.RefRatio()));

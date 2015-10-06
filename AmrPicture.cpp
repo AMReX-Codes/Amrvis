@@ -93,7 +93,11 @@ AmrPicture::AmrPicture(GraphicsAttributes *gaptr,
   dataSize.resize(numberOfLevels);
   for(ilev = 0; ilev <= maxAllowableLevel; ++ilev) {
     dataSizeH[ilev] = subDomain[ilev].length(Amrvis::XDIR);
+#if (BL_SPACEDIM == 1)
+    dataSizeV[ilev] = 1;
+#else
     dataSizeV[ilev] = subDomain[ilev].length(Amrvis::YDIR); 
+#endif
     dataSize[ilev]  = dataSizeH[ilev] * dataSizeV[ilev];  // for a picture (slice).
   }
 
@@ -125,12 +129,16 @@ AmrPicture::AmrPicture(GraphicsAttributes *gaptr,
                     subDomain[maxAllowableLevel].smallEnd(Amrvis::YZ-myView));
   } else {
     vLine = 0;
+#if (BL_SPACEDIM == 1)
+    hLine = 0;
+#else
     hLine = subDomain[maxAllowableLevel].bigEnd(Amrvis::YDIR) *
 	    pltAppStatePtr->CurrentScale();
+#endif
     subcutY = hLine;
     subcut2ndY = hLine;
 
-#if (BL_SPACEDIM == 2)
+#if (BL_SPACEDIM == 2 || BL_SPACEDIM == 1)
     slice = 0;
 #else
     slice = subDomain[maxAllowableLevel].smallEnd(Amrvis::YZ-myView);
@@ -198,7 +206,11 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
       dataSizeV[ilev] = subDomain[ilev].length(Amrvis::ZDIR);
     } else {
       dataSizeH[ilev] = subDomain[ilev].length(Amrvis::XDIR);
+#if (BL_SPACEDIM == 1)
+      dataSizeV[ilev] = 1;
+#else
       dataSizeV[ilev] = subDomain[ilev].length(Amrvis::YDIR);
+#endif
     }
     dataSize[ilev]  = dataSizeH[ilev] * dataSizeV[ilev];
   }
@@ -399,6 +411,7 @@ void AmrPicture::AmrPictureInit() {
       vecNames[ivn][idim] = dimNameBase[idim] + vecNameBase[ivn];
     }
   }
+cout << "sliceBox = " << sliceBox[0] << endl;
 
 }  // end AmrPictureInit()
 
@@ -535,7 +548,9 @@ void AmrPicture::SetSlice(int view, int here) {
 	temp &= sliceBox[lev];
 	Box sliceDataBox(temp);
 	temp.shift(Amrvis::XDIR, -subDomain[lev].smallEnd(Amrvis::XDIR));
+#if (BL_SPACEDIM == 2)
 	temp.shift(Amrvis::YDIR, -subDomain[lev].smallEnd(Amrvis::YDIR));
+#endif
 #if (BL_SPACEDIM == 3)
 	  temp.shift(Amrvis::ZDIR, -subDomain[lev].smallEnd(Amrvis::ZDIR));
 #endif

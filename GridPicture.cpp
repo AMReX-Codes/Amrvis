@@ -31,7 +31,11 @@ void GridPicture::GridPictureInit(int level,
 
   if(sliceDir == Amrvis::ZDIR) {
     dataSizeH = boxWithData.length(Amrvis::XDIR);
+#if (BL_SPACEDIM == 1)
+    dataSizeV = 1;
+#else
     dataSizeV = boxWithData.length(Amrvis::YDIR);
+#endif
   } else if(sliceDir == Amrvis::YDIR) {
     dataSizeV = boxWithData.length(Amrvis::ZDIR);
     dataSizeH = boxWithData.length(Amrvis::XDIR);
@@ -82,8 +86,13 @@ int GridPicture::HPositionInPicture() {
 int GridPicture::VPositionInPicture() {
   int endLoc, nodeAdjustment;
   if(sliceDir == Amrvis::ZDIR) {
+#if (BL_SPACEDIM == 1)
+    endLoc = 1;
+    nodeAdjustment = 0;
+#else
     endLoc = imageBox.bigEnd()[Amrvis::YDIR];
     nodeAdjustment = imageBox.type()[Amrvis::YDIR] * (currentScale - 1) * refRatio;
+#endif
   } else if(sliceDir == Amrvis::YDIR) {
     endLoc = imageBox.bigEnd()[Amrvis::ZDIR];
     nodeAdjustment = imageBox.type()[Amrvis::ZDIR] * (currentScale - 1) * refRatio;

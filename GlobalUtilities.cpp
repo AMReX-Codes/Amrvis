@@ -723,7 +723,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
     } else if(strcmp(argv[i],"-v") == 0) {
       verbose = true;
     } else if(strcmp(argv[i], "-b") == 0 || strcmp(argv[i], "-subdomain") == 0) {
-#    if (BL_SPACEDIM == 2)
+#    if (BL_SPACEDIM == 2 || BL_SPACEDIM == 1)
       if(argc-1<i+1 || ! strcpy(clsx, argv[i+1])) {
         PrintUsage(argv[0]);
       }
@@ -843,7 +843,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       }
       ++i;
     } else if(strcmp(argv[i], "-boxslice") == 0) {
-#if (BL_SPACEDIM == 2)
+#if (BL_SPACEDIM == 2 || BL_SPACEDIM == 1)
       if(argc-1<i+1 || ! strcpy(clsx, argv[i+1])) {
         PrintUsage(argv[0]);
       }
@@ -999,7 +999,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
   }
 
   if(givenBox || givenBoxSlice) {
-#if (BL_SPACEDIM == 2)
+#if (BL_SPACEDIM == 2 || BL_SPACEDIM == 1)
       if(atoi(clsx) > atoi(clbx) || atoi(clsy) > atoi(clby)) {
         if(ParallelDescriptor::IOProcessor()) {
           cout << "A sub-region box must be specified as:\n\t <small x> <small y> "

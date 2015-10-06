@@ -184,8 +184,12 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   pltAppState->SetMinDrawnLevel(minAllowableLevel);
   pltAppState->SetMaxDrawnLevel(maxlev);
   Box maxDomain(amrData.ProbDomain()[maxlev]);
+#if (BL_SPACEDIM == 1)
+  unsigned long dataSize(static_cast<unsigned long>(maxDomain.length(Amrvis::XDIR)));
+#else
   unsigned long dataSize(static_cast<unsigned long>(maxDomain.length(Amrvis::XDIR)) *
                          static_cast<unsigned long>(maxDomain.length(Amrvis::YDIR)));
+#endif
   if(AVGlobals::MaxPictureSize() == 0) {
     maxAllowableScale = 1;
   } else  {
@@ -451,7 +455,12 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
                       amrData.RefRatio()));
   }
 
-  unsigned long dataSize(maxDomain.length(Amrvis::XDIR) * maxDomain.length(Amrvis::YDIR));
+#if (BL_SPACEDIM == 1)
+  unsigned long dataSize(static_cast<unsigned long>(maxDomain.length(Amrvis::XDIR)));
+#else
+  unsigned long dataSize(static_cast<unsigned long>(maxDomain.length(Amrvis::XDIR)) *
+                         static_cast<unsigned long>(maxDomain.length(Amrvis::YDIR)));
+#endif
   if(AVGlobals::MaxPictureSize() / dataSize == 0) {
     maxAllowableScale = 1;
   } else {
@@ -1363,7 +1372,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			    XmNheight, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV() + 1,
 			    NULL);
   XtVaSetValues(wScrollArea[Amrvis::ZPLANE], XmNworkWindow, wPlotPlane[Amrvis::ZPLANE], NULL); 
-#if (BL_SPACEDIM == 2)
+#if (BL_SPACEDIM == 2 || BL_SPACEDIM == 1)
   XtVaSetValues(wScrollArea[Amrvis::ZPLANE], XmNbottomAttachment, XmATTACH_FORM,
 		XmNrightAttachment, XmATTACH_FORM, NULL);		
 #elif (BL_SPACEDIM == 3)
@@ -2073,6 +2082,13 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
   
   // subregionBox is at the maxAllowableLevel
   
+#if (BL_SPACEDIM == 1)
+  if(selectionBox.bigEnd(Amrvis::XDIR) == 0) {
+    return;
+  }
+  subregionBox = selectionBox + ivLowOffsetMAL;
+#endif
+  
 #if (BL_SPACEDIM == 2)
   if(selectionBox.bigEnd(Amrvis::XDIR) == 0 || selectionBox.bigEnd(Amrvis::YDIR) == 0) {
     return;
@@ -2159,9 +2175,15 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
   
 // -------------------------------------------------------------------
 void PltApp::DoDatasetButton(Widget, XtPointer, XtPointer) {
+#if (BL_SPACEDIM == 1)
+  if(selectionBox.bigEnd(Amrvis::XDIR) == 0) {
+    return;
+  }
+#else
   if(selectionBox.bigEnd(Amrvis::XDIR) == 0 || selectionBox.bigEnd(Amrvis::YDIR) == 0) {
     return;
   }
+#endif
 
   int hdir(-1), vdir(-1), sdir(-1);
   
@@ -2177,7 +2199,9 @@ void PltApp::DoDatasetButton(Widget, XtPointer, XtPointer) {
   switch (activeView) {
   case Amrvis::ZPLANE: // orient box to view and shift
     trueRegion.shift(Amrvis::XDIR, ivLowOffsetMAL[Amrvis::XDIR]);
+#if (BL_SPACEDIM != 1)
     trueRegion.shift(Amrvis::YDIR, ivLowOffsetMAL[Amrvis::YDIR]);
+#endif
     sdir = Amrvis::ZDIR;
     break;
   case Amrvis::YPLANE:
@@ -3154,7 +3178,11 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 #endif
   switch (V) {
   case Amrvis::ZPLANE:
+#if (BL_SPACEDIM == 1)
+    tdir = Amrvis::XDIR;
+#else
     tdir = (sdir == Amrvis::XDIR) ? Amrvis::YDIR : Amrvis::XDIR;
+#endif
     dir1 = tdir;
 #if (BL_SPACEDIM == 3)
     dir2 = Amrvis::ZDIR;
@@ -3184,8 +3212,10 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
   }
   Array<Box> trueRegion(mal + 1);
   trueRegion[mal] = amrPicturePtrArray[V]->GetSliceBox(mal);
+#if (BL_SPACEDIM != 1)
   trueRegion[mal].setSmall(tdir, ivLowOffsetMAL[tdir] + ix);
   trueRegion[mal].setBig(tdir, trueRegion[mal].smallEnd(tdir));
+#endif
   int lev;
   for(lev = mal - 1; lev >= 0; --lev) {
     trueRegion[lev] = trueRegion[mal];
@@ -3205,7 +3235,12 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
   for(lev = 0; lev <= mal; ++lev) {
     XdX[lev] = amrData.DxLevel()[lev][sdir];
     intersectStr[lev] = new char[128];
-#if (BL_SPACEDIM == 2)
+#if (BL_SPACEDIM == 1)
+    sprintf(intersectStr[lev], "X=");
+    sprintf(intersectStr[lev]+2, pltAppState->GetFormatString().c_str(),
+	    gridOffset[dir1] +
+	    (0.5 + trueRegion[lev].smallEnd(dir1))*amrData.DxLevel()[lev][dir1]);
+#elif (BL_SPACEDIM == 2)
     sprintf(intersectStr[lev], ((dir1 == Amrvis::XDIR) ? "X=" : "Y="));
     sprintf(intersectStr[lev]+2, pltAppState->GetFormatString().c_str(),
 	    gridOffset[dir1] +
@@ -3222,6 +3257,7 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
                                      pltAppState->MinDrawnLevel(), mal,
 				     ix, amrData.RefRatio(),
 		                     XdX, intersectStr, gridOffset[sdir]);
+
   bool lineOK;
   DataServices::Dispatch(DataServices::LineValuesRequest,
 			 dataServicesPtr[currentFrame],
@@ -3231,7 +3267,6 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 			 (void *) derived,
 			 pltAppState->MinAllowableLevel(), mal,
 			 (void *) newlist, &lineOK);
-  
   if(lineOK) {
     return newlist;
   }
@@ -3470,11 +3505,15 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	
 	// make "aligned" box with correct size, converted to AMR space.
 	selectionBox.setSmall(Amrvis::XDIR, min(startX, endX));
+#if (BL_SPACEDIM != 1)
 	selectionBox.setSmall(Amrvis::YDIR, ((imageHeight + 1) / scale) -
 				     max(startY, endY) - 1);
+#endif
 	selectionBox.setBig(Amrvis::XDIR, max(startX, endX));
+#if (BL_SPACEDIM != 1)
 	selectionBox.setBig(Amrvis::YDIR, ((imageHeight + 1) / scale)  -
 				     min(startY, endY) - 1);
+#endif
 	
 	// selectionBox is now at the maxAllowableLevel because
 	// it is defined on the pixmap ( / scale)
@@ -3490,11 +3529,15 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  
 	  // convert to point box
 	  trueRegion[mal].setBig(Amrvis::XDIR, trueRegion[mal].smallEnd(Amrvis::XDIR));
+#if (BL_SPACEDIM != 1)
 	  trueRegion[mal].setBig(Amrvis::YDIR, trueRegion[mal].smallEnd(Amrvis::YDIR));
+#endif
 	  
 	  if(V == Amrvis::ZPLANE) {
 	    trueRegion[mal].shift(Amrvis::XDIR, ivLowOffsetMAL[Amrvis::XDIR]);
+#if (BL_SPACEDIM != 1)
 	    trueRegion[mal].shift(Amrvis::YDIR, ivLowOffsetMAL[Amrvis::YDIR]);
+#endif
 	    if(BL_SPACEDIM == 3) {
 	      trueRegion[mal].setSmall(Amrvis::ZDIR, plane);
 	      trueRegion[mal].setBig(Amrvis::ZDIR, plane);
@@ -3524,7 +3567,9 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	    trueRegion[y].coarsen(AVGlobals::CRRBetweenLevels(y, mal,
 	                          amrData.RefRatio()));
 	    trueRegion[y].setBig(Amrvis::XDIR, trueRegion[y].smallEnd(Amrvis::XDIR));
+#if (BL_SPACEDIM != 1)
 	    trueRegion[y].setBig(Amrvis::YDIR, trueRegion[y].smallEnd(Amrvis::YDIR));
+#endif
 	  }
 	  bool goodIntersect;
 	  Real dataValue;
@@ -3612,14 +3657,28 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  }
 	  
 	  if(startY < endY) {
+#if (BL_SPACEDIM == 1)
+	    startY = 0;
+	    endY   = scale;
+#else
 	    startY = imageHeight - selectionBox.bigEnd(Amrvis::YDIR)   * scale;
 	    endY   = imageHeight - selectionBox.smallEnd(Amrvis::YDIR) * scale;
+#endif
 	  } else {
+#if (BL_SPACEDIM == 1)
+	    startY = 0;
+	    endY   = scale;
+#else
 	    startY = imageHeight - selectionBox.smallEnd(Amrvis::YDIR) * scale;
 	    endY   = imageHeight - selectionBox.bigEnd(Amrvis::YDIR)   * scale;
+#endif
 	  }
 	
+#if (BL_SPACEDIM == 1)
+	  int nodeAdjustment = (scale - 1) * selectionBox.type()[Amrvis::XDIR];
+#else
 	  int nodeAdjustment = (scale - 1) * selectionBox.type()[Amrvis::YDIR];
+#endif
 	  startY -= nodeAdjustment;
 	  endY   -= nodeAdjustment;
 	  
@@ -3963,7 +4022,11 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  int sdir(-1);
 	  switch (V) {
 	    case Amrvis::ZPLANE:
+#if (BL_SPACEDIM == 1)
+	      sdir = Amrvis::XDIR;
+#else
 	      sdir = Amrvis::YDIR;
+#endif
 	    break;
 	    case Amrvis::YPLANE:
 	      sdir = Amrvis::ZDIR;
