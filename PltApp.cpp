@@ -4088,13 +4088,13 @@ void PltApp::PADoExposePicture(Widget w, XtPointer client_data, XtPointer) {
 // -------------------------------------------------------------------
 void PltApp::DoDrawPointerLocation(Widget, XtPointer data, XtPointer cbe) {
   XEvent *event = (XEvent *) cbe;
-  unsigned long V = (unsigned long) data;
 
   if(event->type == LeaveNotify) {
     XClearWindow(display, XtWindow(wLocArea));
     return;
   }
 
+  unsigned long V((unsigned long) data);
   Window whichRoot, whichChild;
   int rootX(0), rootY(0), newX(0), newY(0);
   unsigned int inputMask(0);
@@ -4152,12 +4152,17 @@ void PltApp::DoDrawPointerLocation(Widget, XtPointer data, XtPointer cbe) {
   string fstr = pltAppState->GetFormatString();
   sprintf(locTextFormat, "(%s, %s)", fstr.c_str(), fstr.c_str());
   sprintf(locText, locTextFormat, Xloc, Yloc);
+#elif (BL_SPACEDIM == 1)
+  iHorizLoc = newX / currentScale + ivLowOffsetMAL[Amrvis::XDIR];
+  double Xloc(gridOffset[Amrvis::XDIR] + (0.5 + iHorizLoc) * finestDx[Amrvis::XDIR]);
+  string fstr = pltAppState->GetFormatString();
+  sprintf(locTextFormat, "(%s)", fstr.c_str());
+  sprintf(locText, locTextFormat, Xloc);
 #endif
 
   XSetForeground(display, xgc, pltPaletteptr->WhiteIndex());
   XClearWindow(display, XtWindow(wLocArea));
   XDrawString(display, XtWindow(wLocArea), xgc, 10, 20, locText, strlen(locText));
-  
 } 
 
 // -------------------------------------------------------------------
