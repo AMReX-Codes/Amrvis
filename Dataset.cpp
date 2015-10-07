@@ -835,16 +835,12 @@ void Dataset::CBPixInput(Widget, XtPointer client_data, XtPointer call_data)
 
 // -------------------------------------------------------------------
 void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
-# if (BL_SPACEDIM == 1)
-  cout << "---- fix Dataset::DoPixInput for 1d." << endl;
-  return;
-# endif
   int hplot(-1), vplot(-1);
   int hDir(-1), vDir(-1);
 # if (BL_SPACEDIM == 3)
   int depthDir(-1);
 # endif
-  static int serverControlOK = 0;
+  static int serverControlOK(0);
   int xcell((int) (cbs->event->xbutton.x) / dataItemWidth);
   int ycell((int) (cbs->event->xbutton.y) / CHARACTERHEIGHT);
   Box pictureBox(amrPicturePtr->GetSubDomain()[maxDrawnLevel]);
@@ -881,11 +877,19 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
       if(xcell > regionBox.bigEnd(hDir)-regionBox.smallEnd(hDir)) {
         xcell = regionBox.bigEnd(hDir)-regionBox.smallEnd(hDir);
       }
+# if (BL_SPACEDIM == 1)
+        ycell = 0;
+#else
       if(ycell > regionBox.bigEnd(vDir)-regionBox.smallEnd(vDir)) {
         ycell = regionBox.bigEnd(vDir)-regionBox.smallEnd(vDir);
       }
+# endif
       hplot = regionBox.smallEnd(hDir) + xcell;
+# if (BL_SPACEDIM == 1)
+      vplot = 0;
+#else
       vplot = regionBox.smallEnd(vDir) + regionBox.length(vDir)-1 - ycell;
+#endif
 
       const AmrData &amrData = dataServicesPtr->AmrDataRef();
       int baseRatio = AVGlobals::CRRBetweenLevels(maxDrawnLevel, maxAllowableLevel, 
@@ -893,7 +897,9 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
 
       int boxCoor[BL_SPACEDIM];
       boxCoor[hDir] = hplot;
+# if (BL_SPACEDIM != 1)
       boxCoor[vDir] = vplot; 
+#endif
 # if (BL_SPACEDIM == 3)
       boxCoor[depthDir] = pltAppPtr->GetAmrPicturePtr(Amrvis::YZ - depthDir)->GetSlice();
       boxCoor[depthDir] /= baseRatio;
@@ -913,7 +919,9 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
                                             amrData.RefRatio()));
       hplot -= pictureBox.smallEnd(hDir);
       hplot -= (int) fmod(double(hplot), double(modBy));
+# if (BL_SPACEDIM != 1)
       vplot -= pictureBox.smallEnd(vDir);
+# endif
       vplot -= (int) fmod(double(vplot), double(modBy));
       hplot *= baseRatio;
       vplot *= baseRatio;
