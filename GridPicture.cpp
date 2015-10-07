@@ -87,7 +87,7 @@ int GridPicture::VPositionInPicture() {
   int endLoc, nodeAdjustment;
   if(sliceDir == Amrvis::ZDIR) {
 #if (BL_SPACEDIM == 1)
-    endLoc = 1;
+    endLoc = 0;
     nodeAdjustment = 0;
 #else
     endLoc = imageBox.bigEnd()[Amrvis::YDIR];
