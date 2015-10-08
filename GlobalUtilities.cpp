@@ -1156,7 +1156,9 @@ int AVGlobals::DetermineMaxAllowableLevel(const Box &finestbox,
   int maxallowablelevel(finestlevel);
   unsigned long boxpoints;
   while(maxallowablelevel > 0) {
-#   if (BL_SPACEDIM == 2)
+#   if (BL_SPACEDIM == 1)
+      boxpoints = static_cast<unsigned long>(levelDomain.length(Amrvis::XDIR));
+#   elif (BL_SPACEDIM == 2)
       boxpoints = static_cast<unsigned long>(levelDomain.length(Amrvis::XDIR)) *
                   static_cast<unsigned long>(levelDomain.length(Amrvis::YDIR));
 #   else
