@@ -631,7 +631,6 @@ void AmrPicture::DrawBoxes(Array< Array<GridPicture> > &gp, Drawable &drawable) 
 	  ybox = gp[level][i].VPositionInPicture();
 	  wbox = gp[level][i].ImageSizeH(); 
 	  hbox = gp[level][i].ImageSizeV(); 
-
           XDrawRectangle(display, drawable, xgc, xbox, ybox, wbox, hbox);
         }
       }
