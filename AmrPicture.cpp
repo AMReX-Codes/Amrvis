@@ -546,7 +546,7 @@ void AmrPicture::SetSlice(int view, int here) {
 	temp &= sliceBox[lev];
 	Box sliceDataBox(temp);
 	temp.shift(Amrvis::XDIR, -subDomain[lev].smallEnd(Amrvis::XDIR));
-#if (BL_SPACEDIM == 2)
+#if (BL_SPACEDIM > 1)
 	temp.shift(Amrvis::YDIR, -subDomain[lev].smallEnd(Amrvis::YDIR));
 #endif
 #if (BL_SPACEDIM == 3)
