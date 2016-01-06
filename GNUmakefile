@@ -62,6 +62,16 @@ ifeq ($(MACHINE), Linux)
   LIBRARIES += -lXm -lXt -lXext -lSM -lICE -lXpm -lX11
 
   ifeq ($(WHICHLINUX), EDISON)
+    # -lquadmath needed for GNU; not sure about other compilers
+    LIBRARIES += -lquadmath
+    ifeq ($(USE_MPI), TRUE)
+        LDFLAGS += -dynamic
+    endif
+  endif
+
+  ifeq ($(WHICHLINUX), CORI)
+    # -lquadmath needed for GNU; not sure about other compilers
+    LIBRARIES += -lquadmath
     ifeq ($(USE_MPI), TRUE)
         LDFLAGS += -dynamic
     endif
