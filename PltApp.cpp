@@ -3719,7 +3719,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
       break;
 
       default:
-	return;
+	break;
       }  // end switch
     }  // end while(true)
   }
@@ -3880,9 +3880,11 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	    XYplotwin[sdir]->AddDataList(newlist);
 	  }
 	}
+
+	return;
 	
       default:
-	return;
+	break;
       }  // end switch
     }  // end while(true)
   }
