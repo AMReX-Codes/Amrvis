@@ -4,6 +4,7 @@
 #include <GlobalUtilities.H>
 #include <FArrayBox.H>
 #include <FabConv.H>
+#include <VisMF.H>
 #include <fstream>
 #include <iostream>
 using std::ifstream;
@@ -40,6 +41,7 @@ bool givenBoxSlice;
 bool createSWFData;
 bool makeSWFLight;
 bool lowBlack;
+bool usePerStreams;
 bool dumpSlices;
 bool sliceAllVars;
 bool givenFilename;
@@ -266,6 +268,7 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
   fileType = Amrvis::NEWPLT;  // default
   fabIOSize = 0;
   lowBlack = false;
+  usePerStreams = false;
   bShowBody = true;
   startWithValueModel = false;
 
@@ -432,6 +435,15 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
       else if(strcmp(defaultString, "lowblack") == 0) {
         lowBlack = true;
       }
+      else if(strcmp(defaultString, "useperstreams") == 0) {
+        sscanf(buffer, "%s%s", defaultString, tempString);
+        if(*tempString == 't' || *tempString == 'T') {
+          usePerStreams = true;
+        } else {
+          usePerStreams = false;
+	}
+	VisMF::SetUsePersistentIFStreams(usePerStreams);
+      }
       else if(strcmp(defaultString, "valuemodel") == 0) {
         startWithValueModel = true;
       }
@@ -523,9 +535,10 @@ void PrintUsage(char *exname) {
   cout << "       [-palette palname] [-initialderived dername]" << endl;
   cout << "       [-lightingfile name] [-maxmenuitems n]" << endl;
   cout << "       [-initialscale n] [-showboxes tf] [-numberformat fmt]" << endl;
-  cout << "       [-lowblack] [-showbody tf]"<< endl;
-  cout << "       [-cliptoppalette]"<< endl;
-  cout << "       [-fixdenormals]"<< endl;
+  cout << "       [-lowblack] [-showbody tf]" << endl;
+  cout << "       [-useperstreams tf]" << endl;
+  cout << "       [-cliptoppalette]" << endl;
+  cout << "       [-fixdenormals]" << endl;
   cout << "       [-ppm] [-rgb]" << endl;
 #if (BL_SPACEDIM == 3)
 #ifdef BL_VOLUMERENDER
@@ -585,19 +598,20 @@ void PrintUsage(char *exname) {
   cout << "  -showboxes tf      show boxes (the value of tf is true or false)." << endl; 
   cout << "  -showbody tf       show cartGrid body as body cells (def is true)." << endl; 
   cout << "  -numberformat fmt  set the initial format to fmt (ex:  %4.2f)." << endl; 
-  cout << "  -lowblack          sets the lowest color in the palette to black."<<endl;
-  cout << "  -cliptoppalette    do not use the top palette index (for exceed)."<<endl;
-  cout << "  -fixdenormals      always fix denormals when reading fabs."<<endl;
-  cout << "  -ppm               output rasters using PPM file format."<<endl;
-  cout << "  -rgb               output rasters using RGB file format."<<endl;
+  cout << "  -lowblack          sets the lowest color in the palette to black." << endl;
+  cout << "  -useperstreams tf  use vismf persistent streams." << endl;
+  cout << "  -cliptoppalette    do not use the top palette index (for exceed)." << endl;
+  cout << "  -fixdenormals      always fix denormals when reading fabs." << endl;
+  cout << "  -ppm               output rasters using PPM file format." << endl;
+  cout << "  -rgb               output rasters using RGB file format." << endl;
 #if (BL_SPACEDIM == 3)
 #ifdef BL_VOLUMERENDER
   cout << "  -makeswf_light     make volume rendering data using the" << endl;
   cout << "                     current transfer function and write data" << endl;
-  cout << "                     to a file, using the lighting model."<<endl
+  cout << "                     to a file, using the lighting model." << endl
        << "                     note:  works in batch mode." << endl;
-  cout << "  -makeswf_value     same as above, with value model rendering."<<endl;
-  cout << "  -valuemodel        start with the value model for rendering."<<endl;
+  cout << "  -makeswf_value     same as above, with value model rendering." << endl;
+  cout << "  -valuemodel        start with the value model for rendering." << endl;
 #endif
   cout << "  -initplanes xp yp zp     set initial planes" << endl;
 #endif
@@ -771,7 +785,16 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
         startWithValueModel = true;
     } else if(strcmp(argv[i], "-lowblack") == 0) {
         lowBlack = true;
-
+    } else if(strcmp(argv[i], "-useperstreams") == 0) {
+      if(*argv[i+1] == 't' || *argv[i+1] == 'T') {
+        usePerStreams = true;
+      } else if(*argv[i+1] == 'f' || *argv[i+1] == 'F') {
+        usePerStreams = false;
+      } else {
+        PrintUsage(argv[0]);
+      }
+      VisMF::SetUsePersistentIFStreams(usePerStreams);
+      ++i;
     } else if(strcmp(argv[i], "-setvelnames") == 0) {
       if(argc-1<i+BL_SPACEDIM) {
         PrintUsage(argv[0]);
