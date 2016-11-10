@@ -435,6 +435,7 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
       else if(strcmp(defaultString, "lowblack") == 0) {
         lowBlack = true;
       }
+#ifdef BL_OPTIO
       else if(strcmp(defaultString, "useperstreams") == 0) {
         sscanf(buffer, "%s%s", defaultString, tempString);
         if(*tempString == 't' || *tempString == 'T') {
@@ -444,6 +445,7 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
 	}
 	VisMF::SetUsePersistentIFStreams(usePerStreams);
       }
+#endif
       else if(strcmp(defaultString, "valuemodel") == 0) {
         startWithValueModel = true;
       }
@@ -536,7 +538,9 @@ void PrintUsage(char *exname) {
   cout << "       [-lightingfile name] [-maxmenuitems n]" << endl;
   cout << "       [-initialscale n] [-showboxes tf] [-numberformat fmt]" << endl;
   cout << "       [-lowblack] [-showbody tf]" << endl;
+#ifdef BL_OPTIO
   cout << "       [-useperstreams tf]" << endl;
+#endif
   cout << "       [-cliptoppalette]" << endl;
   cout << "       [-fixdenormals]" << endl;
   cout << "       [-ppm] [-rgb]" << endl;
@@ -599,7 +603,9 @@ void PrintUsage(char *exname) {
   cout << "  -showbody tf       show cartGrid body as body cells (def is true)." << endl; 
   cout << "  -numberformat fmt  set the initial format to fmt (ex:  %4.2f)." << endl; 
   cout << "  -lowblack          sets the lowest color in the palette to black." << endl;
+#ifdef BL_OPTIO
   cout << "  -useperstreams tf  use vismf persistent streams." << endl;
+#endif
   cout << "  -cliptoppalette    do not use the top palette index (for exceed)." << endl;
   cout << "  -fixdenormals      always fix denormals when reading fabs." << endl;
   cout << "  -ppm               output rasters using PPM file format." << endl;
@@ -785,6 +791,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
         startWithValueModel = true;
     } else if(strcmp(argv[i], "-lowblack") == 0) {
         lowBlack = true;
+#ifdef BL_OPTIO
     } else if(strcmp(argv[i], "-useperstreams") == 0) {
       if(*argv[i+1] == 't' || *argv[i+1] == 'T') {
         usePerStreams = true;
@@ -795,6 +802,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       }
       VisMF::SetUsePersistentIFStreams(usePerStreams);
       ++i;
+#endif
     } else if(strcmp(argv[i], "-setvelnames") == 0) {
       if(argc-1<i+BL_SPACEDIM) {
         PrintUsage(argv[0]);
