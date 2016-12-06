@@ -556,7 +556,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
 
       transferArray.resize(iSeqPalSize);
       for(int j(0); j < iSeqPalSize; ++j) {
-        int ij(min(j+paletteStart,ccells.size()-1));
+        int ij(std::min(static_cast<unsigned long> (j + paletteStart), ccells.size() - 1));
         indexArray[j] = j; 
         rbuff[j] = (char) ccells[ij].red;
         gbuff[j] = (char) ccells[ij].green;
