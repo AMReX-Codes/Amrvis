@@ -7,7 +7,7 @@ PRECISION = DOUBLE
 PROFILE   = TRUE
 PROFILE   = FALSE
 
-COMP      = gnu
+COMP      = intel
 COMP      = gnu
 
 DEBUG     = FALSE
