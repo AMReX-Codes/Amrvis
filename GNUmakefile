@@ -7,11 +7,11 @@ PRECISION = DOUBLE
 PROFILE   = TRUE
 PROFILE   = FALSE
 
-COMP      = g++
-FCOMP     = gfortran
+COMP      = gnu
+COMP      = gnu
 
-DEBUG     = TRUE
 DEBUG     = FALSE
+DEBUG     = TRUE
 
 DIM       = 1
 DIM       = 2
@@ -43,6 +43,7 @@ INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/C_BaseLib
 INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/Extern/amrdata
 
 DEFINES += -DBL_PARALLEL_IO
+DEFINES += -DBL_OPTIO
 
 ############################################### x includes and libraries
 
@@ -54,14 +55,14 @@ ifeq ($(WHICHLINUX), ATLAS)
   LIBRARY_LOCATIONS += /usr/X11R6/lib64
 endif 
 
-ifeq ($(MACHINE), Linux)
+ifneq ($(which_site), unknown)
   LIBRARY_LOCATIONS += /usr/lib64
   INCLUDE_LOCATIONS += /usr/include/Xm
   INCLUDE_LOCATIONS += /usr/include/
 
   LIBRARIES += -lXm -lXt -lXext -lSM -lICE -lXpm -lX11
 
-  ifeq ($(WHICHLINUX), EDISON)
+  ifeq ($(which_computer), edison)
     # -lquadmath needed for GNU; not sure about other compilers
     LIBRARIES += -lquadmath
     ifeq ($(USE_MPI), TRUE)
@@ -69,7 +70,7 @@ ifeq ($(MACHINE), Linux)
     endif
   endif
 
-  ifeq ($(WHICHLINUX), CORI)
+  ifeq ($(which_computer), cori)
     # -lquadmath needed for GNU; not sure about other compilers
     LIBRARIES += -lquadmath
     ifeq ($(USE_MPI), TRUE)
