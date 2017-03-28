@@ -65,7 +65,7 @@ Array<string> userVectorNames(BL_SPACEDIM);
 bool newPltSet(false);
 
 char *FileTypeString[] = {
-  "invalidtype", "fab", "multifab", "newplt"
+  "invalidtype", "fab", "multifab", "newplt", "profdata"
 };
 
 
@@ -421,6 +421,8 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
           fileType = Amrvis::MULTIFAB;
 	} else if(strcmp(tempString, "newplt") == 0) {
           fileType = Amrvis::NEWPLT;
+	} else if(strcmp(tempString, "profdata") == 0) {
+          fileType = Amrvis::PROFDATA;
 	} else {  // error
 	  cerr << "Error in defaults file:  invalid parameter for filetype:  "
 	       << tempString << endl;
@@ -559,7 +561,7 @@ void PrintUsage(char *exname) {
 
 
 
-  cout << "  file type flags:   -fab [-fb], -multifab [-mf], -newplt (-newplt is the default)" << endl;
+  cout << "  file type flags:   -fab [-fb], -multifab [-mf], -profdata, -newplt (-newplt is the default)" << endl;
   cout << "  -v                 verbose." << endl; 
   //cout << "  -bw n              specify maximum boundary width." << endl; 
   cout << "  -maxpixmapsize n   specify maximum allowed picture size in pixels."
@@ -740,6 +742,8 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
     } else if(strcmp(argv[i],"-newplt") == 0) {
       fileType = Amrvis::NEWPLT;
       newPltSet = true;
+    } else if(strcmp(argv[i],"-profdata") == 0) {
+      fileType = Amrvis::PROFDATA;
     } else if(strcmp(argv[i],"-v") == 0) {
       verbose = true;
     } else if(strcmp(argv[i], "-b") == 0 || strcmp(argv[i], "-subdomain") == 0) {
@@ -1007,13 +1011,24 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
         comlinefilename[fileCount] = tempfilename.substr(0, len);
       } else {
         comlinefilename[fileCount] = argv[i];
-	// if filetypes not set, see if it is a fab file
+	// if filetypes not set, see if it is a fab file or profdie
 	if( ! newPltSet && fileType != Amrvis::MULTIFAB && fileType != Amrvis::FAB) {
 	  int len(comlinefilename[fileCount].length());
 	  if(len >= 5) {  // a.fab or larger
-	    std::size_t found(comlinefilename[fileCount].find(".fab", len - 4));
-	    if(found != std::string::npos) {
-	      fileType = Amrvis::FAB;
+	    {
+	      std::size_t found(comlinefilename[fileCount].find(".fab", len - 4));
+	      if(found != std::string::npos) {
+	        fileType = Amrvis::FAB;
+	      }
+	    }
+	    {
+	      std::size_t found(comlinefilename[fileCount].find("bl_prof", 0));
+	      if(found != std::string::npos) {
+	        fileType = Amrvis::PROFDATA;
+                if(ParallelDescriptor::IOProcessor()) {
+		  cout << "Setting fileType to Amrvis::PROFDATA." << endl;
+		}
+	      }
 	    }
 	  }
 	}

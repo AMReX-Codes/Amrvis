@@ -517,6 +517,8 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
       sMask = XmStringCreateSimple("*.fab");
     } else if(fileType == Amrvis::MULTIFAB) {
       sMask = XmStringCreateSimple("*_H");
+    } else if(fileType == Amrvis::PROFDATA) {
+      sMask = XmStringCreateSimple("bl_prof*");
     } else {
       sMask = XmStringCreateSimple("plt*");
     }
