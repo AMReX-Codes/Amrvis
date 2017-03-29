@@ -38,3 +38,19 @@ endif
 ifeq ($(USE_ARRAYVIEW),TRUE)
   CEXE_sources += DatasetClient.cpp
 endif
+
+ifeq ($(USE_PROFDATA), TRUE)
+  CEXE_headers += BLProfParser.tab.H BLProfStats.H
+  CEXE_headers += ProfDataServices.H
+
+  CEXE_sources += BLProfParser.lex.yy.cpp
+  CEXE_sources += BLProfParser.tab.cpp
+  CEXE_sources += BLProfStats.cpp
+  CEXE_sources += CommProfStats.cpp
+  CEXE_sources += RegionsProfStats.cpp
+  CEXE_sources += WritePlotFile.cpp
+  FEXE_sources += AVGDOWN_$(DIM)D.F
+  CEXE_sources += BLProfUtilities.cpp
+  CEXE_sources += ProfDataServices.cpp
+endif
+

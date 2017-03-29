@@ -14,8 +14,8 @@ DEBUG     = FALSE
 DEBUG     = TRUE
 
 DIM       = 1
-DIM       = 2
 DIM       = 3
+DIM       = 2
 
 USE_ARRAYVIEW = TRUE
 USE_ARRAYVIEW = FALSE
@@ -30,6 +30,14 @@ USE_VOLRENDER = TRUE
 
 USE_PARALLELVOLRENDER = TRUE
 USE_PARALLELVOLRENDER = FALSE
+
+USE_PROFDATA = TRUE
+ifeq ($(USE_PROFDATA), TRUE)
+  AMRPROFPARSER_HOME = ../AMRProfParser
+  DEFINES += -DAV_PROFDATA
+  PROFILE   = TRUE
+  TRACE_PROFILE   = TRUE
+endif
 
 BOXLIB_HOME = ../BoxLib
 
@@ -97,7 +105,7 @@ endif
 # LIBRARY_LOCATIONS += /usr/X11R6/lib64
 
 ############################################### arrayview
-ifeq (USE_ARRAYVIEW, TRUE)
+ifeq ($(USE_ARRAYVIEW), TRUE)
   DEFINES += -DBL_USE_ARRAYVIEW
   ARRAYVIEWDIR = .
   INCLUDE_LOCATIONS += $(ARRAYVIEWDIR)
@@ -153,15 +161,42 @@ VPATH_LOCATIONS += $(HERE)
 VPATH_LOCATIONS += $(BOXLIB_HOME)/Src/C_BaseLib
 VPATH_LOCATIONS += $(BOXLIB_HOME)/Src/Extern/amrdata
 
+ifeq ($(USE_PROFDATA), TRUE)
+  VPATH_LOCATIONS += $(AMRPROFPARSER_HOME)
+  INCLUDE_LOCATIONS += $(AMRPROFPARSER_HOME)
+  #SED0 = | sed 's/\#define vout/\/\//'
+  #SED1 = | sed 's/vout/\/\//'
+  SED0 =
+  SED1 =
+endif
+
 vpath %.cpp $(VPATH_LOCATIONS)
 vpath %.H   $(VPATH_LOCATIONS)
 vpath %.F   $(VPATH_LOCATIONS)
 vpath %.f   $(VPATH_LOCATIONS)
 vpath %.f90 $(VPATH_LOCATIONS)
+vpath %.c   $(VPATH_LOCATIONS)
+vpath %.h   $(VPATH_LOCATIONS)
+vpath %.l   $(VPATH_LOCATIONS)
+vpath %.y   $(VPATH_LOCATIONS)
 vpath %.a   $(LIBRARY_LOCATIONS)
 
-all: $(executable)
+all:	$(executable)
+
+ifeq ($(USE_PROFDATA), TRUE)
+
+BLProfParser.tab.H BLProfParser.tab.cpp:	BLProfParser.y
+	cat BLProfParser.y $(SED0) $(SED1) > BLProfParserNC.y
+	bison --defines=BLProfParser.tab.H --output=BLProfParser.tab.cpp \
+	      BLProfParserNC.y
+	rm BLProfParserNC.y
+
+BLProfParser.lex.yy.cpp:	BLProfParser.tab.H BLProfParser.l
+	flex --outfile=BLProfParser.lex.yy.cpp BLProfParser.l
+
+endif
 
 include $(BOXLIB_HOME)/Tools/C_mk/Make.rules
+
 ### ------------------------------------------------------
 ### ------------------------------------------------------
