@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------
 
 #include <ParallelDescriptor.H>
+#include <ProfDataServices.H>
 
 #include <stdio.h>
 #if ! (defined(BL_OSF1) || defined(BL_Darwin) || defined(BL_AIX) || defined(BL_IRIX64) || defined(BL_CYGWIN_NT) || defined(BL_CRAYX1))
@@ -77,6 +78,8 @@ int main(int argc, char *argv[]) {
   // here we trick boxlib
   int argcNoPP(1);
   BoxLib::Initialize(argcNoPP, argv);
+
+  BLProfiler::SetBlProfDirName("bl_prof_amrvis");
 
   AVGlobals::GetDefaults("amrvis.defaults");
 
@@ -186,6 +189,23 @@ int main(int argc, char *argv[]) {
       Amrvis::FileType fileType = AVGlobals::GetDefaultFileType();
       BL_ASSERT(fileType != Amrvis::INVALIDTYPE);
 
+     if(fileType == Amrvis::PROFDATA) {
+       cout << "]]]]:  fileType is Amrvis::PROFDATA." << endl;
+       PrintMessage("]]]]:  fileType is Amrvis::PROFDATA.");
+       if(AVGlobals::GetFileCount() == 1) {
+	 string dirName(AVGlobals::GetComlineFilename(0));
+	 cout << "]]]]]]]]:  dirName = " << dirName << endl;
+         ProfDataServices pdServices(dirName);
+	 cout << "]]]]]]]]:  checking prof data." << endl;
+	 pdServices.CheckProfData();
+	 cout << "]]]]]]]]:  finished checking prof data." << endl;
+	 bool writeAverage(false), useTrace(true);
+	 int whichProc(0);
+	 pdServices.WriteSummary(cout, writeAverage, whichProc, useTrace);
+       } else {
+       }
+     } else {
+
       Array<DataServices *> dspArray(AVGlobals::GetFileCount());
       for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {
         comlineFileName = AVGlobals::GetComlineFilename(nPlots);
@@ -230,6 +250,9 @@ int main(int argc, char *argv[]) {
 	  }
         }
       }  // end for(nPlots...)
+
+     }
+
     }  // end if(AVGlobals::IsAnimation())
 
 
@@ -241,6 +264,8 @@ int main(int argc, char *argv[]) {
     }
 
   }  // end if(bBatchMode)
+
+  cout << ParallelDescriptor::MyProc() << "::]]]]:  exiting main." << endl;
 
   return 0;
 

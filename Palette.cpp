@@ -409,7 +409,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
       ccells[whiteIndex].green = (unsigned short) 65535;
       ccells[whiteIndex].blue  = (unsigned short) 65535;
 
-      paletteType = ALPHA;
+      paletteType = AV_PAL_ALPHA;
 
       transferArray.resize(iSeqPalSize);
       for(int j(0); j < iSeqPalSize; ++j) {
@@ -453,9 +453,9 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
           cout << "Palette does not have an alpha component:  using the default." 
                << endl;
         }
-        paletteType = NON_ALPHA;
+        paletteType = AV_PAL_NON_ALPHA;
       } else {
-        paletteType = ALPHA;
+        paletteType = AV_PAL_ALPHA;
       }
       (void) close(fd);
     }
@@ -552,7 +552,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
       ccells[whiteIndex].green = (unsigned short) 65535;
       ccells[whiteIndex].blue  = (unsigned short) 65535;
 
-      paletteType = ALPHA;
+      paletteType = AV_PAL_ALPHA;
 
       transferArray.resize(iSeqPalSize);
       for(int j(0); j < iSeqPalSize; ++j) {
@@ -636,12 +636,12 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
 
   // set Transfer function here
   transferArray.resize(iSeqPalSize);
-  if(paletteType == NON_ALPHA) {
+  if(paletteType == AV_PAL_NON_ALPHA) {
     for(int j(0); j < iSeqPalSize; ++j) {
       indexArray[j] = j; 
       transferArray[j] = (float) j / (float) (iSeqPalSize-1);
     }
-  } else if(paletteType == ALPHA) {
+  } else if(paletteType == AV_PAL_ALPHA) {
     for(int j(0); j < iSeqPalSize; ++j) {
       indexArray[j] = j; 
       int tmp = (unsigned short) abuff[j];

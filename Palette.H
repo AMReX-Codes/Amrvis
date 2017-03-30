@@ -27,7 +27,7 @@ const int TOTALPALWIDTH   = 150;
 class GraphicsAttributes;
 
 
-enum PaletteType { ALPHA, NON_ALPHA };
+enum PaletteType { AV_PAL_ALPHA, AV_PAL_NON_ALPHA };
 
 class Palette {
 
