@@ -12,14 +12,13 @@ class cMessageArea {
   private:
     Widget wTextOut;
     XmTextPosition currentTextPosition;
-    char localBuffer[BUFSIZ];
 
   public:
     cMessageArea();
     cMessageArea(Widget printTextHere);
     ~cMessageArea();
     void Init(Widget printTextHere);
-    void PrintText(char *buffer);
+    void PrintText(const char *buffer);
 };
 
 #endif

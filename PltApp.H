@@ -285,6 +285,7 @@ private:
   void DoOpenPalFile(Widget, XtPointer, XtPointer);
   void DoSubregion(Widget, XtPointer, XtPointer);
   void DoInfoButton(Widget, XtPointer, XtPointer);
+  void DoInfoButtonScrolledList(Widget, XtPointer, XtPointer);
   void DoOutput(Widget, XtPointer, XtPointer);
   void DoCreatePSFile(Widget, XtPointer, XtPointer);
   void DoCreateRGBFile(Widget, XtPointer, XtPointer);

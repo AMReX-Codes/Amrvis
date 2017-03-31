@@ -2,6 +2,7 @@
 // MessageArea.cpp
 // ---------------------------------------------------------------
 #include <MessageArea.H>
+#include <iostream>
 
 
 // -------------------------------------------------------------------
@@ -29,10 +30,9 @@ cMessageArea::~cMessageArea() {
 
 
 // -------------------------------------------------------------------
-void cMessageArea::PrintText(char *buffer) {
-  strcpy(localBuffer, buffer);
-  XmTextInsert(wTextOut, currentTextPosition, localBuffer);
-  currentTextPosition += strlen(localBuffer);
+void cMessageArea::PrintText(const char *buffer) {
+  XmTextInsert(wTextOut, currentTextPosition, const_cast<char *>(buffer));
+  currentTextPosition += strlen(buffer);
   XtVaSetValues(wTextOut, XmNcursorPosition, currentTextPosition, NULL);
   XmTextShowPosition(wTextOut, currentTextPosition);
 }

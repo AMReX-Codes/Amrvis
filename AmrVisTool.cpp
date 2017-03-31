@@ -358,7 +358,7 @@ void CreateMainWindow(int argc, char *argv[]) {
  
 // ---------------------------------------------------------------
 void BatchFunctions() {
-  string	comlineFileName;
+  string comlineFileName;
 
   // loop through the command line list of plot files
   for(int nPlots = 0; nPlots < AVGlobals::GetFileCount(); ++nPlots) {

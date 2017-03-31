@@ -11,6 +11,7 @@
 #include <ProjectionPicture.H>
 #include <XYPlotWin.H>
 #include <ParallelDescriptor.H>
+#include <MessageArea.H>
 
 #include <Xm/Protocols.h>
 #include <Xm/ToggleBG.h>
@@ -54,6 +55,10 @@ using std::flush;
 #endif
 
 const int MAXSCALE(32);
+
+cMessageArea pltAppMessageText;
+char cbuff[100];
+
 
 #define MARK fprintf(stderr, "Mark at file %s, line %d.\n", __FILE__, __LINE__)
 
@@ -294,7 +299,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 	  regionsMax = std::max(i, regionsMax);
         }
         rNames.close();
-    }
+      }
     }
   }
 
@@ -566,7 +571,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 	  regionsMax = std::max(i, regionsMax);
         }
         rNames.close();
-    }
+      }
     }
   }
 
@@ -2306,6 +2311,112 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
     XtVaCreateManagedWidget("infoform", xmFormWidgetClass, wInfoTopLevel, NULL);
   
   int i(0);
+  XtSetArg(args[i], XmNeditable, false);       ++i;
+  XtSetArg(args[i], XmNeditMode, XmMULTI_LINE_EDIT);       ++i;
+  XtSetArg(args[i], XmNwordWrap, true);       ++i;
+  XtSetArg(args[i], XmNblinkRate, 0);       ++i;
+  XtSetArg(args[i], XmNautoShowCursorPosition, true);       ++i;
+  XtSetArg(args[i], XmNcursorPositionVisible,  false);      ++i;
+  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      ++i;
+  XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      ++i;
+  XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      ++i;
+  XtSetArg(args[i], XmNbottomAttachment, XmATTACH_POSITION);      ++i;
+  XtSetArg(args[i], XmNbottomPosition, 80);      ++i;
+
+  Widget wInfoList = XmCreateScrolledText(wInfoForm, "infoscrolledlist", args, i);
+
+  Widget wInfoCloseButton =
+    XtVaCreateManagedWidget("Close",
+			    xmPushButtonGadgetClass, wInfoForm,
+			    XmNtopAttachment, XmATTACH_POSITION,
+			    XmNtopPosition, 85,
+			    XmNbottomAttachment, XmATTACH_POSITION,
+			    XmNbottomPosition, 95,
+			    XmNrightAttachment, XmATTACH_POSITION,
+			    XmNrightPosition, 75,
+			    XmNleftAttachment, XmATTACH_POSITION,
+			    XmNleftPosition, 25,
+			    NULL);
+  AddStaticCallback(wInfoCloseButton, XmNactivateCallback,
+		    &PltApp::CloseInfoWindow);
+  
+  XtManageChild(wInfoList);
+  XtManageChild(wInfoCloseButton);
+
+  XtPopup(wInfoTopLevel, XtGrabNone);
+
+  pltAppMessageText.Init(wInfoList);
+  AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+  
+  std::ostringstream prob;
+  prob.precision(15);
+
+  prob << fileNames[currentFrame] << '\n';
+  prob << amrData.PlotFileVersion().c_str() << '\n';
+  prob << "time:  "<< amrData.Time() << '\n';
+  prob << "levels:  " << amrData.FinestLevel() + 1 << '\n';
+  prob << "prob domain:" << '\n';
+  for(int k(0); k <= amrData.FinestLevel(); ++k) {
+    prob << "  level " << k << ":  " << amrData.ProbDomain()[k] << '\n';
+  }
+  prob << "refratios: ";
+  for(int k(0); k < amrData.FinestLevel(); ++k) {
+    prob << " " << amrData.RefRatio()[k];
+  }
+  prob << '\n';
+  prob << "probsize:  ";
+  for(int k(0); k < BL_SPACEDIM; ++k) {
+    prob << " " << amrData.ProbSize()[k];
+  }
+  prob << '\n';
+  prob << "prob lo:   ";
+  for(int k(0); k < BL_SPACEDIM; ++k) {
+    prob << " " << amrData.ProbLo()[k];
+  }
+  prob << '\n';
+  prob << "prob hi:   ";
+  for(int k(0); k < BL_SPACEDIM; ++k) {
+    prob << " " << amrData.ProbHi()[k];
+  }
+  prob << '\n';
+
+  pltAppMessageText.PrintText(prob.str().c_str());
+}
+
+// -------------------------------------------------------------------
+void PltApp::DoInfoButtonScrolledList(Widget, XtPointer, XtPointer) {
+  if(infoShowing) {
+    XtPopup(wInfoTopLevel, XtGrabNone);
+    XMapRaised(XtDisplay(wInfoTopLevel), XtWindow(wInfoTopLevel));
+    return;
+  }
+
+  infoShowing = true;
+  Dimension width, height;
+  Position  xpos, ypos;
+  XtVaGetValues(wAmrVisTopLevel, XmNx, &xpos, XmNy, &ypos,
+		XmNwidth, &width, XmNheight, &height, NULL);
+  
+  wInfoTopLevel = 
+    XtVaCreatePopupShell("Info",
+			 topLevelShellWidgetClass, wAmrVisTopLevel,
+			 XmNwidth,	400,
+			 XmNheight,	300,
+			 XmNx,		50+xpos+width/2,
+			 XmNy,		ypos-10,
+			 NULL);
+  
+  AddStaticCallback(wInfoTopLevel, XmNdestroyCallback, &PltApp::DestroyInfoWindow);
+  
+  // set visual in case the default isn't 256 pseudocolor
+  if(gaPtr->PVisual() != XDefaultVisual(display, gaPtr->PScreenNumber())) {
+    XtVaSetValues(wInfoTopLevel, XmNvisual, gaPtr->PVisual(), XmNdepth, 8, NULL);
+  }
+  
+  Widget wInfoForm =
+    XtVaCreateManagedWidget("infoform", xmFormWidgetClass, wInfoTopLevel, NULL);
+  
+  int i(0);
   XtSetArg(args[i++], XmNlistSizePolicy, XmRESIZE_IF_POSSIBLE);
   Widget wInfoList = XmCreateScrolledList(wInfoForm, "infoscrolledlist", args, i);
   
@@ -2335,62 +2446,12 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
   prob.str(std::string());  // clear prob
 
-  prob << "time:  "<< amrData.Time();
-  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
-  prob.str(std::string());  // clear prob
-
-  prob << "levels:  " << amrData.FinestLevel() + 1;
-  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
-  prob.str(std::string());  // clear prob
-
-
-  prob << "prob domain:";
-  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
-  prob.str(std::string());  // clear prob
-
-  for(int k(0); k <= amrData.FinestLevel(); ++k) {
-    prob << "  level " << k << ":  " << amrData.ProbDomain()[k];
-    strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
-    prob.str(std::string());  // clear prob
-  }
-
-  prob << "refratios: ";
-  for(int k(0); k < amrData.FinestLevel(); ++k) {
-    prob << " " << amrData.RefRatio()[k];
-  }
-  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
-  prob.str(std::string());  // clear prob
-
-  
-  prob << "probsize:  ";
-  for(int k(0); k < BL_SPACEDIM; ++k) {
-    prob << " " << amrData.ProbSize()[k];
-  }
-  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
-  prob.str(std::string());  // clear prob
-
-  
-  prob << "prob lo:   ";
-  for(int k(0); k < BL_SPACEDIM; ++k) {
-    prob << " " << amrData.ProbLo()[k];
-  }
-  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
-  prob.str(std::string());  // clear prob
-
-  
-  prob << "prob hi:   ";
-  for(int k(0); k < BL_SPACEDIM; ++k) {
-    prob << " " << amrData.ProbHi()[k];
-  }
-  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
-  prob.str(std::string());  // clear prob
-
   XtVaSetValues(wInfoList,
 		XmNvisibleItemCount, numEntries,
 		XmNitemCount, numEntries,
 		XmNitems, strList,
 		NULL);
-  
+
   Widget wInfoCloseButton =
     XtVaCreateManagedWidget("Close",
 			    xmPushButtonGadgetClass, wInfoForm,
@@ -2408,6 +2469,7 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   
   XtManageChild(wInfoList);
   XtManageChild(wInfoCloseButton);
+
   XtPopup(wInfoTopLevel, XtGrabNone);
 }
 
