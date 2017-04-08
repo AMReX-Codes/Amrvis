@@ -9,6 +9,7 @@
 #include <XYPlotWin.H>
 #include <ParallelDescriptor.H>
 #include <MessageArea.H>
+#include <Palette.H>
 
 #include <Xm/Protocols.h>
 #include <Xm/ToggleBG.h>
@@ -47,12 +48,12 @@ using std::max;
 #endif
 
 cMessageArea profAppMessageText;
-char cbuff[100];
 
 
 // -------------------------------------------------------------------
 ProfApp::~ProfApp() {
   delete XYplotparameters;
+  delete pltPaletteptr;
   delete gaPtr;
 
   XtDestroyWidget(wAmrVisTopLevel);
@@ -105,7 +106,11 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
   XtVaSetValues(wAmrVisTopLevel, XmNtitle, const_cast<char *>(headerout.str().c_str()),
 		NULL);
 
+cout << "_here 01:  calling ProfAppInit." << endl;
   ProfAppInit();
+cout << "_here 04:  calling WriteSummary." << endl;
+//profDataServicesPtr[0]->WriteSummary(cout, false, 0, false);
+BLProfilerUtils::WriteHeader(cout, 10, 16, true);
 }
 
 
@@ -113,6 +118,7 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
 void ProfApp::ProfAppInit() {
   int np;
 
+cout << "_here 002" << endl;
   XmAddWMProtocolCallback(wAmrVisTopLevel,
 			  XmInternAtom(display,"WM_DELETE_WINDOW", false),
 			  (XtCallbackProc) CBQuitProfApp, (XtPointer) this);
@@ -122,13 +128,27 @@ void ProfApp::ProfAppInit() {
   }
 
   servingButton = 0;
-  startX = 0;
-  startY = 0;
-  endX = 0;
-  endY = 0;
+  //startX = 0;
+  //startY = 0;
+  //endX = 0;
+  //endY = 0;
 
   infoShowing     = false;
-			  
+
+  int palListLength(AVPalette::PALLISTLENGTH);
+  int palWidth(AVPalette::PALWIDTH);
+  int totalPalWidth(AVPalette::TOTALPALWIDTH);
+  int totalPalHeight(AVPalette::TOTALPALHEIGHT);
+  int reserveSystemColors(0);
+  bool bRegions(true);
+  if(bRegions) {
+    totalPalWidth += 100;
+  }
+  pltPaletteptr = new Palette(wTopLevel, palListLength, palWidth,
+                              totalPalWidth, totalPalHeight,
+                              reserveSystemColors);
+  pltPaletteptr->ReadSeqPalette("Palette", false);
+
   // No need to store these widgets in the class after this function is called.
   Widget wMainArea, wPalFrame, wPlotFrame, wPalForm;
 
@@ -187,11 +207,87 @@ void ProfApp::ProfAppInit() {
   XtManageChild(wMenuBar);
 
 
+cout << "_here 003" << endl;
+Widget wPalArea, wControls;
+  // --------------------------------------------Palette frame and drawing area
+  wPalFrame = XtVaCreateManagedWidget("paletteframe", xmFrameWidgetClass, wMainArea,
+                            XmNtopAttachment,   XmATTACH_WIDGET,
+                            XmNtopWidget,       wMenuBar,
+                            XmNrightAttachment, XmATTACH_FORM,
+                            XmNrightOffset,     1,
+                            XmNshadowType,      XmSHADOW_ETCHED_IN,
+                            NULL);
+  wPalForm = XtVaCreateManagedWidget("paletteform", xmFormWidgetClass, wPalFrame,
+                            NULL);
+
+  wPalArea = XtVaCreateManagedWidget("palarea", xmDrawingAreaWidgetClass, wPalForm,
+                            XmNtopAttachment,    XmATTACH_FORM,
+                            XmNtopOffset,        30,
+                            XmNleftAttachment,   XmATTACH_FORM,
+                            XmNrightAttachment,  XmATTACH_FORM,
+                            XmNbottomAttachment, XmATTACH_FORM,
+                            XmNwidth,            totalPalWidth,
+                            XmNheight,           AVPalette::TOTALPALHEIGHT,
+                            NULL);
+  //AddStaticEventHandler(wPalArea, ExposureMask, &PltApp::DoExposePalette);
+
+  // Indicate the unit type of the palette (legend) area above it.
+  strcpy(buffer, "plotlabel");
+  label_str = XmStringCreateSimple(buffer);
+  wPlotLabel = XtVaCreateManagedWidget("plotlabel", xmLabelWidgetClass, wPalForm,
+                            XmNtopAttachment,    XmATTACH_FORM,
+                            XmNleftAttachment,   XmATTACH_FORM,
+                            XmNrightAttachment,  XmATTACH_FORM,
+                            XmNbottomAttachment, XmATTACH_WIDGET,
+                            XmNbottomWidget,     wPalArea,
+                            XmNleftOffset,       0,
+                            XmNrightOffset,      0,
+                            XmNbottomOffset,     0,
+                            XmNbackground,       pltPaletteptr->AVBlackPixel(),
+                            XmNforeground,       pltPaletteptr->AVWhitePixel(),
+                            XmNlabelString,      label_str,
+                            NULL);
+  XmStringFree(label_str);
+
+
+  // ************************************** Controls frame and area
+  Widget wControlsFrame;
+  wControlsFrame = XtVaCreateManagedWidget("controlsframe",
+                            xmFrameWidgetClass, wMainArea,
+                            XmNrightAttachment, XmATTACH_FORM,
+                            XmNrightOffset,     1,
+                            XmNtopAttachment,   XmATTACH_WIDGET,
+                            XmNtopWidget,       wPalFrame,
+                            XmNshadowType,      XmSHADOW_ETCHED_IN,
+                            NULL);
+
+  unsigned long wc;
+  int wcfWidth(totalPalWidth), wcfHeight(AVPalette::TOTALPALHEIGHT);
+  int centerX(wcfWidth / 2), centerY((wcfHeight / 2) - 16);
+  int controlSize(16);
+  int halfbutton(controlSize / 2);
+  wControlForm = XtVaCreateManagedWidget("refArea",
+                            xmDrawingAreaWidgetClass, wControlsFrame,
+                            XmNwidth,   wcfWidth,
+                            XmNheight,  wcfHeight,
+                            XmNresizePolicy, XmRESIZE_NONE,
+                            NULL);
+  AddStaticEventHandler(wControlForm, ExposureMask, &ProfApp::DoExposeRef);
+
+  wControls =
+    XtVaCreateManagedWidget("button0", xmPushButtonWidgetClass, wControlForm,
+                            XmNx, centerX - halfbutton,
+                            XmNy, centerY - halfbutton,
+                            XmCMarginBottom, 2,
+                            NULL);
+  XtManageChild(wControls);
+
+
   // ************************** Plot frame and area
   wPlotFrame = XtVaCreateManagedWidget("plotframe",
 			    xmFrameWidgetClass,   wMainArea,
 			    XmNrightAttachment,	  XmATTACH_WIDGET,
-			    XmNrightWidget,	  wPalFrame,
+			    XmNrightWidget,       wPalFrame,
 			    XmNleftAttachment,    XmATTACH_FORM,
 			    XmNbottomAttachment,  XmATTACH_FORM,
 			    XmNtopAttachment,	  XmATTACH_WIDGET,
@@ -222,6 +318,7 @@ void ProfApp::ProfAppInit() {
 		XmNscrollingPolicy,	XmAUTOMATIC,
 		NULL);
 
+cout << "_here 006" << endl;
   trans =
 	"<Btn1Motion>: DrawingAreaInput() ManagerGadgetButtonMotion()	\n\
 	<Btn1Down>: DrawingAreaInput() ManagerGadgetButtonMotion()	\n\
@@ -236,25 +333,27 @@ void ProfApp::ProfAppInit() {
   wPlotPlane[Amrvis::ZPLANE] = XtVaCreateManagedWidget("plotArea",
 			    xmDrawingAreaWidgetClass, wScrollArea[Amrvis::ZPLANE],
 			    XmNtranslations,  XtParseTranslationTable(trans),
-			    XmNwidth, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH() + 1,
-			    XmNheight, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV() + 1,
+			    //XmNwidth, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH() + 1,
+			    //XmNheight, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV() + 1,
+			    XmNwidth, 700,
+			    XmNheight, 500,
 			    NULL);
   XtVaSetValues(wScrollArea[Amrvis::ZPLANE], XmNworkWindow, wPlotPlane[Amrvis::ZPLANE], NULL); 
   XtVaSetValues(wScrollArea[Amrvis::ZPLANE], XmNbottomAttachment, XmATTACH_FORM,
 		XmNrightAttachment, XmATTACH_FORM, NULL);		
   
   
-  
   // ***************************************************************** 
   XtManageChild(wPlotArea);
   XtPopup(wAmrVisTopLevel, XtGrabNone);
   
-  char plottertitle[50];
-  sprintf(plottertitle, "XYPlot%dd", BL_SPACEDIM);
-  XYplotparameters = new XYPlotParameters(pltPaletteptr, gaPtr, plottertitle);
+  //char plottertitle[50];
+  //sprintf(plottertitle, "XYPlot%dd", BL_SPACEDIM);
+  //XYplotparameters = new XYPlotParameters(pltPaletteptr, gaPtr, plottertitle);
 
   interfaceReady = true;
 
+cout << "_here 009" << endl;
 }  // end ProfAppInit()
 
 
@@ -273,6 +372,7 @@ void ProfApp::CloseInfoWindow(Widget, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void ProfApp::DoInfoButton(Widget, XtPointer, XtPointer) {
+/*
   if(infoShowing) {
     XtPopup(wInfoTopLevel, XtGrabNone);
     XMapRaised(XtDisplay(wInfoTopLevel), XtWindow(wInfoTopLevel));
@@ -349,6 +449,7 @@ void ProfApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   prob << "prob domain:" << '\n';
 
   profAppMessageText.PrintText(prob.str().c_str());
+*/
 }
 
 /*
@@ -448,6 +549,7 @@ void ProfApp::DoInfoButtonScrolledList(Widget, XtPointer, XtPointer) {
 XYPlotDataList *ProfApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 				       const string *derived)
 {
+/*
   const AmrData &amrData(profDataServicesPtr[0]->AmrDataRef());
   
   // Create an array of boxes corresponding to the intersected line.
@@ -497,18 +599,45 @@ XYPlotDataList *ProfApp::CreateLinePlot(int V, int sdir, int mal, int ix,
     return newlist;
   }
   delete newlist;
+*/
   return NULL;
 }
 
 
 // -------------------------------------------------------------------
-void ProfApp::PADoExposePicture(Widget w, XtPointer client_data, XtPointer) {
-  unsigned long np = (unsigned long) client_data;
+//void ProfApp::PADoExposePicture(Widget w, XtPointer client_data, XtPointer) {
+  //unsigned long np = (unsigned long) client_data;
+//}
+
+
+// -------------------------------------------------------------------
+void ProfApp::DoExposeRef(Widget, XtPointer, XtPointer) {
+  int xpos(10), ypos(15);
+  int color(pltPaletteptr->WhiteIndex());
+  char sX[Amrvis::LINELENGTH];
+  strcpy(sX, "X");
+
+  XClearWindow(display, XtWindow(wControlForm));
+
+
+  int axisLength(20);
+  char hLabel[Amrvis::LINELENGTH], vLabel[Amrvis::LINELENGTH];
+  strcpy(hLabel, "uuu");
+  strcpy(vLabel, "ddd");
+  XSetForeground(XtDisplay(wControlForm), xgc, pltPaletteptr->makePixel(color));
+  XDrawLine(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
+            xpos+5, ypos, xpos+5, ypos+axisLength);
+  XDrawLine(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
+            xpos+5, ypos+axisLength, xpos+5+axisLength, ypos+axisLength);
+  XDrawString(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
+              xpos+5+axisLength, ypos+5+axisLength, hLabel, strlen(hLabel));
+  XDrawString(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
+              xpos, ypos, vLabel, strlen(vLabel));
 }
 
 
 // -------------------------------------------------------------------
-void ProfApp::AddStaticCallback(Widget w, String cbtype, memberCB cbf, void *d) {
+void ProfApp::AddStaticCallback(Widget w, String cbtype, profMemberCB cbf, void *d) {
   CBData *cbs = new CBData(this, d, cbf);
 
   // cbdPtrs.push_back(cbs)
@@ -522,7 +651,7 @@ void ProfApp::AddStaticCallback(Widget w, String cbtype, memberCB cbf, void *d) 
 
 
 // -------------------------------------------------------------------
-void ProfApp::AddStaticEventHandler(Widget w, EventMask mask, memberCB cbf, void *d)
+void ProfApp::AddStaticEventHandler(Widget w, EventMask mask, profMemberCB cbf, void *d)
 {
   CBData *cbs = new CBData(this, d, cbf);
 
@@ -537,7 +666,7 @@ void ProfApp::AddStaticEventHandler(Widget w, EventMask mask, memberCB cbf, void
  
  
 // -------------------------------------------------------------------
-XtIntervalId ProfApp::AddStaticTimeOut(int time, memberCB cbf, void *d) {
+XtIntervalId ProfApp::AddStaticTimeOut(int time, profMemberCB cbf, void *d) {
   CBData *cbs = new CBData(this, d, cbf);
 
   // cbdPtrs.push_back(cbs)

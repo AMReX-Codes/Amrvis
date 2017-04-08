@@ -3,7 +3,6 @@
 // ---------------------------------------------------------------
 
 #include <ParallelDescriptor.H>
-#include <ProfDataServices.H>
 
 #include <stdio.h>
 #if ! (defined(BL_OSF1) || defined(BL_Darwin) || defined(BL_AIX) || defined(BL_IRIX64) || defined(BL_CYGWIN_NT) || defined(BL_CRAYX1))
@@ -26,6 +25,8 @@
 #include <ParmParse.H>
 #include <DataServices.H>
 #include <PltAppState.H>
+#include <ProfApp.H>
+#include <ProfDataServices.H>
 
 #ifdef BL_VOLUMERENDER
 #include <VolRender.H>
@@ -61,6 +62,7 @@ cMessageArea	messageText;
 char		buffer[Amrvis::BUFSIZE];
 XmString	sDirectory = XmStringCreateSimple("none");
 list<PltApp *>  pltAppList;
+list<ProfApp *>  profAppList;
 
 
 //--------------------------------------------------------------
@@ -195,14 +197,33 @@ int main(int argc, char *argv[]) {
        if(AVGlobals::GetFileCount() == 1) {
 	 string dirName(AVGlobals::GetComlineFilename(0));
 	 cout << "]]]]]]]]:  dirName = " << dirName << endl;
-         ProfDataServices pdServices(dirName);
-	 cout << "]]]]]]]]:  checking prof data." << endl;
-	 pdServices.CheckProfData();
-	 cout << "]]]]]]]]:  finished checking prof data." << endl;
-	 bool writeAverage(false), useTrace(true);
-	 int whichProc(0);
-	 pdServices.WriteSummary(cout, writeAverage, whichProc, useTrace);
+         //ProfDataServices pdServices(dirName);
+	 //cout << "]]]]]]]]:  checking prof data." << endl;
+	 //pdServices.CheckProfData();
+	 //cout << "]]]]]]]]:  finished checking prof data." << endl;
+	 //bool writeAverage(false), useTrace(true);
+	 //int whichProc(0);
+	 //pdServices.WriteSummary(cout, writeAverage, whichProc, useTrace);
+
+         Array<ProfDataServices *> pdspArray(AVGlobals::GetFileCount());
+         for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {
+           comlineFileName = AVGlobals::GetComlineFilename(nPlots);
+           if(ParallelDescriptor::IOProcessor()) {
+             cout << endl << "FileName = " << comlineFileName << endl;
+           }
+	   pdspArray[nPlots] = new ProfDataServices(comlineFileName);
+
+         ProfApp *temp = new ProfApp(app, wTopLevel, comlineFileName,
+			            pdspArray);
+	  if(temp == NULL) {
+	    cerr << "Error:  could not make a new ProfApp." << endl;
+	  } else {
+            profAppList.push_back(temp);
+	  }
+         }
+
        } else {
+         BoxLib::Abort("**** Error:  only a single bl_prof directory is supported.");
        }
      } else {
 
@@ -653,6 +674,21 @@ void CBQuitPltApp(Widget ofPltApp, XtPointer client_data, XtPointer) {
     dataServicesPtr[ids]->DecrementNumberOfUsers();
     DataServices::Dispatch(DataServices::DeleteRequest, dataServicesPtr[ids], NULL);
   }
+
+  delete obj;
+}
+
+
+// ---------------------------------------------------------------
+void CBQuitProfApp(Widget ofProfApp, XtPointer client_data, XtPointer) {
+  ProfApp *obj = (ProfApp *) client_data;
+  profAppList.remove(obj);
+
+  //Array<DataServices *> &dataServicesPtr = obj->GetDataServicesPtrArray();
+  //for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
+    //dataServicesPtr[ids]->DecrementNumberOfUsers();
+    //DataServices::Dispatch(DataServices::DeleteRequest, dataServicesPtr[ids], NULL);
+  //}
 
   delete obj;
 }

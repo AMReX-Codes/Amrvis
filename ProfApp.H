@@ -21,13 +21,14 @@ using std::string;
 class ProfDataServices;
 class AmrPicture;
 class GraphicsAttributes;
+class Palette;
 class XYPlotParameters;
 class XYPlotWin;
 class XYPlotDataList;
 
 
 class ProfApp;
-typedef void (ProfApp::*memberCB)(Widget, XtPointer, XtPointer);
+typedef void (ProfApp::*profMemberCB)(Widget, XtPointer, XtPointer);
 
 class ProfApp {
     
@@ -35,7 +36,7 @@ private:
   ProfApp();  // not defined
   
 public:
-  ProfApp(XtAppContext, Widget, const string &filename, 
+  ProfApp(XtAppContext app, Widget w, const string &filename, 
          const Array<ProfDataServices *> &profdataservicesptr);
   
   ~ProfApp();
@@ -44,6 +45,7 @@ public:
   static void SetInitialWindowWidth(int initWindowWidth);
   
   Widget WId()                     { return wAmrVisTopLevel; }
+  Palette *GetPalettePtr()         { return pltPaletteptr; }
   ProfDataServices *GetProfDataServicesPtr() { return profDataServicesPtr[0]; }
   Array<ProfDataServices *> &GetProfDataServicesPtrArray() { return profDataServicesPtr; }
   int GetActiveView() const        { return activeView;    }
@@ -73,6 +75,7 @@ private:
 
   XtAppContext appContext;
   Arg args[Amrvis::MAXARGS];
+  Palette *pltPaletteptr;
   bool infoShowing;
   bool interfaceReady;
   int servingButton;
@@ -97,21 +100,21 @@ private:
   void CloseInfoWindow(Widget, XtPointer, XtPointer);
 
 
-  void AddStaticCallback(Widget w, String whichcb, memberCB whichf, void *d = NULL);
-  void AddStaticEventHandler(Widget w, EventMask mask, memberCB cbf, void *d = NULL);
-  XtIntervalId AddStaticTimeOut(int time, memberCB whichf, void *d = NULL);
+  void AddStaticCallback(Widget w, String whichcb, profMemberCB whichf, void *d = NULL);
+  void AddStaticEventHandler(Widget w, EventMask mask, profMemberCB cbf, void *d = NULL);
+  XtIntervalId AddStaticTimeOut(int time, profMemberCB whichf, void *d = NULL);
   static void StaticCallback(Widget, XtPointer, XtPointer);
   static void StaticEvent(Widget w, XtPointer client_data, XEvent *event, char*);
   static void StaticTimeOut(XtPointer client_data, XtIntervalId *);
   
   class CBData {  // callback data
     public:
-      CBData(ProfApp *p, XtPointer d, memberCB mcb)
+      CBData(ProfApp *p, XtPointer d, profMemberCB mcb)
         : instance(p), data(d), cbFunc(mcb) { }
       ~CBData() { }
       ProfApp *instance;
       XtPointer data;
-      memberCB cbFunc;
+      profMemberCB cbFunc;
   };
   Array<CBData *> cbdPtrs;  // save these so we can delete them later
 };
