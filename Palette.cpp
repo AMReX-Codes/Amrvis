@@ -136,6 +136,9 @@ Palette::~Palette() {
 
 // -------------------------------------------------------------------
 void Palette::ExposePalette() {
+  if(palPixmap == 0) {
+    RedrawPalette();
+  }
   XCopyArea(gaPtr->PDisplay(), palPixmap, palWindow, gaPtr->PGC(),
 	    0, 0, totalPalWidth, totalPalHeight + 50, 0, 0);
 }

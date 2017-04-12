@@ -57,6 +57,7 @@ public:
   XYPlotDataList *CreateLinePlot(int V, int sdir, int mal, int ixY,
 				 const string *derived);
   void DoExposeRef(Widget = None, XtPointer = NULL, XtPointer = NULL);
+  void DoExposePalette(Widget, XtPointer, XtPointer);
 
   void DetachXYPlotWin(int dir) { XYplotwin[dir] = NULL; }
   XYPlotParameters *GetXYPlotParameters() const { return XYplotparameters; }
@@ -69,6 +70,7 @@ private:
   Widget wInfoTopLevel;
   Widget wPlotArea;
   Widget wPlotLabel;
+  Widget wPalArea, wControls;
 
   XYPlotParameters *XYplotparameters;
   XYPlotWin *XYplotwin[BL_SPACEDIM];

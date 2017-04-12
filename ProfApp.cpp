@@ -142,7 +142,7 @@ cout << "_here 002" << endl;
   int reserveSystemColors(0);
   bool bRegions(true);
   if(bRegions) {
-    totalPalWidth += 100;
+    //totalPalWidth += 100;
   }
   pltPaletteptr = new Palette(wTopLevel, palListLength, palWidth,
                               totalPalWidth, totalPalHeight,
@@ -208,7 +208,7 @@ cout << "_here 002" << endl;
 
 
 cout << "_here 003" << endl;
-Widget wPalArea, wControls;
+
   // --------------------------------------------Palette frame and drawing area
   wPalFrame = XtVaCreateManagedWidget("paletteframe", xmFrameWidgetClass, wMainArea,
                             XmNtopAttachment,   XmATTACH_WIDGET,
@@ -229,7 +229,7 @@ Widget wPalArea, wControls;
                             XmNwidth,            totalPalWidth,
                             XmNheight,           AVPalette::TOTALPALHEIGHT,
                             NULL);
-  //AddStaticEventHandler(wPalArea, ExposureMask, &PltApp::DoExposePalette);
+  AddStaticEventHandler(wPalArea, ExposureMask, &ProfApp::DoExposePalette);
 
   // Indicate the unit type of the palette (legend) area above it.
   strcpy(buffer, "plotlabel");
@@ -344,12 +344,25 @@ cout << "_here 006" << endl;
   
   
   // ***************************************************************** 
+  XtManageChild(wPalArea);
   XtManageChild(wPlotArea);
   XtPopup(wAmrVisTopLevel, XtGrabNone);
+
+std::string palFilename("Palette");
+  pltPaletteptr->SetWindow(XtWindow(wPalArea));
+  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPalArea), false);
+  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotArea), false);
+  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wAmrVisTopLevel), false);
+  //for(np = 0; np != Amrvis::NPLANES; ++np) {
+    //pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotPlane[np]), false);
+    pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotPlane[0]), false);
+  //}
+    //pltPaletteptr->RedrawPalette();
+
   
-  //char plottertitle[50];
-  //sprintf(plottertitle, "XYPlot%dd", BL_SPACEDIM);
-  //XYplotparameters = new XYPlotParameters(pltPaletteptr, gaPtr, plottertitle);
+  char plottertitle[50];
+  sprintf(plottertitle, "XYPlot%dd", BL_SPACEDIM);
+  XYplotparameters = new XYPlotParameters(pltPaletteptr, gaPtr, plottertitle);
 
   interfaceReady = true;
 
@@ -601,6 +614,12 @@ XYPlotDataList *ProfApp::CreateLinePlot(int V, int sdir, int mal, int ix,
   delete newlist;
 */
   return NULL;
+}
+
+
+// -------------------------------------------------------------------
+void ProfApp::DoExposePalette(Widget, XtPointer, XtPointer) {
+  pltPaletteptr->ExposePalette();
 }
 
 
