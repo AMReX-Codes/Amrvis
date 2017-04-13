@@ -648,116 +648,6 @@ void AmrPicture::DrawTerrBoxes(int level, bool bIsWindow, bool bIsPixmap) {
   cerr << "***** Error:  should not be in AmrPicture::DrawTerrBoxes." << endl;
   cerr << "Continuing..." << endl;
   cerr << endl;
-
-/*
-  int i, lev, ix;
-  short xbox, ybox;
-  unsigned short wbox, hbox;
-
-  BL_ASSERT((bIsWindow ^ bIsPixmap) == true);
-
-  const AmrData &amrData = dataServicesPtr->AmrDataRef();
-  int expansion(pltAppPtr->GetExpansion());
-  int hScale(pltAppStatePtr->CurrentScale() * expansion);
-
-  if(finestLevel+1 != numberOfLevels) {
-    for(lev = numberOfLevels-1; lev < finestLevel; ++lev) {
-       //IntVect ref_ratio = amrData.RefRatio(lev);
-       hScale = hScale / amrData.RefRatio()[lev];
-    }
-  }
-
-  int vScale(hScale * pltAppPtr->GetZStretch());
-
-  const Array<Real> &dx  = amrData.DxLevel()[finestLevel];
-  const Array<Real> &dx0 = amrData.DxLevel()[0];
-
-  //  Note : this is based on DrawRTBoxes but hasnt been tested
-  Real index_zhi = vScale * dx0[0] / (expansion * dx[0]) *
-                   (subDomain[0].bigEnd()[BL_SPACEDIM-1] + 1);
-
-      for(i = 0; i < gpArray[level].length(); ++i) {
-        xbox = gpArray[level][i].HPositionInPicture();
-        ybox = gpArray[level][i].VPositionInPicture();
-        wbox = gpArray[level][i].ImageSizeH();
-        hbox = gpArray[level][i].ImageSizeV();
-
-        if(level == 0) {
-          if(bIsWindow) {
-            XDrawRectangle(display, pictureWindow, xgc, xbox, ybox, wbox, hbox);
-          } else if(bIsPixmap) {
-            XDrawRectangle(display, pixMap, xgc, xbox, ybox, wbox, hbox);
-          }
-
-        } else {
-
-          GridPlot *gridptr = gpArray[level][i].GetGridPtr();
-          DataBoxPlot *meshdb = gridptr->Mesh();
-          const Real *meshdat = meshdb->dataPtr();
-          const int *mlo  = meshdb->loVect();
-          const int *mhi  = meshdb->hiVect();
-          const int *mlen = meshdb->length();
-
-#if (BL_SPACEDIM == 2)
-#define M_L(i,j) i-mlo[0]+mlen[0]*(j-mlo[1])
-#elif (BL_SPACEDIM == 3)
-#define M_L(i,j,k) i-mlo[0]+mlen[0]*( (j-mlo[1]) + mlen[1]*(k-mlo[2]) )
-#endif
-
-#if (BL_SPACEDIM == 2)
-          Real xlo, xhi, ylo, yhi;
-
-          // Draw left boundary
-          ylo = index_zhi - vScale * meshdat[M_L(mlo[0], mlo[1])] / dx[0];
-          yhi = index_zhi - vScale * meshdat[M_L(mlo[0], mhi[1])] / dx[0];
-          xlo = hScale * mlo[0];
-          xhi = hScale * mlo[0];
-          if(bIsWindow) {
-            XDrawLine(display, pictureWindow, xgc, xlo, ylo, xhi, yhi);
-          } else if(bIsPixmap) {
-            XDrawLine(display, pixMap, xgc, xlo, ylo, xhi, yhi);
-          }
-
-          // Draw right boundary
-          ylo = index_zhi - vScale * meshdat[M_L(mhi[0], mlo[1])] / dx[0];
-          yhi = index_zhi - vScale * meshdat[M_L(mhi[0], mhi[1])] / dx[0];
-          xlo = hScale * mhi[0];
-          xhi = hScale * mhi[0];
-          if(bIsWindow) {
-            XDrawLine(display, pictureWindow, xgc, xlo, ylo, xhi, yhi);
-          } else if(bIsPixmap) {
-            XDrawLine(display, pixMap, xgc, xlo, ylo, xhi, yhi);
-          }
-
-          // Draw bottom boundary
-          for(ix = mlo[0]; ix < mhi[0]; ++ix) {
-            ylo = index_zhi-vScale*meshdat[M_L(ix,mlo[1])] / dx[0];
-            yhi = index_zhi-vScale*meshdat[M_L(ix+1,mlo[1])] / dx[0];
-            xlo = hScale * ix;
-            xhi = hScale * (ix + 1);
-            if(bIsWindow) {
-              XDrawLine(display, pictureWindow, xgc, xlo, ylo, xhi, yhi);
-            } else if(bIsPixmap) {
-              XDrawLine(display, pixMap, xgc, xlo, ylo, xhi, yhi);
-            }
-          }
-
-          // Draw top boundary
-          for(ix = mlo[0]; ix < mhi[0]; ++ix) {
-            ylo = index_zhi - vScale * meshdat[M_L(ix, mhi[1])] / dx[0];
-            yhi = index_zhi - vScale * meshdat[M_L(ix + 1, mhi[1])] / dx[0];
-            xlo = hScale * ix;
-            xhi = hScale * (ix + 1);
-            if(bIsWindow) {
-              XDrawLine(display, pictureWindow, xgc, xlo, ylo, xhi, yhi);
-            } else if(bIsPixmap) {
-              XDrawLine(display, pixMap, xgc, xlo, ylo, xhi, yhi);
-            }
-          }
-#endif
-        }
-      }
-*/
 }
 
 
@@ -778,22 +668,6 @@ void AmrPicture::APDraw(int fromLevel, int toLevel) {
   } else if(cType == Amrvis::VECTORS) {
     DrawVectorField(display, pixMap, xgc);
   }
-
-//
-//char *fontName = "12x24";
-//XFontStruct *fontInfo;
-//fontInfo = XLoadQueryFont(display, fontName);
-
-//GC fontGC = XCreateGC(display, gaPtr->PRoot(), 0, NULL);
-//XSetFont(display, fontGC, fontInfo->fid);
-
-//XSetForeground(display, fontGC, palPtr->WhiteIndex());
-  //XDrawString(display, pixMap,
-              //fontGC,
-              //imageSizeH / 2,
-              //imageSizeV / 2,
-              //currentDerived.c_str(), currentDerived.length());
-//
 
   if( ! pltAppPtr->Animating()) {  // this should always be true
     DoExposePicture();
