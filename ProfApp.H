@@ -62,6 +62,9 @@ public:
 				 const string *derived);
   void DoExposeRef(Widget = None, XtPointer = NULL, XtPointer = NULL);
   void DoExposePalette(Widget, XtPointer, XtPointer);
+  void DoFuncList(Widget, XtPointer, XtPointer);
+  void DoGenerateFuncList(Widget, XtPointer, XtPointer);
+  void GenerateFuncList(const Array<std::string> &funcs);
 
   void DetachXYPlotWin(int dir) { XYplotwin[dir] = NULL; }
   XYPlotParameters *GetXYPlotParameters() const { return XYplotparameters; }
@@ -76,6 +79,7 @@ private:
   Widget wPlotLabel;
   Widget wPalArea, wControls;
   Widget wFuncListScrollArea;
+  Widget wFuncList;
 
   XYPlotParameters *XYplotparameters;
   XYPlotWin *XYplotwin[BL_SPACEDIM];

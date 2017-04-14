@@ -77,8 +77,6 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
     fileName(filename),
     profDataServicesPtr(profdataservicesptr)
 {
-  int i;
-
   fileNames.resize(1);
   fileNames[0] = fileName;
 
@@ -90,8 +88,8 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
 			 topLevelShellWidgetClass, wTopLevel,
 			 XmNwidth,	    initialWindowWidth,
 			 XmNheight,	    initialWindowHeight,
-			 XmNx,		    100,
-			 XmNy,		    200,
+			 XmNx,		    40,
+			 XmNy,		    300,
 			 XmNdeleteResponse, XmDO_NOTHING,
 			 NULL);
 
@@ -113,9 +111,9 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
 
 cout << "_here 01:  calling ProfAppInit." << endl;
   ProfAppInit();
-cout << "_here 04:  calling WriteSummary." << endl;
-//profDataServicesPtr[0]->WriteSummary(cout, false, 0, false);
-BLProfilerUtils::WriteHeader(cout, 10, 16, true);
+//cout << "_here 04:  calling WriteSummary." << endl;
+////profDataServicesPtr[0]->WriteSummary(cout, false, 0, false);
+//BLProfilerUtils::WriteHeader(cout, 10, 16, true);
 
 std::string regionsFileName("pltRegions");
 dspArray.resize(1);
@@ -123,6 +121,18 @@ dspArray[0] = new DataServices(regionsFileName, Amrvis::NEWPLT);
 PltApp *temp = new PltApp(app, wTopLevel, regionsFileName, dspArray, false);
 pltAppList.push_back(temp);
 
+  Array<std::string> funcs;
+  std::ostringstream ossSummary;
+  profDataServicesPtr[0]->WriteSummary(ossSummary, false, 0, false);
+  size_t startPos(0), endPos(0);
+  const std::string &ossString = ossSummary.str();
+  while(startPos < ossString.length() - 1) {
+    endPos = ossString.find('\n', startPos);
+    std::string sLine(ossString.substr(startPos, endPos - startPos));
+    startPos = endPos + 1;
+    funcs.push_back(sLine);
+  }
+  GenerateFuncList(funcs);
 }
 
 
@@ -132,7 +142,7 @@ void ProfApp::ProfAppInit() {
 
 cout << "_here 002" << endl;
   XmAddWMProtocolCallback(wAmrVisTopLevel,
-			  XmInternAtom(display,"WM_DELETE_WINDOW", false),
+			  XmInternAtom(display,(String) "WM_DELETE_WINDOW", false),
 			  (XtCallbackProc) CBQuitProfApp, (XtPointer) this);
 
   for(np = 0; np != BL_SPACEDIM; ++np) {
@@ -166,7 +176,6 @@ cout << "_here 002" << endl;
 
   // ------------------------------- menu bar
   Widget wMenuBar, wMenuPulldown, wid, wCascade;
-  char selectText[20], accelText[20], accel[20];
   XmString label_str;
   XtSetArg(args[0], XmNtopAttachment, XmATTACH_FORM);
   XtSetArg(args[1], XmNleftAttachment, XmATTACH_FORM);
@@ -202,8 +211,6 @@ cout << "_here 002" << endl;
   XtAddCallback(wid, XmNactivateCallback, (XtCallbackProc) CBQuitProfApp,
 		(XtPointer) this);
   
-  Widget wTempDrawLevel = wid;
-
   // --------------------------------------------------------------- help menu
   wMenuPulldown = XmCreatePulldownMenu(wMenuBar, "MenuPulldown", NULL, 0);
   XtVaCreateManagedWidget("Help", xmCascadeButtonWidgetClass, wMenuBar,
@@ -269,11 +276,11 @@ cout << "_here 003" << endl;
                             XmNshadowType,      XmSHADOW_ETCHED_IN,
                             NULL);
 
-  unsigned long wc;
+  //unsigned long wc;
   int wcfWidth(totalPalWidth), wcfHeight(AVPalette::TOTALPALHEIGHT);
-  int centerX(wcfWidth / 2), centerY((wcfHeight / 2) - 16);
+  //int centerX(wcfWidth / 2), centerY((wcfHeight / 2) - 16);
   int controlSize(16);
-  int halfbutton(controlSize / 2);
+  //int halfbutton(controlSize / 2);
   wControlForm = XtVaCreateManagedWidget("refArea",
                             xmDrawingAreaWidgetClass, wControlsFrame,
                             XmNwidth,   wcfWidth,
@@ -283,14 +290,14 @@ cout << "_here 003" << endl;
   AddStaticEventHandler(wControlForm, ExposureMask, &ProfApp::DoExposeRef);
 
   wControls =
-    XtVaCreateManagedWidget("button0", xmPushButtonWidgetClass, wControlForm,
-                            XmNx, centerX - halfbutton,
-                            XmNy, centerY - halfbutton,
+    XtVaCreateManagedWidget("Generate Function List", xmPushButtonWidgetClass, wControlForm,
+                            //XmNx, centerX - halfbutton,
+                            XmNy, 64,
                             XmCMarginBottom, 2,
                             NULL);
 
-  //AddStaticCallback(wControls, XmNactivateCallback, &ProfApp::ChangePlane,
-                          //(XtPointer) 42);
+  AddStaticCallback(wControls, XmNactivateCallback, &ProfApp::DoGenerateFuncList,
+                          (XtPointer) 111);
 
   XtManageChild(wControls);
 
@@ -366,74 +373,39 @@ cout << "_here 006" << endl;
 			    XmNbottomAttachment,  XmATTACH_FORM,
                             XmNtopAttachment,   XmATTACH_WIDGET,
                             XmNtopWidget,       wPlotFrame,
-			    XmNwidth, 150,
+                            XmNheight, 600,
+			    XmNwidth, 850,
                             XmNshadowType,      XmSHADOW_ETCHED_IN,
                             NULL);
 
 
-  Widget wInfoForm =
-    XtVaCreateManagedWidget("infoform", xmFormWidgetClass, wFuncListFrame, NULL);
-
-  wFuncListScrollArea = XtVaCreateManagedWidget("funclistscrollarea",
-                xmScrolledWindowWidgetClass, wInfoForm,
-                XmNleftAttachment,   XmATTACH_FORM,
-                XmNleftOffset,       0,
-		XmNrightAttachment,  XmATTACH_FORM,
-                XmNtopAttachment,    XmATTACH_FORM,
-                XmNtopOffset,        0,
-		XmNbottomAttachment, XmATTACH_FORM,
-                XmNscrollingPolicy,  XmAUTOMATIC,
-                NULL);
+  Widget wFuncForm =
+    XtVaCreateManagedWidget("funcform", xmFormWidgetClass, wFuncListFrame, NULL);
 
   int i(0);
   XtSetArg(args[i++], XmNlistSizePolicy, XmRESIZE_IF_POSSIBLE);
-  //XtSetArg(args[i++], XmNwidth, 100);
-  Widget wInfoList = XmCreateScrolledList(wFuncListScrollArea, "infoscrolledlist", args, i);
 
-  XtVaSetValues(XtParent(wInfoList),
+  wFuncList = XmCreateScrolledList(wFuncForm, "funclist", args, i);
+
+  XtVaSetValues(XtParent(wFuncList),
                 XmNleftAttachment, XmATTACH_FORM,
                 XmNrightAttachment, XmATTACH_FORM,
-                //XmNtopAttachment, XmATTACH_FORM,
 		XmNtopAttachment,   XmATTACH_WIDGET,
 		XmNtopWidget,       wPlotFrame,
                 XmNtopOffset, Amrvis::WOFFSET,
+                //XmNbottomAttachment, XmATTACH_FORM,
                 XmNbottomAttachment, XmATTACH_POSITION,
-                XmNbottomPosition, 80,
-                XmNheight, 180,
-                XmNwidth, 180,
+                XmNbottomPosition, 90,
+                XmNheight, 480,
+                XmNwidth, 880,
                 NULL);
 
-  //AmrData &amrData = profDataServicesPtr[0]->AmrDataRef();
+  AddStaticCallback(wFuncList, XmNdefaultActionCallback, &ProfApp::DoFuncList, (XtPointer) 42);
+  AddStaticCallback(wFuncList, XmNbrowseSelectionCallback, &ProfApp::DoFuncList, (XtPointer) 43);
+  AddStaticCallback(wFuncList, XmNextendedSelectionCallback, &ProfApp::DoFuncList, (XtPointer) 44);
+  AddStaticCallback(wFuncList, XmNmultipleSelectionCallback, &ProfApp::DoFuncList, (XtPointer) 45);
 
-  //int numEntries(9 + amrData.FinestLevel() + 1);
-  int numEntries(3);
-  XmStringTable strList = (XmStringTable) XtMalloc(numEntries*sizeof(XmString *));
-
-  i = 0;
-  std::ostringstream prob;
-  prob.precision(15);
-
-  prob << "Line 0";
-  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
-  prob.str(std::string());  // clear prob
-
-  prob << "Line 1";
-  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
-  prob.str(std::string());  // clear prob
-
-  prob << "Line 2";
-  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
-  prob.str(std::string());  // clear prob
-
-  XtVaSetValues(wInfoList,
-                XmNvisibleItemCount, numEntries,
-                XmNitemCount, numEntries,
-                XmNitems, strList,
-                NULL);
-
-
-  XtManageChild(wInfoList);
-
+  XtManageChild(wFuncList);
 
 
   
@@ -746,6 +718,64 @@ void ProfApp::DoExposeRef(Widget, XtPointer, XtPointer) {
               xpos+5+axisLength, ypos+5+axisLength, hLabel, strlen(hLabel));
   XDrawString(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
               xpos, ypos, vLabel, strlen(vLabel));
+}
+
+
+// -------------------------------------------------------------------
+void ProfApp::DoFuncList(Widget w, XtPointer client_data, XtPointer call_data) {
+  cout << "_in ProfApp::DoFuncList" << endl;
+  unsigned long r = (unsigned long) client_data;
+  XmListCallbackStruct *cbs = (XmListCallbackStruct *) call_data;
+
+  String selection;
+  XmStringGetLtoR(cbs->item, XmSTRING_DEFAULT_CHARSET, &selection);
+  cout << "r selection = " << r << "  " << selection << endl;
+}
+
+
+// -------------------------------------------------------------------
+void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data, XtPointer call_data) {
+  unsigned long r = (unsigned long) client_data;
+  cout << "_in ProfApp::DoGenerateFuncList:  r = " << r << endl;
+
+  Array<std::string> funcs;
+  std::ostringstream ossSummary;
+  profDataServicesPtr[0]->WriteSummary(ossSummary, false, 0, false);
+  size_t startPos(0), endPos(0);
+  const std::string &ossString = ossSummary.str();
+  while(startPos < ossString.length() - 1) {
+    endPos = ossString.find('\n', startPos);
+    std::string sLine(ossString.substr(startPos, endPos - startPos));
+    startPos = endPos + 1;
+    funcs.push_back(sLine);
+  }
+  GenerateFuncList(funcs);
+}
+
+
+// -------------------------------------------------------------------
+void ProfApp::GenerateFuncList(const Array<std::string> &funcs) {
+  static int t(1000);
+  cout << "_in ProfApp::DoGenerateFuncList:  t = " << t << endl;
+  int numEntries(funcs.size());
+  XmStringTable strList = (XmStringTable) XtMalloc(numEntries*sizeof(XmString *));
+
+  for(int i(0); i < funcs.size(); ++i) {
+    strList[i] = XmStringCreateSimple(const_cast<char *>(funcs[i].c_str()));
+  }
+
+  XtVaSetValues(wFuncList,
+                XmNvisibleItemCount, numEntries,
+                XmNitemCount, numEntries,
+                XmNitems, strList,
+                NULL);
+
+  for(int i(0); i < funcs.size(); ++i) {
+    XmStringFree(strList[i]);
+  }
+  XtFree((char *) strList);
+
+  t += 1000;
 }
 
 
