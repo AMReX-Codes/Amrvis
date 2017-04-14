@@ -140,9 +140,8 @@ pltAppList.push_back(temp);
 void ProfApp::ProfAppInit() {
   int np;
 
-cout << "_here 002" << endl;
   XmAddWMProtocolCallback(wAmrVisTopLevel,
-			  XmInternAtom(display,(String) "WM_DELETE_WINDOW", false),
+			  XmInternAtom(display,const_cast<String> ("WM_DELETE_WINDOW"), false),
 			  (XtCallbackProc) CBQuitProfApp, (XtPointer) this);
 
   for(np = 0; np != BL_SPACEDIM; ++np) {
@@ -175,21 +174,21 @@ cout << "_here 002" << endl;
 				      NULL);
 
   // ------------------------------- menu bar
-  Widget wMenuBar, wMenuPulldown, wid, wCascade;
+  Widget wMenuBar, wMenuPulldown, wid;
   XmString label_str;
   XtSetArg(args[0], XmNtopAttachment, XmATTACH_FORM);
   XtSetArg(args[1], XmNleftAttachment, XmATTACH_FORM);
   XtSetArg(args[2], XmNrightAttachment, XmATTACH_FORM);
-  wMenuBar = XmCreateMenuBar(wMainArea, "menubar", args, 3);
+  wMenuBar = XmCreateMenuBar(wMainArea, const_cast<String> ("menubar"), args, 3);
 
   // ------------------------------- file menu
-  wMenuPulldown = XmCreatePulldownMenu(wMenuBar, "Filepulldown", NULL, 0);
+  wMenuPulldown = XmCreatePulldownMenu(wMenuBar, const_cast<String> ("Filepulldown"), NULL, 0);
   XtVaCreateManagedWidget("File", xmCascadeButtonWidgetClass, wMenuBar,
 			  XmNmnemonic, 'F', XmNsubMenuId, wMenuPulldown, NULL);
 
   // Quit
   XtVaCreateManagedWidget(NULL, xmSeparatorGadgetClass, wMenuPulldown, NULL);
-  label_str = XmStringCreateSimple("Ctrl+Q");
+  label_str = XmStringCreateSimple(const_cast<String> ("Ctrl+Q"));
   wid = XtVaCreateManagedWidget("Quit", xmPushButtonGadgetClass, wMenuPulldown,
 				XmNmnemonic,  'Q',
 				XmNaccelerator, "Ctrl<Key>Q",
@@ -201,7 +200,7 @@ cout << "_here 002" << endl;
   
   // Close
   XtVaCreateManagedWidget(NULL, xmSeparatorGadgetClass, wMenuPulldown, NULL);
-  label_str = XmStringCreateSimple("Ctrl+C");
+  label_str = XmStringCreateSimple(const_cast<String> ("Ctrl+C"));
   wid = XtVaCreateManagedWidget("Close", xmPushButtonGadgetClass, wMenuPulldown,
 				XmNmnemonic,  'C',
 				XmNaccelerator, "Ctrl<Key>C",
@@ -212,7 +211,7 @@ cout << "_here 002" << endl;
 		(XtPointer) this);
   
   // --------------------------------------------------------------- help menu
-  wMenuPulldown = XmCreatePulldownMenu(wMenuBar, "MenuPulldown", NULL, 0);
+  wMenuPulldown = XmCreatePulldownMenu(wMenuBar, const_cast<String> ("MenuPulldown"), NULL, 0);
   XtVaCreateManagedWidget("Help", xmCascadeButtonWidgetClass, wMenuBar,
 			  XmNmnemonic, 'H', XmNsubMenuId,   wMenuPulldown, NULL);
   wid = XtVaCreateManagedWidget("Info...", xmPushButtonGadgetClass,
@@ -221,8 +220,6 @@ cout << "_here 002" << endl;
   
   XtManageChild(wMenuBar);
 
-
-cout << "_here 003" << endl;
 
   // --------------------------------------------Palette frame and drawing area
   wPalFrame = XtVaCreateManagedWidget("paletteframe", xmFrameWidgetClass, wMainArea,
@@ -276,11 +273,7 @@ cout << "_here 003" << endl;
                             XmNshadowType,      XmSHADOW_ETCHED_IN,
                             NULL);
 
-  //unsigned long wc;
   int wcfWidth(totalPalWidth), wcfHeight(AVPalette::TOTALPALHEIGHT);
-  //int centerX(wcfWidth / 2), centerY((wcfHeight / 2) - 16);
-  int controlSize(16);
-  //int halfbutton(controlSize / 2);
   wControlForm = XtVaCreateManagedWidget("refArea",
                             xmDrawingAreaWidgetClass, wControlsFrame,
                             XmNwidth,   wcfWidth,
@@ -337,8 +330,7 @@ cout << "_here 003" << endl;
 		XmNscrollingPolicy,	XmAUTOMATIC,
 		NULL);
 
-cout << "_here 006" << endl;
-  trans =
+  trans = const_cast<String> (
 	"<Btn1Motion>: DrawingAreaInput() ManagerGadgetButtonMotion()	\n\
 	<Btn1Down>: DrawingAreaInput() ManagerGadgetButtonMotion()	\n\
 	<Btn1Up>: DrawingAreaInput() ManagerGadgetButtonMotion()	\n\
@@ -347,7 +339,7 @@ cout << "_here 006" << endl;
 	<Btn2Up>: DrawingAreaInput() ManagerGadgetButtonMotion()	\n\
 	<Btn3Motion>: DrawingAreaInput() ManagerGadgetButtonMotion()	\n\
 	<Btn3Down>: DrawingAreaInput() ManagerGadgetButtonMotion()	\n\
-	<Btn3Up>: DrawingAreaInput() ManagerGadgetButtonMotion()";
+	<Btn3Up>: DrawingAreaInput() ManagerGadgetButtonMotion()" );
 	
   wPlotPlane[Amrvis::ZPLANE] = XtVaCreateManagedWidget("plotArea",
 			    xmDrawingAreaWidgetClass, wScrollArea[Amrvis::ZPLANE],
@@ -385,7 +377,7 @@ cout << "_here 006" << endl;
   int i(0);
   XtSetArg(args[i++], XmNlistSizePolicy, XmRESIZE_IF_POSSIBLE);
 
-  wFuncList = XmCreateScrolledList(wFuncForm, "funclist", args, i);
+  wFuncList = XmCreateScrolledList(wFuncForm, const_cast<String> ("funclist"), args, i);
 
   XtVaSetValues(XtParent(wFuncList),
                 XmNleftAttachment, XmATTACH_FORM,
@@ -432,7 +424,6 @@ std::string palFilename("Palette");
 
   interfaceReady = true;
 
-cout << "_here 009" << endl;
 }  // end ProfAppInit()
 
 
