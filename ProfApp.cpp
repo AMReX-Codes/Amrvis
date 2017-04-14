@@ -5,6 +5,10 @@
 
 #include <ProfApp.H>
 #include <ProfDataServices.H>
+#include <DataServices.H>
+#include <AmrPicture.H>
+#include <PltApp.H>
+#include <PltAppState.H>
 #include <GraphicsAttributes.H>
 #include <XYPlotWin.H>
 #include <ParallelDescriptor.H>
@@ -55,6 +59,7 @@ ProfApp::~ProfApp() {
   delete XYplotparameters;
   delete pltPaletteptr;
   delete gaPtr;
+  delete profAppStatePtr;
 
   XtDestroyWidget(wAmrVisTopLevel);
 
@@ -111,6 +116,13 @@ cout << "_here 01:  calling ProfAppInit." << endl;
 cout << "_here 04:  calling WriteSummary." << endl;
 //profDataServicesPtr[0]->WriteSummary(cout, false, 0, false);
 BLProfilerUtils::WriteHeader(cout, 10, 16, true);
+
+std::string regionsFileName("pltRegions");
+dspArray.resize(1);
+dspArray[0] = new DataServices(regionsFileName, Amrvis::NEWPLT);
+PltApp *temp = new PltApp(app, wTopLevel, regionsFileName, dspArray, false);
+pltAppList.push_back(temp);
+
 }
 
 
@@ -128,12 +140,8 @@ cout << "_here 002" << endl;
   }
 
   servingButton = 0;
-  //startX = 0;
-  //startY = 0;
-  //endX = 0;
-  //endY = 0;
 
-  infoShowing     = false;
+  infoShowing = false;
 
   int palListLength(AVPalette::PALLISTLENGTH);
   int palWidth(AVPalette::PALWIDTH);
@@ -142,7 +150,7 @@ cout << "_here 002" << endl;
   int reserveSystemColors(0);
   bool bRegions(true);
   if(bRegions) {
-    //totalPalWidth += 100;
+    totalPalWidth += 100;
   }
   pltPaletteptr = new Palette(wTopLevel, palListLength, palWidth,
                               totalPalWidth, totalPalHeight,
@@ -280,6 +288,10 @@ cout << "_here 003" << endl;
                             XmNy, centerY - halfbutton,
                             XmCMarginBottom, 2,
                             NULL);
+
+  //AddStaticCallback(wControls, XmNactivateCallback, &ProfApp::ChangePlane,
+                          //(XtPointer) 42);
+
   XtManageChild(wControls);
 
 
@@ -289,7 +301,6 @@ cout << "_here 003" << endl;
 			    XmNrightAttachment,	  XmATTACH_WIDGET,
 			    XmNrightWidget,       wPalFrame,
 			    XmNleftAttachment,    XmATTACH_FORM,
-			    XmNbottomAttachment,  XmATTACH_FORM,
 			    XmNtopAttachment,	  XmATTACH_WIDGET,
 			    XmNtopWidget,         wMenuBar,
 			    XmNshadowType,	  XmSHADOW_ETCHED_IN,
@@ -305,7 +316,8 @@ cout << "_here 003" << endl;
 			    XmNtopAttachment,    XmATTACH_FORM,
 			    XmNleftAttachment,   XmATTACH_FORM,
 			    XmNrightAttachment,  XmATTACH_FORM,
-			    XmNbottomAttachment, XmATTACH_FORM,
+			    //XmNbottomAttachment, XmATTACH_FORM,
+			    XmNheight, 242,
 			    NULL);
 
   wScrollArea[Amrvis::ZPLANE] = XtVaCreateManagedWidget("scrollAreaXY",
@@ -342,6 +354,88 @@ cout << "_here 006" << endl;
   XtVaSetValues(wScrollArea[Amrvis::ZPLANE], XmNbottomAttachment, XmATTACH_FORM,
 		XmNrightAttachment, XmATTACH_FORM, NULL);		
   
+
+  // ************************** profiled function list area
+
+  Widget wFuncListFrame;
+  wFuncListFrame = XtVaCreateManagedWidget("funclistframe",
+                            xmFrameWidgetClass, wMainArea,
+                            XmNrightAttachment, XmATTACH_WIDGET,
+                            XmNrightWidget,       wPalFrame,
+			    XmNleftAttachment,    XmATTACH_FORM,
+			    XmNbottomAttachment,  XmATTACH_FORM,
+                            XmNtopAttachment,   XmATTACH_WIDGET,
+                            XmNtopWidget,       wPlotFrame,
+			    XmNwidth, 150,
+                            XmNshadowType,      XmSHADOW_ETCHED_IN,
+                            NULL);
+
+
+  Widget wInfoForm =
+    XtVaCreateManagedWidget("infoform", xmFormWidgetClass, wFuncListFrame, NULL);
+
+  wFuncListScrollArea = XtVaCreateManagedWidget("funclistscrollarea",
+                xmScrolledWindowWidgetClass, wInfoForm,
+                XmNleftAttachment,   XmATTACH_FORM,
+                XmNleftOffset,       0,
+		XmNrightAttachment,  XmATTACH_FORM,
+                XmNtopAttachment,    XmATTACH_FORM,
+                XmNtopOffset,        0,
+		XmNbottomAttachment, XmATTACH_FORM,
+                XmNscrollingPolicy,  XmAUTOMATIC,
+                NULL);
+
+  int i(0);
+  XtSetArg(args[i++], XmNlistSizePolicy, XmRESIZE_IF_POSSIBLE);
+  //XtSetArg(args[i++], XmNwidth, 100);
+  Widget wInfoList = XmCreateScrolledList(wFuncListScrollArea, "infoscrolledlist", args, i);
+
+  XtVaSetValues(XtParent(wInfoList),
+                XmNleftAttachment, XmATTACH_FORM,
+                XmNrightAttachment, XmATTACH_FORM,
+                //XmNtopAttachment, XmATTACH_FORM,
+		XmNtopAttachment,   XmATTACH_WIDGET,
+		XmNtopWidget,       wPlotFrame,
+                XmNtopOffset, Amrvis::WOFFSET,
+                XmNbottomAttachment, XmATTACH_POSITION,
+                XmNbottomPosition, 80,
+                XmNheight, 180,
+                XmNwidth, 180,
+                NULL);
+
+  //AmrData &amrData = profDataServicesPtr[0]->AmrDataRef();
+
+  //int numEntries(9 + amrData.FinestLevel() + 1);
+  int numEntries(3);
+  XmStringTable strList = (XmStringTable) XtMalloc(numEntries*sizeof(XmString *));
+
+  i = 0;
+  std::ostringstream prob;
+  prob.precision(15);
+
+  prob << "Line 0";
+  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
+  prob.str(std::string());  // clear prob
+
+  prob << "Line 1";
+  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
+  prob.str(std::string());  // clear prob
+
+  prob << "Line 2";
+  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
+  prob.str(std::string());  // clear prob
+
+  XtVaSetValues(wInfoList,
+                XmNvisibleItemCount, numEntries,
+                XmNitemCount, numEntries,
+                XmNitems, strList,
+                NULL);
+
+
+  XtManageChild(wInfoList);
+
+
+
   
   // ***************************************************************** 
   XtManageChild(wPalArea);
@@ -590,12 +684,12 @@ XYPlotDataList *ProfApp::CreateLinePlot(int V, int sdir, int mal, int ix,
     XdX[lev] = amrData.DxLevel()[lev][sdir];
     intersectStr[lev] = new char[128];
     sprintf(intersectStr[lev], ((dir1 == Amrvis::XDIR) ? "X=" : "Y="));
-    //sprintf(intersectStr[lev]+2, pltAppState->GetFormatString().c_str(),
+    //sprintf(intersectStr[lev]+2, profAppState->GetFormatString().c_str(),
 	    //gridOffset[dir1] +
 	    //(0.5 + trueRegion[lev].smallEnd(dir1))*amrData.DxLevel()[lev][dir1]);
   }
   XYPlotDataList *newlist = new XYPlotDataList(*derived,
-                                     pltAppState->MinDrawnLevel(), mal,
+                                     profAppState->MinDrawnLevel(), mal,
 				     ix, amrData.RefRatio(),
 		                     XdX, intersectStr, gridOffset[sdir]);
 
@@ -606,7 +700,7 @@ XYPlotDataList *ProfApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 			 (void *) (trueRegion.dataPtr()),
 			 sdir,
 			 (void *) derived,
-			 pltAppState->MinAllowableLevel(), mal,
+			 profAppState->MinAllowableLevel(), mal,
 			 (void *) newlist, &lineOK);
   if(lineOK) {
     return newlist;

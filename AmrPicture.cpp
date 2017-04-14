@@ -718,12 +718,6 @@ void AmrPicture::DoExposePicture() {
       XCopyArea(display, pixMap, pictureWindow, 
  		xgc, 0, 0, imageSizeH, imageSizeV, 0, 0); 
 
-    // alekstest:
-    //int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
-    //XPutImage(display, pictureWindow, xgc, xImageArray[maxDrawnLevel],
-              //0, 0, 0, 0, imageSizeH, imageSizeV);
-    //XFlush(display);
-
       DrawBoxes(gpArray, pictureWindow);
 
       if( ! subCutShowing) {  // draw selected region

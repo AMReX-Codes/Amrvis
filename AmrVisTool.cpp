@@ -684,11 +684,11 @@ void CBQuitProfApp(Widget ofProfApp, XtPointer client_data, XtPointer) {
   ProfApp *obj = (ProfApp *) client_data;
   profAppList.remove(obj);
 
-  //Array<DataServices *> &dataServicesPtr = obj->GetDataServicesPtrArray();
-  //for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
-    //dataServicesPtr[ids]->DecrementNumberOfUsers();
-    //DataServices::Dispatch(DataServices::DeleteRequest, dataServicesPtr[ids], NULL);
-  //}
+  Array<DataServices *> &dataServicesPtr = obj->GetDataServicesPtrArray();
+  for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
+    dataServicesPtr[ids]->DecrementNumberOfUsers();
+    DataServices::Dispatch(DataServices::DeleteRequest, dataServicesPtr[ids], NULL);
+  }
 
   delete obj;
 }

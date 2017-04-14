@@ -19,9 +19,11 @@ using std::vector;
 using std::string;
 
 class ProfDataServices;
-class AmrPicture;
+class DataServices;
 class GraphicsAttributes;
 class Palette;
+class PltApp;
+class PltAppState;
 class XYPlotParameters;
 class XYPlotWin;
 class XYPlotDataList;
@@ -48,6 +50,8 @@ public:
   Palette *GetPalettePtr()         { return pltPaletteptr; }
   ProfDataServices *GetProfDataServicesPtr() { return profDataServicesPtr[0]; }
   Array<ProfDataServices *> &GetProfDataServicesPtrArray() { return profDataServicesPtr; }
+  DataServices *GetDataServicesPtr() { return dspArray[0]; }
+  Array<DataServices *> &GetDataServicesPtrArray() { return dspArray; }
   int GetActiveView() const        { return activeView;    }
   XtAppContext GetAppContext()     { return appContext;    }
   GraphicsAttributes *GetGAptr() const  { return gaPtr; }
@@ -71,6 +75,7 @@ private:
   Widget wPlotArea;
   Widget wPlotLabel;
   Widget wPalArea, wControls;
+  Widget wFuncListScrollArea;
 
   XYPlotParameters *XYplotparameters;
   XYPlotWin *XYplotwin[BL_SPACEDIM];
@@ -78,6 +83,7 @@ private:
   XtAppContext appContext;
   Arg args[Amrvis::MAXARGS];
   Palette *pltPaletteptr;
+  PltAppState *profAppStatePtr;
   bool infoShowing;
   bool interfaceReady;
   int servingButton;
@@ -90,6 +96,8 @@ private:
   String trans;
   Display *display;
   GC xgc;
+  std::list<PltApp *> pltAppList;
+  Array<DataServices *> dspArray;
   
     
   static int initialWindowHeight, initialWindowWidth;
