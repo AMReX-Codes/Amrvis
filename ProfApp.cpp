@@ -53,6 +53,10 @@ using std::max;
 
 cMessageArea profAppMessageText;
 
+void CollectMProfStats(std::map<std::string, BLProfiler::ProfStats> &mProfStats,
+                       const Array<Array<BLProfStats::FuncStat> > &funcStats,
+                       const Array<std::string> &fNames,
+                       Real runTime, int whichProc);
 
 // -------------------------------------------------------------------
 ProfApp::~ProfApp() {
@@ -728,6 +732,25 @@ void ProfApp::DoFuncList(Widget w, XtPointer client_data, XtPointer call_data) {
 void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data, XtPointer call_data) {
   unsigned long r = (unsigned long) client_data;
   cout << "_in ProfApp::DoGenerateFuncList:  r = " << r << endl;
+
+  BLProfStats &blProfStats = profDataServicesPtr[0]->GetBLProfStats();
+  Array<Array<BLProfStats::FuncStat>> aFuncStats;
+  blProfStats.CollectFuncStats(aFuncStats);
+  cout << "aFuncStats.size() = " << aFuncStats.size() << endl;
+  std::map<std::string, BLProfiler::ProfStats> mProfStats;  // [fname, pstats]
+  const Array<string> &blpFNames = blProfStats.BLPFNames();
+  Real calcRunTime(1.0);
+  int whichProc(0);
+  CollectMProfStats(mProfStats, aFuncStats, blpFNames, calcRunTime, whichProc);
+  cout << "||||::::" << endl;
+  for(auto mps : mProfStats) {
+    Real percent(100.0);
+    const int colWidth(10);
+    const int maxlen(64);
+    bool bwriteavg(true);
+    BLProfilerUtils::WriteRow(cout, mps.first, mps.second, percent, colWidth, maxlen, bwriteavg);
+  }
+  cout << "||||::::" << endl;
 
   Array<std::string> funcs;
   std::ostringstream ossSummary;
