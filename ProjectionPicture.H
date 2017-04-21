@@ -42,7 +42,7 @@ class AVRealBox {
   public:
     AVRealBox();
     ~AVRealBox() { }
-    AVRealBox(const Box &theBox);
+    AVRealBox(const amrex::Box &theBox);
     RealPoint vertices[8];
 };
 
@@ -58,7 +58,7 @@ class RealSlice {
   public:
     RealSlice();
     ~RealSlice() {}
-    RealSlice(int count, int slice, const Box &worldBox);
+    RealSlice(int count, int slice, const amrex::Box &worldBox);
     RealSlice(RealPoint p1, RealPoint p2, RealPoint p3, RealPoint p4);
     void ChangeSlice(int NewSlice);
     RealPoint edges[4];
@@ -95,7 +95,7 @@ public:
   void	DrawPicture();
   void	LabelAxes();
   void	ToggleShowSubCut();
-  void	SetSubCut(const Box &newbox);
+  void	SetSubCut(const amrex::Box &newbox);
   void	SetDrawingAreaDimensions(int w, int h); // called when resized 
   void SetDrawingArea(Widget drawhere) { drawingArea = drawhere; }
   XImage *GetPictureXImage() const { return PPXImage; }
@@ -112,8 +112,8 @@ private:
   Widget	  drawingArea;
   AmrPicture     *amrPicturePtr;
   ViewTransform  *viewTransformPtr;
-  Array<Array<AVRealBox> > boxReal;
-  Array<Array<TransBox> > boxTrans;
+  amrex::Array<amrex::Array<AVRealBox> > boxReal;
+  amrex::Array<amrex::Array<TransBox> > boxTrans;
   Real longestBoxSide;
   
   AVRealBox realBoundingBox;
@@ -125,8 +125,8 @@ private:
   RealSlice realSlice[3];
   TransSlice transSlice[3];
   
-  Array<int> boxPoints;
-  Array<Pixel> boxColors;
+  amrex::Array<int> boxPoints;
+  amrex::Array<Pixel> boxColors;
   int daWidth, daHeight;
   Pixel subCutColor, sliceColor;
   bool showSubCut, pixCreated;
@@ -136,7 +136,7 @@ private:
   Palette *palettePtr;
   unsigned char *imageData, *volpackImageData;
   XImage *PPXImage;
-  Array<Box> theDomain;
+  amrex::Array<amrex::Box> theDomain;
   char buffer[BUFSIZ];
   PltApp *pltAppPtr;
   Real scale[3];
@@ -153,9 +153,9 @@ private:
   void MakeSubCutBox();
   void DrawAuxiliaries(const Drawable &drawable);
   void DrawSlices(const Drawable &drawable);
-  void LoadSlices(const Box &surroundingBox);
+  void LoadSlices(const amrex::Box &surroundingBox);
   // converts a Box to eight BoxRealPoints at the specified level
-  void AddBox(const Box &theBox, int index, int level);
+  void AddBox(const amrex::Box &theBox, int index, int level);
   void TransformBoxPoints(int iLevel, int iBoxIndex);
 
 };

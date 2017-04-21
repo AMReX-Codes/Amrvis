@@ -17,20 +17,20 @@ using std::list;
 
 class OrderedBoxes {
   public:
-    OrderedBoxes(const int level, int idir, const Box &databox, const Box &finebox)
+    OrderedBoxes(const int level, int idir, const amrex::Box &databox, const amrex::Box &finebox)
       : iLevel(level), iDir(idir), dataBox(databox), finestBox(finebox)
     { }
 
     int ILevel() const { return iLevel; }
-    const Box &DataBox() const { return dataBox; }
-    const Box &FinestBox() const { return finestBox; }
+    const amrex::Box &DataBox() const { return dataBox; }
+    const amrex::Box &FinestBox() const { return finestBox; }
     bool operator<(const OrderedBoxes &ob) const {
       return(finestBox.smallEnd()[iDir] < ob.finestBox.smallEnd()[iDir]);
     }
 
   protected:
     int iLevel, iDir;
-    Box dataBox, finestBox;
+    amrex::Box dataBox, finestBox;
 
 };
 
@@ -70,14 +70,14 @@ class XYPlotDataList {
   public:
     XYPlotDataList(const string &derived, int minlevel, int maxlevel,
 		   int gridlinein,
-		   const Array<int> &ratiolist,
-		   const Array<Real> &dx,
-		   const Array<char *> &intersectpoint,
+		   const amrex::Array<int> &ratiolist,
+		   const amrex::Array<Real> &dx,
+		   const amrex::Array<char *> &intersectpoint,
 		   Real startx = 0.0);
     XYPlotDataList(XYPlotDataList *src);
     ~XYPlotDataList();
 
-    void AddFArrayBox(FArrayBox &fab, int direction, int level);
+    void AddFArrayBox(amrex::FArrayBox &fab, int direction, int level);
 
     void UpdateStats(void);
     void SetLevel(int new_level) {
@@ -95,26 +95,26 @@ class XYPlotDataList {
     double XYPDLLoY(const int ilev) const { return xypdlLoY[ilev]; }
     double XYPDLHiY(const int ilev) const { return xypdlHiY[ilev]; }
     char *IntersectPoint(const int ilev) const { return intersectPoint[ilev]; }
-    Array<double> &XVal(int level) { return xypdlXVal[level]; }
-    Array<double> &YVal(int level) { return xypdlYVal[level]; }
+    amrex::Array<double> &XVal(int level) { return xypdlXVal[level]; }
+    amrex::Array<double> &YVal(int level) { return xypdlYVal[level]; }
 
   protected:
-    Array<list<XYPlotDataListLink *> > dataSets; 
-    Array<int> xypdlRatios;        // Used for insertion of data sets beginning
+    amrex::Array<list<XYPlotDataListLink *> > dataSets; 
+    amrex::Array<int> xypdlRatios;        // Used for insertion of data sets beginning
                                     // in the middle of a single cell [level]
-    Array<Real> dX;                // dX in the proper direction [level]
-    Array<char *> intersectPoint;  // Intersected value (in problem space)
+    amrex::Array<Real> dX;                // dX in the proper direction [level]
+    amrex::Array<char *> intersectPoint;  // Intersected value (in problem space)
                                     // for labelling plots [level]
-    Array<double> xypdlLoY, xypdlHiY;  // [level]
-    Array<Array<double> > xypdlXVal, xypdlYVal;  // [level][data]
+    amrex::Array<double> xypdlLoY, xypdlHiY;  // [level]
+    amrex::Array<amrex::Array<double> > xypdlXVal, xypdlYVal;  // [level][data]
 
-    Array<int> numPoints;
+    amrex::Array<int> numPoints;
     int  minLevel, maxLevel, curLevel, gridline, whichDir;
     bool updatedQ;
     double startX, endX, offsetX;
     string xypdlDerived;
     XYPlotDataList *copiedFrom;
-    Array<BoxList> fabBoxLists, fillBoxLists;
+    amrex::Array<amrex::BoxList> fabBoxLists, fillBoxLists;
 };
 #endif
 // -------------------------------------------------------------------

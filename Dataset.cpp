@@ -39,6 +39,7 @@ using std::endl;
 using std::min;
 using std::max;
 
+using namespace amrex;
 
 // -------------------------------------------------------------------
 Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,

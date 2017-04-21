@@ -18,6 +18,8 @@ using std::max;
 #include <PltApp.H>
 #include <AMReX_ParallelDescriptor.H>
 
+using namespace amrex;
+
 const int DEFAULTMAXPICTURESIZE = 600000;
 
 int boundaryWidth;
@@ -1092,7 +1094,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
 
 
   if(fileType == Amrvis::INVALIDTYPE) {
-    BoxLib::Abort("Error:  invalid file type.  Exiting.");
+    amrex::Abort("Error:  invalid file type.  Exiting.");
   } else {
     if(ParallelDescriptor::IOProcessor()) {
       if(verbose) {

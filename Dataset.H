@@ -14,24 +14,24 @@
 
 #include <AMReX_Box.H>
 #include <AMReX_AmrvisConstants.H>
+#include <AMReX_DataServices.H>
 
 const int MAXSTRINGWIDTH = 64;
 
 class PltApp;
 class PltAppState;
 class AmrPicture;
-class DataServices;
 class StringLoc;	
 
 class Dataset {
  public:
-  Dataset(const Box &alignedRegion, AmrPicture *apptr,
+  Dataset(const amrex::Box &alignedRegion, AmrPicture *apptr,
           PltApp *pltappptr, PltAppState *pltappstateptr,
 	  int hdir, int vdir, int sdir);
   
   ~Dataset();
   
-  void DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
+  void DatasetRender(const amrex::Box &alignedRegion, AmrPicture *apptr,
 		     PltApp *pltappptr, PltAppState *pltappstateptr,
 		     int hdir, int vdir, int sdir);
   void DrawIndices();
@@ -57,8 +57,8 @@ class Dataset {
   Widget	wDatasetTopLevel, wDatasetForm;
   Widget	wDatasetTools, wScrollArea, wPixArea;
   Widget        wFormat, wColorButton, wQuitButton, wLevels, wMinValue, wMaxValue;
-  Arg		args[Amrvis::MAXARGS];
-  Box		*datasetRegion;
+  Arg		args[amrex::Amrvis::MAXARGS];
+  amrex::Box		*datasetRegion;
   unsigned int	pixSizeX, pixSizeY;
   int		dataItemWidth, dataItemHeight;
   int		maxAllowableLevel, maxDrawnLevel, minDrawnLevel, stringOk;
@@ -67,7 +67,7 @@ class Dataset {
   StringLoc	*dataStringArray, **myDataStringArray;
   bool          bDataStringArrayAllocated;
   AmrPicture	*amrPicturePtr;
-  DataServices	*dataServicesPtr;
+  amrex::DataServices	*dataServicesPtr;
   PltApp	*pltAppPtr;
   PltAppState	*pltAppStatePtr;
   GraphicsAttributes	*gaPtr;

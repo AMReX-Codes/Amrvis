@@ -25,6 +25,8 @@ using std::min;
 using std::max;
 using std::strcpy;
 
+using namespace amrex;
+
 
 // -------------------------------------------------------------------
 void PltApp::DoOutput(Widget w, XtPointer data, XtPointer) {

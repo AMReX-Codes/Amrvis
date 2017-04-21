@@ -39,7 +39,7 @@ private:
   
 public:
   ProfApp(XtAppContext app, Widget w, const string &filename, 
-         const Array<ProfDataServices *> &profdataservicesptr);
+         const amrex::Array<ProfDataServices *> &profdataservicesptr);
   
   ~ProfApp();
   
@@ -49,9 +49,9 @@ public:
   Widget WId()                     { return wAmrVisTopLevel; }
   Palette *GetPalettePtr()         { return pltPaletteptr; }
   ProfDataServices *GetProfDataServicesPtr() { return profDataServicesPtr[0]; }
-  Array<ProfDataServices *> &GetProfDataServicesPtrArray() { return profDataServicesPtr; }
+  amrex::Array<ProfDataServices *> &GetProfDataServicesPtrArray() { return profDataServicesPtr; }
   DataServices *GetDataServicesPtr() { return dspArray[0]; }
-  Array<DataServices *> &GetDataServicesPtrArray() { return dspArray; }
+  amrex::Array<DataServices *> &GetDataServicesPtrArray() { return dspArray; }
   int GetActiveView() const        { return activeView;    }
   XtAppContext GetAppContext()     { return appContext;    }
   GraphicsAttributes *GetGAptr() const  { return gaPtr; }
@@ -64,7 +64,7 @@ public:
   void DoExposePalette(Widget, XtPointer, XtPointer);
   void DoFuncList(Widget, XtPointer, XtPointer);
   void DoGenerateFuncList(Widget, XtPointer, XtPointer);
-  void GenerateFuncList(const Array<std::string> &funcs);
+  void GenerateFuncList(const amrex::Array<std::string> &funcs);
 
   void DetachXYPlotWin(int dir) { XYplotwin[dir] = NULL; }
   XYPlotParameters *GetXYPlotParameters() const { return XYplotparameters; }
@@ -95,13 +95,13 @@ private:
   string fileName, headerSuffix;
   char buffer[BUFSIZ];
   GraphicsAttributes	*gaPtr;
-  Array<ProfDataServices *> profDataServicesPtr;
-  Array<string> fileNames;
+  amrex::Array<ProfDataServices *> profDataServicesPtr;
+  amrex::Array<string> fileNames;
   String trans;
   Display *display;
   GC xgc;
   std::list<PltApp *> pltAppList;
-  Array<DataServices *> dspArray;
+  amrex::Array<DataServices *> dspArray;
   
     
   static int initialWindowHeight, initialWindowWidth;
@@ -130,7 +130,7 @@ private:
       XtPointer data;
       profMemberCB cbFunc;
   };
-  Array<CBData *> cbdPtrs;  // save these so we can delete them later
+  amrex::Array<CBData *> cbdPtrs;  // save these so we can delete them later
 };
 
 

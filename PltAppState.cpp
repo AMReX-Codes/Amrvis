@@ -12,6 +12,8 @@ using std::endl;
 using std::min;
 using std::max;
 
+using namespace amrex;
+
 
 // -------------------------------------------------------------------
 CMinMax::CMinMax()

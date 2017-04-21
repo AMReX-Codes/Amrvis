@@ -6,6 +6,9 @@
 #include <climits>
 #include <cfloat>
 
+using namespace amrex;
+
+
 // -------------------------------------------------------------------
 GridPicture::GridPicture() {
 }

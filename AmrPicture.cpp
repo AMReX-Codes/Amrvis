@@ -17,6 +17,8 @@ using std::endl;
 using std::max;
 using std::min;
 
+using namespace amrex;
+
 #include <ctime>
 
 #ifdef BL_USE_ARRAYVIEW
@@ -54,7 +56,7 @@ static bool UsingFileRange(const Amrvis::MinMaxRangeType rt) {
 // ---------------------------------------------------------------------
 AmrPicture::AmrPicture(GraphicsAttributes *gaptr,
 		       PltApp *pltappptr, PltAppState *pltappstateptr,
-		       DataServices *dataservicesptr,
+		       amrex::DataServices *dataservicesptr,
 		       bool bcartgridsmoothing)
            : gaPtr(gaptr),
              pltAppPtr(pltappptr),
@@ -358,7 +360,7 @@ void AmrPicture::AmrPictureInit() {
     // XImages cannot be larger than this
     cerr << "*** imageSizeH = " << imageSizeH << endl;
     cerr << "*** imageSizeV = " << imageSizeV << endl;
-    BoxLib::Abort("Error in AmrPicture:  Image size too large.  Exiting.");
+    amrex::Abort("Error in AmrPicture:  Image size too large.  Exiting.");
   }
   int widthpad = gaPtr->PBitmapPaddedWidth(imageSizeH);
   imageSize = imageSizeV * widthpad * gaPtr->PBytesPerPixel();
@@ -402,7 +404,7 @@ void AmrPicture::AmrPictureInit() {
   int nVecNames(sizeof(vecNameBase)/sizeof(*vecNameBase));
   int nIsMom(sizeof(vecIsMom)/sizeof(*vecIsMom));
   if(nVecNames != nIsMom) {
-    BoxLib::Abort("Error:  nVecNames != nIsMom.");
+    amrex::Abort("Error:  nVecNames != nIsMom.");
   }
   vecNames.resize(nVecNames);
   for(int ivn(0); ivn < vecNames.size(); ++ivn) {
@@ -832,14 +834,14 @@ void AmrPicture::APMakeImages(Palette *palptr) {
   const string currentDerived(pltAppStatePtr->CurrentDerived());
   const string vfracDerived("vfrac");
   for(int iLevel(minDrawnLevel); iLevel <= maxAllowableLevel; ++iLevel) {
-    DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
+    amrex::DataServices::Dispatch(amrex::DataServices::FillVarOneFab, dataServicesPtr,
 		           (void *) (sliceFab[iLevel]),
 			   (void *) (&(sliceFab[iLevel]->box())),
 			   iLevel,
 			   (void *) &currentDerived);
     if(amrData.CartGrid()) {
       BL_ASSERT(vfSliceFab[iLevel]->box() == sliceFab[iLevel]->box());
-      DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
+      amrex::DataServices::Dispatch(amrex::DataServices::FillVarOneFab, dataServicesPtr,
 		             (void *) (vfSliceFab[iLevel]),
 			     (void *) (&(vfSliceFab[iLevel]->box())),
 			     iLevel,
@@ -1616,7 +1618,7 @@ void AmrPicture::CreateFrames(Amrvis::AnimDirection direction) {
     // get the data for this slice
     const string currentDerived(pltAppStatePtr->CurrentDerived());
     FArrayBox imageFab(interBox[maxDrawnLevel], 1);
-    DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
+    amrex::DataServices::Dispatch(amrex::DataServices::FillVarOneFab, dataServicesPtr,
 			   (void *) &imageFab,
 			   (void *) (&(imageFab.box())),
 			   maxDrawnLevel,
@@ -1630,7 +1632,7 @@ void AmrPicture::CreateFrames(Amrvis::AnimDirection direction) {
     const string vfracDerived("vfrac");
     if(amrData.CartGrid()) {
       vffp = new FArrayBox(interBox[maxDrawnLevel], 1);
-      DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
+      amrex::DataServices::Dispatch(amrex::DataServices::FillVarOneFab, dataServicesPtr,
 		             (void *) (vffp),
 			     (void *) (&(vffp->box())),
 			     maxDrawnLevel,
@@ -1957,7 +1959,7 @@ void AmrPicture::DrawContour(Array<FArrayBox *> passedSliceFab,
       // construct mask array.  must be size FAB.
       const BoxArray &nextFinest = amrData.boxArray(lev+1);
       for(int j(0); j < nextFinest.size(); ++j) {
-        Box coarseBox(BoxLib::coarsen(nextFinest[j],lratio));
+        Box coarseBox(amrex::coarsen(nextFinest[j],lratio));
         if(coarseBox.intersects(passedSliceFab[lev]->box())) {
           coarseBox &= passedSliceFab[lev]->box();
           mask.setVal(true,coarseBox,0);
@@ -1967,7 +1969,7 @@ void AmrPicture::DrawContour(Array<FArrayBox *> passedSliceFab,
     
     // get rid of the complement
     const BoxArray &levelBoxArray = amrData.boxArray(lev);
-    BoxArray complement = BoxLib::complementIn(passedSliceFab[lev]->box(), 
+    BoxArray complement = amrex::complementIn(passedSliceFab[lev]->box(), 
                                                levelBoxArray);
     for(int i(0); i < complement.size(); ++i) {
       mask.setVal(true, complement[i], 0);
@@ -1986,7 +1988,7 @@ void AmrPicture::DrawContour(Array<FArrayBox *> passedSliceFab,
     FArrayBox altDerFab(fabBox, 1);
     string whichAltDerived("pressure");
     AmrData &amrData = dataServicesPtr->AmrDataRef();
-    DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
+    amrex::DataServices::Dispatch(amrex::DataServices::FillVarOneFab, dataServicesPtr,
                            (void *) &altDerFab,
                            (void *) (&(altDerFab.box())),
                            maxDrawnLevel,
@@ -2328,12 +2330,12 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
     // fill the velocities
     string hVel(choice[hDir]);
     string vVel(choice[vDir]);
-    DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
+    amrex::DataServices::Dispatch(amrex::DataServices::FillVarOneFab, dataServicesPtr, 
                            (void *) &hVelocity,
 			   (void *) (&(hVelocity.box())),
                            maxDrawnLevel,
 			   (void *) &hVel);
-    DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
+    amrex::DataServices::Dispatch(amrex::DataServices::FillVarOneFab, dataServicesPtr, 
                            (void *) &vVelocity,
 			   (void *) (&(vVelocity.box())),
                            maxDrawnLevel,
@@ -2351,17 +2353,17 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
     string hMom(choice[hDir]);
     string vMom(choice[vDir]);
 
-    DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
+    amrex::DataServices::Dispatch(amrex::DataServices::FillVarOneFab, dataServicesPtr, 
                            (void *) &densityFab,
 			   (void *) (&(densityFab.box())),
                            maxDrawnLevel,
 			   (void *) &sDensity);
-    DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
+    amrex::DataServices::Dispatch(amrex::DataServices::FillVarOneFab, dataServicesPtr, 
                            (void *) &hVelocity,
 			   (void *) (&(hVelocity.box())),
                            maxDrawnLevel,
 			   (void *) &hMom);
-    DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr, 
+    amrex::DataServices::Dispatch(amrex::DataServices::FillVarOneFab, dataServicesPtr, 
                            (void *) &vVelocity,
 			   (void *) (&(vVelocity.box())),
                            maxDrawnLevel,

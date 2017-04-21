@@ -45,6 +45,8 @@ using std::endl;
 using std::min;
 using std::max;
 
+using namespace amrex;
+
 #define MARK (fprintf(stderr, "Mark at file %s, line %d.\n", __FILE__, __LINE__))
 #define nlog10(x)      (x == 0.0 ? 0.0 : log10(x) + 1e-15)
 
@@ -476,14 +478,14 @@ void XYPlotWin::InitializeAnimation(int curr_frame, int num_frames) {
       ptr != legendList.end(); ++ptr)
   {
     if((*ptr)->XYPLIlist->CopiedFrom() != NULL) {
-      XYPlotDataList *tempList = (*ptr)->XYPLIlist;
+      ::XYPlotDataList *tempList = (*ptr)->XYPLIlist;
       (*ptr)->XYPLIlist = pltParent->CreateLinePlot(Amrvis::ZPLANE, whichType,
 					    (*ptr)->XYPLIlist->MaxLevel(),
 					    (*ptr)->XYPLIlist->Gridline(),
 					    &((*ptr)->XYPLIlist->DerivedName()));
       delete tempList;
     }
-    (*ptr)->anim_lists = new Array<XYPlotDataList *>(numFrames);
+    (*ptr)->anim_lists = new Array<::XYPlotDataList *>(numFrames);
     (*ptr)->ready_list = new Array<char>(numFrames, 0);
 
 // =================
@@ -510,7 +512,7 @@ void XYPlotWin::InitializeAnimation(int curr_frame, int num_frames) {
 
 // -------------------------------------------------------------------
 void XYPlotWin::UpdateFrame(int frame) {
-  XYPlotDataList *tempList;
+  ::XYPlotDataList *tempList;
   int num_lists_changed(0);
   char buffer[Amrvis::BUFSIZE];
   sprintf(buffer, "%s %c Value 1D plot",
@@ -764,7 +766,7 @@ void XYPlotWin::CBdoDrawPlot(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::AddDataList(XYPlotDataList *new_list,
+void XYPlotWin::AddDataList(::XYPlotDataList *new_list,
 			    XYPlotLegendItem *insert_after)
 {
   if(++numItems > 64) {
@@ -941,7 +943,7 @@ void XYPlotWin::ReattachLegendFrames() {
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::UpdateBoundingBox(XYPlotDataList *xypdl) {
+void XYPlotWin::UpdateBoundingBox(::XYPlotDataList *xypdl) {
   //cout << "???????????????????? _in XYPlotWin::UpdateBoundingBox" << endl;
   if(xypdl->StartX() < lloX) {
     lloX = xypdl->StartX();
@@ -1566,7 +1568,7 @@ void XYPlotWin::DoASCIIDump(FILE *fs, const char *plotname) {
     if((*item)->drawQ == false) {
       continue;
     }
-    XYPlotDataList *xypdList = (*item)->XYPLIlist;
+    ::XYPlotDataList *xypdList = (*item)->XYPLIlist;
     fprintf(fs, "\"%s %s Level %d/%d\n",
 	    xypdList->DerivedName().c_str(),
 	    xypdList->IntersectPoint(xypdList->CurLevel()),
@@ -2027,7 +2029,7 @@ void XYPlotWin::CBdoCopyDataList(Widget, XtPointer data, XtPointer) {
     return;
   }
   XYPlotLegendItem *item = (XYPlotLegendItem *) data;
-  AddDataList(new XYPlotDataList(item->XYPLIlist), item);
+  AddDataList(new ::XYPlotDataList(item->XYPLIlist), item);
 }
 
 
@@ -2394,7 +2396,7 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 // -------------------------------------------------------------------
 void XYPlotWin::CBdoDrawLegendItem(Widget, XtPointer data, XtPointer) {
   XYPlotLegendItem *item = (XYPlotLegendItem *) data;
-  XYPlotDataList *dataList = item->XYPLIlist;
+  ::XYPlotDataList *dataList = item->XYPLIlist;
   XSegment legLine;
   char legendText[1024];
 

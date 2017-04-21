@@ -55,7 +55,7 @@ GraphicsAttributes::GraphicsAttributes(Widget topLevel)
       green_shift = buildShift(visual_info.green_mask);
       blue_shift = buildShift(visual_info.blue_mask);
     } else if( status == 0 ) {
-      BoxLib::Abort("Error: bad XMatchVisualInfo: no PseudoColor Visual.");
+      amrex::Abort("Error: bad XMatchVisualInfo: no PseudoColor Visual.");
     }
   }
 */
@@ -85,7 +85,7 @@ GraphicsAttributes::GraphicsAttributes(Widget topLevel)
       blue_shift  = 0;
       green_shift = 0;
     } else if( status == 0 ) {
-      BoxLib::Abort("Error: bad XMatchVisualInfo: no PseudoColor Visual.");
+      amrex::Abort("Error: bad XMatchVisualInfo: no PseudoColor Visual.");
     }
   }
 

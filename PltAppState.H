@@ -80,28 +80,28 @@ public:
   void SetFormatString(const string &newformat)  { formatString = newformat; }
 
   // ------------------------ contours
-  void SetContourType(Amrvis::ContourType newContourType)
+  void SetContourType(amrex::Amrvis::ContourType newContourType)
 			     { currentContourType = newContourType; }
-  Amrvis::ContourType GetContourType() const { return currentContourType; }
+  amrex::Amrvis::ContourType GetContourType() const { return currentContourType; }
   void SetNumContours(int ncontours) { nContours = ncontours; }
   int  GetNumContours() const        { Cnsy(nContours);  return nContours; }
 
   // ------------------------ mins and maxes
-  Amrvis::MinMaxRangeType GetMinMaxRangeType() const { return currentMinMaxType; }
-  void SetMinMaxRangeType(Amrvis::MinMaxRangeType newmmrtype)
+  amrex::Amrvis::MinMaxRangeType GetMinMaxRangeType() const { return currentMinMaxType; }
+  void SetMinMaxRangeType(amrex::Amrvis::MinMaxRangeType newmmrtype)
 				       { currentMinMaxType = newmmrtype; }
 
-  void SetMinMax(const Amrvis::MinMaxRangeType mmrangetype,
+  void SetMinMax(const amrex::Amrvis::MinMaxRangeType mmrangetype,
 		 const int framenumber,
 		 const int derivednumber,
 		 const Real rmin, const Real rmax);
-  void GetMinMax(const Amrvis::MinMaxRangeType mmrangetype,
+  void GetMinMax(const amrex::Amrvis::MinMaxRangeType mmrangetype,
 		 const int framenumber,
 		 const int derivednumber,
 		 Real &rmin, Real &rmax);
   // this one uses the current frame, derived, and range type
   void GetMinMax(Real &rmin, Real &rmax);
-  bool IsSet(const Amrvis::MinMaxRangeType mmrangetype, const int framenumber,
+  bool IsSet(const amrex::Amrvis::MinMaxRangeType mmrangetype, const int framenumber,
 	     const int derivednumber);
   void PrintSetMap();
 
@@ -132,15 +132,15 @@ private:
   string currentDerived;
   int currentDerivedNumber;
   bool showBoxes;
-  Amrvis::ContourType currentContourType;
+  amrex::Amrvis::ContourType currentContourType;
   int nContours;
-  Amrvis::MinMaxRangeType currentMinMaxType;
+  amrex::Amrvis::MinMaxRangeType currentMinMaxType;
   string formatString;
 
   // mins and maxes
-  Array<Array<Array<CMinMax> > > minMax;   // minMax [frame] [derived] [RangeType]
+  amrex::Array<amrex::Array<amrex::Array<CMinMax> > > minMax;   // minMax [frame] [derived] [RangeType]
 
-  Array<Box> subDomains;
+  amrex::Array<amrex::Box> subDomains;
   int minDrawnLevel, maxDrawnLevel, minAllowableLevel, maxAllowableLevel;
   int finestLevel;
 

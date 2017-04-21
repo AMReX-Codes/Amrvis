@@ -49,6 +49,8 @@ using std::min;
 using std::max;
 using std::flush;
 
+using namespace amrex;
+
 // Hack for window manager calls
 #ifndef FALSE
 #define FALSE false
@@ -2665,7 +2667,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   } else if(currentRangeType == Amrvis::USERMINMAX || currentRangeType == Amrvis::FILEUSERMINMAX) {
     mmButton = Amrvis::BUSERMINMAX;
   } else {
-    BoxLib::Abort("Bad button range type.");
+    amrex::Abort("Bad button range type.");
   }
   XtVaSetValues(wRangeRadioButton[mmButton], XmNset, true, NULL);
   
@@ -3138,7 +3140,7 @@ void PltApp::DoOpenPalFile(Widget w, XtPointer, XtPointer call_data) {
 
 
 // -------------------------------------------------------------------
-XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
+::XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 				       const string *derived)
 {
   const AmrData &amrData(dataServicesPtr[currentFrame]->AmrDataRef());
@@ -3225,7 +3227,7 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 	    gridOffset[dir2]);
 #endif	    
   }
-  XYPlotDataList *newlist = new XYPlotDataList(*derived,
+  ::XYPlotDataList *newlist = new ::XYPlotDataList(*derived,
                                      pltAppState->MinDrawnLevel(), mal,
 				     ix, amrData.RefRatio(),
 		                     XdX, intersectStr, gridOffset[sdir]);
@@ -3837,7 +3839,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	      sdir = Amrvis::YDIR;
 	    break;
 	  }
-	  XYPlotDataList *newlist = CreateLinePlot(V, sdir, mal,
+	  ::XYPlotDataList *newlist = CreateLinePlot(V, sdir, mal,
 				      (imageHeight + 1) / scale - 1 - oldY / scale,
 			              &pltAppState->CurrentDerived());
 	  if(newlist) {
@@ -4009,7 +4011,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	      sdir = Amrvis::ZDIR;
 	    break;
 	  }
-	  XYPlotDataList *newlist = CreateLinePlot(V, sdir, mal, oldX / scale,
+	  ::XYPlotDataList *newlist = CreateLinePlot(V, sdir, mal, oldX / scale,
 	                                           &pltAppState->CurrentDerived());
 	  if(newlist) {
 	    newlist->SetLevel(maxDrawnLevel);

@@ -68,13 +68,13 @@ void WritePSFile(const char *filename, XImage *image,
 
 void WriteNewPSFile(const char *filename, XImage *image,
                  int imagesizehoriz, int imagesizevert,
-                 const Palette &palette, const AmrData &amrdata,
+                 const Palette &palette, const amrex::AmrData &amrdata,
 		 const int minlev, const int maxlev,
-		 Array< Array<GridBoxes> > &gridBoxes);
+		 amrex::Array< amrex::Array<GridBoxes> > &gridBoxes);
 
 void WritePSPaletteFile(const char *filename, XImage *image,
                         int imagesizehoriz, int imagesizevert,
-                        const Array<Real> &palValuesList,
+                        const amrex::Array<Real> &palValuesList,
 			const string &palNumFormat, const Palette& palette);
 
 void WriteRGBFile(const char *filename, XImage *image,

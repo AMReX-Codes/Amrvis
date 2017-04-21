@@ -12,6 +12,7 @@
 
 #include <AMReX_AmrvisConstants.H>
 #include <AMReX_Box.H>
+#include <AMReX_DataServices.H>
 #include <Dataset.H>
 #include <GlobalUtilities.H>
 #include <Palette.H>
@@ -25,7 +26,6 @@ class ProjectionPicture;
 using std::vector;
 using std::string;
 
-class DataServices;
 class AmrPicture;
 class Dataset;
 class GraphicsAttributes;
@@ -69,11 +69,11 @@ private:
 public:
   // created when opening a new file
   PltApp(XtAppContext, Widget, const string &filename, 
-         const Array<DataServices *> &dataservicesptr, bool isAnim);
+         const amrex::Array<amrex::DataServices *> &dataservicesptr, bool isAnim);
   
   // for subregion
-  PltApp(XtAppContext app, Widget w, const Box &region,
-         const IntVect &offset,
+  PltApp(XtAppContext app, Widget w, const amrex::Box &region,
+         const amrex::IntVect &offset,
          //AmrPicture *parentPtr,
 	 PltApp *pltparent,
          const string &palfile, bool isAnim,
@@ -100,8 +100,8 @@ public:
   Palette *GetPalettePtr()         { return pltPaletteptr; }
   string GetPaletteName()         { return palFilename; }
   string GetLightingFileName()         { return lightingFilename; }
-  DataServices *GetDataServicesPtr() { return dataServicesPtr[currentFrame]; }
-  Array<DataServices *> &GetDataServicesPtrArray() { return dataServicesPtr; }
+  amrex::DataServices *GetDataServicesPtr() { return dataServicesPtr[currentFrame]; }
+  amrex::Array<amrex::DataServices *> &GetDataServicesPtrArray() { return dataServicesPtr; }
   int GetActiveView() const        { return activeView;    }
   XtAppContext GetAppContext()     { return appContext;    }
   Widget GetStopButtonWidget()     { return wControls[WCSTOP]; }
@@ -145,8 +145,8 @@ public:
 
 private:
   Widget wTopLevel, wAmrVisTopLevel;
-  Widget wScrollArea[Amrvis::NPLANES], wPlotPlane[Amrvis::NPLANES];
-  Array<Widget> wRangeRadioButton;
+  Widget wScrollArea[amrex::Amrvis::NPLANES], wPlotPlane[amrex::Amrvis::NPLANES];
+  amrex::Array<Widget> wRangeRadioButton;
   Widget wFileRangeCheckBox;
   Widget wUserMin, wUserMax;
   Widget wWhichFileLabel, wWhichFileScale, wWhichTimeLabel;
@@ -178,11 +178,11 @@ private:
   XYPlotWin *XYplotwin[BL_SPACEDIM];
 
   XtAppContext appContext;
-  Arg args[Amrvis::MAXARGS];
+  Arg args[amrex::Amrvis::MAXARGS];
   Palette *pltPaletteptr;
-  AmrPicture *amrPicturePtrArray[Amrvis::NPLANES];
-  IntVect ivLowOffsetMAL;  // at maxAllowableLevel
-  Amrvis::MinMaxRangeType currentRangeType;
+  AmrPicture *amrPicturePtrArray[amrex::Amrvis::NPLANES];
+  amrex::IntVect ivLowOffsetMAL;  // at maxAllowableLevel
+  amrex::Amrvis::MinMaxRangeType currentRangeType;
   bool animating2d, setRangeShowing, contoursShowing, infoShowing, bFormatShowing;
   bool bSetRangeRedraw;
   bool datasetShowing, paletteDrawn, writingRGB, interfaceReady;
@@ -202,14 +202,14 @@ private:
   bool bCartGridSmoothing;
   string contourNumString, fileName, palFilename, lightingFilename, headerSuffix;
   char buffer[BUFSIZ];
-  Box trueRegion, selectionBox;
+  amrex::Box trueRegion, selectionBox;
   Dataset *datasetPtr;
   GraphicsAttributes	*gaPtr;
-  Array<DataServices *> dataServicesPtr;
-  Array<string> fileNames;
-  Array<XImage *> frameBuffer;
+  amrex::Array<amrex::DataServices *> dataServicesPtr;
+  amrex::Array<string> fileNames;
+  amrex::Array<XImage *> frameBuffer;
   vector<bool>	readyFrames;
-  Amrvis::AnimDirection	animDirection;
+  amrex::Amrvis::AnimDirection	animDirection;
   XtIntervalId	animationIId, multiclickIId;
   Real finestDx[BL_SPACEDIM], gridOffset[BL_SPACEDIM];
   String trans;
@@ -257,7 +257,7 @@ private:
   void DrawAxes(Widget, int, int, int, char *, char *, int);
   void ResetAnimation();
   void StopAnimation();
-  void Animate(Amrvis::AnimDirection direction);
+  void Animate(amrex::Amrvis::AnimDirection direction);
   void ShowFrame();
   void DirtyFrames();
   void DoRubberBanding(Widget, XtPointer, XtPointer);
@@ -325,9 +325,9 @@ private:
   void Clear();
 #endif
 
-  void FindAndSetMinMax(const Amrvis::MinMaxRangeType mmrangetype, const int framenumber,
+  void FindAndSetMinMax(const amrex::Amrvis::MinMaxRangeType mmrangetype, const int framenumber,
 		        const string &currentderived, const int derivednumber,
-		        const Array<Box> &onBox,
+		        const amrex::Array<amrex::Box> &onBox,
 		        const int coarselevel, const int finelevel,
 		        const bool resetIfSet);
 
@@ -347,7 +347,7 @@ private:
       XtPointer data;
       memberCB cbFunc;
   };
-  Array<CBData *> cbdPtrs;  // save these so we can delete them later
+  amrex::Array<CBData *> cbdPtrs;  // save these so we can delete them later
 };
 
 
@@ -387,7 +387,7 @@ class AVXGrab {
 // -------------------------------------------------------------------
 
 
-void	SubregionPltApp(Widget toplevel, const Box &region, const IntVect &offset,
+void	SubregionPltApp(Widget toplevel, const amrex::Box &region, const amrex::IntVect &offset,
 			PltApp *pltparent, const string &palfile,
 			int isanim, const string &derived,
 			const string &filename);

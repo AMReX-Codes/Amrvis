@@ -449,7 +449,7 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
                                         XBitmapPad(XtDisplay(drawingArea)) / 8));
   if(imageData == NULL || volpackImageData == NULL ) {
     cout << " SetDrawingAreaDimensions::imageData : new failed" << endl;
-    BoxLib::Abort("Exiting.");
+    amrex::Abort("Exiting.");
   }
   
   viewTransformPtr->SetScreenPosition(daWidth / 2, daHeight / 2);

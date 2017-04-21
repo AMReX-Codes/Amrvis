@@ -16,6 +16,8 @@ using std::endl;
 using std::min;
 using std::max;
 
+using namespace amrex;
+
 Colormap Palette::systemColmap;
 
 

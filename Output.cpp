@@ -30,6 +30,7 @@ using std::endl;
 using std::min;
 using std::max;
 
+using namespace amrex;
 
 IMAGE *iopen(const char *file, unsigned int type, unsigned int dim,
              unsigned int xsize, unsigned int ysize, unsigned int zsize);
@@ -321,7 +322,7 @@ void WritePPMFile(const char *filename, XImage *ximage,
     img << "P6" << endl << xsize << " " << ysize << endl << 255 << endl;
     img.write(reinterpret_cast<const char*>(ivdata), xsize*ysize*3);
     if( ! img) {
-      BoxLib::Error("WritePPMFile:  failed to write image file.");
+      amrex::Error("WritePPMFile:  failed to write image file.");
     }
     delete [] ivdata;
 }
@@ -403,7 +404,7 @@ void WritePPMFileAnnotated(const char *filename, XImage *ximage,
     img << "P6" << '\n' << xsizeB << ' ' << ysizeB << '\n' << 255 << '\n';
     img.write(reinterpret_cast<const char*>(ivdataB), 3 * xsizeB * ysizeB);
     if( ! img) {
-      BoxLib::Error("WritePPMFileAnnotated:  failed to write image file.");
+      amrex::Error("WritePPMFileAnnotated:  failed to write image file.");
     }
 
     delete [] ivdataB;

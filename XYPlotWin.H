@@ -46,7 +46,7 @@ class XYPlotWin;
 typedef void (XYPlotWin::*memberXYCB)(Widget, XtPointer, XtPointer);
 
 typedef struct {
-  XYPlotDataList *XYPLIlist;
+  ::XYPlotDataList *XYPLIlist;
   Widget wid;                     // For legend item drawingarea
   Widget frame;                   // For drawingarea frame
   Widget menu;                    // Popup menu for this item
@@ -54,8 +54,8 @@ typedef struct {
   int style, color;
   Pixel pixel;
 #if (BL_SPACEDIM == 2)
-  Array<XYPlotDataList *> *anim_lists;
-  Array<char> *ready_list;
+  amrex::Array<::XYPlotDataList *> *anim_lists;
+  amrex::Array<char> *ready_list;
 #endif
 } XYPlotLegendItem;
 
@@ -66,7 +66,7 @@ class XYPlotWin {
 	      PltApp *parent, int type, int curr_frame = 0);
     ~XYPlotWin();
   
-    void AddDataList(XYPlotDataList *new_list,
+    void AddDataList(::XYPlotDataList *new_list,
 		     XYPlotLegendItem *insert_after = NULL);
 
 #if (BL_SPACEDIM == 2)
@@ -151,7 +151,7 @@ class XYPlotWin {
 
     void SetBoundingBox(double lowX  = 1.0, double lowY  = 1.0,
 		        double highX = 0.0, double highY = 0.0);
-    void UpdateBoundingBox(XYPlotDataList *list);
+    void UpdateBoundingBox(::XYPlotDataList *list);
     void textX (Widget win, int x, int y, char *text, int just, int style);
     void segX(Widget win, int ns, XSegment *segs, int width,
 	      int style, int lappr, Pixel color);
@@ -195,7 +195,7 @@ class XYPlotWin {
         void *data;
         memberXYCB cbFunc;
       };
-    Array<XYCBData *> xycbdPtrs;
+    amrex::Array<XYCBData *> xycbdPtrs;
 
     class XYMenuCBData {
       public:
@@ -205,7 +205,7 @@ class XYPlotWin {
         XYPlotLegendItem *item;
         int which;
     };
-    Array<XYMenuCBData *> xymenucbdPtrs;
+    amrex::Array<XYMenuCBData *> xymenucbdPtrs;
 };
 
 void CBcloseXYPlotWin(Widget, XtPointer, XtPointer);

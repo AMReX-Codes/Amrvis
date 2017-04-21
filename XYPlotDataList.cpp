@@ -6,6 +6,9 @@
 #include <cfloat>
 #include <limits>
 
+using namespace amrex;
+
+
 // -------------------------------------------------------------------
 XYPlotDataList::XYPlotDataList(const string &derived, int minlevel,
                                int maxlevel, int gridlinein,
@@ -153,7 +156,7 @@ for(int iCurLevel(maxLevel); iCurLevel >= minLevel; --iCurLevel) {
     for(BoxList::iterator bli = unfilledBoxLists[ilev].begin();
         bli != unfilledBoxLists[ilev].end(); ++bli)
     {
-      tempUnfilled.join(BoxLib::complementIn(*bli, fabBoxLists[ilev]));
+      tempUnfilled.join(amrex::complementIn(*bli, fabBoxLists[ilev]));
     }
     unfilledBoxLists[ilev].clear();
     unfilledBoxLists[ilev].join(tempUnfilled);

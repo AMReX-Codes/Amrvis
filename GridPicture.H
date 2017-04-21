@@ -16,7 +16,7 @@ class GridPicture {
   ~GridPicture();
   void GridPictureInit(int level, int rratio, int scale,
     			int picSizeH, int picSizeV,
-			const Box &overlapbox, const Box &boxWithData,
+			const amrex::Box &overlapbox, const amrex::Box &boxWithData,
 			int slicedir);
   void ChangeScale(int newScale, int picSizeH, int picSizeV);
   int HPositionInPicture();
@@ -28,13 +28,13 @@ class GridPicture {
 
  private:
 
-  Box		overlapBox;
+  amrex::Box		overlapBox;
   unsigned int 	dataSizeH, dataSizeV;
   unsigned int  imageSizeH, imageSizeV;
   unsigned int	pictureSizeH, pictureSizeV;
   int		currentScale;
   int		refRatio, sliceDir;
-  Box		imageBox;
+  amrex::Box		imageBox;
 };
 
 #endif

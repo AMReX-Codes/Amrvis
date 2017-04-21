@@ -9,8 +9,7 @@
 #include <AMReX_MultiFab.H>
 
 #ifdef BL_ARRAYVIEW_TAGBOX
-class TagBox;
-class TagBoxArray;
+#include <AMReX_TagBox.H>
 #endif
 
 extern "C" {
@@ -25,9 +24,9 @@ extern "C" {
 // -------------------------------------------------------------
 // pointer to fab interface
 
-  bool ArrayView(FArrayBox *fab);
-  bool ArrayViewFab(FArrayBox *fab);
-  bool ArrayViewFabFormatLabel(FArrayBox *fab, const char *format,
+  bool ArrayView(amrex::FArrayBox *fab);
+  bool ArrayViewFab(amrex::FArrayBox *fab);
+  bool ArrayViewFabFormatLabel(amrex::FArrayBox *fab, const char *format,
                                const char *label);
 
 // -------------------------------------------------------------
@@ -88,12 +87,12 @@ extern "C" {
 // -------------------------------------------------------------
 // pointer to TagBox interface
 
-  bool ArrayViewTagBox(TagBox *tagbox);
+  bool ArrayViewTagBox(amrex::TagBox *tagbox);
 
 // -------------------------------------------------------------
 // pointer to TagBoxArray interface
 
-  bool ArrayViewTagBoxArray(TagBoxArray *tagboxarray);
+  bool ArrayViewTagBoxArray(amrex::TagBoxArray *tagboxarray);
 #endif
 
 };

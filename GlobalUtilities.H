@@ -19,9 +19,9 @@ namespace AVGlobals {
   enum ENUserVectorNames { enUserVelocities, enUserMomentums, enUserNone };
 
   const ENUserVectorNames &GivenUserVectorNames();
-  const Array<string> &UserVectorNames();
+  const amrex::Array<string> &UserVectorNames();
 
-  Box GetBoxFromCommandLine();
+  amrex::Box GetBoxFromCommandLine();
   void SetMaxPictureSize(int size);
   int  MaxPictureSize();
   int  MaxPaletteIndex();
@@ -50,7 +50,7 @@ namespace AVGlobals {
   int SleepTime();
   const string &GetComlineFilename(int index);
   string StripSlashes(const string &inString);
-  Amrvis::FileType GetDefaultFileType();
+  amrex::Amrvis::FileType GetDefaultFileType();
   bool GivenBox();
   bool GivenBoxSlice();
   bool GivenFilename();
@@ -62,9 +62,9 @@ namespace AVGlobals {
   bool UseSpecifiedMinMax();
   void SetSpecifiedMinMax(Real  specifiedmin, Real  specifiedmax);
   void GetSpecifiedMinMax(Real &specifiedmin, Real &specifiedmax);
-  int CRRBetweenLevels(int fromlevel, int tolevel, const Array<int> &refratios);
-  int DetermineMaxAllowableLevel(const Box &finebox, int finestlevel,
-			         int maxpoints, const Array<int> &refratios);
+  int CRRBetweenLevels(int fromlevel, int tolevel, const amrex::Array<int> &refratios);
+  int DetermineMaxAllowableLevel(const amrex::Box &finebox, int finestlevel,
+			         int maxpoints, const amrex::Array<int> &refratios);
 
   void SetBoundaryWidth(int width);
   int  GetBoundaryWidth();
@@ -82,10 +82,10 @@ namespace AVGlobals {
 
   bool DumpSlices();
   bool SliceAllVars();
-  Array< list<int> > &GetDumpSlices();
+  amrex::Array< list<int> > &GetDumpSlices();
   int  GetFabOutFormat();
   bool GivenInitialPlanes();
-  IntVect GetInitialPlanes();
+  amrex::IntVect GetInitialPlanes();
 
   // -------------------- cartGrid functions
   void SetShowBody(const bool btf);
