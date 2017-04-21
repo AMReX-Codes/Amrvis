@@ -101,6 +101,16 @@ ifeq ($(MACHINE), CYGWIN_NT)
   LIBRARIES += -lXm -lXt -lSM -lICE -lXpm -lX11
 endif
 
+# last chance catch-all
+ifeq ($(which_site), unknown)
+  LIBRARY_LOCATIONS += /usr/lib64
+  INCLUDE_LOCATIONS += /usr/include/Xm
+  INCLUDE_LOCATIONS += /usr/include/
+
+  LIBRARIES += -lXm -lXt -lXext -lSM -lICE -lXpm -lX11
+endif
+
+
 # JFG: this line is needed on hive
 # LIBRARY_LOCATIONS += /usr/X11R6/lib64
 
