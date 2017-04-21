@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------
 
 #include <ParallelDescriptor.H>
+#include <BLProfiler.H>
 
 #include <stdio.h>
 #if ! (defined(BL_OSF1) || defined(BL_Darwin) || defined(BL_AIX) || defined(BL_IRIX64) || defined(BL_CYGWIN_NT) || defined(BL_CRAYX1))
@@ -25,8 +26,10 @@
 #include <ParmParse.H>
 #include <DataServices.H>
 #include <PltAppState.H>
+#ifdef AV_PROFDATA
 #include <ProfApp.H>
 #include <ProfDataServices.H>
+#endif
 
 #ifdef BL_VOLUMERENDER
 #include <VolRender.H>
@@ -62,7 +65,9 @@ cMessageArea	messageText;
 char		buffer[Amrvis::BUFSIZE];
 XmString	sDirectory = XmStringCreateSimple("none");
 list<PltApp *>  pltAppList;
-list<ProfApp *>  profAppList;
+#ifdef AV_PROFDATA
+  list<ProfApp *>  profAppList;
+#endif
 
 
 //--------------------------------------------------------------
@@ -81,7 +86,9 @@ int main(int argc, char *argv[]) {
   int argcNoPP(1);
   BoxLib::Initialize(argcNoPP, argv);
 
+#ifdef AV_PROFDATA
   BLProfiler::SetBlProfDirName("bl_prof_amrvis");
+#endif
 
   AVGlobals::GetDefaults("amrvis.defaults");
 
@@ -191,6 +198,7 @@ int main(int argc, char *argv[]) {
       Amrvis::FileType fileType = AVGlobals::GetDefaultFileType();
       BL_ASSERT(fileType != Amrvis::INVALIDTYPE);
 
+#ifdef AV_PROFDATA
      if(fileType == Amrvis::PROFDATA) {
        cout << "]]]]:  fileType is Amrvis::PROFDATA." << endl;
        PrintMessage("]]]]:  fileType is Amrvis::PROFDATA.");
@@ -226,6 +234,9 @@ int main(int argc, char *argv[]) {
          BoxLib::Abort("**** Error:  only a single bl_prof directory is supported.");
        }
      } else {
+#else
+     {
+#endif
 
       Array<DataServices *> dspArray(AVGlobals::GetFileCount());
       for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {
@@ -563,8 +574,10 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
       sMask = XmStringCreateSimple("*.fab");
     } else if(fileType == Amrvis::MULTIFAB) {
       sMask = XmStringCreateSimple("*_H");
+#ifdef AV_PROFDATA
     } else if(fileType == Amrvis::PROFDATA) {
       sMask = XmStringCreateSimple("bl_prof*");
+#endif
     } else {
       sMask = XmStringCreateSimple("plt*");
     }
@@ -679,6 +692,7 @@ void CBQuitPltApp(Widget ofPltApp, XtPointer client_data, XtPointer) {
 }
 
 
+#ifdef AV_PROFDATA
 // ---------------------------------------------------------------
 void CBQuitProfApp(Widget ofProfApp, XtPointer client_data, XtPointer) {
   ProfApp *obj = (ProfApp *) client_data;
@@ -692,6 +706,7 @@ void CBQuitProfApp(Widget ofProfApp, XtPointer client_data, XtPointer) {
 
   delete obj;
 }
+#endif
 
 
 // ---------------------------------------------------------------

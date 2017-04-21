@@ -421,8 +421,10 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
           fileType = Amrvis::MULTIFAB;
 	} else if(strcmp(tempString, "newplt") == 0) {
           fileType = Amrvis::NEWPLT;
+#ifdef AV_PROFDATA
 	} else if(strcmp(tempString, "profdata") == 0) {
           fileType = Amrvis::PROFDATA;
+#endif
 	} else {  // error
 	  cerr << "Error in defaults file:  invalid parameter for filetype:  "
 	       << tempString << endl;
@@ -742,8 +744,10 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
     } else if(strcmp(argv[i],"-newplt") == 0) {
       fileType = Amrvis::NEWPLT;
       newPltSet = true;
+#ifdef AV_PROFDATA
     } else if(strcmp(argv[i],"-profdata") == 0) {
       fileType = Amrvis::PROFDATA;
+#endif
     } else if(strcmp(argv[i],"-v") == 0) {
       verbose = true;
     } else if(strcmp(argv[i], "-b") == 0 || strcmp(argv[i], "-subdomain") == 0) {
@@ -1021,6 +1025,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
 	        fileType = Amrvis::FAB;
 	      }
 	    }
+#ifdef AV_PROFDATA
 	    {
 	      std::size_t found(comlinefilename[fileCount].find("bl_prof", 0));
 	      if(found != std::string::npos) {
@@ -1030,6 +1035,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
 		}
 	      }
 	    }
+#endif
 	  }
 	}
       }

@@ -2,18 +2,19 @@ CEXE_headers += AmrPicture.H AmrvisConstants.H		\
                 Dataset.H				\
 		GlobalUtilities.H GraphicsAttributes.H			\
                 GridPicture.H MessageArea.H				\
-                Palette.H PltApp.H ProfApp.H Output.H Quaternion.H Point.H \
+                Palette.H PltApp.H Output.H Quaternion.H Point.H \
                 Trackball.H XYPlotDataList.H XYPlotDefaults.H \
 		XYPlotWin.H XYPlotParam.H PltAppState.H
 
 CEXE_sources += AmrPicture.cpp AmrVisTool.cpp		\
                 Dataset.cpp				\
 		GraphicsAttributes.cpp GridPicture.cpp			\
-                MessageArea.cpp PltApp.cpp ProfApp.cpp			\
+                MessageArea.cpp PltApp.cpp                              \
                 GlobalUtilities.cpp Palette.cpp PltAppOutput.cpp	\
 		Output.cpp Quaternion.cpp Point.cpp Trackball.cpp       \
 		XYPlotDataList.cpp XYPlotParam.cpp XYPlotWin.cpp        \
 		PltAppState.cpp
+
 
 ifeq ($(DIM),3)
   ifeq ($(USE_VOLRENDER), TRUE)
@@ -40,6 +41,9 @@ ifeq ($(USE_ARRAYVIEW),TRUE)
 endif
 
 ifeq ($(USE_PROFDATA), TRUE)
+  CEXE_headers += ProfApp.H
+  CEXE_sources += ProfApp.cpp
+
   CEXE_headers += BLProfParser.tab.H BLProfStats.H
   CEXE_headers += ProfDataServices.H
 

@@ -32,6 +32,7 @@ USE_PARALLELVOLRENDER = TRUE
 USE_PARALLELVOLRENDER = FALSE
 
 USE_PROFDATA = TRUE
+USE_PROFDATA = FALSE
 ifeq ($(USE_PROFDATA), TRUE)
   AMRPROFPARSER_HOME = ../AMRProfParser
   DEFINES += -DAV_PROFDATA
@@ -39,16 +40,16 @@ ifeq ($(USE_PROFDATA), TRUE)
   TRACE_PROFILE   = TRUE
 endif
 
-BOXLIB_HOME = ../BoxLib
+AMREX_HOME = ../amrex
 
-include $(BOXLIB_HOME)/Tools/C_mk/Make.defs
+include $(AMREX_HOME)/Tools/C_mk/Make.defs
 
 EBASE = amrvis
 HERE = .
 
 INCLUDE_LOCATIONS += $(HERE)
-INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/C_BaseLib
-INCLUDE_LOCATIONS += $(BOXLIB_HOME)/Src/Extern/amrdata
+INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/C_BaseLib
+INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/Extern/amrdata
 
 DEFINES += -DBL_PARALLEL_IO
 DEFINES += -DBL_OPTIO
@@ -164,12 +165,12 @@ ifeq ($(PRECISION), FLOAT)
 endif
 
 include $(HERE)/Make.package
-include $(BOXLIB_HOME)/Src/C_BaseLib/Make.package
-include $(BOXLIB_HOME)/Src/Extern/amrdata/Make.package
+include $(AMREX_HOME)/Src/C_BaseLib/Make.package
+include $(AMREX_HOME)/Src/Extern/amrdata/Make.package
 
 VPATH_LOCATIONS += $(HERE)
-VPATH_LOCATIONS += $(BOXLIB_HOME)/Src/C_BaseLib
-VPATH_LOCATIONS += $(BOXLIB_HOME)/Src/Extern/amrdata
+VPATH_LOCATIONS += $(AMREX_HOME)/Src/C_BaseLib
+VPATH_LOCATIONS += $(AMREX_HOME)/Src/Extern/amrdata
 
 ifeq ($(USE_PROFDATA), TRUE)
   VPATH_LOCATIONS += $(AMRPROFPARSER_HOME)
@@ -206,7 +207,7 @@ BLProfParser.lex.yy.cpp:	BLProfParser.tab.H BLProfParser.l
 
 endif
 
-include $(BOXLIB_HOME)/Tools/C_mk/Make.rules
+include $(AMREX_HOME)/Tools/C_mk/Make.rules
 
 ### ------------------------------------------------------
 ### ------------------------------------------------------
