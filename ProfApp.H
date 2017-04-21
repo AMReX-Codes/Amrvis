@@ -4,13 +4,13 @@
 #ifndef _PROFAPP_H_
 #define _PROFAPP_H_
 
-#include <ParallelDescriptor.H>
+#include <AMReX_ParallelDescriptor.H>
 
 #include <Xm/Xm.h>
 #include <X11/Intrinsic.h>
 #undef index
 
-#include <AmrvisConstants.H>
+#include <AMReX_AmrvisConstants.H>
 #include <GlobalUtilities.H>
 
 #include <vector>

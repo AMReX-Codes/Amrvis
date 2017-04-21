@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-#include <REAL.H>
+#include <AMReX_REAL.H>
 #include <Quaternion.H>
 
 typedef Real MatrixFour[4][4];

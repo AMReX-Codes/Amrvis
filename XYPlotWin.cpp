@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------
 // XYPlotWin.cpp
 // ---------------------------------------------------------------
-#include <ParallelDescriptor.H>
+#include <AMReX_ParallelDescriptor.H>
 
 #include <Xm/AtomMgr.h>
 #include <Xm/Protocols.h>
@@ -32,8 +32,8 @@
 #include <PltApp.H>
 #include <PltAppState.H>
 #include <GraphicsAttributes.H>
-#include <AmrData.H>
-#include <DataServices.H>
+#include <AMReX_AmrData.H>
+#include <AMReX_DataServices.H>
 
 #include <iostream>
 #include <iomanip>

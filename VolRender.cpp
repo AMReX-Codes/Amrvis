@@ -2,9 +2,9 @@
 // VolRender.cpp
 // ---------------------------------------------------------------
 #include <VolRender.H>
-#include <DataServices.H>
+#include <AMReX_DataServices.H>
 #include <GlobalUtilities.H>
-#include <ParallelDescriptor.H>
+#include <AMReX_ParallelDescriptor.H>
 
 #include <iostream>
 #include <cstdlib>

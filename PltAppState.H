@@ -13,9 +13,9 @@
 #ifndef _PLTAPPSTATE_H_
 #define _PLTAPPSTATE_H_
 
-#include <AmrvisConstants.H>
-#include <Array.H>
-#include <Box.H>
+#include <AMReX_AmrvisConstants.H>
+#include <AMReX_Array.H>
+#include <AMReX_Box.H>
 
 #include <string>
 using std::string;

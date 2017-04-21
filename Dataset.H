@@ -4,7 +4,7 @@
 #ifndef _DATASET_H_
 #define _DATASET_H_
 
-#include <ParallelDescriptor.H>
+#include <AMReX_ParallelDescriptor.H>
 
 #include <Xm/Xm.h>
 #undef index
@@ -12,8 +12,8 @@
 #include <GlobalUtilities.H>
 #include <GraphicsAttributes.H>
 
-#include <Box.H>
-#include <AmrvisConstants.H>
+#include <AMReX_Box.H>
+#include <AMReX_AmrvisConstants.H>
 
 const int MAXSTRINGWIDTH = 64;
 

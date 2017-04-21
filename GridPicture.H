@@ -4,8 +4,8 @@
 #ifndef _GRIDPICTURE_H
 #define _GRIDPICTURE_H
 
-#include <AmrvisConstants.H>
-#include <Box.H>
+#include <AMReX_AmrvisConstants.H>
+#include <AMReX_Box.H>
 
 
 class GridPicture {

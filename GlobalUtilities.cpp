@@ -2,9 +2,9 @@
 // GlobalUtilities.cpp
 // ---------------------------------------------------------------
 #include <GlobalUtilities.H>
-#include <FArrayBox.H>
-#include <FabConv.H>
-#include <VisMF.H>
+#include <AMReX_FArrayBox.H>
+#include <AMReX_FabConv.H>
+#include <AMReX_VisMF.H>
 #include <fstream>
 #include <iostream>
 using std::ifstream;
@@ -16,7 +16,7 @@ using std::min;
 using std::max;
 
 #include <PltApp.H>
-#include <ParallelDescriptor.H>
+#include <AMReX_ParallelDescriptor.H>
 
 const int DEFAULTMAXPICTURESIZE = 600000;
 

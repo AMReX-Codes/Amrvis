@@ -2,9 +2,9 @@
 // PltAppOutput.cpp
 // ---------------------------------------------------------------
 
-#include <winstd.H>
+#include <AMReX_winstd.H>
 
-#include <ParallelDescriptor.H>
+#include <AMReX_ParallelDescriptor.H>
 
 #include <Xm/Xm.h>
 #include <Xm/SelectioB.h>
@@ -13,7 +13,7 @@
 
 #include <PltApp.H>
 #include <PltAppState.H>
-#include <DataServices.H>
+#include <AMReX_DataServices.H>
 #include <ProjectionPicture.H>
 #include <Output.H>
 #include <XYPlotWin.H>

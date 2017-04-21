@@ -4,9 +4,9 @@
 #ifndef _GLOBALUTILITIES_H_
 #define _GLOBALUTILITIES_H_
 
-#include <AmrvisConstants.H>
-#include <Box.H>
-#include <Array.H>
+#include <AMReX_AmrvisConstants.H>
+#include <AMReX_Box.H>
+#include <AMReX_Array.H>
 
 #include <list>
 #include <string>

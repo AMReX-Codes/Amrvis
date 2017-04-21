@@ -5,9 +5,9 @@ const int CHARACTERWIDTH  = 13;
 const int CHARACTERHEIGHT = 22;
 const int MAXINDEXCHARS   = 4;
 
-#include <ParallelDescriptor.H>
+#include <AMReX_ParallelDescriptor.H>
 
-#include <winstd.H>
+#include <AMReX_winstd.H>
 
 #include <Xm/Xm.h>
 #include <Xm/DrawingA.h>
@@ -27,7 +27,7 @@ const int MAXINDEXCHARS   = 4;
 #include <PltApp.H>
 #include <PltAppState.H>
 #include <AmrPicture.H>
-#include <DataServices.H>
+#include <AMReX_DataServices.H>
 
 #include <sstream>
 #include <cfloat>

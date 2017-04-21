@@ -10,7 +10,7 @@
 #include <list>
 using std::list;
 
-#include <AmrvisConstants.H>
+#include <AMReX_AmrvisConstants.H>
 #include <XYPlotDataList.H>
 #include <XYPlotParam.H>
 #include <xgout.H>

@@ -2,8 +2,8 @@
 // AmrVisTool.cpp
 // ---------------------------------------------------------------
 
-#include <ParallelDescriptor.H>
-#include <BLProfiler.H>
+#include <AMReX_ParallelDescriptor.H>
+#include <AMReX_BLProfiler.H>
 
 #include <stdio.h>
 #if ! (defined(BL_OSF1) || defined(BL_Darwin) || defined(BL_AIX) || defined(BL_IRIX64) || defined(BL_CYGWIN_NT) || defined(BL_CRAYX1))
@@ -23,8 +23,8 @@
 #include <Palette.H>
 #include <PltApp.H>
 #include <GlobalUtilities.H>
-#include <ParmParse.H>
-#include <DataServices.H>
+#include <AMReX_ParmParse.H>
+#include <AMReX_DataServices.H>
 #include <PltAppState.H>
 #ifdef AV_PROFDATA
 #include <ProfApp.H>

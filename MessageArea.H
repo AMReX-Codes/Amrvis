@@ -6,7 +6,7 @@
 
 #include <Xm/Xm.h>
 #include <Xm/Text.h>
-#include <AmrvisConstants.H>
+#include <AMReX_AmrvisConstants.H>
 
 class cMessageArea {
   private:

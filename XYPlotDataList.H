@@ -4,10 +4,10 @@
 #ifndef XYPLOTDATALIST_H
 #define XYPLOTDATALIST_H
 
-#include <Array.H>
-#include <BLassert.H>
-#include <REAL.H>
-#include <FArrayBox.H>
+#include <AMReX_Array.H>
+#include <AMReX_BLassert.H>
+#include <AMReX_REAL.H>
+#include <AMReX_FArrayBox.H>
 
 #include <list>
 #include <string>

@@ -7,10 +7,10 @@
 #include <X11/Xlib.h>
 #undef index
 
-#include <REAL.H>
-#include <Array.H>
+#include <AMReX_REAL.H>
+#include <AMReX_Array.H>
 #include <Palette.H>
-#include <AmrData.H>
+#include <AMReX_AmrData.H>
 #include <AmrPicture.H>
 
 #include <string>

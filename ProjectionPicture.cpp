@@ -1,14 +1,14 @@
 // ---------------------------------------------------------------
 // ProjectionPicture.cpp
 // ---------------------------------------------------------------
-#include <ParallelDescriptor.H>
+#include <AMReX_ParallelDescriptor.H>
 
 #include <X11/X.h>
 
 #include <ProjectionPicture.H>
 #include <PltApp.H>
 #include <PltAppState.H>
-#include <DataServices.H>
+#include <AMReX_DataServices.H>
 #include <Volume.H>
 #include <time.h>
 

@@ -1,16 +1,16 @@
 // ---------------------------------------------------------------
 // PltApp.cpp
 // ---------------------------------------------------------------
-#include <winstd.H>
+#include <AMReX_winstd.H>
 
 #include <PltApp.H>
 #include <PltAppState.H>
 #include <AmrPicture.H>
-#include <DataServices.H>
+#include <AMReX_DataServices.H>
 #include <GraphicsAttributes.H>
 #include <ProjectionPicture.H>
 #include <XYPlotWin.H>
-#include <ParallelDescriptor.H>
+#include <AMReX_ParallelDescriptor.H>
 #include <MessageArea.H>
 
 #include <Xm/Protocols.h>

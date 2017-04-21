@@ -4,9 +4,9 @@
 #ifndef _DATASETCLIENT_H_
 #define _DATASETCLIENT_H_
 
-#include <REAL.H>
-#include <FArrayBox.H>
-#include <MultiFab.H>
+#include <AMReX_REAL.H>
+#include <AMReX_FArrayBox.H>
+#include <AMReX_MultiFab.H>
 
 #ifdef BL_ARRAYVIEW_TAGBOX
 class TagBox;

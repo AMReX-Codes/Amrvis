@@ -4,14 +4,14 @@
 #ifndef _PLTAPP_H_
 #define _PLTAPP_H_
 
-#include <ParallelDescriptor.H>
+#include <AMReX_ParallelDescriptor.H>
 
 #include <Xm/Xm.h>
 #include <X11/Intrinsic.h>
 #undef index
 
-#include <AmrvisConstants.H>
-#include <Box.H>
+#include <AMReX_AmrvisConstants.H>
+#include <AMReX_Box.H>
 #include <Dataset.H>
 #include <GlobalUtilities.H>
 #include <Palette.H>

@@ -1,7 +1,7 @@
 // -------------------------------------------------------------------
 // XYPlotParam.cpp
 // -------------------------------------------------------------------
-#include <ParallelDescriptor.H>
+#include <AMReX_ParallelDescriptor.H>
 
 #include <X11/X.h>
 #include <limits>

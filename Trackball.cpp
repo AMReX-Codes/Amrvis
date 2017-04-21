@@ -3,7 +3,7 @@
 // ---------------------------------------------------------------
 #include <Quaternion.H>
 #include <Point.H>
-#include <REAL.H>
+#include <AMReX_REAL.H>
 
 // ---------------------------------------------------------------
 static Real tb_project(Real x, Real y) {

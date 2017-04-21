@@ -1,17 +1,17 @@
 // ---------------------------------------------------------------
 // ProfApp.cpp
 // ---------------------------------------------------------------
-#include <winstd.H>
+#include <AMReX_winstd.H>
 
 #include <ProfApp.H>
 #include <ProfDataServices.H>
-#include <DataServices.H>
+#include <AMReX_DataServices.H>
 #include <AmrPicture.H>
 #include <PltApp.H>
 #include <PltAppState.H>
 #include <GraphicsAttributes.H>
 #include <XYPlotWin.H>
-#include <ParallelDescriptor.H>
+#include <AMReX_ParallelDescriptor.H>
 #include <MessageArea.H>
 #include <Palette.H>
 

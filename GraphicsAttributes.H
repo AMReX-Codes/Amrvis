@@ -4,7 +4,7 @@
 #ifndef _GRAPHICSATTRIBUTES_H
 #define _GRAPHICSATTRIBUTES_H
 
-#include <AmrvisConstants.H>
+#include <AMReX_AmrvisConstants.H>
 
 #include <iostream>
 using std::ostream;

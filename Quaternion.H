@@ -6,7 +6,7 @@
 
 #include <iostream>
 
-#include <REAL.H>
+#include <AMReX_REAL.H>
 #include <Point.H>
 
 /***************************************************************************

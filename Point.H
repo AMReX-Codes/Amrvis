@@ -7,7 +7,7 @@
 #include <iostream>
 #include <cmath>
 
-#include <REAL.H>
+#include <AMReX_REAL.H>
 
 class AmrQuaternion;
 class AmrSpherePoint;

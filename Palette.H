@@ -9,10 +9,10 @@
 using std::map;
 using std::string;
 
-#include <REAL.H>
-#include <Array.H>
-#include <Array.H>
-#include <ParallelDescriptor.H>
+#include <AMReX_REAL.H>
+#include <AMReX_Array.H>
+#include <AMReX_Array.H>
+#include <AMReX_ParallelDescriptor.H>
 
 namespace AVPalette {
 const int PALLISTLENGTH   = 8;

@@ -17,11 +17,11 @@
 #include <unistd.h>
 
 #include <DatasetClient.H>
-#include <Box.H>
-#include <FArrayBox.H>
-#include <MultiFab.H>
+#include <AMReX_Box.H>
+#include <AMReX_FArrayBox.H>
+#include <AMReX_MultiFab.H>
 #ifdef BL_ARRAYVIEW_TAGBOX
-#include <TagBox.H>
+#include <AMReX_TagBox.H>
 #endif
 
 const int MAXBUFSIZE  = 1024;

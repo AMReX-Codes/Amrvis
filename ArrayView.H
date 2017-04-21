@@ -4,10 +4,10 @@
 #ifndef _ARRAYVIEW_H_
 #define _ARRAYVIEW_H_
 
-#include <FArrayBox.H>
-#include <MultiFab.H>
+#include <AMReX_FArrayBox.H>
+#include <AMReX_MultiFab.H>
 #ifdef BL_ARRAYVIEW_TAGBOX
-#include <TagBox.H>
+#include <AMReX_TagBox.H>
 #endif
 #include <DatasetClient.H>
 

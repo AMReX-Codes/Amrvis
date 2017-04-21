@@ -2,13 +2,13 @@
 // AmrPicture.cpp
 // ---------------------------------------------------------------
 
-#include <winstd.H>
+#include <AMReX_winstd.H>
 
 #include <AmrPicture.H>
 #include <PltApp.H>
 #include <PltAppState.H>
 #include <Palette.H>
-#include <DataServices.H>
+#include <AMReX_DataServices.H>
 #include <ProjectionPicture.H>
 
 using std::cout;
