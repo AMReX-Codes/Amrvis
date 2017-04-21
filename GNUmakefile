@@ -42,13 +42,13 @@ endif
 
 AMREX_HOME = ../amrex
 
-include $(AMREX_HOME)/Tools/C_mk/Make.defs
+include $(AMREX_HOME)/Tools/GNUMake/Make.defs
 
 EBASE = amrvis
 HERE = .
 
 INCLUDE_LOCATIONS += $(HERE)
-INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/C_BaseLib
+INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/Base
 INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/Extern/amrdata
 
 DEFINES += -DBL_PARALLEL_IO
@@ -165,11 +165,11 @@ ifeq ($(PRECISION), FLOAT)
 endif
 
 include $(HERE)/Make.package
-include $(AMREX_HOME)/Src/C_BaseLib/Make.package
+include $(AMREX_HOME)/Src/Base/Make.package
 include $(AMREX_HOME)/Src/Extern/amrdata/Make.package
 
 VPATH_LOCATIONS += $(HERE)
-VPATH_LOCATIONS += $(AMREX_HOME)/Src/C_BaseLib
+VPATH_LOCATIONS += $(AMREX_HOME)/Src/Base
 VPATH_LOCATIONS += $(AMREX_HOME)/Src/Extern/amrdata
 
 ifeq ($(USE_PROFDATA), TRUE)
@@ -207,7 +207,7 @@ BLProfParser.lex.yy.cpp:	BLProfParser.tab.H BLProfParser.l
 
 endif
 
-include $(AMREX_HOME)/Tools/C_mk/Make.rules
+include $(AMREX_HOME)/Tools/GNUMake/Make.rules
 
 ### ------------------------------------------------------
 ### ------------------------------------------------------
