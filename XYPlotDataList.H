@@ -14,6 +14,9 @@
 using std::string;
 using std::list;
 
+using namespace amrex;
+
+namespace amrex {
 
 class OrderedBoxes {
   public:
@@ -116,6 +119,7 @@ class XYPlotDataList {
     XYPlotDataList *copiedFrom;
     amrex::Array<amrex::BoxList> fabBoxLists, fillBoxLists;
 };
+}
 #endif
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------

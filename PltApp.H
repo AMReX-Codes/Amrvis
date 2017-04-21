@@ -32,7 +32,7 @@ class GraphicsAttributes;
 class PltAppState;
 class XYPlotParameters;
 class XYPlotWin;
-class XYPlotDataList;
+//class XYPlotDataList;
 
 
 // plane sweep widget controls (WC)
@@ -119,7 +119,7 @@ public:
   Widget GetPalArea() const { return wPalArea; }
   void  PaletteDrawn(bool trueOrFalse);
   
-  XYPlotDataList *CreateLinePlot(int V, int sdir, int mal, int ixY,
+  amrex::XYPlotDataList *CreateLinePlot(int V, int sdir, int mal, int ixY,
 				 const string *derived);
   GC GetRbgc() const { return rbgc; }
 

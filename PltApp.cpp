@@ -1,18 +1,6 @@
 // ---------------------------------------------------------------
 // PltApp.cpp
 // ---------------------------------------------------------------
-#include <AMReX_winstd.H>
-
-#include <PltApp.H>
-#include <PltAppState.H>
-#include <AmrPicture.H>
-#include <AMReX_DataServices.H>
-#include <GraphicsAttributes.H>
-#include <ProjectionPicture.H>
-#include <XYPlotWin.H>
-#include <AMReX_ParallelDescriptor.H>
-#include <MessageArea.H>
-
 #include <Xm/Protocols.h>
 #include <Xm/ToggleBG.h>
 #include <Xm/PushB.h>
@@ -36,6 +24,18 @@
 
 #include <X11/cursorfont.h>
 
+#include <AMReX_winstd.H>
+
+#include <PltApp.H>
+#include <PltAppState.H>
+#include <AmrPicture.H>
+#include <AMReX_DataServices.H>
+#include <GraphicsAttributes.H>
+#include <ProjectionPicture.H>
+#include <XYPlotWin.H>
+#include <AMReX_ParallelDescriptor.H>
+#include <MessageArea.H>
+
 #if defined(BL_PARALLELVOLUMERENDER)
 #include <PVolRender.H>
 #endif
@@ -50,6 +50,8 @@ using std::max;
 using std::flush;
 
 using namespace amrex;
+//using amrex::Amrvis;
+//using amrex::XYPlotDataList;
 
 // Hack for window manager calls
 #ifndef FALSE
@@ -3140,7 +3142,7 @@ void PltApp::DoOpenPalFile(Widget w, XtPointer, XtPointer call_data) {
 
 
 // -------------------------------------------------------------------
-::XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
+XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 				       const string *derived)
 {
   const AmrData &amrData(dataServicesPtr[currentFrame]->AmrDataRef());
@@ -3227,7 +3229,7 @@ void PltApp::DoOpenPalFile(Widget w, XtPointer, XtPointer call_data) {
 	    gridOffset[dir2]);
 #endif	    
   }
-  ::XYPlotDataList *newlist = new ::XYPlotDataList(*derived,
+  XYPlotDataList *newlist = new XYPlotDataList(*derived,
                                      pltAppState->MinDrawnLevel(), mal,
 				     ix, amrData.RefRatio(),
 		                     XdX, intersectStr, gridOffset[sdir]);
@@ -3839,7 +3841,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	      sdir = Amrvis::YDIR;
 	    break;
 	  }
-	  ::XYPlotDataList *newlist = CreateLinePlot(V, sdir, mal,
+	  XYPlotDataList *newlist = CreateLinePlot(V, sdir, mal,
 				      (imageHeight + 1) / scale - 1 - oldY / scale,
 			              &pltAppState->CurrentDerived());
 	  if(newlist) {
@@ -4011,7 +4013,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	      sdir = Amrvis::ZDIR;
 	    break;
 	  }
-	  ::XYPlotDataList *newlist = CreateLinePlot(V, sdir, mal, oldX / scale,
+	  XYPlotDataList *newlist = CreateLinePlot(V, sdir, mal, oldX / scale,
 	                                           &pltAppState->CurrentDerived());
 	  if(newlist) {
 	    newlist->SetLevel(maxDrawnLevel);
