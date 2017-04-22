@@ -7,7 +7,6 @@ const int MAXINDEXCHARS   = 4;
 
 #include <AMReX_ParallelDescriptor.H>
 
-#include <AMReX_winstd.H>
 
 #include <Xm/Xm.h>
 #include <Xm/DrawingA.h>

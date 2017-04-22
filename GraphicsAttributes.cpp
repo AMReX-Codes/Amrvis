@@ -1,7 +1,7 @@
 // ---------------------------------------------------------------
 // GraphicsAttributes.cpp
 // ---------------------------------------------------------------
-#include <AMReX_BoxLib.H>
+#include <AMReX.H>
 
 #include <iostream>
 using std::cout;

@@ -2,7 +2,6 @@
 // AmrPicture.cpp
 // ---------------------------------------------------------------
 
-#include <AMReX_winstd.H>
 
 #include <AmrPicture.H>
 #include <PltApp.H>

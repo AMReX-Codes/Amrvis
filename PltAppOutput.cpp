@@ -2,7 +2,6 @@
 // PltAppOutput.cpp
 // ---------------------------------------------------------------
 
-#include <AMReX_winstd.H>
 
 #include <AMReX_ParallelDescriptor.H>
 

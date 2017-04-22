@@ -24,7 +24,6 @@
 
 #include <X11/cursorfont.h>
 
-#include <AMReX_winstd.H>
 
 #include <PltApp.H>
 #include <PltAppState.H>
