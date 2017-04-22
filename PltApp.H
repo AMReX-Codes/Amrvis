@@ -26,6 +26,8 @@ class ProjectionPicture;
 using std::vector;
 using std::string;
 
+using amrex::Real;
+
 class AmrPicture;
 class Dataset;
 class GraphicsAttributes;

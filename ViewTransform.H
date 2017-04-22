@@ -9,6 +9,8 @@
 #include <AMReX_REAL.H>
 #include <Quaternion.H>
 
+using amrex::Real;
+
 typedef Real MatrixFour[4][4];
 
 

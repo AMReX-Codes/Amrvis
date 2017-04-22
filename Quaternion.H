@@ -9,6 +9,8 @@
 #include <AMReX_REAL.H>
 #include <Point.H>
 
+using amrex::Real;
+
 /***************************************************************************
 
 A quaternion represents a rotation of a rigid body in Euclidean

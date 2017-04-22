@@ -15,6 +15,8 @@
 #include <VolRender.H>
 #endif
 
+using amrex::Real;
+
 class PltApp;
 
 // represents data points in physical space that connect lines to other points

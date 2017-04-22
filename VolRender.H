@@ -19,6 +19,8 @@ using std::string;
 #include <volpack.h>
 #endif
 
+using amrex::Real;
+
 class DataServices;
 
 

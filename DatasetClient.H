@@ -12,6 +12,8 @@
 #include <AMReX_TagBox.H>
 #endif
 
+using amrex::Real;
+
 extern "C" {
 
 // -------------------------------------------------------------

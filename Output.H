@@ -16,6 +16,8 @@
 #include <string>
 using std::string;
 
+using amrex::Real;
+
 
 // the following is support for writing rgb files.
 #define IMAGIC  0732

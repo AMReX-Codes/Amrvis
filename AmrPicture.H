@@ -18,6 +18,8 @@
 #include <string>
 using std::string;
 
+using amrex::Real;
+
 #include <X11/X.h>
 #include <X11/Intrinsic.h>
 

@@ -14,6 +14,8 @@ using std::string;
 #include <AMReX_Array.H>
 #include <AMReX_ParallelDescriptor.H>
 
+using amrex::Real;
+
 namespace AVPalette {
 const int PALLISTLENGTH   = 8;
 const int PALWIDTH        = 24;

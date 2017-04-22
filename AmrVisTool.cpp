@@ -46,6 +46,7 @@ using std::min;
 using std::max;
 
 using amrex::DataServices;
+using amrex::Real;
 
 
 const int OPENITEM = 0;

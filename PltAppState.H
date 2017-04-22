@@ -20,6 +20,8 @@
 #include <string>
 using std::string;
 
+using amrex::Real;
+
 const int NOTSETYET(-42);
 static void Cnsy(int val) { BL_ASSERT(val != NOTSETYET); }
 

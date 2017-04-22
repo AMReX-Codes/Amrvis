@@ -11,6 +11,8 @@
 #endif
 #include <DatasetClient.H>
 
+using amrex::Real;
+
 // -------------------------------------------------------------
 void NeverCalled() {
   ArrayView(NULL);

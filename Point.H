@@ -9,6 +9,8 @@
 
 #include <AMReX_REAL.H>
 
+using amrex::Real;
+
 class AmrQuaternion;
 class AmrSpherePoint;
 

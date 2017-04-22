@@ -13,6 +13,8 @@
 using std::list;
 using std::string;
 
+using amrex::Real;
+
 
 namespace AVGlobals {
 
