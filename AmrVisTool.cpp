@@ -45,8 +45,7 @@ using std::endl;
 using std::min;
 using std::max;
 
-using amrex::DataServices;
-using amrex::Real;
+using namespace amrex;
 
 
 const int OPENITEM = 0;

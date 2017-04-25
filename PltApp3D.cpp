@@ -28,6 +28,8 @@ using std::cerr;
 using std::endl;
 using std::max;
 
+using namespace amrex;
+
 
 // -------------------------------------------------------------------
 void PltApp::DoExposeTransDA(Widget, XtPointer, XtPointer) {

@@ -11,6 +11,7 @@
 #undef index
 
 #include <AMReX_AmrvisConstants.H>
+#include <AMReX_DataServices.H>
 #include <GlobalUtilities.H>
 
 #include <vector>
@@ -19,14 +20,12 @@ using std::vector;
 using std::string;
 
 class ProfDataServices;
-class DataServices;
 class GraphicsAttributes;
 class Palette;
 class PltApp;
 class PltAppState;
 class XYPlotParameters;
 class XYPlotWin;
-class XYPlotDataList;
 
 
 class ProfApp;
@@ -50,15 +49,15 @@ public:
   Palette *GetPalettePtr()         { return pltPaletteptr; }
   ProfDataServices *GetProfDataServicesPtr() { return profDataServicesPtr[0]; }
   amrex::Array<ProfDataServices *> &GetProfDataServicesPtrArray() { return profDataServicesPtr; }
-  DataServices *GetDataServicesPtr() { return dspArray[0]; }
-  amrex::Array<DataServices *> &GetDataServicesPtrArray() { return dspArray; }
+  amrex::DataServices *GetDataServicesPtr() { return dspArray[0]; }
+  amrex::Array<amrex::DataServices *> &GetDataServicesPtrArray() { return dspArray; }
   int GetActiveView() const        { return activeView;    }
   XtAppContext GetAppContext()     { return appContext;    }
   GraphicsAttributes *GetGAptr() const  { return gaPtr; }
 
   const string &GetFileName();
   
-  XYPlotDataList *CreateLinePlot(int V, int sdir, int mal, int ixY,
+  amrex::XYPlotDataList *CreateLinePlot(int V, int sdir, int mal, int ixY,
 				 const string *derived);
   void DoExposeRef(Widget = None, XtPointer = NULL, XtPointer = NULL);
   void DoExposePalette(Widget, XtPointer, XtPointer);
@@ -72,7 +71,7 @@ public:
 
 private:
   Widget wTopLevel, wAmrVisTopLevel;
-  Widget wScrollArea[Amrvis::NPLANES], wPlotPlane[Amrvis::NPLANES];
+  Widget wScrollArea[amrex::Amrvis::NPLANES], wPlotPlane[amrex::Amrvis::NPLANES];
   Widget wControlForm;
   Widget wInfoTopLevel;
   Widget wPlotArea;
@@ -85,7 +84,7 @@ private:
   XYPlotWin *XYplotwin[BL_SPACEDIM];
 
   XtAppContext appContext;
-  Arg args[Amrvis::MAXARGS];
+  Arg args[amrex::Amrvis::MAXARGS];
   Palette *pltPaletteptr;
   PltAppState *profAppStatePtr;
   bool infoShowing;
@@ -101,7 +100,7 @@ private:
   Display *display;
   GC xgc;
   std::list<PltApp *> pltAppList;
-  amrex::Array<DataServices *> dspArray;
+  amrex::Array<amrex::DataServices *> dspArray;
   
     
   static int initialWindowHeight, initialWindowWidth;

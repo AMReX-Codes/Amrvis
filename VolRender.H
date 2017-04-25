@@ -12,6 +12,7 @@ using std::string;
 #include <AMReX_REAL.H>
 #include <AMReX_Box.H>
 #include <AMReX_AmrvisConstants.H>
+#include <AMReX_DataServices.H>
 #include <Volume.H>
 #include <Palette.H>
 
@@ -20,8 +21,7 @@ using std::string;
 #endif
 
 using amrex::Real;
-
-class DataServices;
+using amrex::DataServices;
 
 
 class VolRender {

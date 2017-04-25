@@ -619,7 +619,7 @@ void ProfApp::DoInfoButtonScrolledList(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-XYPlotDataList *ProfApp::CreateLinePlot(int V, int sdir, int mal, int ix,
+amrex::XYPlotDataList *ProfApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 				       const string *derived)
 {
 /*
@@ -654,7 +654,7 @@ XYPlotDataList *ProfApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 	    //gridOffset[dir1] +
 	    //(0.5 + trueRegion[lev].smallEnd(dir1))*amrData.DxLevel()[lev][dir1]);
   }
-  XYPlotDataList *newlist = new XYPlotDataList(*derived,
+  amrex::XYPlotDataList *newlist = new amrex::XYPlotDataList(*derived,
                                      profAppState->MinDrawnLevel(), mal,
 				     ix, amrData.RefRatio(),
 		                     XdX, intersectStr, gridOffset[sdir]);

@@ -5,6 +5,7 @@
 #include <AMReX_DataServices.H>
 #include <GlobalUtilities.H>
 #include <AMReX_ParallelDescriptor.H>
+#include <AMReX_AmrvisConstants.H>
 
 #include <iostream>
 #include <cstdlib>
@@ -18,6 +19,9 @@ using std::min;
 #include <unistd.h>
 #include <fcntl.h>
 #include <time.h>
+
+using namespace amrex;
+
 
 extern Real RadToDeg(Real angle);
 extern Real DegToRad(Real angle);
@@ -179,7 +183,7 @@ bool VolRender::AllocateSWFData() {
 
 
 // -------------------------------------------------------------------
-void VolRender::MakeSWFData(DataServices *dataServicesPtr,
+void VolRender::MakeSWFData(amrex::DataServices *dataServicesPtr,
 			    Real rDataMin, Real rDataMax,
 			    const string &derivedName,
 			    int iPaletteStart, int iPaletteEnd,
@@ -215,7 +219,7 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
     swfFabData.resize(swfDataBox, 1);
   }
   
-  DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
+  amrex::DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
                          (void *) &swfFabData,
 			 (void *) &swfDataBox,
 			 maxDrawnLevel,
@@ -572,7 +576,7 @@ void VolRender::MakeSWFData(DataServices *dataServicesPtr,
   const string vfracName = "vfrac";
   if(amrData.CartGrid() && derivedName != vfracName) {
     // reuse swfFabData
-    DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
+    amrex::DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
                            (void *) &swfFabData,
 			   (void *) &swfDataBox,
 			   maxDrawnLevel,

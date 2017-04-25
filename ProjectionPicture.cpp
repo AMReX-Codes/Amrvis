@@ -24,6 +24,9 @@ using std::endl;
 using std::min;
 using std::max;
 
+using namespace amrex;
+
+
 // -------------------------------------------------------------------
 ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
                                      Palette *PalettePtr,
