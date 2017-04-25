@@ -66,7 +66,7 @@ Widget	wMainWindow, wMenuBar;
 Arg		args[32];
 cMessageArea	messageText;
 char		buffer[amrex::Amrvis::BUFSIZE];
-XmString	sDirectory = XmStringCreateSimple("none");
+XmString	sDirectory = XmStringCreateSimple(const_cast<char *>("none"));
 list<PltApp *>  pltAppList;
 #ifdef AV_PROFDATA
   list<ProfApp *>  profAppList;
@@ -74,7 +74,7 @@ list<PltApp *>  pltAppList;
 
 
 //--------------------------------------------------------------
-void PrintMessage(char *message) {
+void PrintMessage(const char *message) {
   sprintf(buffer, "%s", message);
   messageText.PrintText(buffer);
 }
@@ -312,7 +312,7 @@ void CreateMainWindow(int argc, char *argv[]) {
   int i;
   string	comlineFileName;
 
-  String fallbacks[] = {"*fontList:variable=charset",
+  String fallbacks[] = {const_cast<char *>("*fontList:variable=charset"),
 			NULL };
 
 
@@ -340,11 +340,11 @@ void CreateMainWindow(int argc, char *argv[]) {
 	          XmNscrollingPolicy,        XmAUTOMATIC,
 	          NULL);
 
-  XmString sFile    = XmStringCreateSimple("File");
-  XmString sOpen    = XmStringCreateSimple("Open...");
-  XmString sQuit    = XmStringCreateSimple("Quit");
+  XmString sFile    = XmStringCreateSimple(const_cast<char *>("File"));
+  XmString sOpen    = XmStringCreateSimple(const_cast<char *>("Open..."));
+  XmString sQuit    = XmStringCreateSimple(const_cast<char *>("Quit"));
 
-  wMenuBar = XmVaCreateSimpleMenuBar(wMainWindow, "menuBar",
+  wMenuBar = XmVaCreateSimpleMenuBar(wMainWindow, const_cast<char *>("menuBar"),
 		XmVaCASCADEBUTTON, sFile, 'F',
 		XmNtopAttachment,	XmATTACH_FORM,
 		XmNleftAttachment,	XmATTACH_FORM,
@@ -352,9 +352,9 @@ void CreateMainWindow(int argc, char *argv[]) {
 		XmNheight,		30,
 		NULL);
 
-  XmString sCtrlQ = XmStringCreateSimple("Ctrl+Q");
-  XmString sCtrlO = XmStringCreateSimple("Ctrl+O");
-  XmVaCreateSimplePulldownMenu(wMenuBar, "fileMenu", 0,
+  XmString sCtrlQ = XmStringCreateSimple(const_cast<char *>("Ctrl+Q"));
+  XmString sCtrlO = XmStringCreateSimple(const_cast<char *>("Ctrl+O"));
+  XmVaCreateSimplePulldownMenu(wMenuBar, const_cast<char *>("fileMenu"), 0,
     (XtCallbackProc) CBFileMenu,
     XmVaPUSHBUTTON, sOpen, 'O', "Ctrl<Key>O", sCtrlO,
     XmVaPUSHBUTTON, sQuit, 'Q', "Ctrl<Key>Q", sCtrlQ,
@@ -382,7 +382,7 @@ void CreateMainWindow(int argc, char *argv[]) {
   XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      ++i;
   XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      ++i;
   XtSetArg(args[i], XmNbottomAttachment, XmATTACH_FORM);      ++i;
-  wTextOut = XmCreateScrolledText(wMainWindow, "textOut", args, i);
+  wTextOut = XmCreateScrolledText(wMainWindow, const_cast<char *>("textOut"), args, i);
   XtManageChild(wTextOut);
 
   messageText.Init(wTextOut);
@@ -574,24 +574,24 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
     amrex::Amrvis::FileType fileType(AVGlobals::GetDefaultFileType());
     XmString sMask;
     if(fileType == amrex::Amrvis::FAB) {
-      sMask = XmStringCreateSimple("*.fab");
+      sMask = XmStringCreateSimple(const_cast<char *>("*.fab"));
     } else if(fileType == amrex::Amrvis::MULTIFAB) {
-      sMask = XmStringCreateSimple("*_H");
+      sMask = XmStringCreateSimple(const_cast<char *>("*_H"));
 #ifdef AV_PROFDATA
     } else if(fileType == amrex::Amrvis::PROFDATA) {
-      sMask = XmStringCreateSimple("bl_prof*");
+      sMask = XmStringCreateSimple(const_cast<char *>("bl_prof*"));
 #endif
     } else {
-      sMask = XmStringCreateSimple("plt*");
+      sMask = XmStringCreateSimple(const_cast<char *>("plt*"));
     }
 
-    XmString sNone = XmStringCreateSimple("none");
+    XmString sNone = XmStringCreateSimple(const_cast<char *>("none"));
     if( ! XmStringCompare(sDirectory, sNone)) {
       XtSetArg (args[i], XmNdirectory, sDirectory); ++i;
     }
     XtSetArg (args[i], XmNpattern, sMask); ++i;
     XtSetArg (args[i], XmNfileTypeMask, XmFILE_ANY_TYPE); ++i;
-    wDialog = XmCreateFileSelectionDialog(wTopLevel, "Open File", args, i);
+    wDialog = XmCreateFileSelectionDialog(wTopLevel, const_cast<char *>("Open File"), args, i);
     XtAddCallback(wDialog, XmNokCallback, (XtCallbackProc) CBOpenPltFile,
 		  NULL);
     XtAddCallback(wDialog, XmNcancelCallback, 

@@ -244,7 +244,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
       if(ntnNames.fail()) {
         cout << "**** Error:  could not open:  " << ntnFileName << endl;
       } else {
-        int ntnSize(0), count(0);
+        int ntnSize(0);
         ntnNames >> ntnSize >> nameTagMultiplier;
         ntnNames.ignore(1, '\n');
         nameTagNames.resize(ntnSize);
@@ -261,7 +261,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
       if(bnNames.fail()) {
         cout << "**** Error:  could not open:  " << bnFileName << endl;
       } else {
-        int bnSize(0), count(0);
+        int bnSize(0);
         bnNames >> bnSize >> barrierMultiplier;
         bnNames.ignore(1, '\n');
         barrierNames.resize(bnSize);
@@ -516,7 +516,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
       if(ntnNames.fail()) {
         cout << "**** Error:  could not open:  " << ntnFileName << endl;
       } else {
-        int ntnSize(0), count(0);
+        int ntnSize(0);
         ntnNames >> ntnSize >> nameTagMultiplier;
         ntnNames.ignore(1, '\n');
         nameTagNames.resize(ntnSize);
@@ -533,7 +533,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
       if(bnNames.fail()) {
         cout << "**** Error:  could not open:  " << bnFileName << endl;
       } else {
-        int bnSize(0), count(0);
+        int bnSize(0);
         bnNames >> bnSize >> barrierMultiplier;
         bnNames.ignore(1, '\n');
         barrierNames.resize(bnSize);
@@ -677,7 +677,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   // User defined widget destroy callback -- will free all memory used to create
   // window.
   XmAddWMProtocolCallback(wAmrVisTopLevel,
-			  XmInternAtom(display,"WM_DELETE_WINDOW", false),
+			  XmInternAtom(display, const_cast<char *>("WM_DELETE_WINDOW"), false),
 			  (XtCallbackProc) CBQuitPltApp, (XtPointer) this);
 
   for(np = 0; np != BL_SPACEDIM; ++np) {
@@ -769,15 +769,15 @@ void PltApp::PltAppInit(bool bSubVolume) {
   XtSetArg(args[0], XmNtopAttachment, XmATTACH_FORM);
   XtSetArg(args[1], XmNleftAttachment, XmATTACH_FORM);
   XtSetArg(args[2], XmNrightAttachment, XmATTACH_FORM);
-  wMenuBar = XmCreateMenuBar(wMainArea, "menubar", args, 3);
+  wMenuBar = XmCreateMenuBar(wMainArea, const_cast<char *>("menubar"), args, 3);
 
   // ------------------------------- file menu
-  wMenuPulldown = XmCreatePulldownMenu(wMenuBar, "Filepulldown", NULL, 0);
+  wMenuPulldown = XmCreatePulldownMenu(wMenuBar, const_cast<char *>("Filepulldown"), NULL, 0);
   XtVaCreateManagedWidget("File", xmCascadeButtonWidgetClass, wMenuBar,
 			  XmNmnemonic, 'F', XmNsubMenuId, wMenuPulldown, NULL);
 
   // To look at a subregion of the plot
-  label_str = XmStringCreateSimple("Ctrl+S");
+  label_str = XmStringCreateSimple(const_cast<char *>("Ctrl+S"));
   wid =
     XtVaCreateManagedWidget((BL_SPACEDIM != 3) ? "Subregion..." : "Subvolume...",
 			    xmPushButtonGadgetClass, wMenuPulldown,
@@ -794,7 +794,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   AddStaticCallback(wid, XmNactivateCallback, &PltApp::DoPaletteButton);
 
   // To output to various formats (.ps, .rgb, .fab)
-  wCascade = XmCreatePulldownMenu(wMenuPulldown, "outputmenu", NULL, 0);
+  wCascade = XmCreatePulldownMenu(wMenuPulldown, const_cast<char *>("outputmenu"), NULL, 0);
   XtVaCreateManagedWidget("Export", xmCascadeButtonWidgetClass, wMenuPulldown,
 			  XmNmnemonic, 'E', XmNsubMenuId, wCascade, NULL);
   wid = XtVaCreateManagedWidget("PS File...", xmPushButtonGadgetClass,
@@ -814,7 +814,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 
   // Quit
   XtVaCreateManagedWidget(NULL, xmSeparatorGadgetClass, wMenuPulldown, NULL);
-  label_str = XmStringCreateSimple("Ctrl+Q");
+  label_str = XmStringCreateSimple(const_cast<char *>("Ctrl+Q"));
   wid = XtVaCreateManagedWidget("Quit", xmPushButtonGadgetClass, wMenuPulldown,
 				XmNmnemonic,  'Q',
 				XmNaccelerator, "Ctrl<Key>Q",
@@ -826,7 +826,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   
   // Close
   XtVaCreateManagedWidget(NULL, xmSeparatorGadgetClass, wMenuPulldown, NULL);
-  label_str = XmStringCreateSimple("Ctrl+C");
+  label_str = XmStringCreateSimple(const_cast<char *>("Ctrl+C"));
   wid = XtVaCreateManagedWidget("Close", xmPushButtonGadgetClass, wMenuPulldown,
 				XmNmnemonic,  'C',
 				XmNaccelerator, "Ctrl<Key>C",
@@ -837,13 +837,13 @@ void PltApp::PltAppInit(bool bSubVolume) {
 		(XtPointer) this);
   
   // ------------------------------- view menu
-  wMenuPulldown = XmCreatePulldownMenu(wMenuBar, "MenuPulldown", NULL, 0);
+  wMenuPulldown = XmCreatePulldownMenu(wMenuBar, const_cast<char *>("MenuPulldown"), NULL, 0);
   XtVaCreateManagedWidget("View", xmCascadeButtonWidgetClass, wMenuBar,
 			  XmNmnemonic, 'V', XmNsubMenuId, wMenuPulldown, NULL);
 
   // To scale the raster / contour windows
   int maxallow(min(MAXSCALE, maxAllowableScale));
-  wCascade = XmCreatePulldownMenu(wMenuPulldown, "scalemenu", NULL, 0);
+  wCascade = XmCreatePulldownMenu(wMenuPulldown, const_cast<char *>("scalemenu"), NULL, 0);
   XtVaCreateManagedWidget("Scale", xmCascadeButtonWidgetClass, wMenuPulldown,
 			  XmNmnemonic, 'S', XmNsubMenuId, wCascade, NULL);
   for(int scale(1); scale <= maxallow; ++scale) {
@@ -877,11 +877,11 @@ void PltApp::PltAppInit(bool bSubVolume) {
       wCurrScale = wid;
     }
     AddStaticCallback(wid, XmNvalueChangedCallback, &PltApp::ChangeScale,
-		      (XtPointer) scale);
+		      (XtPointer) static_cast<long> (scale));
   }
 
   // Levels button, to view various levels of refinement
-  wCascade = XmCreatePulldownMenu(wMenuPulldown, "levelmenu", NULL, 0);
+  wCascade = XmCreatePulldownMenu(wMenuPulldown, const_cast<char *>("levelmenu"), NULL, 0);
   XtVaCreateManagedWidget("Level", xmCascadeButtonWidgetClass, wMenuPulldown,
 			  XmNmnemonic, 'L', XmNsubMenuId, wCascade, NULL);
 
@@ -908,12 +908,12 @@ void PltApp::PltAppInit(bool bSubVolume) {
       wCurrLevel = wid;
     }
     AddStaticCallback(wid, XmNvalueChangedCallback, &PltApp::ChangeLevel,
-		      (XtPointer)(menuLevel));
+		      (XtPointer) static_cast<long>(menuLevel));
   }
   Widget wTempDrawLevel = wid;
 
   // Button to create (or pop up) a dialog to set contour settings
-  label_str = XmStringCreateSimple("C");
+  label_str = XmStringCreateSimple(const_cast<char *>("C"));
   wid = XtVaCreateManagedWidget("Contours...",
 				xmPushButtonGadgetClass, wMenuPulldown,
 				XmNmnemonic,  'C',
@@ -924,7 +924,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   AddStaticCallback(wid, XmNactivateCallback, &PltApp::DoContoursButton);
 
   // Button to create (or pop up) a dialog to set range
-  label_str = XmStringCreateSimple("R");
+  label_str = XmStringCreateSimple(const_cast<char *>("R"));
   wid = XtVaCreateManagedWidget("Range...",
 				xmPushButtonGadgetClass, wMenuPulldown,
 				XmNmnemonic,  'R',
@@ -936,7 +936,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 
   // To create (or update and pop up) a dialog indicating the data values
   // of a selected region
-  label_str = XmStringCreateSimple("Ctrl+D");
+  label_str = XmStringCreateSimple(const_cast<char *>("Ctrl+D"));
   wid = XtVaCreateManagedWidget("Dataset...",
 				xmPushButtonGadgetClass, wMenuPulldown,
 				XmNmnemonic,  'D',
@@ -947,7 +947,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   AddStaticCallback(wid, XmNactivateCallback, &PltApp::DoDatasetButton);
 
   // To change the number format string
-  label_str = XmStringCreateSimple("F");
+  label_str = XmStringCreateSimple(const_cast<char *>("F"));
   wid = XtVaCreateManagedWidget("Number Format...",
 				xmPushButtonGadgetClass, wMenuPulldown,
 				XmNmnemonic,  'F',
@@ -961,7 +961,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			  NULL);
 
   // Toggle viewing the boxes
-  label_str = XmStringCreateSimple("b");
+  label_str = XmStringCreateSimple(const_cast<char *>("b"));
   wid = XtVaCreateManagedWidget("Boxes",
 				xmToggleButtonGadgetClass, wMenuPulldown,
 				XmNmnemonic, 'B',
@@ -978,7 +978,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   const Array<string> &derivedStrings =
 	     dataServicesPtr[currentFrame]->PlotVarNames();
 
-  wMenuPulldown = XmCreatePulldownMenu(wMenuBar, "DerivedPulldown", NULL, 0);
+  wMenuPulldown = XmCreatePulldownMenu(wMenuBar, const_cast<char *>("DerivedPulldown"), NULL, 0);
   XtVaSetValues(wMenuPulldown,
 		XmNpacking, XmPACK_COLUMN,
 		XmNnumColumns, numberOfDerived / maxMenuItems +
@@ -1057,7 +1057,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 #endif
 
   // --------------------------------------------------------------- help menu
-  wMenuPulldown = XmCreatePulldownMenu(wMenuBar, "MenuPulldown", NULL, 0);
+  wMenuPulldown = XmCreatePulldownMenu(wMenuBar, const_cast<char *>("MenuPulldown"), NULL, 0);
   XtVaCreateManagedWidget("Help", xmCascadeButtonWidgetClass, wMenuBar,
 			  XmNmnemonic, 'H', XmNsubMenuId,   wMenuPulldown, NULL);
   wid = XtVaCreateManagedWidget("Info...", xmPushButtonGadgetClass,
@@ -1362,7 +1362,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 		XmNscrollingPolicy,	XmAUTOMATIC,
 		NULL);
 
-  trans =
+  trans = const_cast<char *>(
 	"<Btn1Motion>: DrawingAreaInput() ManagerGadgetButtonMotion()	\n\
 	<Btn1Down>: DrawingAreaInput() ManagerGadgetButtonMotion()	\n\
 	<Btn1Up>: DrawingAreaInput() ManagerGadgetButtonMotion()	\n\
@@ -1371,7 +1371,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 	<Btn2Up>: DrawingAreaInput() ManagerGadgetButtonMotion()	\n\
 	<Btn3Motion>: DrawingAreaInput() ManagerGadgetButtonMotion()	\n\
 	<Btn3Down>: DrawingAreaInput() ManagerGadgetButtonMotion()	\n\
-	<Btn3Up>: DrawingAreaInput() ManagerGadgetButtonMotion()";
+	<Btn3Up>: DrawingAreaInput() ManagerGadgetButtonMotion()");
 	
   wPlotPlane[Amrvis::ZPLANE] = XtVaCreateManagedWidget("plotArea",
 			    xmDrawingAreaWidgetClass, wScrollArea[Amrvis::ZPLANE],
@@ -1496,7 +1496,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   XtManageChild(wRender);
 #endif
   
-  XmString sDetach = XmStringCreateSimple("Detach");
+  XmString sDetach = XmStringCreateSimple(const_cast<char *>("Detach"));
   wDetach =
     XtVaCreateManagedWidget("detach", xmPushButtonGadgetClass,
 			    wPlotArea,
@@ -1525,11 +1525,12 @@ void PltApp::PltAppInit(bool bSubVolume) {
   
   for(np = 0; np < Amrvis::NPLANES; ++np) {
     AddStaticCallback(wPlotPlane[np], XmNinputCallback,
-		      &PltApp::DoRubberBanding, (XtPointer) np);
+		      &PltApp::DoRubberBanding, (XtPointer) static_cast<long>(np));
     AddStaticEventHandler(wPlotPlane[np], ExposureMask, &PltApp::PADoExposePicture,
-			  (XtPointer) np);
+			  (XtPointer) static_cast<long>(np));
     AddStaticEventHandler(wPlotPlane[np], PointerMotionMask | LeaveWindowMask,
-			  &PltApp::DoDrawPointerLocation, (XtPointer) np);
+			  &PltApp::DoDrawPointerLocation,
+			  (XtPointer) static_cast<long>(np));
   }
   
   
@@ -1601,7 +1602,9 @@ void PltApp::PltAppInit(bool bSubVolume) {
   if(bSubVolume) {
     //ChangeLevel(wTempDrawLevel, (XtPointer)(pltAppState->MaxDrawnLevel()), NULL);
     XtVaSetValues(wTempDrawLevel, XmNset, true, NULL);
-    ChangeLevel(wTempDrawLevel, (XtPointer)(pltAppState->MaxAllowableLevel()), NULL);
+    ChangeLevel(wTempDrawLevel,
+                (XtPointer) static_cast<long>(pltAppState->MaxAllowableLevel()),
+		NULL);
   }
 }  // end PltAppInit()
 
@@ -1648,12 +1651,6 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   int zpColor(whiteColor);
   char sX[Amrvis::LINELENGTH], sY[Amrvis::LINELENGTH], sZ[Amrvis::LINELENGTH];
   
-  int maxAllowLev(pltAppState->MaxAllowableLevel());
-  int maxDrawnLev(pltAppState->MaxDrawnLevel());
-  const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
-  int crrDiff(AVGlobals::CRRBetweenLevels(maxDrawnLev, maxAllowLev,
-              amrData.RefRatio()));
-
   XClearWindow(display, XtWindow(wControlForm));
 
   strcpy(sX, "X");
@@ -1662,6 +1659,11 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   
   DrawAxes(wControlForm, zPlanePosX, zPlanePosY, 0, sX, sY, zpColor);
 #if (BL_SPACEDIM == 3)
+  int maxAllowLev(pltAppState->MaxAllowableLevel());
+  int maxDrawnLev(pltAppState->MaxDrawnLevel());
+  const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+  int crrDiff(AVGlobals::CRRBetweenLevels(maxDrawnLev, maxAllowLev,
+              amrData.RefRatio()));
   int axisLength(20);
   int ypColor(whiteColor), xpColor(whiteColor);
   int xyzAxisLength(50);
@@ -2257,7 +2259,8 @@ void PltApp::QuitDataset() {
 void PltApp::DoPaletteButton(Widget, XtPointer, XtPointer) {
   static Widget wPalDialog;
   wPalDialog = XmCreateFileSelectionDialog(wAmrVisTopLevel,
-				"Choose Palette", NULL, 0);
+				const_cast<char *>("Choose Palette"),
+				NULL, 0);
 
   AddStaticCallback(wPalDialog, XmNokCallback, &PltApp::DoOpenPalFile);
   XtAddCallback(wPalDialog, XmNcancelCallback,
@@ -2326,7 +2329,9 @@ void PltApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   XtSetArg(args[i], XmNbottomAttachment, XmATTACH_POSITION);      ++i;
   XtSetArg(args[i], XmNbottomPosition, 80);      ++i;
 
-  Widget wInfoList = XmCreateScrolledText(wInfoForm, "infoscrolledlist", args, i);
+  Widget wInfoList = XmCreateScrolledText(wInfoForm,
+                                          const_cast<char *>("infoscrolledlist"),
+					  args, i);
 
   Widget wInfoCloseButton =
     XtVaCreateManagedWidget("Close",
@@ -2424,15 +2429,15 @@ void PltApp::DoContoursButton(Widget, XtPointer, XtPointer) {
 			    xmFormWidgetClass, wContoursTopLevel,
 			    NULL);
 
-  wContourRadio = XmCreateRadioBox(wContoursForm, "contourtype", NULL, 0);
+  wContourRadio = XmCreateRadioBox(wContoursForm,
+                                   const_cast<char *>("contourtype"), NULL, 0);
   XtVaSetValues(wContourRadio,
 		XmNtopAttachment, XmATTACH_FORM,
 		XmNleftAttachment, XmATTACH_FORM,
 		XmNrightAttachment, XmATTACH_FORM, NULL);		
   
-  char *conItems[Amrvis::NCONTOPTIONS] = {"Raster", "Raster & Contours", "Color Contours",
+  const char *conItems[Amrvis::NCONTOPTIONS] = {"Raster", "Raster & Contours", "Color Contours",
 		                  "B/W Contours", "Velocity Vectors"};
-  const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   for(int j(0); j < Amrvis::NCONTOPTIONS; ++j) {
     wid = XtVaCreateManagedWidget(conItems[j], xmToggleButtonGadgetClass,
 				  wContourRadio, NULL);
@@ -2440,10 +2445,10 @@ void PltApp::DoContoursButton(Widget, XtPointer, XtPointer) {
       XtVaSetValues(wid, XmNset, true, NULL);
     }
     AddStaticCallback(wid, XmNvalueChangedCallback, &PltApp::ChangeContour,
-		      (XtPointer) j);
+		      (XtPointer) static_cast<long>(j));
   }
 
-  XmString label_str = XmStringCreateSimple("Number of lines:");
+  XmString label_str = XmStringCreateSimple(const_cast<char *>("Number of lines:"));
   wContourLabel = XtVaCreateManagedWidget("numcontours",
 			    xmLabelWidgetClass, wContoursForm,
 			    XmNlabelString,     label_str, 
@@ -2624,7 +2629,8 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   AddStaticCallback(wCancelButton, XmNactivateCallback, &PltApp::DoCancelSetRange);
   
   // make the radio box
-  wSetRangeRadioBox = XmCreateRadioBox(wSetRangeForm, "setrangeradiobox",
+  wSetRangeRadioBox = XmCreateRadioBox(wSetRangeForm,
+                                       const_cast<char *>("setrangeradiobox"),
 				       NULL, 0);
   XtVaSetValues(wSetRangeRadioBox, XmNmarginHeight, 8, NULL);
   XtVaSetValues(wSetRangeRadioBox, XmNmarginWidth, 4, NULL);
@@ -2651,7 +2657,8 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
     XtSetArg(args[i], XmNtopWidget, wSetRangeRadioBox); ++i;
     XtSetArg(args[i], XmNtopOffset, Amrvis::WOFFSET); ++i;
     XtSetArg(args[i], XmNset, bFileRangeButtonSet); ++i;
-    wFileRangeCheckBox = XmCreateToggleButton(wSetRangeForm, "File_Range",
+    wFileRangeCheckBox = XmCreateToggleButton(wSetRangeForm,
+                              const_cast<char *>("File_Range"),
 			      args, i);
     AddStaticCallback(wFileRangeCheckBox, XmNvalueChangedCallback,
 		      &PltApp::DoToggleFileRangeButton, NULL);
@@ -3354,7 +3361,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 #endif
 	}
 
-	DoDrawPointerLocation(None, (XtPointer) V, &nextEvent);
+	DoDrawPointerLocation(None, (XtPointer) static_cast<long>(V), &nextEvent);
 
 	while(XCheckTypedEvent(display, MotionNotify, &nextEvent)) {
 	  ;  // do nothing
@@ -3746,7 +3753,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	}
 #endif
 
-	DoDrawPointerLocation(None, (XtPointer) V, &nextEvent);
+	DoDrawPointerLocation(None, (XtPointer) static_cast<long>(V), &nextEvent);
 	while(XCheckTypedEvent(display, MotionNotify, &nextEvent)) {
 	  ;  // do nothing
 	}
@@ -3914,7 +3921,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	}
 #endif
 
-	DoDrawPointerLocation(None, (XtPointer) V, &nextEvent);
+	DoDrawPointerLocation(None, (XtPointer)  static_cast<long>(V), &nextEvent);
 	while(XCheckTypedEvent(display, MotionNotify, &nextEvent)) {
 	  ;  // do nothing
 	}

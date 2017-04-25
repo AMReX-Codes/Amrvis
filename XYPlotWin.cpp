@@ -74,21 +74,21 @@ static param_style param_null_style = {STYLE, 0, (char *) 0};
 using std::endl;
 
 // Some macros for obtaining parameters.
-#define PM_INT(name) ((parameters->Get_Parameter(name, &param_temp)) ? \
+#define PM_INT(name) ((parameters->Get_Parameter(const_cast<char *>(name), &param_temp)) ? \
    param_temp.intv.value : (BL_ASSERT(0), (int) 0))
-#define PM_STRING(name) ((parameters->Get_Parameter(name, &param_temp)) ? \
+#define PM_STRING(name) ((parameters->Get_Parameter(const_cast<char *>(name), &param_temp)) ? \
    param_temp.strv.value : (BL_ASSERT(0), (char *) 0))
-#define PM_COLOR(name) ((parameters->Get_Parameter(name, &param_temp)) ? \
+#define PM_COLOR(name) ((parameters->Get_Parameter(const_cast<char *>(name), &param_temp)) ? \
    param_temp.pixv.value : (BL_ASSERT(0), param_null_color))
-#define PM_FONT(name) ((parameters->Get_Parameter(name, &param_temp)) ? \
+#define PM_FONT(name) ((parameters->Get_Parameter(const_cast<char *>(name), &param_temp)) ? \
    param_temp.fontv.value : (BL_ASSERT(0), (XFontStruct *) 0))
-#define PM_STYLE(name) ((parameters->Get_Parameter(name, &param_temp)) ? \
+#define PM_STYLE(name) ((parameters->Get_Parameter(const_cast<char *>(name), &param_temp)) ? \
    param_temp.stylev : (BL_ASSERT(0), param_null_style))
-#define PM_BOOL(name) ((parameters->Get_Parameter(name, &param_temp)) ? \
+#define PM_BOOL(name) ((parameters->Get_Parameter(const_cast<char *>(name), &param_temp)) ? \
    param_temp.boolv.value : (BL_ASSERT(0), 0))
-#define PM_DBL(name) ((parameters->Get_Parameter(name, &param_temp)) ? \
+#define PM_DBL(name) ((parameters->Get_Parameter(const_cast<char *>(name), &param_temp)) ? \
    param_temp.dblv.value : (BL_ASSERT(0), 0.0))
-#define PM_PIXEL(name) ((parameters->Get_Parameter(name, &param_temp)) ? \
+#define PM_PIXEL(name) ((parameters->Get_Parameter(const_cast<char *>(name), &param_temp)) ? \
    pal->makePixel(param_temp.pixv.iColorMapSlot) : (BL_ASSERT(0), (Pixel) 0))
 
 
@@ -218,9 +218,9 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
 			    XmNrightAttachment, XmATTACH_FORM,
 			    NULL);
 
-  label_str1 = XmStringCreateSimple("Export");
-  label_str2 = XmStringCreateSimple("Options");
-  label_str3 = XmStringCreateSimple("Close");
+  label_str1 = XmStringCreateSimple(const_cast<char *> ("Export"));
+  label_str2 = XmStringCreateSimple(const_cast<char *> ("Options"));
+  label_str3 = XmStringCreateSimple(const_cast<char *> ("Close"));
   wExportButton = XtVaCreateManagedWidget("Export", xmPushButtonGadgetClass,
 			    wLegendMenu,
 			    XmNlabelString,     label_str1,
@@ -262,9 +262,9 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
   XmStringFree(label_str2);
   XmStringFree(label_str3);
 
-  label_str1 = XmStringCreateSimple("All");
-  label_str2 = XmStringCreateSimple("None");
-  label_str3 = XmStringCreateSimple("Clear");
+  label_str1 = XmStringCreateSimple(const_cast<char *>("All"));
+  label_str2 = XmStringCreateSimple(const_cast<char *>("None"));
+  label_str3 = XmStringCreateSimple(const_cast<char *>("Clear"));
   wAllButton = XtVaCreateManagedWidget("All", xmPushButtonGadgetClass,
 			    wLegendMenu,
 			    XmNlabelString,     label_str1,
@@ -771,7 +771,7 @@ void XYPlotWin::AddDataList(::XYPlotDataList *new_list,
 {
   if(++numItems > 64) {
     // Too many data lists to assign unique color/style.  Delete.
-    PrintMessage("Too many lines in plotter!\n");
+    PrintMessage(const_cast<char *>("Too many lines in plotter!\n"));
     numItems = 64;
     delete new_list;
     return;
@@ -818,10 +818,10 @@ void XYPlotWin::AddDataList(::XYPlotDataList *new_list,
 					       XtWindow(new_item->wid));
   Widget wid, levelmenu;
   char buffer[Amrvis::BUFSIZE];
-  new_item->menu = XmCreatePopupMenu(new_item->wid, "popup", NULL, 0);
+  new_item->menu = XmCreatePopupMenu(new_item->wid, const_cast<char *>("popup"), NULL, 0);
   if(new_list->MaxLevel() != 0) {
-    XmString label_str = XmStringCreateSimple("Level");
-    levelmenu = XmCreatePulldownMenu(new_item->menu, "pulldown", NULL, 0);
+    XmString label_str = XmStringCreateSimple(const_cast<char *>("Level"));
+    levelmenu = XmCreatePulldownMenu(new_item->menu, const_cast<char *>("pulldown"), NULL, 0);
     XtVaCreateManagedWidget("Level", xmCascadeButtonGadgetClass,
 			    new_item->menu,
 			    XmNsubMenuId, levelmenu,
@@ -1441,7 +1441,7 @@ void XYPlotWin::CBdoExportFileDialog(Widget, XtPointer, XtPointer) {
   if(wExportFileDialog == None) {
     Widget wExportDumpFSBox =
       XmCreateFileSelectionDialog(wXYPlotTopLevel,
-				  "Choose a file to dump ASCII Data",
+				  const_cast<char *>("Choose a file to dump ASCII Data"),
 				  NULL, 0);
     XtUnmanageChild(XmFileSelectionBoxGetChild(wExportDumpFSBox,
 					       XmDIALOG_HELP_BUTTON));
@@ -1481,7 +1481,7 @@ void XYPlotWin::CBdoExportFile(Widget, XtPointer client_data, XtPointer data) {
 				      "Cannot create export file while animating." :
 				      "Invalid file name."));
     XtSetArg(args[0], XmNmessageString, label_str);
-    Widget wid = XmCreateErrorDialog(wXYPlotTopLevel, "error", args, 1);
+    Widget wid = XmCreateErrorDialog(wXYPlotTopLevel, const_cast<char *>("error"), args, 1);
     XmStringFree(label_str);
     XtUnmanageChild(XmMessageBoxGetChild(wid, XmDIALOG_CANCEL_BUTTON));
     XtUnmanageChild(XmMessageBoxGetChild(wid, XmDIALOG_HELP_BUTTON));    
@@ -1492,7 +1492,7 @@ void XYPlotWin::CBdoExportFile(Widget, XtPointer client_data, XtPointer data) {
     fclose(fs);
     XmString label_str;
     Arg args[1];
-    label_str = XmStringCreateSimple("Overwrite existing file?");
+    label_str = XmStringCreateSimple(const_cast<char *>("Overwrite existing file?"));
     XtSetArg(args[0], XmNmessageString, label_str);
     Widget wid = XmCreateWarningDialog(wXYPlotTopLevel, filename, args, 1);
     XmStringFree(label_str);
@@ -1514,7 +1514,7 @@ void XYPlotWin::CBdoASCIIDump(Widget, XtPointer client_data, XtPointer data) {
   if(fs == NULL) {
     XmString label_str;
     Arg args[1];
-    label_str = XmStringCreateSimple("Access denied.");
+    label_str = XmStringCreateSimple(const_cast<char *>("Access denied."));
     XtSetArg(args[0], XmNmessageString, label_str);
     Widget wid = XmCreateErrorDialog(wXYPlotTopLevel, filename, args, 1);
     XmStringFree(label_str);
@@ -1587,11 +1587,11 @@ void XYPlotWin::DoASCIIDump(FILE *fs, const char *plotname) {
 void XYPlotWin::CBdoOptions(Widget, XtPointer, XtPointer) {
   if(wOptionsDialog == None) {
     // Build options dialog.
-    char *firstColumnText[] = {
+    const char *firstColumnText[] = {
       "Data Markers", "Ticks (vs. grid)", "Axis Lines", "Bounding Box",
       "Plot Lines", "Display Hints"
     };
-    char *secondColumnText[] = {
+    const char *secondColumnText[] = {
       "Grid Line Width", "Plot Line Width",
       "X Unit Text", "Y Unit Text",
       "Grid Label Format X", "Grid Label Format Y"
@@ -1632,7 +1632,7 @@ void XYPlotWin::CBdoOptions(Widget, XtPointer, XtPointer) {
 			      XmNorientation,     XmHORIZONTAL,
 			      NULL);
     
-    int ii;
+    long ii;
     Widget wid;
     char buffer[32], *str = 0;
     for(ii = 0; ii < 6; ++ii) {
@@ -1859,7 +1859,7 @@ void XYPlotWin::CBdoOptionsOKButton(Widget, XtPointer data, XtPointer) {
 	parameters->Set_Parameter("InitialZWindowOffsetY", INT, buf2);
       }
 
-      parameters->WriteToFile(".XYPlot.Defaults");
+      parameters->WriteToFile(const_cast<char *>(".XYPlot.Defaults"));
     }
   } else {
     tbool[0] = markQ;
@@ -2185,18 +2185,22 @@ void XYPlotWin::drawHint() {
   switch(iCurrHint) {
     case 0:
       textX(wPlotWin, devInfo.areaW - 5, devInfo.bdrPad,
-	    "Left click to zoom in.", T_UPPERRIGHT, T_AXIS);
+	    const_cast<char *>("Left click to zoom in."),
+	    T_UPPERRIGHT, T_AXIS);
 
       if(zoomedInQ == true) {
         textX(wPlotWin, devInfo.areaW - 5, devInfo.bdrPad + devInfo.axisH,
-	      "Right click to zoom out.", T_UPPERRIGHT, T_AXIS);
+	      const_cast<char *>("Right click to zoom out."),
+	      T_UPPERRIGHT, T_AXIS);
       }
     break;
     case 1:
       textX(wPlotWin, devInfo.areaW - 5, devInfo.bdrPad,
-	    "Left click on legend items to toggle draw.", T_UPPERRIGHT, T_AXIS);
+	    const_cast<char *>("Left click on legend items to toggle draw."),
+	    T_UPPERRIGHT, T_AXIS);
       textX(wPlotWin, devInfo.areaW - 5, devInfo.bdrPad + devInfo.axisH,
-	    "Right click to select options.", T_UPPERRIGHT, T_AXIS);
+	    const_cast<char *>("Right click to select options."),
+	    T_UPPERRIGHT, T_AXIS);
 
     break;
   }

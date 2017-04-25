@@ -75,7 +75,7 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
   pixSizeY = 1;
 
   WM_DELETE_WINDOW = XmInternAtom(XtDisplay(pltAppPtr->WId()),
-                                  "WM_DELETE_WINDOW", false);
+                                  const_cast<char *>("WM_DELETE_WINDOW"), false);
 
 
   // ************************************************ Dataset Window 
@@ -121,7 +121,7 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
   XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      ++i;
   XtSetArg(args[i], XmNleftOffset, Amrvis::WOFFSET);      ++i;
   //XtSetArg(args[i], XmNheight, bHeight);      ++i;
-  wColorButton = XmCreateToggleButton(wDatasetTools, "Color", args, i);
+  wColorButton = XmCreateToggleButton(wDatasetTools, const_cast<char *>("Color"), args, i);
   XtAddCallback(wColorButton, XmNvalueChangedCallback,
 		(XtCallbackProc) &Dataset::CBColorButton,
 		(XtPointer) this);
@@ -136,14 +136,14 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
   XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      ++i;
   XtSetArg(args[i], XmNrightOffset, 20);      ++i;
   XtSetArg(args[i], XmNheight, bHeight);      ++i;
-  wQuitButton = XmCreatePushButton(wDatasetTools, "Close", args, i);
+  wQuitButton = XmCreatePushButton(wDatasetTools, const_cast<char *>("Close"), args, i);
   XtAddCallback(wQuitButton, XmNactivateCallback,
 		(XtCallbackProc) &Dataset::CBQuitButton,
 		(XtPointer) this);
 
   // ************************************************ Max
 
-  XmString sMax = XmStringCreateSimple("");
+  XmString sMax = XmStringCreateSimple(const_cast<char *>(""));
   wMaxValue = XtVaCreateManagedWidget("maxValue", 
                                     xmLabelWidgetClass, wDatasetTools,
                                     XmNlabelString, sMax, 
@@ -157,7 +157,7 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
   XmStringFree(sMax);
 
   // ************************************************ Min 
-  XmString sMin = XmStringCreateSimple("");
+  XmString sMin = XmStringCreateSimple(const_cast<char *>(""));
   wMinValue = XtVaCreateManagedWidget("minValue", 
                                     xmLabelWidgetClass, wDatasetTools,
                                     XmNlabelString, sMin, 
@@ -175,7 +175,7 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
   // ************************************************ Levels
   
 
-  XmString sLabel = XmStringCreateSimple("");
+  XmString sLabel = XmStringCreateSimple(const_cast<char *>(""));
   wLevels = XtVaCreateManagedWidget("levels", 
                                     xmLabelWidgetClass, wDatasetTools,
                                     XmNlabelString, sLabel, 
@@ -202,10 +202,10 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
                             XmNscrollingPolicy,	XmAUTOMATIC,
                             NULL);
 
-  String trans =
+  String trans = const_cast<char *>(
 	"<Btn1Motion>: DrawingAreaInput() ManagerGadgetButtonMotion() \n\
 	<Btn1Down>: DrawingAreaInput() ManagerGadgetButtonMotion() \n\
-	<Btn1Up>: DrawingAreaInput() ManagerGadgetButtonMotion()";
+	<Btn1Up>: DrawingAreaInput() ManagerGadgetButtonMotion()");
 
 
   wPixArea = XtVaCreateManagedWidget("pixArea", xmDrawingAreaWidgetClass,

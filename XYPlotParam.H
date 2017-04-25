@@ -108,7 +108,7 @@ public:
   // Get_Parameter().  If it is already filled, the old value
   // will be reclaimed.
   //
-  void Set_Parameter(char *name, param_types type, const char *val);
+  void Set_Parameter(const char *name, param_types type, const char *val);
 
   //
   // This routine sets the value of an existing parameter to a new

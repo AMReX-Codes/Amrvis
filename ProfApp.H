@@ -135,6 +135,6 @@ private:
 
 void	CBQuitProfApp(Widget, XtPointer, XtPointer);
 void	CBQuitAll(Widget, XtPointer, XtPointer);
-void	PrintMessage(char *cpmsg);
+void	PrintMessage(const char *cpmsg);
 
 #endif

@@ -176,10 +176,10 @@ void XYPlotParameters::GetHardWiredDefaults() {
 
 
 // -------------------------------------------------------------------
-void XYPlotParameters::Set_Parameter(char *name,  param_types type,
+void XYPlotParameters::Set_Parameter(const char *name,  param_types type,
 				     const char *val)
 {
-  param_full *entry = st_lookup(name);
+  param_full *entry = st_lookup(const_cast<char *>(name));
   
   if(entry) {
     if(entry->real_form) {

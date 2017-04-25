@@ -395,6 +395,6 @@ void	SubregionPltApp(Widget toplevel, const amrex::Box &region, const amrex::Int
 			const string &filename);
 void	CBQuitPltApp(Widget, XtPointer, XtPointer);
 void	CBQuitAll(Widget, XtPointer, XtPointer);
-void	PrintMessage(char *cpmsg);
+void	PrintMessage(const char *cpmsg);
 
 #endif
