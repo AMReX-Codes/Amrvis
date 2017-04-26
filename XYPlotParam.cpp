@@ -24,13 +24,13 @@
 
 #define STRDUP(xx) (strcpy(new char[strlen(xx)+1], (xx)))
 
-static char *defStyle[8] = {     // Default Line styles  
+static const char *defStyle[8] = {     // Default Line styles  
   "1", "10", "11110000", "010111", "1110",
   "1111111100000000", "11001111", "0011000111"
 };
 
-static char *positive[] = {"on", "yes", "true", "1", "affirmative", NULL};
-static char *negative[] = {"off", "no", "false", "0", "negative", NULL};
+static const char *positive[] = {"on", "yes", "true", "1", "affirmative", NULL};
+static const char *negative[] = {"off", "no", "false", "0", "negative", NULL};
 
 
 
@@ -69,10 +69,10 @@ void XYPlotParameters::ResetPalette(Palette *newPalPtr) {
   if(param_palette != newPalPtr) {
     param_palette = newPalPtr;
     param_full *entry;
-    if((entry = st_lookup("GridColor")) != NULL && entry->real_form) {
+    if((entry = st_lookup(const_cast<char *>("GridColor"))) != NULL && entry->real_form) {
       free_resource(entry->real_form);
     }
-    if((entry = st_lookup("TextColor")) != NULL && entry->real_form) {
+    if((entry = st_lookup(const_cast<char *>("TextColor"))) != NULL && entry->real_form) {
       free_resource(entry->real_form);
     }
     unsigned int colorindex = param_palette->ColorSlots() / 8;
@@ -297,7 +297,7 @@ params * XYPlotParameters::resolve_entry(char *name, param_types type,
 
 
 // -------------------------------------------------------------------
-int XYPlotParameters::do_color(char *name, XColor *color, int &cmSlot) {
+int XYPlotParameters::do_color(const char *name, XColor *color, int &cmSlot) {
   Colormap cmap = param_palette->GetColormap();
   if( ! XParseColor(gaPtr->PDisplay(),
 		    DefaultColormap(gaPtr->PDisplay(), gaPtr->PScreenNumber()),
@@ -347,7 +347,7 @@ int XYPlotParameters::do_color(char *name, XColor *color, int &cmSlot) {
 
 
 // -------------------------------------------------------------------
-int XYPlotParameters::do_font(char *name, XFontStruct **font_info) {
+int XYPlotParameters::do_font(const char *name, XFontStruct **font_info) {
   char name_copy[DEF_MAX_FONT], query_spec[DEF_MAX_FONT];
   char *font_family, *font_size, **font_list;
   int font_size_value, font_count, i;
@@ -386,8 +386,10 @@ int XYPlotParameters::do_font(char *name, XFontStruct **font_info) {
 
 
 // -------------------------------------------------------------------
-int XYPlotParameters::do_style(char *list, param_style *val) {
-  char *i, *spot, last_char;
+int XYPlotParameters::do_style(const char *list, param_style *val) {
+  const char *i;
+  char *spot;
+  char last_char;
   int count;
 
   for(i = list; *i; ++i) {
@@ -427,8 +429,8 @@ int XYPlotParameters::do_style(char *list, param_style *val) {
 
 
 // -------------------------------------------------------------------
-int XYPlotParameters::do_bool(char *name, int *val) {
-  char **term;
+int XYPlotParameters::do_bool(const char *name, int *val) {
+  const char **term;
   
   for(term = positive; *term; ++term) {
     if(string_compare(name, *term) == 0) {

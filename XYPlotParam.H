@@ -170,7 +170,7 @@ private:
   // Translates name into a color and attempts to get the pixel
   // for the color using XAllocColor().
   //
-  int do_color(char *name, XColor *color, int &cmSlot);
+  int do_color(const char *name, XColor *color, int &cmSlot);
 
   //
   // This routine translates a font name into a font structure.  The
@@ -180,20 +180,20 @@ private:
   // is assumed to be a regular X font name specification and
   // is looked up using the standard means.
   //
-  int do_font(char *name, XFontStruct **font_info);
+  int do_font(const char *name, XFontStruct **font_info);
 
   //
   // Translates a string representation of a dash specification into
   // a form suitable for use in XSetDashes().  Assumes list
   // is a null terminated string of ones and zeros.
   //
-  int do_style(char *list, param_style *val);
+  int do_style(const char *list, param_style *val);
 
   //
   // Translates a string representation into a suitable binary value.
   // Can parse all kinds of interesting boolean type words.
   //
-  int do_bool(char *name, int *val);
+  int do_bool(const char *name, int *val);
 
   //
   // Look up item in table -- return zero if not found
@@ -229,8 +229,8 @@ private:
     return ((val < 0) ? -val : val) % param_table.num_bins;
   }
   
-  int string_compare(register char *s1, register char *s2) {
-    register char c, d;
+  int string_compare(const char *s1, const char *s2) {
+    char c, d;
     
     while ((c = *s1) != '\0') {
       if(isupper(c)) {

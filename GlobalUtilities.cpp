@@ -66,7 +66,7 @@ AVGlobals::ENUserVectorNames givenUserVectorNames(AVGlobals::enUserNone);
 Array<string> userVectorNames(BL_SPACEDIM);
 bool newPltSet(false);
 
-char *FileTypeString[] = {
+const char *FileTypeString[] = {
   "invalidtype", "fab", "multifab", "newplt", "profdata"
 };
 

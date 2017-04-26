@@ -32,13 +32,13 @@ void PltApp::DoOutput(Widget w, XtPointer data, XtPointer) {
   int i;
   static Widget wGetFileName;
   XmString sMessage;
-  sMessage = XmStringCreateSimple("Please enter a filename base:");
+  sMessage = XmStringCreateSimple(const_cast<char *>("Please enter a filename base:"));
 
   i=0;
   XtSetArg(args[i], XmNselectionLabelString, sMessage); ++i;
   XtSetArg(args[i], XmNautoUnmanage, false); ++i;
   XtSetArg(args[i], XmNkeyboardFocusPolicy, XmPOINTER); ++i;
-  wGetFileName = XmCreatePromptDialog(wAmrVisTopLevel, "Save as", args, i);
+  wGetFileName = XmCreatePromptDialog(wAmrVisTopLevel, const_cast<char *>("Save as"), args, i);
   XmStringFree(sMessage);
 
   unsigned long which = (unsigned long) data;
@@ -82,8 +82,6 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   char *fileNameBase;
   int imageSizeX, imageSizeY;
   XImage *printImage;
-  int minDrawnLevel(pltAppState->MinDrawnLevel());
-  int maxDrawnLevel(pltAppState->MaxDrawnLevel());
 
   if(animating2d) {
     ResetAnimation();
@@ -100,6 +98,9 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
 
 #ifndef NDEBUG
 /*
+  {
+  int minDrawnLevel(pltAppState->MinDrawnLevel());
+  int maxDrawnLevel(pltAppState->MaxDrawnLevel());
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   sprintf(psfilename, "%s_XY_new.ps", fileNameBase);
   bool bDrawBoxesIntoImage(false);
@@ -108,10 +109,13 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   amrPicturePtrArray[Amrvis::ZPLANE]->GetGridBoxes(gridBoxes, minDrawnLevel, maxDrawnLevel);
   WriteNewPSFile(psfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr,
 		 amrData, minDrawnLevel, maxDrawnLevel, gridBoxes);
+  }
 */
 #endif
 
 #if (BL_SPACEDIM==3)
+  int minDrawnLevel(pltAppState->MinDrawnLevel());
+  int maxDrawnLevel(pltAppState->MaxDrawnLevel());
   // write the Amrvis::YPLANE picture
   sprintf(psfilename, "%s_XZ.ps", fileNameBase);
   printImage = amrPicturePtrArray[Amrvis::YPLANE]->GetPictureXImage();

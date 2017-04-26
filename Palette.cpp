@@ -216,7 +216,7 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
 
   if(bTimeline) {
     int nPalVals(mpiFuncNames.size()), count(0), cftRange(palMax - palMin);
-    int nameLocation, palLocation, cftIndex, noffX(18), noffY(20);
+    int nameLocation, palLocation, cftIndex, noffX(18);
     Array<int> palIndex(mpiFuncNames.size(), 0);
     XSetForeground(display, gc, AVWhitePixel());
 
@@ -259,7 +259,7 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
 
   } else if(bRegions) {
     int nPalVals(regionNames.size()), count(0), cftRange(palMax - palMin);
-    int nameLocation, palLocation, cftIndex, noffX(18), noffY(20);
+    int nameLocation, palLocation, cftIndex, noffX(18);
     Array<int> palIndex(regionNames.size(), 0);
     XSetForeground(display, gc, AVWhitePixel());
 
