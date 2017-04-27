@@ -1,6 +1,9 @@
 // ---------------------------------------------------------------
 // PltApp.cpp
 // ---------------------------------------------------------------
+#include <AMReX_ParallelDescriptor.H>
+#include <AMReX_DataServices.H>
+
 #include <Xm/Protocols.h>
 #include <Xm/ToggleBG.h>
 #include <Xm/PushB.h>
@@ -28,11 +31,9 @@
 #include <PltApp.H>
 #include <PltAppState.H>
 #include <AmrPicture.H>
-#include <AMReX_DataServices.H>
 #include <GraphicsAttributes.H>
 #include <ProjectionPicture.H>
 #include <XYPlotWin.H>
-#include <AMReX_ParallelDescriptor.H>
 #include <MessageArea.H>
 
 #if defined(BL_PARALLELVOLUMERENDER)
