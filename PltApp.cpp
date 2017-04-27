@@ -1009,7 +1009,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   preClassify = true;
 
   // RENDER MENU
-  wMenuPulldown = XmCreatePulldownMenu(wMenuBar, "RenderPulldown", NULL, 0);
+  wMenuPulldown = XmCreatePulldownMenu(wMenuBar, const_cast<char *>("RenderPulldown"), NULL, 0);
   XtVaCreateManagedWidget("Render", xmCascadeButtonWidgetClass, wMenuBar,
 			  XmNmnemonic, 'R', XmNsubMenuId, wMenuPulldown, NULL);
 
@@ -1023,7 +1023,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 				XmNmnemonic, 'L', NULL);
   AddStaticCallback(wid, XmNactivateCallback, &PltApp::DoCreateLightingWindow);
   
-  wCascade = XmCreatePulldownMenu(wMenuPulldown, "rendermodemenu", NULL, 0);
+  wCascade = XmCreatePulldownMenu(wMenuPulldown, const_cast<char *>("rendermodemenu"), NULL, 0);
   XtVaCreateManagedWidget("Render Mode", xmCascadeButtonWidgetClass, wMenuPulldown,
 			  XmNmnemonic, 'M', XmNsubMenuId, wCascade, NULL);
   wid = XtVaCreateManagedWidget("Light", xmToggleButtonGadgetClass,
@@ -1041,7 +1041,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
     wCurrentRenderMode = wid;
   }
   
-  wCascade = XmCreatePulldownMenu(wMenuPulldown, "classifymenu", NULL, 0);
+  wCascade = XmCreatePulldownMenu(wMenuPulldown, const_cast<char *>("classifymenu"), NULL, 0);
   XtVaCreateManagedWidget("Classify", xmCascadeButtonWidgetClass, wMenuPulldown,
 			  XmNmnemonic, 'C', XmNsubMenuId, wCascade, NULL);
   wid = XtVaCreateManagedWidget("PC", xmToggleButtonGadgetClass,

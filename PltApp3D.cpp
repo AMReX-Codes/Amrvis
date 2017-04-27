@@ -446,7 +446,7 @@ void PltApp::DoOpenFileLightingWindow(Widget w, XtPointer oos, XtPointer call_da
 {
   static Widget wOpenLWDialog;
   wOpenLWDialog = XmCreateFileSelectionDialog(wAmrVisTopLevel,
-                                "Lighting File", NULL, 0);
+                                const_cast<char *>("Lighting File"), NULL, 0);
 
   AddStaticCallback(wOpenLWDialog, XmNokCallback, &PltApp::DoOpenLightingFile, oos);
   XtAddCallback(wOpenLWDialog, XmNcancelCallback,

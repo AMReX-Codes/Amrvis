@@ -511,9 +511,13 @@ AVRealBox::AVRealBox() {
 
 //--------------------------------------------------------------------
 AVRealBox::AVRealBox(const Box &theBox) {
-    Real dimensions[6] = { theBox.smallEnd(Amrvis::XDIR), theBox.smallEnd(Amrvis::YDIR),
-                           theBox.smallEnd(Amrvis::ZDIR), theBox.bigEnd(Amrvis::XDIR)+1,
-                           theBox.bigEnd(Amrvis::YDIR)+1, theBox.bigEnd(Amrvis::ZDIR)+1 };
+    Real dimensions[6] = { static_cast<Real>(theBox.smallEnd(Amrvis::XDIR)),
+                           static_cast<Real>(theBox.smallEnd(Amrvis::YDIR)),
+                           static_cast<Real>(theBox.smallEnd(Amrvis::ZDIR)),
+			   static_cast<Real>(theBox.bigEnd(Amrvis::XDIR) + 1),
+                           static_cast<Real>(theBox.bigEnd(Amrvis::YDIR) + 1),
+			   static_cast<Real>(theBox.bigEnd(Amrvis::ZDIR) + 1)
+			 };
 
     vertices[0] = RealPoint(dimensions[0], dimensions[1], dimensions[2]);
     vertices[1] = RealPoint(dimensions[3], dimensions[1], dimensions[2]);
@@ -574,9 +578,13 @@ RealSlice::RealSlice(RealPoint p1, RealPoint p2, RealPoint p3, RealPoint p4) {
 
 //--------------------------------------------------------------------
 RealSlice::RealSlice(int count, int slice, const Box &worldBox) {
-  Real dimensions[6] = { worldBox.smallEnd(Amrvis::XDIR), worldBox.smallEnd(Amrvis::YDIR),
-                         worldBox.smallEnd(Amrvis::ZDIR), worldBox.bigEnd(Amrvis::XDIR)+1,
-                         worldBox.bigEnd(Amrvis::YDIR)+1, worldBox.bigEnd(Amrvis::ZDIR)+1 };
+  Real dimensions[6] = { static_cast<Real>(worldBox.smallEnd(Amrvis::XDIR)),
+                         static_cast<Real>(worldBox.smallEnd(Amrvis::YDIR)),
+                         static_cast<Real>(worldBox.smallEnd(Amrvis::ZDIR)),
+			 static_cast<Real>(worldBox.bigEnd(Amrvis::XDIR) + 1),
+                         static_cast<Real>(worldBox.bigEnd(Amrvis::YDIR) + 1),
+			 static_cast<Real>(worldBox.bigEnd(Amrvis::ZDIR) + 1)
+		       };
   dirOfFreedom = count;
   if(dirOfFreedom == 0) {
     edges[0] = RealPoint(dimensions[0], dimensions[1], slice);
