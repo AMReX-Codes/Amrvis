@@ -16,7 +16,9 @@
 #include <AMReX_AmrvisConstants.H>
 #include <AMReX_DataServices.H>
 
-const int MAXSTRINGWIDTH = 64;
+namespace {
+  const int MAXSTRINGWIDTH(64);
+}
 
 class PltApp;
 class PltAppState;

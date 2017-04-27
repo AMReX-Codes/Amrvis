@@ -35,7 +35,7 @@ using amrex::Real;
 
 
 typedef struct {
-    unsigned short      imagic;         /* stuff saved on disk . . */
+    unsigned short      imagic;         // data saved on disk
     unsigned short      type;
     unsigned short      dim;
     unsigned short      xsize;
@@ -47,7 +47,7 @@ typedef struct {
     char                name[80];
     unsigned long       colormap;
 
-    long                file;           /* stuff used in core only */
+    long                file;           // data used in core only
     unsigned short      flags;
     short               dorev;
     short               x;
@@ -58,9 +58,9 @@ typedef struct {
     unsigned short      *base;
     unsigned short      *tmpbuf;
     unsigned long       offset;
-    unsigned long       rleend;         /* for rle images */
-    unsigned long       *rowstart;      /* for rle images */
-    long                *rowsize;       /* for rle images */
+    unsigned long       rleend;         // for rle images
+    unsigned long       *rowstart;      // for rle images
+    long                *rowsize;       // for rle images
 } IMAGE;
 
 
@@ -94,5 +94,4 @@ void WritePPMFileAnnotated(const char *filename, XImage *image,
 			   const string &pltFilename, const string &derived);
 
 #endif
-
 
