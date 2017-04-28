@@ -41,8 +41,8 @@ ifeq ($(USE_ARRAYVIEW),TRUE)
 endif
 
 ifeq ($(USE_PROFDATA), TRUE)
-  CEXE_headers += ProfApp.H
-  CEXE_sources += ProfApp.cpp
+  CEXE_headers += ProfApp.H RegionPicture.H
+  CEXE_sources += ProfApp.cpp RegionPicture.cpp
 
   CEXE_headers += BLProfParser.tab.H BLProfStats.H
   CEXE_headers += ProfDataServices.H
