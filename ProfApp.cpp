@@ -13,6 +13,7 @@
 #include <AMReX_ParallelDescriptor.H>
 #include <MessageArea.H>
 #include <Palette.H>
+#include <RegionPicture.H>
 
 #include <Xm/Protocols.h>
 #include <Xm/ToggleBG.h>
@@ -112,17 +113,39 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
   XtVaSetValues(wAmrVisTopLevel, XmNtitle, const_cast<char *>(headerout.str().c_str()),
 		NULL);
 
+  regionPicturePtr = new RegionPicture(gaPtr, profDataServicesPtr[0]);
+
 cout << "_here 01:  calling ProfAppInit." << endl;
   ProfAppInit();
 //cout << "_here 04:  calling WriteSummary." << endl;
 ////profDataServicesPtr[0]->WriteSummary(cout, false, 0, false);
 //BLProfilerUtils::WriteHeader(cout, 10, 16, true);
 
+/*
 std::string regionsFileName("pltRegions");
 dspArray.resize(1);
 dspArray[0] = new DataServices(regionsFileName, Amrvis::NEWPLT);
 PltApp *temp = new PltApp(app, wTopLevel, regionsFileName, dspArray, false);
 pltAppList.push_back(temp);
+
+const amrex::Array<amrex::Array<amrex::Array<BLProfStats::TimeRange> > > &regionTimeRanges =
+        profDataServicesPtr[0]->GetRegionsProfStats().GetRegionTimeRanges();
+if(profDataServicesPtr[0]->RegionDataAvailable()) {
+cout << "regionTimeRanges:  size = " << regionTimeRanges.size() << endl;
+if(regionTimeRanges.size() > 0) {
+  for(int p(0); p < regionTimeRanges.size(); ++p) {
+  for(int rnum(0); rnum < regionTimeRanges[p].size(); ++rnum) {
+    for(int r(0); r < regionTimeRanges[p][rnum].size(); ++r) {
+    //cout << "regionTimeRanges[" << p << "]][" << rnum << "][" << r << "] = "
+         //<< regionTimeRanges[p][rnum][r] << endl;
+    }
+  }
+  }
+  }
+} else {
+  cout << "region data not available." << endl;
+}
+*/
 
   Array<std::string> funcs;
   std::ostringstream ossSummary;
@@ -136,6 +159,11 @@ pltAppList.push_back(temp);
     funcs.push_back(sLine);
   }
   GenerateFuncList(funcs);
+
+
+  //pltPaletteptr->ExposePalette();
+  pltPaletteptr->DrawPalette(-1, 10, "%8.2f");
+  regionPicturePtr->APDraw(0,0);
 }
 
 
@@ -167,6 +195,19 @@ void ProfApp::ProfAppInit() {
   pltPaletteptr = new Palette(wTopLevel, palListLength, palWidth,
                               totalPalWidth, totalPalHeight,
                               reserveSystemColors);
+  regNames.insert(std::make_pair(-1, "not in region"));
+  regNames.insert(std::make_pair( 0, "region 0"));
+  regNames.insert(std::make_pair( 1, "region 1"));
+  regNames.insert(std::make_pair( 2, "region 2"));
+  regNames.insert(std::make_pair( 3, "region 3"));
+  regNames.insert(std::make_pair( 4, "region 4"));
+  regNames.insert(std::make_pair( 5, "region 5"));
+  regNames.insert(std::make_pair( 6, "region 6"));
+  regNames.insert(std::make_pair( 7, "region 7"));
+  regNames.insert(std::make_pair( 8, "region 8"));
+  regNames.insert(std::make_pair( 9, "region 9"));
+  regNames.insert(std::make_pair( 10, "region 10"));
+  pltPaletteptr->SetRegions(true);
   pltPaletteptr->ReadSeqPalette("Palette", false);
 
   // No need to store these widgets in the class after this function is called.
@@ -323,7 +364,7 @@ void ProfApp::ProfAppInit() {
 			    XmNheight, 242,
 			    NULL);
 
-  wScrollArea[Amrvis::ZPLANE] = XtVaCreateManagedWidget("scrollAreaXY",
+  wScrollArea = XtVaCreateManagedWidget("scrollAreaXY",
 		xmScrolledWindowWidgetClass,
 		wPlotArea,
 		XmNleftAttachment,	XmATTACH_FORM,
@@ -344,18 +385,17 @@ void ProfApp::ProfAppInit() {
 	<Btn3Down>: DrawingAreaInput() ManagerGadgetButtonMotion()	\n\
 	<Btn3Up>: DrawingAreaInput() ManagerGadgetButtonMotion()" );
 	
-  wPlotPlane[Amrvis::ZPLANE] = XtVaCreateManagedWidget("plotArea",
-			    xmDrawingAreaWidgetClass, wScrollArea[Amrvis::ZPLANE],
+  wPlotPlane = XtVaCreateManagedWidget("plotArea",
+			    xmDrawingAreaWidgetClass, wScrollArea,
 			    XmNtranslations,  XtParseTranslationTable(trans),
-			    //XmNwidth, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH() + 1,
-			    //XmNheight, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV() + 1,
-			    XmNwidth, 700,
-			    XmNheight, 500,
+			    XmNwidth, regionPicturePtr->ImageSizeH() + 1,
+			    XmNheight, regionPicturePtr->ImageSizeV() + 1,
 			    NULL);
-  XtVaSetValues(wScrollArea[Amrvis::ZPLANE], XmNworkWindow, wPlotPlane[Amrvis::ZPLANE], NULL); 
-  XtVaSetValues(wScrollArea[Amrvis::ZPLANE], XmNbottomAttachment, XmATTACH_FORM,
+  XtVaSetValues(wScrollArea, XmNworkWindow, wPlotPlane, NULL); 
+  XtVaSetValues(wScrollArea, XmNbottomAttachment, XmATTACH_FORM,
 		XmNrightAttachment, XmATTACH_FORM, NULL);		
   
+  AddStaticEventHandler(wPlotPlane, ExposureMask, &ProfApp::DoExposePicture);
 
   // ************************** profiled function list area
 
@@ -395,10 +435,14 @@ void ProfApp::ProfAppInit() {
                 XmNwidth, 880,
                 NULL);
 
-  AddStaticCallback(wFuncList, XmNdefaultActionCallback, &ProfApp::DoFuncList, (XtPointer) 42);
-  AddStaticCallback(wFuncList, XmNbrowseSelectionCallback, &ProfApp::DoFuncList, (XtPointer) 43);
-  AddStaticCallback(wFuncList, XmNextendedSelectionCallback, &ProfApp::DoFuncList, (XtPointer) 44);
-  AddStaticCallback(wFuncList, XmNmultipleSelectionCallback, &ProfApp::DoFuncList, (XtPointer) 45);
+  AddStaticCallback(wFuncList, XmNdefaultActionCallback,
+                    &ProfApp::DoFuncList, (XtPointer) 42);
+  AddStaticCallback(wFuncList, XmNbrowseSelectionCallback,
+                    &ProfApp::DoFuncList, (XtPointer) 43);
+  AddStaticCallback(wFuncList, XmNextendedSelectionCallback,
+                    &ProfApp::DoFuncList, (XtPointer) 44);
+  AddStaticCallback(wFuncList, XmNmultipleSelectionCallback,
+                    &ProfApp::DoFuncList, (XtPointer) 45);
 
   XtManageChild(wFuncList);
 
@@ -415,8 +459,8 @@ std::string palFilename("Palette");
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotArea), false);
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wAmrVisTopLevel), false);
   //for(np = 0; np != Amrvis::NPLANES; ++np) {
-    //pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotPlane[np]), false);
-    pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotPlane[0]), false);
+    //pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotPlane), false);
+    pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotPlane), false);
   //}
     //pltPaletteptr->RedrawPalette();
 
@@ -424,6 +468,10 @@ std::string palFilename("Palette");
   char plottertitle[50];
   sprintf(plottertitle, "XYPlot%dd", BL_SPACEDIM);
   XYplotparameters = new XYPlotParameters(pltPaletteptr, gaPtr, plottertitle);
+
+  regionPicturePtr->CreatePicture(XtWindow(wPlotPlane), pltPaletteptr);
+
+  pltPaletteptr->SetRegionNames(regNames);
 
   interfaceReady = true;
 
@@ -684,9 +732,9 @@ void ProfApp::DoExposePalette(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-//void ProfApp::PADoExposePicture(Widget w, XtPointer client_data, XtPointer) {
-  //unsigned long np = (unsigned long) client_data;
-//}
+void ProfApp::DoExposePicture(Widget w, XtPointer, XtPointer) {
+  regionPicturePtr->DoExposePicture();
+}
 
 
 // -------------------------------------------------------------------
@@ -763,6 +811,9 @@ void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data, XtPointer call
     funcs.push_back(sLine);
   }
   GenerateFuncList(funcs);
+  regionPicturePtr->APDraw(0,0);
+  //pltPaletteptr->ExposePalette();
+  pltPaletteptr->DrawPalette(-1, 10, "%8.2f");
 }
 
 

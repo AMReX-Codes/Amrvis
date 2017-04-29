@@ -3,6 +3,8 @@
 // ---------------------------------------------------------------
 #include <RegionPicture.H>
 #include <Palette.H>
+#include <GraphicsAttributes.H>
+#include <ProfDataServices.H>
 
 using std::cout;
 using std::cerr;
@@ -13,15 +15,17 @@ using namespace amrex;
 #include <ctime>
 
 // ---------------------------------------------------------------------
-RegionPicture::RegionPicture(GraphicsAttributes *gaptr)
+RegionPicture::RegionPicture(GraphicsAttributes *gaptr,
+                             ProfDataServices *pdsp)
            : gaPtr(gaptr),
+	     profDataServicesPtr(pdsp),
              myView(Amrvis::XY),
 	     currentScale(1)
 {
-  int i, ilev;
-
+  BL_ASSERT(gaptr != nullptr);
+  BL_ASSERT(pdsp  != nullptr);
   dataSizeH = 600;
-  dataSizeV = 100;
+  dataSizeV = 200;
   dataSize  = dataSizeH * dataSizeV;  // for a picture (slice).
 
   RegionPictureInit();
@@ -31,7 +35,8 @@ RegionPicture::RegionPicture(GraphicsAttributes *gaptr)
 // ---------------------------------------------------------------------
 void RegionPicture::RegionPictureInit() {
 
-    Box sliceBox(IntVect(0, dataSizeH - 1), IntVect(0, dataSizeV - 1));
+    Box sliceBox(IntVect(0, 0), IntVect(dataSizeH - 1, dataSizeV - 1));
+    cout << "sliceBox = " << sliceBox << endl;
     sliceFab = new FArrayBox(sliceBox, 1);
 
   display = gaPtr->PDisplay();
@@ -86,9 +91,6 @@ void RegionPicture::APDraw(int fromLevel, int toLevel) {
 
 // ---------------------------------------------------------------------
 void RegionPicture::DoExposePicture() {
-  if(pltAppPtr->Animating()) {
-  } else {
-    if(pendingTimeOut == 0) {
       XCopyArea(display, pixMap, pictureWindow, 
  		xgc, 0, 0, imageSizeH, imageSizeV, 0, 0); 
 
@@ -115,8 +117,6 @@ void RegionPicture::DoExposePicture() {
 		  region2ndX, regionY, region2ndX, region2ndY);
       }
 */
-    }
-  }
 }
 
 
@@ -133,23 +133,19 @@ void RegionPicture::APMakeImages(Palette *palptr) {
   BL_ASSERT(palptr != NULL);
   palPtr = palptr;
 
-  Real minUsing, maxUsing;
-  pltAppStatePtr->GetMinMax(minUsing, maxUsing);
-
-    amrex::DataServices::Dispatch(amrex::DataServices::FillVarOneFab, dataServicesPtr,
-		           (void *) (sliceFab),
-			   (void *) (&(sliceFab->box())),
-			   iLevel,
-			   (void *) &currentDerived);
+    profDataServicesPtr->GetRegionsProfStats().MakeRegionPlt(*sliceFab, 0,
+                                        dataSizeH, dataSizeV/12);
+    Real minUsing(sliceFab->min(0)), maxUsing(sliceFab->max(0));
+    cout << "minUsing maxUsing = " << minUsing << "  " << maxUsing << endl;
     CreateImage(*(sliceFab), imageData, dataSizeH, dataSizeV, minUsing, maxUsing, palPtr);
-    CreateScaledImage(&(xImage), currentScale, 1,
+    CreateScaledImage(&(xImage), currentScale,
                 imageData, scaledImageData, dataSizeH, dataSizeV,
                 imageSizeH, imageSizeV);
 
-  if( ! pltAppPtr->PaletteDrawn()) {
-    pltAppPtr->PaletteDrawn(true);
+  //if( ! pltAppPtr->PaletteDrawn()) {
+    //pltAppPtr->PaletteDrawn(true);
     palptr->DrawPalette(minUsing, maxUsing, "%8.2f");
-  }
+  //}
   APDraw(0, 0);
 
 }
@@ -170,12 +166,7 @@ void RegionPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
     oneOverGDiff = 1.0 / (globalMax - globalMin);
   }
   const Real *dataPoint = fab.dataPtr();
-  const Real *vfDataPoint = 0;
-  if(bCartGrid) {
-    BL_ASSERT(vfracFab != NULL);
-    vfDataPoint = vfracFab->dataPtr();
-  }
-      
+
   // flips the image in Vert dir: j => datasizev-j-1
     Real dPoint;
     int paletteStart(palptr->PaletteStart());
@@ -246,7 +237,7 @@ void RegionPicture::APChangeScale(int newScale, int previousScale) {
 
     free(scaledImageData);
     scaledImageData = (unsigned char *) malloc(imageSize);
-    CreateScaledImage(&xImage, newScale, 1,
+    CreateScaledImage(&xImage, newScale,
                 imageData, scaledImageData, dataSizeH, dataSizeV,
                 imageSizeH, imageSizeV);
 
@@ -258,7 +249,6 @@ void RegionPicture::APChangeScale(int newScale, int previousScale) {
 
 // ---------------------------------------------------------------------
 XImage *RegionPicture::GetPictureXImage(const bool bdrawboxesintoimage) {
-  int xbox, ybox, wbox, hbox;
   XImage *ximage;
 
   ximage = XGetImage(display, pixMap, 0, 0,

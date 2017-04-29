@@ -16,10 +16,13 @@
 
 #include <vector>
 #include <string>
+#include <map>
 using std::vector;
 using std::string;
+using std::map;
 
 class ProfDataServices;
+class RegionPicture;
 class GraphicsAttributes;
 class Palette;
 class PltApp;
@@ -61,6 +64,7 @@ public:
 				 const string *derived);
   void DoExposeRef(Widget = None, XtPointer = NULL, XtPointer = NULL);
   void DoExposePalette(Widget, XtPointer, XtPointer);
+  void DoExposePicture(Widget, XtPointer, XtPointer);
   void DoFuncList(Widget, XtPointer, XtPointer);
   void DoGenerateFuncList(Widget, XtPointer, XtPointer);
   void GenerateFuncList(const amrex::Array<std::string> &funcs);
@@ -71,7 +75,7 @@ public:
 
 private:
   Widget wTopLevel, wAmrVisTopLevel;
-  Widget wScrollArea[amrex::Amrvis::NPLANES], wPlotPlane[amrex::Amrvis::NPLANES];
+  Widget wScrollArea, wPlotPlane;
   Widget wControlForm;
   Widget wInfoTopLevel;
   Widget wPlotArea;
@@ -101,7 +105,8 @@ private:
   GC xgc;
   std::list<PltApp *> pltAppList;
   amrex::Array<amrex::DataServices *> dspArray;
-  
+  RegionPicture *regionPicturePtr;
+  map<int, string> regNames;
     
   static int initialWindowHeight, initialWindowWidth;
   

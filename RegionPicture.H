@@ -10,7 +10,6 @@
 #include <AMReX_Box.H>
 #include <AMReX_AmrvisConstants.H>
 #include <GlobalUtilities.H>
-#include <GridPicture.H>
 #include <AMReX_Array.H>
 #include <AMReX_FArrayBox.H>
 
@@ -24,15 +23,12 @@ using amrex::Real;
 
 class GraphicsAttributes;
 class Palette;
-
-struct GridBoxes {
-  int xbox, ybox, wbox, hbox;
-};
+class ProfDataServices;
 
 
 class RegionPicture {
  public:
-  RegionPicture(GraphicsAttributes *gaptr);
+  RegionPicture(GraphicsAttributes *gaptr, ProfDataServices *pdsp);
   
   ~RegionPicture();
   void	SetRegion(int, int, int, int);
@@ -48,7 +44,6 @@ class RegionPicture {
   unsigned int ImageSizeV() const { return imageSizeV; }
   void	SetHColor(int c)          { hColor = c; }
   void	SetVColor(int c)          { vColor = c; }
-  const amrex::Box &GetSliceBox(int level) const { return sliceBox; }
   Window PictureWindow()          { return pictureWindow; }
 
  private:
@@ -62,6 +57,7 @@ class RegionPicture {
   XImage *xImage;
   bool           xImageCreated;
   GraphicsAttributes	*gaPtr;
+  ProfDataServices	*profDataServicesPtr;
   Display		*display;
   GC			xgc;
   int			myView, hLine, vLine;
@@ -77,8 +73,7 @@ class RegionPicture {
   void RegionPictureInit();
   void CreateImage(const amrex::FArrayBox &fab, unsigned char *imagedata,
                    int datasizeh, int datasizev,
-                   Real globalMin, Real globalMax, Palette *palptr,
-		   const amrex::FArrayBox *vfracFab, const Real vfeps);
+                   Real globalMin, Real globalMax, Palette *palptr);
   void CreateScaledImage(XImage **ximage, int scale,
                          unsigned char *imagedata,
                          unsigned char *scaledimagedata,
