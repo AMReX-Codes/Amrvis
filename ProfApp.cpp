@@ -162,7 +162,7 @@ if(regionTimeRanges.size() > 0) {
 
 
   //pltPaletteptr->ExposePalette();
-  pltPaletteptr->DrawPalette(-1, 10, "%8.2f");
+  pltPaletteptr->DrawPalette(-1, regNames.size() - 2, "%8.2f");
   regionPicturePtr->APDraw(0,0);
 }
 
@@ -195,18 +195,6 @@ void ProfApp::ProfAppInit() {
   pltPaletteptr = new Palette(wTopLevel, palListLength, palWidth,
                               totalPalWidth, totalPalHeight,
                               reserveSystemColors);
-  regNames.insert(std::make_pair(-1, "not in region"));
-  regNames.insert(std::make_pair( 0, "region 0"));
-  regNames.insert(std::make_pair( 1, "region 1"));
-  regNames.insert(std::make_pair( 2, "region 2"));
-  regNames.insert(std::make_pair( 3, "region 3"));
-  regNames.insert(std::make_pair( 4, "region 4"));
-  regNames.insert(std::make_pair( 5, "region 5"));
-  regNames.insert(std::make_pair( 6, "region 6"));
-  regNames.insert(std::make_pair( 7, "region 7"));
-  regNames.insert(std::make_pair( 8, "region 8"));
-  regNames.insert(std::make_pair( 9, "region 9"));
-  regNames.insert(std::make_pair( 10, "region 10"));
   pltPaletteptr->SetRegions(true);
   pltPaletteptr->ReadSeqPalette("Palette", false);
 
@@ -471,6 +459,12 @@ std::string palFilename("Palette");
 
   regionPicturePtr->CreatePicture(XtWindow(wPlotPlane), pltPaletteptr);
 
+  RegionsProfStats &rProfStats = profDataServicesPtr[0]->GetRegionsProfStats();
+  regNames.insert(std::make_pair(-1, "not in region"));
+  for(auto rnames: rProfStats.RegionNames()) {
+    regNames.insert(std::make_pair(rnames.second, rnames.first));  // ---- swap map first with second
+    cout << "rnames:  " << rnames.second << "  " << rnames.first << endl;
+  }
   pltPaletteptr->SetRegionNames(regNames);
 
   interfaceReady = true;
@@ -813,7 +807,7 @@ void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data, XtPointer call
   GenerateFuncList(funcs);
   regionPicturePtr->APDraw(0,0);
   //pltPaletteptr->ExposePalette();
-  pltPaletteptr->DrawPalette(-1, 10, "%8.2f");
+  pltPaletteptr->DrawPalette(-1, regNames.size() - 2, "%8.2f");
 }
 
 
