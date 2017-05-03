@@ -37,7 +37,7 @@ class RegionPicture {
   void	DoExposePicture();
   void	APMakeImages(Palette *palptr);
   void	APChangeScale(int newScale, int previousScale);
-  XImage *GetPictureXImage(const bool bdrawboxesintoimage = true);
+  XImage *GetPictureXImage();
   void	APChangeSlice(int here);
   
   unsigned int ImageSizeH() const { return imageSizeH; }
@@ -49,18 +49,21 @@ class RegionPicture {
  private:
   Window 		pictureWindow;
   unsigned long  dataSize, dataSizeH, dataSizeV;
+  unsigned long  atiDataSize, atiDataSizeH, atiDataSizeV;
   unsigned int   	imageSize, imageSizeH, imageSizeV;
+  unsigned int   	atiImageSize, atiImageSizeH, atiImageSizeV;
   Pixmap 		pixMap;
   Palette		*palPtr;
   amrex::FArrayBox *sliceFab;
   unsigned char *imageData, *scaledImageData;
-  XImage *xImage;
+  unsigned char *atiImageData, *scaledATIImageData;
+  XImage *xImage, *atiXImage;
   bool           xImageCreated;
   GraphicsAttributes	*gaPtr;
   ProfDataServices	*profDataServicesPtr;
   Display		*display;
   GC			xgc;
-  int			myView, hLine, vLine;
+  int			hLine, vLine;
   int			hColor, vColor, myColor;
   bool                  pixMapCreated;
   int currentScale;

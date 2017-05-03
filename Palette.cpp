@@ -263,6 +263,7 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
     Array<int> palIndex(regionNames.size(), 0);
     XSetForeground(display, gc, AVWhitePixel());
 
+    bool isProfPal(regionNames.find(-2) != regionNames.end());
     for(std::map<int, string>::const_iterator it = regionNames.begin();
         it != regionNames.end(); ++it)
     {
@@ -274,8 +275,13 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
                      (totalColorSlots * (cftIndex - palMin) / cftRange) + palOffsetY;
       XDrawString(display, palPixmap, gc, palWidth + noffX,
 		  nameLocation, fname.c_str(), strlen(fname.c_str()));
-      XDrawLine(display, palPixmap, gc,
-                palWidth + 2, palLocation, palWidth + noffX - 4, nameLocation - 4);
+      if(cftIndex == -2) {
+        XDrawLine(display, palPixmap, gc,
+                  palWidth + 2, nameLocation - 6, palWidth + noffX - 4, nameLocation - 4);
+      } else {
+        XDrawLine(display, palPixmap, gc,
+                  palWidth + 2, palLocation, palWidth + noffX - 4, nameLocation - 4);
+      }
       palIndex[count] = paletteStart + (((cftIndex - palMin) / cftRange) * colorSlots);
       ++count;
     }
@@ -294,7 +300,17 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
       }
       iphi = totalColorSlots - 1;
       for(int i(iplo); i < iphi; ++i) {
-        XSetForeground(display, gc, makePixel(palIndex[ip]));
+        if(isProfPal) {
+	  if(ip == 0) {
+	    XSetForeground(display, gc, AVWhitePixel());
+	  } else if(ip == 1) {
+	    XSetForeground(display, gc, AVBlackPixel());
+	  } else {
+	    XSetForeground(display, gc, makePixel(palIndex[ip]));
+	  }
+	} else {
+	  XSetForeground(display, gc, makePixel(palIndex[ip]));
+	}
         cy = ((totalColorSlots - 1) - i) + palOffsetY;
         XDrawLine(display, palPixmap, gc, 0, cy, palWidth, cy);
       }

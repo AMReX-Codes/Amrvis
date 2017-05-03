@@ -19,14 +19,18 @@ RegionPicture::RegionPicture(GraphicsAttributes *gaptr,
                              ProfDataServices *pdsp)
            : gaPtr(gaptr),
 	     profDataServicesPtr(pdsp),
-             myView(Amrvis::XY),
 	     currentScale(1)
 {
   BL_ASSERT(gaptr != nullptr);
   BL_ASSERT(pdsp  != nullptr);
+  int nRegions(profDataServicesPtr->GetRegionsProfStats().GetMaxRNumber() + 1);
+  ++nRegions;
   dataSizeH = 600;
-  dataSizeV = 200;
+  dataSizeV = nRegions * 16;
   dataSize  = dataSizeH * dataSizeV;  // for a picture (slice).
+  atiDataSizeH = dataSizeH;
+  atiDataSizeV = 16;
+  atiDataSize  = atiDataSizeH * atiDataSizeV;
 
   RegionPictureInit();
 }
@@ -35,10 +39,9 @@ RegionPicture::RegionPicture(GraphicsAttributes *gaptr,
 // ---------------------------------------------------------------------
 void RegionPicture::RegionPictureInit() {
 
-    Box sliceBox(IntVect(0, 0), IntVect(dataSizeH - 1, dataSizeV - 1));
-    cout << "sliceBox = " << sliceBox << endl;
-    sliceFab = new FArrayBox(sliceBox, 1);
-
+  Box sliceBox(IntVect(0, 0), IntVect(dataSizeH - 1, dataSizeV - 1));
+  cout << "sliceBox = " << sliceBox << endl;
+  sliceFab = new FArrayBox(sliceBox, 1);
   display = gaPtr->PDisplay();
   xgc = gaPtr->PGC();
 
@@ -54,10 +57,15 @@ void RegionPicture::RegionPictureInit() {
   imageSize = imageSizeV * widthpad * gaPtr->PBytesPerPixel();
 
   imageData = new unsigned char[dataSize];
-  scaledImageData = (unsigned char *) malloc(imageSize);
+  scaledImageData = new unsigned char[imageSize];
 
-    hColor = 220;
-    vColor = 65;
+  atiImageSizeH = currentScale * dataSizeH;
+  atiImageSizeV = currentScale * 16;
+  int atiWidthpad = gaPtr->PBitmapPaddedWidth(imageSizeH);
+  atiImageSize = imageSizeV * atiWidthpad * gaPtr->PBytesPerPixel();
+  atiImageData = new unsigned char[atiDataSize];
+  scaledATIImageData = new unsigned char[atiImageSize];
+
   pixMapCreated = false;
 }
 
@@ -65,7 +73,7 @@ void RegionPicture::RegionPictureInit() {
 // ---------------------------------------------------------------------
 RegionPicture::~RegionPicture() {
   delete [] imageData;
-  free(scaledImageData);
+  delete [] scaledImageData;
   delete sliceFab;
 
   if(pixMapCreated) {
@@ -84,39 +92,17 @@ void RegionPicture::APDraw(int fromLevel, int toLevel) {
  
   XPutImage(display, pixMap, xgc, xImage, 0, 0, 0, 0,
 	    imageSizeH, imageSizeV);
+  XPutImage(display, pixMap, xgc, atiXImage, 0, 0, 0, imageSizeV-1-16,
+	    imageSizeH, imageSizeV);
            
-    DoExposePicture();
+  DoExposePicture();
 }
 
 
 // ---------------------------------------------------------------------
 void RegionPicture::DoExposePicture() {
-      XCopyArea(display, pixMap, pictureWindow, 
- 		xgc, 0, 0, imageSizeH, imageSizeV, 0, 0); 
-
-/*
-      if( ! subCutShowing) {  // draw selected region
-        XSetForeground(display, xgc, palPtr->makePixel(60));
-        XDrawLine(display, pictureWindow, xgc,
-		  regionX+1, regionY+1, region2ndX+1, regionY+1); 
-        XDrawLine(display, pictureWindow, xgc,
-		  regionX+1, regionY+1, regionX+1, region2ndY+1); 
-        XDrawLine(display, pictureWindow, xgc,
-		  regionX+1, region2ndY+1, region2ndX+1, region2ndY+1); 
-        XDrawLine(display, pictureWindow, xgc,
-		  region2ndX+1, regionY+1, region2ndX+1, region2ndY+1);
-
-        XSetForeground(display, xgc, palPtr->makePixel(175));
-        XDrawLine(display, pictureWindow, xgc,
-		  regionX, regionY, region2ndX, regionY); 
-        XDrawLine(display, pictureWindow, xgc,
-		  regionX, regionY, regionX, region2ndY); 
-        XDrawLine(display, pictureWindow, xgc,
-		  regionX, region2ndY, region2ndX, region2ndY); 
-        XDrawLine(display, pictureWindow, xgc,
-		  region2ndX, regionY, region2ndX, region2ndY);
-      }
-*/
+  XCopyArea(display, pixMap, pictureWindow, xgc, 0, 0,
+            imageSizeH, imageSizeV, 0, 0); 
 }
 
 
@@ -133,29 +119,52 @@ void RegionPicture::APMakeImages(Palette *palptr) {
   BL_ASSERT(palptr != NULL);
   palPtr = palptr;
 
-    profDataServicesPtr->GetRegionsProfStats().MakeRegionPlt(*sliceFab, 0,
-                                        dataSizeH, dataSizeV/12);
-    Real minUsing(sliceFab->min(0)), maxUsing(sliceFab->max(0));
-    cout << "minUsing maxUsing = " << minUsing << "  " << maxUsing << endl;
-    CreateImage(*(sliceFab), imageData, dataSizeH, dataSizeV, minUsing, maxUsing, palPtr);
-    CreateScaledImage(&(xImage), currentScale,
+  int nRegions(profDataServicesPtr->GetRegionsProfStats().GetMaxRNumber() + 1);
+  cout << "nRegions = " << nRegions << endl;
+
+  Box regionBox(IntVect(0, 0), IntVect(dataSizeH - 1, dataSizeV - 1));
+  cout << "regionBox = " << regionBox << endl;
+  FArrayBox tempSliceFab(regionBox, 1);
+
+  profDataServicesPtr->GetRegionsProfStats().MakeRegionPlt(tempSliceFab, 0,
+                                      dataSizeH, dataSizeV / (nRegions + 1));
+
+  tempSliceFab.shift(1, 16);
+  sliceFab->copy(tempSliceFab);
+  Real minUsing(sliceFab->min(0)), maxUsing(sliceFab->max(0));
+
+  CreateImage(*(sliceFab), imageData, dataSizeH, dataSizeV, minUsing, maxUsing, palPtr);
+  CreateScaledImage(&(xImage), currentScale,
                 imageData, scaledImageData, dataSizeH, dataSizeV,
                 imageSizeH, imageSizeV);
+  for(int j(0); j < atiDataSizeV; ++j) {
+    //int value(j == 0 || j == atiDataSizeV - 1 ? 0 : 1);
+    int value(j < 2 || j > atiDataSizeV - 3 ? 0 : 1);
+    for(int i(0); i < atiDataSizeH; ++i) {
+      if(i > atiDataSizeH / 4) {
+        value = 0;
+      }
+      atiImageData[j * atiDataSizeH + i] = value;
+    }
+  }
+  CreateScaledImage(&(atiXImage), currentScale,
+                atiImageData, scaledATIImageData, atiDataSizeH, atiDataSizeV,
+                atiImageSizeH, atiImageSizeV);
 
   //if( ! pltAppPtr->PaletteDrawn()) {
     //pltAppPtr->PaletteDrawn(true);
     palptr->DrawPalette(minUsing, maxUsing, "%8.2f");
   //}
-  APDraw(0, 0);
 
+  APDraw(0, 0);
 }
 
 
 // -------------------------------------------------------------------
 // convert Real to char in imagedata from fab
 void RegionPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
-			     int datasizeh, int datasizev,
-			     Real globalMin, Real globalMax, Palette *palptr)
+			        int datasizeh, int datasizev,
+			        Real globalMin, Real globalMax, Palette *palptr)
 {
   int jdsh, jtmp1;
   int dIndex, iIndex;
@@ -179,6 +188,9 @@ void RegionPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
         for(int i(0); i < datasizeh; ++i) {
           dIndex = i + jtmp1;
           dPoint = dataPoint[dIndex];
+	  if(dIndex >= fab.nPts()) {
+	    cout << "**** dIndex fab.nPts() = " << dIndex << "  " << fab.nPts() << endl;
+	  }
           iIndex = i + jdsh;
           if(dPoint > globalMax) {  // clip
             imagedata[iIndex] = paletteEnd;
@@ -197,25 +209,26 @@ void RegionPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
 
 // ---------------------------------------------------------------------
 void RegionPicture::CreateScaledImage(XImage **ximage, int scale,
-				   unsigned char *imagedata,
-				   unsigned char *scaledimagedata,
-				   int datasizeh, int datasizev,
-				   int imagesizeh, int imagesizev)
+				      unsigned char *imagedata,
+				      unsigned char *scaledimagedata,
+				      int datasizeh, int datasizev,
+				      int imagesizeh, int imagesizev)
 { 
-  int widthpad = gaPtr->PBitmapPaddedWidth(imagesizeh);
-  *ximage = XCreateImage(display, gaPtr->PVisual(),
-		gaPtr->PDepth(), ZPixmap, 0, (char *) scaledimagedata,
-		widthpad, imagesizev,
-		XBitmapPad(display), widthpad * gaPtr->PBytesPerPixel());
+  int widthpad(gaPtr->PBitmapPaddedWidth(imagesizeh));
+  *ximage = XCreateImage(display, gaPtr->PVisual(), gaPtr->PDepth(),
+                         ZPixmap, 0, (char *) scaledimagedata,
+		         widthpad, imagesizev,
+		         XBitmapPad(display),
+			 widthpad * gaPtr->PBytesPerPixel());
 
-	for(int j(0); j < imagesizev; ++j) {
-	    int jtmp(datasizeh * (j/scale));
-	    for(int i(0); i < widthpad; ++i) {
-		int itmp(i / scale);
-		unsigned char imm1(imagedata[ itmp + jtmp ]);
-		XPutPixel(*ximage, i, j, palPtr->makePixel(imm1));
-	      }
-	  }
+  for(int j(0); j < imagesizev; ++j) {
+    int jtmp(datasizeh * (j / scale));
+    for(int i(0); i < widthpad; ++i) {
+      int itmp(i / scale);
+      unsigned char imm1(imagedata[ itmp + jtmp ]);
+      XPutPixel(*ximage, i, j, palPtr->makePixel(imm1));
+    }
+  }
 
 }
 
@@ -232,23 +245,33 @@ void RegionPicture::APChangeScale(int newScale, int previousScale) {
     XFreePixmap(display, pixMap);
   }  
   pixMap = XCreatePixmap(display, pictureWindow,
-			   imageSizeH, imageSizeV, gaPtr->PDepth());
+			 imageSizeH, imageSizeV, gaPtr->PDepth());
   pixMapCreated = true;
 
-    free(scaledImageData);
-    scaledImageData = (unsigned char *) malloc(imageSize);
-    CreateScaledImage(&xImage, newScale,
-                imageData, scaledImageData, dataSizeH, dataSizeV,
-                imageSizeH, imageSizeV);
+  delete [] scaledImageData;
+  scaledImageData = new unsigned char[imageSize];
+  CreateScaledImage(&xImage, newScale,
+                    imageData, scaledImageData, dataSizeH, dataSizeV,
+                    imageSizeH, imageSizeV);
 
-  hLine = ((hLine / previousScale) * newScale) + (newScale - 1);
-  vLine = ((vLine / previousScale) * newScale) + (newScale - 1);
+  atiImageSizeH = newScale * dataSizeH;
+  atiImageSizeV = newScale * 16;
+  atiImageSize  = widthpad * 16 * gaPtr->PBytesPerPixel();
+  delete [] scaledATIImageData;
+  scaledATIImageData = new unsigned char[atiImageSize];
+  //for(int i(0); i < atiDataSize; ++i) {
+    //atiImageData[i] = i % 11;
+  //}
+  CreateScaledImage(&(atiXImage), currentScale,
+                atiImageData, scaledATIImageData, atiDataSizeH, atiDataSizeV,
+                atiImageSizeH, atiImageSizeV);
+
   APDraw(0, 0);
 }
 
 
 // ---------------------------------------------------------------------
-XImage *RegionPicture::GetPictureXImage(const bool bdrawboxesintoimage) {
+XImage *RegionPicture::GetPictureXImage() {
   XImage *ximage;
 
   ximage = XGetImage(display, pixMap, 0, 0,
@@ -258,12 +281,10 @@ XImage *RegionPicture::GetPictureXImage(const bool bdrawboxesintoimage) {
     XFreePixmap(display, pixMap);
   }  
   pixMap = XCreatePixmap(display, pictureWindow,
-			   imageSizeH, imageSizeV, gaPtr->PDepth());
+			 imageSizeH, imageSizeV, gaPtr->PDepth());
   pixMapCreated = true;
   APDraw(0, 0);
   return ximage;
 }
-
-
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------

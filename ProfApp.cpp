@@ -105,19 +105,15 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
 		  XmNdepth, gaPtr->PDepth(), NULL);
   }
 
-  //const string pfVersion(amrData.PlotFileVersion());
-
   headerout.str(std::string());
-  headerout << AVGlobals::StripSlashes(fileNames[0])
-            << "   aaaaaaaaaaaaaaaa!!!!";
+  headerout << AVGlobals::StripSlashes(fileNames[0]) << "   aaaaaaaaaaaaaaaa!!!!";
   XtVaSetValues(wAmrVisTopLevel, XmNtitle, const_cast<char *>(headerout.str().c_str()),
 		NULL);
 
   regionPicturePtr = new RegionPicture(gaPtr, profDataServicesPtr[0]);
 
-cout << "_here 01:  calling ProfAppInit." << endl;
   ProfAppInit();
-//cout << "_here 04:  calling WriteSummary." << endl;
+
 ////profDataServicesPtr[0]->WriteSummary(cout, false, 0, false);
 //BLProfilerUtils::WriteHeader(cout, 10, 16, true);
 
@@ -161,8 +157,7 @@ if(regionTimeRanges.size() > 0) {
   GenerateFuncList(funcs);
 
 
-  //pltPaletteptr->ExposePalette();
-  pltPaletteptr->DrawPalette(-1, regNames.size() - 2, "%8.2f");
+  pltPaletteptr->DrawPalette(-2, regNames.size() - 3, "%8.2f");
   regionPicturePtr->APDraw(0,0);
 }
 
@@ -276,9 +271,9 @@ void ProfApp::ProfAppInit() {
   AddStaticEventHandler(wPalArea, ExposureMask, &ProfApp::DoExposePalette);
 
   // Indicate the unit type of the palette (legend) area above it.
-  strcpy(buffer, "plotlabel");
+  strcpy(buffer, "regions");
   label_str = XmStringCreateSimple(buffer);
-  wPlotLabel = XtVaCreateManagedWidget("plotlabel", xmLabelWidgetClass, wPalForm,
+  wPlotLabel = XtVaCreateManagedWidget("regions", xmLabelWidgetClass, wPalForm,
                             XmNtopAttachment,    XmATTACH_FORM,
                             XmNleftAttachment,   XmATTACH_FORM,
                             XmNrightAttachment,  XmATTACH_FORM,
@@ -384,6 +379,7 @@ void ProfApp::ProfAppInit() {
 		XmNrightAttachment, XmATTACH_FORM, NULL);		
   
   AddStaticEventHandler(wPlotPlane, ExposureMask, &ProfApp::DoExposePicture);
+  AddStaticCallback(wPlotPlane, XmNinputCallback, &ProfApp::DoRubberBanding);
 
   // ************************** profiled function list area
 
@@ -460,8 +456,9 @@ std::string palFilename("Palette");
   regionPicturePtr->CreatePicture(XtWindow(wPlotPlane), pltPaletteptr);
 
   RegionsProfStats &rProfStats = profDataServicesPtr[0]->GetRegionsProfStats();
+  regNames.insert(std::make_pair(-2, "active time intervals"));
   regNames.insert(std::make_pair(-1, "not in region"));
-  for(auto rnames: rProfStats.RegionNames()) {
+  for(auto rnames : rProfStats.RegionNames()) {
     regNames.insert(std::make_pair(rnames.second, rnames.first));  // ---- swap map first with second
     cout << "rnames:  " << rnames.second << "  " << rnames.first << endl;
   }
@@ -807,7 +804,7 @@ void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data, XtPointer call
   GenerateFuncList(funcs);
   regionPicturePtr->APDraw(0,0);
   //pltPaletteptr->ExposePalette();
-  pltPaletteptr->DrawPalette(-1, regNames.size() - 2, "%8.2f");
+  pltPaletteptr->DrawPalette(-2, regNames.size() - 3, "%8.2f");
 }
 
 
@@ -836,6 +833,302 @@ void ProfApp::GenerateFuncList(const Array<std::string> &funcs) {
   t += 1000;
 }
 
+
+// -------------------------------------------------------------------
+void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
+{
+  XmDrawingAreaCallbackStruct *cbs = (XmDrawingAreaCallbackStruct *) call_data;
+
+  if(cbs->event->xany.type != ButtonPress) {
+    return;
+  }
+
+  int imageHeight(regionPicturePtr->ImageSizeV() - 1);
+  int imageWidth(regionPicturePtr->ImageSizeH() - 1);
+  int oldX(max(0, min(imageWidth,  cbs->event->xbutton.x)));
+  int oldY(max(0, min(imageHeight, cbs->event->xbutton.y)));
+  int rootX, rootY;
+  unsigned int inputMask;
+  Window whichRoot, whichChild;
+  bool bShiftDown(cbs->event->xbutton.state & ShiftMask);
+  bool bControlDown(cbs->event->xbutton.state & ControlMask);
+
+  servingButton = cbs->event->xbutton.button;
+
+  //XSetForeground(display, rbgc, pltPaletteptr->makePixel(120));
+  XChangeActivePointerGrab(display, PointerMotionHintMask |
+                           ButtonMotionMask | ButtonReleaseMask |
+                           OwnerGrabButtonMask, cursor, CurrentTime);
+  AVXGrab avxGrab(display);
+
+  if(servingButton == 1) {
+    if(bShiftDown) {
+      oldX = 0;
+    }
+    if(bControlDown) {
+      oldY = 0;
+    }
+    int anchorX(oldX);
+    int anchorY(oldY);
+    int newX, newY;
+
+    while(true) {
+      XNextEvent(display, &nextEvent);
+
+      switch(nextEvent.type) {
+
+      case MotionNotify:
+
+        while(XCheckTypedEvent(display, MotionNotify, &nextEvent)) {
+          ;  // do nothing
+        }
+
+        XQueryPointer(display, regionPicturePtr->PictureWindow(),
+                      &whichRoot, &whichChild,
+                      &rootX, &rootY, &newX, &newY, &inputMask);
+
+        if(bShiftDown) {
+        }
+        if(bControlDown) {
+        }
+        //newX = max(0, min(imageWidth,  newX));
+        //newY = max(0, min(imageHeight, newY));
+        //oldX = newX;
+        //oldY = newY;
+
+        break;
+
+      case ButtonRelease: {
+        avxGrab.ExplicitUngrab();
+
+        //startX = (max(0, min(imageWidth,  anchorX))) / scale;
+        //startY = (max(0, min(imageHeight, anchorY))) / scale;
+        //endX   = (max(0, min(imageWidth,  nextEvent.xbutton.x))) / scale;
+        //endY   = (max(0, min(imageHeight, nextEvent.xbutton.y))) / scale;
+
+        if(bShiftDown) {
+        }
+        if(bControlDown) {
+        }
+
+        if(anchorX == nextEvent.xbutton.x && anchorY == nextEvent.xbutton.y) {
+          // data at click
+
+/*
+          Real dataValue;
+          char dataValueCharString[Amrvis::LINELENGTH];
+          sprintf(dataValueCharString, pltAppState->GetFormatString().c_str(),
+                  dataValue);
+          string dataValueString(dataValueCharString);
+          dataValueString = "no data";
+
+          //if(bRegions) {
+            //dataValueString = GetRegionName(dataValue);
+          //}
+*/
+
+          std::ostringstream buffout;
+buffout << "click!" << endl;
+/*
+          if(goodIntersect) {
+            buffout << '\n';
+            buffout << "point = " << trueRegion[intersectedLevel].smallEnd()
+                    << '\n';
+            buffout << "grid  = " << intersectedGrid << '\n';
+            buffout << "loc   = (";
+            for(int idx = 0; idx != BL_SPACEDIM; ++idx) {
+              if(idx != 0) {
+                buffout << ", ";
+              }
+              double dLoc = gridOffset[idx] +
+                           (0.5 + trueRegion[mal].smallEnd()[idx]) *
+                           amrData.DxLevel()[mal][idx];
+              char dLocStr[Amrvis::LINELENGTH];
+              sprintf(dLocStr, pltAppState->GetFormatString().c_str(), dLoc);
+              buffout << dLocStr;
+            }
+            buffout << ")\n";
+            buffout << "value = " << dataValueString << '\n';
+          } else {
+            buffout << "Bad point at mouse click" << '\n';
+          }
+*/
+
+          PrintMessage(const_cast<char *>(buffout.str().c_str()));
+
+        } else {
+        }
+        return;
+      }
+      break;
+
+      case NoExpose:
+      break;
+
+      default:
+        break;
+      }  // end switch
+    }  // end while(true)
+  }
+
+
+#if 0
+  if(servingButton == 2) {
+    XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
+              rbgc, 0, oldY, imageWidth, oldY);
+
+    int tempi;
+    while(true) {
+      XNextEvent(display, &nextEvent);
+
+      switch(nextEvent.type) {
+
+      case MotionNotify:
+
+        XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
+                  rbgc, 0, oldY, imageWidth, oldY);
+
+        DoDrawPointerLocation(None, (XtPointer) static_cast<long>(V), &nextEvent);
+        while(XCheckTypedEvent(display, MotionNotify, &nextEvent)) {
+          ;  // do nothing
+        }
+        XQueryPointer(display, amrPicturePtrArray[V]->PictureWindow(),
+                      &whichRoot, &whichChild,
+                      &rootX, &rootY, &oldX, &oldY, &inputMask);
+
+        // draw the new line
+        XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
+                  rbgc, 0, oldY, imageWidth, oldY);
+
+        break;
+
+      case ButtonRelease:
+        avxGrab.ExplicitUngrab();
+        tempi = max(0, min(imageHeight, nextEvent.xbutton.y));
+        amrPicturePtrArray[V]->SetHLine(tempi);
+
+        for(int np(0); np != Amrvis::NPLANES; ++np) {
+          amrPicturePtrArray[np]->DoExposePicture();
+        }
+
+        if(oldY >= 0 && oldY <= imageHeight) {
+          int sdir(-1);
+          switch (V) {
+            case Amrvis::ZPLANE:
+              sdir = Amrvis::XDIR;
+            break;
+            case Amrvis::YPLANE:
+              sdir = Amrvis::XDIR;
+            break;
+            case Amrvis::XPLANE:
+              sdir = Amrvis::YDIR;
+            break;
+          }
+          XYPlotDataList *newlist = CreateLinePlot(V, sdir, mal,
+                                      (imageHeight + 1) / scale - 1 - oldY / scale,
+                                      &pltAppState->CurrentDerived());
+          if(newlist) {
+            newlist->SetLevel(maxDrawnLevel);
+            if(XYplotwin[sdir] == NULL) {
+              char cTempFN[Amrvis::BUFSIZE];
+              strcpy(cTempFN,
+                     AVGlobals::StripSlashes(fileNames[currentFrame]).c_str());
+              XYplotwin[sdir] = new XYPlotWin(cTempFN, appContext, wAmrVisTopLevel,
+                                              this, sdir, currentFrame);
+            }
+            XYplotwin[sdir]->AddDataList(newlist);
+          }
+        }
+
+        return;
+
+      default:
+        break;
+      }  // end switch
+    }  // end while(true)
+  }
+
+
+
+
+
+  if(servingButton == 3) {
+    int tempi;
+    XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
+              rbgc, oldX, 0, oldX, imageHeight);
+    while(true) {
+      XNextEvent(display, &nextEvent);
+
+      switch(nextEvent.type) {
+
+      case MotionNotify:
+
+        // undraw the old line
+        XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
+                  rbgc, oldX, 0, oldX, imageHeight);
+
+        DoDrawPointerLocation(None, (XtPointer)  static_cast<long>(V), &nextEvent);
+        while(XCheckTypedEvent(display, MotionNotify, &nextEvent)) {
+          ;  // do nothing
+        }
+        XQueryPointer(display, amrPicturePtrArray[V]->PictureWindow(),
+                      &whichRoot, &whichChild,
+                      &rootX, &rootY, &oldX, &oldY, &inputMask);
+
+        // draw the new line
+        XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
+                  rbgc, oldX, 0, oldX, imageHeight);
+
+        break;
+
+      case ButtonRelease:
+        avxGrab.ExplicitUngrab();
+        tempi = max(0, min(imageWidth, nextEvent.xbutton.x));
+        amrPicturePtrArray[V]->SetVLine(tempi);
+
+        for(int np(0); np != Amrvis::NPLANES; ++np) {
+          amrPicturePtrArray[np]->DoExposePicture();
+        }
+
+        if(oldX >= 0 && oldX <= imageWidth) {
+          int sdir(-1);
+          switch (V) {
+            case Amrvis::ZPLANE:
+              sdir = Amrvis::YDIR;
+            break;
+            case Amrvis::YPLANE:
+              sdir = Amrvis::ZDIR;
+            break;
+            case Amrvis::XPLANE:
+              sdir = Amrvis::ZDIR;
+            break;
+          }
+          XYPlotDataList *newlist = CreateLinePlot(V, sdir, mal, oldX / scale,
+                                                   &pltAppState->CurrentDerived());
+          if(newlist) {
+            newlist->SetLevel(maxDrawnLevel);
+            if(XYplotwin[sdir] == NULL) {
+              char cTempFN[Amrvis::BUFSIZE];
+              strcpy(cTempFN,
+                     AVGlobals::StripSlashes(fileNames[currentFrame]).c_str());
+              XYplotwin[sdir] = new XYPlotWin(cTempFN, appContext, wAmrVisTopLevel,
+                                              this, sdir, currentFrame);
+            }
+            XYplotwin[sdir]->AddDataList(newlist);
+          }
+        }
+
+        return;
+
+      default:
+        break;
+      }  // end switch
+    }  // end while(true)
+  }
+#endif
+
+
+}  // end DoRubberBanding
 
 // -------------------------------------------------------------------
 void ProfApp::AddStaticCallback(Widget w, String cbtype, profMemberCB cbf, void *d) {

@@ -204,7 +204,7 @@ int main(int argc, char *argv[]) {
 #ifdef AV_PROFDATA
      if(fileType == amrex::Amrvis::PROFDATA) {
        cout << "]]]]:  fileType is amrex::Amrvis::PROFDATA." << endl;
-       PrintMessage("]]]]:  fileType is amrex::Amrvis::PROFDATA.");
+       PrintMessage("]]]]:  fileType is amrex::Amrvis::PROFDATA.\n");
        if(AVGlobals::GetFileCount() == 1) {
 	 string dirName(AVGlobals::GetComlineFilename(0));
 	 cout << "]]]]]]]]:  dirName = " << dirName << endl;

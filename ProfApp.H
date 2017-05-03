@@ -68,6 +68,7 @@ public:
   void DoFuncList(Widget, XtPointer, XtPointer);
   void DoGenerateFuncList(Widget, XtPointer, XtPointer);
   void GenerateFuncList(const amrex::Array<std::string> &funcs);
+  void DoRubberBanding(Widget, XtPointer, XtPointer);
 
   void DetachXYPlotWin(int dir) { XYplotwin[dir] = NULL; }
   XYPlotParameters *GetXYPlotParameters() const { return XYplotparameters; }
@@ -108,6 +109,12 @@ private:
   RegionPicture *regionPicturePtr;
   map<int, string> regNames;
     
+  // baggage for fast rubber banding
+  GC            rbgc;
+  XEvent        nextEvent;
+  int           rWidth, rHeight, rStartX, rStartY;
+  Cursor cursor;
+
   static int initialWindowHeight, initialWindowWidth;
   
   void ProfAppInit();
