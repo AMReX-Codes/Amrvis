@@ -201,7 +201,8 @@ void ProfApp::ProfAppInit() {
 				      NULL);
 
   // ------------------------------- menu bar
-  Widget wMenuBar, wMenuPulldown, wid;
+  Widget wMenuBar, wMenuPulldown, wid, wCascade;
+  char selectText[20], accelText[20], accel[20];
   XmString label_str;
   XtSetArg(args[0], XmNtopAttachment, XmATTACH_FORM);
   XtSetArg(args[1], XmNleftAttachment, XmATTACH_FORM);
@@ -212,6 +213,22 @@ void ProfApp::ProfAppInit() {
   wMenuPulldown = XmCreatePulldownMenu(wMenuBar, const_cast<String> ("Filepulldown"), NULL, 0);
   XtVaCreateManagedWidget("File", xmCascadeButtonWidgetClass, wMenuBar,
 			  XmNmnemonic, 'F', XmNsubMenuId, wMenuPulldown, NULL);
+
+  // To change the palette
+  wid = XtVaCreateManagedWidget("Palette...", xmPushButtonGadgetClass,
+                                wMenuPulldown, XmNmnemonic,  'P', NULL);
+  //AddStaticCallback(wid, XmNactivateCallback, &ProfApp::DoPaletteButton);
+
+  // To output call traces
+  wCascade = XmCreatePulldownMenu(wMenuPulldown, const_cast<char *>("outputmenu"), NULL, 0);
+  XtVaCreateManagedWidget("Export Call Traces", xmCascadeButtonWidgetClass, wMenuPulldown,
+                          XmNsubMenuId, wCascade, NULL);
+  wid = XtVaCreateManagedWidget("HTML File...", xmPushButtonGadgetClass,
+                                wCascade, NULL);
+  //AddStaticCallback(wid, XmNactivateCallback, &ProfApp::DoOutput, (XtPointer) 0);
+  wid = XtVaCreateManagedWidget("Text File...", xmPushButtonGadgetClass,
+                                wCascade, NULL);
+  //AddStaticCallback(wid, XmNactivateCallback, &ProfApp::DoOutput, (XtPointer) 1);
 
   // Quit
   XtVaCreateManagedWidget(NULL, xmSeparatorGadgetClass, wMenuPulldown, NULL);
@@ -237,6 +254,53 @@ void ProfApp::ProfAppInit() {
   XtAddCallback(wid, XmNactivateCallback, (XtCallbackProc) CBQuitProfApp,
 		(XtPointer) this);
   
+  // ------------------------------- view menu
+  wMenuPulldown = XmCreatePulldownMenu(wMenuBar, const_cast<char *>("MenuPulldown"), NULL, 0);
+  XtVaCreateManagedWidget("View", xmCascadeButtonWidgetClass, wMenuBar,
+                          XmNmnemonic, 'V', XmNsubMenuId, wMenuPulldown, NULL);
+
+  // To scale the region picture
+  //int maxallow(min(MAXSCALE, maxAllowableScale));
+  int maxallow(8);
+  wCascade = XmCreatePulldownMenu(wMenuPulldown, const_cast<char *>("scalemenu"), NULL, 0);
+  XtVaCreateManagedWidget("Scale", xmCascadeButtonWidgetClass, wMenuPulldown,
+                          XmNmnemonic, 'S', XmNsubMenuId, wCascade, NULL);
+  for(int scale(1); scale <= maxallow; ++scale) {
+    sprintf(selectText, "%ix", scale);
+    wid = XtVaCreateManagedWidget(selectText, xmToggleButtonGadgetClass, wCascade,
+                                  XmNset, false, NULL);
+    if(scale <= 10) {
+      // scale values <= 10 are shortcutted by pressing the number 1-0
+      sprintf(accel, "<Key>%i", scale % 10);
+      sprintf(accelText, "%i", scale % 10);
+      label_str = XmStringCreateSimple(accelText);
+      XtVaSetValues(wid, XmNmnemonic, scale + 'O',
+                    XmNaccelerator, accel,
+                    XmNacceleratorText, label_str,
+                    NULL);
+      XmStringFree(label_str);
+    } else if(scale <= 20) {
+      // scale values <= 20 can be obtained by holding down ALT and pressing 1-0
+      sprintf(accel, "Alt<Key>%i", scale % 10);
+      sprintf(accelText, "Alt+%i", scale % 10);
+      label_str = XmStringCreateSimple(accelText);
+      XtVaSetValues(wid,
+                    XmNaccelerator, accel,
+                    XmNacceleratorText, label_str,
+                    NULL);
+      XmStringFree(label_str);
+    }     
+/*
+    if(scale == pltAppState->CurrentScale()) {
+      // Toggle buttons indicate which is the current scale
+      XtVaSetValues(wid, XmNset, true, NULL);
+      wCurrScale = wid;
+    }
+    AddStaticCallback(wid, XmNvalueChangedCallback, &ProfApp::ChangeScale,
+                      (XtPointer) static_cast<long> (scale));
+*/
+  }
+
   // --------------------------------------------------------------- help menu
   wMenuPulldown = XmCreatePulldownMenu(wMenuBar, const_cast<String> ("MenuPulldown"), NULL, 0);
   XtVaCreateManagedWidget("Help", xmCascadeButtonWidgetClass, wMenuBar,
@@ -484,7 +548,6 @@ void ProfApp::CloseInfoWindow(Widget, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void ProfApp::DoInfoButton(Widget, XtPointer, XtPointer) {
-/*
   if(infoShowing) {
     XtPopup(wInfoTopLevel, XtGrabNone);
     XMapRaised(XtDisplay(wInfoTopLevel), XtWindow(wInfoTopLevel));
@@ -552,16 +615,21 @@ void ProfApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   XtPopup(wInfoTopLevel, XtGrabNone);
 
   profAppMessageText.Init(wInfoList);
-  ProfData &profData = profDataServicesPtr[0]->AmrDataRef();
   
   std::ostringstream prob;
   prob.precision(15);
 
-  prob << fileNames[0] << '\n';
-  prob << "prob domain:" << '\n';
+  prob << "Profiling database:   " << fileNames[0] << '\n';
+  prob << "ProfDataAvailable :   "
+       << (profDataServicesPtr[0]->ProfDataAvailable()   ? "true" : "false") << '\n';
+  prob << "RegionDataAvailable:  "
+       << (profDataServicesPtr[0]->RegionDataAvailable() ? "true" : "false") << '\n';
+  prob << "TraceDataAvailable:   "
+       << (profDataServicesPtr[0]->TraceDataAvailable()  ? "true" : "false") << '\n';
+  prob << "CommDataAvailable:    "
+       << (profDataServicesPtr[0]->CommDataAvailable()   ? "true" : "false") << '\n';
 
   profAppMessageText.PrintText(prob.str().c_str());
-*/
 }
 
 /*
