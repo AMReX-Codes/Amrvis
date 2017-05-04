@@ -68,7 +68,11 @@ public:
   void DoFuncList(Widget, XtPointer, XtPointer);
   void DoGenerateFuncList(Widget, XtPointer, XtPointer);
   void GenerateFuncList(const amrex::Array<std::string> &funcs);
+  void ChangeScale(Widget, XtPointer, XtPointer);
   void DoRubberBanding(Widget, XtPointer, XtPointer);
+  void DoOutput(Widget, XtPointer, XtPointer);
+  void DoCreateHTMLTrace(Widget, XtPointer, XtPointer);
+  void DoCreateTextTrace(Widget, XtPointer, XtPointer);
 
   void DetachXYPlotWin(int dir) { XYplotwin[dir] = NULL; }
   XYPlotParameters *GetXYPlotParameters() const { return XYplotparameters; }

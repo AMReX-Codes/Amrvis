@@ -35,6 +35,7 @@
 #include <Xm/Frame.h>
 #include <Xm/ArrowB.h>
 #include <Xm/CascadeB.h>
+#include <Xm/SelectioB.h>
 
 #include <X11/cursorfont.h>
 
@@ -225,10 +226,10 @@ void ProfApp::ProfAppInit() {
                           XmNsubMenuId, wCascade, NULL);
   wid = XtVaCreateManagedWidget("HTML File...", xmPushButtonGadgetClass,
                                 wCascade, NULL);
-  //AddStaticCallback(wid, XmNactivateCallback, &ProfApp::DoOutput, (XtPointer) 0);
+  AddStaticCallback(wid, XmNactivateCallback, &ProfApp::DoOutput, (XtPointer) 0);
   wid = XtVaCreateManagedWidget("Text File...", xmPushButtonGadgetClass,
                                 wCascade, NULL);
-  //AddStaticCallback(wid, XmNactivateCallback, &ProfApp::DoOutput, (XtPointer) 1);
+  AddStaticCallback(wid, XmNactivateCallback, &ProfApp::DoOutput, (XtPointer) 1);
 
   // Quit
   XtVaCreateManagedWidget(NULL, xmSeparatorGadgetClass, wMenuPulldown, NULL);
@@ -592,7 +593,9 @@ void ProfApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   XtSetArg(args[i], XmNbottomAttachment, XmATTACH_POSITION);      ++i;
   XtSetArg(args[i], XmNbottomPosition, 80);      ++i;
 
-  Widget wInfoList = XmCreateScrolledText(wInfoForm, "infoscrolledlist", args, i);
+  Widget wInfoList = XmCreateScrolledText(wInfoForm,
+                                          const_cast<char *> ("infoscrolledlist"),
+                                          args, i);
 
   Widget wInfoCloseButton =
     XtVaCreateManagedWidget("Close",
@@ -1198,6 +1201,108 @@ buffout << "click!" << endl;
 
 }  // end DoRubberBanding
 
+
+// -------------------------------------------------------------------
+void ProfApp::DoOutput(Widget w, XtPointer data, XtPointer) {
+  int i;
+  static Widget wGetFileName;
+  XmString sMessage;
+  sMessage = XmStringCreateSimple(const_cast<char *>("Please enter a filename base:"));
+
+  i=0;
+  XtSetArg(args[i], XmNselectionLabelString, sMessage); ++i;
+  XtSetArg(args[i], XmNautoUnmanage, false); ++i;
+  XtSetArg(args[i], XmNkeyboardFocusPolicy, XmPOINTER); ++i;
+  wGetFileName = XmCreatePromptDialog(wAmrVisTopLevel, const_cast<char *>("Save as"), args, i);
+  XmStringFree(sMessage);
+
+  unsigned long which = (unsigned long) data;
+  switch(which) {
+    case 0:
+      AddStaticCallback(wGetFileName, XmNokCallback, &ProfApp::DoCreateHTMLTrace);
+    break;
+    case 1:
+      AddStaticCallback(wGetFileName, XmNokCallback, &ProfApp::DoCreateTextTrace);
+    break;
+    default:
+      cerr << "Error in ProfApp::DoOutput:  bad selection = " << data << endl;
+      return;
+  }
+
+  XtAddCallback(wGetFileName, XmNcancelCallback, (XtCallbackProc) XtDestroyWidget, NULL);
+  XtSetSensitive(XmSelectionBoxGetChild(wGetFileName, XmDIALOG_HELP_BUTTON), false);
+
+  string tempfilename("CallTrace");  // ---- filename base
+  XmTextSetString(XmSelectionBoxGetChild(wGetFileName, XmDIALOG_TEXT),
+                  const_cast<char *> (tempfilename.c_str()));
+  XtManageChild(wGetFileName);
+  XtPopup(XtParent(wGetFileName), XtGrabNone);
+}
+
+
+// -------------------------------------------------------------------
+void ProfApp::DoCreateHTMLTrace(Widget w, XtPointer, XtPointer call_data) {
+  XmSelectionBoxCallbackStruct *cbs = (XmSelectionBoxCallbackStruct *) call_data;
+  char htmlfilename[Amrvis::BUFSIZE];
+  char *fileNameBase;
+  XmStringGetLtoR(cbs->value, XmSTRING_DEFAULT_CHARSET, &fileNameBase);
+  sprintf(htmlfilename, "%s.html", fileNameBase);
+  string htmlFileName(htmlfilename);
+
+  //DataServices::Dispatch(DataServices::WriteFabOneVar,
+                         //dataServicesPtr[currentFrame],
+                         //(void *) &fabFileName,
+                         //(void *) &(bx[maxDrawnLevel]),
+                         //maxDrawnLevel,
+                         //(void *) &derivedQuantity);
+  XtFree(fileNameBase);
+  XtDestroyWidget(w);
+}
+
+
+// -------------------------------------------------------------------
+void ProfApp::DoCreateTextTrace(Widget w, XtPointer, XtPointer call_data) {
+  XmSelectionBoxCallbackStruct *cbs = (XmSelectionBoxCallbackStruct *) call_data;
+  char textfilename[Amrvis::BUFSIZE];
+  char *fileNameBase;
+  XmStringGetLtoR(cbs->value, XmSTRING_DEFAULT_CHARSET, &fileNameBase);
+  sprintf(textfilename, "%s.txt", fileNameBase);
+  string textFileName(textfilename);
+
+  //DataServices::Dispatch(DataServices::WriteFabOneVar,
+                         //dataServicesPtr[currentFrame],
+                         //(void *) &textFileName,
+                         //(void *) &(bx[maxDrawnLevel]),
+                         //maxDrawnLevel,
+                         //(void *) &derivedQuantity);
+  XtFree(fileNameBase);
+  XtDestroyWidget(w);
+}
+
+
+// -------------------------------------------------------------------
+void ProfApp::ChangeScale(Widget w, XtPointer client_data, XtPointer) {
+/*
+  if(w == wCurrScale) {
+    XtVaSetValues(w, XmNset, true, NULL);
+    return;
+  }
+  unsigned long newScale = (unsigned long) client_data;
+  XtVaSetValues(wCurrScale, XmNset, false, NULL);
+  wCurrScale = w;
+  int previousScale(pltAppState->CurrentScale());
+  int currentScale(newScale);
+  pltAppState->SetCurrentScale(currentScale);
+    //amrPicturePtrArray[whichView]->APChangeScale(currentScale, previousScale);
+    //XtVaSetValues(wPlotPlane[whichView],
+                  //XmNwidth,  amrPicturePtrArray[whichView]->ImageSizeH() + 1,
+                  //XmNheight, amrPicturePtrArray[whichView]->ImageSizeV() + 1,
+                  //NULL);
+  DoExposeRef();
+*/
+}
+
+
 // -------------------------------------------------------------------
 void ProfApp::AddStaticCallback(Widget w, String cbtype, profMemberCB cbf, void *d) {
   CBData *cbs = new CBData(this, d, cbf);
@@ -1207,7 +1312,7 @@ void ProfApp::AddStaticCallback(Widget w, String cbtype, profMemberCB cbf, void 
   cbdPtrs.resize(nSize + 1);
   cbdPtrs[nSize] = cbs;
 
-  XtAddCallback(w, cbtype, (XtCallbackProc ) &ProfApp::StaticCallback,
+  XtAddCallback(w, cbtype, (XtCallbackProc) &ProfApp::StaticCallback,
 		(XtPointer) cbs);
 }
 
