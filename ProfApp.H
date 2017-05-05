@@ -87,7 +87,7 @@ private:
   Widget wPlotLabel;
   Widget wPalArea, wControls;
   Widget wFuncListScrollArea;
-  Widget wFuncList;
+  Widget wFuncList, wCurrScale;
 
   XYPlotParameters *XYplotparameters;
   XYPlotWin *XYplotwin[BL_SPACEDIM];
@@ -112,6 +112,7 @@ private:
   amrex::Array<amrex::DataServices *> dspArray;
   RegionPicture *regionPicturePtr;
   map<int, string> regNames;
+  int currentScale, maxAllowableScale;
     
   // baggage for fast rubber banding
   GC            rbgc;
@@ -122,12 +123,9 @@ private:
   static int initialWindowHeight, initialWindowWidth;
   
   void ProfAppInit();
-
   void DoInfoButton(Widget, XtPointer, XtPointer);
-
   void DestroyInfoWindow(Widget, XtPointer, XtPointer);
   void CloseInfoWindow(Widget, XtPointer, XtPointer);
-
 
   void AddStaticCallback(Widget w, String whichcb, profMemberCB whichf, void *d = NULL);
   void AddStaticEventHandler(Widget w, EventMask mask, profMemberCB cbf, void *d = NULL);

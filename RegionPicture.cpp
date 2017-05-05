@@ -12,6 +12,8 @@ using std::endl;
 
 using namespace amrex;
 
+const int regionBaseHeight(16);
+
 #include <ctime>
 
 // ---------------------------------------------------------------------
@@ -23,15 +25,6 @@ RegionPicture::RegionPicture(GraphicsAttributes *gaptr,
 {
   BL_ASSERT(gaptr != nullptr);
   BL_ASSERT(pdsp  != nullptr);
-  int nRegions(profDataServicesPtr->GetRegionsProfStats().GetMaxRNumber() + 1);
-  ++nRegions;
-  dataSizeH = 600;
-  dataSizeV = nRegions * 16;
-  dataSize  = dataSizeH * dataSizeV;  // for a picture (slice).
-  atiDataSizeH = dataSizeH;
-  atiDataSizeV = 16;
-  atiDataSize  = atiDataSizeH * atiDataSizeV;
-
   RegionPictureInit();
 }
 
@@ -39,11 +32,15 @@ RegionPicture::RegionPicture(GraphicsAttributes *gaptr,
 // ---------------------------------------------------------------------
 void RegionPicture::RegionPictureInit() {
 
-  Box sliceBox(IntVect(0, 0), IntVect(dataSizeH - 1, dataSizeV - 1));
-  cout << "sliceBox = " << sliceBox << endl;
-  sliceFab = new FArrayBox(sliceBox, 1);
   display = gaPtr->PDisplay();
   xgc = gaPtr->PGC();
+
+  int nRegions(profDataServicesPtr->GetRegionsProfStats().GetMaxRNumber() + 1);
+  ++nRegions;  // ---- for the active time intervals (ati)
+
+  dataSizeH = 600;
+  dataSizeV = nRegions * regionBaseHeight;
+  dataSize  = dataSizeH * dataSizeV;
 
   imageSizeH = currentScale * dataSizeH;
   imageSizeV = currentScale * dataSizeV;
@@ -59,12 +56,22 @@ void RegionPicture::RegionPictureInit() {
   imageData = new unsigned char[dataSize];
   scaledImageData = new unsigned char[imageSize];
 
-  atiImageSizeH = currentScale * dataSizeH;
-  atiImageSizeV = currentScale * 16;
-  int atiWidthpad = gaPtr->PBitmapPaddedWidth(imageSizeH);
-  atiImageSize = imageSizeV * atiWidthpad * gaPtr->PBytesPerPixel();
+
+  atiDataSizeH = dataSizeH;
+  atiDataSizeV = regionBaseHeight;
+  atiDataSize  = atiDataSizeH * atiDataSizeV;
+
+  atiImageSizeH = currentScale * atiDataSizeH;
+  atiImageSizeV = currentScale * atiDataSizeV;
+  int atiWidthpad = gaPtr->PBitmapPaddedWidth(atiImageSizeH);
+  atiImageSize = atiImageSizeV * atiWidthpad * gaPtr->PBytesPerPixel();
+
   atiImageData = new unsigned char[atiDataSize];
   scaledATIImageData = new unsigned char[atiImageSize];
+
+  Box sliceBox(IntVect(0, 0), IntVect(dataSizeH - 1, dataSizeV - 1));
+  cout << "sliceBox = " << sliceBox << endl;
+  sliceFab = new FArrayBox(sliceBox, 1);
 
   pixMapCreated = false;
 }
@@ -74,6 +81,8 @@ void RegionPicture::RegionPictureInit() {
 RegionPicture::~RegionPicture() {
   delete [] imageData;
   delete [] scaledImageData;
+  delete [] atiImageData;
+  delete [] scaledATIImageData;
   delete sliceFab;
 
   if(pixMapCreated) {
@@ -92,7 +101,7 @@ void RegionPicture::APDraw(int fromLevel, int toLevel) {
  
   XPutImage(display, pixMap, xgc, xImage, 0, 0, 0, 0,
 	    imageSizeH, imageSizeV);
-  XPutImage(display, pixMap, xgc, atiXImage, 0, 0, 0, imageSizeV-1-16,
+  XPutImage(display, pixMap, xgc, atiXImage, 0, 0, 0, imageSizeV-1-regionBaseHeight,
 	    imageSizeH, imageSizeV);
            
   DoExposePicture();
@@ -129,7 +138,17 @@ void RegionPicture::APMakeImages(Palette *palptr) {
   profDataServicesPtr->GetRegionsProfStats().MakeRegionPlt(tempSliceFab, 0,
                                       dataSizeH, dataSizeV / (nRegions + 1));
 
-  tempSliceFab.shift(1, 16);
+Array<Array<BLProfStats::TimeRange>> rtr;
+profDataServicesPtr->GetRegionsProfStats().FillRegionTimeRanges(rtr, 0);
+for(int r(0); r < rtr.size(); ++r) {
+  for(int t(0); t < rtr[r].size(); ++t) {
+    cout << "rtr[" << r << "][" << t << "] = " << rtr[r][t] << endl;
+  }
+}
+
+
+
+  tempSliceFab.shift(1, regionBaseHeight);
   sliceFab->copy(tempSliceFab);
   Real minUsing(sliceFab->min(0)), maxUsing(sliceFab->max(0));
 
@@ -235,8 +254,9 @@ void RegionPicture::CreateScaledImage(XImage **ximage, int scale,
 
 // ---------------------------------------------------------------------
 void RegionPicture::APChangeScale(int newScale, int previousScale) { 
-  imageSizeH = newScale * dataSizeH;
-  imageSizeV = newScale * dataSizeV;
+  currentScale = newScale;
+  imageSizeH = currentScale * dataSizeH;
+  imageSizeV = currentScale * dataSizeV;
   int widthpad = gaPtr->PBitmapPaddedWidth(imageSizeH);
   imageSize  = widthpad * imageSizeV * gaPtr->PBytesPerPixel();
   XClearWindow(display, pictureWindow);
@@ -250,13 +270,14 @@ void RegionPicture::APChangeScale(int newScale, int previousScale) {
 
   delete [] scaledImageData;
   scaledImageData = new unsigned char[imageSize];
-  CreateScaledImage(&xImage, newScale,
+  CreateScaledImage(&xImage, currentScale,
                     imageData, scaledImageData, dataSizeH, dataSizeV,
                     imageSizeH, imageSizeV);
 
-  atiImageSizeH = newScale * dataSizeH;
-  atiImageSizeV = newScale * 16;
-  atiImageSize  = widthpad * 16 * gaPtr->PBytesPerPixel();
+  atiImageSizeH = currentScale * atiDataSizeH;
+  atiImageSizeV = currentScale * atiDataSizeV;
+  int atiWidthpad = gaPtr->PBitmapPaddedWidth(atiImageSizeH);
+  atiImageSize  = atiWidthpad * atiImageSizeV * gaPtr->PBytesPerPixel();
   delete [] scaledATIImageData;
   scaledATIImageData = new unsigned char[atiImageSize];
   //for(int i(0); i < atiDataSize; ++i) {

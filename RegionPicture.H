@@ -55,8 +55,10 @@ class RegionPicture {
   Pixmap 		pixMap;
   Palette		*palPtr;
   amrex::FArrayBox *sliceFab;
-  unsigned char *imageData, *scaledImageData;
-  unsigned char *atiImageData, *scaledATIImageData;
+  unsigned char *imageData;
+  unsigned char *scaledImageData;
+  unsigned char *atiImageData;
+  unsigned char *scaledATIImageData;
   XImage *xImage, *atiXImage;
   bool           xImageCreated;
   GraphicsAttributes	*gaPtr;
@@ -82,6 +84,7 @@ class RegionPicture {
                          unsigned char *scaledimagedata,
                          int datasizeh, int datasizev,
                          int imagesizeh, int imagesizev);
+  RegionPicture();
 };
 
 #endif

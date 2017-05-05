@@ -167,6 +167,9 @@ if(regionTimeRanges.size() > 0) {
 void ProfApp::ProfAppInit() {
   int np;
 
+  currentScale = 1;
+  maxAllowableScale = 8;
+
   XmAddWMProtocolCallback(wAmrVisTopLevel,
 			  XmInternAtom(display,const_cast<String> ("WM_DELETE_WINDOW"), false),
 			  (XtCallbackProc) CBQuitProfApp, (XtPointer) this);
@@ -261,12 +264,10 @@ void ProfApp::ProfAppInit() {
                           XmNmnemonic, 'V', XmNsubMenuId, wMenuPulldown, NULL);
 
   // To scale the region picture
-  //int maxallow(min(MAXSCALE, maxAllowableScale));
-  int maxallow(8);
   wCascade = XmCreatePulldownMenu(wMenuPulldown, const_cast<char *>("scalemenu"), NULL, 0);
   XtVaCreateManagedWidget("Scale", xmCascadeButtonWidgetClass, wMenuPulldown,
                           XmNmnemonic, 'S', XmNsubMenuId, wCascade, NULL);
-  for(int scale(1); scale <= maxallow; ++scale) {
+  for(int scale(1); scale <= maxAllowableScale; ++scale) {
     sprintf(selectText, "%ix", scale);
     wid = XtVaCreateManagedWidget(selectText, xmToggleButtonGadgetClass, wCascade,
                                   XmNset, false, NULL);
@@ -291,15 +292,14 @@ void ProfApp::ProfAppInit() {
                     NULL);
       XmStringFree(label_str);
     }     
-/*
-    if(scale == pltAppState->CurrentScale()) {
+
+    if(scale == currentScale) {
       // Toggle buttons indicate which is the current scale
       XtVaSetValues(wid, XmNset, true, NULL);
       wCurrScale = wid;
     }
     AddStaticCallback(wid, XmNvalueChangedCallback, &ProfApp::ChangeScale,
                       (XtPointer) static_cast<long> (scale));
-*/
   }
 
   // --------------------------------------------------------------- help menu
@@ -477,7 +477,6 @@ void ProfApp::ProfAppInit() {
 		XmNtopAttachment,   XmATTACH_WIDGET,
 		XmNtopWidget,       wPlotFrame,
                 XmNtopOffset, Amrvis::WOFFSET,
-                //XmNbottomAttachment, XmATTACH_FORM,
                 XmNbottomAttachment, XmATTACH_POSITION,
                 XmNbottomPosition, 90,
                 XmNheight, 480,
@@ -524,7 +523,8 @@ std::string palFilename("Palette");
   regNames.insert(std::make_pair(-2, "active time intervals"));
   regNames.insert(std::make_pair(-1, "not in region"));
   for(auto rnames : rProfStats.RegionNames()) {
-    regNames.insert(std::make_pair(rnames.second, rnames.first));  // ---- swap map first with second
+    // ---- swap map first with second
+    regNames.insert(std::make_pair(rnames.second, rnames.first));
     cout << "rnames:  " << rnames.second << "  " << rnames.first << endl;
   }
   pltPaletteptr->SetRegionNames(regNames);
@@ -622,14 +622,14 @@ void ProfApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   std::ostringstream prob;
   prob.precision(15);
 
-  prob << "Profiling database:   " << fileNames[0] << '\n';
-  prob << "ProfDataAvailable :   "
+  prob << "Profiling database :  " << fileNames[0] << '\n';
+  prob << "ProfDataAvailable  :  "
        << (profDataServicesPtr[0]->ProfDataAvailable()   ? "true" : "false") << '\n';
   prob << "RegionDataAvailable:  "
        << (profDataServicesPtr[0]->RegionDataAvailable() ? "true" : "false") << '\n';
-  prob << "TraceDataAvailable:   "
+  prob << "TraceDataAvailable :  "
        << (profDataServicesPtr[0]->TraceDataAvailable()  ? "true" : "false") << '\n';
-  prob << "CommDataAvailable:    "
+  prob << "CommDataAvailable  :  "
        << (profDataServicesPtr[0]->CommDataAvailable()   ? "true" : "false") << '\n';
 
   profAppMessageText.PrintText(prob.str().c_str());
@@ -891,7 +891,6 @@ void ProfApp::GenerateFuncList(const Array<std::string> &funcs) {
   }
 
   XtVaSetValues(wFuncList,
-                XmNvisibleItemCount, numEntries,
                 XmNitemCount, numEntries,
                 XmNitems, strList,
                 NULL);
@@ -1282,7 +1281,6 @@ void ProfApp::DoCreateTextTrace(Widget w, XtPointer, XtPointer call_data) {
 
 // -------------------------------------------------------------------
 void ProfApp::ChangeScale(Widget w, XtPointer client_data, XtPointer) {
-/*
   if(w == wCurrScale) {
     XtVaSetValues(w, XmNset, true, NULL);
     return;
@@ -1290,16 +1288,15 @@ void ProfApp::ChangeScale(Widget w, XtPointer client_data, XtPointer) {
   unsigned long newScale = (unsigned long) client_data;
   XtVaSetValues(wCurrScale, XmNset, false, NULL);
   wCurrScale = w;
-  int previousScale(pltAppState->CurrentScale());
-  int currentScale(newScale);
-  pltAppState->SetCurrentScale(currentScale);
-    //amrPicturePtrArray[whichView]->APChangeScale(currentScale, previousScale);
-    //XtVaSetValues(wPlotPlane[whichView],
-                  //XmNwidth,  amrPicturePtrArray[whichView]->ImageSizeH() + 1,
-                  //XmNheight, amrPicturePtrArray[whichView]->ImageSizeV() + 1,
-                  //NULL);
+  int previousScale(currentScale);
+  currentScale = newScale;
+
+  regionPicturePtr->APChangeScale(currentScale, previousScale);
+  XtVaSetValues(wPlotPlane,
+                XmNwidth,  regionPicturePtr->ImageSizeH() + 1,
+                XmNheight, regionPicturePtr->ImageSizeV() + 1,
+                NULL);
   DoExposeRef();
-*/
 }
 
 
