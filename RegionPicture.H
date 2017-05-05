@@ -69,6 +69,8 @@ class RegionPicture {
   int			hColor, vColor, myColor;
   bool                  pixMapCreated;
   int currentScale;
+  int                   regionX, regionY, region2ndX, region2ndY;
+  int                   subcutX, subcutY, subcut2ndX, subcut2ndY;
   
   
   // private functions

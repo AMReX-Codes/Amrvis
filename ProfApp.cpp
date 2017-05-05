@@ -197,6 +197,17 @@ void ProfApp::ProfAppInit() {
   pltPaletteptr->SetRegions(true);
   pltPaletteptr->ReadSeqPalette("Palette", false);
 
+  servingButton = 0;
+  startX = 0;
+  startY = 0;
+  endX = 0;
+  endY = 0;
+
+  // gc for gxxor rubber band line drawing
+  rbgc = XCreateGC(display, gaPtr->PRoot(), 0, NULL);
+  XSetFunction(display, rbgc, GXxor);
+  cursor = XCreateFontCursor(display, XC_left_ptr);
+
   // No need to store these widgets in the class after this function is called.
   Widget wMainArea, wPalFrame, wPlotFrame, wPalForm;
 
@@ -913,6 +924,7 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
     return;
   }
 
+  int scale(currentScale);
   int imageHeight(regionPicturePtr->ImageSizeV() - 1);
   int imageWidth(regionPicturePtr->ImageSizeH() - 1);
   int oldX(max(0, min(imageWidth,  cbs->event->xbutton.x)));
@@ -925,7 +937,7 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
 
   servingButton = cbs->event->xbutton.button;
 
-  //XSetForeground(display, rbgc, pltPaletteptr->makePixel(120));
+  XSetForeground(display, rbgc, pltPaletteptr->makePixel(120));
   XChangeActivePointerGrab(display, PointerMotionHintMask |
                            ButtonMotionMask | ButtonReleaseMask |
                            OwnerGrabButtonMask, cursor, CurrentTime);
@@ -938,6 +950,7 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
     if(bControlDown) {
       oldY = 0;
     }
+    int rectDrawn(false);
     int anchorX(oldX);
     int anchorY(oldY);
     int newX, newY;
@@ -949,6 +962,18 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
 
       case MotionNotify:
 
+        if(rectDrawn) {   // undraw the old rectangle(s)
+          rWidth  = abs(oldX-anchorX);
+          rHeight = abs(oldY-anchorY);
+          rStartX = (anchorX < oldX) ? anchorX : oldX;
+          rStartY = (anchorY < oldY) ? anchorY : oldY;
+          XDrawRectangle(display, regionPicturePtr->PictureWindow(),
+                         rbgc, rStartX, rStartY, rWidth, rHeight);
+        }
+
+        //DoDrawPointerLocation(None, (XtPointer) static_cast<long>(V), &nextEvent);
+
+
         while(XCheckTypedEvent(display, MotionNotify, &nextEvent)) {
           ;  // do nothing
         }
@@ -958,28 +983,51 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
                       &rootX, &rootY, &newX, &newY, &inputMask);
 
         if(bShiftDown) {
+          newX = imageWidth;
         }
         if(bControlDown) {
+          newY = imageHeight;
         }
-        //newX = max(0, min(imageWidth,  newX));
-        //newY = max(0, min(imageHeight, newY));
-        //oldX = newX;
-        //oldY = newY;
+        newX = max(0, min(imageWidth,  newX));
+        newY = max(0, min(imageHeight, newY));
+        rWidth  = abs(newX-anchorX);   // draw the new rectangle
+        rHeight = abs(newY-anchorY);
+        rStartX = (anchorX < newX) ? anchorX : newX;
+        rStartY = (anchorY < newY) ? anchorY : newY;
+        XDrawRectangle(display, regionPicturePtr->PictureWindow(),
+                       rbgc, rStartX, rStartY, rWidth, rHeight);
+        rectDrawn = true;
+
+        oldX = newX;
+        oldY = newY;
 
         break;
 
       case ButtonRelease: {
         avxGrab.ExplicitUngrab();
 
-        //startX = (max(0, min(imageWidth,  anchorX))) / scale;
-        //startY = (max(0, min(imageHeight, anchorY))) / scale;
-        //endX   = (max(0, min(imageWidth,  nextEvent.xbutton.x))) / scale;
-        //endY   = (max(0, min(imageHeight, nextEvent.xbutton.y))) / scale;
+        startX = (max(0, min(imageWidth,  anchorX))) / scale;
+        startY = (max(0, min(imageHeight, anchorY))) / scale;
+        endX   = (max(0, min(imageWidth,  nextEvent.xbutton.x))) / scale;
+        endY   = (max(0, min(imageHeight, nextEvent.xbutton.y))) / scale;
 
         if(bShiftDown) {
+          startX = 0;
+          endX   = imageWidth  / scale;
         }
         if(bControlDown) {
+          startY = 0;
+          endY   = imageHeight / scale;
         }
+
+        // make "aligned" box with correct size, converted to AMR space.
+amrex::Box selectionBox;
+        selectionBox.setSmall(Amrvis::XDIR, min(startX, endX));
+        selectionBox.setSmall(Amrvis::YDIR, ((imageHeight + 1) / scale) -
+                                     max(startY, endY) - 1);
+        selectionBox.setBig(Amrvis::XDIR, max(startX, endX));
+        selectionBox.setBig(Amrvis::YDIR, ((imageHeight + 1) / scale)  -
+                                     min(startY, endY) - 1);
 
         if(anchorX == nextEvent.xbutton.x && anchorY == nextEvent.xbutton.y) {
           // data at click
@@ -1027,6 +1075,30 @@ buffout << "click!" << endl;
           PrintMessage(const_cast<char *>(buffout.str().c_str()));
 
         } else {
+          // tell the amrpicture about the box
+          if(startX < endX) { // box in scaled pixmap space
+            startX = selectionBox.smallEnd(Amrvis::XDIR) * scale;
+            endX   = selectionBox.bigEnd(Amrvis::XDIR)   * scale;
+          } else {
+            startX = selectionBox.bigEnd(Amrvis::XDIR)   * scale;
+            endX   = selectionBox.smallEnd(Amrvis::XDIR) * scale;
+          }
+
+          if(startY < endY) {
+            startY = imageHeight - selectionBox.bigEnd(Amrvis::YDIR)   * scale;
+            endY   = imageHeight - selectionBox.smallEnd(Amrvis::YDIR) * scale;
+          } else {
+            startY = imageHeight - selectionBox.smallEnd(Amrvis::YDIR) * scale;
+            endY   = imageHeight - selectionBox.bigEnd(Amrvis::YDIR)   * scale;
+          }
+
+          int nodeAdjustment = (scale - 1) * selectionBox.type()[Amrvis::YDIR];
+          startY -= nodeAdjustment;
+          endY   -= nodeAdjustment;
+
+          regionPicturePtr->SetRegion(startX, startY, endX, endY);
+          regionPicturePtr->DoExposePicture();
+
         }
         return;
       }

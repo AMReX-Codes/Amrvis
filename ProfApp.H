@@ -113,6 +113,7 @@ private:
   RegionPicture *regionPicturePtr;
   map<int, string> regNames;
   int currentScale, maxAllowableScale;
+  int startX, startY, endX, endY;
     
   // baggage for fast rubber banding
   GC            rbgc;

@@ -112,6 +112,17 @@ void RegionPicture::APDraw(int fromLevel, int toLevel) {
 void RegionPicture::DoExposePicture() {
   XCopyArea(display, pixMap, pictureWindow, xgc, 0, 0,
             imageSizeH, imageSizeV, 0, 0); 
+
+        XSetForeground(display, xgc, palPtr->makePixel(175));
+        XDrawLine(display, pictureWindow, xgc,
+                  regionX, regionY, region2ndX, regionY);
+        XDrawLine(display, pictureWindow, xgc,
+                  regionX, regionY, regionX, region2ndY);
+        XDrawLine(display, pictureWindow, xgc,
+                  regionX, region2ndY, region2ndX, region2ndY);
+        XDrawLine(display, pictureWindow, xgc,
+                  region2ndX, regionY, region2ndX, region2ndY);
+
 }
 
 
@@ -306,6 +317,15 @@ XImage *RegionPicture::GetPictureXImage() {
   pixMapCreated = true;
   APDraw(0, 0);
   return ximage;
+}
+
+
+// ---------------------------------------------------------------------
+void RegionPicture::SetRegion(int startX, int startY, int endX, int endY) {
+  regionX = startX;
+  regionY = startY;
+  region2ndX = endX;
+  region2ndY = endY;
 }
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
