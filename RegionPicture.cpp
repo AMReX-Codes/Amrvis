@@ -113,15 +113,15 @@ void RegionPicture::DoExposePicture() {
   XCopyArea(display, pixMap, pictureWindow, xgc, 0, 0,
             imageSizeH, imageSizeV, 0, 0); 
 
-        XSetForeground(display, xgc, palPtr->makePixel(175));
-        XDrawLine(display, pictureWindow, xgc,
-                  regionX, regionY, region2ndX, regionY);
-        XDrawLine(display, pictureWindow, xgc,
-                  regionX, regionY, regionX, region2ndY);
-        XDrawLine(display, pictureWindow, xgc,
-                  regionX, region2ndY, region2ndX, region2ndY);
-        XDrawLine(display, pictureWindow, xgc,
-                  region2ndX, regionY, region2ndX, region2ndY);
+  XSetForeground(display, xgc, palPtr->makePixel(175));
+  XDrawLine(display, pictureWindow, xgc,
+            regionX, regionY, region2ndX, regionY);
+  XDrawLine(display, pictureWindow, xgc,
+            regionX, regionY, regionX, region2ndY);
+  XDrawLine(display, pictureWindow, xgc,
+            regionX, region2ndY, region2ndX, region2ndY);
+  XDrawLine(display, pictureWindow, xgc,
+            region2ndX, regionY, region2ndX, region2ndY);
 
 }
 
@@ -291,9 +291,6 @@ void RegionPicture::APChangeScale(int newScale, int previousScale) {
   atiImageSize  = atiWidthpad * atiImageSizeV * gaPtr->PBytesPerPixel();
   delete [] scaledATIImageData;
   scaledATIImageData = new unsigned char[atiImageSize];
-  //for(int i(0); i < atiDataSize; ++i) {
-    //atiImageData[i] = i % 11;
-  //}
   CreateScaledImage(&(atiXImage), currentScale,
                 atiImageData, scaledATIImageData, atiDataSizeH, atiDataSizeV,
                 atiImageSizeH, atiImageSizeV);

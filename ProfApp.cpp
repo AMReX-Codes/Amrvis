@@ -1075,7 +1075,7 @@ buffout << "click!" << endl;
           PrintMessage(const_cast<char *>(buffout.str().c_str()));
 
         } else {
-          // tell the amrpicture about the box
+          // tell the regionpicture about the box
           if(startX < endX) { // box in scaled pixmap space
             startX = selectionBox.smallEnd(Amrvis::XDIR) * scale;
             endX   = selectionBox.bigEnd(Amrvis::XDIR)   * scale;
