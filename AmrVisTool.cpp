@@ -681,6 +681,27 @@ void SubregionPltApp(Widget wTopLevel, const amrex::Box &trueRegion,
 
 
 // ---------------------------------------------------------------
+void SubregionProfApp(Widget wTopLevel, const amrex::Box &trueRegion,
+		      const amrex::IntVect &offset,
+		      ProfApp *profparent, const string &palfile,
+		      const string &file)
+{
+  ProfApp *temp = new ProfApp(app, wTopLevel, trueRegion, offset,
+		              profparent, palfile, file);
+  cout << "_in SubregionProfApp:  temp = " << temp << endl;
+  if(temp == NULL) {
+    cerr << "Error in SubregionProfApp:  could not make a new ProfApp." << endl;
+  } else {
+    profAppList.push_back(temp);
+    //amrex::Array<DataServices *> dataServicesPtr = temp->GetDataServicesPtrArray();
+    //for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
+      //dataServicesPtr[ids]->IncrementNumberOfUsers();
+    //}
+  }
+}
+
+
+// ---------------------------------------------------------------
 void CBQuitPltApp(Widget ofPltApp, XtPointer client_data, XtPointer) {
   PltApp *obj = (PltApp *) client_data;
   pltAppList.remove(obj);

@@ -5,6 +5,7 @@
 #include <Palette.H>
 #include <GraphicsAttributes.H>
 #include <ProfDataServices.H>
+#include <ProfApp.H>
 
 using std::cout;
 using std::cerr;
@@ -13,6 +14,7 @@ using std::endl;
 using namespace amrex;
 
 const int regionBaseHeight(16);
+const int defaultDataSizeH(600);
 
 #include <ctime>
 
@@ -25,22 +27,47 @@ RegionPicture::RegionPicture(GraphicsAttributes *gaptr,
 {
   BL_ASSERT(gaptr != nullptr);
   BL_ASSERT(pdsp  != nullptr);
-  RegionPictureInit();
-}
-
-
-// ---------------------------------------------------------------------
-void RegionPicture::RegionPictureInit() {
-
-  display = gaPtr->PDisplay();
-  xgc = gaPtr->PGC();
 
   int nRegions(profDataServicesPtr->GetRegionsProfStats().GetMaxRNumber() + 1);
   ++nRegions;  // ---- for the active time intervals (ati)
 
-  dataSizeH = 600;
+  dataSizeH = defaultDataSizeH;
   dataSizeV = nRegions * regionBaseHeight;
   dataSize  = dataSizeH * dataSizeV;
+
+  Box regionBox(IntVect(0, 0), IntVect(dataSizeH - 1, dataSizeV - 1));
+
+  RegionPictureInit(regionBox);
+}
+
+
+// ---------------------------------------------------------------------
+RegionPicture::RegionPicture(GraphicsAttributes *gaptr,
+                             const amrex::Box &regionBox,
+			     ProfApp *profAppPtr)
+           : gaPtr(gaptr),
+	     profDataServicesPtr(profAppPtr->GetProfDataServicesPtr()),
+	     currentScale(profAppPtr->GetCurrentScale())
+{
+  BL_ASSERT(gaptr != nullptr);
+  BL_ASSERT(profAppPtr != nullptr);
+
+  int nRegions(profDataServicesPtr->GetRegionsProfStats().GetMaxRNumber() + 1);
+  ++nRegions;  // ---- for the active time intervals (ati)
+
+  dataSizeH = regionBox.length(Amrvis::XDIR);
+  dataSizeV = nRegions * regionBaseHeight;
+  dataSize  = dataSizeH * dataSizeV;
+
+  RegionPictureInit(regionBox);
+}
+
+
+// ---------------------------------------------------------------------
+void RegionPicture::RegionPictureInit(const amrex::Box &regionBox) {
+
+  display = gaPtr->PDisplay();
+  xgc = gaPtr->PGC();
 
   imageSizeH = currentScale * dataSizeH;
   imageSizeV = currentScale * dataSizeV;
@@ -69,9 +96,9 @@ void RegionPicture::RegionPictureInit() {
   atiImageData = new unsigned char[atiDataSize];
   scaledATIImageData = new unsigned char[atiImageSize];
 
-  Box sliceBox(IntVect(0, 0), IntVect(dataSizeH - 1, dataSizeV - 1));
-  cout << "sliceBox = " << sliceBox << endl;
-  sliceFab = new FArrayBox(sliceBox, 1);
+  subRegion = regionBox;
+  cout << "subRegion = " << subRegion << endl;
+  sliceFab = new FArrayBox(subRegion, 1);
 
   pixMapCreated = false;
 }
@@ -122,7 +149,6 @@ void RegionPicture::DoExposePicture() {
             regionX, region2ndY, region2ndX, region2ndY);
   XDrawLine(display, pictureWindow, xgc,
             region2ndX, regionY, region2ndX, region2ndY);
-
 }
 
 
@@ -142,12 +168,14 @@ void RegionPicture::APMakeImages(Palette *palptr) {
   int nRegions(profDataServicesPtr->GetRegionsProfStats().GetMaxRNumber() + 1);
   cout << "nRegions = " << nRegions << endl;
 
-  Box regionBox(IntVect(0, 0), IntVect(dataSizeH - 1, dataSizeV - 1));
-  cout << "regionBox = " << regionBox << endl;
-  FArrayBox tempSliceFab(regionBox, 1);
+  int allDataSizeH(defaultDataSizeH);
+  int allDataSizeV((nRegions + 1) * regionBaseHeight);
+
+  FArrayBox tempSliceFab;
 
   profDataServicesPtr->GetRegionsProfStats().MakeRegionPlt(tempSliceFab, 0,
-                                      dataSizeH, dataSizeV / (nRegions + 1));
+                                      //dataSizeH, dataSizeV / (nRegions + 1));
+                                      allDataSizeH, allDataSizeV / (nRegions + 1));
 
 Array<Array<BLProfStats::TimeRange>> rtr;
 profDataServicesPtr->GetRegionsProfStats().FillRegionTimeRanges(rtr, 0);
@@ -159,10 +187,20 @@ for(int r(0); r < rtr.size(); ++r) {
 
 
 
-  tempSliceFab.shift(1, regionBaseHeight);
-  sliceFab->copy(tempSliceFab);
-  Real minUsing(sliceFab->min(0)), maxUsing(sliceFab->max(0));
+  cout << "btbtbtbt:  tempSliceFab.box() = " << tempSliceFab.box() << endl;
 
+  tempSliceFab.shift(Amrvis::YDIR, regionBaseHeight);  // ---- for ati
+  sliceFab->copy(tempSliceFab);
+  //Real minUsing(sliceFab->min(0)), maxUsing(sliceFab->max(0));
+  Real minUsing(tempSliceFab.min(0)), maxUsing(tempSliceFab.max(0));
+
+std::ofstream tfout("sliceFab.fab");
+sliceFab->writeOn(tfout);
+tfout.close();
+
+  cout << "tttttttt:  tempSliceFab.box() = " << tempSliceFab.box() << endl;
+  cout << "ssssssss:  sliceFab->box() = " << sliceFab->box() << endl;
+  cout << "ssssssss:  sliceFab->minmax() = " << sliceFab->min(0) << "  " << sliceFab->max(0) << endl;
   CreateImage(*(sliceFab), imageData, dataSizeH, dataSizeV, minUsing, maxUsing, palPtr);
   CreateScaledImage(&(xImage), currentScale,
                 imageData, scaledImageData, dataSizeH, dataSizeV,
@@ -172,8 +210,9 @@ for(int r(0); r < rtr.size(); ++r) {
     int value(j < 2 || j > atiDataSizeV - 3 ? 0 : 1);
     for(int i(0); i < atiDataSizeH; ++i) {
       if(i > atiDataSizeH / 4) {
-        value = 0;
+        //value = 0;
       }
+      value = 0;
       atiImageData[j * atiDataSizeH + i] = value;
     }
   }

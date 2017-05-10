@@ -24,11 +24,16 @@ using amrex::Real;
 class GraphicsAttributes;
 class Palette;
 class ProfDataServices;
+class ProfApp;
 
 
 class RegionPicture {
  public:
   RegionPicture(GraphicsAttributes *gaptr, ProfDataServices *pdsp);
+
+  // ---- for subregions
+  RegionPicture(GraphicsAttributes *gaptr, const amrex::Box &regionBox,
+                ProfApp *profAppPtr);
   
   ~RegionPicture();
   void	SetRegion(int, int, int, int);
@@ -55,6 +60,7 @@ class RegionPicture {
   Pixmap 		pixMap;
   Palette		*palPtr;
   amrex::FArrayBox *sliceFab;
+  amrex::Box subRegion;
   unsigned char *imageData;
   unsigned char *scaledImageData;
   unsigned char *atiImageData;
@@ -77,7 +83,7 @@ class RegionPicture {
   void SetSlice(int view, int here);
   void CoarsenSliceBox();
   void ShowFrameImage(int iSlice);
-  void RegionPictureInit();
+  void RegionPictureInit(const amrex::Box &regionBox);
   void CreateImage(const amrex::FArrayBox &fab, unsigned char *imagedata,
                    int datasizeh, int datasizev,
                    Real globalMin, Real globalMax, Palette *palptr);

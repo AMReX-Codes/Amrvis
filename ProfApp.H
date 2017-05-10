@@ -43,6 +43,12 @@ public:
   ProfApp(XtAppContext app, Widget w, const string &filename, 
          const amrex::Array<ProfDataServices *> &profdataservicesptr);
   
+  // for subregion
+  ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
+          const amrex::IntVect &offset,
+          ProfApp *profparent, const string &palfile,
+          const string &filename);
+
   ~ProfApp();
   
   static void SetInitialWindowHeight(int initWindowHeight);
@@ -54,9 +60,9 @@ public:
   amrex::Array<ProfDataServices *> &GetProfDataServicesPtrArray() { return profDataServicesPtr; }
   amrex::DataServices *GetDataServicesPtr() { return dspArray[0]; }
   amrex::Array<amrex::DataServices *> &GetDataServicesPtrArray() { return dspArray; }
-  int GetActiveView() const        { return activeView;    }
   XtAppContext GetAppContext()     { return appContext;    }
   GraphicsAttributes *GetGAptr() const  { return gaPtr; }
+  int GetCurrentScale() const        { return currentScale;    }
 
   const string &GetFileName();
   
@@ -73,6 +79,7 @@ public:
   void DoOutput(Widget, XtPointer, XtPointer);
   void DoCreateHTMLTrace(Widget, XtPointer, XtPointer);
   void DoCreateTextTrace(Widget, XtPointer, XtPointer);
+  void DoSubregion(Widget, XtPointer, XtPointer);
 
   void DetachXYPlotWin(int dir) { XYplotwin[dir] = NULL; }
   XYPlotParameters *GetXYPlotParameters() const { return XYplotparameters; }
@@ -95,13 +102,13 @@ private:
   XtAppContext appContext;
   Arg args[amrex::Amrvis::MAXARGS];
   Palette *pltPaletteptr;
-  PltAppState *profAppStatePtr;
+  amrex::IntVect ivLowOffset;
   bool infoShowing;
   bool interfaceReady;
   int servingButton;
-  int activeView;
-  string fileName, headerSuffix;
+  string fileName, palFilename, headerSuffix;
   char buffer[BUFSIZ];
+  amrex::Box selectionBox;
   GraphicsAttributes	*gaPtr;
   amrex::Array<ProfDataServices *> profDataServicesPtr;
   amrex::Array<string> fileNames;
@@ -122,8 +129,9 @@ private:
   Cursor cursor;
 
   static int initialWindowHeight, initialWindowWidth;
+  static int placementOffsetX, placementOffsetY;
   
-  void ProfAppInit();
+  void ProfAppInit(bool bSubregion);
   void DoInfoButton(Widget, XtPointer, XtPointer);
   void DestroyInfoWindow(Widget, XtPointer, XtPointer);
   void CloseInfoWindow(Widget, XtPointer, XtPointer);
@@ -148,6 +156,10 @@ private:
 };
 
 
+void    SubregionProfApp(Widget toplevel, const amrex::Box &region,
+                         const amrex::IntVect &offset,
+                         ProfApp *pltparent, const string &palfile,
+                         const string &filename);
 void	CBQuitProfApp(Widget, XtPointer, XtPointer);
 void	CBQuitAll(Widget, XtPointer, XtPointer);
 void	PrintMessage(const char *cpmsg);

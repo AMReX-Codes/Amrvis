@@ -59,12 +59,12 @@ void CollectMProfStats(std::map<std::string, BLProfiler::ProfStats> &mProfStats,
                        const Array<std::string> &fNames,
                        Real runTime, int whichProc);
 
+
 // -------------------------------------------------------------------
 ProfApp::~ProfApp() {
   delete XYplotparameters;
   delete pltPaletteptr;
   delete gaPtr;
-  delete profAppStatePtr;
 
   XtDestroyWidget(wAmrVisTopLevel);
 
@@ -93,8 +93,8 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
 			 topLevelShellWidgetClass, wTopLevel,
 			 XmNwidth,	    initialWindowWidth,
 			 XmNheight,	    initialWindowHeight,
-			 XmNx,		    40,
-			 XmNy,		    300,
+			 XmNx,		    40 + placementOffsetX,
+			 XmNy,		    300 + placementOffsetY,
 			 XmNdeleteResponse, XmDO_NOTHING,
 			 NULL);
 
@@ -113,7 +113,9 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
 
   regionPicturePtr = new RegionPicture(gaPtr, profDataServicesPtr[0]);
 
-  ProfAppInit();
+  ivLowOffset = IntVect::TheZeroVector();
+
+  ProfAppInit(false);
 
 ////profDataServicesPtr[0]->WriteSummary(cout, false, 0, false);
 //BLProfilerUtils::WriteHeader(cout, 10, 16, true);
@@ -164,7 +166,103 @@ if(regionTimeRanges.size() > 0) {
 
 
 // -------------------------------------------------------------------
-void ProfApp::ProfAppInit() {
+ProfApp::ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
+	         const amrex::IntVect &offset,
+	         ProfApp *profparent, const string &palfile,
+		 const string &filename)
+  : wTopLevel(w),
+    appContext(app),
+    fileName(filename),
+    palFilename(palfile),
+    currentScale(profparent->currentScale),
+    maxAllowableScale(profparent->maxAllowableScale)
+{
+  fileNames.resize(1);
+  fileNames[0] = fileName;
+  profDataServicesPtr = profparent->profDataServicesPtr;
+
+  std::ostringstream headerout;
+  headerout << AVGlobals::StripSlashes(fileNames[0]) << "   s:  bbbbbbbbbb!!!!";
+
+  // Set the delete response to DO_NOTHING so that it can be app defined.
+  wAmrVisTopLevel = XtVaCreatePopupShell(headerout.str().c_str(), 
+			 topLevelShellWidgetClass, wTopLevel,
+			 XmNwidth,	    initialWindowWidth,
+			 XmNheight,	    initialWindowHeight,
+			 XmNx,		    40 + placementOffsetX,
+			 XmNy,		    300 + placementOffsetY,
+			 XmNdeleteResponse, XmDO_NOTHING,
+			 NULL);
+
+  gaPtr = new GraphicsAttributes(wAmrVisTopLevel);
+  display = gaPtr->PDisplay();
+  xgc = gaPtr->PGC();
+  if(gaPtr->PVisual() != XDefaultVisual(display, gaPtr->PScreenNumber())) {
+    XtVaSetValues(wAmrVisTopLevel, XmNvisual, gaPtr->PVisual(),
+		  XmNdepth, gaPtr->PDepth(), NULL);
+  }
+
+  headerout.str(std::string());
+  headerout << AVGlobals::StripSlashes(fileNames[0]) << "   s:  aaaaaaaaaaaaaaaa!!!!";
+  XtVaSetValues(wAmrVisTopLevel, XmNtitle, const_cast<char *>(headerout.str().c_str()),
+		NULL);
+
+  regionPicturePtr = new RegionPicture(gaPtr, region, this);
+
+  ivLowOffset = IntVect::TheZeroVector();
+
+  ProfAppInit(true);
+
+////profDataServicesPtr[0]->WriteSummary(cout, false, 0, false);
+//BLProfilerUtils::WriteHeader(cout, 10, 16, true);
+
+/*
+std::string regionsFileName("pltRegions");
+dspArray.resize(1);
+dspArray[0] = new DataServices(regionsFileName, Amrvis::NEWPLT);
+PltApp *temp = new PltApp(app, wTopLevel, regionsFileName, dspArray, false);
+pltAppList.push_back(temp);
+
+const amrex::Array<amrex::Array<amrex::Array<BLProfStats::TimeRange> > > &regionTimeRanges =
+        profDataServicesPtr[0]->GetRegionsProfStats().GetRegionTimeRanges();
+if(profDataServicesPtr[0]->RegionDataAvailable()) {
+cout << "regionTimeRanges:  size = " << regionTimeRanges.size() << endl;
+if(regionTimeRanges.size() > 0) {
+  for(int p(0); p < regionTimeRanges.size(); ++p) {
+  for(int rnum(0); rnum < regionTimeRanges[p].size(); ++rnum) {
+    for(int r(0); r < regionTimeRanges[p][rnum].size(); ++r) {
+    //cout << "regionTimeRanges[" << p << "]][" << rnum << "][" << r << "] = "
+         //<< regionTimeRanges[p][rnum][r] << endl;
+    }
+  }
+  }
+  }
+} else {
+  cout << "region data not available." << endl;
+}
+*/
+
+  Array<std::string> funcs;
+  std::ostringstream ossSummary;
+  profDataServicesPtr[0]->WriteSummary(ossSummary, false, 0, false);
+  size_t startPos(0), endPos(0);
+  const std::string &ossString = ossSummary.str();
+  while(startPos < ossString.length() - 1) {
+    endPos = ossString.find('\n', startPos);
+    std::string sLine(ossString.substr(startPos, endPos - startPos));
+    startPos = endPos + 1;
+    funcs.push_back(sLine);
+  }
+  GenerateFuncList(funcs);
+
+
+  pltPaletteptr->DrawPalette(-2, regNames.size() - 3, "%8.2f");
+  regionPicturePtr->APDraw(0,0);
+}
+
+
+// -------------------------------------------------------------------
+void ProfApp::ProfAppInit(bool bSubregion) {
   int np;
 
   currentScale = 1;
@@ -177,6 +275,9 @@ void ProfApp::ProfAppInit() {
   for(np = 0; np != BL_SPACEDIM; ++np) {
     XYplotwin[np] = NULL; // No 1D plot windows initially.
   }
+
+  placementOffsetX += 20;
+  placementOffsetY += 20;
 
   servingButton = 0;
 
@@ -228,6 +329,18 @@ void ProfApp::ProfAppInit() {
   wMenuPulldown = XmCreatePulldownMenu(wMenuBar, const_cast<String> ("Filepulldown"), NULL, 0);
   XtVaCreateManagedWidget("File", xmCascadeButtonWidgetClass, wMenuBar,
 			  XmNmnemonic, 'F', XmNsubMenuId, wMenuPulldown, NULL);
+
+  // To look at a subregion of the plot
+  label_str = XmStringCreateSimple(const_cast<char *>("Ctrl+S"));
+  wid =
+    XtVaCreateManagedWidget("Subregion...",
+                            xmPushButtonGadgetClass, wMenuPulldown,
+                            XmNmnemonic, 'S',
+                            XmNaccelerator, "Ctrl<Key>S",
+                            XmNacceleratorText, label_str,
+                            NULL);
+  XmStringFree(label_str);
+  AddStaticCallback(wid, XmNactivateCallback, &ProfApp::DoSubregion);
 
   // To change the palette
   wid = XtVaCreateManagedWidget("Palette...", xmPushButtonGadgetClass,
@@ -512,7 +625,8 @@ void ProfApp::ProfAppInit() {
   XtManageChild(wPlotArea);
   XtPopup(wAmrVisTopLevel, XtGrabNone);
 
-std::string palFilename("Palette");
+//std::string palFilename("Palette");
+cout << "AVGlobals::GetPaletteName() = " << AVGlobals::GetPaletteName() << endl;
   pltPaletteptr->SetWindow(XtWindow(wPalArea));
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPalArea), false);
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotArea), false);
@@ -540,9 +654,10 @@ std::string palFilename("Palette");
   }
   pltPaletteptr->SetRegionNames(regNames);
 
+
   interfaceReady = true;
 
-}  // end ProfAppInit()
+}
 
 
 // -------------------------------------------------------------------
@@ -929,11 +1044,13 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
   int imageWidth(regionPicturePtr->ImageSizeH() - 1);
   int oldX(max(0, min(imageWidth,  cbs->event->xbutton.x)));
   int oldY(max(0, min(imageHeight, cbs->event->xbutton.y)));
+  int saveOldX(oldX), saveOldY(oldY);  // ---- for click with control down
   int rootX, rootY;
   unsigned int inputMask;
   Window whichRoot, whichChild;
   bool bShiftDown(cbs->event->xbutton.state & ShiftMask);
   bool bControlDown(cbs->event->xbutton.state & ControlMask);
+  bControlDown = true;
 
   servingButton = cbs->event->xbutton.button;
 
@@ -970,9 +1087,6 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
           XDrawRectangle(display, regionPicturePtr->PictureWindow(),
                          rbgc, rStartX, rStartY, rWidth, rHeight);
         }
-
-        //DoDrawPointerLocation(None, (XtPointer) static_cast<long>(V), &nextEvent);
-
 
         while(XCheckTypedEvent(display, MotionNotify, &nextEvent)) {
           ;  // do nothing
@@ -1020,8 +1134,6 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
           endY   = imageHeight / scale;
         }
 
-        // make "aligned" box with correct size, converted to AMR space.
-amrex::Box selectionBox;
         selectionBox.setSmall(Amrvis::XDIR, min(startX, endX));
         selectionBox.setSmall(Amrvis::YDIR, ((imageHeight + 1) / scale) -
                                      max(startY, endY) - 1);
@@ -1029,7 +1141,8 @@ amrex::Box selectionBox;
         selectionBox.setBig(Amrvis::YDIR, ((imageHeight + 1) / scale)  -
                                      min(startY, endY) - 1);
 
-        if(anchorX == nextEvent.xbutton.x && anchorY == nextEvent.xbutton.y) {
+        //if(anchorX == nextEvent.xbutton.x && anchorY == nextEvent.xbutton.y) {
+        if(saveOldX == nextEvent.xbutton.x && saveOldY == nextEvent.xbutton.y) {
           // data at click
 
 /*
@@ -1373,6 +1486,21 @@ void ProfApp::ChangeScale(Widget w, XtPointer client_data, XtPointer) {
 
 
 // -------------------------------------------------------------------
+void ProfApp::DoSubregion(Widget, XtPointer, XtPointer) {
+cout << "_in ProfApp::DoSubregion:  selectionBox = " << selectionBox << endl;
+  if(selectionBox.bigEnd(Amrvis::XDIR) == 0 || selectionBox.bigEnd(Amrvis::YDIR) == 0) {
+    return;
+  }
+  Box subregionBox(selectionBox + ivLowOffset);
+  IntVect ivOffset(subregionBox.smallEnd());
+
+  SubregionProfApp(wTopLevel, subregionBox, ivOffset,
+                   this, palFilename, fileName);
+
+}
+
+
+// -------------------------------------------------------------------
 void ProfApp::AddStaticCallback(Widget w, String cbtype, profMemberCB cbf, void *d) {
   CBData *cbs = new CBData(this, d, cbf);
 
@@ -1443,6 +1571,8 @@ void ProfApp::StaticTimeOut(XtPointer client_data, XtIntervalId * call_data) {
 // -------------------------------------------------------------------
 int  ProfApp::initialWindowHeight;
 int  ProfApp::initialWindowWidth;
+int  ProfApp::placementOffsetX = 0;
+int  ProfApp::placementOffsetY = 0;
 
 const string &ProfApp::GetFileName()  { return (fileNames[0]); }
 
