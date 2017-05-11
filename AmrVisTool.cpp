@@ -680,6 +680,7 @@ void SubregionPltApp(Widget wTopLevel, const amrex::Box &trueRegion,
 }
 
 
+#ifdef AV_PROFDATA
 // ---------------------------------------------------------------
 void SubregionProfApp(Widget wTopLevel, const amrex::Box &trueRegion,
 		      const amrex::IntVect &offset,
@@ -699,6 +700,7 @@ void SubregionProfApp(Widget wTopLevel, const amrex::Box &trueRegion,
     //}
   }
 }
+#endif
 
 
 // ---------------------------------------------------------------
