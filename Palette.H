@@ -17,11 +17,10 @@ using std::string;
 using amrex::Real;
 
 namespace AVPalette {
-const int PALLISTLENGTH   = 8;
-const int PALWIDTH        = 24;
-const int TEXTCOLOR       = 224;
-const int TOTALPALHEIGHT  = 280;
-const int TOTALPALWIDTH   = 150;
+  const int PALLISTLENGTH   = 8;
+  const int PALWIDTH        = 24;
+  const int TOTALPALHEIGHT  = 280;
+  const int TOTALPALWIDTH   = 150;
 }
 
 #include <X11/Intrinsic.h>
@@ -29,9 +28,10 @@ const int TOTALPALWIDTH   = 150;
 class GraphicsAttributes;
 
 
-enum PaletteType { AV_PAL_ALPHA, AV_PAL_NON_ALPHA };
 
 class Palette {
+
+  enum PaletteType { AV_PAL_ALPHA, AV_PAL_NON_ALPHA };
 
   protected:
     amrex::Array<XColor> ccells;

@@ -735,6 +735,8 @@ void PltApp::PltAppInit(bool bSubVolume) {
   if(bRegions) {
     totalPalWidth += 100;
   }
+  totalPalWidth += extraPaletteWidth;
+
   pltPaletteptr = new Palette(wTopLevel, palListLength, palWidth,
 			      totalPalWidth, totalPalHeight,
 			      reserveSystemColors);
@@ -4727,6 +4729,7 @@ int  PltApp::initialWindowWidth;
 int  PltApp::placementOffsetX    = 0;
 int  PltApp::placementOffsetY    = 0;
 int  PltApp::reserveSystemColors = 50;
+int  PltApp::extraPaletteWidth = 0;
 string PltApp::defaultPaletteString;
 string PltApp::defaultLightingFilename;
 string PltApp::initialDerived;
@@ -4777,6 +4780,11 @@ void PltApp::SetInitialWindowWidth(int initWindowWidth) {
 void PltApp::SetReserveSystemColors(int reservesystemcolors) {
   reservesystemcolors = max(0, min(128, reservesystemcolors));  // arbitrarily
   PltApp::reserveSystemColors = reservesystemcolors;
+}
+
+void PltApp::SetExtraPaletteWidth(int extrapalettewidth) {
+  extrapalettewidth = max(0, min(256, extrapalettewidth));  // arbitrarily
+  PltApp::extraPaletteWidth = extrapalettewidth;
 }
 
 // -------------------------------------------------------------------

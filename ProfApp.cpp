@@ -209,7 +209,7 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
 
   regionPicturePtr = new RegionPicture(gaPtr, region, this);
 
-  ivLowOffset = IntVect::TheZeroVector();
+  ivLowOffset = offset;
 
   ProfAppInit(true);
 
@@ -292,6 +292,8 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   if(bRegions) {
     totalPalWidth += 100;
   }
+  totalPalWidth += PltApp::GetExtraPaletteWidth();
+
   pltPaletteptr = new Palette(wTopLevel, palListLength, palWidth,
                               totalPalWidth, totalPalHeight,
                               reserveSystemColors);

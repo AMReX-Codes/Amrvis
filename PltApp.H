@@ -37,6 +37,7 @@ class XYPlotWin;
 //class XYPlotDataList;
 
 
+namespace {
 // plane sweep widget controls (WC)
 const int WCSTOP = 0;
 const int WCXNEG = 1;
@@ -59,9 +60,13 @@ const int NFRAMES = 19;
 const int OXY(0);
 const int OYZ(1);
 const int OXZ(2);
+};
+
 
 class PltApp;
 typedef void (PltApp::*memberCB)(Widget, XtPointer, XtPointer);
+
+
 
 class PltApp {
     
@@ -95,6 +100,8 @@ public:
   static void SetInitialWindowHeight(int initWindowHeight);
   static void SetInitialWindowWidth(int initWindowWidth);
   static void SetReserveSystemColors(int reservesystemcolors);
+  static void SetExtraPaletteWidth(int extrapalettewidth);
+  static int  GetExtraPaletteWidth() { return extraPaletteWidth; }
   
   Widget WId()                     { return wAmrVisTopLevel; }
   void SetNewFormatString(const string &newformatstring);
@@ -235,6 +242,7 @@ private:
   static int initialScale, initialWindowHeight, initialWindowWidth;
   static int defaultShowBoxes, placementOffsetX, placementOffsetY;
   static int reserveSystemColors;
+  static int extraPaletteWidth;
   
 #if (BL_SPACEDIM==3)
   int acc, labelAxes, transDetached;

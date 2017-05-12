@@ -689,7 +689,7 @@ void SubregionProfApp(Widget wTopLevel, const amrex::Box &trueRegion,
 {
   ProfApp *temp = new ProfApp(app, wTopLevel, trueRegion, offset,
 		              profparent, palfile, file);
-  cout << "_in SubregionProfApp:  temp = " << temp << endl;
+  cout << "_in SubregionProfApp:  offset = " << offset << endl;
   if(temp == NULL) {
     cerr << "Error in SubregionProfApp:  could not make a new ProfApp." << endl;
   } else {

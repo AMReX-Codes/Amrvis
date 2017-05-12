@@ -362,6 +362,10 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
         sscanf(buffer, "%s%d", defaultString, &tempInt);
         PltApp::SetReserveSystemColors(tempInt);
       }
+      else if(strcmp(defaultString, "extrapalettewidth") == 0) {
+        sscanf(buffer, "%s%d", defaultString, &tempInt);
+        PltApp::SetExtraPaletteWidth(tempInt);
+      }
       else if(strcmp(defaultString, "showboxes") == 0) {
         sscanf(buffer, "%s%s", defaultString, tempString);
         if(*tempString == 't' || *tempString == 'T') {
