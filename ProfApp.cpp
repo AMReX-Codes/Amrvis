@@ -59,6 +59,9 @@ void CollectMProfStats(std::map<std::string, BLProfiler::ProfStats> &mProfStats,
                        const Array<std::string> &fNames,
                        Real runTime, int whichProc);
 
+const std::string labelTime(" time");
+const std::string labelRegion("region");
+
 
 // -------------------------------------------------------------------
 ProfApp::~ProfApp() {
@@ -114,8 +117,10 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
   regionPicturePtr = new RegionPicture(gaPtr, profDataServicesPtr[0]);
 
   ivLowOffset = IntVect::TheZeroVector();
+  domainBox = regionPicturePtr->DomainBox();
 
   ProfAppInit(false);
+
 
 ////profDataServicesPtr[0]->WriteSummary(cout, false, 0, false);
 //BLProfilerUtils::WriteHeader(cout, 10, 16, true);
@@ -174,6 +179,7 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
     appContext(app),
     fileName(filename),
     palFilename(palfile),
+    domainBox(profparent->domainBox),
     currentScale(profparent->currentScale),
     maxAllowableScale(profparent->maxAllowableScale)
 {
@@ -503,7 +509,7 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   wControls =
     XtVaCreateManagedWidget("Generate Function List", xmPushButtonWidgetClass, wControlForm,
                             //XmNx, centerX - halfbutton,
-                            XmNy, 64,
+                            XmNy, 80,
                             XmCMarginBottom, 2,
                             NULL);
 
@@ -656,6 +662,15 @@ cout << "AVGlobals::GetPaletteName() = " << AVGlobals::GetPaletteName() << endl;
   }
   pltPaletteptr->SetRegionNames(regNames);
 
+  subdomainBox = regionPicturePtr->DomainBox();
+
+  axisLengthX = 138;
+  axisLengthY = 32;
+  Real dLength(domainBox.length(0));
+  Real sdXL(subdomainBox.smallEnd(0));
+  Real sdXH(subdomainBox.bigEnd(0));
+  sdLineXL = domainBox.smallEnd(0) + ((int)(axisLengthX * sdXL / dLength));
+  sdLineXH = domainBox.smallEnd(0) + ((int)(axisLengthX * sdXH / dLength));
 
   interfaceReady = true;
 
@@ -931,25 +946,25 @@ void ProfApp::DoExposePicture(Widget w, XtPointer, XtPointer) {
 void ProfApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   int xpos(10), ypos(15);
   int color(pltPaletteptr->WhiteIndex());
-  char sX[Amrvis::LINELENGTH];
-  strcpy(sX, "X");
 
   XClearWindow(display, XtWindow(wControlForm));
 
-
-  int axisLength(20);
-  char hLabel[Amrvis::LINELENGTH], vLabel[Amrvis::LINELENGTH];
-  strcpy(hLabel, "uuu");
-  strcpy(vLabel, "ddd");
   XSetForeground(XtDisplay(wControlForm), xgc, pltPaletteptr->makePixel(color));
   XDrawLine(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
-            xpos+5, ypos, xpos+5, ypos+axisLength);
+            xpos+5, ypos+5, xpos+5, ypos+axisLengthY);
   XDrawLine(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
-            xpos+5, ypos+axisLength, xpos+5+axisLength, ypos+axisLength);
+            xpos+5, ypos+axisLengthY, xpos+5+axisLengthX, ypos+axisLengthY);
   XDrawString(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
-              xpos+5+axisLength, ypos+5+axisLength, hLabel, strlen(hLabel));
+              xpos+5+axisLengthX, ypos+5+axisLengthY, labelTime.c_str(), labelTime.length());
   XDrawString(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
-              xpos, ypos, vLabel, strlen(vLabel));
+              xpos+5, ypos, labelRegion.c_str(), labelRegion.length());
+
+  // ---- lines indicating subregion
+  XDrawLine(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
+            xpos+5+sdLineXL, ypos+axisLengthY, xpos+5+sdLineXL, ypos+axisLengthY+8);
+  XDrawLine(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
+            xpos+5+sdLineXH, ypos+axisLengthY, xpos+5+sdLineXH, ypos+axisLengthY+8);
+
 }
 
 

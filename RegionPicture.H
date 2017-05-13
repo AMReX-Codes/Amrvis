@@ -44,6 +44,7 @@ class RegionPicture {
   void	APChangeScale(int newScale, int previousScale);
   XImage *GetPictureXImage();
   void	APChangeSlice(int here);
+  amrex::Box DomainBox() { return subRegion; }
   
   unsigned int ImageSizeH() const { return imageSizeH; }
   unsigned int ImageSizeV() const { return imageSizeV; }

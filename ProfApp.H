@@ -108,7 +108,7 @@ private:
   int servingButton;
   string fileName, palFilename, headerSuffix;
   char buffer[BUFSIZ];
-  amrex::Box selectionBox;
+  amrex::Box selectionBox, domainBox, subdomainBox;
   GraphicsAttributes	*gaPtr;
   amrex::Array<ProfDataServices *> profDataServicesPtr;
   amrex::Array<string> fileNames;
@@ -121,6 +121,7 @@ private:
   map<int, string> regNames;
   int currentScale, maxAllowableScale;
   int startX, startY, endX, endY;
+  int sdLineXL, sdLineXH, axisLengthX, axisLengthY;
     
   // baggage for fast rubber banding
   GC            rbgc;

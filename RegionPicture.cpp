@@ -174,10 +174,8 @@ void RegionPicture::APMakeImages(Palette *palptr) {
   FArrayBox tempSliceFab;
 
   profDataServicesPtr->GetRegionsProfStats().MakeRegionPlt(tempSliceFab, 0,
-                                      //dataSizeH, dataSizeV / (nRegions + 1));
                                       allDataSizeH, allDataSizeV / (nRegions + 1));
 
-/*
 Array<Array<BLProfStats::TimeRange>> rtr;
 profDataServicesPtr->GetRegionsProfStats().FillRegionTimeRanges(rtr, 0);
 for(int r(0); r < rtr.size(); ++r) {
@@ -185,7 +183,6 @@ for(int r(0); r < rtr.size(); ++r) {
     cout << "rtr[" << r << "][" << t << "] = " << rtr[r][t] << endl;
   }
 }
-*/
 
 
 
