@@ -12,6 +12,7 @@
 #include <GlobalUtilities.H>
 #include <AMReX_Array.H>
 #include <AMReX_FArrayBox.H>
+#include <BLProfStats.H>
 
 #include <string>
 using std::string;
@@ -45,6 +46,7 @@ class RegionPicture {
   XImage *GetPictureXImage();
   void	APChangeSlice(int here);
   amrex::Box DomainBox() { return subRegion; }
+  const BLProfStats::TimeRange &CalcTimeRange() const { return calcTimeRange; }
   
   unsigned int ImageSizeH() const { return imageSizeH; }
   unsigned int ImageSizeV() const { return imageSizeV; }
@@ -78,6 +80,7 @@ class RegionPicture {
   int currentScale;
   int                   regionX, regionY, region2ndX, region2ndY;
   int                   subcutX, subcutY, subcut2ndX, subcut2ndY;
+  BLProfStats::TimeRange calcTimeRange;
   
   
   // private functions

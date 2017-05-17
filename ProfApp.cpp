@@ -114,6 +114,13 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
   XtVaSetValues(wAmrVisTopLevel, XmNtitle, const_cast<char *>(headerout.str().c_str()),
 		NULL);
 
+  profDataServicesPtr[0]->GetRegionsProfStats().FillRegionTimeRanges(rtr, 0);
+  for(int r(0); r < rtr.size(); ++r) {
+    for(int t(0); t < rtr[r].size(); ++t) {
+      cout << "rtr[" << r << "][" << t << "] = " << rtr[r][t] << endl;
+    }
+  }
+
   regionPicturePtr = new RegionPicture(gaPtr, profDataServicesPtr[0]);
 
   ivLowOffset = IntVect::TheZeroVector();
@@ -186,6 +193,14 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
   fileNames.resize(1);
   fileNames[0] = fileName;
   profDataServicesPtr = profparent->profDataServicesPtr;
+
+  cout << "----------------- rtr:" << endl;
+  rtr = profparent->rtr;
+  for(int r(0); r < rtr.size(); ++r) {
+    for(int t(0); t < rtr[r].size(); ++t) {
+      cout << "rtr[" << r << "][" << t << "] = " << rtr[r][t] << endl;
+    }
+  }
 
   std::ostringstream headerout;
   headerout << AVGlobals::StripSlashes(fileNames[0]) << "   s:  bbbbbbbbbb!!!!";
@@ -1176,7 +1191,8 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
 */
 
           std::ostringstream buffout;
-buffout << "click!" << endl;
+buffout << "click at " << saveOldX << "  " << saveOldY << "  !" << endl;
+buffout << "regionPicturePtr->CalcTimeRange = " << regionPicturePtr->CalcTimeRange() << endl;
 /*
           if(goodIntersect) {
             buffout << '\n';

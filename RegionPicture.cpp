@@ -173,29 +173,21 @@ void RegionPicture::APMakeImages(Palette *palptr) {
 
   FArrayBox tempSliceFab;
 
-  profDataServicesPtr->GetRegionsProfStats().MakeRegionPlt(tempSliceFab, 0,
-                                      allDataSizeH, allDataSizeV / (nRegions + 1));
-
-Array<Array<BLProfStats::TimeRange>> rtr;
-profDataServicesPtr->GetRegionsProfStats().FillRegionTimeRanges(rtr, 0);
-for(int r(0); r < rtr.size(); ++r) {
-  for(int t(0); t < rtr[r].size(); ++t) {
-    cout << "rtr[" << r << "][" << t << "] = " << rtr[r][t] << endl;
-  }
-}
+  calcTimeRange = profDataServicesPtr->GetRegionsProfStats().MakeRegionPlt(tempSliceFab, 0,
+                                          allDataSizeH, allDataSizeV / (nRegions + 1));
 
 
-
+  cout << "calcTimeRange = " << calcTimeRange << endl;
   cout << "btbtbtbt:  tempSliceFab.box() = " << tempSliceFab.box() << endl;
 
   tempSliceFab.shift(Amrvis::YDIR, regionBaseHeight);  // ---- for ati
+  sliceFab->setVal(tempSliceFab.min(0) - 1.0);
   sliceFab->copy(tempSliceFab);
-  //Real minUsing(sliceFab->min(0)), maxUsing(sliceFab->max(0));
   Real minUsing(tempSliceFab.min(0)), maxUsing(tempSliceFab.max(0));
 
-std::ofstream tfout("sliceFab.fab");
-sliceFab->writeOn(tfout);
-tfout.close();
+//std::ofstream tfout("sliceFab.fab");
+//sliceFab->writeOn(tfout);
+//tfout.close();
 
   cout << "tttttttt:  tempSliceFab.box() = " << tempSliceFab.box() << endl;
   cout << "ssssssss:  sliceFab->box() = " << sliceFab->box() << endl;

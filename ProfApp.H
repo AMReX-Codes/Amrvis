@@ -13,6 +13,7 @@
 #include <AMReX_AmrvisConstants.H>
 #include <AMReX_DataServices.H>
 #include <GlobalUtilities.H>
+#include <BLProfStats.H>
 
 #include <vector>
 #include <string>
@@ -122,6 +123,7 @@ private:
   int currentScale, maxAllowableScale;
   int startX, startY, endX, endY;
   int sdLineXL, sdLineXH, axisLengthX, axisLengthY;
+  amrex::Array<amrex::Array<BLProfStats::TimeRange>> rtr;
     
   // baggage for fast rubber banding
   GC            rbgc;
