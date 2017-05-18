@@ -61,10 +61,9 @@ public:
   amrex::Array<ProfDataServices *> &GetProfDataServicesPtrArray() { return profDataServicesPtr; }
   amrex::DataServices *GetDataServicesPtr() { return dspArray[0]; }
   amrex::Array<amrex::DataServices *> &GetDataServicesPtrArray() { return dspArray; }
-  XtAppContext GetAppContext()     { return appContext;    }
+  XtAppContext GetAppContext()     { return appContext; }
   GraphicsAttributes *GetGAptr() const  { return gaPtr; }
-  int GetCurrentScale() const        { return currentScale;    }
-
+  int GetCurrentScale() const      { return currentScale; }
   const string &GetFileName();
   
   amrex::XYPlotDataList *CreateLinePlot(int V, int sdir, int mal, int ixY,
@@ -159,12 +158,12 @@ private:
 };
 
 
-void    SubregionProfApp(Widget toplevel, const amrex::Box &region,
-                         const amrex::IntVect &offset,
-                         ProfApp *pltparent, const string &palfile,
-                         const string &filename);
-void	CBQuitProfApp(Widget, XtPointer, XtPointer);
-void	CBQuitAll(Widget, XtPointer, XtPointer);
-void	PrintMessage(const char *cpmsg);
+void SubregionProfApp(Widget toplevel, const amrex::Box &region,
+                      const amrex::IntVect &offset,
+                      ProfApp *pltparent, const string &palfile,
+                      const string &filename);
+void CBQuitProfApp(Widget, XtPointer, XtPointer);
+void CBQuitAll(Widget, XtPointer, XtPointer);
+void PrintMessage(const char *cpmsg);
 
 #endif

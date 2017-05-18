@@ -1173,55 +1173,24 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
         selectionBox.setBig(Amrvis::YDIR, ((imageHeight + 1) / scale)  -
                                      min(startY, endY) - 1);
 
-        //if(anchorX == nextEvent.xbutton.x && anchorY == nextEvent.xbutton.y) {
         if(saveOldX == nextEvent.xbutton.x && saveOldY == nextEvent.xbutton.y) {
-          // data at click
-
-/*
-          Real dataValue;
-          char dataValueCharString[Amrvis::LINELENGTH];
-          sprintf(dataValueCharString, pltAppState->GetFormatString().c_str(),
-                  dataValue);
-          string dataValueString(dataValueCharString);
-          dataValueString = "no data";
-
-          //if(bRegions) {
-            //dataValueString = GetRegionName(dataValue);
-          //}
-*/
-
+          // ---- data at click
+	  int dpX((saveOldX / scale) + ivLowOffset[Amrvis::XDIR]);
+	  int dpY((imageHeight - 1 - saveOldY) / scale);
+	  bool outOfRange;
           std::ostringstream buffout;
-buffout << "click at " << saveOldX << "  " << saveOldY << "  !" << endl;
-buffout << "regionPicturePtr->CalcTimeRange = " << regionPicturePtr->CalcTimeRange() << endl;
-/*
-          if(goodIntersect) {
-            buffout << '\n';
-            buffout << "point = " << trueRegion[intersectedLevel].smallEnd()
-                    << '\n';
-            buffout << "grid  = " << intersectedGrid << '\n';
-            buffout << "loc   = (";
-            for(int idx = 0; idx != BL_SPACEDIM; ++idx) {
-              if(idx != 0) {
-                buffout << ", ";
-              }
-              double dLoc = gridOffset[idx] +
-                           (0.5 + trueRegion[mal].smallEnd()[idx]) *
-                           amrData.DxLevel()[mal][idx];
-              char dLocStr[Amrvis::LINELENGTH];
-              sprintf(dLocStr, pltAppState->GetFormatString().c_str(), dLoc);
-              buffout << dLocStr;
-            }
-            buffout << ")\n";
-            buffout << "value = " << dataValueString << '\n';
-          } else {
-            buffout << "Bad point at mouse click" << '\n';
-          }
-*/
+          buffout << "click at " << saveOldX << "  " << saveOldY << "  !" << endl;
+          buffout << "dpX dpY = " << dpX << "  " << dpY << endl;
+          buffout << "ivLowOffset = " << ivLowOffset << endl;
+          buffout << "regionPicturePtr->CalcTimeRange = "
+	          << regionPicturePtr->CalcTimeRange() << endl;
+          buffout << "regionPicturePtr->DataValue() = "
+                  << regionPicturePtr->DataValue(dpX, dpY, outOfRange) << endl;
 
           PrintMessage(const_cast<char *>(buffout.str().c_str()));
 
         } else {
-          // tell the regionpicture about the box
+          // ---- tell the regionpicture about the box
           if(startX < endX) { // box in scaled pixmap space
             startX = selectionBox.smallEnd(Amrvis::XDIR) * scale;
             endX   = selectionBox.bigEnd(Amrvis::XDIR)   * scale;
@@ -1244,7 +1213,6 @@ buffout << "regionPicturePtr->CalcTimeRange = " << regionPicturePtr->CalcTimeRan
 
           regionPicturePtr->SetRegion(startX, startY, endX, endY);
           regionPicturePtr->DoExposePicture();
-
         }
         return;
       }

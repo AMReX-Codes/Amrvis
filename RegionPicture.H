@@ -47,6 +47,7 @@ class RegionPicture {
   void	APChangeSlice(int here);
   amrex::Box DomainBox() { return subRegion; }
   const BLProfStats::TimeRange &CalcTimeRange() const { return calcTimeRange; }
+  Real DataValue(int i, int j, bool &outOfRange);
   
   unsigned int ImageSizeH() const { return imageSizeH; }
   unsigned int ImageSizeV() const { return imageSizeV; }
@@ -55,35 +56,32 @@ class RegionPicture {
   Window PictureWindow()          { return pictureWindow; }
 
  private:
-  Window 		pictureWindow;
+  Window         pictureWindow;
+  GraphicsAttributes *gaPtr;
+  Display *display;
+  GC  xgc;
+  Pixmap 	 pixMap;
+  XImage *xImage, *atiXImage;
   unsigned long  dataSize, dataSizeH, dataSizeV;
   unsigned long  atiDataSize, atiDataSizeH, atiDataSizeV;
-  unsigned int   	imageSize, imageSizeH, imageSizeV;
-  unsigned int   	atiImageSize, atiImageSizeH, atiImageSizeV;
-  Pixmap 		pixMap;
-  Palette		*palPtr;
+  unsigned int   imageSize, imageSizeH, imageSizeV;
+  unsigned int   atiImageSize, atiImageSizeH, atiImageSizeV;
+  Palette	*palPtr;
   amrex::FArrayBox *sliceFab;
   amrex::Box subRegion;
   unsigned char *imageData;
   unsigned char *scaledImageData;
   unsigned char *atiImageData;
   unsigned char *scaledATIImageData;
-  XImage *xImage, *atiXImage;
-  bool           xImageCreated;
-  GraphicsAttributes	*gaPtr;
-  ProfDataServices	*profDataServicesPtr;
-  Display		*display;
-  GC			xgc;
-  int			hLine, vLine;
-  int			hColor, vColor, myColor;
-  bool                  pixMapCreated;
+  bool xImageCreated;
+  ProfDataServices   *profDataServicesPtr;
+  int hLine, vLine, hColor, vColor, myColor;
+  bool pixMapCreated;
   int currentScale;
-  int                   regionX, regionY, region2ndX, region2ndY;
-  int                   subcutX, subcutY, subcut2ndX, subcut2ndY;
+  int regionX, regionY, region2ndX, region2ndY;
+  int subcutX, subcutY, subcut2ndX, subcut2ndY;
   BLProfStats::TimeRange calcTimeRange;
   
-  
-  // private functions
   void SetSlice(int view, int here);
   void CoarsenSliceBox();
   void ShowFrameImage(int iSlice);

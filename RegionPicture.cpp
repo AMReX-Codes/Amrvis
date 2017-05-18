@@ -176,7 +176,6 @@ void RegionPicture::APMakeImages(Palette *palptr) {
   calcTimeRange = profDataServicesPtr->GetRegionsProfStats().MakeRegionPlt(tempSliceFab, 0,
                                           allDataSizeH, allDataSizeV / (nRegions + 1));
 
-
   cout << "calcTimeRange = " << calcTimeRange << endl;
   cout << "btbtbtbt:  tempSliceFab.box() = " << tempSliceFab.box() << endl;
 
@@ -221,7 +220,7 @@ void RegionPicture::APMakeImages(Palette *palptr) {
 
 
 // -------------------------------------------------------------------
-// convert Real to char in imagedata from fab
+// ---- convert Real to char in imagedata from fab
 void RegionPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
 			        int datasizeh, int datasizev,
 			        Real globalMin, Real globalMax, Palette *palptr)
@@ -237,33 +236,33 @@ void RegionPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
   const Real *dataPoint = fab.dataPtr();
 
   // flips the image in Vert dir: j => datasizev-j-1
-    Real dPoint;
-    int paletteStart(palptr->PaletteStart());
-    int paletteEnd(palptr->PaletteEnd());
-    int colorSlots(palptr->ColorSlots());
-    int csm1(colorSlots - 1);
-      for(int j(0); j < datasizev; ++j) {
-        jdsh = j * datasizeh;
-        jtmp1 = (datasizev-j-1) * datasizeh;
-        for(int i(0); i < datasizeh; ++i) {
-          dIndex = i + jtmp1;
-          dPoint = dataPoint[dIndex];
-	  if(dIndex >= fab.nPts()) {
-	    cout << "**** dIndex fab.nPts() = " << dIndex << "  " << fab.nPts() << endl;
-	  }
-          iIndex = i + jdsh;
-          if(dPoint > globalMax) {  // clip
-            imagedata[iIndex] = paletteEnd;
-          } else if(dPoint < globalMin) {  // clip
-            imagedata[iIndex] = paletteStart;
-          } else {
-            imagedata[iIndex] = (unsigned char)
+  Real dPoint;
+  int paletteStart(palptr->PaletteStart());
+  int paletteEnd(palptr->PaletteEnd());
+  int colorSlots(palptr->ColorSlots());
+  int csm1(colorSlots - 1);
+  for(int j(0); j < datasizev; ++j) {
+    jdsh = j * datasizeh;
+    jtmp1 = (datasizev-j-1) * datasizeh;
+    for(int i(0); i < datasizeh; ++i) {
+      dIndex = i + jtmp1;
+      dPoint = dataPoint[dIndex];
+      if(dIndex >= fab.nPts()) {
+	cout << "**** dIndex fab.nPts() = " << dIndex << "  " << fab.nPts() << endl;
+      }
+      iIndex = i + jdsh;
+      if(dPoint > globalMax) {  // clip
+        imagedata[iIndex] = paletteEnd;
+      } else if(dPoint < globalMin) {  // clip
+        imagedata[iIndex] = paletteStart;
+      } else {
+        imagedata[iIndex] = (unsigned char)
               ((((dPoint - globalMin) * oneOverGDiff) * csm1) );
               //  ^^^^^^^^^^^^^^^^^^ Real data
-            imagedata[iIndex] += paletteStart;
-          } 
-        }
-      }
+        imagedata[iIndex] += paletteStart;
+      } 
+    }
+  }
 }
 
 
@@ -353,6 +352,21 @@ void RegionPicture::SetRegion(int startX, int startY, int endX, int endY) {
   regionY = startY;
   region2ndX = endX;
   region2ndY = endY;
+}
+
+
+// ---------------------------------------------------------------------
+Real RegionPicture::DataValue(int i, int j, bool &outOfRange) {
+  IntVect iv;
+  iv[Amrvis::XDIR] = i;
+  iv[Amrvis::YDIR] = j;
+  if(sliceFab->box().contains(iv)) {
+    outOfRange = false;
+    return (*sliceFab)(iv);
+  } else {
+    outOfRange = true;
+    return -42.0;
+  }
 }
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
