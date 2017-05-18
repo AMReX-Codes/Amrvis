@@ -648,17 +648,11 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   XtManageChild(wPlotArea);
   XtPopup(wAmrVisTopLevel, XtGrabNone);
 
-//std::string palFilename("Palette");
-cout << "AVGlobals::GetPaletteName() = " << AVGlobals::GetPaletteName() << endl;
   pltPaletteptr->SetWindow(XtWindow(wPalArea));
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPalArea), false);
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotArea), false);
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wAmrVisTopLevel), false);
-  //for(np = 0; np != Amrvis::NPLANES; ++np) {
-    //pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotPlane), false);
-    pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotPlane), false);
-  //}
-    //pltPaletteptr->RedrawPalette();
+  pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotPlane), false);
 
   
   char plottertitle[50];
@@ -670,10 +664,8 @@ cout << "AVGlobals::GetPaletteName() = " << AVGlobals::GetPaletteName() << endl;
   RegionsProfStats &rProfStats = profDataServicesPtr[0]->GetRegionsProfStats();
   regNames.insert(std::make_pair(-2, "active time intervals"));
   regNames.insert(std::make_pair(-1, "not in region"));
-  for(auto rnames : rProfStats.RegionNames()) {
-    // ---- swap map first with second
+  for(auto rnames : rProfStats.RegionNames()) {  // ---- swap map first with second
     regNames.insert(std::make_pair(rnames.second, rnames.first));
-    cout << "rnames:  " << rnames.second << "  " << rnames.first << endl;
   }
   pltPaletteptr->SetRegionNames(regNames);
 
@@ -961,6 +953,8 @@ void ProfApp::DoExposePicture(Widget w, XtPointer, XtPointer) {
 void ProfApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   int xpos(10), ypos(15);
   int color(pltPaletteptr->WhiteIndex());
+  std::ostringstream timeRangeS;
+  timeRangeS << regionPicturePtr->SubTimeRange();
 
   XClearWindow(display, XtWindow(wControlForm));
 
@@ -970,7 +964,8 @@ void ProfApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   XDrawLine(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
             xpos+5, ypos+axisLengthY, xpos+5+axisLengthX, ypos+axisLengthY);
   XDrawString(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
-              xpos+5+axisLengthX, ypos+5+axisLengthY, labelTime.c_str(), labelTime.length());
+              xpos+5+axisLengthX, ypos+5+axisLengthY, labelTime.c_str(),
+	      labelTime.length());
   XDrawString(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
               xpos+5, ypos, labelRegion.c_str(), labelRegion.length());
 
@@ -979,6 +974,9 @@ void ProfApp::DoExposeRef(Widget, XtPointer, XtPointer) {
             xpos+5+sdLineXL, ypos+axisLengthY, xpos+5+sdLineXL, ypos+axisLengthY+8);
   XDrawLine(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
             xpos+5+sdLineXH, ypos+axisLengthY, xpos+5+sdLineXH, ypos+axisLengthY+8);
+  XDrawString(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
+              xpos+5, ypos+axisLengthY+24, timeRangeS.str().c_str(),
+	      timeRangeS.str().length());
 
 }
 
@@ -1178,19 +1176,32 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
 	  int dpX((saveOldX / scale) + ivLowOffset[Amrvis::XDIR]);
 	  int dpY((imageHeight - 1 - saveOldY) / scale);
 	  bool outOfRange;
+	  Real dataValue(regionPicturePtr->DataValue(dpX, dpY, outOfRange));
+	  int dataValueIndex(static_cast<int>(dataValue));
+	  BLProfStats::TimeRange calcTimeRange(regionPicturePtr->CalcTimeRange());
+	  Real calcTime(calcTimeRange.stopTime - calcTimeRange.startTime);
+	  Real clickTime(calcTime * (static_cast<Real>(dpX) /
+	                 static_cast<Real>(domainBox.length(Amrvis::XDIR) - 1)));
+	  int rtri(FindRegionTimeRangeIndex(dataValueIndex, clickTime));
+
           std::ostringstream buffout;
           buffout << "click at " << saveOldX << "  " << saveOldY << "  !" << endl;
           buffout << "dpX dpY = " << dpX << "  " << dpY << endl;
           buffout << "ivLowOffset = " << ivLowOffset << endl;
-          buffout << "regionPicturePtr->CalcTimeRange = "
-	          << regionPicturePtr->CalcTimeRange() << endl;
-          buffout << "regionPicturePtr->DataValue() = "
-                  << regionPicturePtr->DataValue(dpX, dpY, outOfRange) << endl;
+          buffout << "calcTimeRange calcTime clickTime = "
+	          << calcTimeRange << "  " << calcTime << "  " << clickTime << endl;
+          buffout << "dataValueIndex regName rtri timerange = "
+                  << dataValueIndex << "  " << GetRegionName(dataValue) << "  "
+		  << rtri << "  ";
+	  if(rtri < 0 || rtri >= rtr[dataValueIndex].size()) {
+            buffout << "Not in a region."  << endl;
+	  } else {
+            buffout << rtr[dataValueIndex][rtri] << endl;
+	  }
 
           PrintMessage(const_cast<char *>(buffout.str().c_str()));
 
-        } else {
-          // ---- tell the regionpicture about the box
+        } else {         // ---- tell the regionpicture about the box
           if(startX < endX) { // box in scaled pixmap space
             startX = selectionBox.smallEnd(Amrvis::XDIR) * scale;
             endX   = selectionBox.bigEnd(Amrvis::XDIR)   * scale;
@@ -1488,7 +1499,6 @@ void ProfApp::ChangeScale(Widget w, XtPointer client_data, XtPointer) {
 
 // -------------------------------------------------------------------
 void ProfApp::DoSubregion(Widget, XtPointer, XtPointer) {
-cout << "_in ProfApp::DoSubregion:  selectionBox = " << selectionBox << endl;
   if(selectionBox.bigEnd(Amrvis::XDIR) == 0 || selectionBox.bigEnd(Amrvis::YDIR) == 0) {
     return;
   }
@@ -1512,6 +1522,34 @@ void ProfApp::AddStaticCallback(Widget w, String cbtype, profMemberCB cbf, void 
 
   XtAddCallback(w, cbtype, (XtCallbackProc) &ProfApp::StaticCallback,
 		(XtPointer) cbs);
+}
+
+
+// -------------------------------------------------------------------
+string ProfApp::GetRegionName(Real r) {
+  int i(r);
+  std::map<int, std::string>::iterator regIter = regNames.find(i);
+  if(regIter != regNames.end()) {
+    return(regIter->second);
+  } else {
+    return("Bad regName value.");
+  }
+}
+
+
+// -------------------------------------------------------------------
+int ProfApp::FindRegionTimeRangeIndex(int whichRegion, Real time) {
+  if(whichRegion < 0 || whichRegion >= rtr.size()) {
+    //amrex::Print() << "**** Error in ProfApp::FindRegionTimeRangeIndex:  "
+    //               << "whichRegion out of range." << endl;
+  } else {
+    for(int it(0); it < rtr[whichRegion].size(); ++it) {
+      if(rtr[whichRegion][it].Contains(time)) {
+        return it;
+      }
+    }
+  }
+  return -42;  // ---- bad index
 }
 
 

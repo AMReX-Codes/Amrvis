@@ -85,6 +85,9 @@ public:
   XYPlotParameters *GetXYPlotParameters() const { return XYplotparameters; }
   XYPlotWin *GetXYPlotWin(int dir) const { return XYplotwin[dir]; }
 
+  string GetRegionName(Real r);
+  int FindRegionTimeRangeIndex(int whichRegion, Real time);
+
 private:
   Widget wTopLevel, wAmrVisTopLevel;
   Widget wScrollArea, wPlotPlane;

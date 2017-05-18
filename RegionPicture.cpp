@@ -100,6 +100,8 @@ void RegionPicture::RegionPictureInit(const amrex::Box &regionBox) {
   cout << "subRegion = " << subRegion << endl;
   sliceFab = new FArrayBox(subRegion, 1);
 
+  SetRegion(0, 0, 0, 0);
+
   pixMapCreated = false;
 }
 
@@ -176,13 +178,26 @@ void RegionPicture::APMakeImages(Palette *palptr) {
   calcTimeRange = profDataServicesPtr->GetRegionsProfStats().MakeRegionPlt(tempSliceFab, 0,
                                           allDataSizeH, allDataSizeV / (nRegions + 1));
 
-  cout << "calcTimeRange = " << calcTimeRange << endl;
   cout << "btbtbtbt:  tempSliceFab.box() = " << tempSliceFab.box() << endl;
 
   tempSliceFab.shift(Amrvis::YDIR, regionBaseHeight);  // ---- for ati
   sliceFab->setVal(tempSliceFab.min(0) - 1.0);
   sliceFab->copy(tempSliceFab);
   Real minUsing(tempSliceFab.min(0)), maxUsing(tempSliceFab.max(0));
+
+  Box fullDomainBox(tempSliceFab.box());
+  Real subPercentLow(static_cast<Real>(subRegion.smallEnd(Amrvis::XDIR) -
+                                       fullDomainBox.smallEnd(Amrvis::XDIR)) /
+                     static_cast<Real>(fullDomainBox.length(Amrvis::XDIR) - 1));
+  Real subPercentHigh(static_cast<Real>(subRegion.bigEnd(Amrvis::XDIR) -
+                                        fullDomainBox.smallEnd(Amrvis::XDIR)) /
+                      static_cast<Real>(fullDomainBox.length(Amrvis::XDIR) - 1));
+
+  Real calcTime(calcTimeRange.stopTime - calcTimeRange.startTime);
+  subTimeRange.startTime = calcTimeRange.startTime + (subPercentLow  * calcTime);
+  subTimeRange.stopTime  = calcTimeRange.startTime + (subPercentHigh * calcTime);
+  cout << "calcTimeRange = " << calcTimeRange << endl;
+  cout << "subTimeRange  = " << subTimeRange << endl;
 
 //std::ofstream tfout("sliceFab.fab");
 //sliceFab->writeOn(tfout);

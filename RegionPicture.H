@@ -47,6 +47,7 @@ class RegionPicture {
   void	APChangeSlice(int here);
   amrex::Box DomainBox() { return subRegion; }
   const BLProfStats::TimeRange &CalcTimeRange() const { return calcTimeRange; }
+  const BLProfStats::TimeRange &SubTimeRange()  const { return subTimeRange; }
   Real DataValue(int i, int j, bool &outOfRange);
   
   unsigned int ImageSizeH() const { return imageSizeH; }
@@ -80,7 +81,7 @@ class RegionPicture {
   int currentScale;
   int regionX, regionY, region2ndX, region2ndY;
   int subcutX, subcutY, subcut2ndX, subcut2ndY;
-  BLProfStats::TimeRange calcTimeRange;
+  BLProfStats::TimeRange calcTimeRange, subTimeRange;
   
   void SetSlice(int view, int here);
   void CoarsenSliceBox();
