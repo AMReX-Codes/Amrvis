@@ -37,6 +37,7 @@ class Palette {
     amrex::Array<XColor> ccells;
     map<Pixel, XColor> mcells;
     amrex::Array<Pixel> pixelCache;
+    amrex::Array<Pixel> pixelCacheDim;
     Pixmap 	palPixmap;
     int	  	totalPalWidth, palWidth, totalPalHeight;
     amrex::Array<Real> dataList;
@@ -118,6 +119,7 @@ class Palette {
 		    unsigned char& b) const;
     //Pixel makePixel(unsigned char index) const;
     Pixel makePixel(unsigned char index) const { return pixelCache[index]; }
+    Pixel makePixelDim(unsigned char index) const { return pixelCacheDim[index]; }
 
     bool IsTimeline() const  { return bTimeline; }
     void SetTimeline(bool b) { bTimeline = b;    }

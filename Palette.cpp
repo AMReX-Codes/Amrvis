@@ -483,6 +483,8 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
 
   }  // end if(bReadPalette)
 
+
+#if 0
   // =====================================
     bool bCCPal(false);
     if(bCCPal) {
@@ -596,11 +598,9 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
       bbuff[whiteIndex] = 255;
     }
   // =====================================
+#endif
 
 
-  //rbuff[bodyIndex] = 127;
-  //gbuff[bodyIndex] = 127;
-  //bbuff[bodyIndex] = 127;
   rbuff[bodyIndex] = 0;
   gbuff[bodyIndex] = 0;
   bbuff[bodyIndex] = 0;
@@ -617,10 +617,10 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
     bbuff[paletteStart] = 0;
   }
 
-
-
   pixelCache.resize(iSeqPalSize);
+  pixelCacheDim.resize(iSeqPalSize);
   assert( gaPtr->PBitsPerRGB() <= 8 );
+  Real dimValue(0.4);
   if(bTrueColor) {
     Pixel r, g, b;
     unsigned long rs(gaPtr->PRedShift());
@@ -631,10 +631,15 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
       g = gbuff[i] >> (8 - bprgb);
       b = bbuff[i] >> (8 - bprgb);
       pixelCache[i] = ( (r << rs) | (g << gs) | (b << bs) );
+      r = static_cast<unsigned char>(rbuff[i] * dimValue) >> (8 - bprgb);
+      g = static_cast<unsigned char>(gbuff[i] * dimValue) >> (8 - bprgb);
+      b = static_cast<unsigned char>(bbuff[i] * dimValue) >> (8 - bprgb);
+      pixelCacheDim[i] = ( (r << rs) | (g << gs) | (b << bs) );
     }
   } else {
     for(i = 0; i < iSeqPalSize; ++i) {
       pixelCache[i] =  Pixel(i);
+      pixelCacheDim[i] =  Pixel(i * dimValue);
     }
   }
 
