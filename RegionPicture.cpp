@@ -453,6 +453,23 @@ void RegionPicture::SetRegionOnOff(int regionIndex, int whichRegion,
   APDraw(0, 0);
 }
 
+
+// ---------------------------------------------------------------------
+void RegionPicture::SetAllOnOff(int onoff)
+{
+  if(onoff == RP_ON || onoff == RP_OFF) {
+    for(int i(0); i < regionsOnOff.size(); ++i) {
+      for(int j(0); j < regionsOnOff[i].size(); ++j) {
+        regionsOnOff[i][j] = onoff;
+      }
+    }
+  } else {
+    cerr << "**** Error in RegionPicture::SetAllOnOff:  bad value:  " << onoff << endl;
+    return;
+  }
+  APDraw(0, 0);
+}
+
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
 

@@ -74,6 +74,7 @@ public:
   void DoFuncList(Widget, XtPointer, XtPointer);
   void DoGenerateFuncList(Widget, XtPointer, XtPointer);
   void GenerateFuncList(const amrex::Array<std::string> &funcs);
+  void DoAllOnOff(Widget, XtPointer, XtPointer);
   void ChangeScale(Widget, XtPointer, XtPointer);
   void DoRubberBanding(Widget, XtPointer, XtPointer);
   void DoOutput(Widget, XtPointer, XtPointer);
@@ -95,7 +96,7 @@ private:
   Widget wInfoTopLevel;
   Widget wPlotArea;
   Widget wPlotLabel;
-  Widget wPalArea, wControls;
+  Widget wPalArea, wFuncListButton, wAllOnButton, wAllOffButton;
   Widget wFuncListScrollArea;
   Widget wFuncList, wCurrScale;
 

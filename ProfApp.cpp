@@ -128,12 +128,12 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
 
   ProfAppInit(false);
 
-  const amrex::Array<amrex::Array<amrex::Box>> &regionBoxes = regionPicturePtr->RegionBoxes();
-  for(int r(0); r < regionBoxes.size(); ++r) {
-    for(int t(0); t < regionBoxes[r].size(); ++t) {
-      cout << "regionBoxes[" << r << "][" << t << "] = " << regionBoxes[r][t] << endl;
-    }
-  }
+  //const amrex::Array<amrex::Array<amrex::Box>> &regionBoxes = regionPicturePtr->RegionBoxes();
+  //for(int r(0); r < regionBoxes.size(); ++r) {
+    //for(int t(0); t < regionBoxes[r].size(); ++t) {
+      //cout << "regionBoxes[" << r << "][" << t << "] = " << regionBoxes[r][t] << endl;
+    //}
+  //}
 
 ////profDataServicesPtr[0]->WriteSummary(cout, false, 0, false);
 //BLProfilerUtils::WriteHeader(cout, 10, 16, true);
@@ -291,6 +291,7 @@ if(regionTimeRanges.size() > 0) {
 // -------------------------------------------------------------------
 void ProfApp::ProfAppInit(bool bSubregion) {
   int np;
+  int plotAreaHeight(242), funcListHeight(600), funcListWidth(850);
 
   currentScale = 1;
   maxAllowableScale = 8;
@@ -527,17 +528,34 @@ void ProfApp::ProfAppInit(bool bSubregion) {
                             NULL);
   AddStaticEventHandler(wControlForm, ExposureMask, &ProfApp::DoExposeRef);
 
-  wControls =
-    XtVaCreateManagedWidget("Generate Function List", xmPushButtonWidgetClass, wControlForm,
-                            //XmNx, centerX - halfbutton,
-                            XmNy, 80,
+  wFuncListButton = XtVaCreateManagedWidget("Generate Function List",
+                            xmPushButtonWidgetClass, wControlForm,
+                            XmNy, 100,
                             XmCMarginBottom, 2,
                             NULL);
-
-  AddStaticCallback(wControls, XmNactivateCallback, &ProfApp::DoGenerateFuncList,
+  AddStaticCallback(wFuncListButton, XmNactivateCallback, &ProfApp::DoGenerateFuncList,
                           (XtPointer) 111);
+  XtManageChild(wFuncListButton);
 
-  XtManageChild(wControls);
+  wAllOnButton = XtVaCreateManagedWidget("All On", xmPushButtonWidgetClass,
+                            wControlForm,
+                            XmNleftAttachment,   XmATTACH_FORM,
+                            XmNy, 140,
+                            XmCMarginBottom, 2,
+                            NULL);
+  AddStaticCallback(wAllOnButton, XmNactivateCallback, &ProfApp::DoAllOnOff,
+                          (XtPointer) RegionPicture::RP_ON);
+  //XtManageChild(wAllOnButton);
+
+  wAllOffButton = XtVaCreateManagedWidget("All Off", xmPushButtonWidgetClass,
+                            wControlForm,
+                            XmNx, 60,
+                            XmNy, 140,
+                            XmCMarginBottom, 2,
+                            NULL);
+  AddStaticCallback(wAllOffButton, XmNactivateCallback, &ProfApp::DoAllOnOff,
+                          (XtPointer) RegionPicture::RP_OFF);
+  //XtManageChild(wAllOffButton);
 
 
   // ************************** Plot frame and area
@@ -562,7 +580,7 @@ void ProfApp::ProfAppInit(bool bSubregion) {
 			    XmNleftAttachment,   XmATTACH_FORM,
 			    XmNrightAttachment,  XmATTACH_FORM,
 			    //XmNbottomAttachment, XmATTACH_FORM,
-			    XmNheight, 542,
+			    XmNheight, plotAreaHeight,
 			    NULL);
 
   wScrollArea = XtVaCreateManagedWidget("scrollAreaXY",
@@ -605,13 +623,13 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   wFuncListFrame = XtVaCreateManagedWidget("funclistframe",
                             xmFrameWidgetClass, wMainArea,
                             XmNrightAttachment, XmATTACH_WIDGET,
-                            XmNrightWidget,       wPalFrame,
-			    XmNleftAttachment,    XmATTACH_FORM,
-			    XmNbottomAttachment,  XmATTACH_FORM,
+                            XmNrightWidget,     wPalFrame,
+			    XmNleftAttachment,  XmATTACH_FORM,
+			    XmNbottomAttachment, XmATTACH_FORM,
                             XmNtopAttachment,   XmATTACH_WIDGET,
                             XmNtopWidget,       wPlotFrame,
-                            XmNheight, 600,
-			    XmNwidth, 950,
+                            XmNheight,          funcListHeight,
+			    XmNwidth,           funcListWidth,
                             XmNshadowType,      XmSHADOW_ETCHED_IN,
                             NULL);
 
@@ -1063,6 +1081,14 @@ void ProfApp::GenerateFuncList(const Array<std::string> &funcs) {
   XtFree((char *) strList);
 
   t += 1000;
+}
+
+
+// -------------------------------------------------------------------
+void ProfApp::DoAllOnOff(Widget w, XtPointer client_data, XtPointer call_data)
+{
+  unsigned long v = (unsigned long) client_data;
+  regionPicturePtr->SetAllOnOff(v);
 }
 
 

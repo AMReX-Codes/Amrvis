@@ -320,8 +320,8 @@ void CreateMainWindow(int argc, char *argv[]) {
                                 (int *) &argc, argv, fallbacks,
 			XmNx,		350,
 			XmNy,		10,
-                        XmNwidth,	500,
-			XmNheight,	150,
+                        XmNwidth,	600,
+			XmNheight,	200,
 			NULL);
   GraphicsAttributes *theGAPtr = new GraphicsAttributes(wTopLevel);
   if(theGAPtr->PVisual() != XDefaultVisual(theGAPtr->PDisplay(), 

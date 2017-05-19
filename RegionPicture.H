@@ -54,6 +54,7 @@ class RegionPicture {
   const BLProfStats::TimeRange &SubTimeRange()  const { return subTimeRange; }
   Real DataValue(int i, int j, bool &outOfRange);
   void SetRegionOnOff(int regionIndex, int whichRegion, int onoff);
+  void SetAllOnOff(int onoff);
   
   unsigned int ImageSizeH() const { return imageSizeH; }
   unsigned int ImageSizeV() const { return imageSizeV; }
