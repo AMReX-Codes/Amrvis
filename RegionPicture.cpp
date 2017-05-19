@@ -131,7 +131,7 @@ void RegionPicture::APDraw(int fromLevel, int toLevel) {
 			   imageSizeH, imageSizeV, gaPtr->PDepth());
     pixMapCreated = true;
   }  
-  int invert(imageSizeV - 1 - regionBaseHeight);
+  int invert(imageSizeV - currentScale - (regionBaseHeight * currentScale));
  
   XPutImage(display, pixMap, xgc, xImage, 0, 0, 0, 0,
 	    imageSizeH, imageSizeV);
@@ -142,14 +142,18 @@ void RegionPicture::APDraw(int fromLevel, int toLevel) {
     for(int j(0); j < regionsOnOff[i].size(); ++j) {
       if(regionsOnOff[i][j] == RP_OFF) {
 	const Box &b = regionBoxes[i][j];
+	int bSX(b.smallEnd(Amrvis::XDIR) * currentScale);
+	int bBY(b.bigEnd(Amrvis::YDIR) * currentScale);
+	int bLX(b.length(Amrvis::XDIR) * currentScale);
+	int bLY(b.length(Amrvis::YDIR) * currentScale);
         XPutImage(display, pixMap, xgc, xImageDim,
-	          b.smallEnd(Amrvis::XDIR), invert - b.bigEnd(Amrvis::YDIR),
-	          b.smallEnd(Amrvis::XDIR), invert - b.bigEnd(Amrvis::YDIR),
-	          b.length(Amrvis::XDIR), b.length(Amrvis::YDIR));
+	          bSX, invert - bBY,
+	          bSX, invert - bBY,
+	          bLX, bLY);
         XPutImage(display, pixMap, xgc, atiXImageDim,
-	          b.smallEnd(Amrvis::XDIR), 0,
-	          b.smallEnd(Amrvis::XDIR), invert,
-	          b.length(Amrvis::XDIR), atiImageSizeV);
+	          bSX, 0,
+	          bSX, invert,
+	          bLX, atiImageSizeV);
       }
     }
   }

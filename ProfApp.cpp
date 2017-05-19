@@ -562,7 +562,7 @@ void ProfApp::ProfAppInit(bool bSubregion) {
 			    XmNleftAttachment,   XmATTACH_FORM,
 			    XmNrightAttachment,  XmATTACH_FORM,
 			    //XmNbottomAttachment, XmATTACH_FORM,
-			    XmNheight, 242,
+			    XmNheight, 542,
 			    NULL);
 
   wScrollArea = XtVaCreateManagedWidget("scrollAreaXY",
@@ -611,7 +611,7 @@ void ProfApp::ProfAppInit(bool bSubregion) {
                             XmNtopAttachment,   XmATTACH_WIDGET,
                             XmNtopWidget,       wPlotFrame,
                             XmNheight, 600,
-			    XmNwidth, 850,
+			    XmNwidth, 950,
                             XmNshadowType,      XmSHADOW_ETCHED_IN,
                             NULL);
 
@@ -1259,7 +1259,7 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
         avxGrab.ExplicitUngrab();
 
         if(saveOldX == nextEvent.xbutton.x && saveOldY == nextEvent.xbutton.y) {
-          // ---- data at click
+          // ---- turn region off
 	  int dpX((saveOldX / scale) + ivLowOffset[Amrvis::XDIR]);
 	  int dpY((imageHeight - 1 - saveOldY) / scale);
 	  bool outOfRange;
@@ -1316,7 +1316,7 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
         avxGrab.ExplicitUngrab();
 
         if(saveOldX == nextEvent.xbutton.x && saveOldY == nextEvent.xbutton.y) {
-          // ---- data at click
+          // ---- turn region on
 	  int dpX((saveOldX / scale) + ivLowOffset[Amrvis::XDIR]);
 	  int dpY((imageHeight - 1 - saveOldY) / scale);
 	  bool outOfRange;
