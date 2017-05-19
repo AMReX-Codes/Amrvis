@@ -131,15 +131,28 @@ void RegionPicture::APDraw(int fromLevel, int toLevel) {
 			   imageSizeH, imageSizeV, gaPtr->PDepth());
     pixMapCreated = true;
   }  
+  int invert(imageSizeV - 1 - regionBaseHeight);
  
   XPutImage(display, pixMap, xgc, xImage, 0, 0, 0, 0,
 	    imageSizeH, imageSizeV);
-  XPutImage(display, pixMap, xgc, atiXImage, 0, 0, 0, imageSizeV-1-regionBaseHeight,
-	    imageSizeH, imageSizeV);
-  XPutImage(display, pixMap, xgc, xImageDim, 0, 0, 0, 0,
-	    imageSizeH/2, imageSizeV);
-  XPutImage(display, pixMap, xgc, atiXImageDim, 0, 0, 0, imageSizeV-1-regionBaseHeight,
-	    imageSizeH/2, imageSizeV);
+  XPutImage(display, pixMap, xgc, atiXImage, 0, 0, 0, invert,
+	    atiImageSizeH, atiImageSizeV);
+
+  for(int i(0); i < regionsOnOff.size(); ++i) {
+    for(int j(0); j < regionsOnOff[i].size(); ++j) {
+      if(regionsOnOff[i][j] == RP_OFF) {
+	const Box &b = regionBoxes[i][j];
+        XPutImage(display, pixMap, xgc, xImageDim,
+	          b.smallEnd(Amrvis::XDIR), invert - b.bigEnd(Amrvis::YDIR),
+	          b.smallEnd(Amrvis::XDIR), invert - b.bigEnd(Amrvis::YDIR),
+	          b.length(Amrvis::XDIR), b.length(Amrvis::YDIR));
+        XPutImage(display, pixMap, xgc, atiXImageDim,
+	          b.smallEnd(Amrvis::XDIR), 0,
+	          b.smallEnd(Amrvis::XDIR), invert,
+	          b.length(Amrvis::XDIR), atiImageSizeV);
+      }
+    }
+  }
            
   DoExposePicture();
 }
@@ -187,6 +200,13 @@ void RegionPicture::APMakeImages(Palette *palptr) {
                                           allDataSizeH, allDataSizeV / (nRegions + 1),
 					  regionBoxes);
 
+  regionsOnOff.resize(regionBoxes.size());
+  for(int i(0); i < regionBoxes.size(); ++i) {
+    regionsOnOff[i].resize(regionBoxes[i].size());
+    for(int j(0); j < regionsOnOff[i].size(); ++j) {
+      regionsOnOff[i][j] = RP_ON;
+    }
+  }
   cout << "btbtbtbt:  tempSliceFab.box() = " << tempSliceFab.box() << endl;
 
   tempSliceFab.shift(Amrvis::YDIR, regionBaseHeight);  // ---- for ati
@@ -413,5 +433,25 @@ Real RegionPicture::DataValue(int i, int j, bool &outOfRange) {
     return -42.0;
   }
 }
+
+
+// ---------------------------------------------------------------------
+void RegionPicture::SetRegionOnOff(int regionIndex, int whichRegion,
+                                   int onoff)
+{
+  if(regionIndex < 0 || regionIndex >= regionsOnOff.size()) {
+    return;
+  }
+  if(whichRegion < 0 || whichRegion >= regionsOnOff[regionIndex].size()) {
+    return;
+  }
+  regionsOnOff[regionIndex][whichRegion] = onoff;
+  APDraw(0, 0);
+}
+
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
+
+
+
+

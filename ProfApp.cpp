@@ -1245,72 +1245,51 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
   }
 
 
-#if 0
   if(servingButton == 2) {
-    XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
-              rbgc, 0, oldY, imageWidth, oldY);
 
-    int tempi;
     while(true) {
       XNextEvent(display, &nextEvent);
 
       switch(nextEvent.type) {
 
       case MotionNotify:
-
-        XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
-                  rbgc, 0, oldY, imageWidth, oldY);
-
-        DoDrawPointerLocation(None, (XtPointer) static_cast<long>(V), &nextEvent);
-        while(XCheckTypedEvent(display, MotionNotify, &nextEvent)) {
-          ;  // do nothing
-        }
-        XQueryPointer(display, amrPicturePtrArray[V]->PictureWindow(),
-                      &whichRoot, &whichChild,
-                      &rootX, &rootY, &oldX, &oldY, &inputMask);
-
-        // draw the new line
-        XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
-                  rbgc, 0, oldY, imageWidth, oldY);
-
-        break;
+      break;
 
       case ButtonRelease:
         avxGrab.ExplicitUngrab();
-        tempi = max(0, min(imageHeight, nextEvent.xbutton.y));
-        amrPicturePtrArray[V]->SetHLine(tempi);
 
-        for(int np(0); np != Amrvis::NPLANES; ++np) {
-          amrPicturePtrArray[np]->DoExposePicture();
-        }
+        if(saveOldX == nextEvent.xbutton.x && saveOldY == nextEvent.xbutton.y) {
+          // ---- data at click
+	  int dpX((saveOldX / scale) + ivLowOffset[Amrvis::XDIR]);
+	  int dpY((imageHeight - 1 - saveOldY) / scale);
+	  bool outOfRange;
+	  Real dataValue(regionPicturePtr->DataValue(dpX, dpY, outOfRange));
+	  int dataValueIndex(static_cast<int>(dataValue));
+	  BLProfStats::TimeRange calcTimeRange(regionPicturePtr->CalcTimeRange());
+	  Real calcTime(calcTimeRange.stopTime - calcTimeRange.startTime);
+	  Real clickTime(calcTime * (static_cast<Real>(dpX) /
+	                 static_cast<Real>(domainBox.length(Amrvis::XDIR) - 1)));
+	  int rtri(FindRegionTimeRangeIndex(dataValueIndex, clickTime));
 
-        if(oldY >= 0 && oldY <= imageHeight) {
-          int sdir(-1);
-          switch (V) {
-            case Amrvis::ZPLANE:
-              sdir = Amrvis::XDIR;
-            break;
-            case Amrvis::YPLANE:
-              sdir = Amrvis::XDIR;
-            break;
-            case Amrvis::XPLANE:
-              sdir = Amrvis::YDIR;
-            break;
-          }
-          XYPlotDataList *newlist = CreateLinePlot(V, sdir, mal,
-                                      (imageHeight + 1) / scale - 1 - oldY / scale,
-                                      &pltAppState->CurrentDerived());
-          if(newlist) {
-            newlist->SetLevel(maxDrawnLevel);
-            if(XYplotwin[sdir] == NULL) {
-              char cTempFN[Amrvis::BUFSIZE];
-              strcpy(cTempFN,
-                     AVGlobals::StripSlashes(fileNames[currentFrame]).c_str());
-              XYplotwin[sdir] = new XYPlotWin(cTempFN, appContext, wAmrVisTopLevel,
-                                              this, sdir, currentFrame);
-            }
-            XYplotwin[sdir]->AddDataList(newlist);
-          }
+          std::ostringstream buffout;
+          buffout << "click at " << saveOldX << "  " << saveOldY << "  !" << endl;
+          buffout << "dpX dpY = " << dpX << "  " << dpY << endl;
+          buffout << "ivLowOffset = " << ivLowOffset << endl;
+          buffout << "calcTimeRange calcTime clickTime = "
+	          << calcTimeRange << "  " << calcTime << "  " << clickTime << endl;
+          buffout << "dataValueIndex regName rtri timerange = "
+                  << dataValueIndex << "  " << GetRegionName(dataValue) << "  "
+		  << rtri << "  ";
+	  if(rtri < 0 || rtri >= rtr[dataValueIndex].size()) {
+            buffout << "Not in a region."  << endl;
+	  } else {
+            buffout << rtr[dataValueIndex][rtri] << endl;
+	  }
+
+          PrintMessage(const_cast<char *>(buffout.str().c_str()));
+	  regionPicturePtr->SetRegionOnOff(dataValueIndex, rtri, RegionPicture::RP_OFF);
+          regionPicturePtr->DoExposePicture();
+
         }
 
         return;
@@ -1320,75 +1299,54 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
       }  // end switch
     }  // end while(true)
   }
-
 
 
 
 
   if(servingButton == 3) {
-    int tempi;
-    XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
-              rbgc, oldX, 0, oldX, imageHeight);
     while(true) {
       XNextEvent(display, &nextEvent);
 
       switch(nextEvent.type) {
 
       case MotionNotify:
-
-        // undraw the old line
-        XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
-                  rbgc, oldX, 0, oldX, imageHeight);
-
-        DoDrawPointerLocation(None, (XtPointer)  static_cast<long>(V), &nextEvent);
-        while(XCheckTypedEvent(display, MotionNotify, &nextEvent)) {
-          ;  // do nothing
-        }
-        XQueryPointer(display, amrPicturePtrArray[V]->PictureWindow(),
-                      &whichRoot, &whichChild,
-                      &rootX, &rootY, &oldX, &oldY, &inputMask);
-
-        // draw the new line
-        XDrawLine(display, amrPicturePtrArray[V]->PictureWindow(),
-                  rbgc, oldX, 0, oldX, imageHeight);
-
-        break;
+      break;
 
       case ButtonRelease:
         avxGrab.ExplicitUngrab();
-        tempi = max(0, min(imageWidth, nextEvent.xbutton.x));
-        amrPicturePtrArray[V]->SetVLine(tempi);
 
-        for(int np(0); np != Amrvis::NPLANES; ++np) {
-          amrPicturePtrArray[np]->DoExposePicture();
-        }
+        if(saveOldX == nextEvent.xbutton.x && saveOldY == nextEvent.xbutton.y) {
+          // ---- data at click
+	  int dpX((saveOldX / scale) + ivLowOffset[Amrvis::XDIR]);
+	  int dpY((imageHeight - 1 - saveOldY) / scale);
+	  bool outOfRange;
+	  Real dataValue(regionPicturePtr->DataValue(dpX, dpY, outOfRange));
+	  int dataValueIndex(static_cast<int>(dataValue));
+	  BLProfStats::TimeRange calcTimeRange(regionPicturePtr->CalcTimeRange());
+	  Real calcTime(calcTimeRange.stopTime - calcTimeRange.startTime);
+	  Real clickTime(calcTime * (static_cast<Real>(dpX) /
+	                 static_cast<Real>(domainBox.length(Amrvis::XDIR) - 1)));
+	  int rtri(FindRegionTimeRangeIndex(dataValueIndex, clickTime));
 
-        if(oldX >= 0 && oldX <= imageWidth) {
-          int sdir(-1);
-          switch (V) {
-            case Amrvis::ZPLANE:
-              sdir = Amrvis::YDIR;
-            break;
-            case Amrvis::YPLANE:
-              sdir = Amrvis::ZDIR;
-            break;
-            case Amrvis::XPLANE:
-              sdir = Amrvis::ZDIR;
-            break;
-          }
-          XYPlotDataList *newlist = CreateLinePlot(V, sdir, mal, oldX / scale,
-                                                   &pltAppState->CurrentDerived());
-          if(newlist) {
-            newlist->SetLevel(maxDrawnLevel);
-            if(XYplotwin[sdir] == NULL) {
-              char cTempFN[Amrvis::BUFSIZE];
-              strcpy(cTempFN,
-                     AVGlobals::StripSlashes(fileNames[currentFrame]).c_str());
-              XYplotwin[sdir] = new XYPlotWin(cTempFN, appContext, wAmrVisTopLevel,
-                                              this, sdir, currentFrame);
-            }
-            XYplotwin[sdir]->AddDataList(newlist);
-          }
+          std::ostringstream buffout;
+          buffout << "click at " << saveOldX << "  " << saveOldY << "  !" << endl;
+          buffout << "dpX dpY = " << dpX << "  " << dpY << endl;
+          buffout << "ivLowOffset = " << ivLowOffset << endl;
+          buffout << "calcTimeRange calcTime clickTime = "
+	          << calcTimeRange << "  " << calcTime << "  " << clickTime << endl;
+          buffout << "dataValueIndex regName rtri timerange = "
+                  << dataValueIndex << "  " << GetRegionName(dataValue) << "  "
+		  << rtri << "  ";
+	  if(rtri < 0 || rtri >= rtr[dataValueIndex].size()) {
+            buffout << "Not in a region."  << endl;
+	  } else {
+            buffout << rtr[dataValueIndex][rtri] << endl;
+	  }
+
+          PrintMessage(const_cast<char *>(buffout.str().c_str()));
+	  regionPicturePtr->SetRegionOnOff(dataValueIndex, rtri, RegionPicture::RP_ON);
+          regionPicturePtr->DoExposePicture();
+
         }
 
         return;
@@ -1398,7 +1356,6 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
       }  // end switch
     }  // end while(true)
   }
-#endif
 
 
 }  // end DoRubberBanding

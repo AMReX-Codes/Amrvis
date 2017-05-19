@@ -30,6 +30,9 @@ class ProfApp;
 
 class RegionPicture {
  public:
+
+  enum { RP_OFF = 0, RP_ON, RP_SPLIT };
+
   RegionPicture(GraphicsAttributes *gaptr, ProfDataServices *pdsp);
 
   // ---- for subregions
@@ -50,6 +53,7 @@ class RegionPicture {
   const BLProfStats::TimeRange &CalcTimeRange() const { return calcTimeRange; }
   const BLProfStats::TimeRange &SubTimeRange()  const { return subTimeRange; }
   Real DataValue(int i, int j, bool &outOfRange);
+  void SetRegionOnOff(int regionIndex, int whichRegion, int onoff);
   
   unsigned int ImageSizeH() const { return imageSizeH; }
   unsigned int ImageSizeV() const { return imageSizeV; }
@@ -85,6 +89,7 @@ class RegionPicture {
   int subcutX, subcutY, subcut2ndX, subcut2ndY;
   BLProfStats::TimeRange calcTimeRange, subTimeRange;
   amrex::Array<amrex::Array<amrex::Box>> regionBoxes;
+  amrex::Array<amrex::Array<int>> regionsOnOff;
   
   void SetSlice(int view, int here);
   void CoarsenSliceBox();
