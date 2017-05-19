@@ -46,6 +46,7 @@ class RegionPicture {
   XImage *GetPictureXImage();
   void	APChangeSlice(int here);
   amrex::Box DomainBox() { return subRegion; }
+  const amrex::Array<amrex::Array<amrex::Box>> &RegionBoxes() const { return regionBoxes; }
   const BLProfStats::TimeRange &CalcTimeRange() const { return calcTimeRange; }
   const BLProfStats::TimeRange &SubTimeRange()  const { return subTimeRange; }
   Real DataValue(int i, int j, bool &outOfRange);
@@ -63,6 +64,7 @@ class RegionPicture {
   GC  xgc;
   Pixmap 	 pixMap;
   XImage *xImage, *atiXImage;
+  XImage *xImageDim, *atiXImageDim;
   unsigned long  dataSize, dataSizeH, dataSizeV;
   unsigned long  atiDataSize, atiDataSizeH, atiDataSizeV;
   unsigned int   imageSize, imageSizeH, imageSizeV;
@@ -71,9 +73,9 @@ class RegionPicture {
   amrex::FArrayBox *sliceFab;
   amrex::Box subRegion;
   unsigned char *imageData;
-  unsigned char *scaledImageData;
+  unsigned char *scaledImageData, *scaledImageDataDim;
   unsigned char *atiImageData;
-  unsigned char *scaledATIImageData;
+  unsigned char *scaledATIImageData, *scaledATIImageDataDim;
   bool xImageCreated;
   ProfDataServices   *profDataServicesPtr;
   int hLine, vLine, hColor, vColor, myColor;
@@ -82,6 +84,7 @@ class RegionPicture {
   int regionX, regionY, region2ndX, region2ndY;
   int subcutX, subcutY, subcut2ndX, subcut2ndY;
   BLProfStats::TimeRange calcTimeRange, subTimeRange;
+  amrex::Array<amrex::Array<amrex::Box>> regionBoxes;
   
   void SetSlice(int view, int here);
   void CoarsenSliceBox();
@@ -94,7 +97,8 @@ class RegionPicture {
                          unsigned char *imagedata,
                          unsigned char *scaledimagedata,
                          int datasizeh, int datasizev,
-                         int imagesizeh, int imagesizev);
+                         int imagesizeh, int imagesizev,
+			 bool dim = false);
   RegionPicture();
 };
 

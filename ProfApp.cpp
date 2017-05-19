@@ -128,6 +128,12 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
 
   ProfAppInit(false);
 
+  const amrex::Array<amrex::Array<amrex::Box>> &regionBoxes = regionPicturePtr->RegionBoxes();
+  for(int r(0); r < regionBoxes.size(); ++r) {
+    for(int t(0); t < regionBoxes[r].size(); ++t) {
+      cout << "regionBoxes[" << r << "][" << t << "] = " << regionBoxes[r][t] << endl;
+    }
+  }
 
 ////profDataServicesPtr[0]->WriteSummary(cout, false, 0, false);
 //BLProfilerUtils::WriteHeader(cout, 10, 16, true);

@@ -82,6 +82,7 @@ void RegionPicture::RegionPictureInit(const amrex::Box &regionBox) {
 
   imageData = new unsigned char[dataSize];
   scaledImageData = new unsigned char[imageSize];
+  scaledImageDataDim = new unsigned char[imageSize];
 
 
   atiDataSizeH = dataSizeH;
@@ -95,6 +96,7 @@ void RegionPicture::RegionPictureInit(const amrex::Box &regionBox) {
 
   atiImageData = new unsigned char[atiDataSize];
   scaledATIImageData = new unsigned char[atiImageSize];
+  scaledATIImageDataDim = new unsigned char[atiImageSize];
 
   subRegion = regionBox;
   cout << "subRegion = " << subRegion << endl;
@@ -110,8 +112,10 @@ void RegionPicture::RegionPictureInit(const amrex::Box &regionBox) {
 RegionPicture::~RegionPicture() {
   delete [] imageData;
   delete [] scaledImageData;
+  delete [] scaledImageDataDim;
   delete [] atiImageData;
   delete [] scaledATIImageData;
+  delete [] scaledATIImageDataDim;
   delete sliceFab;
 
   if(pixMapCreated) {
@@ -132,6 +136,10 @@ void RegionPicture::APDraw(int fromLevel, int toLevel) {
 	    imageSizeH, imageSizeV);
   XPutImage(display, pixMap, xgc, atiXImage, 0, 0, 0, imageSizeV-1-regionBaseHeight,
 	    imageSizeH, imageSizeV);
+  XPutImage(display, pixMap, xgc, xImageDim, 0, 0, 0, 0,
+	    imageSizeH/2, imageSizeV);
+  XPutImage(display, pixMap, xgc, atiXImageDim, 0, 0, 0, imageSizeV-1-regionBaseHeight,
+	    imageSizeH/2, imageSizeV);
            
   DoExposePicture();
 }
@@ -176,7 +184,8 @@ void RegionPicture::APMakeImages(Palette *palptr) {
   FArrayBox tempSliceFab;
 
   calcTimeRange = profDataServicesPtr->GetRegionsProfStats().MakeRegionPlt(tempSliceFab, 0,
-                                          allDataSizeH, allDataSizeV / (nRegions + 1));
+                                          allDataSizeH, allDataSizeV / (nRegions + 1),
+					  regionBoxes);
 
   cout << "btbtbtbt:  tempSliceFab.box() = " << tempSliceFab.box() << endl;
 
@@ -210,20 +219,20 @@ void RegionPicture::APMakeImages(Palette *palptr) {
   CreateScaledImage(&(xImage), currentScale,
                 imageData, scaledImageData, dataSizeH, dataSizeV,
                 imageSizeH, imageSizeV);
+  CreateScaledImage(&(xImageDim), currentScale,
+                imageData, scaledImageDataDim, dataSizeH, dataSizeV,
+                imageSizeH, imageSizeV, true);  // ---- make dim
   for(int j(0); j < atiDataSizeV; ++j) {
-    //int value(j == 0 || j == atiDataSizeV - 1 ? 0 : 1);
-    int value(j < 2 || j > atiDataSizeV - 3 ? 0 : 1);
     for(int i(0); i < atiDataSizeH; ++i) {
-      if(i > atiDataSizeH / 4) {
-        //value = 0;
-      }
-      value = 0;
-      atiImageData[j * atiDataSizeH + i] = value;
+      atiImageData[j * atiDataSizeH + i] = 0;
     }
   }
   CreateScaledImage(&(atiXImage), currentScale,
                 atiImageData, scaledATIImageData, atiDataSizeH, atiDataSizeV,
                 atiImageSizeH, atiImageSizeV);
+  CreateScaledImage(&(atiXImageDim), currentScale,
+                atiImageData, scaledATIImageDataDim, atiDataSizeH, atiDataSizeV,
+                atiImageSizeH, atiImageSizeV, true);  // ---- make dim
 
   //if( ! pltAppPtr->PaletteDrawn()) {
     //pltAppPtr->PaletteDrawn(true);
@@ -286,24 +295,35 @@ void RegionPicture::CreateScaledImage(XImage **ximage, int scale,
 				      unsigned char *imagedata,
 				      unsigned char *scaledimagedata,
 				      int datasizeh, int datasizev,
-				      int imagesizeh, int imagesizev)
+				      int imagesizeh, int imagesizev,
+				      bool dim)
 { 
   int widthpad(gaPtr->PBitmapPaddedWidth(imagesizeh));
   *ximage = XCreateImage(display, gaPtr->PVisual(), gaPtr->PDepth(),
                          ZPixmap, 0, (char *) scaledimagedata,
-		         widthpad, imagesizev,
-		         XBitmapPad(display),
+		         widthpad, imagesizev, XBitmapPad(display),
 			 widthpad * gaPtr->PBytesPerPixel());
 
-  for(int j(0); j < imagesizev; ++j) {
-    int jtmp(datasizeh * (j / scale));
-    for(int i(0); i < widthpad; ++i) {
-      int itmp(i / scale);
-      unsigned char imm1(imagedata[ itmp + jtmp ]);
-      XPutPixel(*ximage, i, j, palPtr->makePixel(imm1));
+  unsigned char imm1;
+  if(dim) {
+    for(int j(0); j < imagesizev; ++j) {
+      int jtmp(datasizeh * (j / scale));
+      for(int i(0); i < widthpad; ++i) {
+        int itmp(i / scale);
+        imm1 = imagedata[ itmp + jtmp ];
+        XPutPixel(*ximage, i, j, palPtr->makePixelDim(imm1));
+      }
+    }
+  } else {
+    for(int j(0); j < imagesizev; ++j) {
+      int jtmp(datasizeh * (j / scale));
+      for(int i(0); i < widthpad; ++i) {
+        int itmp(i / scale);
+        imm1 = imagedata[ itmp + jtmp ];
+        XPutPixel(*ximage, i, j, palPtr->makePixel(imm1));
+      }
     }
   }
-
 }
 
 
@@ -324,20 +344,30 @@ void RegionPicture::APChangeScale(int newScale, int previousScale) {
   pixMapCreated = true;
 
   delete [] scaledImageData;
+  delete [] scaledImageDataDim;
   scaledImageData = new unsigned char[imageSize];
+  scaledImageDataDim = new unsigned char[imageSize];
   CreateScaledImage(&xImage, currentScale,
                     imageData, scaledImageData, dataSizeH, dataSizeV,
                     imageSizeH, imageSizeV);
+  CreateScaledImage(&xImageDim, currentScale,
+                    imageData, scaledImageDataDim, dataSizeH, dataSizeV,
+                    imageSizeH, imageSizeV, true);  // ---- make dim
 
   atiImageSizeH = currentScale * atiDataSizeH;
   atiImageSizeV = currentScale * atiDataSizeV;
   int atiWidthpad = gaPtr->PBitmapPaddedWidth(atiImageSizeH);
   atiImageSize  = atiWidthpad * atiImageSizeV * gaPtr->PBytesPerPixel();
   delete [] scaledATIImageData;
+  delete [] scaledATIImageDataDim;
   scaledATIImageData = new unsigned char[atiImageSize];
+  scaledATIImageDataDim = new unsigned char[atiImageSize];
   CreateScaledImage(&(atiXImage), currentScale,
                 atiImageData, scaledATIImageData, atiDataSizeH, atiDataSizeV,
                 atiImageSizeH, atiImageSizeV);
+  CreateScaledImage(&(atiXImageDim), currentScale,
+                atiImageData, scaledATIImageDataDim, atiDataSizeH, atiDataSizeV,
+                atiImageSizeH, atiImageSizeV, true);  // ---- make dim
 
   APDraw(0, 0);
 }
