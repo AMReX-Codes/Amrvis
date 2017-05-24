@@ -805,6 +805,10 @@ void ProfApp::DoInfoButton(Widget, XtPointer, XtPointer) {
        << (profDataServicesPtr[0]->TraceDataAvailable()  ? "true" : "false") << '\n';
   prob << "CommDataAvailable  :  "
        << (profDataServicesPtr[0]->CommDataAvailable()   ? "true" : "false") << '\n';
+  if(profDataServicesPtr[0]->ProfDataAvailable()) {
+    prob << "Data NProcs        :  "
+         << profDataServicesPtr[0]->GetBLProfStats().GetNProcs() << '\n';
+  }
 
   profAppMessageText.PrintText(prob.str().c_str());
 }
@@ -1006,7 +1010,8 @@ void ProfApp::DoExposeRef(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void ProfApp::DoFuncList(Widget w, XtPointer client_data, XtPointer call_data) {
+void ProfApp::DoFuncList(Widget w, XtPointer client_data, XtPointer call_data)
+{
   cout << "_in ProfApp::DoFuncList" << endl;
   unsigned long r = (unsigned long) client_data;
   XmListCallbackStruct *cbs = (XmListCallbackStruct *) call_data;
@@ -1018,32 +1023,45 @@ void ProfApp::DoFuncList(Widget w, XtPointer client_data, XtPointer call_data) {
 
 
 // -------------------------------------------------------------------
-void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data, XtPointer call_data) {
+void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data,
+                                 XtPointer call_data)
+{
   unsigned long r = (unsigned long) client_data;
   cout << "_in ProfApp::DoGenerateFuncList:  r = " << r << endl;
 
-  BLProfStats &blProfStats = profDataServicesPtr[0]->GetBLProfStats();
+  RegionsProfStats &regionsProfStats = profDataServicesPtr[0]->GetRegionsProfStats();
+Array<std::list<BLProfStats::TimeRange>> filterTimeRanges(regionsProfStats.GetNProcs());
+  cout << "filterTimeRanges.size() = " << filterTimeRanges.size() << endl;
+for(int i(0); i < filterTimeRanges.size(); ++i) {
+  filterTimeRanges[i].push_back(BLProfStats::TimeRange(1.71263, 7.71314));
+}
+regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
+cout << "filterTimeRanges[0] = " << filterTimeRanges[0].front() << endl;
   Array<Array<BLProfStats::FuncStat>> aFuncStats;
-  blProfStats.CollectFuncStats(aFuncStats);
-  cout << "aFuncStats.size() = " << aFuncStats.size() << endl;
+  regionsProfStats.CollectFuncStats(aFuncStats);
   std::map<std::string, BLProfiler::ProfStats> mProfStats;  // [fname, pstats]
-  const Array<string> &blpFNames = blProfStats.BLPFNames();
+  const Array<string> &blpFNames = regionsProfStats.BLPFNames();
+
   Real calcRunTime(1.0);
   int whichProc(0);
   CollectMProfStats(mProfStats, aFuncStats, blpFNames, calcRunTime, whichProc);
-  cout << "||||::::" << endl;
+  cout << "||||::::  mProfStats.size() = " << mProfStats.size() << endl;
+  for(int i(0); i < blpFNames.size(); ++i) {
+    cout << "blpFNames[" << i << "] = " << blpFNames[i] << endl;
+  }
   for(auto mps : mProfStats) {
     Real percent(100.0);
     const int colWidth(10);
     const int maxlen(64);
     bool bwriteavg(true);
+    cout << "mps = " << mps.first << "  " << mps.second.totalTime << endl;
     BLProfilerUtils::WriteRow(cout, mps.first, mps.second, percent, colWidth, maxlen, bwriteavg);
   }
   cout << "||||::::" << endl;
 
   Array<std::string> funcs;
   std::ostringstream ossSummary;
-  profDataServicesPtr[0]->WriteSummary(ossSummary, false, 0, false);
+  profDataServicesPtr[0]->WriteSummary(ossSummary, true, 0, true);
   size_t startPos(0), endPos(0);
   const std::string &ossString = ossSummary.str();
   while(startPos < ossString.length() - 1) {
@@ -1061,8 +1079,6 @@ void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data, XtPointer call
 
 // -------------------------------------------------------------------
 void ProfApp::GenerateFuncList(const Array<std::string> &funcs) {
-  static int t(1000);
-  cout << "_in ProfApp::DoGenerateFuncList:  t = " << t << endl;
   int numEntries(funcs.size());
   XmStringTable strList = (XmStringTable) XtMalloc(numEntries*sizeof(XmString *));
 
@@ -1079,8 +1095,6 @@ void ProfApp::GenerateFuncList(const Array<std::string> &funcs) {
     XmStringFree(strList[i]);
   }
   XtFree((char *) strList);
-
-  t += 1000;
 }
 
 
