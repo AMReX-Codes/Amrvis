@@ -54,6 +54,18 @@ using std::max;
 
 cMessageArea profAppMessageText;
 
+const int atiPaletteEntry(-2);
+const int notInRegionPaletteEntry(-1);
+
+// ---- widget constants
+const int windowOffset(20);
+const int regionPalettePad(100);
+const int topLevelNx(40);
+const int topLevelNy(300);
+const int marginBottom(2);
+const int infoWidth(400);
+const int infoHeight(300);
+
 void CollectMProfStats(std::map<std::string, BLProfiler::ProfStats> &mProfStats,
                        const Array<Array<BLProfStats::FuncStat> > &funcStats,
                        const Array<std::string> &fNames,
@@ -96,8 +108,8 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
 			 topLevelShellWidgetClass, wTopLevel,
 			 XmNwidth,	    initialWindowWidth,
 			 XmNheight,	    initialWindowHeight,
-			 XmNx,		    40 + placementOffsetX,
-			 XmNy,		    300 + placementOffsetY,
+			 XmNx,		    topLevelNx + placementOffsetX,
+			 XmNy,		    topLevelNy + placementOffsetY,
 			 XmNdeleteResponse, XmDO_NOTHING,
 			 NULL);
 
@@ -177,8 +189,7 @@ if(regionTimeRanges.size() > 0) {
   }
   GenerateFuncList(funcs);
 
-
-  pltPaletteptr->DrawPalette(-2, regNames.size() - 3, "%8.2f");
+  pltPaletteptr->DrawPalette(atiPaletteEntry, regNames.size() - 3, "%8.2f");
   regionPicturePtr->APDraw(0,0);
 }
 
@@ -216,8 +227,8 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
 			 topLevelShellWidgetClass, wTopLevel,
 			 XmNwidth,	    initialWindowWidth,
 			 XmNheight,	    initialWindowHeight,
-			 XmNx,		    40 + placementOffsetX,
-			 XmNy,		    300 + placementOffsetY,
+			 XmNx,		    topLevelNx + placementOffsetX,
+			 XmNy,		    topLevelNy + placementOffsetY,
 			 XmNdeleteResponse, XmDO_NOTHING,
 			 NULL);
 
@@ -283,7 +294,7 @@ if(regionTimeRanges.size() > 0) {
   GenerateFuncList(funcs);
 
 
-  pltPaletteptr->DrawPalette(-2, regNames.size() - 3, "%8.2f");
+  pltPaletteptr->DrawPalette(atiPaletteEntry, regNames.size() - 3, "%8.2f");
   regionPicturePtr->APDraw(0,0);
 }
 
@@ -304,8 +315,8 @@ void ProfApp::ProfAppInit(bool bSubregion) {
     XYplotwin[np] = NULL; // No 1D plot windows initially.
   }
 
-  placementOffsetX += 20;
-  placementOffsetY += 20;
+  placementOffsetX += windowOffset;
+  placementOffsetY += windowOffset;
 
   servingButton = 0;
 
@@ -318,7 +329,7 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   int reserveSystemColors(0);
   bool bRegions(true);
   if(bRegions) {
-    totalPalWidth += 100;
+    totalPalWidth += regionPalettePad;
   }
   totalPalWidth += PltApp::GetExtraPaletteWidth();
 
@@ -531,7 +542,7 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   wFuncListButton = XtVaCreateManagedWidget("Generate Function List",
                             xmPushButtonWidgetClass, wControlForm,
                             XmNy, 100,
-                            XmCMarginBottom, 2,
+                            XmCMarginBottom, marginBottom,
                             NULL);
   AddStaticCallback(wFuncListButton, XmNactivateCallback, &ProfApp::DoGenerateFuncList,
                           (XtPointer) 111);
@@ -541,7 +552,7 @@ void ProfApp::ProfAppInit(bool bSubregion) {
                             wControlForm,
                             XmNleftAttachment,   XmATTACH_FORM,
                             XmNy, 140,
-                            XmCMarginBottom, 2,
+                            XmCMarginBottom, marginBottom,
                             NULL);
   AddStaticCallback(wAllOnButton, XmNactivateCallback, &ProfApp::DoAllOnOff,
                           (XtPointer) RegionPicture::RP_ON);
@@ -551,7 +562,7 @@ void ProfApp::ProfAppInit(bool bSubregion) {
                             wControlForm,
                             XmNx, 60,
                             XmNy, 140,
-                            XmCMarginBottom, 2,
+                            XmCMarginBottom, marginBottom,
                             NULL);
   AddStaticCallback(wAllOffButton, XmNactivateCallback, &ProfApp::DoAllOnOff,
                           (XtPointer) RegionPicture::RP_OFF);
@@ -686,8 +697,8 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   regionPicturePtr->CreatePicture(XtWindow(wPlotPlane), pltPaletteptr);
 
   RegionsProfStats &rProfStats = profDataServicesPtr[0]->GetRegionsProfStats();
-  regNames.insert(std::make_pair(-2, "active time intervals"));
-  regNames.insert(std::make_pair(-1, "not in region"));
+  regNames.insert(std::make_pair(atiPaletteEntry, "active time intervals"));
+  regNames.insert(std::make_pair(notInRegionPaletteEntry, "not in region"));
   for(auto rnames : rProfStats.RegionNames()) {  // ---- swap map first with second
     regNames.insert(std::make_pair(rnames.second, rnames.first));
   }
@@ -738,8 +749,8 @@ void ProfApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   wInfoTopLevel = 
     XtVaCreatePopupShell("Info",
 			 topLevelShellWidgetClass, wAmrVisTopLevel,
-			 XmNwidth,	400,
-			 XmNheight,	300,
+			 XmNwidth,	infoWidth,
+			 XmNheight,	infoHeight,
 			 XmNx,		50+xpos+width/2,
 			 XmNy,		ypos-10,
 			 NULL);
@@ -813,98 +824,6 @@ void ProfApp::DoInfoButton(Widget, XtPointer, XtPointer) {
   profAppMessageText.PrintText(prob.str().c_str());
 }
 
-/*
-// -------------------------------------------------------------------
-void ProfApp::DoInfoButtonScrolledList(Widget, XtPointer, XtPointer) {
-  if(infoShowing) {
-    XtPopup(wInfoTopLevel, XtGrabNone);
-    XMapRaised(XtDisplay(wInfoTopLevel), XtWindow(wInfoTopLevel));
-    return;
-  }
-
-  infoShowing = true;
-  Dimension width, height;
-  Position  xpos, ypos;
-  XtVaGetValues(wAmrVisTopLevel, XmNx, &xpos, XmNy, &ypos,
-		XmNwidth, &width, XmNheight, &height, NULL);
-  
-  wInfoTopLevel = 
-    XtVaCreatePopupShell("Info",
-			 topLevelShellWidgetClass, wAmrVisTopLevel,
-			 XmNwidth,	400,
-			 XmNheight,	300,
-			 XmNx,		50+xpos+width/2,
-			 XmNy,		ypos-10,
-			 NULL);
-  
-  AddStaticCallback(wInfoTopLevel, XmNdestroyCallback, &ProfApp::DestroyInfoWindow);
-  
-  // set visual in case the default isn't 256 pseudocolor
-  if(gaPtr->PVisual() != XDefaultVisual(display, gaPtr->PScreenNumber())) {
-    XtVaSetValues(wInfoTopLevel, XmNvisual, gaPtr->PVisual(), XmNdepth, 8, NULL);
-  }
-  
-  Widget wInfoForm =
-    XtVaCreateManagedWidget("infoform", xmFormWidgetClass, wInfoTopLevel, NULL);
-  
-  int i(0);
-  XtSetArg(args[i++], XmNlistSizePolicy, XmRESIZE_IF_POSSIBLE);
-  Widget wInfoList = XmCreateScrolledList(wInfoForm, "infoscrolledlist", args, i);
-  
-  XtVaSetValues(XtParent(wInfoList), 
-		XmNleftAttachment, XmATTACH_FORM,
-		XmNrightAttachment, XmATTACH_FORM,
-		XmNtopAttachment, XmATTACH_FORM,
-		XmNtopOffset, Amrvis::WOFFSET,
-		XmNbottomAttachment, XmATTACH_POSITION,
-		XmNbottomPosition, 80,
-		NULL);
-  
-  AmrData &amrData = profDataServicesPtr[0]->AmrDataRef();
-  
-  int numEntries(9 + amrData.FinestLevel() + 1);
-  XmStringTable strList = (XmStringTable) XtMalloc(numEntries*sizeof(XmString *));
-  
-  i = 0;
-  std::ostringstream prob;
-  prob.precision(15);
-
-  prob << fileNames[0];
-  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
-  prob.str(std::string());  // clear prob
-
-  prob << amrData.PlotFileVersion().c_str();
-  strList[i++] = XmStringCreateSimple(const_cast<char *>(prob.str().c_str()));
-  prob.str(std::string());  // clear prob
-
-  XtVaSetValues(wInfoList,
-		XmNvisibleItemCount, numEntries,
-		XmNitemCount, numEntries,
-		XmNitems, strList,
-		NULL);
-
-  Widget wInfoCloseButton =
-    XtVaCreateManagedWidget("Close",
-			    xmPushButtonGadgetClass, wInfoForm,
-			    XmNtopAttachment, XmATTACH_POSITION,
-			    XmNtopPosition, 85,
-			    XmNbottomAttachment, XmATTACH_POSITION,
-			    XmNbottomPosition, 95,
-			    XmNrightAttachment, XmATTACH_POSITION,
-			    XmNrightPosition, 75,
-			    XmNleftAttachment, XmATTACH_POSITION,
-			    XmNleftPosition, 25,
-			    NULL);
-  AddStaticCallback(wInfoCloseButton, XmNactivateCallback,
-		    &ProfApp::CloseInfoWindow);
-  
-  XtManageChild(wInfoList);
-  XtManageChild(wInfoCloseButton);
-
-  XtPopup(wInfoTopLevel, XtGrabNone);
-}
-*/
-
 
 // -------------------------------------------------------------------
 amrex::XYPlotDataList *ProfApp::CreateLinePlot(int V, int sdir, int mal, int ix,
@@ -961,7 +880,7 @@ amrex::XYPlotDataList *ProfApp::CreateLinePlot(int V, int sdir, int mal, int ix,
   }
   delete newlist;
 */
-  return NULL;
+  return nullptr;
 }
 
 
@@ -979,7 +898,7 @@ void ProfApp::DoExposePicture(Widget w, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void ProfApp::DoExposeRef(Widget, XtPointer, XtPointer) {
-  int xpos(10), ypos(15);
+  const int xpos(10), ypos(15), positionPad(5);
   int color(pltPaletteptr->WhiteIndex());
   std::ostringstream timeRangeS;
   timeRangeS << regionPicturePtr->SubTimeRange();
@@ -988,23 +907,28 @@ void ProfApp::DoExposeRef(Widget, XtPointer, XtPointer) {
 
   XSetForeground(XtDisplay(wControlForm), xgc, pltPaletteptr->makePixel(color));
   XDrawLine(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
-            xpos+5, ypos+5, xpos+5, ypos+axisLengthY);
+            xpos + positionPad, ypos + positionPad,
+	    xpos + positionPad, ypos + axisLengthY);
   XDrawLine(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
-            xpos+5, ypos+axisLengthY, xpos+5+axisLengthX, ypos+axisLengthY);
+            xpos + positionPad, ypos + axisLengthY,
+	    xpos + positionPad + axisLengthX, ypos + axisLengthY);
   XDrawString(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
-              xpos+5+axisLengthX, ypos+5+axisLengthY, labelTime.c_str(),
-	      labelTime.length());
+              xpos + positionPad + axisLengthX, ypos+positionPad + axisLengthY,
+	      labelTime.c_str(), labelTime.length());
   XDrawString(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
-              xpos+5, ypos, labelRegion.c_str(), labelRegion.length());
+              xpos + positionPad, ypos,
+	      labelRegion.c_str(), labelRegion.length());
 
   // ---- lines indicating subregion
   XDrawLine(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
-            xpos+5+sdLineXL, ypos+axisLengthY, xpos+5+sdLineXL, ypos+axisLengthY+8);
+            xpos + positionPad + sdLineXL, ypos + axisLengthY,
+	    xpos + positionPad + sdLineXL, ypos + axisLengthY + 8);
   XDrawLine(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
-            xpos+5+sdLineXH, ypos+axisLengthY, xpos+5+sdLineXH, ypos+axisLengthY+8);
+            xpos + positionPad + sdLineXH, ypos + axisLengthY,
+	    xpos + positionPad + sdLineXH, ypos + axisLengthY + 8);
   XDrawString(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
-              xpos+5, ypos+axisLengthY+24, timeRangeS.str().c_str(),
-	      timeRangeS.str().length());
+              xpos + positionPad, ypos + axisLengthY + 24,
+	      timeRangeS.str().c_str(), timeRangeS.str().length());
 
 }
 
@@ -1072,8 +996,7 @@ cout << "filterTimeRanges[0] = " << filterTimeRanges[0].front() << endl;
   }
   GenerateFuncList(funcs);
   regionPicturePtr->APDraw(0,0);
-  //pltPaletteptr->ExposePalette();
-  pltPaletteptr->DrawPalette(-2, regNames.size() - 3, "%8.2f");
+  pltPaletteptr->DrawPalette(atiPaletteEntry, regNames.size() - 3, "%8.2f");
 }
 
 
@@ -1089,7 +1012,7 @@ void ProfApp::GenerateFuncList(const Array<std::string> &funcs) {
   XtVaSetValues(wFuncList,
                 XmNitemCount, numEntries,
                 XmNitems, strList,
-                NULL);
+                nullptr);
 
   for(int i(0); i < funcs.size(); ++i) {
     XmStringFree(strList[i]);

@@ -44,7 +44,7 @@ public:
   ProfApp(XtAppContext app, Widget w, const string &filename, 
          const amrex::Array<ProfDataServices *> &profdataservicesptr);
   
-  // for subregion
+  // ---- for subregions
   ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
           const amrex::IntVect &offset,
           ProfApp *profparent, const string &palfile,
@@ -128,7 +128,7 @@ private:
   int sdLineXL, sdLineXH, axisLengthX, axisLengthY;
   amrex::Array<amrex::Array<BLProfStats::TimeRange>> rtr;
     
-  // baggage for fast rubber banding
+  // ---- baggage for fast rubber banding
   GC            rbgc;
   XEvent        nextEvent;
   int           rWidth, rHeight, rStartX, rStartY;
@@ -149,7 +149,7 @@ private:
   static void StaticEvent(Widget w, XtPointer client_data, XEvent *event, char*);
   static void StaticTimeOut(XtPointer client_data, XtIntervalId *);
   
-  class CBData {  // callback data
+  class CBData {  // ---- callback data
     public:
       CBData(ProfApp *p, XtPointer d, profMemberCB mcb)
         : instance(p), data(d), cbFunc(mcb) { }
@@ -158,7 +158,7 @@ private:
       XtPointer data;
       profMemberCB cbFunc;
   };
-  amrex::Array<CBData *> cbdPtrs;  // save these so we can delete them later
+  amrex::Array<CBData *> cbdPtrs;  // ---- save these so we can delete them later
 };
 
 

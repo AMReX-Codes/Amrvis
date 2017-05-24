@@ -18,6 +18,7 @@ const int defaultDataSizeH(600);
 
 #include <ctime>
 
+
 // ---------------------------------------------------------------------
 RegionPicture::RegionPicture(GraphicsAttributes *gaptr,
                              ProfDataServices *pdsp)
@@ -64,8 +65,8 @@ RegionPicture::RegionPicture(GraphicsAttributes *gaptr,
 
 
 // ---------------------------------------------------------------------
-void RegionPicture::RegionPictureInit(const amrex::Box &regionBox) {
-
+void RegionPicture::RegionPictureInit(const amrex::Box &regionBox)
+{
   display = gaPtr->PDisplay();
   xgc = gaPtr->PGC();
 
@@ -77,13 +78,12 @@ void RegionPicture::RegionPictureInit(const amrex::Box &regionBox) {
     cerr << "*** imageSizeV = " << imageSizeV << endl;
     amrex::Abort("Error in RegionPicture:  Image size too large.  Exiting.");
   }
-  int widthpad = gaPtr->PBitmapPaddedWidth(imageSizeH);
+  int widthpad(gaPtr->PBitmapPaddedWidth(imageSizeH));
   imageSize = imageSizeV * widthpad * gaPtr->PBytesPerPixel();
 
   imageData = new unsigned char[dataSize];
   scaledImageData = new unsigned char[imageSize];
   scaledImageDataDim = new unsigned char[imageSize];
-
 
   atiDataSizeH = dataSizeH;
   atiDataSizeV = regionBaseHeight;
@@ -128,7 +128,8 @@ RegionPicture::~RegionPicture() {
 void RegionPicture::APDraw(int fromLevel, int toLevel) {
   if( ! pixMapCreated) {
     pixMap = XCreatePixmap(display, pictureWindow,
-			   imageSizeH, imageSizeV, gaPtr->PDepth());
+			   imageSizeH, imageSizeV,
+			   gaPtr->PDepth());
     pixMapCreated = true;
   }  
   int invert(imageSizeV - currentScale - (regionBaseHeight * currentScale));
@@ -164,7 +165,6 @@ void RegionPicture::APDraw(int fromLevel, int toLevel) {
                 bLX, atiImageSizeV);
     }
   }
-           
   DoExposePicture();
 }
 
@@ -174,6 +174,7 @@ void RegionPicture::DoExposePicture() {
   XCopyArea(display, pixMap, pictureWindow, xgc, 0, 0,
             imageSizeH, imageSizeV, 0, 0); 
 
+  // ---- draw the selection box
   XSetForeground(display, xgc, palPtr->makePixel(175));
   XDrawLine(display, pictureWindow, xgc,
             regionX, regionY, region2ndX, regionY);
@@ -200,7 +201,6 @@ void RegionPicture::APMakeImages(Palette *palptr) {
   palPtr = palptr;
 
   int nRegions(profDataServicesPtr->GetRegionsProfStats().GetMaxRNumber() + 1);
-  cout << "nRegions = " << nRegions << endl;
 
   int allDataSizeH(defaultDataSizeH);
   int allDataSizeV((nRegions + 1) * regionBaseHeight);
@@ -218,8 +218,6 @@ void RegionPicture::APMakeImages(Palette *palptr) {
       regionsOnOff[i][j] = RP_ON;
     }
   }
-  cout << "btbtbtbt:  tempSliceFab.box() = " << tempSliceFab.box() << endl;
-
   tempSliceFab.shift(Amrvis::YDIR, regionBaseHeight);  // ---- for ati
   sliceFab->setVal(tempSliceFab.min(0) - 1.0);
   sliceFab->copy(tempSliceFab);
@@ -239,13 +237,6 @@ void RegionPicture::APMakeImages(Palette *palptr) {
   cout << "calcTimeRange = " << calcTimeRange << endl;
   cout << "subTimeRange  = " << subTimeRange << endl;
 
-//std::ofstream tfout("sliceFab.fab");
-//sliceFab->writeOn(tfout);
-//tfout.close();
-
-  cout << "tttttttt:  tempSliceFab.box() = " << tempSliceFab.box() << endl;
-  cout << "ssssssss:  sliceFab->box() = " << sliceFab->box() << endl;
-  cout << "ssssssss:  sliceFab->minmax() = " << sliceFab->min(0) << "  " << sliceFab->max(0) << endl;
   CreateImage(*(sliceFab), imageData, dataSizeH, dataSizeV, minUsing, maxUsing, palPtr);
   CreateScaledImage(&(xImage), currentScale,
                 imageData, scaledImageData, dataSizeH, dataSizeV,
@@ -265,10 +256,7 @@ void RegionPicture::APMakeImages(Palette *palptr) {
                 atiImageData, scaledATIImageDataDim, atiDataSizeH, atiDataSizeV,
                 atiImageSizeH, atiImageSizeV, true);  // ---- make dim
 
-  //if( ! pltAppPtr->PaletteDrawn()) {
-    //pltAppPtr->PaletteDrawn(true);
-    palptr->DrawPalette(minUsing, maxUsing, "%8.2f");
-  //}
+  palptr->DrawPalette(minUsing, maxUsing, "%8.2f");
 
   APDraw(0, 0);
 }
@@ -371,7 +359,8 @@ void RegionPicture::APChangeScale(int newScale, int previousScale) {
     XFreePixmap(display, pixMap);
   }  
   pixMap = XCreatePixmap(display, pictureWindow,
-			 imageSizeH, imageSizeV, gaPtr->PDepth());
+			 imageSizeH, imageSizeV,
+			 gaPtr->PDepth());
   pixMapCreated = true;
 
   delete [] scaledImageData;
@@ -415,7 +404,8 @@ XImage *RegionPicture::GetPictureXImage() {
     XFreePixmap(display, pixMap);
   }  
   pixMap = XCreatePixmap(display, pictureWindow,
-			 imageSizeH, imageSizeV, gaPtr->PDepth());
+			 imageSizeH, imageSizeV,
+			 gaPtr->PDepth());
   pixMapCreated = true;
   APDraw(0, 0);
   return ximage;
@@ -476,7 +466,6 @@ void RegionPicture::SetAllOnOff(int onoff)
   }
   APDraw(0, 0);
 }
-
 // ---------------------------------------------------------------------
 // ---------------------------------------------------------------------
 
