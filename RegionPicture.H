@@ -63,18 +63,18 @@ class RegionPicture {
   Window PictureWindow()          { return pictureWindow; }
 
  private:
-  Window         pictureWindow;
+  Window pictureWindow;
   GraphicsAttributes *gaPtr;
   Display *display;
   GC  xgc;
-  Pixmap 	 pixMap;
+  Pixmap  pixMap;
   XImage *xImage, *atiXImage;
   XImage *xImageDim, *atiXImageDim;
   unsigned long  dataSize, dataSizeH, dataSizeV;
   unsigned long  atiDataSize, atiDataSizeH, atiDataSizeV;
   unsigned int   imageSize, imageSizeH, imageSizeV;
   unsigned int   atiImageSize, atiImageSizeH, atiImageSizeV;
-  Palette	*palPtr;
+  Palette *palPtr;
   amrex::FArrayBox *sliceFab;
   amrex::Box subRegion;
   unsigned char *imageData;
@@ -89,8 +89,9 @@ class RegionPicture {
   int regionX, regionY, region2ndX, region2ndY;
   int subcutX, subcutY, subcut2ndX, subcut2ndY;
   BLProfStats::TimeRange calcTimeRange, subTimeRange;
-  amrex::Array<amrex::Array<amrex::Box>> regionBoxes;
-  amrex::Array<amrex::Array<int>> regionsOnOff;
+  amrex::Array<amrex::Array<amrex::Box>> regionBoxes;  // ---- [region][box]
+  amrex::Array<amrex::Array<int>> regionsOnOff;        // ---- [region][onoff]
+  amrex::BoxDomain timeSpanOff;                          // ---- time spans that are off
   
   void SetSlice(int view, int here);
   void CoarsenSliceBox();

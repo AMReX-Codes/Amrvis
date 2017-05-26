@@ -140,6 +140,24 @@ void RegionPicture::APDraw(int fromLevel, int toLevel) {
 	    atiImageSizeH, atiImageSizeV);
 
   XImage *xi, *atixi;
+  for(auto it = timeSpanOff.begin(); it != timeSpanOff.end(); ++it) {
+      const Box &b = *it;
+      int bSX(b.smallEnd(Amrvis::XDIR) * currentScale);
+      int bBY(b.bigEnd(Amrvis::YDIR) * currentScale);
+      int bLX(b.length(Amrvis::XDIR) * currentScale);
+      int bLY(b.length(Amrvis::YDIR) * currentScale);
+      xi    = xImageDim;
+      atixi = atiXImageDim;
+      XPutImage(display, pixMap, xgc, xi,
+                bSX, invert - bBY,
+                bSX, invert - bBY,
+                bLX, bLY);
+      XPutImage(display, pixMap, xgc, atixi,
+                bSX, 0,
+                bSX, invert,
+                bLX, atiImageSizeV);
+  }
+  /*
   for(int i(0); i < regionsOnOff.size(); ++i) {
     for(int j(0); j < regionsOnOff[i].size(); ++j) {
       const Box &b = regionBoxes[i][j];
@@ -165,6 +183,8 @@ void RegionPicture::APDraw(int fromLevel, int toLevel) {
                 bLX, atiImageSizeV);
     }
   }
+  */
+
   DoExposePicture();
 }
 
@@ -446,6 +466,26 @@ void RegionPicture::SetRegionOnOff(int regionIndex, int whichRegion,
   if(whichRegion < 0 || whichRegion >= regionsOnOff[regionIndex].size()) {
     return;
   }
+  Box regionSpanBox(regionBoxes[regionIndex][whichRegion]);
+  regionSpanBox.setSmall(Amrvis::YDIR, subRegion.smallEnd(Amrvis::YDIR));
+  regionSpanBox.setBig(Amrvis::YDIR, subRegion.bigEnd(Amrvis::YDIR) - regionBaseHeight);
+
+  cout << "regionIndex whichRegion regionBox regionSpanBox = " << regionIndex
+       << "  " << whichRegion << "  " << regionBoxes[regionIndex][whichRegion]
+       << "  " << regionSpanBox << endl;
+
+  if(onoff == RP_ON) {
+    BoxList iSect(timeSpanOff.boxList());
+    iSect.intersect(regionSpanBox);
+    for(auto it = iSect.begin(); it != iSect.end(); ++it) {
+      Box onBox(*it);
+      timeSpanOff.rmBox(onBox);
+    }
+  }
+  if(onoff == RP_OFF) {
+    timeSpanOff.add(regionSpanBox);
+  }
+
   regionsOnOff[regionIndex][whichRegion] = onoff;
   APDraw(0, 0);
 }
@@ -459,6 +499,13 @@ void RegionPicture::SetAllOnOff(int onoff)
       for(int j(0); j < regionsOnOff[i].size(); ++j) {
         regionsOnOff[i][j] = onoff;
       }
+    }
+    timeSpanOff.clear();
+    if(onoff == RP_OFF) {
+      Box regionSpanBox(subRegion);
+      regionSpanBox.setBig(Amrvis::YDIR, subRegion.bigEnd(Amrvis::YDIR) - regionBaseHeight);
+      //timeSpanOff.push_back(regionSpanBox);
+      timeSpanOff.add(regionSpanBox);
     }
   } else {
     cerr << "**** Error in RegionPicture::SetAllOnOff:  bad value:  " << onoff << endl;

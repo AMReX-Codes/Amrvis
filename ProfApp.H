@@ -127,6 +127,7 @@ private:
   int startX, startY, endX, endY;
   int sdLineXL, sdLineXH, axisLengthX, axisLengthY;
   amrex::Array<amrex::Array<BLProfStats::TimeRange>> rtr;
+  amrex::Array<std::list<BLProfStats::TimeRange>> filterTimeRanges;
     
   // ---- baggage for fast rubber banding
   GC            rbgc;

@@ -65,6 +65,9 @@ const int topLevelNy(300);
 const int marginBottom(2);
 const int infoWidth(400);
 const int infoHeight(300);
+const int plotAreaHeight(342);
+const int funcListHeight(600);
+const int funcListWidth(850);
 
 void CollectMProfStats(std::map<std::string, BLProfiler::ProfStats> &mProfStats,
                        const Array<Array<BLProfStats::FuncStat> > &funcStats,
@@ -302,10 +305,11 @@ if(regionTimeRanges.size() > 0) {
 // -------------------------------------------------------------------
 void ProfApp::ProfAppInit(bool bSubregion) {
   int np;
-  int plotAreaHeight(242), funcListHeight(600), funcListWidth(850);
 
   currentScale = 1;
   maxAllowableScale = 8;
+
+  filterTimeRanges.resize(profDataServicesPtr[0]->GetBLProfStats().GetNProcs());
 
   XmAddWMProtocolCallback(wAmrVisTopLevel,
 			  XmInternAtom(display,const_cast<String> ("WM_DELETE_WINDOW"), false),
@@ -954,7 +958,6 @@ void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data,
   cout << "_in ProfApp::DoGenerateFuncList:  r = " << r << endl;
 
   RegionsProfStats &regionsProfStats = profDataServicesPtr[0]->GetRegionsProfStats();
-Array<std::list<BLProfStats::TimeRange>> filterTimeRanges(regionsProfStats.GetNProcs());
   cout << "filterTimeRanges.size() = " << filterTimeRanges.size() << endl;
 for(int i(0); i < filterTimeRanges.size(); ++i) {
   filterTimeRanges[i].push_back(BLProfStats::TimeRange(1.71263, 7.71314));
