@@ -157,33 +157,6 @@ void RegionPicture::APDraw(int fromLevel, int toLevel) {
                 bSX, invert,
                 bLX, atiImageSizeV);
   }
-  /*
-  for(int i(0); i < regionsOnOff.size(); ++i) {
-    for(int j(0); j < regionsOnOff[i].size(); ++j) {
-      const Box &b = regionBoxes[i][j];
-      int bSX(b.smallEnd(Amrvis::XDIR) * currentScale);
-      int bBY(b.bigEnd(Amrvis::YDIR) * currentScale);
-      int bLX(b.length(Amrvis::XDIR) * currentScale);
-      int bLY(b.length(Amrvis::YDIR) * currentScale);
-      if(regionsOnOff[i][j] == RP_OFF) {
-	xi    = xImageDim;
-	atixi = atiXImageDim;
-      }
-      if(regionsOnOff[i][j] == RP_ON) {
-	xi    = xImage;
-	atixi = atiXImage;
-      }
-      XPutImage(display, pixMap, xgc, xi,
-                bSX, invert - bBY,
-                bSX, invert - bBY,
-                bLX, bLY);
-      XPutImage(display, pixMap, xgc, atixi,
-                bSX, 0,
-                bSX, invert,
-                bLX, atiImageSizeV);
-    }
-  }
-  */
 
   DoExposePicture();
 }

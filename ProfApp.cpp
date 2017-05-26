@@ -310,6 +310,10 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   maxAllowableScale = 8;
 
   filterTimeRanges.resize(profDataServicesPtr[0]->GetBLProfStats().GetNProcs());
+  for(int i(0); i < filterTimeRanges.size(); ++i) {
+    filterTimeRanges[i].push_back(regionPicturePtr->SubTimeRange());
+  }
+
 
   XmAddWMProtocolCallback(wAmrVisTopLevel,
 			  XmInternAtom(display,const_cast<String> ("WM_DELETE_WINDOW"), false),
@@ -958,12 +962,10 @@ void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data,
   cout << "_in ProfApp::DoGenerateFuncList:  r = " << r << endl;
 
   RegionsProfStats &regionsProfStats = profDataServicesPtr[0]->GetRegionsProfStats();
-  cout << "filterTimeRanges.size() = " << filterTimeRanges.size() << endl;
-for(int i(0); i < filterTimeRanges.size(); ++i) {
-  filterTimeRanges[i].push_back(BLProfStats::TimeRange(1.71263, 7.71314));
-}
 regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
-cout << "filterTimeRanges[0] = " << filterTimeRanges[0].front() << endl;
+for(int i(0); i < filterTimeRanges.size(); ++i) {
+  cout << "filterTimeRanges[0] = " << filterTimeRanges[0].front() << endl;
+}
   Array<Array<BLProfStats::FuncStat>> aFuncStats;
   regionsProfStats.CollectFuncStats(aFuncStats);
   std::map<std::string, BLProfiler::ProfStats> mProfStats;  // [fname, pstats]
@@ -1029,6 +1031,12 @@ void ProfApp::DoAllOnOff(Widget w, XtPointer client_data, XtPointer call_data)
 {
   unsigned long v = (unsigned long) client_data;
   regionPicturePtr->SetAllOnOff(v);
+  for(int i(0); i < filterTimeRanges.size(); ++i) {
+    filterTimeRanges[i].clear();
+    if(v == RegionPicture::RP_ON) {
+      filterTimeRanges[i].push_back(regionPicturePtr->SubTimeRange());
+    }
+  }
 }
 
 
@@ -1254,6 +1262,12 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
 
           PrintMessage(const_cast<char *>(buffout.str().c_str()));
 	  regionPicturePtr->SetRegionOnOff(dataValueIndex, rtri, RegionPicture::RP_OFF);
+	  if(rtri < 0 || rtri >= rtr[dataValueIndex].size()) {
+	  } else {
+	    for(int i(0); i < filterTimeRanges.size(); ++i) {
+	      BLProfStats::RemovePiece(filterTimeRanges[i], rtr[dataValueIndex][rtri]);
+	    }
+	  }
           regionPicturePtr->DoExposePicture();
 
         }
@@ -1311,6 +1325,12 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
 
           PrintMessage(const_cast<char *>(buffout.str().c_str()));
 	  regionPicturePtr->SetRegionOnOff(dataValueIndex, rtri, RegionPicture::RP_ON);
+	  if(rtri < 0 || rtri >= rtr[dataValueIndex].size()) {
+	  } else {
+	    for(int i(0); i < filterTimeRanges.size(); ++i) {
+	      BLProfStats::AddPiece(filterTimeRanges[i], rtr[dataValueIndex][rtri]);
+	    }
+	  }
           regionPicturePtr->DoExposePicture();
 
         }
