@@ -115,7 +115,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
     animating2d(isAnim),
     paletteDrawn(false),
     currentFrame(0),
-    bCartGridSmoothing(true),
+    bCartGridSmoothing(false),
     fileName(filename),
     dataServicesPtr(dataservicesptr)
 {
@@ -974,6 +974,20 @@ void PltApp::PltAppInit(bool bSubVolume) {
 				NULL);
   XmStringFree(label_str);
   AddStaticCallback(wid, XmNvalueChangedCallback, &PltApp::DoBoxesButton);
+
+  if(amrData.CartGrid()) {
+    // cart grid smoothing
+    label_str = XmStringCreateSimple(const_cast<char *>("s"));
+    wid = XtVaCreateManagedWidget("smooth",
+				  xmToggleButtonGadgetClass, wMenuPulldown,
+				  XmNmnemonic, 'S',
+				  XmNset, pltAppState->GetCGSmoothing(),
+				  XmNaccelerator, "<Key>S",
+				  XmNacceleratorText, label_str,
+				  NULL);
+    XmStringFree(label_str);
+    AddStaticCallback(wid, XmNvalueChangedCallback, &PltApp::DoCGSmoothing);
+  }
 
   // ------------------------------- derived menu
   int maxMenuItems(initialMaxMenuItems);  // arbitrarily
@@ -3101,6 +3115,21 @@ void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
   XDrawLine(display, XtWindow(wPlotPlane[Amrvis::ZPLANE]), xgc,
             imageSizeX, 0, imageSizeX, imageSizeY);
   */
+}
+
+
+// -------------------------------------------------------------------
+void PltApp::DoCGSmoothing(Widget, XtPointer, XtPointer) {
+  if(animating2d) {
+    ResetAnimation();
+    DirtyFrames(); 
+  }
+  pltAppState->SetCGSmoothing( ! pltAppState->GetCGSmoothing());
+  int currentScale(pltAppState->CurrentScale());
+  for(int np(0); np < Amrvis::NPLANES; ++np) {
+    amrPicturePtrArray[np]->SetCartGridSmoothing(pltAppState->GetCGSmoothing());
+    amrPicturePtrArray[np]->APChangeScale(currentScale, currentScale);
+  }
 }
 
 

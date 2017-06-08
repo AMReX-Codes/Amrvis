@@ -272,6 +272,7 @@ private:
   void DirtyFrames();
   void DoRubberBanding(Widget, XtPointer, XtPointer);
   void DoBoxesButton(Widget, XtPointer, XtPointer);
+  void DoCGSmoothing(Widget, XtPointer, XtPointer);
   void DoAnimBackStep();
   void DoAnimForwardStep();
   void DoAnimFileScale(Widget, XtPointer, XtPointer);

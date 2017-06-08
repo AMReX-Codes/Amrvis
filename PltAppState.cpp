@@ -69,6 +69,7 @@ PltAppState::PltAppState(int numFrames, int numDerived)
       minMax[nf][nd].resize(Amrvis::NUMBEROFMINMAX);
     }
   }
+  cgSmoothing = false;
 }
 
 
@@ -88,6 +89,7 @@ PltAppState &PltAppState::operator=(const PltAppState &rhs) {
   currentDerived = rhs.currentDerived;
   currentDerivedNumber = rhs.currentDerivedNumber;
   showBoxes = rhs.showBoxes;
+  cgSmoothing = rhs.cgSmoothing;
   currentContourType = rhs.currentContourType;
   nContours = rhs.nContours;
   currentMinMaxType = rhs.currentMinMaxType;
