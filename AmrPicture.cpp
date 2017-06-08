@@ -1001,48 +1001,24 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 cout << "_here:  bCartGridSmoothing" << endl;
     int i, j, ii, jj, rrcs, iis;
     int iMDL(pltAppStatePtr->MaxDrawnLevel());
-    //AmrData &amrData = dataServicesPtr->AmrDataRef();
     int blackIndex = palPtr->BlackIndex();
     int whiteIndex = palPtr->WhiteIndex();
     int bodyColor = blackIndex;
-    //Real vfeps = amrData.VfEps(iMDL);
-    //const Real *vfracPoint = vfracFab->dataPtr();
-    //Real *vfracPoint = vfSliceFab[iMDL]->dataPtr();
+    const AmrData &amrData = dataServicesPtr->AmrDataRef();
+    Real vfeps = amrData.VfEps(iMDL);
     Real *vfracPoint = vfSliceFab[level]->dataPtr();
     Real vfp, omvfe = 1.0 - vfeps;
     int vidx, svidx;
-    //Real stencil[9];
-    Array<Real> stencil(9, -1234.0);
+    Array<Real> stencil(9, -3.0);
     int nBodyCells, nScaledImageCells;
 
     bool bCreateMask(level == 0);
 
     rrcs = scale;
     nScaledImageCells = rrcs*rrcs;
-SHOWVAL(level);
-SHOWVAL(iMDL);
-SHOWVAL(rrcs);
-SHOWVAL(nScaledImageCells);
-SHOWVAL(imagesizeh);
-//SHOWVAL(imageSizeH);
-SHOWVAL(imagesizev);
-//SHOWVAL(imageSizeV);
-SHOWVAL(datasizeh);
-SHOWVAL(datasizev);
-/*
-{
-  std::stringstream fss;
-  fss << "vfSliceFab_" << rrcs << "_" << level << ".fab";
-  std::ofstream tfout(fss.str());
-  //vfracFab->writeOn(tfout);
-  vfSliceFab[level]->writeOn(tfout);
-  tfout.close();
-}
-*/
 
     Real sumH[3], sumV[3];
     Real diffAvgV[3], diffAvgH[3], avgV, avgH;
-    //Real minDAV, maxDAV, minDAH, maxDAH;
     Real normV, normH;
     int  isum, jsum, nStartV, nEndV, nStartH, nEndH, tempSum;
     int nV, nH, stencilSize = 3;
@@ -1056,16 +1032,9 @@ SHOWVAL(datasizev);
 
     //int dataSizeHMDL(dataSizeH[iMDL]), dataSizeVMDL(dataSizeV[iMDL]);
     int dataSizeHMDL(datasizeh), dataSizeVMDL(datasizev);
-SHOWVAL(dataSizeHMDL);
-SHOWVAL(dataSizeVMDL);
-SHOWVAL(dataSizeH[iMDL]);
-SHOWVAL(dataSizeV[iMDL]);
-//static int count(0);
 
 if(bCreateMask) {
 
-    //delete [] scaledImageDataBodyMask;
-    //scaledImageDataBodyMask = new unsigned char[imagesizeh * imagesizev];
     scaledImageDataBodyMask.resize(imagesizeh * imagesizev);
 
     for(j = 0; j < imagesizev; ++j) {
@@ -1412,28 +1381,11 @@ if(bCreateMask) {
           for(jj = 0; jj < rrcs; ++jj) {
             for(ii = 0; ii < rrcs; ++ii) {
               if(imageStencil[ii + (jj * rrcs)] == fluidCell) {  // in fluid
-                //scaledimagedata[((i * rrcs) + ii)+(((j * rrcs)+jj)*imageSizeH)] =
-                                                //imagedata[i + j*dataSizeHMDL];
-		//int iii(((i * rrcs) + ii)), jjj(((j * rrcs)+jj));
-		//unsigned char imm1(imagedata[ i + j*dataSizeHMDL ]);
-		//unsigned char imm1(imagedata[ i + j*datasizeh ]);
-		//XPutPixel(*ximage, iii, jjj, palPtr->makePixel(imm1));
               } else if(imageStencil[ii + (jj*rrcs)] == markedCell) {
-                //scaledimagedata[((i*rrcs)+ii)+(((j*rrcs)+jj)*imageSizeH)] =
-                                                    //(unsigned char) whiteIndex;
-		//int iii(((i * rrcs) + ii)), jjj(((j * rrcs)+jj));
-		//unsigned char imm1(whiteIndex);
-		//XPutPixel(*ximage, iii, jjj, palPtr->makePixel(imm1));
               } else if(imageStencil[ii + (jj*rrcs)] == bodyCell) {  // in body
-                //scaledimagedata[((i*rrcs)+ii)+(((j*rrcs)+jj)*imageSizeH)] =
-                                                    //(unsigned char) bodyColor;
                 scaledImageDataBodyMask[((i*rrcs)+ii)+(((j*rrcs)+jj)*imageSizeH)] = 0;
-                                                    
-		//int iii(((i * rrcs) + ii)), jjj(((j * rrcs)+jj));
-		//unsigned char imm1(bodyColor);
-		//XPutPixel(*ximage, iii, jjj, palPtr->makePixel(imm1));
               } else {  // undefined
-		cout << "undefined stencil value:  " << ii << "  " << jj << endl;
+		//cout << "undefined stencil value:  " << ii << "  " << jj << endl;
 		amrex::Abort("undefined stencil value.");
               }
             }  // end for(ii...)
@@ -1442,14 +1394,9 @@ if(bCreateMask) {
         } else {  // non mixed cell
           for(jj = 0; jj < rrcs; ++jj) {
             for(ii = 0; ii < rrcs; ++ii) {
-              /*
-	      scaledimagedata[((i*rrcs)+ii) + (((j*rrcs)+jj) * imageSizeH)] =
-                       //imagedata[i + j*dataSizeHMDL];
-                       imagedata[i + j*datasizeh];
-	      */
 		//int iii((i*rrcs)+ii), jjj((j*rrcs)+jj);
 		//unsigned char imm1(imagedata[ i + j*datasizeh ]);
-	//	XPutPixel(*ximage, iii, jjj, palPtr->makePixel(imm1));
+	  	//XPutPixel(*ximage, iii, jjj, palPtr->makePixel(imm1));
             }
           }
         }
@@ -1460,9 +1407,7 @@ if(bCreateMask) {
 /**/
 
 /*
-*/
 {
-cout << "sidbmf" << endl;
     Box sb(IntVect(0,0), IntVect(imagesizeh-1,imagesizev-1));
     FArrayBox sfab(sb, 1);
     sfab.setVal(42);
@@ -1479,8 +1424,8 @@ cout << "sidbmf" << endl;
     std::ofstream tfout(fss.str());
     sfab.writeOn(tfout);
     tfout.close();
-cout << "end sidbmf" << endl;
 }
+*/
 
 } else {
 }
