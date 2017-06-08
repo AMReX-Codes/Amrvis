@@ -208,7 +208,6 @@ private:
   int activeView;
   int startX, startY, endX, endY;
   int maxAllowableScale;
-  bool bCartGridSmoothing;
   string contourNumString, fileName, palFilename, lightingFilename, headerSuffix;
   char buffer[BUFSIZ];
   amrex::Box trueRegion, selectionBox;

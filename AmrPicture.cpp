@@ -1030,7 +1030,6 @@ cout << "_here:  bCartGridSmoothing" << endl;
 
     Array<int> imageStencil(nScaledImageCells, -5000);
 
-    //int dataSizeHMDL(dataSizeH[iMDL]), dataSizeVMDL(dataSizeV[iMDL]);
     int dataSizeHMDL(datasizeh), dataSizeVMDL(datasizev);
 
 if(bCreateMask) {
@@ -1093,26 +1092,26 @@ if(bCreateMask) {
 #if (BL_SPACEDIM==2)
           // fix for straight lines near corners
           Real smallval = 0.0001;
-          if(abs(stencil[4] - stencil[3]) < smallval &&
-             abs(stencil[4] - stencil[5]) > smallval) {
+          if(fabs(stencil[4] - stencil[3]) < smallval &&
+             fabs(stencil[4] - stencil[5]) > smallval) {
             stencil[2] = -2.0*vfeps;  // flag value
             stencil[5] = -2.0*vfeps;  // flag value
             stencil[8] = -2.0*vfeps;  // flag value
           }
-          if(abs(stencil[4] - stencil[5]) < smallval &&
-             abs(stencil[4] - stencil[3]) > smallval) {
+          if(fabs(stencil[4] - stencil[5]) < smallval &&
+             fabs(stencil[4] - stencil[3]) > smallval) {
             stencil[0] = -2.0*vfeps;  // flag value
             stencil[3] = -2.0*vfeps;  // flag value
             stencil[6] = -2.0*vfeps;  // flag value
           }
-          if(abs(stencil[4] - stencil[1]) < smallval &&
-             abs(stencil[4] - stencil[7]) > smallval) {
+          if(fabs(stencil[4] - stencil[1]) < smallval &&
+             fabs(stencil[4] - stencil[7]) > smallval) {
             stencil[6] = -2.0*vfeps;  // flag value
             stencil[7] = -2.0*vfeps;  // flag value
             stencil[8] = -2.0*vfeps;  // flag value
           }
-          if(abs(stencil[4] - stencil[7]) < smallval &&
-             abs(stencil[4] - stencil[1]) > smallval) {
+          if(fabs(stencil[4] - stencil[7]) < smallval &&
+             fabs(stencil[4] - stencil[1]) > smallval) {
             stencil[0] = -2.0*vfeps;  // flag value
             stencil[1] = -2.0*vfeps;  // flag value
             stencil[2] = -2.0*vfeps;  // flag value
@@ -1190,7 +1189,7 @@ if(bCreateMask) {
           for(ii = 0; ii < rrcs * rrcs; ++ii) {
             imageStencil[ii] = fluidCell;
           }
-          if(abs(normV) > 0.000001) {
+          if(fabs(normV) > 0.000001) {
             slope = normH/normV;  // perpendicular to normal
           } else {
             slope = normH;  // avoid divide by zero
@@ -1334,7 +1333,7 @@ if(bCreateMask) {
 
           }  // end while(...)
 
-          } else if(abs(normV) < 0.000001) {  // vertical face
+          } else if(fabs(normV) < 0.000001) {  // vertical face
 
             if(normH > 0.0) {  // body is on the left edge of the cell
               for(jj = 0; jj < rrcs; ++jj) {
@@ -1352,7 +1351,7 @@ if(bCreateMask) {
               }
             }
 
-          } else if(abs(normH) < 0.000001) {  // horizontal face
+          } else if(fabs(normH) < 0.000001) {  // horizontal face
 
             if(normV > 0.0) {  // body is on the bottom edge of the cell
               for(jj = 0; jj < (nBodyCells / rrcs); ++jj) {

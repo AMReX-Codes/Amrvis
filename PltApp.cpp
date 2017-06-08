@@ -115,7 +115,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
     animating2d(isAnim),
     paletteDrawn(false),
     currentFrame(0),
-    bCartGridSmoothing(false),
     fileName(filename),
     dataServicesPtr(dataservicesptr)
 {
@@ -369,18 +368,18 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 
   amrPicturePtrArray[Amrvis::ZPLANE] = new AmrPicture(gaPtr, this, pltAppState,
 					dataServicesPtr[currentFrame],
-					bCartGridSmoothing);
+					pltAppState->GetCGSmoothing());
 #if (BL_SPACEDIM == 3)
   amrPicturePtrArray[Amrvis::YPLANE] = new AmrPicture(Amrvis::YPLANE, gaPtr,
 					amrData.ProbDomain()[finestLevel],
 					NULL, this,
 					pltAppState,
-					bCartGridSmoothing);
+					pltAppState->GetCGSmoothing());
   amrPicturePtrArray[Amrvis::XPLANE] = new AmrPicture(Amrvis::XPLANE, gaPtr,
 					amrData.ProbDomain()[finestLevel],
 					NULL, this,
 					pltAppState,
-					bCartGridSmoothing);
+					pltAppState->GetCGSmoothing());
 #endif
 
   for(i = 0; i != BL_SPACEDIM; ++i) {
@@ -439,7 +438,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 #endif
   contourNumString = pltParent->contourNumString.c_str();
 
-  bCartGridSmoothing = pltParent->bCartGridSmoothing;
   int finestLevel(amrData.FinestLevel());
   pltAppState->SetFinestLevel(finestLevel);
   int maxlev = AVGlobals::DetermineMaxAllowableLevel(region, finestLevel,
@@ -654,7 +652,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     amrPicturePtrArray[np] = new AmrPicture(np, gaPtr, region,
 					    pltParent, this,
 					    pltAppState,
-					    bCartGridSmoothing);
+					    pltAppState->GetCGSmoothing());
   }
   
 #if (BL_SPACEDIM == 3)
@@ -4463,7 +4461,7 @@ void PltApp::ResetAnimation() {
     amrPicturePtrArray[Amrvis::ZPLANE] = new AmrPicture(Amrvis::ZPLANE, gaPtr, fineDomain, 
 						NULL, this,
 						pltAppState,
-						bCartGridSmoothing);
+						pltAppState->GetCGSmoothing());
     amrPicturePtrArray[Amrvis::ZPLANE]->SetRegion(startX, startY, endX, endY);
     //pltAppState->SetMaxDrawnLevel(maxDrawnLevel);
     //SetNumContours(false);
@@ -4569,7 +4567,7 @@ void PltApp::ShowFrame() {
     amrPicturePtrArray[Amrvis::ZPLANE] = new AmrPicture(Amrvis::ZPLANE, gaPtr, fineDomain, 
 						NULL, this,
 						pltAppState,
-						bCartGridSmoothing);
+						pltAppState->GetCGSmoothing());
     amrPicturePtrArray[Amrvis::ZPLANE]->SetRegion(startX, startY, endX, endY);
     
     amrPicturePtrArray[Amrvis::ZPLANE]->CreatePicture(XtWindow(wPlotPlane[Amrvis::ZPLANE]),

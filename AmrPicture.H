@@ -115,7 +115,6 @@ class AmrPicture {
   amrex::Array<amrex::FArrayBox *> sliceFab;
   amrex::Array<amrex::FArrayBox *> vfSliceFab;
   amrex::Array<unsigned char *>  imageData, scaledImageData;
-  //unsigned char *scaledImageDataBodyMask;
   amrex::Array<unsigned char> scaledImageDataBodyMask;
   amrex::Array<XImage *>       xImageArray;
   amrex::Array<bool>           xImageCreated;
