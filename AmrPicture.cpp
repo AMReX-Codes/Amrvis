@@ -367,13 +367,15 @@ void AmrPicture::AmrPictureInit() {
   imageData.resize(numberOfLevels);
   scaledImageData.resize(numberOfLevels);
   for(iLevel = 0; iLevel < minDrawnLevel; ++iLevel) {
-    imageData[iLevel]       = NULL;
-    scaledImageData[iLevel] = NULL;
+    imageData[iLevel]       = nullptr;
+    scaledImageData[iLevel] = nullptr;
   }
   for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
     imageData[iLevel] = new unsigned char[dataSize[iLevel]];
-    scaledImageData[iLevel] = (unsigned char *) malloc(imageSize);
+    //scaledImageData[iLevel] = (unsigned char *) malloc(imageSize);
+    scaledImageData[iLevel] = new unsigned char[imageSize];
   }
+  //scaledImageDataBodyMask = nullptr;
 
   pendingTimeOut = 0;
   frameSpeed = 300;
@@ -453,12 +455,14 @@ AmrPicture::~AmrPicture() {
   }
   for(int iLevel(minDrawnLevel); iLevel <= maxAllowableLevel; ++iLevel) {
     delete [] imageData[iLevel];
-    free(scaledImageData[iLevel]);
+    //free(scaledImageData[iLevel]);
+    delete [] scaledImageData[iLevel];
     delete sliceFab[iLevel];
     if(dataServicesPtr->AmrDataRef().CartGrid()) {
       delete vfSliceFab[iLevel];
     }
   }
+  //delete [] scaledImageDataBodyMask;
 
   if(pixMapCreated) {
     XFreePixmap(display, pixMap);
@@ -594,7 +598,7 @@ void AmrPicture::APChangeContour(Amrvis::ContourType prevCType) {
 		                             amrData.RefRatio()),
                  imageData[iLevel], scaledImageData[iLevel],
                  dataSizeH[iLevel], dataSizeV[iLevel],
-                 imageSizeH, imageSizeV);
+                 imageSizeH, imageSizeV, iLevel, vffp, vfeps);
     }
     if( ! pltAppPtr->PaletteDrawn()) {
       pltAppPtr->PaletteDrawn(true);
@@ -859,7 +863,7 @@ void AmrPicture::APMakeImages(Palette *palptr) {
 		amrData.RefRatio()),
                 imageData[iLevel], scaledImageData[iLevel],
                 dataSizeH[iLevel], dataSizeV[iLevel],
-                imageSizeH, imageSizeV);
+                imageSizeH, imageSizeV, iLevel, vffp, vfeps);
   }
   if( ! pltAppPtr->PaletteDrawn()) {
     pltAppPtr->PaletteDrawn(true);
@@ -972,7 +976,9 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 				   unsigned char *imagedata,
 				   unsigned char *scaledimagedata,
 				   int datasizeh, int datasizev,
-				   int imagesizeh, int imagesizev)
+				   int imagesizeh, int imagesizev,
+				   int level,
+			           const FArrayBox *vfracFab, const Real vfeps)
 { 
   int widthpad = gaPtr->PBitmapPaddedWidth(imagesizeh);
   *ximage = XCreateImage(display, gaPtr->PVisual(),
@@ -981,7 +987,6 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 		XBitmapPad(display), widthpad * gaPtr->PBytesPerPixel());
 
   if( ! bCartGridSmoothing) {
-    if(true) {
 	for(int j(0); j < imagesizev; ++j) {
 	    int jtmp(datasizeh * (j/scale));
 	    for(int i(0); i < widthpad; ++i) {
@@ -990,35 +995,50 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 		XPutPixel(*ximage, i, j, palPtr->makePixel(imm1));
 	      }
 	  }
-    } else {
-	(*ximage)->byte_order = MSBFirst;
-	(*ximage)->bitmap_bit_order = MSBFirst;
-	for(int j(0); j < imagesizev; ++j) {
-	  int jish(j * imagesizeh);
-	  int jtmp(datasizeh * (j/scale));
-	  for(int i(0); i < imagesizeh; ++i) {
-	    scaledimagedata[i+jish] = imagedata [ (i/scale) + jtmp ];
-	  }
-	}
-    }
   } else {  // bCartGridSmoothing
 
-/*
-
+/**/
+cout << "_here:  bCartGridSmoothing" << endl;
     int i, j, ii, jj, rrcs, iis;
     int iMDL(pltAppStatePtr->MaxDrawnLevel());
-    AmrData &amrData = dataServicesPtr->AmrDataRef();
+    //AmrData &amrData = dataServicesPtr->AmrDataRef();
     int blackIndex = palPtr->BlackIndex();
     int whiteIndex = palPtr->WhiteIndex();
     int bodyColor = blackIndex;
-    Real vfeps = amrData.VfEps(iMDL);
-    Real *vfracPoint = vfracData->dataPtr();
+    //Real vfeps = amrData.VfEps(iMDL);
+    //const Real *vfracPoint = vfracFab->dataPtr();
+    //Real *vfracPoint = vfSliceFab[iMDL]->dataPtr();
+    Real *vfracPoint = vfSliceFab[level]->dataPtr();
     Real vfp, omvfe = 1.0 - vfeps;
     int vidx, svidx;
-    Real stencil[9];
+    //Real stencil[9];
+    Array<Real> stencil(9, -1234.0);
     int nBodyCells, nScaledImageCells;
 
+    bool bCreateMask(level == 0);
+
+    rrcs = scale;
     nScaledImageCells = rrcs*rrcs;
+SHOWVAL(level);
+SHOWVAL(iMDL);
+SHOWVAL(rrcs);
+SHOWVAL(nScaledImageCells);
+SHOWVAL(imagesizeh);
+//SHOWVAL(imageSizeH);
+SHOWVAL(imagesizev);
+//SHOWVAL(imageSizeV);
+SHOWVAL(datasizeh);
+SHOWVAL(datasizev);
+/*
+{
+  std::stringstream fss;
+  fss << "vfSliceFab_" << rrcs << "_" << level << ".fab";
+  std::ofstream tfout(fss.str());
+  //vfracFab->writeOn(tfout);
+  vfSliceFab[level]->writeOn(tfout);
+  tfout.close();
+}
+*/
 
     Real sumH[3], sumV[3];
     Real diffAvgV[3], diffAvgH[3], avgV, avgH;
@@ -1032,9 +1052,29 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
     int iCurrent, jCurrent, jBody;
     int isIndex;
 
-    Array<int> imageStencil(nScaledImageCells);
+    Array<int> imageStencil(nScaledImageCells, -5000);
 
-    int dataSizeHMDL(dataSizeH[iMDL]), dataSizeVMDL(dataSizeV[iMDL]);
+    //int dataSizeHMDL(dataSizeH[iMDL]), dataSizeVMDL(dataSizeV[iMDL]);
+    int dataSizeHMDL(datasizeh), dataSizeVMDL(datasizev);
+SHOWVAL(dataSizeHMDL);
+SHOWVAL(dataSizeVMDL);
+SHOWVAL(dataSizeH[iMDL]);
+SHOWVAL(dataSizeV[iMDL]);
+//static int count(0);
+
+if(bCreateMask) {
+
+    //delete [] scaledImageDataBodyMask;
+    //scaledImageDataBodyMask = new unsigned char[imagesizeh * imagesizev];
+    scaledImageDataBodyMask.resize(imagesizeh * imagesizev);
+
+    for(j = 0; j < imagesizev; ++j) {
+      for(i = 0; i < imagesizeh; ++i) {
+	int index(i + (imagesizev-1-j)*imagesizeh);
+        scaledImageDataBodyMask[index] = 1;  // ---- init to fluid cell
+      }
+    }
+
     for(j = 0; j < dataSizeVMDL; ++j) {
       for(i = 0; i < dataSizeHMDL; ++i) {
         vidx = i + (dataSizeVMDL-1-j)*dataSizeHMDL;  // get volfrac for cell(i,j)
@@ -1109,6 +1149,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
             stencil[2] = -2.0*vfeps;  // flag value
           }
 #endif
+
 
           nBodyCells = (int) ((1.0-vfp)*nScaledImageCells);
                     // there should be this many body cells calculated
@@ -1220,6 +1261,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 
           }  // end while(...)
 
+
           } else if(normV < 0.0 && normH < 0.0) {    // lower left quadrant
 
             iCurrent = rrcs;
@@ -1289,6 +1331,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
           }  // end while(...)
 
           } else if(normV < 0.0 && normH > 0.0) {     // lower right quadrant
+
             iCurrent = 0;
             jCurrent = rrcs;
 
@@ -1362,20 +1405,36 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
             for(ii = 0; ii < rrcs * rrcs; ++ii) {
               imageStencil[ii] = markedCell;
             }
+
           }  // end long if block
 
           // set cells to correct color
           for(jj = 0; jj < rrcs; ++jj) {
             for(ii = 0; ii < rrcs; ++ii) {
               if(imageStencil[ii + (jj * rrcs)] == fluidCell) {  // in fluid
-                scaledImageData[((i * rrcs) + ii)+(((j * rrcs)+jj)*imageSizeH)] =
-                                                imageData[i + j*dataSizeHMDL];
+                //scaledimagedata[((i * rrcs) + ii)+(((j * rrcs)+jj)*imageSizeH)] =
+                                                //imagedata[i + j*dataSizeHMDL];
+		//int iii(((i * rrcs) + ii)), jjj(((j * rrcs)+jj));
+		//unsigned char imm1(imagedata[ i + j*dataSizeHMDL ]);
+		//unsigned char imm1(imagedata[ i + j*datasizeh ]);
+		//XPutPixel(*ximage, iii, jjj, palPtr->makePixel(imm1));
               } else if(imageStencil[ii + (jj*rrcs)] == markedCell) {
-                scaledimagedata[((i*rrcs)+ii)+(((j*rrcs)+jj)*imageSizeH)] =
-                                                    (unsigned char) whiteIndex;
-              } else {  // in body
-                scaledimagedata[((i*rrcs)+ii)+(((j*rrcs)+jj)*imageSizeH)] =
-                                                    (unsigned char) bodyColor;
+                //scaledimagedata[((i*rrcs)+ii)+(((j*rrcs)+jj)*imageSizeH)] =
+                                                    //(unsigned char) whiteIndex;
+		//int iii(((i * rrcs) + ii)), jjj(((j * rrcs)+jj));
+		//unsigned char imm1(whiteIndex);
+		//XPutPixel(*ximage, iii, jjj, palPtr->makePixel(imm1));
+              } else if(imageStencil[ii + (jj*rrcs)] == bodyCell) {  // in body
+                //scaledimagedata[((i*rrcs)+ii)+(((j*rrcs)+jj)*imageSizeH)] =
+                                                    //(unsigned char) bodyColor;
+                scaledImageDataBodyMask[((i*rrcs)+ii)+(((j*rrcs)+jj)*imageSizeH)] = 0;
+                                                    
+		//int iii(((i * rrcs) + ii)), jjj(((j * rrcs)+jj));
+		//unsigned char imm1(bodyColor);
+		//XPutPixel(*ximage, iii, jjj, palPtr->makePixel(imm1));
+              } else {  // undefined
+		cout << "undefined stencil value:  " << ii << "  " << jj << endl;
+		amrex::Abort("undefined stencil value.");
               }
             }  // end for(ii...)
           }  // end for(jj...)
@@ -1383,8 +1442,14 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
         } else {  // non mixed cell
           for(jj = 0; jj < rrcs; ++jj) {
             for(ii = 0; ii < rrcs; ++ii) {
-              scaledImageData[((i*rrcs)+ii) + (((j*rrcs)+jj) * imageSizeH)] =
-                       imageData[i + j*dataSizeHMDL];
+              /*
+	      scaledimagedata[((i*rrcs)+ii) + (((j*rrcs)+jj) * imageSizeH)] =
+                       //imagedata[i + j*dataSizeHMDL];
+                       imagedata[i + j*datasizeh];
+	      */
+		//int iii((i*rrcs)+ii), jjj((j*rrcs)+jj);
+		//unsigned char imm1(imagedata[ i + j*datasizeh ]);
+	//	XPutPixel(*ximage, iii, jjj, palPtr->makePixel(imm1));
             }
           }
         }
@@ -1392,11 +1457,54 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
       }  // end for(i...)
     }  // end for(j...)
 
+/**/
+
+/*
 */
+{
+cout << "sidbmf" << endl;
+    Box sb(IntVect(0,0), IntVect(imagesizeh-1,imagesizev-1));
+    FArrayBox sfab(sb, 1);
+    sfab.setVal(42);
+    Real *dp = sfab.dataPtr();
+    for(int j = 0; j < imagesizev; ++j) {
+      for(int i = 0; i < imagesizeh; ++i) {
+	int sindex(i + (imagesizev-1-j)*imagesizeh);
+	int findex(i + j*imagesizeh);
+        dp[findex] = scaledImageDataBodyMask[sindex];
+      }
+    }
+    std::stringstream fss;
+    fss << "scaledImageDataBodyMask.fab";
+    std::ofstream tfout(fss.str());
+    sfab.writeOn(tfout);
+    tfout.close();
+cout << "end sidbmf" << endl;
+}
+
+} else {
+}
+	for(int j(0); j < imagesizev; ++j) {
+	    int jtmp(datasizeh * (j/scale));
+	    for(int i(0); i < widthpad; ++i) {
+		int itmp(i / scale);
+		unsigned char imm1(imagedata[ itmp + jtmp ]);
+		XPutPixel(*ximage, i, j, palPtr->makePixel(imm1));
+	      }
+	  }
+    for(j = 0; j < imagesizev; ++j) {
+      for(i = 0; i < imagesizeh; ++i) {
+	int index(i + (imagesizev-1-j)*imagesizeh);
+        if(scaledImageDataBodyMask[index] == 0) {
+	  int iii(i), jjj(imagesizev-1-j);
+	  XPutPixel(*ximage, iii, jjj, palPtr->makePixel(bodyColor));
+	}
+      }
+    }
 
   }  // end if(bCartGridSmoothing)
 
-}  // end CreateScaledImage()
+}
 
 
 // ---------------------------------------------------------------------
@@ -1434,15 +1542,33 @@ void AmrPicture::APChangeScale(int newScale, int previousScale) {
   }
 
   AmrData &amrData = dataServicesPtr->AmrDataRef();
+
   for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
-    free(scaledImageData[iLevel]);
-    scaledImageData[iLevel] = (unsigned char *) malloc(imageSize);
+    FArrayBox *vffp = NULL;
+    Real vfeps(0.0);
+    const string vfracDerived("vfrac");
+    if(amrData.CartGrid()) {
+      //vffp = new FArrayBox(interBox[iLevel], 1);
+      //amrex::DataServices::Dispatch(amrex::DataServices::FillVarOneFab, dataServicesPtr,
+		             //(void *) (vffp),
+			     //(void *) (&(vffp->box())),
+			     //iLevel,
+			     //(void *) &vfracDerived);
+      //vfeps = dataServicesPtr->AmrDataRef().VfEps(iLevel);
+      vfeps = dataServicesPtr->AmrDataRef().VfEps(iLevel);
+      vffp = vfSliceFab[iLevel];
+    } else {
+      vfeps = 0.0;
+      vffp  = NULL;
+    }
+    delete [] scaledImageData[iLevel];
+    scaledImageData[iLevel] = new unsigned char[imageSize];
     CreateScaledImage(&xImageArray[iLevel], newScale *
                 AVGlobals::CRRBetweenLevels(iLevel, maxAllowableLevel,
 		amrData.RefRatio()),
                 imageData[iLevel], scaledImageData[iLevel],
                 dataSizeH[iLevel], dataSizeV[iLevel],
-                imageSizeH, imageSizeV);
+                imageSizeH, imageSizeV, iLevel, vffp, vfeps);
   }
 
   hLine = ((hLine / previousScale) * newScale) + (newScale - 1);
@@ -1653,7 +1779,7 @@ void AmrPicture::CreateFrames(Amrvis::AnimDirection direction) {
 	   amrData.RefRatio()),
            frameImageData, frameScaledImageData,
            dataSizeH[maxDrawnLevel], dataSizeV[maxDrawnLevel],
-           imageSizeH, imageSizeV);
+           imageSizeH, imageSizeV, maxDrawnLevel, vffp, vfeps);
     ShowFrameImage(islice);
 #if (BL_SPACEDIM == 3)
     

@@ -115,6 +115,8 @@ class AmrPicture {
   amrex::Array<amrex::FArrayBox *> sliceFab;
   amrex::Array<amrex::FArrayBox *> vfSliceFab;
   amrex::Array<unsigned char *>  imageData, scaledImageData;
+  //unsigned char *scaledImageDataBodyMask;
+  amrex::Array<unsigned char> scaledImageDataBodyMask;
   amrex::Array<XImage *>       xImageArray;
   amrex::Array<bool>           xImageCreated;
   GraphicsAttributes	*gaPtr;
@@ -147,7 +149,8 @@ class AmrPicture {
                          unsigned char *imagedata,
                          unsigned char *scaledimagedata,
                          int datasizeh, int datasizev,
-                         int imagesizeh, int imagesizev);
+                         int imagesizeh, int imagesizev, int level,
+		         const amrex::FArrayBox *vfracFab, const Real vfeps);
   void DrawContour(amrex::Array<amrex::FArrayBox *> slicefab, Display *display,
 		   Drawable &drawable, const GC &gc);
   bool DrawContour(const amrex::FArrayBox &fab, Real value,

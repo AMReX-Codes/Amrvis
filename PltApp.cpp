@@ -115,7 +115,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
     animating2d(isAnim),
     paletteDrawn(false),
     currentFrame(0),
-    bCartGridSmoothing(false),
+    bCartGridSmoothing(true),
     fileName(filename),
     dataServicesPtr(dataservicesptr)
 {
