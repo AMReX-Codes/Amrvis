@@ -593,12 +593,13 @@ void AmrPicture::APChangeContour(Amrvis::ContourType prevCType) {
  		  dataSizeH[iLevel], dataSizeV[iLevel],
  	          minUsing, maxUsing, palPtr,
 		  vffp, vfeps);
+      bool bCreateMask(iLevel == minDrawnLevel);
       CreateScaledImage(&(xImageArray[iLevel]), pltAppStatePtr->CurrentScale() *
                  AVGlobals::CRRBetweenLevels(iLevel, maxAllowableLevel,
 		                             amrData.RefRatio()),
                  imageData[iLevel], scaledImageData[iLevel],
                  dataSizeH[iLevel], dataSizeV[iLevel],
-                 imageSizeH, imageSizeV, iLevel, vffp, vfeps);
+                 imageSizeH, imageSizeV, iLevel, bCreateMask);
     }
     if( ! pltAppPtr->PaletteDrawn()) {
       pltAppPtr->PaletteDrawn(true);
@@ -858,12 +859,13 @@ void AmrPicture::APMakeImages(Palette *palptr) {
     CreateImage(*(sliceFab[iLevel]), imageData[iLevel],
  		dataSizeH[iLevel], dataSizeV[iLevel],
  	        minUsing, maxUsing, palPtr, vffp, vfeps);
+    bool bCreateMask(iLevel == minDrawnLevel);
     CreateScaledImage(&(xImageArray[iLevel]), pltAppStatePtr->CurrentScale() *
                 AVGlobals::CRRBetweenLevels(iLevel, maxAllowableLevel,
 		amrData.RefRatio()),
                 imageData[iLevel], scaledImageData[iLevel],
                 dataSizeH[iLevel], dataSizeV[iLevel],
-                imageSizeH, imageSizeV, iLevel, vffp, vfeps);
+                imageSizeH, imageSizeV, iLevel, bCreateMask);
   }
   if( ! pltAppPtr->PaletteDrawn()) {
     pltAppPtr->PaletteDrawn(true);
@@ -977,8 +979,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 				   unsigned char *scaledimagedata,
 				   int datasizeh, int datasizev,
 				   int imagesizeh, int imagesizev,
-				   int level,
-			           const FArrayBox *vfracFab, const Real vfeps)
+				   int level, bool bCreateMask)
 { 
   int widthpad = gaPtr->PBitmapPaddedWidth(imagesizeh);
   *ximage = XCreateImage(display, gaPtr->PVisual(),
@@ -1010,8 +1011,6 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
     Array<Real> stencil(9, -3.0);
     int nBodyCells, nScaledImageCells;
 
-    bool bCreateMask(level == 0);
-
     rrcs = scale;
     nScaledImageCells = rrcs*rrcs;
 
@@ -1030,7 +1029,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 
     int dataSizeHMDL(datasizeh), dataSizeVMDL(datasizev);
 
-  if(bCreateMask) {
+  if(bCreateMask || scaledImageDataBodyMask.size() != (imagesizeh * imagesizev)) {
 
     scaledImageDataBodyMask.resize(imagesizeh * imagesizev);
 
@@ -1435,23 +1434,7 @@ void AmrPicture::APChangeScale(int newScale, int previousScale) {
   AmrData &amrData = dataServicesPtr->AmrDataRef();
 
   for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
-    FArrayBox *vffp = NULL;
-    Real vfeps(0.0);
-    const string vfracDerived("vfrac");
-    if(amrData.CartGrid()) {
-      //vffp = new FArrayBox(interBox[iLevel], 1);
-      //amrex::DataServices::Dispatch(amrex::DataServices::FillVarOneFab, dataServicesPtr,
-		             //(void *) (vffp),
-			     //(void *) (&(vffp->box())),
-			     //iLevel,
-			     //(void *) &vfracDerived);
-      //vfeps = dataServicesPtr->AmrDataRef().VfEps(iLevel);
-      vfeps = dataServicesPtr->AmrDataRef().VfEps(iLevel);
-      vffp = vfSliceFab[iLevel];
-    } else {
-      vfeps = 0.0;
-      vffp  = NULL;
-    }
+    bool bCreateMask(iLevel == minDrawnLevel);
     delete [] scaledImageData[iLevel];
     scaledImageData[iLevel] = new unsigned char[imageSize];
     CreateScaledImage(&xImageArray[iLevel], newScale *
@@ -1459,7 +1442,7 @@ void AmrPicture::APChangeScale(int newScale, int previousScale) {
 		amrData.RefRatio()),
                 imageData[iLevel], scaledImageData[iLevel],
                 dataSizeH[iLevel], dataSizeV[iLevel],
-                imageSizeH, imageSizeV, iLevel, vffp, vfeps);
+                imageSizeH, imageSizeV, iLevel, bCreateMask);
   }
 
   hLine = ((hLine / previousScale) * newScale) + (newScale - 1);
@@ -1664,13 +1647,17 @@ void AmrPicture::CreateFrames(Amrvis::AnimDirection direction) {
 
     // this cannot be deleted because it belongs to the XImage
     unsigned char *frameScaledImageData;
-    frameScaledImageData = (unsigned char *)malloc(imageSize);
+    frameScaledImageData = (unsigned char *) malloc(imageSize);
+
+    bool bCreateMask(true);
+
     CreateScaledImage(&(frameBuffer[islice]), pltAppStatePtr->CurrentScale() *
            AVGlobals::CRRBetweenLevels(maxDrawnLevel, maxAllowableLevel,
 	   amrData.RefRatio()),
            frameImageData, frameScaledImageData,
            dataSizeH[maxDrawnLevel], dataSizeV[maxDrawnLevel],
-           imageSizeH, imageSizeV, maxDrawnLevel, vffp, vfeps);
+           imageSizeH, imageSizeV, maxDrawnLevel, bCreateMask);
+
     ShowFrameImage(islice);
 #if (BL_SPACEDIM == 3)
     

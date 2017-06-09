@@ -149,7 +149,7 @@ class AmrPicture {
                          unsigned char *scaledimagedata,
                          int datasizeh, int datasizev,
                          int imagesizeh, int imagesizev, int level,
-		         const amrex::FArrayBox *vfracFab, const Real vfeps);
+		         bool bCreateMask);
   void DrawContour(amrex::Array<amrex::FArrayBox *> slicefab, Display *display,
 		   Drawable &drawable, const GC &gc);
   bool DrawContour(const amrex::FArrayBox &fab, Real value,
