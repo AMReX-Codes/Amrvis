@@ -142,7 +142,8 @@ void RegionPicture::APDraw(int fromLevel, int toLevel) {
   XImage *xi, *atixi;
   for(auto it = timeSpanOff.begin(); it != timeSpanOff.end(); ++it) {
       const Box &b = *it;
-      int bSX(b.smallEnd(Amrvis::XDIR) * currentScale);
+      cout << ":::: b subRegion = " << b << "  " << subRegion << endl;
+      int bSX((b.smallEnd(Amrvis::XDIR) - subRegion.smallEnd(Amrvis::XDIR)) * currentScale);
       int bBY(b.bigEnd(Amrvis::YDIR) * currentScale);
       int bLX(b.length(Amrvis::XDIR) * currentScale);
       int bLY(b.length(Amrvis::YDIR) * currentScale);
@@ -204,6 +205,11 @@ void RegionPicture::APMakeImages(Palette *palptr) {
                                           allDataSizeH, allDataSizeV / (nRegions + 1),
 					  regionBoxes);
 
+  for(int i(0); i < regionBoxes.size(); ++i) {
+    for(int j(0); j < regionBoxes[i].size(); ++j) {
+      regionBoxes[i][j] &= subRegion;
+    }
+  }
   regionsOnOff.resize(regionBoxes.size());
   for(int i(0); i < regionBoxes.size(); ++i) {
     regionsOnOff[i].resize(regionBoxes[i].size());
@@ -443,9 +449,9 @@ void RegionPicture::SetRegionOnOff(int regionIndex, int whichRegion,
   regionSpanBox.setSmall(Amrvis::YDIR, subRegion.smallEnd(Amrvis::YDIR));
   regionSpanBox.setBig(Amrvis::YDIR, subRegion.bigEnd(Amrvis::YDIR) - regionBaseHeight);
 
-  cout << "regionIndex whichRegion regionBox regionSpanBox = " << regionIndex
+  cout << "regionIndex whichRegion regionBox regionSpanBox subRegion = " << regionIndex
        << "  " << whichRegion << "  " << regionBoxes[regionIndex][whichRegion]
-       << "  " << regionSpanBox << endl;
+       << "  " << regionSpanBox << "  " << subRegion << endl;
 
   if(onoff == RP_ON) {
     BoxList iSect(timeSpanOff.boxList());
