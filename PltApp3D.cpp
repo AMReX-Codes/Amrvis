@@ -21,6 +21,7 @@
 const unsigned long openingLW(100);
 const unsigned long savingLW(101);
 const Real oo64(1.0 / 64.0);
+Widget wTempLabel;
 
 using std::max;
 using std::cout;
@@ -605,7 +606,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
   VolRender *volRenderPtr = projPicturePtr->GetVolRenderPtr();
 
   //make the input forms
-  Widget wTempLabel;
+  //Widget wTempLabel;
   wTempLabel = XtVaCreateManagedWidget("ambient: ",
 			    xmLabelGadgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_FORM,
