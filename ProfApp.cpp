@@ -950,7 +950,22 @@ void ProfApp::DoFuncList(Widget w, XtPointer client_data, XtPointer call_data)
 
   String selection;
   XmStringGetLtoR(cbs->item, XmSTRING_DEFAULT_CHARSET, &selection);
-  cout << "r selection = " << r << "  " << selection << endl;
+
+  int itemCount(-1), selectedItemCount(-2), *positions;
+  XtVaGetValues(w, XmNitemCount, &itemCount,
+                   XmNselectedItemCount, &selectedItemCount,
+                   XmNselectedPositions, &positions,
+		   NULL);
+  //int *positionList, positionCount;
+  //bool retVal = XmListGetSelectedPos(w, &positionList, &positionCount);
+  //if(retVal) {
+    cout << "r itemCount selectedItemCount positions[0] selection = " << r
+         << "  " << itemCount << "  " << selectedItemCount << "  "
+	 << positions[0] << "  " << selection << endl;
+  //} else {
+    //cout << "**** no selected items." << endl;
+  //}
+
 }
 
 
@@ -1014,6 +1029,7 @@ void ProfApp::GenerateFuncList(const Array<std::string> &funcs) {
     strList[i] = XmStringCreateSimple(const_cast<char *>(funcs[i].c_str()));
   }
 
+SHOWVAL(numEntries);
   XtVaSetValues(wFuncList,
                 XmNitemCount, numEntries,
                 XmNitems, strList,

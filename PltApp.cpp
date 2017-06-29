@@ -201,7 +201,11 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   if(AVGlobals::MaxPictureSize() == 0) {
     maxAllowableScale = 1;
   } else  {
+#if (BL_SPACEDIM == 1)
+    maxAllowableScale = (int) (exp2(14) / dataSize);
+#else
     maxAllowableScale = (int) sqrt((Real) (AVGlobals::MaxPictureSize() / dataSize));
+#endif
   }
 
   int currentScale(max(1, min(GetInitialScale(), maxAllowableScale)));
@@ -1206,7 +1210,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   }
   
 #endif
-  int adjustHeight2D = (BL_SPACEDIM == 2) ? centerY : 0;
+  int adjustHeight2D = (BL_SPACEDIM != 3) ? centerY : 0;
   Dimension slw;
   
   if(animating2d) {
@@ -4446,7 +4450,7 @@ void PltApp::DoAnimFileScale(Widget, XtPointer, XtPointer cbs) {
 void PltApp::ResetAnimation() {
   StopAnimation();
   if( ! interfaceReady) {
-#if(BL_SPACEDIM == 2)
+#if(BL_SPACEDIM != 3)
     int maLev(pltAppState->MaxAllowableLevel());
     AmrPicture *Tempap = amrPicturePtrArray[Amrvis::ZPLANE];
     XtRemoveEventHandler(wPlotPlane[Amrvis::ZPLANE], ExposureMask, false, 
@@ -4485,7 +4489,7 @@ void PltApp::StopAnimation() {
     XtRemoveTimeOut(animationIId);
     animationIId = 0;
   }
-#if (BL_SPACEDIM == 2)
+#if (BL_SPACEDIM != 3)
   for(int dim(0); dim < BL_SPACEDIM; ++dim) {
     if(XYplotwin[dim]) {
       XYplotwin[dim]->StopAnimation();
@@ -4500,8 +4504,8 @@ void PltApp::Animate(Amrvis::AnimDirection direction) {
   StopAnimation();
   animationIId = AddStaticTimeOut(frameSpeed, &PltApp::DoUpdateFrame);
   animDirection = direction;
-#if (BL_SPACEDIM == 2)
-  for(int dim(0); dim != 2; ++dim) {
+#if (BL_SPACEDIM != 3)
+  for(int dim(0); dim != BL_SPACEDIM; ++dim) {
     if(XYplotwin[dim]) {
       XYplotwin[dim]->InitializeAnimation(currentFrame, animFrames);
     }
@@ -4552,7 +4556,7 @@ void PltApp::ShowFrame() {
   if( ! readyFrames[currentFrame] || datasetShowing || bSyncFrame ||
       UsingFileRange(currentRangeType))
   {
-#if (BL_SPACEDIM == 2)
+#if (BL_SPACEDIM != 3)
     AmrPicture *tempapSF = amrPicturePtrArray[Amrvis::ZPLANE];
     Array<Box> domain = amrPicturePtrArray[Amrvis::ZPLANE]->GetSubDomain();
     XtRemoveEventHandler(wPlotPlane[Amrvis::ZPLANE], ExposureMask, false, 
@@ -4637,8 +4641,8 @@ void PltApp::ShowFrame() {
                               this, pltAppState, hdir, vdir, sdir);
     datasetPtr->DoExpose(false);
   }
-#if (BL_SPACEDIM == 2)
-  for(int dim(0); dim < 2; ++dim) {
+#if (BL_SPACEDIM != 3)
+  for(int dim(0); dim < BL_SPACEDIM; ++dim) {
     if(XYplotwin[dim]) {
       XYplotwin[dim]->UpdateFrame(currentFrame);
     }

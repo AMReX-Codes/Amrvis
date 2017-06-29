@@ -532,7 +532,7 @@ void PrintUsage(char *exname) {
   //cout << "       [-bw n] " << endl;
   cout << "       [-maxpixmapsize <max picture size in # of pixels>]" << endl;
   cout << "       [-xslice n] [-yslice n] [-zslice n] [-sliceallvars]" << endl;
-# if (BL_SPACEDIM == 2)
+# if (BL_SPACEDIM != 3)
   cout << "       [-boxslice xlo ylo xhi yhi]" << endl;
   cout << "       [-a]" << endl;
   cout << "       [-setvelnames xname yname]" << endl;
@@ -591,7 +591,7 @@ void PrintUsage(char *exname) {
   cout << "                     _box_ format:  lox loy loz hix hiy hiz." << endl;
   cout << "                     example:  -boxslice 0 0 0 120 42 200." << endl;
   cout << "                     Note:  slices are written in batch mode." << endl;
-#if(BL_SPACEDIM == 2)
+#if(BL_SPACEDIM != 3)
   cout << "  -a                 load files as an animation." << endl; 
   cout << "  -aa                load files as an animation with annotations." << endl; 
   cout << "  -anc               load files as an animation, dont cache frames." << endl; 
@@ -725,7 +725,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
 	boxColor = atoi(argv[i+1]);
       }
       ++i;
-#    if (BL_SPACEDIM == 2)
+#    if (BL_SPACEDIM != 3)
     } else if(strcmp(argv[i],"-a") == 0) {
       bAnimation = true; 
       bAnnotated = false;

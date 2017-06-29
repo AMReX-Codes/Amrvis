@@ -139,7 +139,7 @@ AmrPicture::AmrPicture(GraphicsAttributes *gaptr,
     subcutY = hLine;
     subcut2ndY = hLine;
 
-#if (BL_SPACEDIM == 2 || BL_SPACEDIM == 1)
+#if (BL_SPACEDIM != 3)
     slice = 0;
 #else
     slice = subDomain[maxAllowableLevel].smallEnd(Amrvis::YZ-myView);
@@ -372,8 +372,9 @@ void AmrPicture::AmrPictureInit() {
   }
   for(iLevel = minDrawnLevel; iLevel <= maxAllowableLevel; ++iLevel) {
     imageData[iLevel] = new unsigned char[dataSize[iLevel]];
-    //scaledImageData[iLevel] = (unsigned char *) malloc(imageSize);
+    BL_ASSERT(imageData[iLevel] != nullptr);
     scaledImageData[iLevel] = new unsigned char[imageSize];
+    BL_ASSERT(scaledImageData[iLevel] != nullptr);
   }
   //scaledImageDataBodyMask = nullptr;
 
@@ -496,6 +497,7 @@ void AmrPicture::SetSlice(int view, int here) {
 	  cerr << endl;
 
           imageData[lev] = new unsigned char[sliceBox[lev].numPts()];
+          BL_ASSERT(imageData[lev] != nullptr);
         }
         sliceFab[lev]->resize(sliceBox[lev], 1);
         if(dataServicesPtr->AmrDataRef().CartGrid()) {
@@ -1437,6 +1439,7 @@ void AmrPicture::APChangeScale(int newScale, int previousScale) {
     bool bCreateMask(iLevel == minDrawnLevel);
     delete [] scaledImageData[iLevel];
     scaledImageData[iLevel] = new unsigned char[imageSize];
+    BL_ASSERT(scaledImageData[iLevel] != nullptr);
     CreateScaledImage(&xImageArray[iLevel], newScale *
                 AVGlobals::CRRBetweenLevels(iLevel, maxAllowableLevel,
 		amrData.RefRatio()),

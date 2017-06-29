@@ -150,7 +150,7 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
   zoomedInQ = false;
   saveDefaultQ = 0;
   animatingQ = false;
-#if (BL_SPACEDIM == 2)
+#if (BL_SPACEDIM != 3)
   currFrame = 0;
 #endif
 
@@ -461,7 +461,7 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
 }
 
 
-#if (BL_SPACEDIM == 2)
+#if (BL_SPACEDIM != 3)
 // -------------------------------------------------------------------
 void XYPlotWin::InitializeAnimation(int curr_frame, int num_frames) {
   if(animatingQ) {
@@ -1409,7 +1409,7 @@ void XYPlotWin::dotX(Widget win, int x, int y, int style, int color) {
 
 // -------------------------------------------------------------------
 void XYPlotWin::CBdoClearData(Widget, XtPointer, XtPointer) {
-#if (BL_SPACEDIM == 2)
+#if (BL_SPACEDIM != 3)
   if(animatingQ) {
     StopAnimation();
   }

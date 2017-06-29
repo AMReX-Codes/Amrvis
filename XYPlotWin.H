@@ -53,7 +53,7 @@ typedef struct {
   bool drawQ;
   int style, color;
   Pixel pixel;
-#if (BL_SPACEDIM == 2)
+#if (BL_SPACEDIM != 3)
   amrex::Array<::XYPlotDataList *> *anim_lists;
   amrex::Array<char> *ready_list;
 #endif
@@ -69,7 +69,7 @@ class XYPlotWin {
     void AddDataList(::XYPlotDataList *new_list,
 		     XYPlotLegendItem *insert_after = NULL);
 
-#if (BL_SPACEDIM == 2)
+#if (BL_SPACEDIM != 3)
     void InitializeAnimation(int curr_frame, int num_frames);
     void UpdateFrame(int frame);
     void StopAnimation();
@@ -132,7 +132,7 @@ class XYPlotWin {
     int     iXOrgX, iXOrgY;          // Origin of bounding box on screen
     int     iXOppX, iXOppY;          // Other point defining bounding box
     int     iXLocWinX, iXLocWinY, iCurrHint;
-#if (BL_SPACEDIM == 2)
+#if (BL_SPACEDIM != 3)
     int     numFrames;
 #endif
     int     currFrame;

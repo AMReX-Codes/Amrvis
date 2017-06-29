@@ -220,7 +220,7 @@ void RegionPicture::APMakeImages(Palette *palptr) {
   tempSliceFab.shift(Amrvis::YDIR, regionBaseHeight);  // ---- for ati
   sliceFab->setVal(tempSliceFab.min(0) - 1.0);
   sliceFab->copy(tempSliceFab);
-  Real minUsing(tempSliceFab.min(0)), maxUsing(tempSliceFab.max(0));
+  Real minUsing(tempSliceFab.min(0)-1), maxUsing(tempSliceFab.max(0));
 
   Box fullDomainBox(tempSliceFab.box());
   Real subPercentLow(static_cast<Real>(subRegion.smallEnd(Amrvis::XDIR) -
@@ -269,11 +269,12 @@ void RegionPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
 {
   int jdsh, jtmp1;
   int dIndex, iIndex;
+  Real gDiff(globalMax - globalMin);
   Real oneOverGDiff;
   if((globalMax - globalMin) < FLT_MIN) {
     oneOverGDiff = 0.0;
   } else {
-    oneOverGDiff = 1.0 / (globalMax - globalMin);
+    oneOverGDiff = 1.0 / gDiff;
   }
   const Real *dataPoint = fab.dataPtr();
 
@@ -282,15 +283,14 @@ void RegionPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
   int paletteStart(palptr->PaletteStart());
   int paletteEnd(palptr->PaletteEnd());
   int colorSlots(palptr->ColorSlots());
-  int csm1(colorSlots - 1);
   for(int j(0); j < datasizev; ++j) {
     jdsh = j * datasizeh;
     jtmp1 = (datasizev-j-1) * datasizeh;
     for(int i(0); i < datasizeh; ++i) {
       dIndex = i + jtmp1;
       dPoint = dataPoint[dIndex];
-      if(dIndex >= fab.nPts()) {
-	cout << "**** dIndex fab.nPts() = " << dIndex << "  " << fab.nPts() << endl;
+      if(dPoint < 0.0) {
+        dPoint = -2.0;  // ---- set both background and ati to -2 (black in palette)
       }
       iIndex = i + jdsh;
       if(dPoint > globalMax) {  // clip
@@ -299,7 +299,7 @@ void RegionPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
         imagedata[iIndex] = paletteStart;
       } else {
         imagedata[iIndex] = (unsigned char)
-              ((((dPoint - globalMin) * oneOverGDiff) * csm1) );
+              ((((dPoint - globalMin) * oneOverGDiff) * colorSlots) );
               //  ^^^^^^^^^^^^^^^^^^ Real data
         imagedata[iIndex] += paletteStart;
       } 
