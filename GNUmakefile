@@ -1,7 +1,6 @@
 ### ------------------------------------------------------
 ### GNUmakefile for Amrvis
 ### ------------------------------------------------------
-
 PRECISION = FLOAT
 PRECISION = DOUBLE
 PROFILE   = TRUE
@@ -33,6 +32,9 @@ USE_PARALLELVOLRENDER = FALSE
 
 USE_PROFDATA = TRUE
 USE_PROFDATA = FALSE
+ifeq ($(DIM), 1)
+  USE_PROFDATA = FALSE
+endif
 ifeq ($(DIM), 3)
   USE_PROFDATA = FALSE
 endif
