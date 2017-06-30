@@ -888,7 +888,16 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       }
       ++i;
     } else if(strcmp(argv[i], "-boxslice") == 0) {
-#if (BL_SPACEDIM == 2 || BL_SPACEDIM == 1)
+#if (BL_SPACEDIM == 1)
+      if(argc-1<i+1 || ! strcpy(clsx, argv[i+1])) {
+        PrintUsage(argv[0]);
+      }
+      if(argc-1<i+2 || ! strcpy(clbx, argv[i+2])) {
+        PrintUsage(argv[0]);
+      }
+      i += 2;
+      givenBoxSlice = true;
+#elif (BL_SPACEDIM == 2)
       if(argc-1<i+1 || ! strcpy(clsx, argv[i+1])) {
         PrintUsage(argv[0]);
       }
@@ -1057,7 +1066,17 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
   }
 
   if(givenBox || givenBoxSlice) {
-#if (BL_SPACEDIM == 2 || BL_SPACEDIM == 1)
+#if (BL_SPACEDIM == 1)
+      if(atoi(clsx) > atoi(clbx)) {
+        if(ParallelDescriptor::IOProcessor()) {
+          cout << "A sub-region box must be specified as:\n\t <small x> "
+	       << "<big x>\n" << endl;
+	}
+        exit(0);
+      }
+      comlinebox.setSmall(Amrvis::XDIR, atoi(clsx));
+      comlinebox.setBig(Amrvis::XDIR, atoi(clbx));
+#elif (BL_SPACEDIM == 2)
       if(atoi(clsx) > atoi(clbx) || atoi(clsy) > atoi(clby)) {
         if(ParallelDescriptor::IOProcessor()) {
           cout << "A sub-region box must be specified as:\n\t <small x> <small y> "
