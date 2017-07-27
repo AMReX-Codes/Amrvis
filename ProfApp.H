@@ -13,7 +13,7 @@
 #include <AMReX_AmrvisConstants.H>
 #include <AMReX_DataServices.H>
 #include <GlobalUtilities.H>
-#include <BLProfStats.H>
+#include <AMReX_BLProfStats.H>
 
 #include <vector>
 #include <string>
@@ -22,7 +22,7 @@ using std::vector;
 using std::string;
 using std::map;
 
-class ProfDataServices;
+class DataServices;
 class RegionPicture;
 class GraphicsAttributes;
 class Palette;
@@ -42,7 +42,7 @@ private:
   
 public:
   ProfApp(XtAppContext app, Widget w, const string &filename, 
-         const amrex::Array<ProfDataServices *> &profdataservicesptr);
+         const amrex::Array<amrex::DataServices *> &profdataservicesptr);
   
   // ---- for subregions
   ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
@@ -57,8 +57,8 @@ public:
   
   Widget WId()                     { return wAmrVisTopLevel; }
   Palette *GetPalettePtr()         { return pltPaletteptr; }
-  ProfDataServices *GetProfDataServicesPtr() { return profDataServicesPtr[0]; }
-  amrex::Array<ProfDataServices *> &GetProfDataServicesPtrArray() { return profDataServicesPtr; }
+  amrex::DataServices *GetProfDataServicesPtr() { return profDataServicesPtr[0]; }
+  amrex::Array<amrex::DataServices *> &GetProfDataServicesPtrArray() { return profDataServicesPtr; }
   amrex::DataServices *GetDataServicesPtr() { return dspArray[0]; }
   amrex::Array<amrex::DataServices *> &GetDataServicesPtrArray() { return dspArray; }
   XtAppContext GetAppContext()     { return appContext; }
@@ -114,7 +114,7 @@ private:
   char buffer[BUFSIZ];
   amrex::Box selectionBox, domainBox, subdomainBox;
   GraphicsAttributes	*gaPtr;
-  amrex::Array<ProfDataServices *> profDataServicesPtr;
+  amrex::Array<amrex::DataServices *> profDataServicesPtr;
   amrex::Array<string> fileNames;
   String trans;
   Display *display;

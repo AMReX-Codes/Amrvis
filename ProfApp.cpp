@@ -3,7 +3,6 @@
 // ---------------------------------------------------------------
 
 #include <ProfApp.H>
-#include <ProfDataServices.H>
 #include <AMReX_DataServices.H>
 #include <AmrPicture.H>
 #include <PltApp.H>
@@ -47,7 +46,6 @@ using std::endl;
 using std::min;
 using std::max;
 
-// Hack for window manager calls
 #ifndef FALSE
 #define FALSE false
 #endif
@@ -94,7 +92,7 @@ ProfApp::~ProfApp() {
 
 // -------------------------------------------------------------------
 ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
-	       const Array<ProfDataServices *> &profdataservicesptr)
+	       const Array<amrex::DataServices *> &profdataservicesptr)
   : wTopLevel(w),
     appContext(app),
     fileName(filename),
@@ -977,7 +975,7 @@ void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data,
   cout << "_in ProfApp::DoGenerateFuncList:  r = " << r << endl;
 
   RegionsProfStats &regionsProfStats = profDataServicesPtr[0]->GetRegionsProfStats();
-regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
+ regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
 for(int i(0); i < filterTimeRanges.size(); ++i) {
   cout << "filterTimeRanges[0] = " << filterTimeRanges[0].front() << endl;
 }
@@ -988,7 +986,7 @@ for(int i(0); i < filterTimeRanges.size(); ++i) {
 
   Real calcRunTime(1.0);
   int whichProc(0);
-  CollectMProfStats(mProfStats, aFuncStats, blpFNames, calcRunTime, whichProc);
+  amrex::CollectMProfStats(mProfStats, aFuncStats, blpFNames, calcRunTime, whichProc);
   cout << "||||::::  mProfStats.size() = " << mProfStats.size() << endl;
   for(int i(0); i < blpFNames.size(); ++i) {
     cout << "blpFNames[" << i << "] = " << blpFNames[i] << endl;

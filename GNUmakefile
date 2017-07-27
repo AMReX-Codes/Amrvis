@@ -1,13 +1,15 @@
 ### ------------------------------------------------------
 ### GNUmakefile for Amrvis
 ### ------------------------------------------------------
+AMREX_HOME = ../amrex
+
 PRECISION = FLOAT
 PRECISION = DOUBLE
 PROFILE   = TRUE
 PROFILE   = FALSE
 
 COMP      = intel
-COMP      = gnu
+#COMP      = gnu
 
 DEBUG     = FALSE
 DEBUG     = TRUE
@@ -32,6 +34,7 @@ USE_PARALLELVOLRENDER = FALSE
 
 USE_PROFDATA = TRUE
 USE_PROFDATA = FALSE
+
 ifeq ($(DIM), 1)
   USE_PROFDATA = FALSE
 endif
@@ -39,13 +42,10 @@ ifeq ($(DIM), 3)
   USE_PROFDATA = FALSE
 endif
 ifeq ($(USE_PROFDATA), TRUE)
-  AMRPROFPARSER_HOME = ../AMRProfParser
-  DEFINES += -DAV_PROFDATA
+#  DEFINES += -DAV_PROFDATA
   PROFILE   = TRUE
   TRACE_PROFILE   = TRUE
 endif
-
-AMREX_HOME = ../amrex
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
 
@@ -171,15 +171,17 @@ endif
 
 include $(HERE)/Make.package
 include $(AMREX_HOME)/Src/Base/Make.package
+include $(AMREX_HOME)/Src/Extern/ProfParser/Make.package 
 include $(AMREX_HOME)/Src/Extern/amrdata/Make.package
+
+INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/Extern/ProfParser
 
 VPATH_LOCATIONS += $(HERE)
 VPATH_LOCATIONS += $(AMREX_HOME)/Src/Base
+VPATH_LOCATIONS += $(AMREX_HOME)/Src/Extern/ProfParser
 VPATH_LOCATIONS += $(AMREX_HOME)/Src/Extern/amrdata
 
 ifeq ($(USE_PROFDATA), TRUE)
-  VPATH_LOCATIONS += $(AMRPROFPARSER_HOME)
-  INCLUDE_LOCATIONS += $(AMRPROFPARSER_HOME)
   #SED0 = | sed 's/\#define vout/\/\//'
   #SED1 = | sed 's/vout/\/\//'
   SED0 =
@@ -201,14 +203,15 @@ all:	$(executable)
 
 ifeq ($(USE_PROFDATA), TRUE)
 
-BLProfParser.tab.H BLProfParser.tab.cpp:	BLProfParser.y
-	cat BLProfParser.y $(SED0) $(SED1) > BLProfParserNC.y
+BLProfParser.tab.H BLProfParser.tab.cpp: $(AMREX_HOME)/Src/Extern/ProfParser/BLProfParser.y
+	cat $(AMREX_HOME)/Src/Extern/ProfParser/BLProfParser.y $(SED0) $(SED1) > BLProfParserNC.y
 	bison --defines=BLProfParser.tab.H --output=BLProfParser.tab.cpp \
-	      BLProfParserNC.y
+		BLProfParserNC.y
 	rm BLProfParserNC.y
 
-BLProfParser.lex.yy.cpp:	BLProfParser.tab.H BLProfParser.l
-	flex --outfile=BLProfParser.lex.yy.cpp BLProfParser.l
+
+BLProfParser.lex.yy.cpp: BLProfParser.tab.H $(AMREX_HOME)/Src/Extern/ProfParser/BLProfParser.l
+	flex --outfile=BLProfParser.lex.yy.cpp $(AMREX_HOME)/Src/Extern/ProfParser/BLProfParser.l
 
 endif
 

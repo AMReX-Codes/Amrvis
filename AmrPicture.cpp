@@ -85,7 +85,7 @@ AmrPicture::AmrPicture(GraphicsAttributes *gaptr,
 		(amrData.ProbDomain()[maxAllowableLevel].bigEnd());
   for(i = maxAllowableLevel - 1; i >= minDrawnLevel; --i) {
     subDomain[i] = subDomain[maxAllowableLevel];
-    subDomain[i].coarsen(AVGlobals::CRRBetweenLevels(i, maxAllowableLevel,
+    subDomain[i].coarsen(amrex::CRRBetweenLevels(i, maxAllowableLevel,
 			 amrData.RefRatio()));
   }
 
@@ -104,7 +104,7 @@ AmrPicture::AmrPicture(GraphicsAttributes *gaptr,
 
   if(AVGlobals::GivenInitialPlanes()) {
     BL_ASSERT(BL_SPACEDIM == 3);
-    int coarsenCRR = AVGlobals::CRRBetweenLevels(maxAllowableLevel,
+    int coarsenCRR = amrex::CRRBetweenLevels(maxAllowableLevel,
                                                  pltAppStatePtr->FinestLevel(),
                                                  amrData.RefRatio());
     int tempSliceV = AVGlobals::GetInitialPlanes()[Amrvis::XDIR];  // at finest lev
@@ -185,13 +185,13 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
   subDomain.resize(numberOfLevels);
   Box sdBox(region);     // region is at the finestLevel
   subDomain[maxAllowableLevel] =
-             sdBox.coarsen(AVGlobals::CRRBetweenLevels(maxAllowableLevel,
+             sdBox.coarsen(amrex::CRRBetweenLevels(maxAllowableLevel,
 			   pltAppStatePtr->FinestLevel(),
 			   amrData.RefRatio()));
 
   for(ilev = maxAllowableLevel - 1; ilev >= minDrawnLevel; --ilev) {
     subDomain[ilev] = subDomain[maxAllowableLevel];
-    subDomain[ilev].coarsen(AVGlobals::CRRBetweenLevels(ilev,
+    subDomain[ilev].coarsen(amrex::CRRBetweenLevels(ilev,
                             maxAllowableLevel, amrData.RefRatio()));
   }
 
@@ -236,7 +236,7 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
 
     if(parentPltAppPtr != NULL) {
       int tempSlice = parentPltAppPtr->GetAmrPicturePtr(myView)->GetSlice();
-      tempSlice *= AVGlobals::CRRBetweenLevels(parentPltAppPtr->GetPltAppState()->
+      tempSlice *= amrex::CRRBetweenLevels(parentPltAppPtr->GetPltAppState()->
 				    MaxDrawnLevel(), 
                                     pltAppStatePtr->MaxDrawnLevel(),
                                     amrData.RefRatio());
@@ -246,7 +246,7 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
     } else {
       if(AVGlobals::GivenInitialPlanes()) {
 	int tempSlice = AVGlobals::GetInitialPlanes()[Amrvis::YZ - myView];  // finest lev
-        int coarsenCRR = AVGlobals::CRRBetweenLevels(maxAllowableLevel,
+        int coarsenCRR = amrex::CRRBetweenLevels(maxAllowableLevel,
                                                      pltAppStatePtr->FinestLevel(),
                                                      amrData.RefRatio());
         tempSlice /= coarsenCRR;
@@ -560,7 +560,7 @@ void AmrPicture::SetSlice(int view, int here) {
 	  temp.shift(Amrvis::ZDIR, -subDomain[lev].smallEnd(Amrvis::ZDIR));
 #endif
         gpArray[lev][gridNumber].GridPictureInit(lev,
-		AVGlobals::CRRBetweenLevels(lev, maxAllowableLevel,
+		amrex::CRRBetweenLevels(lev, maxAllowableLevel,
 		                            amrData.RefRatio()),
 		pltAppStatePtr->CurrentScale(), imageSizeH, imageSizeV,
 		temp, sliceDataBox, sliceDir);
@@ -597,7 +597,7 @@ void AmrPicture::APChangeContour(Amrvis::ContourType prevCType) {
 		  vffp, vfeps);
       bool bCreateMask(iLevel == minDrawnLevel);
       CreateScaledImage(&(xImageArray[iLevel]), pltAppStatePtr->CurrentScale() *
-                 AVGlobals::CRRBetweenLevels(iLevel, maxAllowableLevel,
+                 amrex::CRRBetweenLevels(iLevel, maxAllowableLevel,
 		                             amrData.RefRatio()),
                  imageData[iLevel], scaledImageData[iLevel],
                  dataSizeH[iLevel], dataSizeV[iLevel],
@@ -863,7 +863,7 @@ void AmrPicture::APMakeImages(Palette *palptr) {
  	        minUsing, maxUsing, palPtr, vffp, vfeps);
     bool bCreateMask(iLevel == minDrawnLevel);
     CreateScaledImage(&(xImageArray[iLevel]), pltAppStatePtr->CurrentScale() *
-                AVGlobals::CRRBetweenLevels(iLevel, maxAllowableLevel,
+                amrex::CRRBetweenLevels(iLevel, maxAllowableLevel,
 		amrData.RefRatio()),
                 imageData[iLevel], scaledImageData[iLevel],
                 dataSizeH[iLevel], dataSizeV[iLevel],
@@ -1441,7 +1441,7 @@ void AmrPicture::APChangeScale(int newScale, int previousScale) {
     scaledImageData[iLevel] = new unsigned char[imageSize];
     BL_ASSERT(scaledImageData[iLevel] != nullptr);
     CreateScaledImage(&xImageArray[iLevel], newScale *
-                AVGlobals::CRRBetweenLevels(iLevel, maxAllowableLevel,
+                amrex::CRRBetweenLevels(iLevel, maxAllowableLevel,
 		amrData.RefRatio()),
                 imageData[iLevel], scaledImageData[iLevel],
                 dataSizeH[iLevel], dataSizeV[iLevel],
@@ -1540,7 +1540,7 @@ void AmrPicture::CoarsenSliceBox() {
   int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
   for(int i(maxAllowableLevel - 1); i >= minDrawnLevel; --i) {
     sliceBox[i] = sliceBox[maxAllowableLevel];
-    sliceBox[i].coarsen(AVGlobals::CRRBetweenLevels(i, maxAllowableLevel,
+    sliceBox[i].coarsen(amrex::CRRBetweenLevels(i, maxAllowableLevel,
 			dataServicesPtr->AmrDataRef().RefRatio()));
   }
 }
@@ -1585,7 +1585,7 @@ void AmrPicture::CreateFrames(Amrvis::AnimDirection direction) {
     interBox[maxAllowableLevel].setBig(sliceDir, start+islice);
     for(j = maxAllowableLevel - 1; j >= minDrawnLevel; --j) {
       interBox[j] = interBox[maxAllowableLevel];
-      interBox[j].coarsen(AVGlobals::CRRBetweenLevels(j, maxAllowableLevel,
+      interBox[j].coarsen(amrex::CRRBetweenLevels(j, maxAllowableLevel,
 			  amrData.RefRatio()));
     }
     for(lev = minDrawnLevel; lev <= maxAllowableLevel; ++lev) {
@@ -1608,7 +1608,7 @@ void AmrPicture::CreateFrames(Amrvis::AnimDirection direction) {
 	  temp.shift(Amrvis::YDIR, -subDomain[lev].smallEnd(Amrvis::YDIR));
           temp.shift(Amrvis::ZDIR, -subDomain[lev].smallEnd(Amrvis::ZDIR));
           frameGrids[islice][lev][gridNumber].GridPictureInit(lev,
-                  AVGlobals::CRRBetweenLevels(lev, maxAllowableLevel,
+                  amrex::CRRBetweenLevels(lev, maxAllowableLevel,
 		  amrData.RefRatio()),
                   pltAppStatePtr->CurrentScale(), imageSizeH, imageSizeV,
                   temp, sliceDataBox, sliceDir);
@@ -1655,7 +1655,7 @@ void AmrPicture::CreateFrames(Amrvis::AnimDirection direction) {
     bool bCreateMask(true);
 
     CreateScaledImage(&(frameBuffer[islice]), pltAppStatePtr->CurrentScale() *
-           AVGlobals::CRRBetweenLevels(maxDrawnLevel, maxAllowableLevel,
+           amrex::CRRBetweenLevels(maxDrawnLevel, maxAllowableLevel,
 	   amrData.RefRatio()),
            frameImageData, frameScaledImageData,
            dataSizeH[maxDrawnLevel], dataSizeV[maxDrawnLevel],
@@ -1961,7 +1961,7 @@ void AmrPicture::DrawContour(Array<FArrayBox *> passedSliceFab,
     mask.setVal(false);
     
     if(lev != maxDrawnLevel) {
-      int lratio(AVGlobals::CRRBetweenLevels(lev, lev + 1, amrData.RefRatio()));
+      int lratio(amrex::CRRBetweenLevels(lev, lev + 1, amrData.RefRatio()));
       // construct mask array.  must be size FAB.
       const BoxArray &nextFinest = amrData.boxArray(lev+1);
       for(int j(0); j < nextFinest.size(); ++j) {
@@ -2311,7 +2311,7 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
   int DVFscale(pltAppStatePtr->CurrentScale());
   int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
   int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
-  int DVFRatio(AVGlobals::CRRBetweenLevels(maxDrawnLevel, 
+  int DVFRatio(amrex::CRRBetweenLevels(maxDrawnLevel, 
                                   maxAllowableLevel, amrData.RefRatio()));
   // get velocity field
   Box DVFSliceBox(sliceFab[maxDrawnLevel]->box());

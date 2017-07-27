@@ -64,7 +64,7 @@ namespace AVGlobals {
   bool UseSpecifiedMinMax();
   void SetSpecifiedMinMax(Real  specifiedmin, Real  specifiedmax);
   void GetSpecifiedMinMax(Real &specifiedmin, Real &specifiedmax);
-  int CRRBetweenLevels(int fromlevel, int tolevel, const amrex::Array<int> &refratios);
+//  int CRRBetweenLevels(int fromlevel, int tolevel, const amrex::Array<int> &refratios);
   int DetermineMaxAllowableLevel(const amrex::Box &finebox, int finestlevel,
 			         int maxpoints, const amrex::Array<int> &refratios);
 

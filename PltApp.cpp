@@ -462,7 +462,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 
   Box maxDomain(region);
   if(maxlev < finestLevel) {
-    maxDomain.coarsen(AVGlobals::CRRBetweenLevels(maxlev, finestLevel,
+    maxDomain.coarsen(amrex::CRRBetweenLevels(maxlev, finestLevel,
                       amrData.RefRatio()));
   }
 
@@ -586,7 +586,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   onBox[pltAppState->MaxAllowableLevel()] = maxDomain;
   for(int ilev(pltAppState->MaxAllowableLevel() - 1); ilev >= 0; --ilev) {
     Box tempbox(maxDomain);
-    tempbox.coarsen(AVGlobals::CRRBetweenLevels(ilev, finestLevel,
+    tempbox.coarsen(amrex::CRRBetweenLevels(ilev, finestLevel,
                     amrData.RefRatio()));
     onBox[ilev] = tempbox;
   }
@@ -1681,7 +1681,7 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   int maxAllowLev(pltAppState->MaxAllowableLevel());
   int maxDrawnLev(pltAppState->MaxDrawnLevel());
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
-  int crrDiff(AVGlobals::CRRBetweenLevels(maxDrawnLev, maxAllowLev,
+  int crrDiff(amrex::CRRBetweenLevels(maxDrawnLev, maxAllowLev,
               amrData.RefRatio()));
   int axisLength(20);
   int ypColor(whiteColor), xpColor(whiteColor);
@@ -2158,27 +2158,27 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
 #endif
   
   Box tempRefinedBox(subregionBox);
-  tempRefinedBox.refine(AVGlobals::CRRBetweenLevels(maxAllowableLevel, finestLevel,
+  tempRefinedBox.refine(amrex::CRRBetweenLevels(maxAllowableLevel, finestLevel,
 					            amrData.RefRatio()));
   // this puts tempRefinedBox in terms of the finest level
   newMinAllowableLevel = pltAppState->MinAllowableLevel();
   //newMinAllowableLevel = min(newMinAllowableLevel, maxAllowableLevel);
   
   // coarsen to the newMinAllowableLevel to align grids
-  subregionBox.coarsen(AVGlobals::CRRBetweenLevels(newMinAllowableLevel,
+  subregionBox.coarsen(amrex::CRRBetweenLevels(newMinAllowableLevel,
 					maxAllowableLevel, amrData.RefRatio()));
   
   Box subregionBoxMAL(subregionBox);
   
   // refine to the finestLevel
-  subregionBox.refine(AVGlobals::CRRBetweenLevels(newMinAllowableLevel, finestLevel,
+  subregionBox.refine(amrex::CRRBetweenLevels(newMinAllowableLevel, finestLevel,
 				       amrData.RefRatio()));
   
   maxAllowableLevel = AVGlobals::DetermineMaxAllowableLevel(subregionBox,
                                                  finestLevel,
 						 AVGlobals::MaxPictureSize(),
 						 amrData.RefRatio());
-  subregionBoxMAL.refine(AVGlobals::CRRBetweenLevels(newMinAllowableLevel,
+  subregionBoxMAL.refine(amrex::CRRBetweenLevels(newMinAllowableLevel,
 					  maxAllowableLevel, amrData.RefRatio()));
   
   IntVect ivOffset(subregionBoxMAL.smallEnd());
@@ -3235,7 +3235,7 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
   int lev;
   for(lev = mal - 1; lev >= 0; --lev) {
     trueRegion[lev] = trueRegion[mal];
-    trueRegion[lev].coarsen(AVGlobals::CRRBetweenLevels(lev, mal,
+    trueRegion[lev].coarsen(amrex::CRRBetweenLevels(lev, mal,
                             amrData.RefRatio()));
   }
   // Create an array of titles corresponding to the intersected line.
@@ -3580,7 +3580,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  
 	  for(y = mal - 1; y >= 0; --y) {
 	    trueRegion[y] = trueRegion[mal];
-	    trueRegion[y].coarsen(AVGlobals::CRRBetweenLevels(y, mal,
+	    trueRegion[y].coarsen(amrex::CRRBetweenLevels(y, mal,
 	                          amrData.RefRatio()));
 	    trueRegion[y].setBig(Amrvis::XDIR, trueRegion[y].smallEnd(Amrvis::XDIR));
 #if (BL_SPACEDIM != 1)
@@ -4202,7 +4202,7 @@ void PltApp::DoBackStep(int plane) {
   int maxAllowLev(pltAppState->MaxAllowableLevel());
   int maxDrawnLev(pltAppState->MaxDrawnLevel());
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
-  int crrDiff(AVGlobals::CRRBetweenLevels(maxDrawnLev, maxAllowLev,
+  int crrDiff(amrex::CRRBetweenLevels(maxDrawnLev, maxAllowLev,
               amrData.RefRatio()));
   AmrPicture *appX = amrPicturePtrArray[Amrvis::XPLANE];
   AmrPicture *appY = amrPicturePtrArray[Amrvis::YPLANE];
@@ -4281,7 +4281,7 @@ void PltApp::DoForwardStep(int plane) {
   int maxAllowLev(pltAppState->MaxAllowableLevel());
   int maxDrawnLev(pltAppState->MaxDrawnLevel());
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
-  int crrDiff(AVGlobals::CRRBetweenLevels(maxDrawnLev, maxAllowLev,
+  int crrDiff(amrex::CRRBetweenLevels(maxDrawnLev, maxAllowLev,
               amrData.RefRatio()));
   AmrPicture *appX = amrPicturePtrArray[Amrvis::XPLANE];
   AmrPicture *appY = amrPicturePtrArray[Amrvis::YPLANE];
@@ -4460,7 +4460,7 @@ void PltApp::ResetAnimation() {
     delete Tempap;
     
     const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
-    fineDomain.refine(AVGlobals::CRRBetweenLevels(maLev, amrData.FinestLevel(),
+    fineDomain.refine(amrex::CRRBetweenLevels(maLev, amrData.FinestLevel(),
                                                   amrData.RefRatio()));
     amrPicturePtrArray[Amrvis::ZPLANE] = new AmrPicture(Amrvis::ZPLANE, gaPtr, fineDomain, 
 						NULL, this,
@@ -4565,7 +4565,7 @@ void PltApp::ShowFrame() {
     delete tempapSF;
     
     Box fineDomain(domain[pltAppState->MaxAllowableLevel()]);
-    fineDomain.refine(AVGlobals::CRRBetweenLevels(pltAppState->MaxAllowableLevel(),
+    fineDomain.refine(amrex::CRRBetweenLevels(pltAppState->MaxAllowableLevel(),
 				                  amrData.FinestLevel(),
 						  amrData.RefRatio()));
     amrPicturePtrArray[Amrvis::ZPLANE] = new AmrPicture(Amrvis::ZPLANE, gaPtr, fineDomain, 

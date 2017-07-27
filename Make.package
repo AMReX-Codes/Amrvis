@@ -3,7 +3,7 @@ CEXE_headers += AmrPicture.H AmrvisConstants.H		\
 		GlobalUtilities.H GraphicsAttributes.H			\
                 GridPicture.H MessageArea.H				\
                 Palette.H PltApp.H Output.H Quaternion.H Point.H \
-                Trackball.H XYPlotDataList.H XYPlotDefaults.H \
+                Trackball.H AMReX_XYPlotDataList.H XYPlotDefaults.H \
 		XYPlotWin.H XYPlotParam.H PltAppState.H
 
 CEXE_sources += AmrPicture.cpp AmrVisTool.cpp		\
@@ -12,9 +12,8 @@ CEXE_sources += AmrPicture.cpp AmrVisTool.cpp		\
                 MessageArea.cpp PltApp.cpp                              \
                 GlobalUtilities.cpp Palette.cpp PltAppOutput.cpp	\
 		Output.cpp Quaternion.cpp Point.cpp Trackball.cpp       \
-		XYPlotDataList.cpp XYPlotParam.cpp XYPlotWin.cpp        \
+		AMReX_XYPlotDataList.cpp XYPlotParam.cpp XYPlotWin.cpp        \
 		PltAppState.cpp
-
 
 ifeq ($(DIM),3)
   ifeq ($(USE_VOLRENDER), TRUE)
@@ -45,16 +44,16 @@ ifeq ($(USE_PROFDATA), TRUE)
   CEXE_sources += ProfApp.cpp RegionPicture.cpp
 
   CEXE_headers += BLProfParser.tab.H BLProfStats.H
-  CEXE_headers += ProfDataServices.H
+  CEXE_headers += DataServices.H
 
   CEXE_sources += BLProfParser.lex.yy.cpp
   CEXE_sources += BLProfParser.tab.cpp
-  CEXE_sources += BLProfStats.cpp
-  CEXE_sources += CommProfStats.cpp
-  CEXE_sources += RegionsProfStats.cpp
-  CEXE_sources += WritePlotFile.cpp
-  FEXE_sources += AVGDOWN_$(DIM)D.F
-  CEXE_sources += BLProfUtilities.cpp
-  CEXE_sources += ProfDataServices.cpp
+  CEXE_sources += AMReX_BLProfStats.cpp
+  CEXE_sources += AMReX_CommProfStats.cpp
+  CEXE_sources += AMReX_RegionsProfStats.cpp
+  CEXE_sources += AMReX_BLWritePlotFile.cpp
+  FEXE_sources += AMReX_AVGDOWN_$(DIM)D.F
+  CEXE_sources += AMReX_BLProfUtilities.cpp
+  CEXE_sources += AMReX_DataServices.cpp
 endif
 

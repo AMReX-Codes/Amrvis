@@ -11,7 +11,7 @@
 using std::list;
 
 #include <AMReX_AmrvisConstants.H>
-#include <XYPlotDataList.H>
+#include <AMReX_XYPlotDataList.H>
 #include <XYPlotParam.H>
 #include <xgout.H>
 

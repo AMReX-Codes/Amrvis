@@ -26,9 +26,9 @@
 #include <AMReX_ParmParse.H>
 #include <AMReX_DataServices.H>
 #include <PltAppState.H>
-#ifdef AV_PROFDATA
+#ifdef BL_PROFILING
 #include <ProfApp.H>
-#include <ProfDataServices.H>
+#include <AMReX_DataServices.H>
 #endif
 
 #ifdef BL_VOLUMERENDER
@@ -46,7 +46,6 @@ using std::min;
 using std::max;
 
 using namespace amrex;
-
 
 const int OPENITEM = 0;
 const int QUITITEM = 1;
@@ -68,7 +67,7 @@ cMessageArea	messageText;
 char		buffer[amrex::Amrvis::BUFSIZE];
 XmString	sDirectory = XmStringCreateSimple(const_cast<char *>("none"));
 list<PltApp *>  pltAppList;
-#ifdef AV_PROFDATA
+#ifdef BL_PROFILING
   list<ProfApp *>  profAppList;
 #endif
 
@@ -89,7 +88,7 @@ int main(int argc, char *argv[]) {
   int argcNoPP(1);
   amrex::Initialize(argcNoPP, argv);
 
-#ifdef AV_PROFDATA
+#ifdef BL_PROFILING
   amrex::BLProfiler::SetBlProfDirName("bl_prof_amrvis");
 #endif
 
@@ -110,13 +109,13 @@ int main(int argc, char *argv[]) {
   }
 
   if(AVGlobals::GetFabOutFormat() == 1) {
-    DataServices::SetFabOutSize(1);
+    amrex::DataServices::SetFabOutSize(1);
   }
   if(AVGlobals::GetFabOutFormat() == 8) {
-    DataServices::SetFabOutSize(8);
+    amrex::DataServices::SetFabOutSize(8);
   }
   if(AVGlobals::GetFabOutFormat() == 32) {
-    DataServices::SetFabOutSize(32);
+    amrex::DataServices::SetFabOutSize(32);
   }
 
   bool bBatchMode(false);
@@ -130,7 +129,7 @@ int main(int argc, char *argv[]) {
   }
 
   if(bBatchMode) {
-    DataServices::SetBatchMode();
+    amrex::DataServices::SetBatchMode();
     BatchFunctions();
     amrex::Finalize();
   } else {
@@ -144,10 +143,10 @@ int main(int argc, char *argv[]) {
       bool bAmrDataOk(true);
       amrex::Amrvis::FileType fileType = AVGlobals::GetDefaultFileType();
       BL_ASSERT(fileType != amrex::Amrvis::INVALIDTYPE);
-      amrex::Array<DataServices *> dspArray(AVGlobals::GetFileCount());
+      amrex::Array<amrex::DataServices *> dspArray(AVGlobals::GetFileCount());
       for(int nPlots = 0; nPlots < AVGlobals::GetFileCount(); ++nPlots) {
         comlineFileName = AVGlobals::GetComlineFilename(nPlots);
-        dspArray[nPlots] = new DataServices(comlineFileName, fileType);
+        dspArray[nPlots] = new amrex::DataServices(comlineFileName, fileType);
         if(amrex::ParallelDescriptor::IOProcessor()) {
           dspArray[nPlots]->IncrementNumberOfUsers();
 	}
@@ -169,7 +168,7 @@ int main(int argc, char *argv[]) {
 	  } else {
             pltAppList.push_back(temp);
               if(AVGlobals::GivenBox()) {
-		DataServices *dsp = temp->GetDataServicesPtr();
+		amrex::DataServices *dsp = temp->GetDataServicesPtr();
 	        const amrex::AmrData &amrData = dsp->AmrDataRef();
 		amrex::Box bPD(amrData.ProbDomain()[amrData.FinestLevel()]);
 		amrex::Box itypComlineBox(bPD);  // for correct box type
@@ -201,7 +200,7 @@ int main(int argc, char *argv[]) {
       amrex::Amrvis::FileType fileType = AVGlobals::GetDefaultFileType();
       BL_ASSERT(fileType != amrex::Amrvis::INVALIDTYPE);
 
-#ifdef AV_PROFDATA
+#ifdef BL_PROFILING
      if(fileType == amrex::Amrvis::PROFDATA) {
        cout << "]]]]:  fileType is amrex::Amrvis::PROFDATA." << endl;
        PrintMessage("]]]]:  fileType is amrex::Amrvis::PROFDATA.\n");
@@ -216,13 +215,13 @@ int main(int argc, char *argv[]) {
 	 //int whichProc(0);
 	 //pdServices.WriteSummary(cout, writeAverage, whichProc, useTrace);
 
-         amrex::Array<ProfDataServices *> pdspArray(AVGlobals::GetFileCount());
+         amrex::Array<amrex::DataServices *> pdspArray(AVGlobals::GetFileCount());
          for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {
            comlineFileName = AVGlobals::GetComlineFilename(nPlots);
            if(amrex::ParallelDescriptor::IOProcessor()) {
              cout << endl << "FileName = " << comlineFileName << endl;
            }
-	   pdspArray[nPlots] = new ProfDataServices(comlineFileName);
+	   pdspArray[nPlots] = new amrex::DataServices(comlineFileName, fileType);
 
          ProfApp *temp = new ProfApp(app, wTopLevel, comlineFileName,
 			            pdspArray);
@@ -241,19 +240,19 @@ int main(int argc, char *argv[]) {
      {
 #endif
 
-      amrex::Array<DataServices *> dspArray(AVGlobals::GetFileCount());
+      amrex::Array<amrex::DataServices *> dspArray(AVGlobals::GetFileCount());
       for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {
         comlineFileName = AVGlobals::GetComlineFilename(nPlots);
         if(amrex::ParallelDescriptor::IOProcessor()) {
           cout << endl << "FileName = " << comlineFileName << endl;
         }
-	dspArray[nPlots] = new DataServices(comlineFileName, fileType);
+	dspArray[nPlots] = new amrex::DataServices(comlineFileName, fileType);
       }
 
       for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {
         if(amrex::ParallelDescriptor::IOProcessor()) {
 	  if(dspArray[nPlots]->AmrDataOk()) {
-	    amrex::Array<DataServices *> dspArrayOne(1);
+	    amrex::Array<amrex::DataServices *> dspArrayOne(1);
 	    dspArrayOne[0] = dspArray[nPlots];
             PltApp *temp = new PltApp(app, wTopLevel, dspArrayOne[0]->GetFileName(),
 			              dspArrayOne, AVGlobals::IsAnimation());
@@ -263,7 +262,7 @@ int main(int argc, char *argv[]) {
               pltAppList.push_back(temp);
               dspArray[nPlots]->IncrementNumberOfUsers();
               if(AVGlobals::GivenBox()) {
-		DataServices *dsp = temp->GetDataServicesPtr();
+		amrex::DataServices *dsp = temp->GetDataServicesPtr();
 	        const amrex::AmrData &amrData = dsp->AmrDataRef();
 		amrex::Box bPD(amrData.ProbDomain()[amrData.FinestLevel()]);
 		amrex::Box itypComlineBox(bPD);  // for correct box type
@@ -295,7 +294,7 @@ int main(int argc, char *argv[]) {
       XtAppMainLoop(app);
     } else {
       // all other processors wait for a request
-      DataServices::Dispatch(DataServices::InvalidRequestType, NULL, NULL);
+      amrex::DataServices::Dispatch(amrex::DataServices::InvalidRequestType, NULL, NULL);
     }
 
   }  // end if(bBatchMode)
@@ -403,7 +402,7 @@ void BatchFunctions() {
     }
     amrex::Amrvis::FileType fileType = AVGlobals::GetDefaultFileType();
     BL_ASSERT(fileType != amrex::Amrvis::INVALIDTYPE);
-    DataServices dataServices(comlineFileName, fileType);
+    amrex::DataServices dataServices(comlineFileName, fileType);
 
     string derived(AVGlobals::GetInitialDerived());
     if( ! dataServices.CanDerive(derived)) {
@@ -498,7 +497,7 @@ void BatchFunctions() {
 		++li)
 	    {
               int slicenum = *li;
-              DataServices::Dispatch(DataServices::DumpSlicePlaneAllVars,
+              amrex::DataServices::Dispatch(amrex::DataServices::DumpSlicePlaneAllVars,
 				     &dataServices, slicedir, slicenum);
 	    }
           }
@@ -512,7 +511,7 @@ void BatchFunctions() {
 		  ++li)
 	      {
                 int slicenum = *li;
-                DataServices::Dispatch(DataServices::DumpSlicePlaneOneVar,
+                amrex::DataServices::Dispatch(amrex::DataServices::DumpSlicePlaneOneVar,
 				       &dataServices, slicedir, slicenum,
 				       (void *) &derived);
 	      }
@@ -527,11 +526,11 @@ void BatchFunctions() {
         amrex::Box comLineBox(AVGlobals::GetBoxFromCommandLine());
 	BL_ASSERT(comLineBox.ok());
         if(AVGlobals::SliceAllVars()) {
-          DataServices::Dispatch(DataServices::DumpSliceBoxAllVars,
+          amrex::DataServices::Dispatch(amrex::DataServices::DumpSliceBoxAllVars,
 				 &dataServices,
 				 (void *) &comLineBox);
         } else {
-            DataServices::Dispatch(DataServices::DumpSliceBoxOneVar,
+            amrex::DataServices::Dispatch(amrex::DataServices::DumpSliceBoxOneVar,
 				   &dataServices,
                                    (void *) &comLineBox,
 				   (void *) &derived);
@@ -549,7 +548,7 @@ void QuitAll() {
       li != pltAppList.end(); ++li)
   {
     PltApp *obj = *li;
-    amrex::Array<DataServices *> dataServicesPtr = obj->GetDataServicesPtrArray();
+    amrex::Array<amrex::DataServices *> dataServicesPtr = obj->GetDataServicesPtrArray();
     for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
       dataServicesPtr[ids]->DecrementNumberOfUsers();
     }
@@ -557,7 +556,7 @@ void QuitAll() {
   }
   pltAppList.clear();
 
-  DataServices::Dispatch(DataServices::ExitRequest, NULL);
+  amrex::DataServices::Dispatch(amrex::DataServices::ExitRequest, NULL);
 }
 
  
@@ -577,7 +576,7 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
       sMask = XmStringCreateSimple(const_cast<char *>("*.fab"));
     } else if(fileType == amrex::Amrvis::MULTIFAB) {
       sMask = XmStringCreateSimple(const_cast<char *>("*_H"));
-#ifdef AV_PROFDATA
+#ifdef BL_PROFILING
     } else if(fileType == amrex::Amrvis::PROFDATA) {
       sMask = XmStringCreateSimple(const_cast<char *>("bl_prof*"));
 #endif
@@ -637,12 +636,12 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
   sprintf(buffer, "Selected file = %s\n", filename);
   messageText.PrintText(buffer);
 
-  DataServices *dataServicesPtr = new DataServices();
+  amrex::DataServices *dataServicesPtr = new amrex::DataServices();
   dataServicesPtr->Init(filename, AVGlobals::GetDefaultFileType());
 
-  DataServices::Dispatch(DataServices::NewRequest, dataServicesPtr, NULL);
+  amrex::DataServices::Dispatch(amrex::DataServices::NewRequest, dataServicesPtr, NULL);
 
-  amrex::Array<DataServices *> dspArray(1);
+  amrex::Array<amrex::DataServices *> dspArray(1);
   dspArray[0] = dataServicesPtr;
   bool bIsAnim(false);
 
@@ -672,7 +671,7 @@ void SubregionPltApp(Widget wTopLevel, const amrex::Box &trueRegion,
     cerr << "Error in SubregionPltApp:  could not make a new PltApp." << endl;
   } else {
     pltAppList.push_back(temp);
-    amrex::Array<DataServices *> dataServicesPtr = temp->GetDataServicesPtrArray();
+    amrex::Array<amrex::DataServices *> dataServicesPtr = temp->GetDataServicesPtrArray();
     for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
       dataServicesPtr[ids]->IncrementNumberOfUsers();
     }
@@ -680,7 +679,7 @@ void SubregionPltApp(Widget wTopLevel, const amrex::Box &trueRegion,
 }
 
 
-#ifdef AV_PROFDATA
+#ifdef BL_PROFILING
 // ---------------------------------------------------------------
 void SubregionProfApp(Widget wTopLevel, const amrex::Box &trueRegion,
 		      const amrex::IntVect &offset,
@@ -694,7 +693,7 @@ void SubregionProfApp(Widget wTopLevel, const amrex::Box &trueRegion,
     cerr << "Error in SubregionProfApp:  could not make a new ProfApp." << endl;
   } else {
     profAppList.push_back(temp);
-    //amrex::Array<DataServices *> dataServicesPtr = temp->GetDataServicesPtrArray();
+    //amrex::Array<amrex::DataServices *> dataServicesPtr = temp->GetDataServicesPtrArray();
     //for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
       //dataServicesPtr[ids]->IncrementNumberOfUsers();
     //}
@@ -708,26 +707,26 @@ void CBQuitPltApp(Widget ofPltApp, XtPointer client_data, XtPointer) {
   PltApp *obj = (PltApp *) client_data;
   pltAppList.remove(obj);
 
-  amrex::Array<DataServices *> &dataServicesPtr = obj->GetDataServicesPtrArray();
+  amrex::Array<amrex::DataServices *> &dataServicesPtr = obj->GetDataServicesPtrArray();
   for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
     dataServicesPtr[ids]->DecrementNumberOfUsers();
-    DataServices::Dispatch(DataServices::DeleteRequest, dataServicesPtr[ids], NULL);
+    amrex::DataServices::Dispatch(amrex::DataServices::DeleteRequest, dataServicesPtr[ids], NULL);
   }
 
   delete obj;
 }
 
 
-#ifdef AV_PROFDATA
+#ifdef BL_PROFILING
 // ---------------------------------------------------------------
 void CBQuitProfApp(Widget ofProfApp, XtPointer client_data, XtPointer) {
   ProfApp *obj = (ProfApp *) client_data;
   profAppList.remove(obj);
 
-  amrex::Array<DataServices *> &dataServicesPtr = obj->GetDataServicesPtrArray();
+  amrex::Array<amrex::DataServices *> &dataServicesPtr = obj->GetDataServicesPtrArray();
   for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
     dataServicesPtr[ids]->DecrementNumberOfUsers();
-    DataServices::Dispatch(DataServices::DeleteRequest, dataServicesPtr[ids], NULL);
+    amrex::DataServices::Dispatch(amrex::DataServices::DeleteRequest, dataServicesPtr[ids], NULL);
   }
 
   delete obj;

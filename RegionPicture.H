@@ -9,10 +9,11 @@
 #include <AMReX_REAL.H>
 #include <AMReX_Box.H>
 #include <AMReX_AmrvisConstants.H>
+#include <AMReX_DataServices.H>
 #include <GlobalUtilities.H>
 #include <AMReX_Array.H>
 #include <AMReX_FArrayBox.H>
-#include <BLProfStats.H>
+#include <AMReX_BLProfStats.H>
 
 #include <string>
 using std::string;
@@ -24,7 +25,7 @@ using amrex::Real;
 
 class GraphicsAttributes;
 class Palette;
-class ProfDataServices;
+class DataServices;
 class ProfApp;
 
 
@@ -33,7 +34,7 @@ class RegionPicture {
 
   enum { RP_OFF = 0, RP_ON, RP_SPLIT };
 
-  RegionPicture(GraphicsAttributes *gaptr, ProfDataServices *pdsp);
+  RegionPicture(GraphicsAttributes *gaptr, amrex::DataServices *pdsp);
 
   // ---- for subregions
   RegionPicture(GraphicsAttributes *gaptr, const amrex::Box &regionBox,
@@ -82,7 +83,7 @@ class RegionPicture {
   unsigned char *atiImageData;
   unsigned char *scaledATIImageData, *scaledATIImageDataDim;
   bool xImageCreated;
-  ProfDataServices   *profDataServicesPtr;
+  amrex::DataServices   *profDataServicesPtr;
   int hLine, vLine, hColor, vColor, myColor;
   bool pixMapCreated;
   int currentScale;

@@ -427,7 +427,7 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
           fileType = Amrvis::MULTIFAB;
 	} else if(strcmp(tempString, "newplt") == 0) {
           fileType = Amrvis::NEWPLT;
-#ifdef AV_PROFDATA
+#ifdef BL_PROFILING
 	} else if(strcmp(tempString, "profdata") == 0) {
           fileType = Amrvis::PROFDATA;
 #endif
@@ -750,7 +750,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
     } else if(strcmp(argv[i],"-newplt") == 0) {
       fileType = Amrvis::NEWPLT;
       newPltSet = true;
-#ifdef AV_PROFDATA
+#ifdef BL_PROFILING
     } else if(strcmp(argv[i],"-profdata") == 0) {
       fileType = Amrvis::PROFDATA;
 #endif
@@ -1040,7 +1040,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
 	        fileType = Amrvis::FAB;
 	      }
 	    }
-#ifdef AV_PROFDATA
+#ifdef BL_PROFILING
 	    {
 	      std::size_t found(comlinefilename[fileCount].find("bl_prof", 0));
 	      if(found != std::string::npos) {
@@ -1205,7 +1205,7 @@ bool AVGlobals::GivenInitialPlanes() { return givenInitialPlanes; }
 IntVect AVGlobals::GetInitialPlanes() { return ivInitialPlanes; }
 
 // -------------------------------------------------------------------
-int AVGlobals::CRRBetweenLevels(int fromlevel, int tolevel,
+/*int AVGlobals::CRRBetweenLevels(int fromlevel, int tolevel,
                                 const Array<int> &refratios)
 {
   BL_ASSERT(fromlevel >= 0);
@@ -1217,7 +1217,7 @@ int AVGlobals::CRRBetweenLevels(int fromlevel, int tolevel,
   }
   return rr;
 }
-
+*/
 
 // -------------------------------------------------------------------
 int AVGlobals::DetermineMaxAllowableLevel(const Box &finestbox,

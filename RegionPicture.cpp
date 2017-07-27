@@ -4,7 +4,6 @@
 #include <RegionPicture.H>
 #include <Palette.H>
 #include <GraphicsAttributes.H>
-#include <ProfDataServices.H>
 #include <ProfApp.H>
 
 using std::cout;
@@ -21,7 +20,7 @@ const int defaultDataSizeH(600);
 
 // ---------------------------------------------------------------------
 RegionPicture::RegionPicture(GraphicsAttributes *gaptr,
-                             ProfDataServices *pdsp)
+                             amrex::DataServices *pdsp)
            : gaPtr(gaptr),
 	     profDataServicesPtr(pdsp),
 	     currentScale(1)
