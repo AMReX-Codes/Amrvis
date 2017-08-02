@@ -311,7 +311,7 @@ void VolRender::MakeSWFData(amrex::DataServices *dataServicesPtr,
 
      if(bDrawAllBoxes) {
       for(int lev(minDrawnLevel); lev <= maxDrawnLevel; ++lev) {
-        int crr(AVGlobals::CRRBetweenLevels(lev, maxDrawnLevel,
+        int crr(amrex::CRRBetweenLevels(lev, maxDrawnLevel,
 	        amrData.RefRatio()));
 	const BoxArray &gridBoxes = amrData.boxArray(lev);
 	for(int iGrid(0); iGrid < gridBoxes.size(); ++iGrid) {
@@ -446,7 +446,7 @@ void VolRender::MakeSWFData(amrex::DataServices *dataServicesPtr,
      } else {  // only draw the boundingbox
 
         int lev(minDrawnLevel);
-        int crr(AVGlobals::CRRBetweenLevels(lev, maxDrawnLevel,
+        int crr(amrex::CRRBetweenLevels(lev, maxDrawnLevel,
 	        amrData.RefRatio()));
           gbox = drawnDomain[lev];
           Box goverlap(gbox & drawnDomain[lev]);

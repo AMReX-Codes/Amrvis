@@ -444,7 +444,7 @@ void BatchFunctions() {
 	}
         drawDomain[finelev] = comlineBox;
         for(int ilev(amrData.FinestLevel() - 1); ilev >= 0; --ilev) {
-	  int crr(AVGlobals::CRRBetweenLevels(ilev, finelev, amrData.RefRatio()));
+	  int crr(amrex::CRRBetweenLevels(ilev, finelev, amrData.RefRatio()));
           drawDomain[ilev] = drawDomain[finelev];
           drawDomain[ilev].coarsen(crr);
         }

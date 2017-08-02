@@ -852,7 +852,7 @@ amrex::XYPlotDataList *ProfApp::CreateLinePlot(int V, int sdir, int mal, int ix,
   int lev;
   for(lev = mal - 1; lev >= 0; --lev) {
     trueRegion[lev] = trueRegion[mal];
-    trueRegion[lev].coarsen(AVGlobals::CRRBetweenLevels(lev, mal,
+    trueRegion[lev].coarsen(amrex::CRRBetweenLevels(lev, mal,
                             amrData.RefRatio()));
   }
   // Create an array of titles corresponding to the intersected line.

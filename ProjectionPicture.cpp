@@ -88,14 +88,14 @@ ProjectionPicture::ProjectionPicture(PltApp *pltappptr, ViewTransform *vtptr,
       Box temp(amrData.boxArray(lev)[iBox]);
       if(temp.intersects(theDomain[lev])) {
         temp &= theDomain[lev];
-        AddBox(temp.refine(AVGlobals::CRRBetweenLevels(lev, maxDataLevel,
+        AddBox(temp.refine(amrex::CRRBetweenLevels(lev, maxDataLevel,
                amrData.RefRatio())), iBoxIndex, lev);
 	++iBoxIndex;
       }
     }
   }
   Box alignedBox(theDomain[minDrawnLevel]);
-  alignedBox.refine(AVGlobals::CRRBetweenLevels(minDrawnLevel, maxDataLevel,
+  alignedBox.refine(amrex::CRRBetweenLevels(minDrawnLevel, maxDataLevel,
 		     amrData.RefRatio()));
   realBoundingBox = AVRealBox(alignedBox);
 
@@ -494,7 +494,7 @@ void ProjectionPicture::SetDrawingAreaDimensions(int w, int h) {
 
   Box alignedBox(theDomain[minDrawnLevel]);
   const AmrData &amrData = pltAppPtr->GetDataServicesPtr()->AmrDataRef();
-  alignedBox.refine(AVGlobals::CRRBetweenLevels(minDrawnLevel, maxDataLevel,
+  alignedBox.refine(amrex::CRRBetweenLevels(minDrawnLevel, maxDataLevel,
 		     amrData.RefRatio()));
   longestBoxSide = (Real) alignedBox.longside(longestBoxSideDir);
 }
