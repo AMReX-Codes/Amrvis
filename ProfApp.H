@@ -10,6 +10,7 @@
 #include <X11/Intrinsic.h>
 #undef index
 
+#include <AVPApp.H>
 #include <AMReX_AmrvisConstants.H>
 #include <AMReX_DataServices.H>
 #include <GlobalUtilities.H>
@@ -28,14 +29,13 @@ class GraphicsAttributes;
 class Palette;
 class PltApp;
 class PltAppState;
-class XYPlotParameters;
 class XYPlotWin;
 
 
 class ProfApp;
 typedef void (ProfApp::*profMemberCB)(Widget, XtPointer, XtPointer);
 
-class ProfApp {
+class ProfApp : public AVPApp {
     
 private:
   ProfApp();  // not defined
@@ -50,13 +50,11 @@ public:
           ProfApp *profparent, const string &palfile,
           const string &filename);
 
-  ~ProfApp();
+  virtual ~ProfApp();
   
   static void SetInitialWindowHeight(int initWindowHeight);
   static void SetInitialWindowWidth(int initWindowWidth);
   
-  Widget WId()                     { return wAmrVisTopLevel; }
-  Palette *GetPalettePtr()         { return pltPaletteptr; }
   ProfDataServices *GetProfDataServicesPtr() { return profDataServicesPtr[0]; }
   amrex::Array<ProfDataServices *> &GetProfDataServicesPtrArray() { return profDataServicesPtr; }
   amrex::DataServices *GetDataServicesPtr() { return dspArray[0]; }
@@ -66,14 +64,13 @@ public:
   int GetCurrentScale() const      { return currentScale; }
   const string &GetFileName();
   
-  amrex::XYPlotDataList *CreateLinePlot(int V, int sdir, int mal, int ixY,
-				 const string *derived);
-  void DoExposeRef(Widget = None, XtPointer = NULL, XtPointer = NULL);
+  amrex::XYPlotDataList *CreateLinePlot(const string &derived, int dIndex);
+  void DoExposeRef(Widget = None, XtPointer = nullptr, XtPointer = nullptr);
   void DoExposePalette(Widget, XtPointer, XtPointer);
   void DoExposePicture(Widget, XtPointer, XtPointer);
-  void DoFuncList(Widget, XtPointer, XtPointer);
+  void DoFuncListClick(Widget, XtPointer, XtPointer);
   void DoGenerateFuncList(Widget, XtPointer, XtPointer);
-  void GenerateFuncList(const amrex::Array<std::string> &funcs);
+  void PopulateFuncList(bool bWriteAverage, int whichProc, bool bUseTrace);
   void DoAllOnOff(Widget, XtPointer, XtPointer);
   void ChangeScale(Widget, XtPointer, XtPointer);
   void DoRubberBanding(Widget, XtPointer, XtPointer);
@@ -82,35 +79,27 @@ public:
   void DoCreateTextTrace(Widget, XtPointer, XtPointer);
   void DoSubregion(Widget, XtPointer, XtPointer);
 
-  void DetachXYPlotWin(int dir) { XYplotwin[dir] = NULL; }
-  XYPlotParameters *GetXYPlotParameters() const { return XYplotparameters; }
-  XYPlotWin *GetXYPlotWin(int dir) const { return XYplotwin[dir]; }
-
   string GetRegionName(Real r);
   int FindRegionTimeRangeIndex(int whichRegion, Real time);
 
 private:
-  Widget wTopLevel, wAmrVisTopLevel;
+  Widget wTopLevel;
   Widget wScrollArea, wPlotPlane;
   Widget wControlForm;
   Widget wInfoTopLevel;
   Widget wPlotArea;
   Widget wPlotLabel;
-  Widget wPalArea, wFuncListButton, wAllOnButton, wAllOffButton;
+  Widget wFuncListButton, wAllOnButton, wAllOffButton;
   Widget wFuncListScrollArea;
   Widget wFuncList, wCurrScale;
 
-  XYPlotParameters *XYplotparameters;
-  XYPlotWin *XYplotwin[BL_SPACEDIM];
-
   XtAppContext appContext;
   Arg args[amrex::Amrvis::MAXARGS];
-  Palette *pltPaletteptr;
   amrex::IntVect ivLowOffset;
   bool infoShowing;
   bool interfaceReady;
   int servingButton;
-  string fileName, palFilename, headerSuffix;
+  string fileName, headerSuffix;
   char buffer[BUFSIZ];
   amrex::Box selectionBox, domainBox, subdomainBox;
   GraphicsAttributes	*gaPtr;
@@ -128,6 +117,9 @@ private:
   int sdLineXL, sdLineXH, axisLengthX, axisLengthY;
   amrex::Array<amrex::Array<BLProfStats::TimeRange>> rtr;
   amrex::Array<std::list<BLProfStats::TimeRange>> filterTimeRanges;
+  amrex::Array<std::string> funcSelectionStrings;
+  amrex::Array<amrex::Array<BLProfStats::FuncStat>> aFuncStats;
+  map<string, int> funcNameIndex;
     
   // ---- baggage for fast rubber banding
   GC            rbgc;
@@ -143,9 +135,9 @@ private:
   void DestroyInfoWindow(Widget, XtPointer, XtPointer);
   void CloseInfoWindow(Widget, XtPointer, XtPointer);
 
-  void AddStaticCallback(Widget w, String whichcb, profMemberCB whichf, void *d = NULL);
-  void AddStaticEventHandler(Widget w, EventMask mask, profMemberCB cbf, void *d = NULL);
-  XtIntervalId AddStaticTimeOut(int time, profMemberCB whichf, void *d = NULL);
+  void AddStaticCallback(Widget w, String whichcb, profMemberCB whichf, void *d = nullptr);
+  void AddStaticEventHandler(Widget w, EventMask mask, profMemberCB cbf, void *d = nullptr);
+  XtIntervalId AddStaticTimeOut(int time, profMemberCB whichf, void *d = nullptr);
   static void StaticCallback(Widget, XtPointer, XtPointer);
   static void StaticEvent(Widget w, XtPointer client_data, XEvent *event, char*);
   static void StaticTimeOut(XtPointer client_data, XtIntervalId *);

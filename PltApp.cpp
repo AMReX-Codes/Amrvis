@@ -426,11 +426,11 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     currentFrame(pltParent->currentFrame),
     animFrames(pltParent->animFrames),
     fileName(filename),
-    palFilename(palfile),
     lightingFilename(pltParent->lightingFilename),
     dataServicesPtr(pltParent->dataServicesPtr),
     fileNames(pltParent->fileNames)
 {
+  palFilename = palfile;
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   bFileRangeButtonSet = pltParent->bFileRangeButtonSet;
 

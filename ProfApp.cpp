@@ -179,21 +179,9 @@ if(regionTimeRanges.size() > 0) {
 }
 */
 
-  Array<std::string> funcs;
-  std::ostringstream ossSummary;
-  profDataServicesPtr[0]->WriteSummary(ossSummary, false, 0, false);
-  size_t startPos(0), endPos(0);
-  const std::string &ossString = ossSummary.str();
-  while(startPos < ossString.length() - 1) {
-    endPos = ossString.find('\n', startPos);
-    std::string sLine(ossString.substr(startPos, endPos - startPos));
-    startPos = endPos + 1;
-    funcs.push_back(sLine);
-  }
-  GenerateFuncList(funcs);
-
   pltPaletteptr->DrawPalette(atiPaletteEntry, regNames.size() - 3, "%8.2f");
   regionPicturePtr->APDraw(0,0);
+  cout << ">>>> rpp.SubTimeRange = " << regionPicturePtr->SubTimeRange() << endl;
 }
 
 
@@ -205,11 +193,11 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
   : wTopLevel(w),
     appContext(app),
     fileName(filename),
-    palFilename(palfile),
     domainBox(profparent->domainBox),
     currentScale(profparent->currentScale),
     maxAllowableScale(profparent->maxAllowableScale)
 {
+  palFilename = palfile;
   fileNames.resize(1);
   fileNames[0] = fileName;
   profDataServicesPtr = profparent->profDataServicesPtr;
@@ -283,20 +271,6 @@ if(regionTimeRanges.size() > 0) {
 }
 */
 
-  Array<std::string> funcs;
-  std::ostringstream ossSummary;
-  profDataServicesPtr[0]->WriteSummary(ossSummary, false, 0, false);
-  size_t startPos(0), endPos(0);
-  const std::string &ossString = ossSummary.str();
-  while(startPos < ossString.length() - 1) {
-    endPos = ossString.find('\n', startPos);
-    std::string sLine(ossString.substr(startPos, endPos - startPos));
-    startPos = endPos + 1;
-    funcs.push_back(sLine);
-  }
-  GenerateFuncList(funcs);
-
-
   pltPaletteptr->DrawPalette(atiPaletteEntry, regNames.size() - 3, "%8.2f");
   regionPicturePtr->APDraw(0,0);
 }
@@ -304,24 +278,28 @@ if(regionTimeRanges.size() > 0) {
 
 // -------------------------------------------------------------------
 void ProfApp::ProfAppInit(bool bSubregion) {
-  int np;
+  //int np;
 
   currentScale = 1;
   maxAllowableScale = 8;
 
+/*
   filterTimeRanges.resize(profDataServicesPtr[0]->GetBLProfStats().GetNProcs());
   for(int i(0); i < filterTimeRanges.size(); ++i) {
     filterTimeRanges[i].push_back(regionPicturePtr->SubTimeRange());
+    cout << "FTR::  i STR = " << i << "  " << regionPicturePtr->SubTimeRange() << endl;
   }
+  //RegionsProfStats &regionsProfStats = profDataServicesPtr[0]->GetRegionsProfStats();
+  //regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
+  //regionPicturePtr->SetAllOnOff(RegionPicture::RP_ON);
+*/
 
 
   XmAddWMProtocolCallback(wAmrVisTopLevel,
 			  XmInternAtom(display,const_cast<String> ("WM_DELETE_WINDOW"), false),
 			  (XtCallbackProc) CBQuitProfApp, (XtPointer) this);
 
-  for(np = 0; np != BL_SPACEDIM; ++np) {
-    XYplotwin[np] = NULL; // No 1D plot windows initially.
-  }
+  XYplotwin[0] = nullptr; // No 1D plot windows initially.
 
   placementOffsetX += windowOffset;
   placementOffsetY += windowOffset;
@@ -674,13 +652,13 @@ void ProfApp::ProfAppInit(bool bSubregion) {
                 NULL);
 
   AddStaticCallback(wFuncList, XmNdefaultActionCallback,
-                    &ProfApp::DoFuncList, (XtPointer) 42);
+                    &ProfApp::DoFuncListClick, (XtPointer) 42);
   AddStaticCallback(wFuncList, XmNbrowseSelectionCallback,
-                    &ProfApp::DoFuncList, (XtPointer) 43);
+                    &ProfApp::DoFuncListClick, (XtPointer) 43);
   AddStaticCallback(wFuncList, XmNextendedSelectionCallback,
-                    &ProfApp::DoFuncList, (XtPointer) 44);
+                    &ProfApp::DoFuncListClick, (XtPointer) 44);
   AddStaticCallback(wFuncList, XmNmultipleSelectionCallback,
-                    &ProfApp::DoFuncList, (XtPointer) 45);
+                    &ProfApp::DoFuncListClick, (XtPointer) 45);
 
   XtManageChild(wFuncList);
 
@@ -722,8 +700,36 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   sdLineXL = domainBox.smallEnd(0) + ((int)(axisLengthX * sdXL / dLength));
   sdLineXH = domainBox.smallEnd(0) + ((int)(axisLengthX * sdXH / dLength));
 
-  interfaceReady = true;
+/*
+  Array<std::string> funcs;
+  std::ostringstream ossSummary;
+  profDataServicesPtr[0]->WriteSummary(ossSummary, false, 0, false);
+  size_t startPos(0), endPos(0);
+  const std::string &ossString = ossSummary.str();
+  while(startPos < ossString.length() - 1) {
+    endPos = ossString.find('\n', startPos);
+    std::string sLine(ossString.substr(startPos, endPos - startPos));
+    startPos = endPos + 1;
+    funcs.push_back(sLine);
+  }
+  PopulateFuncList(funcs);
+*/
+  int whichProc(0);
+  bool writeAverage(false), useTrace(false);
+  PopulateFuncList(writeAverage, whichProc, useTrace);
 
+  cout << "rpp.SubTimeRange = " << regionPicturePtr->SubTimeRange() << endl;
+  cout << "rpp.CalcTimeRange = " << regionPicturePtr->CalcTimeRange() << endl;
+  filterTimeRanges.resize(profDataServicesPtr[0]->GetBLProfStats().GetNProcs());
+  for(int i(0); i < filterTimeRanges.size(); ++i) {
+    filterTimeRanges[i].push_back(regionPicturePtr->SubTimeRange());
+    cout << "FTR::  i STR = " << i << "  " << regionPicturePtr->SubTimeRange() << endl;
+  }
+  //RegionsProfStats &regionsProfStats = profDataServicesPtr[0]->GetRegionsProfStats();
+  //regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
+  //regionPicturePtr->SetAllOnOff(RegionPicture::RP_ON);
+
+  interfaceReady = true;
 }
 
 
@@ -834,61 +840,36 @@ void ProfApp::DoInfoButton(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-amrex::XYPlotDataList *ProfApp::CreateLinePlot(int V, int sdir, int mal, int ix,
-				       const string *derived)
+amrex::XYPlotDataList *ProfApp::CreateLinePlot(const string &derived,
+                                               int dIndex)
 {
-/*
-  const AmrData &amrData(profDataServicesPtr[0]->AmrDataRef());
-  
   // Create an array of boxes corresponding to the intersected line.
-  int tdir(-1), dir1(-1);
-  switch (V) {
-  case Amrvis::ZPLANE:
-    tdir = (sdir == Amrvis::XDIR) ? Amrvis::YDIR : Amrvis::XDIR;
-    dir1 = tdir;
+  SHOWVAL(dIndex);
+  SHOWVAL(aFuncStats.size());
+  SHOWVAL(aFuncStats[dIndex].size());
+  Box trueRegion(IntVect(0,0), IntVect(aFuncStats[dIndex].size() - 1,0));
+  FArrayBox dataFab(trueRegion, 1);
+  for(int i(0); i < aFuncStats[dIndex].size(); ++i) {
+    Real *dp = dataFab.dataPtr();
+    const BLProfStats::FuncStat &fs = aFuncStats[dIndex][i];
+    dp[i] = fs.totalTime;
   }
-  Array<Box> trueRegion(mal + 1);
-  trueRegion[mal] = amrPicturePtrArray[V]->GetSliceBox(mal);
-  trueRegion[mal].setSmall(tdir, ivLowOffsetMAL[tdir] + ix);
-  trueRegion[mal].setBig(tdir, trueRegion[mal].smallEnd(tdir));
-  int lev;
-  for(lev = mal - 1; lev >= 0; --lev) {
-    trueRegion[lev] = trueRegion[mal];
-    trueRegion[lev].coarsen(AVGlobals::CRRBetweenLevels(lev, mal,
-                            amrData.RefRatio()));
-  }
-  // Create an array of titles corresponding to the intersected line.
-  Array<Real> XdX(mal + 1);
-  Array<char *> intersectStr(mal + 1);
-  
-  for(lev = 0; lev <= mal; ++lev) {
-    XdX[lev] = amrData.DxLevel()[lev][sdir];
-    intersectStr[lev] = new char[128];
-    sprintf(intersectStr[lev], ((dir1 == Amrvis::XDIR) ? "X=" : "Y="));
-    //sprintf(intersectStr[lev]+2, profAppState->GetFormatString().c_str(),
-	    //gridOffset[dir1] +
-	    //(0.5 + trueRegion[lev].smallEnd(dir1))*amrData.DxLevel()[lev][dir1]);
-  }
-  amrex::XYPlotDataList *newlist = new amrex::XYPlotDataList(*derived,
-                                     profAppState->MinDrawnLevel(), mal,
-				     ix, amrData.RefRatio(),
-		                     XdX, intersectStr, gridOffset[sdir]);
 
-  bool lineOK;
-  ProfDataServices::Dispatch(ProfDataServices::LineValuesRequest,
-			 profDataServicesPtr[0],
-			 mal + 1,
-			 (void *) (trueRegion.dataPtr()),
-			 sdir,
-			 (void *) derived,
-			 profAppState->MinAllowableLevel(), mal,
-			 (void *) newlist, &lineOK);
-  if(lineOK) {
-    return newlist;
-  }
-  delete newlist;
-*/
-  return nullptr;
+  // Create an array of titles corresponding to the intersected line.
+  Array<Real> XdX(1);
+  XdX[0] = 1.0;
+  Array<int> refR(1);
+  refR[0] = 1;
+  Array<char *> intersectStr(1);
+  intersectStr[0] = new char[128];
+  sprintf(intersectStr[0], "lineplot");
+
+  amrex::XYPlotDataList *newlist = new amrex::XYPlotDataList(derived,
+                                     0, 0, 0, refR, XdX, intersectStr, 0.0);
+
+  newlist->AddFArrayBox(dataFab, 0, 0);
+
+  return newlist;
 }
 
 
@@ -942,10 +923,8 @@ void ProfApp::DoExposeRef(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void ProfApp::DoFuncList(Widget w, XtPointer client_data, XtPointer call_data)
+void ProfApp::DoFuncListClick(Widget w, XtPointer client_data, XtPointer call_data)
 {
-  cout << "_in ProfApp::DoFuncList" << endl;
-  unsigned long r = (unsigned long) client_data;
   XmListCallbackStruct *cbs = (XmListCallbackStruct *) call_data;
 
   String selection;
@@ -956,16 +935,50 @@ void ProfApp::DoFuncList(Widget w, XtPointer client_data, XtPointer call_data)
                    XmNselectedItemCount, &selectedItemCount,
                    XmNselectedPositions, &positions,
 		   NULL);
-  //int *positionList, positionCount;
-  //bool retVal = XmListGetSelectedPos(w, &positionList, &positionCount);
-  //if(retVal) {
-    cout << "r itemCount selectedItemCount positions[0] selection = " << r
-         << "  " << itemCount << "  " << selectedItemCount << "  "
-	 << positions[0] << "  " << selection << endl;
-  //} else {
-    //cout << "**** no selected items." << endl;
-  //}
 
+  int fSSPosition(positions[0] - 1);  // ---- the xwindow list starts at 1 not 0
+  cout << "selected function = " << funcSelectionStrings[fSSPosition] << endl;
+  if(funcSelectionStrings[fSSPosition].size() == 0) {
+    //XmListDeselectPos(w, positions[0]);
+    XmListDeselectAllItems(w);
+  } else {
+    int aFSIndex = funcNameIndex[funcSelectionStrings[fSSPosition]];
+    SHOWVAL(funcNameIndex.size());
+    SHOWVAL(fSSPosition);
+    SHOWVAL(funcSelectionStrings[fSSPosition]);
+    SHOWVAL(aFSIndex);
+    SHOWVAL(aFuncStats.size());
+    RegionsProfStats &regionsProfStats = profDataServicesPtr[0]->GetRegionsProfStats();
+    if(aFuncStats.size() == 0) {
+      regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
+      regionsProfStats.CollectFuncStats(aFuncStats);
+    }
+
+     const amrex::Array<std::string> &numbersToFNames =
+                                        regionsProfStats.NumbersToFName();
+
+  int whichFuncNameInt(-1);
+  string whichFuncName = funcSelectionStrings[fSSPosition];
+  for(int i(0); i < numbersToFNames.size(); ++i) {
+    if(numbersToFNames[i] == whichFuncName) {
+      whichFuncNameInt = i;
+    }
+  }
+
+    aFSIndex = whichFuncNameInt;
+    //Array<BLProfStats::FuncStat> &aFS = aFuncStats[aFSIndex];
+
+    XYPlotDataList *newlist = CreateLinePlot(funcSelectionStrings[fSSPosition],
+	                                           aFSIndex);
+    if(newlist) {
+      newlist->SetLevel(0);
+      if(XYplotwin[0] == nullptr) {
+        XYplotwin[0] = new XYPlotWin(const_cast<char *>("nnnn"), appContext, wAmrVisTopLevel,
+                                     this, 0, 0);
+      }
+      XYplotwin[0]->AddDataList(newlist);
+    }
+  }
 }
 
 
@@ -981,7 +994,6 @@ regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
 for(int i(0); i < filterTimeRanges.size(); ++i) {
   cout << "filterTimeRanges[0] = " << filterTimeRanges[0].front() << endl;
 }
-  Array<Array<BLProfStats::FuncStat>> aFuncStats;
   regionsProfStats.CollectFuncStats(aFuncStats);
   std::map<std::string, BLProfiler::ProfStats> mProfStats;  // [fname, pstats]
   const Array<string> &blpFNames = regionsProfStats.BLPFNames();
@@ -992,6 +1004,7 @@ for(int i(0); i < filterTimeRanges.size(); ++i) {
   cout << "||||::::  mProfStats.size() = " << mProfStats.size() << endl;
   for(int i(0); i < blpFNames.size(); ++i) {
     cout << "blpFNames[" << i << "] = " << blpFNames[i] << endl;
+    funcNameIndex[blpFNames[i]] = i;
   }
   for(auto mps : mProfStats) {
     Real percent(100.0);
@@ -1003,6 +1016,16 @@ for(int i(0); i < filterTimeRanges.size(); ++i) {
   }
   cout << "||||::::" << endl;
 
+  bool writeAverage(true), useTrace(true);
+  PopulateFuncList(writeAverage, whichProc, useTrace);
+
+  regionPicturePtr->APDraw(0,0);
+  pltPaletteptr->DrawPalette(atiPaletteEntry, regNames.size() - 3, "%8.2f");
+}
+
+
+// -------------------------------------------------------------------
+void ProfApp::PopulateFuncList(bool bWriteAverage, int whichProc, bool bUseTrace) {
   Array<std::string> funcs;
   std::ostringstream ossSummary;
   profDataServicesPtr[0]->WriteSummary(ossSummary, true, 0, true);
@@ -1014,14 +1037,21 @@ for(int i(0); i < filterTimeRanges.size(); ++i) {
     startPos = endPos + 1;
     funcs.push_back(sLine);
   }
-  GenerateFuncList(funcs);
-  regionPicturePtr->APDraw(0,0);
-  pltPaletteptr->DrawPalette(atiPaletteEntry, regNames.size() - 3, "%8.2f");
-}
 
 
-// -------------------------------------------------------------------
-void ProfApp::GenerateFuncList(const Array<std::string> &funcs) {
+  RegionsProfStats &regionsProfStats = profDataServicesPtr[0]->GetRegionsProfStats();
+  const Array<string> &blpFNames = regionsProfStats.BLPFNames();
+  funcSelectionStrings.resize(funcs.size(), "");
+  for(int i(0); i < funcs.size(); ++i) {
+    const std::vector<std::string>& tokens = amrex::Tokenize(funcs[i], " ");
+    if(tokens.size() > 0) {
+      if(std::find(blpFNames.begin(), blpFNames.end(), tokens[0]) != blpFNames.end()) {
+        funcSelectionStrings[i] = tokens[0];
+      }
+    }
+    cout << "TTTT:::: funcSelectionStrings[" << i << "] = " << funcSelectionStrings[i] << endl;
+  }
+
   int numEntries(funcs.size());
   XmStringTable strList = (XmStringTable) XtMalloc(numEntries*sizeof(XmString *));
 
@@ -1029,7 +1059,6 @@ void ProfApp::GenerateFuncList(const Array<std::string> &funcs) {
     strList[i] = XmStringCreateSimple(const_cast<char *>(funcs[i].c_str()));
   }
 
-SHOWVAL(numEntries);
   XtVaSetValues(wFuncList,
                 XmNitemCount, numEntries,
                 XmNitems, strList,

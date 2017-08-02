@@ -29,6 +29,7 @@
 #include <X11/keysym.h>
 
 #include <XYPlotWin.H>
+#include <AVPApp.H>
 #include <PltApp.H>
 #include <PltAppState.H>
 #include <GraphicsAttributes.H>
@@ -126,7 +127,7 @@ XYPlotWin::~XYPlotWin() {
 
 
 // -------------------------------------------------------------------
-XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, PltApp *parent,
+XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, AVPApp *parent,
 		     int type, int curr_frame)
           : appContext(app),
             wTopLevel(w),

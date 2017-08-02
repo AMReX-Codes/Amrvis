@@ -15,7 +15,8 @@ using std::list;
 #include <XYPlotParam.H>
 #include <xgout.H>
 
-class PltApp;
+//class PltApp;
+class AVPApp;
 class GraphicsAttributes;
 class XYPlotParameters;
 
@@ -63,7 +64,8 @@ typedef struct {
 class XYPlotWin {
   public:
     XYPlotWin(char *title, XtAppContext app, Widget w,
-	      PltApp *parent, int type, int curr_frame = 0);
+	      //PltApp *parent, int type, int curr_frame = 0);
+	      AVPApp *parent, int type, int curr_frame = 0);
     ~XYPlotWin();
   
     void AddDataList(::XYPlotDataList *new_list,
@@ -82,7 +84,8 @@ class XYPlotWin {
   private:
     XtAppContext            appContext;
     Widget                  wTopLevel;
-    PltApp                 *pltParent;
+    //PltApp                 *pltParent;
+    AVPApp                 *pltParent;
     char                   *pltTitle;
     XYPlotParameters       *parameters;
     int                     whichType;

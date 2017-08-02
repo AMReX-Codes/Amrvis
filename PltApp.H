@@ -10,6 +10,7 @@
 #include <X11/Intrinsic.h>
 #undef index
 
+#include <AVPApp.H>
 #include <AMReX_AmrvisConstants.H>
 #include <AMReX_Box.H>
 #include <AMReX_DataServices.H>
@@ -68,7 +69,7 @@ typedef void (PltApp::*memberCB)(Widget, XtPointer, XtPointer);
 
 
 
-class PltApp {
+class PltApp : public AVPApp {
     
 private:
   PltApp();  // not defined
@@ -86,7 +87,7 @@ public:
          const string &palfile, bool isAnim,
          const string &newderived, const string &file);
   
-  ~PltApp();
+  virtual ~PltApp();
   
   static void SetDefaultPalette(const string &palString);
   static void SetDefaultLightingFile(const string &lightFileString);
@@ -103,11 +104,8 @@ public:
   static void SetExtraPaletteWidth(int extrapalettewidth);
   static int  GetExtraPaletteWidth() { return extraPaletteWidth; }
   
-  Widget WId()                     { return wAmrVisTopLevel; }
   void SetNewFormatString(const string &newformatstring);
   AmrPicture *GetAmrPicturePtr(int plane) { return amrPicturePtrArray[plane]; }
-  Palette *GetPalettePtr()         { return pltPaletteptr; }
-  string GetPaletteName()         { return palFilename; }
   string GetLightingFileName()         { return lightingFilename; }
   amrex::DataServices *GetDataServicesPtr() { return dataServicesPtr[currentFrame]; }
   amrex::Array<amrex::DataServices *> &GetDataServicesPtrArray() { return dataServicesPtr; }
@@ -118,14 +116,10 @@ public:
   int CurrentFrame()  const        { return currentFrame; }
   XImage *CurrentFrameXImage()     { return frameBuffer[currentFrame]; }
   GraphicsAttributes *GetGAptr() const  { return gaPtr; }
-  PltAppState *GetPltAppState() const { return pltAppState; }
+  virtual PltAppState *GetPltAppState() const { return pltAppState; }
 
   const string &GetFileName();
   bool  PaletteDrawn();
-  bool  PaletteCBQ() const { return paletteCBQ; }
-  void  SetPaletteCBQ() { paletteCBQ = true; }
-  void  ClearPaletteCBQ() { paletteCBQ = false; }
-  Widget GetPalArea() const { return wPalArea; }
   void  PaletteDrawn(bool trueOrFalse);
   
   amrex::XYPlotDataList *CreateLinePlot(int V, int sdir, int mal, int ixY,
@@ -148,12 +142,9 @@ public:
   Widget GetWTransDA() const { return wTransDA; }
 #endif
 
-  void DetachXYPlotWin(int dir) { XYplotwin[dir] = NULL; }
-  XYPlotParameters *GetXYPlotParameters() const { return XYplotparameters; }
-  XYPlotWin *GetXYPlotWin(int dir) const { return XYplotwin[dir]; }
 
 private:
-  Widget wTopLevel, wAmrVisTopLevel;
+  Widget wTopLevel;
   Widget wScrollArea[amrex::Amrvis::NPLANES], wPlotPlane[amrex::Amrvis::NPLANES];
   amrex::Array<Widget> wRangeRadioButton;
   Widget wFileRangeCheckBox;
@@ -168,7 +159,6 @@ private:
   Widget wControls[WCN];
   Widget wCurrScale, wCurrLevel, wCurrDerived;
   Widget wPlotLabel, wContourLabel;
-  Widget wPalArea;
 
 #if (BL_SPACEDIM == 3)
   Widget wTransDA, wRender, wLabelAxes, wDetach;
@@ -183,19 +173,14 @@ private:
 #endif
 #endif
 
-  XYPlotParameters *XYplotparameters;
-  XYPlotWin *XYplotwin[BL_SPACEDIM];
-
   XtAppContext appContext;
   Arg args[amrex::Amrvis::MAXARGS];
-  Palette *pltPaletteptr;
   AmrPicture *amrPicturePtrArray[amrex::Amrvis::NPLANES];
   amrex::IntVect ivLowOffsetMAL;  // at maxAllowableLevel
   amrex::Amrvis::MinMaxRangeType currentRangeType;
   bool animating2d, setRangeShowing, contoursShowing, infoShowing, bFormatShowing;
   bool bSetRangeRedraw;
   bool datasetShowing, paletteDrawn, writingRGB, interfaceReady;
-  bool paletteCBQ;
   bool bTimeline, bRegions;
   int  timelineMin, timelineMax;
   int  regionsMin, regionsMax;
@@ -208,7 +193,7 @@ private:
   int activeView;
   int startX, startY, endX, endY;
   int maxAllowableScale;
-  string contourNumString, fileName, palFilename, lightingFilename, headerSuffix;
+  string contourNumString, fileName, lightingFilename, headerSuffix;
   char buffer[BUFSIZ];
   amrex::Box trueRegion, selectionBox;
   Dataset *datasetPtr;
