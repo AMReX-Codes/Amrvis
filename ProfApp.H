@@ -1,5 +1,5 @@
 // ---------------------------------------------------------------
-// ProftApp.H
+// ProfApp.H
 // ---------------------------------------------------------------
 #ifndef _PROFAPP_H_
 #define _PROFAPP_H_
@@ -55,7 +55,6 @@ public:
   static void SetInitialWindowHeight(int initWindowHeight);
   static void SetInitialWindowWidth(int initWindowWidth);
   
-  Widget WId()                     { return wAmrVisTopLevel; }
   Palette *GetPalettePtr()         { return pltPaletteptr; }
   amrex::DataServices *GetProfDataServicesPtr() { return profDataServicesPtr[0]; }
   amrex::Array<amrex::DataServices *> &GetProfDataServicesPtrArray() { return profDataServicesPtr; }
