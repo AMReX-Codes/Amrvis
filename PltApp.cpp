@@ -214,6 +214,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 
   // ------------------------------- handle commprof timeline format
   bTimeline       = false;
+  initTimeline    = false;
   timelineMin     = -1;
   timelineMax     = -1;
   const string pfVersion(amrData.PlotFileVersion());
@@ -227,7 +228,15 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
       string mfnFileName(amrData.GetFileName() + "/MPIFuncNames.txt");
       std::ifstream mfnNames(mfnFileName.c_str());
       mpiFNames.insert(std::make_pair(-1, "non-mpi"));
-      bTimeline = true;
+
+      // The file has a timeline. Perform Timeline Init.
+      initTimeline = true;
+      // Is the initial derived object the timeline?
+      string derivedName = dataServicesPtr[currentFrame]->
+                   PlotVarNames()[amrData.StateNumber(initialDerived)];
+      if (derivedName == "timeline"){
+        bTimeline = true;
+      }
       if(mfnNames.fail()) {
         cout << "**** Error:  could not open:  " << mfnFileName << endl;
       } else {
@@ -483,7 +492,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   pltAppState->SetCurrentScale(currentScale);
   
  // ------------------------------- handle commprof timeline format
-  bTimeline       = false;
+  bTimeline       = false; 
+  initTimeline    = false;
   timelineMin     = -1;
   timelineMax     = -1;
   const string pfVersion(amrData.PlotFileVersion());
@@ -497,7 +507,16 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
       string mfnFileName(amrData.GetFileName() + "/MPIFuncNames.txt");
       std::ifstream mfnNames(mfnFileName.c_str());
       mpiFNames.insert(std::make_pair(-1, "non-mpi"));
-      bTimeline = true;
+
+      // The file has a timeline. Perform Timeline Init.
+      initTimeline = true;
+      // Is the initial derived object the timeline?
+      string derivedName = dataServicesPtr[currentFrame]->
+                   PlotVarNames()[amrData.StateNumber(initialDerived)];
+      if (derivedName == "timeline"){ 
+        bTimeline = true;
+      }
+
       if(mfnNames.fail()) {
         cout << "**** Error:  could not open:  " << mfnFileName << endl;
       } else {
@@ -744,8 +763,8 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			      reserveSystemColors);
   
   // ------------------------------- handle commprof timeline format
-  if(bTimeline) {
-    pltPaletteptr->SetTimeline(true);
+  if(initTimeline) {
+    pltPaletteptr->SetTimeline(bTimeline);
     pltPaletteptr->SetMPIFuncNames(mpiFNames);
   }
 
@@ -1865,8 +1884,19 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   XtVaSetValues(wCurrDerived, XmNset, false, NULL);
   wCurrDerived = w;
   unsigned long derivedNumber = (unsigned long) client_data;
-  pltAppState->SetCurrentDerived(dataServicesPtr[currentFrame]->
-				   PlotVarNames()[derivedNumber], derivedNumber);
+  string derivedName = dataServicesPtr[currentFrame]->PlotVarNames()[derivedNumber];
+  pltAppState->SetCurrentDerived(derivedName, derivedNumber);
+
+  if ((bTimeline == true) && (derivedName != "timeline")){
+    bTimeline = false;
+    pltPaletteptr->SetTimeline(bTimeline);
+    pltPaletteptr->RedrawPalette();
+  }
+  else if ((bTimeline == false) && (derivedName == "timeline")){
+    bTimeline = true;
+    pltPaletteptr->SetTimeline(bTimeline);
+    pltPaletteptr->RedrawPalette();
+  }
 
   int maxDrawnLevel = pltAppState->MaxDrawnLevel();
 
