@@ -289,7 +289,9 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   pltAppStatePtr = pltappstateptr;
   maxDrawnLevel = pltAppStatePtr->MaxDrawnLevel(); 
   minDrawnLevel = pltAppStatePtr->MinDrawnLevel();
-  
+ 
+  bTimeline = pltAppPtr->IsTimeline();
+ 
   hDIR = hdir;
   vDIR = vdir;
   sDIR = sdir;
