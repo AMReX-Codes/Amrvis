@@ -180,7 +180,7 @@ private:
   bool animating2d, setRangeShowing, contoursShowing, infoShowing, bFormatShowing;
   bool bSetRangeRedraw;
   bool datasetShowing, paletteDrawn, writingRGB, interfaceReady;
-  bool bTimeline, bRegions;
+  bool initTimeline, bTimeline, bRegions;
   int  timelineMin, timelineMax;
   int  regionsMin, regionsMax;
   map<int, string> mpiFNames;
