@@ -202,18 +202,13 @@ int main(int argc, char *argv[]) {
 
 #ifdef BL_PROFILING
      if(fileType == amrex::Amrvis::PROFDATA) {
-       cout << "]]]]:  fileType is amrex::Amrvis::PROFDATA." << endl;
-       PrintMessage("]]]]:  fileType is amrex::Amrvis::PROFDATA.\n");
+       if(amrex::ParallelDescriptor::IOProcessor()) {
+         cout << "]]]]:  fileType is amrex::Amrvis::PROFDATA." << endl;
+         PrintMessage("]]]]:  fileType is amrex::Amrvis::PROFDATA.\n");
+       }
        if(AVGlobals::GetFileCount() == 1) {
 	 string dirName(AVGlobals::GetComlineFilename(0));
 	 cout << "]]]]]]]]:  dirName = " << dirName << endl;
-         //ProfDataServices pdServices(dirName);
-	 //cout << "]]]]]]]]:  checking prof data." << endl;
-	 //pdServices.CheckProfData();
-	 //cout << "]]]]]]]]:  finished checking prof data." << endl;
-	 //bool writeAverage(false), useTrace(true);
-	 //int whichProc(0);
-	 //pdServices.WriteSummary(cout, writeAverage, whichProc, useTrace);
 
          amrex::Array<amrex::DataServices *> pdspArray(AVGlobals::GetFileCount());
          for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {
@@ -223,13 +218,16 @@ int main(int argc, char *argv[]) {
            }
 	   pdspArray[nPlots] = new amrex::DataServices(comlineFileName, fileType);
 
-         ProfApp *temp = new ProfApp(app, wTopLevel, comlineFileName,
-			            pdspArray);
-	  if(temp == NULL) {
-	    cerr << "Error:  could not make a new ProfApp." << endl;
-	  } else {
-            profAppList.push_back(temp);
-	  }
+           if(amrex::ParallelDescriptor::IOProcessor()) {
+             pdspArray[nPlots]->IncrementNumberOfUsers();
+             ProfApp *temp = new ProfApp(app, wTopLevel, comlineFileName,
+		                         pdspArray);
+	     if(temp == nullptr) {
+	       cerr << "Error:  could not make a new ProfApp." << endl;
+	     } else {
+               profAppList.push_back(temp);
+	     }
+           }
          }
 
        } else {
@@ -256,7 +254,7 @@ int main(int argc, char *argv[]) {
 	    dspArrayOne[0] = dspArray[nPlots];
             PltApp *temp = new PltApp(app, wTopLevel, dspArrayOne[0]->GetFileName(),
 			              dspArrayOne, AVGlobals::IsAnimation());
-	    if(temp == NULL) {
+	    if(temp == nullptr) {
 	      cerr << "Error:  could not make a new PltApp." << endl;
 	    } else {
               pltAppList.push_back(temp);
