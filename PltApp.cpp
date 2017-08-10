@@ -510,10 +510,8 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 
       // The file has a timeline. Perform Timeline Init.
       initTimeline = true;
-      // Is the initial derived object the timeline?
-      string derivedName = dataServicesPtr[currentFrame]->
-                   PlotVarNames()[amrData.StateNumber(initialDerived)];
-      if (derivedName == "timeline"){ 
+      // Is the derived subregion object a timeline?
+      if (newderived == "timeline"){ 
         bTimeline = true;
       }
 
