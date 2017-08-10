@@ -18,7 +18,7 @@ class AVPApp
   public:
     AVPApp() { }
     virtual ~AVPApp() { }
-    virtual const std::string &GetFileName() { amrex::Abort("AVPApp not implemented."); return ""; };
+    virtual const std::string &GetFileName() const { return fileNames[currentFrame]; }
     virtual PltAppState *GetPltAppState() { amrex::Abort("AVPApp not implemented."); return nullptr; }
     virtual amrex::DataServices *GetDataServicesPtr() { amrex::Abort("AVPApp not implemented."); return nullptr; }
     virtual XYPlotWin *GetXYPlotWin(int dir) const { return XYplotwin[dir]; }
@@ -42,6 +42,8 @@ class AVPApp
     std::string palFilename;
     XYPlotWin *XYplotwin[BL_SPACEDIM];
     bool paletteCBQ;
+    int currentFrame;
+    amrex::Array<std::string> fileNames;
 };
 
 #endif

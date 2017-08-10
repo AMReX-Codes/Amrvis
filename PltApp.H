@@ -118,7 +118,6 @@ public:
   GraphicsAttributes *GetGAptr() const  { return gaPtr; }
   virtual PltAppState *GetPltAppState() const { return pltAppState; }
 
-  const string &GetFileName();
   bool  PaletteDrawn();
   void  PaletteDrawn(bool trueOrFalse);
   
@@ -189,7 +188,7 @@ private:
   vector<string> nameTagNames, barrierNames;
   Real nameTagMultiplier, barrierMultiplier;
   int servingButton;
-  int currentFrame, animFrames, frameSpeed;
+  int animFrames, frameSpeed;
   int activeView;
   int startX, startY, endX, endY;
   int maxAllowableScale;
@@ -199,7 +198,6 @@ private:
   Dataset *datasetPtr;
   GraphicsAttributes	*gaPtr;
   amrex::Array<amrex::DataServices *> dataServicesPtr;
-  amrex::Array<string> fileNames;
   amrex::Array<XImage *> frameBuffer;
   vector<bool>	readyFrames;
   amrex::Amrvis::AnimDirection	animDirection;

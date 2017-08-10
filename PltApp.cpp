@@ -114,10 +114,11 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
     currentRangeType(Amrvis::GLOBALMINMAX),
     animating2d(isAnim),
     paletteDrawn(false),
-    currentFrame(0),
-    fileName(filename),
     dataServicesPtr(dataservicesptr)
 {
+  currentFrame = 0;
+  fileName = filename;
+
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   lightingWindowExists = false;
 #endif
@@ -409,7 +410,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
                 XmNtitle, const_cast<char *>(headerout.str().c_str()),
 		NULL);
 
-
   PltAppInit();
 }
 
@@ -423,13 +423,13 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     appContext(app),
     animating2d(isAnim),
     paletteDrawn(false),
-    currentFrame(pltParent->currentFrame),
     animFrames(pltParent->animFrames),
-    fileName(filename),
     lightingFilename(pltParent->lightingFilename),
-    dataServicesPtr(pltParent->dataServicesPtr),
-    fileNames(pltParent->fileNames)
+    dataServicesPtr(pltParent->dataServicesPtr)
 {
+  currentFrame = pltParent->currentFrame;
+  fileName = filename;
+  fileNames = pltParent->fileNames;
   palFilename = palfile;
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   bFileRangeButtonSet = pltParent->bFileRangeButtonSet;
@@ -4769,7 +4769,6 @@ string PltApp::initialFormatString;
 bool  PltApp::PaletteDrawn()          { return PltApp::paletteDrawn;     }
 int   PltApp::GetInitialScale()       { return PltApp::initialScale;     }
 int   PltApp::GetDefaultShowBoxes()   { return PltApp::defaultShowBoxes; }
-const string &PltApp::GetFileName()  { return (fileNames[currentFrame]); }
 void  PltApp::PaletteDrawn(bool tOrF) { paletteDrawn = tOrF; }
 
 void PltApp::SetDefaultPalette(const string &palString) {

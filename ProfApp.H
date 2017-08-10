@@ -63,7 +63,6 @@ public:
   XtAppContext GetAppContext()     { return appContext; }
   GraphicsAttributes *GetGAptr() const  { return gaPtr; }
   int GetCurrentScale() const      { return currentScale; }
-  const string &GetFileName();
   
   amrex::XYPlotDataList *CreateLinePlot(const string &derived, int dIndex);
   void DoExposeRef(Widget = None, XtPointer = nullptr, XtPointer = nullptr);
@@ -105,7 +104,6 @@ private:
   amrex::Box selectionBox, domainBox, subdomainBox;
   GraphicsAttributes	*gaPtr;
   amrex::Array<amrex::DataServices *> profDataServicesPtr;
-  amrex::Array<string> fileNames;
   String trans;
   Display *display;
   GC xgc;

@@ -279,6 +279,7 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   //int np;
 
   currentScale = 1;
+  currentFrame = 0;
   maxAllowableScale = 8;
 
 /*
@@ -992,6 +993,7 @@ void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data,
 for(int i(0); i < filterTimeRanges.size(); ++i) {
   cout << "filterTimeRanges[0] = " << filterTimeRanges[0].front() << endl;
 }
+  aFuncStats.clear();
   regionsProfStats.CollectFuncStats(aFuncStats);
   std::map<std::string, BLProfiler::ProfStats> mProfStats;  // [fname, pstats]
   const Array<string> &blpFNames = regionsProfStats.BLPFNames();
@@ -1604,8 +1606,6 @@ int  ProfApp::initialWindowHeight;
 int  ProfApp::initialWindowWidth;
 int  ProfApp::placementOffsetX = 0;
 int  ProfApp::placementOffsetY = 0;
-
-const string &ProfApp::GetFileName()  { return (fileNames[0]); }
 
 void ProfApp::SetInitialWindowHeight(int initWindowHeight) {
   ProfApp::initialWindowHeight = initWindowHeight;
