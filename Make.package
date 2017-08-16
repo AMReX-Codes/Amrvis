@@ -39,7 +39,7 @@ ifeq ($(USE_ARRAYVIEW),TRUE)
   CEXE_sources += DatasetClient.cpp
 endif
 
-ifeq ($(USE_PROFDATA), TRUE)
+ifeq ($(USE_PROFPARSER), TRUE)
   CEXE_headers += ProfApp.H RegionPicture.H
   CEXE_sources += ProfApp.cpp RegionPicture.cpp
 

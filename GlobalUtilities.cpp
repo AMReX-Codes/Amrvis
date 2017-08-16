@@ -427,7 +427,7 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
           fileType = Amrvis::MULTIFAB;
 	} else if(strcmp(tempString, "newplt") == 0) {
           fileType = Amrvis::NEWPLT;
-#ifdef BL_PROFILING
+#ifdef BL_USE_PROFPARSER
 	} else if(strcmp(tempString, "profdata") == 0) {
           fileType = Amrvis::PROFDATA;
 #endif
@@ -750,7 +750,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
     } else if(strcmp(argv[i],"-newplt") == 0) {
       fileType = Amrvis::NEWPLT;
       newPltSet = true;
-#ifdef BL_PROFILING
+#ifdef BL_USE_PROFPARSER
     } else if(strcmp(argv[i],"-profdata") == 0) {
       fileType = Amrvis::PROFDATA;
 #endif
@@ -1040,7 +1040,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
 	        fileType = Amrvis::FAB;
 	      }
 	    }
-#ifdef BL_PROFILING
+#ifdef BL_USE_PROFPARSER
 	    {
 	      std::size_t found(comlinefilename[fileCount].find("bl_prof", 0));
 	      if(found != std::string::npos) {

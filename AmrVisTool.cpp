@@ -26,7 +26,7 @@
 #include <AMReX_ParmParse.H>
 #include <AMReX_DataServices.H>
 #include <PltAppState.H>
-#ifdef BL_PROFILING
+#ifdef BL_USE_PROFPARSER
 #include <ProfApp.H>
 #include <AMReX_DataServices.H>
 #endif
@@ -67,7 +67,7 @@ cMessageArea	messageText;
 char		buffer[amrex::Amrvis::BUFSIZE];
 XmString	sDirectory = XmStringCreateSimple(const_cast<char *>("none"));
 list<PltApp *>  pltAppList;
-#ifdef BL_PROFILING
+#ifdef BL_USE_PROFPARSER
   list<ProfApp *>  profAppList;
 #endif
 
@@ -88,7 +88,7 @@ int main(int argc, char *argv[]) {
   int argcNoPP(1);
   amrex::Initialize(argcNoPP, argv);
 
-#ifdef BL_PROFILING
+#ifdef BL_USE_PROFPARSER
   amrex::BLProfiler::SetBlProfDirName("bl_prof_amrvis");
 #endif
 
@@ -200,7 +200,7 @@ int main(int argc, char *argv[]) {
       amrex::Amrvis::FileType fileType = AVGlobals::GetDefaultFileType();
       BL_ASSERT(fileType != amrex::Amrvis::INVALIDTYPE);
 
-#ifdef BL_PROFILING
+#ifdef BL_USE_PROFPARSER
      if(fileType == amrex::Amrvis::PROFDATA) {
        if(amrex::ParallelDescriptor::IOProcessor()) {
          cout << "]]]]:  fileType is amrex::Amrvis::PROFDATA." << endl;
@@ -574,7 +574,7 @@ void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
       sMask = XmStringCreateSimple(const_cast<char *>("*.fab"));
     } else if(fileType == amrex::Amrvis::MULTIFAB) {
       sMask = XmStringCreateSimple(const_cast<char *>("*_H"));
-#ifdef BL_PROFILING
+#ifdef BL_USE_PROFPARSER
     } else if(fileType == amrex::Amrvis::PROFDATA) {
       sMask = XmStringCreateSimple(const_cast<char *>("bl_prof*"));
 #endif
@@ -677,7 +677,7 @@ void SubregionPltApp(Widget wTopLevel, const amrex::Box &trueRegion,
 }
 
 
-#ifdef BL_PROFILING
+#ifdef BL_USE_PROFPARSER
 // ---------------------------------------------------------------
 void SubregionProfApp(Widget wTopLevel, const amrex::Box &trueRegion,
 		      const amrex::IntVect &offset,
@@ -715,7 +715,7 @@ void CBQuitPltApp(Widget ofPltApp, XtPointer client_data, XtPointer) {
 }
 
 
-#ifdef BL_PROFILING
+#ifdef BL_USE_PROFPARSER
 // ---------------------------------------------------------------
 void CBQuitProfApp(Widget ofProfApp, XtPointer client_data, XtPointer) {
   ProfApp *obj = (ProfApp *) client_data;
