@@ -83,7 +83,7 @@ class RegionPicture {
   unsigned char *atiImageData;
   unsigned char *scaledATIImageData, *scaledATIImageDataDim;
   bool xImageCreated;
-  amrex::DataServices   *profDataServicesPtr;
+  amrex::DataServices   *dataServicesPtr;
   int hLine, vLine, hColor, vColor, myColor;
   bool pixMapCreated;
   int currentScale;

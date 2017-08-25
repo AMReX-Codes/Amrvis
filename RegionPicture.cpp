@@ -22,13 +22,13 @@ const int defaultDataSizeH(600);
 RegionPicture::RegionPicture(GraphicsAttributes *gaptr,
                              amrex::DataServices *pdsp)
            : gaPtr(gaptr),
-	     profDataServicesPtr(pdsp),
+	     dataServicesPtr(pdsp),
 	     currentScale(1)
 {
   BL_ASSERT(gaptr != nullptr);
   BL_ASSERT(pdsp  != nullptr);
 
-  int nRegions(profDataServicesPtr->GetRegionsProfStats().GetMaxRNumber() + 1);
+  int nRegions(dataServicesPtr->GetRegionsProfStats().GetMaxRNumber() + 1);
   ++nRegions;  // ---- for the active time intervals (ati)
 
   dataSizeH = defaultDataSizeH;
@@ -46,13 +46,13 @@ RegionPicture::RegionPicture(GraphicsAttributes *gaptr,
                              const amrex::Box &regionBox,
 			     ProfApp *profAppPtr)
            : gaPtr(gaptr),
-	     profDataServicesPtr(profAppPtr->GetProfDataServicesPtr()),
+	     dataServicesPtr(profAppPtr->GetDataServicesPtr()),
 	     currentScale(profAppPtr->GetCurrentScale())
 {
   BL_ASSERT(gaptr != nullptr);
   BL_ASSERT(profAppPtr != nullptr);
 
-  int nRegions(profDataServicesPtr->GetRegionsProfStats().GetMaxRNumber() + 1);
+  int nRegions(dataServicesPtr->GetRegionsProfStats().GetMaxRNumber() + 1);
   ++nRegions;  // ---- for the active time intervals (ati)
 
   dataSizeH = regionBox.length(Amrvis::XDIR);
@@ -193,14 +193,14 @@ void RegionPicture::APMakeImages(Palette *palptr) {
   BL_ASSERT(palptr != NULL);
   palPtr = palptr;
 
-  int nRegions(profDataServicesPtr->GetRegionsProfStats().GetMaxRNumber() + 1);
+  int nRegions(dataServicesPtr->GetRegionsProfStats().GetMaxRNumber() + 1);
 
   int allDataSizeH(defaultDataSizeH);
   int allDataSizeV((nRegions + 1) * regionBaseHeight);
 
   FArrayBox tempSliceFab;
 
-  calcTimeRange = profDataServicesPtr->GetRegionsProfStats().MakeRegionPlt(tempSliceFab, 0,
+  calcTimeRange = dataServicesPtr->GetRegionsProfStats().MakeRegionPlt(tempSliceFab, 0,
                                           allDataSizeH, allDataSizeV / (nRegions + 1),
 					  regionBoxes);
 
