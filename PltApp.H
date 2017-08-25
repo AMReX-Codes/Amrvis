@@ -35,7 +35,6 @@ class GraphicsAttributes;
 class PltAppState;
 class XYPlotParameters;
 class XYPlotWin;
-//class XYPlotDataList;
 
 
 namespace {
@@ -107,16 +106,12 @@ public:
   void SetNewFormatString(const string &newformatstring);
   AmrPicture *GetAmrPicturePtr(int plane) { return amrPicturePtrArray[plane]; }
   string GetLightingFileName()         { return lightingFilename; }
-  amrex::DataServices *GetDataServicesPtr() { return dataServicesPtr[currentFrame]; }
-  amrex::Array<amrex::DataServices *> &GetDataServicesPtrArray() { return dataServicesPtr; }
   int GetActiveView() const        { return activeView;    }
   XtAppContext GetAppContext()     { return appContext;    }
   Widget GetStopButtonWidget()     { return wControls[WCSTOP]; }
   bool Animating()    const        { return ((bool) animationIId); }
-  int CurrentFrame()  const        { return currentFrame; }
   XImage *CurrentFrameXImage()     { return frameBuffer[currentFrame]; }
   GraphicsAttributes *GetGAptr() const  { return gaPtr; }
-  virtual PltAppState *GetPltAppState() const { return pltAppState; }
 
   bool  PaletteDrawn();
   void  PaletteDrawn(bool trueOrFalse);
@@ -151,7 +146,7 @@ private:
   Widget wWhichFileLabel, wWhichFileScale, wWhichTimeLabel;
   Widget wControlForm;
   Widget wNumberContours;
-  Widget wContoursTopLevel, wInfoTopLevel;
+  Widget wContoursTopLevel, wInfoTopLevel, wCallTraceTopLevel;
   Widget wSetRangeTopLevel, wNumberFormatTopLevel;
   Widget wFormat;
   Widget wLocArea, wPlotArea;
@@ -177,7 +172,9 @@ private:
   AmrPicture *amrPicturePtrArray[amrex::Amrvis::NPLANES];
   amrex::IntVect ivLowOffsetMAL;  // at maxAllowableLevel
   amrex::Amrvis::MinMaxRangeType currentRangeType;
-  bool animating2d, setRangeShowing, contoursShowing, infoShowing, bFormatShowing;
+  bool animating2d;
+  bool setRangeShowing, contoursShowing, infoShowing, bFormatShowing;
+  bool callTraceShowing;
   bool bSetRangeRedraw;
   bool datasetShowing, paletteDrawn, writingRGB, interfaceReady;
   bool initTimeline, bTimeline, bRegions;
@@ -197,7 +194,6 @@ private:
   amrex::Box trueRegion, selectionBox;
   Dataset *datasetPtr;
   GraphicsAttributes	*gaPtr;
-  amrex::Array<amrex::DataServices *> dataServicesPtr;
   amrex::Array<XImage *> frameBuffer;
   vector<bool>	readyFrames;
   amrex::Amrvis::AnimDirection	animDirection;
@@ -206,7 +202,6 @@ private:
   String trans;
   int startcutX[3], startcutY[3], finishcutX[3], finishcutY[3];
   PltApp *pltParent;
-  PltAppState *pltAppState;
   Display *display;
   GC xgc;
   bool bFileRangeButtonSet, bSyncFrame;
@@ -217,7 +212,11 @@ private:
   XEvent	nextEvent;
   int 		rWidth, rHeight, rStartX, rStartY;
   Cursor	cursor;
-    
+
+#ifdef BL_USE_PROFPARSER
+  BLProfStats::TimeRange timeRange;  // ---- for timeline plotfiles
+#endif
+
   static string defaultPaletteString, initialDerived, initialFormatString;
   static string defaultLightingFilename;
   static int initialMaxMenuItems;
@@ -231,9 +230,7 @@ private:
   int daWidth, daHeight;
   ProjectionPicture *projPicturePtr;
   ViewTransform	viewTrans;
-//#if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   bool lightingModel, showing3dRender, preClassify, lightingWindowExists;
-//#endif
 
 #endif
   
@@ -268,6 +265,7 @@ private:
   void DoNumberFormatButton(Widget, XtPointer, XtPointer);
   void DoPaletteButton(Widget, XtPointer, XtPointer);
   void DoSetRangeButton(Widget, XtPointer, XtPointer);
+  void DoCallTraceButton(Widget, XtPointer, XtPointer);
   void DoContoursButton(Widget, XtPointer, XtPointer);
   void DoDoneNumberFormat(Widget, XtPointer, XtPointer);
   void DoCancelNumberFormat(Widget, XtPointer, XtPointer);
@@ -293,6 +291,8 @@ private:
   void DestroyContoursWindow(Widget, XtPointer, XtPointer);
   void DestroyInfoWindow(Widget, XtPointer, XtPointer);
   void CloseInfoWindow(Widget, XtPointer, XtPointer);
+  void DestroyCallTraceWindow(Widget, XtPointer, XtPointer);
+  void CloseCallTraceWindow(Widget, XtPointer, XtPointer);
   void CloseContoursWindow(Widget, XtPointer, XtPointer);
   void DoExposePalette(Widget, XtPointer, XtPointer);
   void PADoExposePicture(Widget, XtPointer, XtPointer);

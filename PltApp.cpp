@@ -113,9 +113,9 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
     appContext(app),
     currentRangeType(Amrvis::GLOBALMINMAX),
     animating2d(isAnim),
-    paletteDrawn(false),
-    dataServicesPtr(dataservicesptr)
+    paletteDrawn(false)
 {
+  dataServicesPtr = dataservicesptr;
   currentFrame = 0;
   fileName = filename;
 
@@ -245,8 +245,10 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
         string fName;
         while( ! mfnNames.eof()) {
           mfnNames >> i >> fName;
-	  mpiFNames.insert(std::make_pair(i, fName));
-	  timelineMax = std::max(i, timelineMax);
+	  if( ! mfnNames.eof()) {
+	    mpiFNames.insert(std::make_pair(i, fName));
+	    timelineMax = std::max(i, timelineMax);
+	  }
         }
         mfnNames.close();
       }
@@ -283,6 +285,16 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
           std::getline(bnNames, barrierNames[i]);
         }
         bnNames.close();
+      }
+    }
+
+    {
+      string ctFileName(amrData.GetFileName() + "/CallTrace.txt");
+      std::ifstream cTrace(ctFileName.c_str());
+      if(cTrace.fail()) {
+        cout << "**** Error:  could not open:  " << ctFileName << endl;
+      } else {
+        cTrace.close();
       }
     }
   }
@@ -433,9 +445,9 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     animating2d(isAnim),
     paletteDrawn(false),
     animFrames(pltParent->animFrames),
-    lightingFilename(pltParent->lightingFilename),
-    dataServicesPtr(pltParent->dataServicesPtr)
+    lightingFilename(pltParent->lightingFilename)
 {
+  dataServicesPtr = pltParent->dataServicesPtr;
   currentFrame = pltParent->currentFrame;
   fileName = filename;
   fileNames = pltParent->fileNames;
@@ -522,8 +534,10 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
         string fName;
         while( ! mfnNames.eof()) {
           mfnNames >> i >> fName;
-          mpiFNames.insert(std::make_pair(i, fName));
-          timelineMax = std::max(i, timelineMax);
+          if( ! mfnNames.eof()) {
+            mpiFNames.insert(std::make_pair(i, fName));
+            timelineMax = std::max(i, timelineMax);
+	  }
         }
         mfnNames.close();
         //pltPaletteptr->SetMPIFuncNames(mpiFNames);
@@ -561,6 +575,16 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
           std::getline(bnNames, barrierNames[i]);
         }
         bnNames.close();
+      }
+    }
+
+    {
+      string ctFileName(amrData.GetFileName() + "/CallTrace.txt");
+      std::ifstream cTrace(ctFileName.c_str());
+      if(cTrace.fail()) {
+        cout << "**** Error:  could not open:  " << ctFileName << endl;
+      } else {
+        cTrace.close();
       }
     }
   }
@@ -739,13 +763,14 @@ void PltApp::PltAppInit(bool bSubVolume) {
 
   pltAppState->SetFormatString(PltApp::initialFormatString);
 
-  infoShowing     = false;
-  contoursShowing = false;
-  setRangeShowing = false;
-  bSetRangeRedraw = false;
-  datasetShowing  = false;
-  bFormatShowing  = false;
-  writingRGB      = false;
+  infoShowing      = false;
+  callTraceShowing = false;
+  contoursShowing  = false;
+  setRangeShowing  = false;
+  bSetRangeRedraw  = false;
+  datasetShowing   = false;
+  bFormatShowing   = false;
+  writingRGB       = false;
 			  
   int palListLength(AVPalette::PALLISTLENGTH);
   int palWidth(AVPalette::PALWIDTH);
@@ -978,6 +1003,16 @@ void PltApp::PltAppInit(bool bSubVolume) {
 				NULL);
   XmStringFree(label_str);
   AddStaticCallback(wid, XmNactivateCallback, &PltApp::DoNumberFormatButton);
+
+  if(bTimeline) {
+    // To display the call stack
+    wid = XtVaCreateManagedWidget("Call Trace...",
+				  xmPushButtonGadgetClass, wMenuPulldown,
+				  XmNmnemonic,  'T',
+				  NULL);
+    AddStaticCallback(wid, XmNactivateCallback, &PltApp::DoCallTraceButton);
+
+  }
 
   XtVaCreateManagedWidget(NULL, xmSeparatorGadgetClass, wMenuPulldown,
 			  NULL);
@@ -1693,7 +1728,10 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   strcpy(sY, "Y");
   strcpy(sZ, "Z");
   
-  DrawAxes(wControlForm, zPlanePosX, zPlanePosY, 0, sX, sY, zpColor);
+  if(bTimeline) {
+    //DrawTimeRange(wControlForm, zPlanePosX, zPlanePosY, 0, sX, sY, zpColor);
+  } else {
+    DrawAxes(wControlForm, zPlanePosX, zPlanePosY, 0, sX, sY, zpColor);
 #if (BL_SPACEDIM == 3)
   int maxAllowLev(pltAppState->MaxAllowableLevel());
   int maxDrawnLev(pltAppState->MaxDrawnLevel());
@@ -1745,6 +1783,7 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
 	    (int) (centerX - 0.9 * xyzAxisLength),
 	    (int) (centerY + 0.9 * xyzAxisLength));
 #endif
+  }
 }
 
 
@@ -2314,6 +2353,136 @@ void PltApp::DoPaletteButton(Widget, XtPointer, XtPointer) {
 		(XtCallbackProc) XtUnmanageChild, (XtPointer) this);
   XtManageChild(wPalDialog);
   XtPopup(XtParent(wPalDialog), XtGrabExclusive);
+}
+
+
+// -------------------------------------------------------------------
+void PltApp::DoCallTraceButton(Widget, XtPointer, XtPointer) {
+  if(callTraceShowing) {
+    XtPopup(wCallTraceTopLevel, XtGrabNone);
+    XMapRaised(XtDisplay(wCallTraceTopLevel), XtWindow(wCallTraceTopLevel));
+    return;
+  }
+
+  callTraceShowing = true;
+  Dimension width, height;
+  Position  xpos, ypos;
+  XtVaGetValues(wAmrVisTopLevel, XmNx, &xpos, XmNy, &ypos,
+		XmNwidth, &width, XmNheight, &height, NULL);
+  
+  wCallTraceTopLevel = 
+    XtVaCreatePopupShell("Call Trace",
+			 topLevelShellWidgetClass, wAmrVisTopLevel,
+			 XmNwidth,	400,
+			 XmNheight,	300,
+			 XmNx,		50+xpos+width/2,
+			 XmNy,		ypos-10,
+			 NULL);
+  
+  AddStaticCallback(wCallTraceTopLevel, XmNdestroyCallback, &PltApp::DestroyCallTraceWindow);
+  
+  // set visual in case the default isn't 256 pseudocolor
+  if(gaPtr->PVisual() != XDefaultVisual(display, gaPtr->PScreenNumber())) {
+    XtVaSetValues(wCallTraceTopLevel, XmNvisual, gaPtr->PVisual(), XmNdepth, 8, NULL);
+  }
+  
+  Widget wCallTraceForm =
+    XtVaCreateManagedWidget("CallTraceform", xmFormWidgetClass, wCallTraceTopLevel, NULL);
+  
+
+  Widget wCallTraceCloseButton =
+    XtVaCreateManagedWidget("Close",
+			    xmPushButtonGadgetClass, wCallTraceForm,
+			    XmNbottomAttachment, XmATTACH_FORM,
+			    XmNleftAttachment, XmATTACH_FORM,
+			    NULL);
+  int i(0);
+  XtSetArg(args[i], XmNeditable, false);       ++i;
+  XtSetArg(args[i], XmNeditMode, XmMULTI_LINE_EDIT);       ++i;
+  XtSetArg(args[i], XmNwordWrap, true);       ++i;
+  XtSetArg(args[i], XmNblinkRate, 0);       ++i;
+  XtSetArg(args[i], XmNautoShowCursorPosition, true);       ++i;
+  XtSetArg(args[i], XmNcursorPositionVisible,  false);      ++i;
+  XtSetArg(args[i], XmNtopAttachment, XmATTACH_FORM);      ++i;
+  XtSetArg(args[i], XmNleftAttachment, XmATTACH_FORM);      ++i;
+  XtSetArg(args[i], XmNrightAttachment, XmATTACH_FORM);      ++i;
+  XtSetArg(args[i], XmNbottomAttachment, XmATTACH_WIDGET);      ++i;
+  XtSetArg(args[i], XmNbottomWidget, wCallTraceCloseButton);      ++i;
+
+  Widget wCallTraceList = XmCreateScrolledText(wCallTraceForm,
+                                          const_cast<char *>("CallTracescrolledlist"),
+					  args, i);
+  AddStaticCallback(wCallTraceCloseButton, XmNactivateCallback,
+		    &PltApp::CloseCallTraceWindow);
+  
+  XtManageChild(wCallTraceList);
+  XtManageChild(wCallTraceCloseButton);
+
+  XtPopup(wCallTraceTopLevel, XtGrabNone);
+
+  pltAppMessageText.Init(wCallTraceList);
+  AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+  
+  std::ostringstream prob;
+  prob.precision(16);
+
+  string ctFileName(amrData.GetFileName() + "/CallTrace.txt");
+  std::ifstream cTrace(ctFileName.c_str());
+  if(cTrace.fail()) {
+    cout << "**** Error:  could not open:  " << ctFileName << endl;
+  } else {
+    char s[Amrvis::BUFSIZE];
+    while( ! cTrace.getline(s, Amrvis::BUFSIZE).eof()) {
+      prob << s << '\n';
+    }
+    cTrace.close();
+  }
+
+  /*
+  prob << "Call Trace!"<< '\n';
+  prob << amrData.PlotFileVersion().c_str() << '\n';
+  prob << "time:  "<< amrData.Time() << '\n';
+  prob << "levels:  " << amrData.FinestLevel() + 1 << '\n';
+  prob << "prob domain:" << '\n';
+  for(int k(0); k <= amrData.FinestLevel(); ++k) {
+    prob << "  level " << k << ":  " << amrData.ProbDomain()[k] << '\n';
+  }
+  prob << "refratios: ";
+  for(int k(0); k < amrData.FinestLevel(); ++k) {
+    prob << " " << amrData.RefRatio()[k];
+  }
+  prob << '\n';
+  prob << "probsize:  ";
+  for(int k(0); k < BL_SPACEDIM; ++k) {
+    prob << " " << amrData.ProbSize()[k];
+  }
+  prob << '\n';
+  prob << "prob lo:   ";
+  for(int k(0); k < BL_SPACEDIM; ++k) {
+    prob << " " << amrData.ProbLo()[k];
+  }
+  prob << '\n';
+  prob << "prob hi:   ";
+  for(int k(0); k < BL_SPACEDIM; ++k) {
+    prob << " " << amrData.ProbHi()[k];
+  }
+  */
+  prob << '\n';
+
+  pltAppMessageText.PrintText(prob.str().c_str());
+}
+
+
+// -------------------------------------------------------------------
+void PltApp::DestroyCallTraceWindow(Widget, XtPointer xp, XtPointer) {
+  callTraceShowing = false;
+}
+
+
+// -------------------------------------------------------------------
+void PltApp::CloseCallTraceWindow(Widget, XtPointer, XtPointer) {
+  XtPopdown(wCallTraceTopLevel);
+  callTraceShowing = false;
 }
 
 

@@ -2075,9 +2075,10 @@ void XYPlotWin::SetPalette() {
   for(int idx(0); idx < 8; ++idx) {
     sprintf(buffer, "%d.Color", idx);
     int icTemp(PM_INT(buffer));
+    long icTempL(icTemp);
     const Array<XColor> &cCells = pal->GetColorCells();
-    icTemp = std::max(static_cast<unsigned long> (0),
-               std::min(static_cast<unsigned long> (icTemp), cCells.size() - 1));
+    long ccsm1(cCells.size() - 1);
+    icTemp = std::max(0L, std::min(icTempL, ccsm1));
     AllAttrs[idx].pixelValue = cCells[icTemp].pixel;
   }
 

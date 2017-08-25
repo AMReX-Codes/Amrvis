@@ -19,8 +19,7 @@ class AVPApp
     AVPApp() { }
     virtual ~AVPApp() { }
     virtual const std::string &GetFileName() const { return fileNames[currentFrame]; }
-    virtual PltAppState *GetPltAppState() { amrex::Abort("AVPApp not implemented."); return nullptr; }
-    virtual amrex::DataServices *GetDataServicesPtr() { amrex::Abort("AVPApp not implemented."); return nullptr; }
+    PltAppState *GetPltAppState() const { return pltAppState; }
     virtual XYPlotWin *GetXYPlotWin(int dir) const { return XYplotwin[dir]; }
     virtual void DetachXYPlotWin(int dir) { XYplotwin[dir] = NULL; }
     virtual amrex::XYPlotDataList *CreateLinePlot(int V, int sdir, int mal, int ixY,
@@ -34,6 +33,10 @@ class AVPApp
     Palette *GetPalettePtr() { return pltPaletteptr; }
     Widget WId()                     { return wAmrVisTopLevel; }
     const std::string &GetPaletteName() const { return palFilename; }
+    int CurrentFrame()  const        { return currentFrame; }
+    amrex::DataServices *GetDataServicesPtr() { return dataServicesPtr[currentFrame]; }
+    amrex::Array<amrex::DataServices *> &GetDataServicesPtrArray() { return dataServicesPtr; }
+
 
   protected:
     Widget wAmrVisTopLevel, wPalArea;
@@ -44,6 +47,8 @@ class AVPApp
     bool paletteCBQ;
     int currentFrame;
     amrex::Array<std::string> fileNames;
+    PltAppState *pltAppState;
+    amrex::Array<amrex::DataServices *> dataServicesPtr;
 };
 
 #endif

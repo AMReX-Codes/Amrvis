@@ -6,10 +6,9 @@ AMREX_HOME = ../amrex
 PRECISION = FLOAT
 PRECISION = DOUBLE
 
-#PROFILE      = FALSE 
-PROFILE       = TRUE 
-COMM_PROFILE  = TRUE 
-TRACE_PROFILE = TRUE
+PROFILE       = FALSE 
+TRACE_PROFILE = FALSE
+COMM_PROFILE  = FALSE 
 
 COMP      = intel
 COMP      = gnu
@@ -36,6 +35,7 @@ USE_PARALLELVOLRENDER = TRUE
 USE_PARALLELVOLRENDER = FALSE
 
 USE_PROFPARSER = TRUE 
+USE_PROFPARSER = FALSE 
 
 ifeq ($(DIM), 1)
   USE_PROFPARSER = FALSE
@@ -44,8 +44,8 @@ ifeq ($(DIM), 3)
   USE_PROFPARSER = FALSE
 endif
 ifeq ($(USE_PROFPARSER), TRUE)
-  PROFILE   = TRUE
-  TRACE_PROFILE   = TRUE
+  PROFILE       = TRUE
+  TRACE_PROFILE = TRUE
 endif
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
@@ -57,7 +57,6 @@ INCLUDE_LOCATIONS += $(HERE)
 INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/Base
 INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/Extern/amrdata
 
-DEFINES += -DBL_PARALLEL_IO
 DEFINES += -DBL_OPTIO
 
 ############################################### x includes and libraries
