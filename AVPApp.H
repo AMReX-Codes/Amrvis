@@ -36,10 +36,16 @@ class AVPApp
     int CurrentFrame()  const        { return currentFrame; }
     amrex::DataServices *GetDataServicesPtr() { return dataServicesPtr[currentFrame]; }
     amrex::Array<amrex::DataServices *> &GetDataServicesPtrArray() { return dataServicesPtr; }
+    void DrawTimeRange(Widget wCF, int sdLineXL, int sdLineXH,
+                       int axisLengthX, int axisLengthY,
+		       amrex::Real subTimeRangeStart, amrex::Real subTimeRangeStop,
+		       const std::string &yAxisLabel);
+
 
 
   protected:
     Widget wAmrVisTopLevel, wPalArea;
+    GC xgc;
     XYPlotParameters *XYplotparameters;
     Palette *pltPaletteptr;
     std::string palFilename;

@@ -11,10 +11,10 @@ using namespace amrex;
 // -------------------------------------------------------------------
 void AVPApp::DrawTimeRange(Widget wCF, int sdLineXL, int sdLineXH,
                            int axisLengthX, int axisLengthY,
-                           Real subTimeRangeStart, Real subTimeRangeStop)
+                           Real subTimeRangeStart, Real subTimeRangeStop,
+			   const std::string &yAxisLabel)
 {
-  const std::string labelTime(" time");
-  const std::string labelRegion("region");
+  const std::string timeLabel(" time");
   const int xpos(10), ypos(15), positionPad(5);
 
   std::ostringstream timeRangeS;
@@ -28,10 +28,10 @@ void AVPApp::DrawTimeRange(Widget wCF, int sdLineXL, int sdLineXH,
             xpos + positionPad + axisLengthX, ypos + axisLengthY);
   XDrawString(XtDisplay(wCF), XtWindow(wCF), xgc,
               xpos + positionPad + axisLengthX, ypos+positionPad + axisLengthY,
-              labelTime.c_str(), labelTime.length());
+              timeLabel.c_str(), timeLabel.length());
   XDrawString(XtDisplay(wCF), XtWindow(wCF), xgc,
               xpos + positionPad, ypos,
-              labelRegion.c_str(), labelRegion.length());
+              yAxisLabel.c_str(), yAxisLabel.length());
 
   // ---- lines indicating subregion
   XDrawLine(XtDisplay(wCF), XtWindow(wCF), xgc,
