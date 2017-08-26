@@ -1,3 +1,6 @@
+*.ex
 *.xgr
 bl_*
 *.fab
+*.html
+tmp_build_dir
