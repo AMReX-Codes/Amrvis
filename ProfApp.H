@@ -56,10 +56,6 @@ public:
   static void SetInitialWindowWidth(int initWindowWidth);
   
   Palette *GetPalettePtr()         { return pltPaletteptr; }
-  amrex::DataServices *GetProfDataServicesPtr() { return profDataServicesPtr[0]; }
-  amrex::Array<amrex::DataServices *> &GetProfDataServicesPtrArray() { return profDataServicesPtr; }
-  amrex::DataServices *GetDataServicesPtr() { return dspArray[0]; }
-  amrex::Array<amrex::DataServices *> &GetDataServicesPtrArray() { return dspArray; }
   XtAppContext GetAppContext()     { return appContext; }
   GraphicsAttributes *GetGAptr() const  { return gaPtr; }
   int GetCurrentScale() const      { return currentScale; }
@@ -103,12 +99,10 @@ private:
   char buffer[BUFSIZ];
   amrex::Box selectionBox, domainBox, subdomainBox;
   GraphicsAttributes	*gaPtr;
-  amrex::Array<amrex::DataServices *> profDataServicesPtr;
   String trans;
   Display *display;
-  GC xgc;
+  //GC xgc;
   std::list<PltApp *> pltAppList;
-  amrex::Array<amrex::DataServices *> dspArray;
   RegionPicture *regionPicturePtr;
   map<int, string> regNames;
   int currentScale, maxAllowableScale;

@@ -203,7 +203,7 @@ private:
   int startcutX[3], startcutY[3], finishcutX[3], finishcutY[3];
   PltApp *pltParent;
   Display *display;
-  GC xgc;
+  //GC xgc;
   bool bFileRangeButtonSet, bSyncFrame;
   void DoToggleFileRangeButton(Widget, XtPointer, XtPointer);
   

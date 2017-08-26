@@ -50,8 +50,6 @@ using std::max;
 using std::flush;
 
 using namespace amrex;
-//using amrex::Amrvis;
-//using amrex::XYPlotDataList;
 
 // Hack for window manager calls
 #ifndef FALSE
@@ -776,7 +774,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   int palWidth(AVPalette::PALWIDTH);
   int totalPalWidth(AVPalette::TOTALPALWIDTH);
   int totalPalHeight(AVPalette::TOTALPALHEIGHT);
-  if(bRegions) {
+  if(bRegions || bTimeline) {
     totalPalWidth += 100;
   }
   totalPalWidth += extraPaletteWidth;
@@ -1729,7 +1727,33 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   strcpy(sZ, "Z");
   
   if(bTimeline) {
-    //DrawTimeRange(wControlForm, zPlanePosX, zPlanePosY, 0, sX, sY, zpColor);
+    XSetForeground(display, xgc, pltPaletteptr->makePixel(whiteColor));
+    int axisLengthX = 138;
+    int axisLengthY = 32;
+    int maLevel(pltAppState->MaxAllowableLevel());
+    const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+    Box domainBox(amrData.ProbDomain()[maLevel]);
+    Box subdomainBox(amrPicturePtrArray[Amrvis::ZPLANE]->GetSubDomain()[maLevel]);
+    Real dLength(domainBox.length(0));
+    Real sdXL(subdomainBox.smallEnd(0));
+    Real sdXH(subdomainBox.smallEnd(0) + subdomainBox.length(0));
+    int sdLineXL = domainBox.smallEnd(0) + (static_cast<int>(axisLengthX * sdXL / dLength));
+    int sdLineXH = domainBox.smallEnd(0) + (static_cast<int>(axisLengthX * sdXH / dLength));
+    Real totalTime(amrData.Time());
+    Real subTimeRangeStart, subTimeRangeStop;
+    if(sdLineXL > 0) {
+      subTimeRangeStart = totalTime * static_cast<Real>(sdLineXL) / static_cast<Real>(axisLengthX);
+    } else {
+      subTimeRangeStart = 0.0;
+    }
+    if(sdLineXH > 0) {
+      subTimeRangeStop = totalTime * static_cast<Real>(sdLineXH) / static_cast<Real>(axisLengthX);
+    } else {
+      subTimeRangeStop = 0.0;
+    }
+    DrawTimeRange(wControlForm, sdLineXL, sdLineXH, axisLengthX, axisLengthY,
+                  subTimeRangeStart, subTimeRangeStop, "mpi rank");
+
   } else {
     DrawAxes(wControlForm, zPlanePosX, zPlanePosY, 0, sX, sY, zpColor);
 #if (BL_SPACEDIM == 3)

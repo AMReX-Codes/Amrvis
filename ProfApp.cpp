@@ -72,9 +72,6 @@ void CollectMProfStats(std::map<std::string, BLProfiler::ProfStats> &mProfStats,
                        const Array<std::string> &fNames,
                        Real runTime, int whichProc);
 
-const std::string labelTime(" time");
-const std::string labelRegion("region");
-
 
 // -------------------------------------------------------------------
 ProfApp::~ProfApp() {
@@ -92,12 +89,13 @@ ProfApp::~ProfApp() {
 
 // -------------------------------------------------------------------
 ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
-	       const Array<amrex::DataServices *> &profdataservicesptr)
+	       const Array<amrex::DataServices *> &dataservicesptr)
   : wTopLevel(w),
     appContext(app),
-    fileName(filename),
-    profDataServicesPtr(profdataservicesptr)
+    fileName(filename)
 {
+  currentFrame = 0;
+  dataServicesPtr = dataservicesptr;
   fileNames.resize(1);
   fileNames[0] = fileName;
 
@@ -127,14 +125,14 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
   XtVaSetValues(wAmrVisTopLevel, XmNtitle, const_cast<char *>(headerout.str().c_str()),
 		NULL);
 
-  profDataServicesPtr[0]->GetRegionsProfStats().FillRegionTimeRanges(rtr, 0);
+  dataServicesPtr[0]->GetRegionsProfStats().FillRegionTimeRanges(rtr, 0);
   for(int r(0); r < rtr.size(); ++r) {
     for(int t(0); t < rtr[r].size(); ++t) {
       cout << "rtr[" << r << "][" << t << "] = " << rtr[r][t] << endl;
     }
   }
 
-  regionPicturePtr = new RegionPicture(gaPtr, profDataServicesPtr[0]);
+  regionPicturePtr = new RegionPicture(gaPtr, dataServicesPtr[0]);
 
   ivLowOffset = IntVect::TheZeroVector();
   domainBox = regionPicturePtr->DomainBox();
@@ -148,19 +146,19 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
     //}
   //}
 
-////profDataServicesPtr[0]->WriteSummary(cout, false, 0, false);
+////dataServicesPtr[0]->WriteSummary(cout, false, 0, false);
 //BLProfilerUtils::WriteHeader(cout, 10, 16, true);
 
 /*
 std::string regionsFileName("pltRegions");
-dspArray.resize(1);
-dspArray[0] = new DataServices(regionsFileName, Amrvis::NEWPLT);
-PltApp *temp = new PltApp(app, wTopLevel, regionsFileName, dspArray, false);
+dataServicesPtr.resize(1);
+dataServicesPtr[0] = new DataServices(regionsFileName, Amrvis::NEWPLT);
+PltApp *temp = new PltApp(app, wTopLevel, regionsFileName, dataServicesPtr, false);
 pltAppList.push_back(temp);
 
 const amrex::Array<amrex::Array<amrex::Array<BLProfStats::TimeRange> > > &regionTimeRanges =
-        profDataServicesPtr[0]->GetRegionsProfStats().GetRegionTimeRanges();
-if(profDataServicesPtr[0]->RegionDataAvailable()) {
+        dataServicesPtr[0]->GetRegionsProfStats().GetRegionTimeRanges();
+if(dataServicesPtr[0]->RegionDataAvailable()) {
 cout << "regionTimeRanges:  size = " << regionTimeRanges.size() << endl;
 if(regionTimeRanges.size() > 0) {
   for(int p(0); p < regionTimeRanges.size(); ++p) {
@@ -195,10 +193,11 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
     currentScale(profparent->currentScale),
     maxAllowableScale(profparent->maxAllowableScale)
 {
+  currentFrame = 0;
   palFilename = palfile;
   fileNames.resize(1);
   fileNames[0] = fileName;
-  profDataServicesPtr = profparent->profDataServicesPtr;
+  dataServicesPtr = profparent->dataServicesPtr;
 
   cout << "----------------- rtr:" << endl;
   rtr = profparent->rtr;
@@ -240,19 +239,19 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
 
   ProfAppInit(true);
 
-////profDataServicesPtr[0]->WriteSummary(cout, false, 0, false);
+////dataServicesPtr[0]->WriteSummary(cout, false, 0, false);
 //BLProfilerUtils::WriteHeader(cout, 10, 16, true);
 
 /*
 std::string regionsFileName("pltRegions");
-dspArray.resize(1);
-dspArray[0] = new DataServices(regionsFileName, Amrvis::NEWPLT);
-PltApp *temp = new PltApp(app, wTopLevel, regionsFileName, dspArray, false);
+dataServicesPtr.resize(1);
+dataServicesPtr[0] = new DataServices(regionsFileName, Amrvis::NEWPLT);
+PltApp *temp = new PltApp(app, wTopLevel, regionsFileName, dataServicesPtr, false);
 pltAppList.push_back(temp);
 
 const amrex::Array<amrex::Array<amrex::Array<BLProfStats::TimeRange> > > &regionTimeRanges =
-        profDataServicesPtr[0]->GetRegionsProfStats().GetRegionTimeRanges();
-if(profDataServicesPtr[0]->RegionDataAvailable()) {
+        dataServicesPtr[0]->GetRegionsProfStats().GetRegionTimeRanges();
+if(dataServicesPtr[0]->RegionDataAvailable()) {
 cout << "regionTimeRanges:  size = " << regionTimeRanges.size() << endl;
 if(regionTimeRanges.size() > 0) {
   for(int p(0); p < regionTimeRanges.size(); ++p) {
@@ -279,16 +278,15 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   //int np;
 
   currentScale = 1;
-  currentFrame = 0;
   maxAllowableScale = 8;
 
 /*
-  filterTimeRanges.resize(profDataServicesPtr[0]->GetBLProfStats().GetNProcs());
+  filterTimeRanges.resize(dataServicesPtr[0]->GetBLProfStats().GetNProcs());
   for(int i(0); i < filterTimeRanges.size(); ++i) {
     filterTimeRanges[i].push_back(regionPicturePtr->SubTimeRange());
     cout << "FTR::  i STR = " << i << "  " << regionPicturePtr->SubTimeRange() << endl;
   }
-  //RegionsProfStats &regionsProfStats = profDataServicesPtr[0]->GetRegionsProfStats();
+  //RegionsProfStats &regionsProfStats = dataServicesPtr[0]->GetRegionsProfStats();
   //regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
   //regionPicturePtr->SetAllOnOff(RegionPicture::RP_ON);
 */
@@ -681,7 +679,7 @@ void ProfApp::ProfAppInit(bool bSubregion) {
 
   regionPicturePtr->CreatePicture(XtWindow(wPlotPlane), pltPaletteptr);
 
-  RegionsProfStats &rProfStats = profDataServicesPtr[0]->GetRegionsProfStats();
+  RegionsProfStats &rProfStats = dataServicesPtr[0]->GetRegionsProfStats();
   regNames.insert(std::make_pair(atiPaletteEntry, "active time intervals"));
   regNames.insert(std::make_pair(notInRegionPaletteEntry, "not in region"));
   for(auto rnames : rProfStats.RegionNames()) {  // ---- swap map first with second
@@ -691,18 +689,18 @@ void ProfApp::ProfAppInit(bool bSubregion) {
 
   subdomainBox = regionPicturePtr->DomainBox();
 
-  axisLengthX = 138;
-  axisLengthY = 32;
-  Real dLength(domainBox.length(0));
-  Real sdXL(subdomainBox.smallEnd(0));
-  Real sdXH(subdomainBox.bigEnd(0));
-  sdLineXL = domainBox.smallEnd(0) + ((int)(axisLengthX * sdXL / dLength));
-  sdLineXH = domainBox.smallEnd(0) + ((int)(axisLengthX * sdXH / dLength));
+  //axisLengthX = 138;
+  //axisLengthY = 32;
+  //Real dLength(domainBox.length(0));
+  //Real sdXL(subdomainBox.smallEnd(0));
+  //Real sdXH(subdomainBox.bigEnd(0));
+  //sdLineXL = domainBox.smallEnd(0) + (static_cast<int>(axisLengthX * sdXL / dLength));
+  //sdLineXH = domainBox.smallEnd(0) + (static_cast<int>(axisLengthX * sdXH / dLength));
 
 /*
   Array<std::string> funcs;
   std::ostringstream ossSummary;
-  profDataServicesPtr[0]->WriteSummary(ossSummary, false, 0, false);
+  dataServicesPtr[0]->WriteSummary(ossSummary, false, 0, false);
   size_t startPos(0), endPos(0);
   const std::string &ossString = ossSummary.str();
   while(startPos < ossString.length() - 1) {
@@ -719,12 +717,12 @@ void ProfApp::ProfAppInit(bool bSubregion) {
 
   cout << "rpp.SubTimeRange = " << regionPicturePtr->SubTimeRange() << endl;
   cout << "rpp.CalcTimeRange = " << regionPicturePtr->CalcTimeRange() << endl;
-  filterTimeRanges.resize(profDataServicesPtr[0]->GetBLProfStats().GetNProcs());
+  filterTimeRanges.resize(dataServicesPtr[0]->GetBLProfStats().GetNProcs());
   for(int i(0); i < filterTimeRanges.size(); ++i) {
     filterTimeRanges[i].push_back(regionPicturePtr->SubTimeRange());
     cout << "FTR::  i STR = " << i << "  " << regionPicturePtr->SubTimeRange() << endl;
   }
-  //RegionsProfStats &regionsProfStats = profDataServicesPtr[0]->GetRegionsProfStats();
+  //RegionsProfStats &regionsProfStats = dataServicesPtr[0]->GetRegionsProfStats();
   //regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
   //regionPicturePtr->SetAllOnOff(RegionPicture::RP_ON);
 
@@ -822,16 +820,16 @@ void ProfApp::DoInfoButton(Widget, XtPointer, XtPointer) {
 
   prob << "Profiling database :  " << fileNames[0] << '\n';
   prob << "ProfDataAvailable  :  "
-       << (profDataServicesPtr[0]->ProfDataAvailable()   ? "true" : "false") << '\n';
+       << (dataServicesPtr[0]->ProfDataAvailable()   ? "true" : "false") << '\n';
   prob << "RegionDataAvailable:  "
-       << (profDataServicesPtr[0]->RegionDataAvailable() ? "true" : "false") << '\n';
+       << (dataServicesPtr[0]->RegionDataAvailable() ? "true" : "false") << '\n';
   prob << "TraceDataAvailable :  "
-       << (profDataServicesPtr[0]->TraceDataAvailable()  ? "true" : "false") << '\n';
+       << (dataServicesPtr[0]->TraceDataAvailable()  ? "true" : "false") << '\n';
   prob << "CommDataAvailable  :  "
-       << (profDataServicesPtr[0]->CommDataAvailable()   ? "true" : "false") << '\n';
-  if(profDataServicesPtr[0]->ProfDataAvailable()) {
+       << (dataServicesPtr[0]->CommDataAvailable()   ? "true" : "false") << '\n';
+  if(dataServicesPtr[0]->ProfDataAvailable()) {
     prob << "Data NProcs        :  "
-         << profDataServicesPtr[0]->GetBLProfStats().GetNProcs() << '\n';
+         << dataServicesPtr[0]->GetBLProfStats().GetNProcs() << '\n';
   }
 
   profAppMessageText.PrintText(prob.str().c_str());
@@ -886,38 +884,21 @@ void ProfApp::DoExposePicture(Widget w, XtPointer, XtPointer) {
 
 // -------------------------------------------------------------------
 void ProfApp::DoExposeRef(Widget, XtPointer, XtPointer) {
-  const int xpos(10), ypos(15), positionPad(5);
-  int color(pltPaletteptr->WhiteIndex());
-  std::ostringstream timeRangeS;
-  timeRangeS << regionPicturePtr->SubTimeRange();
-
   XClearWindow(display, XtWindow(wControlForm));
-
+  int color(pltPaletteptr->WhiteIndex());
   XSetForeground(XtDisplay(wControlForm), xgc, pltPaletteptr->makePixel(color));
-  XDrawLine(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
-            xpos + positionPad, ypos + positionPad,
-	    xpos + positionPad, ypos + axisLengthY);
-  XDrawLine(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
-            xpos + positionPad, ypos + axisLengthY,
-	    xpos + positionPad + axisLengthX, ypos + axisLengthY);
-  XDrawString(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
-              xpos + positionPad + axisLengthX, ypos+positionPad + axisLengthY,
-	      labelTime.c_str(), labelTime.length());
-  XDrawString(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
-              xpos + positionPad, ypos,
-	      labelRegion.c_str(), labelRegion.length());
 
-  // ---- lines indicating subregion
-  XDrawLine(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
-            xpos + positionPad + sdLineXL, ypos + axisLengthY,
-	    xpos + positionPad + sdLineXL, ypos + axisLengthY + 8);
-  XDrawLine(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
-            xpos + positionPad + sdLineXH, ypos + axisLengthY,
-	    xpos + positionPad + sdLineXH, ypos + axisLengthY + 8);
-  XDrawString(XtDisplay(wControlForm), XtWindow(wControlForm), xgc,
-              xpos + positionPad, ypos + axisLengthY + 24,
-	      timeRangeS.str().c_str(), timeRangeS.str().length());
-
+  axisLengthX = 138;
+  axisLengthY = 32;
+  Real dLength(domainBox.length(0));
+  Real sdXL(subdomainBox.smallEnd(0));
+  Real sdXH(subdomainBox.smallEnd(0) + subdomainBox.length(0));
+  sdLineXL = domainBox.smallEnd(0) + (static_cast<int>(axisLengthX * sdXL / dLength));
+  sdLineXH = domainBox.smallEnd(0) + (static_cast<int>(axisLengthX * sdXH / dLength));
+  Real subTimeRangeStart(regionPicturePtr->SubTimeRange().startTime);
+  Real subTimeRangeStop(regionPicturePtr->SubTimeRange().stopTime);
+  DrawTimeRange(wControlForm, sdLineXL, sdLineXH, axisLengthX, axisLengthY,
+                subTimeRangeStart, subTimeRangeStop, "region");
 }
 
 
@@ -947,7 +928,7 @@ void ProfApp::DoFuncListClick(Widget w, XtPointer client_data, XtPointer call_da
     SHOWVAL(funcSelectionStrings[fSSPosition]);
     SHOWVAL(aFSIndex);
     SHOWVAL(aFuncStats.size());
-    RegionsProfStats &regionsProfStats = profDataServicesPtr[0]->GetRegionsProfStats();
+    RegionsProfStats &regionsProfStats = dataServicesPtr[0]->GetRegionsProfStats();
     if(aFuncStats.size() == 0) {
       regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
       regionsProfStats.CollectFuncStats(aFuncStats);
@@ -988,7 +969,7 @@ void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data,
   unsigned long r = (unsigned long) client_data;
   cout << "_in ProfApp::DoGenerateFuncList:  r = " << r << endl;
 
-  RegionsProfStats &regionsProfStats = profDataServicesPtr[0]->GetRegionsProfStats();
+  RegionsProfStats &regionsProfStats = dataServicesPtr[0]->GetRegionsProfStats();
  regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
 for(int i(0); i < filterTimeRanges.size(); ++i) {
   cout << "filterTimeRanges[0] = " << filterTimeRanges[0].front() << endl;
@@ -1028,7 +1009,7 @@ for(int i(0); i < filterTimeRanges.size(); ++i) {
 void ProfApp::PopulateFuncList(bool bWriteAverage, int whichProc, bool bUseTrace) {
   Array<std::string> funcs;
   std::ostringstream ossSummary;
-  profDataServicesPtr[0]->WriteSummary(ossSummary, true, 0, true);
+  dataServicesPtr[0]->WriteSummary(ossSummary, true, 0, true);
   size_t startPos(0), endPos(0);
   const std::string &ossString = ossSummary.str();
   while(startPos < ossString.length() - 1) {
@@ -1039,12 +1020,18 @@ void ProfApp::PopulateFuncList(bool bWriteAverage, int whichProc, bool bUseTrace
   }
 
 
-  RegionsProfStats &regionsProfStats = profDataServicesPtr[0]->GetRegionsProfStats();
+  RegionsProfStats &regionsProfStats = dataServicesPtr[0]->GetRegionsProfStats();
   const Array<string> &blpFNames = regionsProfStats.BLPFNames();
+      for(auto blpi = blpFNames.begin(); blpi != blpFNames.end(); ++blpi) {
+        SHOWVAL(*blpi);
+      }
+
   funcSelectionStrings.resize(funcs.size(), "");
   for(int i(0); i < funcs.size(); ++i) {
     const std::vector<std::string>& tokens = amrex::Tokenize(funcs[i], " ");
+    cout << "FFFF:::: tokens.size()  funcs[" << i << "] = " << tokens.size() << "  " << funcs[i] << endl;
     if(tokens.size() > 0) {
+      SHOWVAL(tokens[0]);
       if(std::find(blpFNames.begin(), blpFNames.end(), tokens[0]) != blpFNames.end()) {
         funcSelectionStrings[i] = tokens[0];
       }
