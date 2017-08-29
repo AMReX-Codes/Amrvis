@@ -201,10 +201,11 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
     maxAllowableScale = 1;
   } else  {
 #if (BL_SPACEDIM == 1)
-    maxAllowableScale = (int) (exp2(14) / dataSize);
+    maxAllowableScale = (int) ((exp2(15) - 1) / dataSize);
 #else
     maxAllowableScale = (int) sqrt((Real) (AVGlobals::MaxPictureSize() / dataSize));
 #endif
+    maxAllowableScale = max(1, maxAllowableScale);
   }
 
   int currentScale(max(1, min(GetInitialScale(), maxAllowableScale)));
@@ -491,14 +492,19 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   unsigned long dataSize(static_cast<unsigned long>(maxDomain.length(Amrvis::XDIR)) *
                          static_cast<unsigned long>(maxDomain.length(Amrvis::YDIR)));
 #endif
-  if(AVGlobals::MaxPictureSize() / dataSize == 0) {
+  if(AVGlobals::MaxPictureSize() == 0) {
     maxAllowableScale = 1;
-  } else {
+  } else  {
+#if (BL_SPACEDIM == 1)
+    maxAllowableScale = (int) ((exp2(15) - 1) / dataSize);
+#else
     maxAllowableScale = (int) sqrt((Real) (AVGlobals::MaxPictureSize() / dataSize));
+#endif
+    maxAllowableScale = max(1, maxAllowableScale);
   }
 
-  int currentScale = min(maxAllowableScale,
-			 pltParent->GetPltAppState()->CurrentScale());
+  int currentScale(max(1, min(maxAllowableScale,
+			      pltParent->GetPltAppState()->CurrentScale())));
   pltAppState->SetCurrentScale(currentScale);
   
  // ------------------------------- handle commprof timeline format

@@ -1231,6 +1231,7 @@ int AVGlobals::DetermineMaxAllowableLevel(const Box &finestbox,
 
   Box levelDomain(finestbox);
   int maxallowablelevel(finestlevel);
+  int max1DLength(exp2(15) - 1);  // ---- a pixmap cannot exceed this length
   unsigned long boxpoints;
   while(maxallowablelevel > 0) {
 #   if (BL_SPACEDIM == 1)
@@ -1250,7 +1251,14 @@ int AVGlobals::DetermineMaxAllowableLevel(const Box &finestbox,
       boxpoints = max(boxpoints, tempLength);
 #   endif
 
-    if(boxpoints > maxpoints) {  // try next coarser level
+      bool tooLong(false);
+      for(int sd(0); sd < BL_SPACEDIM; ++sd) {
+        if(levelDomain.length(sd) > max1DLength) {
+	  tooLong = true;
+	}
+      }
+
+    if(boxpoints > maxpoints || tooLong) {  // ---- try next coarser level
       --maxallowablelevel;
       levelDomain = finestbox;
       levelDomain.coarsen(CRRBetweenLevels(maxallowablelevel, finestlevel,
