@@ -2461,36 +2461,6 @@ void PltApp::DoCallTraceButton(Widget, XtPointer, XtPointer) {
     }
     cTrace.close();
   }
-
-  /*
-  prob << "Call Trace!"<< '\n';
-  prob << amrData.PlotFileVersion().c_str() << '\n';
-  prob << "time:  "<< amrData.Time() << '\n';
-  prob << "levels:  " << amrData.FinestLevel() + 1 << '\n';
-  prob << "prob domain:" << '\n';
-  for(int k(0); k <= amrData.FinestLevel(); ++k) {
-    prob << "  level " << k << ":  " << amrData.ProbDomain()[k] << '\n';
-  }
-  prob << "refratios: ";
-  for(int k(0); k < amrData.FinestLevel(); ++k) {
-    prob << " " << amrData.RefRatio()[k];
-  }
-  prob << '\n';
-  prob << "probsize:  ";
-  for(int k(0); k < BL_SPACEDIM; ++k) {
-    prob << " " << amrData.ProbSize()[k];
-  }
-  prob << '\n';
-  prob << "prob lo:   ";
-  for(int k(0); k < BL_SPACEDIM; ++k) {
-    prob << " " << amrData.ProbLo()[k];
-  }
-  prob << '\n';
-  prob << "prob hi:   ";
-  for(int k(0); k < BL_SPACEDIM; ++k) {
-    prob << " " << amrData.ProbHi()[k];
-  }
-  */
   prob << '\n';
 
   pltAppMessageText.PrintText(prob.str().c_str());

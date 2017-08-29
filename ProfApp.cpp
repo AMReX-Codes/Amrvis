@@ -1009,7 +1009,7 @@ for(int i(0); i < filterTimeRanges.size(); ++i) {
 void ProfApp::PopulateFuncList(bool bWriteAverage, int whichProc, bool bUseTrace) {
   Array<std::string> funcs;
   std::ostringstream ossSummary;
-  dataServicesPtr[0]->WriteSummary(ossSummary, true, 0, true);
+  dataServicesPtr[0]->WriteSummary(ossSummary, true, 0, true, false);
   size_t startPos(0), endPos(0);
   const std::string &ossString = ossSummary.str();
   while(startPos < ossString.length() - 1) {
