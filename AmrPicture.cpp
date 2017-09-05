@@ -1016,8 +1016,9 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
     rrcs = scale;
     nScaledImageCells = rrcs*rrcs;
 
-    Real sumH[3], sumV[3];
-    Real diffAvgV[3], diffAvgH[3], avgV, avgH;
+    Array<Real> sumH(3, 0.0), sumV(3, 0.0);
+    Array<Real> diffAvgV(3, 0.0), diffAvgH(3, 0.0);
+    Real avgV, avgH;
     Real normV, normH;
     int  isum, jsum, nStartV, nEndV, nStartH, nEndH, tempSum;
     int nV, nH, stencilSize = 3;
@@ -1089,32 +1090,38 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
           }
 
 #if (BL_SPACEDIM==2)
+#ifdef AV_CGS_FIXSLNC
           // fix for straight lines near corners
-          Real smallval = 0.0001;
+          Real smallval(0.000001), flagValue(-2.0 * vfeps);
           if(fabs(stencil[4] - stencil[3]) < smallval &&
-             fabs(stencil[4] - stencil[5]) > smallval) {
-            stencil[2] = -2.0*vfeps;  // flag value
-            stencil[5] = -2.0*vfeps;  // flag value
-            stencil[8] = -2.0*vfeps;  // flag value
+	     fabs(stencil[4] - stencil[5]) > smallval)
+	  {
+            stencil[2] = flagValue;
+            stencil[5] = flagValue;
+            stencil[8] = flagValue;
           }
           if(fabs(stencil[4] - stencil[5]) < smallval &&
-             fabs(stencil[4] - stencil[3]) > smallval) {
-            stencil[0] = -2.0*vfeps;  // flag value
-            stencil[3] = -2.0*vfeps;  // flag value
-            stencil[6] = -2.0*vfeps;  // flag value
+	     fabs(stencil[4] - stencil[3]) > smallval)
+	  {
+            stencil[0] = flagValue;
+            stencil[3] = flagValue;
+            stencil[6] = flagValue;
           }
           if(fabs(stencil[4] - stencil[1]) < smallval &&
-             fabs(stencil[4] - stencil[7]) > smallval) {
-            stencil[6] = -2.0*vfeps;  // flag value
-            stencil[7] = -2.0*vfeps;  // flag value
-            stencil[8] = -2.0*vfeps;  // flag value
+	     fabs(stencil[4] - stencil[7]) > smallval)
+	  {
+            stencil[6] = flagValue;
+            stencil[7] = flagValue;
+            stencil[8] = flagValue;
           }
           if(fabs(stencil[4] - stencil[7]) < smallval &&
-             fabs(stencil[4] - stencil[1]) > smallval) {
-            stencil[0] = -2.0*vfeps;  // flag value
-            stencil[1] = -2.0*vfeps;  // flag value
-            stencil[2] = -2.0*vfeps;  // flag value
+	          fabs(stencil[4] - stencil[1]) > smallval)
+	  {
+            stencil[0] = flagValue;
+            stencil[1] = flagValue;
+            stencil[2] = flagValue;
           }
+#endif
 #endif
 
           // ---- there should be this many body cells calculated
