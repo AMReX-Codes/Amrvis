@@ -15,7 +15,6 @@ using std::list;
 #include <XYPlotParam.H>
 #include <xgout.H>
 
-//class PltApp;
 class AVPApp;
 class GraphicsAttributes;
 class XYPlotParameters;
@@ -32,7 +31,7 @@ class XYPlotParameters;
 #define PADDING 	        2
 #define SPACE 		        10
 #define TICKLENGTH	        5
-#define MAXLS           50
+#define MAXLS                   50
 
 
 typedef struct attr_typ {
@@ -84,7 +83,6 @@ class XYPlotWin {
   private:
     XtAppContext            appContext;
     Widget                  wTopLevel;
-    //PltApp                 *pltParent;
     AVPApp                 *pltParent;
     char                   *pltTitle;
     XYPlotParameters       *parameters;
@@ -122,6 +120,7 @@ class XYPlotWin {
 
     Widget wLegendMenu, wLegendButtons, wPlotWin, wScrollArea;
     Widget wOptionsDialog, wExportFileDialog, wOptionsWidgets[13];
+    Widget wChooseColor;
     Window pWindow;
     Atom   WM_DELETE_WINDOW;
 

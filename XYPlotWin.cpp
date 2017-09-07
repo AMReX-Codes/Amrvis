@@ -95,6 +95,10 @@ using std::endl;
 
 // -------------------------------------------------------------------
 XYPlotWin::~XYPlotWin() {
+  if(pltParent->PaletteCBQ()) {
+    XtRemoveAllCallbacks(pltParent->GetPalArea(), XmNinputCallback);
+    pltParent->SetPaletteCBQ(false);
+  }
   if(pltParent->GetXYPlotWin(whichType) == this) {
     pltParent->DetachXYPlotWin(whichType);
   }
@@ -123,6 +127,8 @@ XYPlotWin::~XYPlotWin() {
   for(nSize = 0; nSize < xymenucbdPtrs.size(); ++nSize) {
     delete xymenucbdPtrs[nSize];
   }
+  colorChangeItem = nullptr;
+  pltParent = nullptr;
 }
 
 
@@ -140,6 +146,7 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, AVPApp *parent,
   pltTitle = new char[strlen(title) + 1];
   strcpy(pltTitle, title);
   params param_temp;   // temporary parameter grabbing slot
+  colorChangeItem = nullptr;
 
   // Store some local stuff from the parent.
   parameters = pltParent->GetXYPlotParameters();
@@ -861,11 +868,11 @@ void XYPlotWin::AddDataList(::XYPlotDataList *new_list,
   AddStaticCallback(wid, XmNactivateCallback,
 		    &XYPlotWin::CBdoRemoveDataList, new_item);
 
-  wid = XtVaCreateManagedWidget("Choose color", xmPushButtonGadgetClass,
+  wChooseColor = XtVaCreateManagedWidget("Choose color", xmPushButtonGadgetClass,
 				new_item->menu,
 				XmNmnemonic, 'o',
 				NULL);
-  AddStaticCallback(wid, XmNactivateCallback,
+  AddStaticCallback(wChooseColor, XmNactivateCallback,
 		    &XYPlotWin::CBdoInitializeListColorChange, new_item);
 
 
@@ -1427,7 +1434,7 @@ void XYPlotWin::CBdoClearData(Widget, XtPointer, XtPointer) {
   for(int idx(0); idx != 8; ++idx) {
     lineFormats[idx] = 0x0;
   }
-  colorChangeItem = NULL;
+  colorChangeItem = nullptr;
   numItems = 0;
   numDrawnItems = 0;
   zoomedInQ = false;
@@ -1973,7 +1980,7 @@ void XYPlotWin::CBdoRemoveDataList(Widget, XtPointer client_data,
   BL_ASSERT(liitem != legendList.end());
 
   if(item == colorChangeItem) {
-    colorChangeItem = NULL;
+    colorChangeItem = nullptr;
   }
   if(linextitem != legendList.end()) {
     if(item->XYPLIlist->CopiedFrom() == NULL &&
@@ -2091,7 +2098,8 @@ void XYPlotWin::SetPalette() {
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::CBdoInitializeListColorChange(Widget, XtPointer data, XtPointer) {
+void XYPlotWin::CBdoInitializeListColorChange(Widget w, XtPointer data, XtPointer)
+{
   XYPlotLegendItem *item = (XYPlotLegendItem *) data;
   Widget wPalArea = pltParent->GetPalArea();
   if(pltParent->PaletteCBQ()) {
@@ -2121,6 +2129,9 @@ void XYPlotWin::CBdoSetListColor(Widget, XtPointer, XtPointer call_data) {
 	CBdoRedrawPlot(None, NULL, NULL);
 	CBdoDrawLegendItem(None, (void *) colorChangeItem, NULL);
       }
+      XtRemoveAllCallbacks(pltParent->GetPalArea(), XmNinputCallback);
+      pltParent->SetPaletteCBQ(false);
+      colorChangeItem = nullptr;
     }
   }
 }
@@ -2483,6 +2494,22 @@ void XYPlotWin::StaticCallback(Widget w, XtPointer client_data,
 {
   XYCBData *cbs = (XYCBData *) client_data;
   XYPlotWin *obj = cbs->instance;
+  bool badPtr(false);
+  if(cbs == nullptr) {
+    amrex::Print() << "**** XYPlotWin::StaticCallback:  cbs ptr == nullptr" << std::endl;
+    badPtr = true;
+  }
+  if(obj == nullptr) {
+    amrex::Print() << "**** XYPlotWin::StaticCallback:  obj ptr == nullptr" << std::endl;
+    badPtr = true;
+  }
+  if(call_data == nullptr) {
+    amrex::Print() << "**** XYPlotWin::StaticCallback:  call_data == nullptr" << std::endl;
+    badPtr = true;
+  }
+  if(badPtr) {
+    return;
+  }
   (obj->*(cbs->cbFunc))(w, (XtPointer) cbs->data, call_data);
 }
 
