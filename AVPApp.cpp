@@ -1,6 +1,7 @@
 // ---------------------------------------------------------------
 // AVPApp.H
 // ---------------------------------------------------------------
+#include <algorithm>
 #include <Xm/Xm.h>
 #include <AVPApp.H>
 
@@ -47,6 +48,90 @@ void AVPApp::DrawTimeRange(Widget wCF, int sdLineXL, int sdLineXH,
 }
 
 
+// -------------------------------------------------------------------
+void AVPApp::ParseCallTraceFile(std::ifstream &ctFile)
+{
+  amrex::Array<CallTraceLine> &cTLines = callTraceData.callTraceLines;
+  std::map<int, std::string>  &fNNames = callTraceData.funcNumberNames;
+  std::string line;
+
+  cTLines.clear();
+  fNNames.clear();
+
+  do {
+    std::getline(ctFile, line);
+    const std::vector<std::string>& tokens = amrex::Tokenize(line, "\t");
+    int offset;
+    if(tokens.size() == 7) {
+      offset = 0;
+    } else if(tokens.size() == 8) {
+      offset = 1;  // ---- skip the ---|---|---| entries
+    } else {
+      continue;
+    }
+
+    CallTraceLine  ctl;
+    ctl.funcNumber     = atoi(tokens[offset + 0].c_str());
+    fNNames[ctl.funcNumber] = tokens[offset + 1].c_str();
+    ctl.inclTime       = atof(tokens[offset + 2].c_str());
+    ctl.exclTime       = atof(tokens[offset + 3].c_str());
+    ctl.nCalls         = atol(tokens[offset + 4].c_str());
+    ctl.callStackDepth = atoi(tokens[offset + 5].c_str());
+    ctl.callTime       = atof(tokens[offset + 6].c_str());
+    cTLines.push_back(ctl);
+
+  } while( ! ctFile.eof());
+
+  amrex::Print() << "_in ParseCallTraceFile:  fNNames.size() = " << fNNames.size() << std::endl;
+  amrex::Print() << "_in ParseCallTraceFile:  cTLines.size() = " << cTLines.size() << std::endl;
+}
+
+
+// -------------------------------------------------------------------
+void AVPApp::DeriveCallStack(Real startTime, Real endTime)
+{
+  amrex::Array<CallTraceLine> &cTLines = callTraceData.callTraceLines;
+  std::map<int, std::string>  &fNNames = callTraceData.funcNumberNames;
+  std::vector<CallTraceLine>::iterator lowB, highB;
+
+  lowB = std::lower_bound(cTLines.begin(), cTLines.end(), startTime,
+                          [] (const CallTraceLine &a, const Real &b)
+			        { return a.callTime < b; });
+  highB = std::upper_bound(cTLines.begin(), cTLines.end(), endTime,
+                          [] (const Real &a, const CallTraceLine &b)
+			        { return a < b.callTime; });
+  int lowIndex(lowB - cTLines.begin());
+  int highIndex(highB - cTLines.begin());
+  amrex::Print() << "_in DeriveCallStack:  startTime lowIndex highIndex = "
+                 << startTime << "  " << lowIndex << "  " << highIndex << std::endl;
+  amrex::Print() << "_in DeriveCallStack:  lowLine = "
+                 << fNNames[cTLines[lowIndex].funcNumber] << std::endl;
+
+  amrex::Array<int> callStack;
+  int currentCallDepth(cTLines[lowIndex].callStackDepth);
+  for(int ci(lowIndex); ci >= 0; --ci) {
+    CallTraceLine &ctl = cTLines[ci];
+    if(ctl.callStackDepth == currentCallDepth) {
+      callStack.push_back(ci);
+      --currentCallDepth;
+    }
+  }
+  for(int i(callStack.size() - 1); i >= 0; --i) {
+    int index(callStack[i]);
+    CallTraceLine &ctl = cTLines[index];
+    for(int d(0); d < ctl.callStackDepth; ++d) {
+      amrex::Print() << "---|";
+    }
+    amrex::Print() << "  " << fNNames[ctl.funcNumber] << "  " << ctl.callTime << '\n';
+  }
+  amrex::Print() << std::endl;
+
+}
+
 
 // ---------------------------------------------------------------
+// ---------------------------------------------------------------
+
+
+
 
