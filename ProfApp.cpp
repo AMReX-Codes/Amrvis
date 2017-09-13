@@ -689,14 +689,6 @@ void ProfApp::ProfAppInit(bool bSubregion) {
 
   subdomainBox = regionPicturePtr->DomainBox();
 
-  //axisLengthX = 138;
-  //axisLengthY = 32;
-  //Real dLength(domainBox.length(0));
-  //Real sdXL(subdomainBox.smallEnd(0));
-  //Real sdXH(subdomainBox.bigEnd(0));
-  //sdLineXL = domainBox.smallEnd(0) + (static_cast<int>(axisLengthX * sdXL / dLength));
-  //sdLineXH = domainBox.smallEnd(0) + (static_cast<int>(axisLengthX * sdXH / dLength));
-
 /*
   Array<std::string> funcs;
   std::ostringstream ossSummary;

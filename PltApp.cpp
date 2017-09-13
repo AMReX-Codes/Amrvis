@@ -293,6 +293,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
       if(cTrace.fail()) {
         cout << "**** Error:  could not open:  " << ctFileName << endl;
       } else {
+	ParseCallTraceFile(cTrace);
         cTrace.close();
       }
     }
@@ -339,7 +340,6 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   int coarseLevel(0);
   int iCDerNum(pltAppState->CurrentDerivedNumber());
   string asCDer(pltAppState->CurrentDerived());
-  //int fineLevel(pltAppState->MaxAllowableLevel());
   int fineLevel(amrData.FinestLevel());
   const Array<Box> &onBox(amrData.ProbDomain());
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
@@ -588,6 +588,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
       if(cTrace.fail()) {
         cout << "**** Error:  could not open:  " << ctFileName << endl;
       } else {
+	ParseCallTraceFile(cTrace);
         cTrace.close();
       }
     }
@@ -3832,24 +3833,45 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 
 	  std::ostringstream buffout;
 	  if(goodIntersect) {
+	    double dLoc;
+	    int idx, iLoc;
 	    buffout << '\n';
 	    buffout << "level = " << intersectedLevel << '\n';
-	    buffout << "point = " << trueRegion[intersectedLevel].smallEnd()
-		    << '\n';
-	    buffout << "grid  = " << intersectedGrid << '\n';
-	    buffout << "loc   = (";
-	    for(int idx = 0; idx != BL_SPACEDIM; ++idx) {
-	      if(idx != 0) {
-	        buffout << ", ";
-	      }
-	      double dLoc = gridOffset[idx] +
-		           (0.5 + trueRegion[mal].smallEnd()[idx]) *
-		           amrData.DxLevel()[mal][idx];
+	    if(bTimeline) {
+	      buffout << "point = " << trueRegion[intersectedLevel].smallEnd() << '\n';
+	      idx = 0;
+	      buffout << "::::  amrData.Time() = " << amrData.Time() << std::endl;
+	      buffout << "::::  amrData.ProbDomain()[mal] = " << amrData.ProbDomain()[mal] << std::endl;
+	      dLoc = gridOffset[idx] + (0.5 + trueRegion[mal].smallEnd()[idx]) *
+		             amrData.DxLevel()[mal][idx];
+	      dLoc = amrData.Time() * dLoc / static_cast<Real>(amrData.ProbDomain()[mal].length(idx));
 	      char dLocStr[Amrvis::LINELENGTH];
 	      sprintf(dLocStr, pltAppState->GetFormatString().c_str(), dLoc);
-	      buffout << dLocStr;
+	      buffout << "time   = " << dLocStr << '\n';
+	      idx = 1;
+	      iLoc = gridOffset[idx] + trueRegion[mal].smallEnd()[idx];
+	      iLoc *= amrex::CRRBetweenLevels(maxDrawnLevel, amrData.FinestLevel(), amrData.RefRatio());
+	      buffout << "rank   = " << iLoc << '\n';
+
+	      DeriveCallStack(dLoc, dLoc);
+
+	    } else {
+	      buffout << "point = " << trueRegion[intersectedLevel].smallEnd() << '\n';
+	      buffout << "grid  = " << intersectedGrid << '\n';
+	      buffout << "loc   = (";
+	      for(int idx = 0; idx != BL_SPACEDIM; ++idx) {
+	        if(idx != 0) {
+	          buffout << ", ";
+	        }
+	        double dLoc = gridOffset[idx] +
+		             (0.5 + trueRegion[mal].smallEnd()[idx]) *
+		             amrData.DxLevel()[mal][idx];
+	        char dLocStr[Amrvis::LINELENGTH];
+	        sprintf(dLocStr, pltAppState->GetFormatString().c_str(), dLoc);
+	        buffout << dLocStr;
+	      }
+	      buffout << ")\n";
 	    }
-	    buffout << ")\n";
 	    buffout << "value = " << dataValueString << '\n';
 	  } else {
             buffout << "Bad point at mouse click" << '\n';

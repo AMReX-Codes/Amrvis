@@ -36,10 +36,24 @@ class AVPApp
     int CurrentFrame()  const        { return currentFrame; }
     amrex::DataServices *GetDataServicesPtr() { return dataServicesPtr[currentFrame]; }
     amrex::Array<amrex::DataServices *> &GetDataServicesPtrArray() { return dataServicesPtr; }
+
     void DrawTimeRange(Widget wCF, int sdLineXL, int sdLineXH,
                        int axisLengthX, int axisLengthY,
 		       amrex::Real subTimeRangeStart, amrex::Real subTimeRangeStop,
 		       const std::string &yAxisLabel);
+    void ParseCallTraceFile(std::ifstream &ctFile);
+    void DeriveCallStack(Real startTime, Real endTime);
+
+    struct CallTraceLine {
+      int funcNumber, callStackDepth;
+      long nCalls;
+      amrex::Real inclTime, exclTime, callTime;
+    };
+
+    struct CallTraceData {
+      amrex::Array<CallTraceLine> callTraceLines;
+      std::map<int, std::string> funcNumberNames;  // ---- <fnumber, fname>
+    };
 
 
 
@@ -55,6 +69,7 @@ class AVPApp
     amrex::Array<std::string> fileNames;
     PltAppState *pltAppState;
     amrex::Array<amrex::DataServices *> dataServicesPtr;
+    CallTraceData callTraceData;
 };
 
 #endif
