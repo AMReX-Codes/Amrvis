@@ -18,7 +18,7 @@ class cMessageArea {
     cMessageArea(Widget printTextHere);
     ~cMessageArea();
     void Init(Widget printTextHere);
-    void PrintText(const char *buffer);
+    void PrintText(const char *buffer, bool scrollToTop = false);
 };
 
 #endif

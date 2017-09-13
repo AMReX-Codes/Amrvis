@@ -30,11 +30,16 @@ cMessageArea::~cMessageArea() {
 
 
 // -------------------------------------------------------------------
-void cMessageArea::PrintText(const char *buffer) {
+void cMessageArea::PrintText(const char *buffer, bool scrollToTop)
+{
   XmTextInsert(wTextOut, currentTextPosition, const_cast<char *>(buffer));
   currentTextPosition += strlen(buffer);
   XtVaSetValues(wTextOut, XmNcursorPosition, currentTextPosition, NULL);
-  XmTextShowPosition(wTextOut, currentTextPosition);
+  if(scrollToTop) {
+    XmTextShowPosition(wTextOut, 0);
+  } else {
+    XmTextShowPosition(wTextOut, currentTextPosition);
+  }
 }
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
