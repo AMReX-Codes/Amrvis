@@ -42,7 +42,7 @@ class AVPApp
 		       amrex::Real subTimeRangeStart, amrex::Real subTimeRangeStop,
 		       const std::string &yAxisLabel);
     void ParseCallTraceFile(std::ifstream &ctFile);
-    void DeriveCallStack(Real startTime, Real endTime);
+    void DeriveCallStack(std::ostream &os, Real startTime, Real endTime);
 
     struct CallTraceLine {
       int funcNumber, callStackDepth;

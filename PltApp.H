@@ -146,7 +146,8 @@ private:
   Widget wWhichFileLabel, wWhichFileScale, wWhichTimeLabel;
   Widget wControlForm;
   Widget wNumberContours;
-  Widget wContoursTopLevel, wInfoTopLevel, wCallTraceTopLevel;
+  Widget wContoursTopLevel, wInfoTopLevel;
+  Widget wCallTraceTopLevel, wCallTraceList;
   Widget wSetRangeTopLevel, wNumberFormatTopLevel;
   Widget wFormat;
   Widget wLocArea, wPlotArea;

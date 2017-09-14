@@ -88,7 +88,7 @@ void AVPApp::ParseCallTraceFile(std::ifstream &ctFile)
 
 
 // -------------------------------------------------------------------
-void AVPApp::DeriveCallStack(Real startTime, Real endTime)
+void AVPApp::DeriveCallStack(std::ostream &os, Real startTime, Real endTime)
 {
   amrex::Array<CallTraceLine> &cTLines = callTraceData.callTraceLines;
   std::map<int, std::string>  &fNNames = callTraceData.funcNumberNames;
@@ -108,6 +108,9 @@ void AVPApp::DeriveCallStack(Real startTime, Real endTime)
                  << fNNames[cTLines[lowIndex].funcNumber] << std::endl;
 
   amrex::Array<int> callStack;
+  for(int ci(highIndex); ci > lowIndex; --ci) {  // ---- push the range [high ,low)
+    callStack.push_back(ci);
+  }
   int currentCallDepth(cTLines[lowIndex].callStackDepth);
   for(int ci(lowIndex); ci >= 0; --ci) {
     CallTraceLine &ctl = cTLines[ci];
@@ -116,15 +119,22 @@ void AVPApp::DeriveCallStack(Real startTime, Real endTime)
       --currentCallDepth;
     }
   }
+
   for(int i(callStack.size() - 1); i >= 0; --i) {
     int index(callStack[i]);
     CallTraceLine &ctl = cTLines[index];
-    for(int d(0); d < ctl.callStackDepth; ++d) {
-      amrex::Print() << "---|";
+    if(index == lowIndex) {
+      for(int d(0); d < ctl.callStackDepth; ++d) {
+        os << "->->";
+      }
+    } else {
+      for(int d(0); d < ctl.callStackDepth; ++d) {
+        os << "---|";
+      }
     }
-    amrex::Print() << "  " << fNNames[ctl.funcNumber] << "  " << ctl.callTime << '\n';
+    os << "  " << fNNames[ctl.funcNumber] << "  " << ctl.callTime << '\n';
   }
-  amrex::Print() << std::endl;
+  os << std::endl;
 
 }
 

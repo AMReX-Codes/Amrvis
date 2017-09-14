@@ -2440,9 +2440,9 @@ void PltApp::DoCallTraceButton(Widget, XtPointer, XtPointer) {
   XtSetArg(args[i], XmNbottomAttachment, XmATTACH_WIDGET);      ++i;
   XtSetArg(args[i], XmNbottomWidget, wCallTraceCloseButton);      ++i;
 
-  Widget wCallTraceList = XmCreateScrolledText(wCallTraceForm,
-                                          const_cast<char *>("CallTracescrolledlist"),
-					  args, i);
+  wCallTraceList = XmCreateScrolledText(wCallTraceForm,
+                                        const_cast<char *>("CallTracescrolledlist"),
+					args, i);
   AddStaticCallback(wCallTraceCloseButton, XmNactivateCallback,
 		    &PltApp::CloseCallTraceWindow);
   
@@ -2470,7 +2470,8 @@ void PltApp::DoCallTraceButton(Widget, XtPointer, XtPointer) {
   }
   prob << '\n';
 
-  pltAppMessageText.PrintText(prob.str().c_str());
+  bool scrollToTop(true);
+  pltAppMessageText.PrintText(prob.str().c_str(), scrollToTop);
 }
 
 
@@ -3853,7 +3854,18 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	      iLoc *= amrex::CRRBetweenLevels(maxDrawnLevel, amrData.FinestLevel(), amrData.RefRatio());
 	      buffout << "rank   = " << iLoc << '\n';
 
-	      DeriveCallStack(dLoc, dLoc);
+              if(callTraceShowing) {
+	        XtPopup(wCallTraceTopLevel, XtGrabNone);
+		XMapRaised(XtDisplay(wCallTraceTopLevel), XtWindow(wCallTraceTopLevel));
+	        std::ostringstream traceout;
+	        DeriveCallStack(traceout, dLoc, dLoc);
+		cMessageArea traceMessageText;
+                traceMessageText.Init(wCallTraceList);
+                bool scrollToTop(true), clear(true);
+                traceMessageText.PrintText(traceout.str().c_str(), scrollToTop, clear);
+              } else {
+	        DeriveCallStack(std::cout, dLoc, dLoc);
+	      }
 
 	    } else {
 	      buffout << "point = " << trueRegion[intersectedLevel].smallEnd() << '\n';
