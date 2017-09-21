@@ -1,8 +1,8 @@
 // ---------------------------------------------------------------
-// AVPApp.H
+// AVPApp.cpp
 // ---------------------------------------------------------------
+//#include <Xm/Xm.h>
 #include <algorithm>
-#include <Xm/Xm.h>
 #include <AVPApp.H>
 
 using namespace amrex;

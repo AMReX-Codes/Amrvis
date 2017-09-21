@@ -48,6 +48,8 @@ ifeq ($(USE_PROFPARSER), TRUE)
   TRACE_PROFILE = TRUE
 endif
 
+#DEFINES += -DAV_CGS_FIXSLNC
+
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
 
 EBASE = amrvis
@@ -77,16 +79,12 @@ ifneq ($(which_site), unknown)
   LIBRARIES += -lXm -lXt -lXext -lSM -lICE -lXpm -lX11
 
   ifeq ($(which_computer), edison)
-    # -lquadmath needed for GNU; not sure about other compilers
-    LIBRARIES += -lquadmath
     ifeq ($(USE_MPI), TRUE)
         LDFLAGS += -dynamic
     endif
   endif
 
   ifeq ($(which_computer), cori)
-    # -lquadmath needed for GNU; not sure about other compilers
-    LIBRARIES += -lquadmath
     ifeq ($(USE_MPI), TRUE)
         LDFLAGS += -dynamic
     endif

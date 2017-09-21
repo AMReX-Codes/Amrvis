@@ -4,6 +4,10 @@
 #ifndef _AVPAPP_H_
 #define _AVPAPP_H_
 
+#include <Xm/Xm.h>
+// ---- X defines Status, so undefine it so it does not step on mpi's Status
+#undef Status
+
 #include<string>
 #include <AMReX_DataServices.H>
 
