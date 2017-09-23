@@ -1734,7 +1734,7 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
   strcpy(sZ, "Z");
   
   if(bTimeline) {
-    XSetForeground(display, xgc, pltPaletteptr->makePixel(whiteColor));
+    XSetForeground(display, xgc, pltPaletteptr->makePixel(static_cast<unsigned char>(whiteColor)));
     int axisLengthX = 138;
     int axisLengthY = 32;
     int maLevel(pltAppState->MaxAllowableLevel());
@@ -3737,61 +3737,61 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  // data at click
 	  int y, intersectedLevel(-1);
 	  Box intersectedGrid;
-	  Array<Box> trueRegion(mal+1);
+	  Array<Box> trueRegionArray(mal+1);
 	  int plane(amrPicturePtrArray[V]->GetSlice());
 	  
-	  trueRegion[mal] = selectionBox;
+	  trueRegionArray[mal] = selectionBox;
 	  
 	  // convert to point box
-	  trueRegion[mal].setBig(Amrvis::XDIR, trueRegion[mal].smallEnd(Amrvis::XDIR));
+	  trueRegionArray[mal].setBig(Amrvis::XDIR, trueRegionArray[mal].smallEnd(Amrvis::XDIR));
 #if (BL_SPACEDIM != 1)
-	  trueRegion[mal].setBig(Amrvis::YDIR, trueRegion[mal].smallEnd(Amrvis::YDIR));
+	  trueRegionArray[mal].setBig(Amrvis::YDIR, trueRegionArray[mal].smallEnd(Amrvis::YDIR));
 #endif
 	  
 	  if(V == Amrvis::ZPLANE) {
-	    trueRegion[mal].shift(Amrvis::XDIR, ivLowOffsetMAL[Amrvis::XDIR]);
+	    trueRegionArray[mal].shift(Amrvis::XDIR, ivLowOffsetMAL[Amrvis::XDIR]);
 #if (BL_SPACEDIM != 1)
-	    trueRegion[mal].shift(Amrvis::YDIR, ivLowOffsetMAL[Amrvis::YDIR]);
+	    trueRegionArray[mal].shift(Amrvis::YDIR, ivLowOffsetMAL[Amrvis::YDIR]);
 #endif
 	    if(BL_SPACEDIM == 3) {
-	      trueRegion[mal].setSmall(Amrvis::ZDIR, plane);
-	      trueRegion[mal].setBig(Amrvis::ZDIR, plane);
+	      trueRegionArray[mal].setSmall(Amrvis::ZDIR, plane);
+	      trueRegionArray[mal].setBig(Amrvis::ZDIR, plane);
 	    }	
 	  }	
 	  if(V == Amrvis::YPLANE) {
-	    trueRegion[mal].setSmall(Amrvis::ZDIR, trueRegion[mal].smallEnd(Amrvis::YDIR));
-	    trueRegion[mal].setBig(Amrvis::ZDIR, trueRegion[mal].bigEnd(Amrvis::YDIR));
-	    trueRegion[mal].setSmall(Amrvis::YDIR, plane);
-	    trueRegion[mal].setBig(Amrvis::YDIR, plane);
-	    trueRegion[mal].shift(Amrvis::XDIR, ivLowOffsetMAL[Amrvis::XDIR]);
-	    trueRegion[mal].shift(Amrvis::ZDIR, ivLowOffsetMAL[Amrvis::ZDIR]);
+	    trueRegionArray[mal].setSmall(Amrvis::ZDIR, trueRegionArray[mal].smallEnd(Amrvis::YDIR));
+	    trueRegionArray[mal].setBig(Amrvis::ZDIR, trueRegionArray[mal].bigEnd(Amrvis::YDIR));
+	    trueRegionArray[mal].setSmall(Amrvis::YDIR, plane);
+	    trueRegionArray[mal].setBig(Amrvis::YDIR, plane);
+	    trueRegionArray[mal].shift(Amrvis::XDIR, ivLowOffsetMAL[Amrvis::XDIR]);
+	    trueRegionArray[mal].shift(Amrvis::ZDIR, ivLowOffsetMAL[Amrvis::ZDIR]);
 	  }
 	  if(V == Amrvis::XPLANE) {
-	    trueRegion[mal].setSmall(Amrvis::ZDIR, trueRegion[mal].smallEnd(Amrvis::YDIR));
-	    trueRegion[mal].setBig(Amrvis::ZDIR, trueRegion[mal].bigEnd(Amrvis::YDIR));
-	    trueRegion[mal].setSmall(Amrvis::YDIR, trueRegion[mal].smallEnd(Amrvis::XDIR));
-	    trueRegion[mal].setBig(Amrvis::YDIR, trueRegion[mal].bigEnd(Amrvis::XDIR));
-	    trueRegion[mal].setSmall(Amrvis::XDIR, plane);
-	    trueRegion[mal].setBig(Amrvis::XDIR, plane);
-	    trueRegion[mal].shift(Amrvis::YDIR, ivLowOffsetMAL[Amrvis::YDIR]);
-	    trueRegion[mal].shift(Amrvis::ZDIR, ivLowOffsetMAL[Amrvis::ZDIR]);
+	    trueRegionArray[mal].setSmall(Amrvis::ZDIR, trueRegionArray[mal].smallEnd(Amrvis::YDIR));
+	    trueRegionArray[mal].setBig(Amrvis::ZDIR, trueRegionArray[mal].bigEnd(Amrvis::YDIR));
+	    trueRegionArray[mal].setSmall(Amrvis::YDIR, trueRegionArray[mal].smallEnd(Amrvis::XDIR));
+	    trueRegionArray[mal].setBig(Amrvis::YDIR, trueRegionArray[mal].bigEnd(Amrvis::XDIR));
+	    trueRegionArray[mal].setSmall(Amrvis::XDIR, plane);
+	    trueRegionArray[mal].setBig(Amrvis::XDIR, plane);
+	    trueRegionArray[mal].shift(Amrvis::YDIR, ivLowOffsetMAL[Amrvis::YDIR]);
+	    trueRegionArray[mal].shift(Amrvis::ZDIR, ivLowOffsetMAL[Amrvis::ZDIR]);
 	  }
 	  
 	  for(y = mal - 1; y >= 0; --y) {
-	    trueRegion[y] = trueRegion[mal];
-	    trueRegion[y].coarsen(amrex::CRRBetweenLevels(y, mal,
+	    trueRegionArray[y] = trueRegionArray[mal];
+	    trueRegionArray[y].coarsen(amrex::CRRBetweenLevels(y, mal,
 	                          amrData.RefRatio()));
-	    trueRegion[y].setBig(Amrvis::XDIR, trueRegion[y].smallEnd(Amrvis::XDIR));
+	    trueRegionArray[y].setBig(Amrvis::XDIR, trueRegionArray[y].smallEnd(Amrvis::XDIR));
 #if (BL_SPACEDIM != 1)
-	    trueRegion[y].setBig(Amrvis::YDIR, trueRegion[y].smallEnd(Amrvis::YDIR));
+	    trueRegionArray[y].setBig(Amrvis::YDIR, trueRegionArray[y].smallEnd(Amrvis::YDIR));
 #endif
 	  }
 	  bool goodIntersect;
 	  Real dataValue;
 	  DataServices::Dispatch(DataServices::PointValueRequest,
 				 dataServicesPtr[currentFrame],
-				 trueRegion.size(),
-				 (void *) (trueRegion.dataPtr()),
+				 trueRegionArray.size(),
+				 (void *) (trueRegionArray.dataPtr()),
 				 (void *) &pltAppState->CurrentDerived(),
 				 minDrawnLevel, maxDrawnLevel,
 				 &intersectedLevel, &intersectedGrid,
@@ -3808,8 +3808,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  {
 	    DataServices::Dispatch(DataServices::PointValueRequest,
 				   dataServicesPtr[currentFrame],
-				   trueRegion.size(),
-				   (void *) (trueRegion.dataPtr()),
+				   trueRegionArray.size(),
+				   (void *) (trueRegionArray.dataPtr()),
 				   (void *) &vfDerived,
 				   minDrawnLevel, maxDrawnLevel,
 				   &intersectedLevel, &intersectedGrid,
@@ -3839,18 +3839,18 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	    buffout << '\n';
 	    buffout << "level = " << intersectedLevel << '\n';
 	    if(bTimeline) {
-	      buffout << "point = " << trueRegion[intersectedLevel].smallEnd() << '\n';
+	      buffout << "point = " << trueRegionArray[intersectedLevel].smallEnd() << '\n';
 	      idx = 0;
 	      buffout << "::::  amrData.Time() = " << amrData.Time() << std::endl;
 	      buffout << "::::  amrData.ProbDomain()[mal] = " << amrData.ProbDomain()[mal] << std::endl;
-	      dLoc = gridOffset[idx] + (0.5 + trueRegion[mal].smallEnd()[idx]) *
+	      dLoc = gridOffset[idx] + (0.5 + trueRegionArray[mal].smallEnd()[idx]) *
 		             amrData.DxLevel()[mal][idx];
 	      dLoc = amrData.Time() * dLoc / static_cast<Real>(amrData.ProbDomain()[mal].length(idx));
 	      char dLocStr[Amrvis::LINELENGTH];
 	      sprintf(dLocStr, pltAppState->GetFormatString().c_str(), dLoc);
 	      buffout << "time   = " << dLocStr << '\n';
 	      idx = 1;
-	      iLoc = gridOffset[idx] + trueRegion[mal].smallEnd()[idx];
+	      iLoc = gridOffset[idx] + trueRegionArray[mal].smallEnd()[idx];
 	      iLoc *= amrex::CRRBetweenLevels(maxDrawnLevel, amrData.FinestLevel(), amrData.RefRatio());
 	      buffout << "rank   = " << iLoc << '\n';
 
@@ -3868,7 +3868,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	      }
 
 	    } else {
-	      buffout << "point = " << trueRegion[intersectedLevel].smallEnd() << '\n';
+	      buffout << "point = " << trueRegionArray[intersectedLevel].smallEnd() << '\n';
 	      buffout << "grid  = " << intersectedGrid << '\n';
 	      buffout << "loc   = (";
 	      for(int idx = 0; idx != BL_SPACEDIM; ++idx) {
@@ -3876,7 +3876,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	          buffout << ", ";
 	        }
 	        double dLoc = gridOffset[idx] +
-		             (0.5 + trueRegion[mal].smallEnd()[idx]) *
+		             (0.5 + trueRegionArray[mal].smallEnd()[idx]) *
 		             amrData.DxLevel()[mal][idx];
 	        char dLocStr[Amrvis::LINELENGTH];
 	        sprintf(dLocStr, pltAppState->GetFormatString().c_str(), dLoc);
@@ -3956,6 +3956,41 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  
 	  for(int np(0); np < Amrvis::NPLANES; ++np) {
 	    amrPicturePtrArray[np]->DoExposePicture();
+	  }
+
+	  if(bTimeline) {    // ---- find the selected time range and show the call stack
+	    double dLocL, dLocH;
+	    Box trueRegion(selectionBox);
+	    trueRegion.shift(Amrvis::XDIR, ivLowOffsetMAL[Amrvis::XDIR]);
+	    trueRegion.shift(Amrvis::YDIR, ivLowOffsetMAL[Amrvis::YDIR]);
+
+	    if(bTimeline) {
+	      dLocL = gridOffset[Amrvis::XDIR] + (0.5 + trueRegion.smallEnd()[Amrvis::XDIR]) *
+		             amrData.DxLevel()[mal][Amrvis::XDIR];
+
+	      dLocL = amrData.Time() * dLocL /
+	                      static_cast<Real>(amrData.ProbDomain()[mal].length(Amrvis::XDIR));
+
+	      dLocH = gridOffset[Amrvis::XDIR] + (0.5 + trueRegion.bigEnd()[Amrvis::XDIR]) *
+		             amrData.DxLevel()[mal][Amrvis::XDIR];
+
+	      dLocH = amrData.Time() * dLocH /
+	                      static_cast<Real>(amrData.ProbDomain()[mal].length(Amrvis::XDIR));
+
+              if(callTraceShowing) {
+	        XtPopup(wCallTraceTopLevel, XtGrabNone);
+		XMapRaised(XtDisplay(wCallTraceTopLevel), XtWindow(wCallTraceTopLevel));
+	        std::ostringstream traceout;
+	        DeriveCallStack(traceout, dLocL, dLocH);
+		cMessageArea traceMessageText;
+                traceMessageText.Init(wCallTraceList);
+                bool scrollToTop(true), clear(true);
+                traceMessageText.PrintText(traceout.str().c_str(), scrollToTop, clear);
+              } else {
+	        DeriveCallStack(std::cout, dLocL, dLocH);
+	      }
+
+	    }
 	  }
 	}
 	return;
@@ -4884,7 +4919,7 @@ void PltApp::ShowFrame() {
 
 // -------------------------------------------------------------------
 string PltApp::GetMPIFName(Real r) {
-  int i(r);
+  int i(static_cast<int>(r));
   std::map<int, std::string>::iterator mfnIter = mpiFNames.find(i);
   if(mfnIter != mpiFNames.end()) {
     if(mfnIter->second == "NameTag") {
@@ -4904,7 +4939,7 @@ string PltApp::GetMPIFName(Real r) {
 
 // -------------------------------------------------------------------
 string PltApp::GetRegionName(Real r) {
-  int i(r);
+  int i(static_cast<int>(r));
   std::map<int, std::string>::iterator regIter = regNames.find(i);
   if(regIter != regNames.end()) {
     return(regIter->second);
