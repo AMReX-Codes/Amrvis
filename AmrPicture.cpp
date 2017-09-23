@@ -1089,6 +1089,18 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
             stencil[8] = vfracPoint[svidx];
           }
 
+#if (BL_SPACEDIM==3)
+	  bool allMixed(true);
+	  for(int ist(0); ist < 9; ++ist) {
+	    if( ! (stencil[ist] > vfeps && stencil[ist] < omvfe)) {
+	      allMixed = false;
+	    }
+	  }
+	  if(allMixed) {
+	    continue;
+	  }
+#endif
+
 #if (BL_SPACEDIM==2)
 #ifdef AV_CGS_FIXSLNC
           // fix for straight lines near corners
