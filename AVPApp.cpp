@@ -3,6 +3,7 @@
 // ---------------------------------------------------------------
 #include <algorithm>
 #include <AVPApp.H>
+#include <GlobalUtilities.H>
 
 using namespace amrex;
 
@@ -99,8 +100,10 @@ void AVPApp::DeriveCallStack(std::ostream &os, Real startTime, Real endTime)
   highB = std::upper_bound(cTLines.begin(), cTLines.end(), endTime,
                           [] (const Real &a, const CallTraceLine &b)
 			        { return a < b.callTime; });
-  int lowIndex(lowB - cTLines.begin());
-  int highIndex(highB - cTLines.begin());
+  long lowIndex(lowB - cTLines.begin());
+  long highIndex(highB - cTLines.begin());
+  lowIndex  = std::min(lowIndex,  cTLines.size() - 1);
+  highIndex = std::min(highIndex, cTLines.size() - 1);
   amrex::Print() << "_in DeriveCallStack:  startTime lowIndex highIndex = "
                  << startTime << "  " << lowIndex << "  " << highIndex << std::endl;
   amrex::Print() << "_in DeriveCallStack:  lowLine = "
