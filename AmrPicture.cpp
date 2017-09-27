@@ -1018,6 +1018,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 
     Array<Real> sumH(3, 0.0), sumV(3, 0.0);
     Array<Real> diffAvgV(3, 0.0), diffAvgH(3, 0.0);
+    Real smallValue(0.000001);
     Real avgV, avgH;
     Real normV, normH;
     int  isum, jsum, nStartV, nEndV, nStartH, nEndH, tempSum;
@@ -1104,30 +1105,30 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 #if (BL_SPACEDIM==2)
 #ifdef AV_CGS_FIXSLNC
           // fix for straight lines near corners
-          Real smallval(0.000001), flagValue(-2.0 * vfeps);
-          if(fabs(stencil[4] - stencil[3]) < smallval &&
-	     fabs(stencil[4] - stencil[5]) > smallval)
+          Real flagValue(-2.0 * vfeps);
+          if(fabs(stencil[4] - stencil[3]) < smallValue &&
+	     fabs(stencil[4] - stencil[5]) > smallValue)
 	  {
             stencil[2] = flagValue;
             stencil[5] = flagValue;
             stencil[8] = flagValue;
           }
-          if(fabs(stencil[4] - stencil[5]) < smallval &&
-	     fabs(stencil[4] - stencil[3]) > smallval)
+          if(fabs(stencil[4] - stencil[5]) < smallValue &&
+	     fabs(stencil[4] - stencil[3]) > smallValue)
 	  {
             stencil[0] = flagValue;
             stencil[3] = flagValue;
             stencil[6] = flagValue;
           }
-          if(fabs(stencil[4] - stencil[1]) < smallval &&
-	     fabs(stencil[4] - stencil[7]) > smallval)
+          if(fabs(stencil[4] - stencil[1]) < smallValue &&
+	     fabs(stencil[4] - stencil[7]) > smallValue)
 	  {
             stencil[6] = flagValue;
             stencil[7] = flagValue;
             stencil[8] = flagValue;
           }
-          if(fabs(stencil[4] - stencil[7]) < smallval &&
-	          fabs(stencil[4] - stencil[1]) > smallval)
+          if(fabs(stencil[4] - stencil[7]) < smallValue &&
+	          fabs(stencil[4] - stencil[1]) > smallValue)
 	  {
             stencil[0] = flagValue;
             stencil[1] = flagValue;
@@ -1143,16 +1144,16 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
           nEndV   = 2;
           nStartH = 0;
           nEndH   = 2;
-          if(stencil[0] < 0.0 && stencil[1] < 0.0 && stencil[2] < 0.0) {
+          if(stencil[0] < smallValue && stencil[1] < smallValue && stencil[2] < smallValue) {
             ++nStartH;
           }
-          if(stencil[0] < 0.0 && stencil[3] < 0.0 && stencil[6] < 0.0) {
+          if(stencil[0] < smallValue && stencil[3] < smallValue && stencil[6] < smallValue) {
             ++nStartV;
           }
-          if(stencil[2] < 0.0 && stencil[5] < 0.0 && stencil[8] < 0.0) {
+          if(stencil[2] < smallValue && stencil[5] < smallValue && stencil[8] < smallValue) {
             --nEndV;
           }
-          if(stencil[6] < 0.0 && stencil[7] < 0.0 && stencil[8] < 0.0) {
+          if(stencil[6] < smallValue && stencil[7] < smallValue && stencil[8] < smallValue) {
             --nEndH;
           }
 
@@ -1206,13 +1207,13 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
           for(ii = 0; ii < rrcs * rrcs; ++ii) {
             imageStencil[ii] = fluidCell;
           }
-          if(fabs(normV) > 0.000001) {
+          if(fabs(normV) > smallValue) {
             slope = normH/normV;  // perpendicular to normal
           } else {
             slope = normH;  // avoid divide by zero
           }
 
-          if(normV > 0.0 && normH > 0.0) {  // -------- upper right quadrant
+          if(normV > smallValue && normH > smallValue) {  // -------- upper right quadrant
             iCurrent = 0;
             jCurrent = 0;
             nCalcBodyCells = 0;
@@ -1243,7 +1244,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
               }
             }  // end while(...)
 
-          } else if(normV < 0.0 && normH < 0.0) {    // -------- lower left quadrant
+          } else if(normV < -smallValue && normH < -smallValue) {    // -------- lower left quadrant
             iCurrent = rrcs;
             jCurrent = rrcs;
             nCalcBodyCells = 0;
@@ -1272,7 +1273,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
               }
             }  // end while(...)
 
-          } else if(normV > 0.0 && normH < 0.0) {     // -------- upper left quadrant
+          } else if(normV > smallValue && normH < -smallValue) {     // -------- upper left quadrant
             iCurrent = rrcs;
             jCurrent = 0;
             nCalcBodyCells = 0;
@@ -1300,7 +1301,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
               }
             }  // end while(...)
 
-          } else if(normV < 0.0 && normH > 0.0) {     // -------- lower right quadrant
+          } else if(normV < -smallValue && normH > smallValue) {     // -------- lower right quadrant
             iCurrent = 0;
             jCurrent = rrcs;
             nCalcBodyCells = 0;
@@ -1329,8 +1330,8 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
               }
             }  // end while(...)
 
-          } else if(fabs(normV) < 0.000001) {  // -------- vertical face
-            if(normH > 0.0) {  // body is on the left edge of the cell
+          } else if(fabs(normV) < smallValue) {  // -------- vertical face
+            if(normH > smallValue) {  // body is on the left edge of the cell
               for(jj = 0; jj < rrcs; ++jj) {
                 for(ii = 0; ii < (nBodyCells / rrcs); ++ii) {
                   isIndex = ii + ((rrcs-(jj+1))*rrcs);
@@ -1346,8 +1347,8 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
               }
             }
 
-          } else if(fabs(normH) < 0.000001) {  // -------- horizontal face
-            if(normV > 0.0) {  // body is on the bottom edge of the cell
+          } else if(fabs(normH) < smallValue) {  // -------- horizontal face
+            if(normV > smallValue) {  // body is on the bottom edge of the cell
               for(jj = 0; jj < (nBodyCells / rrcs); ++jj) {
                 for(ii = 0; ii < rrcs; ++ii) {
                   isIndex = ii + ((rrcs - (jj + 1)) * rrcs);
