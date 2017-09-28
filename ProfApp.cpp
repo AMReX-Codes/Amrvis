@@ -710,9 +710,9 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   cout << "rpp.SubTimeRange = " << regionPicturePtr->SubTimeRange() << endl;
   cout << "rpp.CalcTimeRange = " << regionPicturePtr->CalcTimeRange() << endl;
   filterTimeRanges.resize(dataServicesPtr[0]->GetBLProfStats().GetNProcs());
-  for(int i(0); i < filterTimeRanges.size(); ++i) {
-    filterTimeRanges[i].push_back(regionPicturePtr->SubTimeRange());
-    cout << "FTR::  i STR = " << i << "  " << regionPicturePtr->SubTimeRange() << endl;
+  for(int iii(0); iii < filterTimeRanges.size(); ++iii) {
+    filterTimeRanges[iii].push_back(regionPicturePtr->SubTimeRange());
+    cout << "FTR::  iii STR = " << iii << "  " << regionPicturePtr->SubTimeRange() << endl;
   }
   //RegionsProfStats &regionsProfStats = dataServicesPtr[0]->GetRegionsProfStats();
   //regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
