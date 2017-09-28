@@ -335,7 +335,6 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   
   Array<FArrayBox *> dataFab(maxAllowableLevel + 1);
   for(i = 0; i <= maxAllowableLevel; ++i) {
-    //dataFab[i]->resize(datasetRegion[i], 1);
     dataFab[i] = new FArrayBox(datasetRegion[i], 1);
   }
   
@@ -355,6 +354,9 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   // find largest data width and count # of data strings 
   
   int largestWidth(0);
+  Real rMin, rMax, levMin, levMax;
+  rMin =  std::numeric_limits<Real>::max();
+  rMax = -std::numeric_limits<Real>::max();
   stringCount = 0;
   myStringCount = new int[maxAllowableLevel + 1];
   for(lev = 0; lev <= maxAllowableLevel; ++lev) {
@@ -364,6 +366,17 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
 			   (void *) &(dataFab[lev]->box()),
                            lev,
 			   (void *) &(pltAppStatePtr->CurrentDerived()));
+
+    bool minMaxValid;
+    DataServices::Dispatch(DataServices::MinMaxRequest, dataServicesPtr,
+			   (void *) &(dataFab[lev]->box()),
+			   (void *) &(pltAppStatePtr->CurrentDerived()),
+			   lev, &levMin, &levMax, &minMaxValid);
+
+    if(minMaxValid) {
+      rMin = min(rMin, levMin);
+      rMax = max(rMax, levMax);
+    }
 
     for(int iBox(0); iBox < amrData.boxArray(lev).size(); ++iBox) {
       boxTemp = amrData.boxArray(lev)[iBox];
@@ -419,13 +432,13 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
                 NULL);
   XmStringFree(sNewLevel);
   
-  sprintf(minInfoV, fstring, dataFab[maxDrawnLevel]->min());
+  sprintf(minInfoV, fstring, rMin);
   sprintf(minInfo, "Min:%s", minInfoV);
   XmString sNewMin = XmStringCreateSimple(minInfo);
   XtVaSetValues(wMinValue, XmNlabelString, sNewMin, NULL);
   XmStringFree(sNewMin);
 
-  sprintf(maxInfoV, fstring, dataFab[maxDrawnLevel]->max());
+  sprintf(maxInfoV, fstring, rMax);
   sprintf(maxInfo, "Max:%s", maxInfoV);
   XmString sNewMax = XmStringCreateSimple(maxInfo);
   XtVaSetValues(wMaxValue, XmNlabelString, sNewMax, NULL);
