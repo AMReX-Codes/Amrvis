@@ -127,13 +127,11 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   bFileRangeButtonSet = false;
 
-  int i;
-
   if(animating2d) {
     animFrames = AVGlobals::GetFileCount(); 
     BL_ASSERT(dataServicesPtr.size() == animFrames);
     fileNames.resize(animFrames);
-    for(i = 0; i < animFrames; ++i) {
+    for(int i(0); i < animFrames; ++i) {
       fileNames[i] = AVGlobals::GetComlineFilename(i); 
     }
   } else {
@@ -407,7 +405,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 					pltAppState->GetCGSmoothing());
 #endif
 
-  for(i = 0; i != BL_SPACEDIM; ++i) {
+  for(int i(0); i != BL_SPACEDIM; ++i) {
     ivLowOffsetMAL.setVal(i, amrData.ProbDomain()[maxlev].smallEnd(i));
   }
 
@@ -1037,7 +1035,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   if(amrData.CartGrid()) {
     // cart grid smoothing
     label_str = XmStringCreateSimple(const_cast<char *>("s"));
-    wid = XtVaCreateManagedWidget("smooth",
+    wid = XtVaCreateManagedWidget("CG Smooth",
 				  xmToggleButtonGadgetClass, wMenuPulldown,
 				  XmNmnemonic, 'S',
 				  XmNset, pltAppState->GetCGSmoothing(),
@@ -1046,6 +1044,20 @@ void PltApp::PltAppInit(bool bSubVolume) {
 				  NULL);
     XmStringFree(label_str);
     AddStaticCallback(wid, XmNvalueChangedCallback, &PltApp::DoCGSmoothing);
+
+    label_str = XmStringCreateSimple(const_cast<char *>("Alt+b"));
+    wid = XtVaCreateManagedWidget("Show Body",
+				  xmToggleButtonGadgetClass, wMenuPulldown,
+				  XmNmnemonic, 'B',
+				  XmNset, AVGlobals::GetShowBody(),
+				  XmNaccelerator, "Alt<Key>b",
+				  XmNacceleratorText, label_str,
+				  NULL);
+    XmStringFree(label_str);
+    AddStaticCallback(wid, XmNvalueChangedCallback, &PltApp::DoCGShowBody);
+    unsigned long numberOfDerived(dataServicesPtr[currentFrame]->NumDeriveFunc());
+    AddStaticCallback(wid, XmNvalueChangedCallback, &PltApp::ChangeDerived,
+		      (XtPointer) numberOfDerived);
   }
 
   // ------------------------------- derived menu
@@ -1949,9 +1961,17 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
     }
     return;
   }
-  XtVaSetValues(wCurrDerived, XmNset, false, NULL);
-  wCurrDerived = w;
   unsigned long derivedNumber = (unsigned long) client_data;
+  int numberOfDerived(dataServicesPtr[currentFrame]->NumDeriveFunc());
+  bool resetMinMax(false);
+  if(derivedNumber == numberOfDerived) {  // ---- this is a flag for resetting current derived
+    XtVaSetValues(w, XmNset, true, NULL);
+    derivedNumber = pltAppState->CurrentDerivedNumber();
+    resetMinMax = true;
+  } else {
+    XtVaSetValues(wCurrDerived, XmNset, false, NULL);
+    wCurrDerived = w;
+  }
   string derivedName = dataServicesPtr[currentFrame]->PlotVarNames()[derivedNumber];
   pltAppState->SetCurrentDerived(derivedName, derivedNumber);
 
@@ -1988,11 +2008,11 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
     // set FILEGLOBALMINMAX  dont reset if already set
     FindAndSetMinMax(Amrvis::FILEGLOBALMINMAX, iFrame, asCDer, iCDerNum, onBox,
 	             //levelZero, pltAppState->FinestLevel(), false);
-	             levelZero, amrData.FinestLevel(), false);
+	             levelZero, amrData.FinestLevel(), resetMinMax);
 
     // set FILESUBREGIONMINMAX  dont reset if already set
     FindAndSetMinMax(Amrvis::FILESUBREGIONMINMAX, iFrame, asCDer, iCDerNum, onSubregionBox,
-	             coarseLevel, fineLevel, false);
+	             coarseLevel, fineLevel, resetMinMax);
 
     // collect file values
     Real rTempMin, rTempMax;
@@ -3329,6 +3349,22 @@ void PltApp::DoCGSmoothing(Widget, XtPointer, XtPointer) {
   int currentScale(pltAppState->CurrentScale());
   for(int np(0); np < Amrvis::NPLANES; ++np) {
     amrPicturePtrArray[np]->SetCartGridSmoothing(pltAppState->GetCGSmoothing());
+    amrPicturePtrArray[np]->APChangeScale(currentScale, currentScale);
+  }
+}
+
+
+// -------------------------------------------------------------------
+void PltApp::DoCGShowBody(Widget, XtPointer, XtPointer) {
+  if(animating2d) {
+    ResetAnimation();
+    DirtyFrames(); 
+  }
+  AVGlobals::SetShowBody( ! AVGlobals::GetShowBody());
+  AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
+  amrData.SetShowBody(AVGlobals::GetShowBody());
+  int currentScale(pltAppState->CurrentScale());
+  for(int np(0); np < Amrvis::NPLANES; ++np) {
     amrPicturePtrArray[np]->APChangeScale(currentScale, currentScale);
   }
 }
@@ -4863,10 +4899,10 @@ void PltApp::ShowFrame() {
   }
 
 
-  string fileName(AVGlobals::StripSlashes(fileNames[currentFrame]));
+  string shortFileName(AVGlobals::StripSlashes(fileNames[currentFrame]));
 
   XmString xmFileString =
-      XmStringCreateSimple(const_cast<char *>(fileName.c_str()));
+      XmStringCreateSimple(const_cast<char *>(shortFileName.c_str()));
   XtVaSetValues(wWhichFileLabel, XmNlabelString, xmFileString, NULL);
   XmStringFree(xmFileString);
   
@@ -4879,7 +4915,7 @@ void PltApp::ShowFrame() {
 
 
   std::ostringstream headerout;
-  headerout << fileName << "  " << tempTimeOut.str() << "  " << headerSuffix;
+  headerout << shortFileName << "  " << tempTimeOut.str() << "  " << headerSuffix;
   XtVaSetValues(wAmrVisTopLevel,
                 XmNtitle, const_cast<char *>(headerout.str().c_str()),
 		NULL);
