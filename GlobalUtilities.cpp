@@ -529,70 +529,19 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
 void PrintUsage(char *exname) {
  if(ParallelDescriptor::IOProcessor()) {
   cout << '\n';
-  cout << exname << " [-help]" << '\n';
-  cout << "       [<file type flag>] [-v]" << '\n';
-  //cout << "       [-bw n] " << '\n';
-  cout << "       [-maxpixmapsize <max picture size in # of pixels>]" << '\n';
-  cout << "       [-xslice n] [-yslice n] [-zslice n] [-sliceallvars]" << '\n';
-# if (BL_SPACEDIM != 3)
-  cout << "       [-boxslice xlo ylo xhi yhi]" << '\n';
-  cout << "       [-a]" << '\n';
-  cout << "       [-setvelnames xname yname]" << '\n';
-  cout << "       [-setmomnames xname yname]" << '\n';
-# else
-  cout << "       [-boxslice xlo ylo zlo xhi yhi zhi]" << '\n';
-  cout << "       [-setvelnames xname yname zname]" << '\n';
-  cout << "       [-setmomnames xname yname zname]" << '\n';
-#endif
-  cout << "       [-fabiosize nbits]" << '\n';
-  cout << "       [-maxlev n]" << '\n';
-  cout << "       [-palette palname] [-initialderived dername]" << '\n';
-  cout << "       [-lightingfile name] [-maxmenuitems n]" << '\n';
-  cout << "       [-initialscale n] [-showboxes tf] [-numberformat fmt]" << '\n';
-  cout << "       [-lowblack] [-showbody tf]" << '\n';
-#ifdef BL_OPTIO
-  cout << "       [-useperstreams tf]" << '\n';
-#endif
-  cout << "       [-cliptoppalette]" << '\n';
-  cout << "       [-fixdenormals]" << '\n';
-  cout << "       [-ppm] [-rgb]" << '\n';
-#if (BL_SPACEDIM == 3)
-#ifdef BL_VOLUMERENDER
-    cout << "       [-boxcolor n]" << '\n';
-    cout << "       [-makeswf_light]" << '\n';
-    cout << "       [-makeswf_value]" << '\n';
-    cout << "       [-valuemodel]" << '\n';
-#endif
-    cout << "       [-initplanes xp yp zp]" << '\n';
-#endif
-  cout << "       [-useminmax min max]" << '\n';
-  cout << "       [<filename(s)>]" << '\n';
+  cout << exname << " [<options>]  [<filename(s)>]" << '\n';
   cout << '\n';
 
 
-
-  cout << "  file type flags:   -fab [-fb], -multifab [-mf], -profdata, -newplt (-newplt is the default)" << '\n';
+  cout << "  -help              print help and exit." << '\n'; 
+  cout << "  file type flags:   -fab [-fb], -multifab [-mf], -profdata, -newplt (default)" << '\n';
   cout << "  -v                 verbose." << '\n'; 
-  //cout << "  -bw n              specify maximum boundary width." << '\n'; 
   cout << "  -maxpixmapsize n   specify maximum allowed picture size in pixels."
        << '\n';
   cout << "  -subdomain _box_   specify subdomain box (on finest level)." << '\n';
   cout << "                     _box_ format:  lox loy loz hix hiy hiz." << '\n';
   cout << "  -skippltlines n    skip n lines at head of the plt file." << '\n'; 
   cout << "  -boxcolor n        set volumetric box color value [0,255]." << '\n'; 
-  cout << "  -xslice n          write a fab slice at x = n (n at the finest level)."
-       << '\n'; 
-  cout << "  -yslice n          write a fab slice at y = n (n at the finest level)."
-       << '\n'; 
-  cout << "  -zslice n          write a fab slice at z = n (n at the finest level)."
-       << '\n'; 
-  cout << "  -sliceallvars      write all fab variables instead of just initialderived."
-       << '\n'; 
-  cout << "  -boxslice _box_    write a fab on the box (box at the finest level)."
-       << '\n'; 
-  cout << "                     _box_ format:  lox loy loz hix hiy hiz." << '\n';
-  cout << "                     example:  -boxslice 0 0 0 120 42 200." << '\n';
-  cout << "                     Note:  slices are written in batch mode." << '\n';
 #if(BL_SPACEDIM != 3)
   cout << "  -a                 load files as an animation." << '\n'; 
   cout << "  -aa                load files as an animation with annotations." << '\n'; 
@@ -622,29 +571,45 @@ void PrintUsage(char *exname) {
   cout << "  -fixdenormals      always fix denormals when reading fabs." << '\n';
   cout << "  -ppm               output rasters using PPM file format." << '\n';
   cout << "  -rgb               output rasters using RGB file format." << '\n';
+  cout << "  -useminmax min max       use min and max as the global min max values" << '\n';
+
+#ifdef BL_VOLUMERENDER
+  cout << "  -valuemodel        start with the value model for rendering." << '\n';
+#endif
 #if (BL_SPACEDIM == 3)
+  cout << "  -initplanes xp yp zp     set initial planes" << '\n';
+#endif
+
+  cout << '\n';
+  cout << "-------------------------------------------------------- batch functions" << '\n';
+  cout << "  -xslice n          write a fab slice at x = n (n at the finest level)." << '\n'; 
+  cout << "  -yslice n          write a fab slice at y = n (n at the finest level)." << '\n'; 
+  cout << "  -zslice n          write a fab slice at z = n (n at the finest level)." << '\n'; 
+  cout << "  -sliceallvars      write all fab variables instead of just initialderived." << '\n'; 
+  cout << "  -boxslice _box_    write a fab on the box (box at the finest level)." << '\n'; 
+  cout << "                     _box_ format:  lox loy (loz) hix hiy (hiz)." << '\n';
+  cout << "                     example:  -boxslice 0 0 0 120 42 200." << '\n';
 #ifdef BL_VOLUMERENDER
   cout << "  -makeswf_light     make volume rendering data using the" << '\n';
   cout << "                     current transfer function and write data" << '\n';
   cout << "                     to a file, using the lighting model." << '\n'
        << "                     note:  works in batch mode." << '\n';
   cout << "  -makeswf_value     same as above, with value model rendering." << '\n';
-  cout << "  -valuemodel        start with the value model for rendering." << '\n';
 #endif
-  cout << "  -initplanes xp yp zp     set initial planes" << '\n';
-#endif
-  cout << "  -useminmax min max       use min and max as the global min max values" << '\n';
-  cout << "  <filename(s)>      must be included if box is specified." << '\n';
+  cout << "------------------------------------------------------------------------" << '\n';
+
   cout << '\n';
- }
 
 #ifdef BL_USE_PROFPARSER
   cout << "----------------------------------------- amrproparser functions" << '\n';
   PrintProfParserBatchUsage(cout);
   cout << "----------------------------------------------------------------" << '\n';
 #endif
+
+  cout << "  <filename(s)>      must be included if box is specified." << '\n';
   cout << endl;
 
+ }
 
   exit(0);
 }
