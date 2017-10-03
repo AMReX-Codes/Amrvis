@@ -64,7 +64,6 @@ namespace AVGlobals {
   bool UseSpecifiedMinMax();
   void SetSpecifiedMinMax(Real  specifiedmin, Real  specifiedmax);
   void GetSpecifiedMinMax(Real &specifiedmin, Real &specifiedmax);
-//  int CRRBetweenLevels(int fromlevel, int tolevel, const amrex::Array<int> &refratios);
   int DetermineMaxAllowableLevel(const amrex::Box &finebox, int finestlevel,
 			         int maxpoints, const amrex::Array<int> &refratios);
 
@@ -88,6 +87,7 @@ namespace AVGlobals {
   int  GetFabOutFormat();
   bool GivenInitialPlanes();
   amrex::IntVect GetInitialPlanes();
+  bool IsProfDirName(const std::string &pdname);
 
   // -------------------- cartGrid functions
   void SetShowBody(const bool btf);

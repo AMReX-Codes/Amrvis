@@ -18,6 +18,8 @@ using std::max;
 #include <PltApp.H>
 #include <AMReX_ParallelDescriptor.H>
 
+extern void PrintProfParserBatchUsage(std::ostream &os);
+
 using namespace amrex;
 
 const int DEFAULTMAXPICTURESIZE = 600000;
@@ -526,115 +528,123 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
 // -------------------------------------------------------------------
 void PrintUsage(char *exname) {
  if(ParallelDescriptor::IOProcessor()) {
-  cout << endl;
-  cout << exname << " [-help]" << endl;
-  cout << "       [<file type flag>] [-v]" << endl;
-  //cout << "       [-bw n] " << endl;
-  cout << "       [-maxpixmapsize <max picture size in # of pixels>]" << endl;
-  cout << "       [-xslice n] [-yslice n] [-zslice n] [-sliceallvars]" << endl;
+  cout << '\n';
+  cout << exname << " [-help]" << '\n';
+  cout << "       [<file type flag>] [-v]" << '\n';
+  //cout << "       [-bw n] " << '\n';
+  cout << "       [-maxpixmapsize <max picture size in # of pixels>]" << '\n';
+  cout << "       [-xslice n] [-yslice n] [-zslice n] [-sliceallvars]" << '\n';
 # if (BL_SPACEDIM != 3)
-  cout << "       [-boxslice xlo ylo xhi yhi]" << endl;
-  cout << "       [-a]" << endl;
-  cout << "       [-setvelnames xname yname]" << endl;
-  cout << "       [-setmomnames xname yname]" << endl;
+  cout << "       [-boxslice xlo ylo xhi yhi]" << '\n';
+  cout << "       [-a]" << '\n';
+  cout << "       [-setvelnames xname yname]" << '\n';
+  cout << "       [-setmomnames xname yname]" << '\n';
 # else
-  cout << "       [-boxslice xlo ylo zlo xhi yhi zhi]" << endl;
-  cout << "       [-setvelnames xname yname zname]" << endl;
-  cout << "       [-setmomnames xname yname zname]" << endl;
+  cout << "       [-boxslice xlo ylo zlo xhi yhi zhi]" << '\n';
+  cout << "       [-setvelnames xname yname zname]" << '\n';
+  cout << "       [-setmomnames xname yname zname]" << '\n';
 #endif
-  cout << "       [-fabiosize nbits]" << endl;
-  cout << "       [-maxlev n]" << endl;
-  cout << "       [-palette palname] [-initialderived dername]" << endl;
-  cout << "       [-lightingfile name] [-maxmenuitems n]" << endl;
-  cout << "       [-initialscale n] [-showboxes tf] [-numberformat fmt]" << endl;
-  cout << "       [-lowblack] [-showbody tf]" << endl;
+  cout << "       [-fabiosize nbits]" << '\n';
+  cout << "       [-maxlev n]" << '\n';
+  cout << "       [-palette palname] [-initialderived dername]" << '\n';
+  cout << "       [-lightingfile name] [-maxmenuitems n]" << '\n';
+  cout << "       [-initialscale n] [-showboxes tf] [-numberformat fmt]" << '\n';
+  cout << "       [-lowblack] [-showbody tf]" << '\n';
 #ifdef BL_OPTIO
-  cout << "       [-useperstreams tf]" << endl;
+  cout << "       [-useperstreams tf]" << '\n';
 #endif
-  cout << "       [-cliptoppalette]" << endl;
-  cout << "       [-fixdenormals]" << endl;
-  cout << "       [-ppm] [-rgb]" << endl;
+  cout << "       [-cliptoppalette]" << '\n';
+  cout << "       [-fixdenormals]" << '\n';
+  cout << "       [-ppm] [-rgb]" << '\n';
 #if (BL_SPACEDIM == 3)
 #ifdef BL_VOLUMERENDER
-    cout << "       [-boxcolor n]" << endl;
-    cout << "       [-makeswf_light]" << endl;
-    cout << "       [-makeswf_value]" << endl;
-    cout << "       [-valuemodel]" << endl;
+    cout << "       [-boxcolor n]" << '\n';
+    cout << "       [-makeswf_light]" << '\n';
+    cout << "       [-makeswf_value]" << '\n';
+    cout << "       [-valuemodel]" << '\n';
 #endif
-    cout << "       [-initplanes xp yp zp]" << endl;
+    cout << "       [-initplanes xp yp zp]" << '\n';
 #endif
-  cout << "       [-useminmax min max]" << endl;
-  cout << "       [<filename(s)>]" << endl;
-  cout << endl;
+  cout << "       [-useminmax min max]" << '\n';
+  cout << "       [<filename(s)>]" << '\n';
+  cout << '\n';
 
 
 
-  cout << "  file type flags:   -fab [-fb], -multifab [-mf], -profdata, -newplt (-newplt is the default)" << endl;
-  cout << "  -v                 verbose." << endl; 
-  //cout << "  -bw n              specify maximum boundary width." << endl; 
+  cout << "  file type flags:   -fab [-fb], -multifab [-mf], -profdata, -newplt (-newplt is the default)" << '\n';
+  cout << "  -v                 verbose." << '\n'; 
+  //cout << "  -bw n              specify maximum boundary width." << '\n'; 
   cout << "  -maxpixmapsize n   specify maximum allowed picture size in pixels."
-       << endl;
-  cout << "  -subdomain _box_   specify subdomain box (on finest level)." << endl;
-  cout << "                     _box_ format:  lox loy loz hix hiy hiz." << endl;
-  cout << "  -skippltlines n    skip n lines at head of the plt file." << endl; 
-  cout << "  -boxcolor n        set volumetric box color value [0,255]." << endl; 
+       << '\n';
+  cout << "  -subdomain _box_   specify subdomain box (on finest level)." << '\n';
+  cout << "                     _box_ format:  lox loy loz hix hiy hiz." << '\n';
+  cout << "  -skippltlines n    skip n lines at head of the plt file." << '\n'; 
+  cout << "  -boxcolor n        set volumetric box color value [0,255]." << '\n'; 
   cout << "  -xslice n          write a fab slice at x = n (n at the finest level)."
-       << endl; 
+       << '\n'; 
   cout << "  -yslice n          write a fab slice at y = n (n at the finest level)."
-       << endl; 
+       << '\n'; 
   cout << "  -zslice n          write a fab slice at z = n (n at the finest level)."
-       << endl; 
+       << '\n'; 
   cout << "  -sliceallvars      write all fab variables instead of just initialderived."
-       << endl; 
+       << '\n'; 
   cout << "  -boxslice _box_    write a fab on the box (box at the finest level)."
-       << endl; 
-  cout << "                     _box_ format:  lox loy loz hix hiy hiz." << endl;
-  cout << "                     example:  -boxslice 0 0 0 120 42 200." << endl;
-  cout << "                     Note:  slices are written in batch mode." << endl;
+       << '\n'; 
+  cout << "                     _box_ format:  lox loy loz hix hiy hiz." << '\n';
+  cout << "                     example:  -boxslice 0 0 0 120 42 200." << '\n';
+  cout << "                     Note:  slices are written in batch mode." << '\n';
 #if(BL_SPACEDIM != 3)
-  cout << "  -a                 load files as an animation." << endl; 
-  cout << "  -aa                load files as an animation with annotations." << endl; 
-  cout << "  -anc               load files as an animation, dont cache frames." << endl; 
+  cout << "  -a                 load files as an animation." << '\n'; 
+  cout << "  -aa                load files as an animation with annotations." << '\n'; 
+  cout << "  -anc               load files as an animation, dont cache frames." << '\n'; 
 #endif
-  //cout << "  -sleep  n          specify sleep time (for attaching parallel debuggers)." << endl;
-  cout << "  -setvelnames xname yname (zname)   specify velocity names for" << endl;
-  cout << "                                     drawing vector plots." << endl;
-  cout << "  -setmomnames xname yname (zname)   specify momentum names for" << endl;
-  cout << "                                     drawing vector plots." << endl;
-  cout << "  -fabiosize nbits   write fabs with nbits (valid values are 1 (ascii), 8 or 32." << endl;
-  cout << "                     the default is native (usually 64)." << endl;
-  cout << "  -maxlev n          specify the maximum drawn level." << endl;
-  cout << "  -palette palname   set the initial palette." << endl; 
-  cout << "  -lightingfile name set the initial lighting parameter file." << endl; 
-  cout << "  -maxmenuitems n    set the max menu items per column to n." << endl; 
-  cout << "  -initialderived dername   set the initial derived to dername." << endl; 
-  cout << "  -initialscale n    set the initial scale to n." << endl; 
-  cout << "  -showboxes tf      show boxes (the value of tf is true or false)." << endl; 
-  cout << "  -showbody tf       show cartGrid body as body cells (def is true)." << endl; 
-  cout << "  -numberformat fmt  set the initial format to fmt (ex:  %4.2f)." << endl; 
-  cout << "  -lowblack          sets the lowest color in the palette to black." << endl;
+  //cout << "  -sleep  n          specify sleep time (for attaching parallel debuggers)." << '\n';
+  cout << "  -setvelnames xname yname (zname)   specify velocity names for" << '\n';
+  cout << "                                     drawing vector plots." << '\n';
+  cout << "  -setmomnames xname yname (zname)   specify momentum names for" << '\n';
+  cout << "                                     drawing vector plots." << '\n';
+  cout << "  -fabiosize nbits   write fabs with nbits (valid values are 1 (ascii), 8 or 32." << '\n';
+  cout << "                     the default is native (usually 64)." << '\n';
+  cout << "  -maxlev n          specify the maximum drawn level." << '\n';
+  cout << "  -palette palname   set the initial palette." << '\n'; 
+  cout << "  -lightingfile name set the initial lighting parameter file." << '\n'; 
+  cout << "  -maxmenuitems n    set the max menu items per column to n." << '\n'; 
+  cout << "  -initialderived dername   set the initial derived to dername." << '\n'; 
+  cout << "  -initialscale n    set the initial scale to n." << '\n'; 
+  cout << "  -showboxes tf      show boxes (the value of tf is true or false)." << '\n'; 
+  cout << "  -showbody tf       show cartGrid body as body cells (def is true)." << '\n'; 
+  cout << "  -numberformat fmt  set the initial format to fmt (ex:  %4.2f)." << '\n'; 
+  cout << "  -lowblack          sets the lowest color in the palette to black." << '\n';
 #ifdef BL_OPTIO
-  cout << "  -useperstreams tf  use vismf persistent streams." << endl;
+  cout << "  -useperstreams tf  use vismf persistent streams." << '\n';
 #endif
-  cout << "  -cliptoppalette    do not use the top palette index (for exceed)." << endl;
-  cout << "  -fixdenormals      always fix denormals when reading fabs." << endl;
-  cout << "  -ppm               output rasters using PPM file format." << endl;
-  cout << "  -rgb               output rasters using RGB file format." << endl;
+  cout << "  -cliptoppalette    do not use the top palette index (for exceed)." << '\n';
+  cout << "  -fixdenormals      always fix denormals when reading fabs." << '\n';
+  cout << "  -ppm               output rasters using PPM file format." << '\n';
+  cout << "  -rgb               output rasters using RGB file format." << '\n';
 #if (BL_SPACEDIM == 3)
 #ifdef BL_VOLUMERENDER
-  cout << "  -makeswf_light     make volume rendering data using the" << endl;
-  cout << "                     current transfer function and write data" << endl;
-  cout << "                     to a file, using the lighting model." << endl
-       << "                     note:  works in batch mode." << endl;
-  cout << "  -makeswf_value     same as above, with value model rendering." << endl;
-  cout << "  -valuemodel        start with the value model for rendering." << endl;
+  cout << "  -makeswf_light     make volume rendering data using the" << '\n';
+  cout << "                     current transfer function and write data" << '\n';
+  cout << "                     to a file, using the lighting model." << '\n'
+       << "                     note:  works in batch mode." << '\n';
+  cout << "  -makeswf_value     same as above, with value model rendering." << '\n';
+  cout << "  -valuemodel        start with the value model for rendering." << '\n';
 #endif
-  cout << "  -initplanes xp yp zp     set initial planes" << endl;
+  cout << "  -initplanes xp yp zp     set initial planes" << '\n';
 #endif
-  cout << "  -useminmax min max       use min and max as the global min max values" << endl;
-  cout << "  <filename(s)>      must be included if box is specified." << endl;
-  cout << endl;
+  cout << "  -useminmax min max       use min and max as the global min max values" << '\n';
+  cout << "  <filename(s)>      must be included if box is specified." << '\n';
+  cout << '\n';
  }
+
+#ifdef BL_USE_PROFPARSER
+  cout << "----------------------------------------- amrproparser functions" << '\n';
+  PrintProfParserBatchUsage(cout);
+  cout << "----------------------------------------------------------------" << '\n';
+#endif
+  cout << endl;
+
 
   exit(0);
 }
@@ -1042,8 +1052,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
 	    }
 #ifdef BL_USE_PROFPARSER
 	    {
-	      std::size_t found(comlinefilename[fileCount].find("bl_prof", 0));
-	      if(found != std::string::npos) {
+	      if(IsProfDirName(comlinefilename[fileCount])) {
 	        fileType = Amrvis::PROFDATA;
                 if(ParallelDescriptor::IOProcessor()) {
 		  cout << "Setting fileType to Amrvis::PROFDATA." << endl;
@@ -1297,6 +1306,13 @@ string AVGlobals::StripSlashes(const string &inString) {
   sTemp = inString.substr(startString, (endString - startString + 1));
 
   return sTemp;
+}
+
+
+// -------------------------------------------------------------------
+bool AVGlobals::IsProfDirName(const string &pdname) {
+  std::size_t found(pdname.find("bl_prof", 0));
+  return(found != std::string::npos);
 }
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
