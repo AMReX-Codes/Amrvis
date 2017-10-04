@@ -276,7 +276,6 @@ void VolRender::MakeSWFData(amrex::DataServices *dataServicesPtr,
     
     int gcolsgrowstmp(gcols * grows);
     int gpgcgrtmp, gcgrowstmp;
-    int gprev;
     for(int gp(gostartp); gp <= goendp; ++gp) {
       gpgcgrtmp = gp * gcolsgrowstmp;
       for(int gc(gostartc); gc <= goendc; ++gc) {
@@ -288,7 +287,7 @@ void VolRender::MakeSWFData(amrex::DataServices *dataServicesPtr,
           dat = min(dat,gmax);
           chardat = (char) (((dat - gmin) * oneOverGDiff) * cSlotsAvail);
           chardat += (char) iPaletteStart;
-	  gprev = gostartp + goendp - gp;
+	  int gprev = gostartp + goendp - gp;
           sindexbase =
             //(((gp + gstartp) - sstartp) * scolssrowstmp) +
             (((gprev + gstartp) - sstartp) * scolssrowstmp) +
@@ -321,21 +320,20 @@ void VolRender::MakeSWFData(amrex::DataServices *dataServicesPtr,
 	  //gbox.growHi(Amrvis::YDIR, 1);
 	  //gbox.growHi(Amrvis::ZDIR, 1);
 	  //
-          Box goverlap(gbox & drawnDomain[lev]);
-          grefbox = goverlap;
+          Box goverlapdd(gbox & drawnDomain[lev]);
+          grefbox = goverlapdd;
           grefbox.refine(crr);
 
-	  int gprev;
           int gstartr(gbox.smallEnd(Amrvis::XDIR));
           int gstartc(gbox.smallEnd(Amrvis::YDIR));
           int gstartp(gbox.smallEnd(Amrvis::ZDIR));
 
-          int gostartr(goverlap.smallEnd(Amrvis::XDIR) - gstartr);
-          int gostartc(goverlap.smallEnd(Amrvis::YDIR) - gstartc);
-          int gostartp(goverlap.smallEnd(Amrvis::ZDIR) - gstartp);
-          int goendr(goverlap.bigEnd(Amrvis::XDIR)   - gstartr);
-          int goendc(goverlap.bigEnd(Amrvis::YDIR)   - gstartc);
-          int goendp(goverlap.bigEnd(Amrvis::ZDIR)   - gstartp);
+          int gostartr(goverlapdd.smallEnd(Amrvis::XDIR) - gstartr);
+          int gostartc(goverlapdd.smallEnd(Amrvis::YDIR) - gstartc);
+          int gostartp(goverlapdd.smallEnd(Amrvis::ZDIR) - gstartp);
+          int goendr(goverlapdd.bigEnd(Amrvis::XDIR)   - gstartr);
+          int goendc(goverlapdd.bigEnd(Amrvis::YDIR)   - gstartc);
+          int goendp(goverlapdd.bigEnd(Amrvis::ZDIR)   - gstartp);
 
           grows = gbox.length(Amrvis::XDIR);
           gcols = gbox.length(Amrvis::YDIR);
@@ -345,7 +343,7 @@ void VolRender::MakeSWFData(amrex::DataServices *dataServicesPtr,
 	  int ddsez(drawnDomain[lev].smallEnd(Amrvis::ZDIR));
 	  int ddbez(drawnDomain[lev].bigEnd(Amrvis::ZDIR));
           for(gp = gostartp; gp <= goendp; ++gp) {
-            gprev = ddsez + ddbez - (gp + gstartp);
+            int gprev = ddsez + ddbez - (gp + gstartp);
 	    if(gp == gostartp || gp == goendp) {
               edgep = 1;
 	    } else {
@@ -409,7 +407,7 @@ void VolRender::MakeSWFData(amrex::DataServices *dataServicesPtr,
 	  int ddsez(drawnDomain[lev].smallEnd(Amrvis::ZDIR));
 	  int ddbez(drawnDomain[lev].bigEnd(Amrvis::ZDIR));
           for(gp = gostartp; gp <= goendp; ++gp) {
-            gprev = ddsez + ddbez - (gp + gstartp);
+            int gprev = ddsez + ddbez - (gp + gstartp);
 	    if(gp == gostartp || gp == goendp) {
               edgep = 1;
 	    } else {
@@ -613,7 +611,6 @@ void VolRender::MakeSWFData(amrex::DataServices *dataServicesPtr,
     
       int gcolsgrowstmp(gcols * grows);
       int gpgcgrtmp, gcgrowstmp;
-      int gprev;
       for(int gp(gostartp); gp <= goendp; ++gp) {
         gpgcgrtmp = gp*gcolsgrowstmp;
         for(int gc(gostartc); gc <= goendc; ++gc) {
@@ -621,7 +618,7 @@ void VolRender::MakeSWFData(amrex::DataServices *dataServicesPtr,
           for(int gr(gostartr); gr <= goendr; ++gr) {
             //dat = dataPoint[(gp*gcols*grows)+(gc*grows)+gr];  // works
             if(dataPoint[gcgrowstmp + gr] < vfeps) {  // body
-	      gprev = gostartp + goendp - gp;
+	      int gprev = gostartp + goendp - gp;
               sindexbase =
                 (((gprev+gstartp)-sstartp) * scolssrowstmp) +
                 ((sendc-((gc+gstartc))) * srows) +  // check this

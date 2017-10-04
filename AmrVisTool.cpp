@@ -49,11 +49,13 @@ using namespace amrex;
 
 const int OPENITEM = 0;
 const int QUITITEM = 1;
-//const int SETITEM  = 0;
-//const int HELPITEM = 0;
 
 void CreateMainWindow(int argc, char *argv[]);
 void BatchFunctions();
+extern void PrintProfParserBatchUsage(std::ostream &os);
+extern bool ProfParserBatchFunctions(int argc, char *argv[], bool runDefault,
+                                     bool &bParserProf);
+
 
 // CallBack functions
 void CBFileMenu(Widget, XtPointer, XtPointer);
@@ -84,15 +86,34 @@ int main(int argc, char *argv[]) {
   amrex::Box    comlineBox;
   string	comlineFileName;
 
-  // here we trick boxlib
-  int argcNoPP(1);
-  amrex::Initialize(argcNoPP, argv);
+  bool useParmParse(false);
+  amrex::Initialize(argc, argv, useParmParse);
+
+  AVGlobals::GetDefaults("amrvis.defaults");
 
 #ifdef BL_USE_PROFPARSER
   amrex::BLProfiler::SetBlProfDirName("bl_prof_amrvis");
-#endif
 
-  AVGlobals::GetDefaults("amrvis.defaults");
+  if(argc > 2 && AVGlobals::IsProfDirName(argv[argc - 1])) {
+    // ---- run the amrprofparser batch functions
+    amrex::DataServices::SetBatchMode();
+    bool runDefault(false), bParserProf(false), bAnyFunctionsRun;
+    bAnyFunctionsRun = ProfParserBatchFunctions(argc, argv, runDefault, bParserProf);
+
+    if( ! bAnyFunctionsRun) {
+      if(amrex::ParallelDescriptor::IOProcessor()) {
+        cout << '\n';
+        cout << "Usage:  " << argv[0] << "  [options]  profddirname\n";
+        PrintProfParserBatchUsage(cout);
+        cout << endl;
+      }
+    }
+
+    amrex::BLProfiler::SetNoOutput();
+    amrex::Finalize();
+    return 0;
+  }
+#endif
 
   AVGlobals::ParseCommandLine(argc, argv);
 
@@ -233,10 +254,9 @@ int main(int argc, char *argv[]) {
        } else {
          amrex::Abort("**** Error:  only a single bl_prof directory is supported.");
        }
-     } else {
-#else
-     {
+     } else
 #endif
+     {
 
       amrex::Array<amrex::DataServices *> dspArray(AVGlobals::GetFileCount());
       for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {

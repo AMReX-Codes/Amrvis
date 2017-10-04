@@ -1014,21 +1014,15 @@ void ProfApp::PopulateFuncList(bool bWriteAverage, int whichProc, bool bUseTrace
 
   RegionsProfStats &regionsProfStats = dataServicesPtr[0]->GetRegionsProfStats();
   const Array<string> &blpFNames = regionsProfStats.BLPFNames();
-      for(auto blpi = blpFNames.begin(); blpi != blpFNames.end(); ++blpi) {
-        SHOWVAL(*blpi);
-      }
 
   funcSelectionStrings.resize(funcs.size(), "");
   for(int i(0); i < funcs.size(); ++i) {
     const std::vector<std::string>& tokens = amrex::Tokenize(funcs[i], " ");
-    cout << "FFFF:::: tokens.size()  funcs[" << i << "] = " << tokens.size() << "  " << funcs[i] << endl;
     if(tokens.size() > 0) {
-      SHOWVAL(tokens[0]);
       if(std::find(blpFNames.begin(), blpFNames.end(), tokens[0]) != blpFNames.end()) {
         funcSelectionStrings[i] = tokens[0];
       }
     }
-    cout << "TTTT:::: funcSelectionStrings[" << i << "] = " << funcSelectionStrings[i] << endl;
   }
 
   int numEntries(funcs.size());
