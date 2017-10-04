@@ -3871,12 +3871,12 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  std::ostringstream buffout;
 	  if(goodIntersect) {
 	    double dLoc;
-	    int idx, iLoc;
 	    buffout << '\n';
 	    buffout << "level = " << intersectedLevel << '\n';
 	    if(bTimeline) {
+	      int idx;
 	      buffout << "point = " << trueRegionArray[intersectedLevel].smallEnd() << '\n';
-	      idx = 0;
+	      idx = Amrvis::XDIR;
 	      buffout << "::::  amrData.Time() = " << amrData.Time() << std::endl;
 	      buffout << "::::  amrData.ProbDomain()[mal] = " << amrData.ProbDomain()[mal] << std::endl;
 	      dLoc = gridOffset[idx] + (0.5 + trueRegionArray[mal].smallEnd()[idx]) *
@@ -3885,8 +3885,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	      char dLocStr[Amrvis::LINELENGTH];
 	      sprintf(dLocStr, pltAppState->GetFormatString().c_str(), dLoc);
 	      buffout << "time   = " << dLocStr << '\n';
-	      idx = 1;
-	      iLoc = gridOffset[idx] + trueRegionArray[mal].smallEnd()[idx];
+	      idx = Amrvis::YDIR;
+	      int iLoc = gridOffset[idx] + trueRegionArray[mal].smallEnd()[idx];
 	      iLoc *= amrex::CRRBetweenLevels(maxDrawnLevel, amrData.FinestLevel(), amrData.RefRatio());
 	      buffout << "rank   = " << iLoc << '\n';
 
@@ -3907,7 +3907,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	      buffout << "point = " << trueRegionArray[intersectedLevel].smallEnd() << '\n';
 	      buffout << "grid  = " << intersectedGrid << '\n';
 	      buffout << "loc   = (";
-	      for(int idx = 0; idx != BL_SPACEDIM; ++idx) {
+	      for(int idx(0); idx != BL_SPACEDIM; ++idx) {
 	        if(idx != 0) {
 	          buffout << ", ";
 	        }
