@@ -320,7 +320,7 @@ void ProfApp::ProfAppInit(bool bSubregion) {
                               totalPalWidth, totalPalHeight,
                               reserveSystemColors);
   pltPaletteptr->SetRegions(true);
-  pltPaletteptr->ReadSeqPalette("Palette", false);
+  pltPaletteptr->ReadSeqPalette(AVGlobals::GetPaletteName(), false);
 
   servingButton = 0;
   startX = 0;
