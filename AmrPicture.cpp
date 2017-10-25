@@ -1395,20 +1395,20 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
   }  // ---- end create body mask
 
     // ---- fill with image data
-    for(int j(0); j < imagesizev; ++j) {
-      int jtmp(datasizeh * (j/scale));
-      for(int i(0); i < widthpad; ++i) {
-        int itmp(i / scale);
+    for(int jjss(0); jjss < imagesizev; ++jjss) {
+      int jtmp(datasizeh * (jjss/scale));
+      for(int iiss(0); iiss < widthpad; ++iiss) {
+        int itmp(iiss / scale);
         unsigned char imm1(imagedata[ itmp + jtmp ]);
-        XPutPixel(*ximage, i, j, palPtr->makePixel(imm1));
+        XPutPixel(*ximage, iiss, jjss, palPtr->makePixel(imm1));
       }
     }
     // ---- mask the smoothed body cells
-    for(j = 0; j < imagesizev; ++j) {
-      for(i = 0; i < imagesizeh; ++i) {
-	int index(i + (imagesizev-1-j)*imagesizeh);
+    for(int jjss(0); jjss < imagesizev; ++jjss) {
+      for(int iiss(0); iiss < imagesizeh; ++iiss) {
+	int index(iiss + (imagesizev-1-jjss)*imagesizeh);
         if(scaledImageDataBodyMask[index] == 0) {
-	  int iii(i), jjj(imagesizev-1-j);
+	  int iii(iiss), jjj(imagesizev-1-jjss);
 	  XPutPixel(*ximage, iii, jjj, palPtr->makePixel(bodyColor));
 	}
       }
@@ -1706,8 +1706,8 @@ void AmrPicture::CreateFrames(Amrvis::AnimDirection direction) {
   delete [] frameImageData;
 
   if(cancelled) {
-    for(int i(0); i <= iEnd; ++i) {
-      int iDestroySlice((((slice - start + (posneg * i)) + length) % length));
+    for(int iiss(0); iiss <= iEnd; ++iiss) {
+      int iDestroySlice((((slice - start + (posneg * iiss)) + length) % length));
       XDestroyImage(frameBuffer[iDestroySlice]);
     }
     framesMade = false;
@@ -2071,7 +2071,7 @@ SHOWVAL(maxDrawnLevel);
 // ---------------------------------------------------------------------
 bool AmrPicture::DrawContour(const FArrayBox &fab, Real value,
                         bool has_mask, const bool *mask,
-                        Display *display, Drawable &dPixMap, const GC &gc,
+                        Display *sdisplay, Drawable &dPixMap, const GC &gc,
 			int FGColor, int xLength, int yLength,
                         Real leftEdge, Real bottomEdge, 
                         Real rightEdge, Real topEdge)
@@ -2155,7 +2155,7 @@ bool AmrPicture::DrawContour(const FArrayBox &fab, Real value,
         }
       }
       
-      XSetForeground(display, xgc, palPtr->makePixel(FGColor));
+      XSetForeground(sdisplay, xgc, palPtr->makePixel(FGColor));
       
       Real hReal2X((Real) imageSizeH / (rightEdge - leftEdge));
       Real vReal2X((Real) imageSizeV / (topEdge - bottomEdge));
@@ -2188,37 +2188,37 @@ bool AmrPicture::DrawContour(const FArrayBox &fab, Real value,
       // finally, draw contour line
       if(left && right && bottom && top) {
         // intersects all sides, generate saddle point
-        XDrawLine(display, dPixMap, gc, 
+        XDrawLine(sdisplay, dPixMap, gc, 
                   (int) xLeft,
 		  (int) (imageSizeV - yLeft),
 		  (int) xRight,
 		  (int) (imageSizeV - yRight));
-        XDrawLine(display, dPixMap, gc,
+        XDrawLine(sdisplay, dPixMap, gc,
                   (int) xTop,
 		  (int) (imageSizeV - yTop),
 		  (int) xBottom,
 		  (int) (imageSizeV - yBottom));
       } else if(top && bottom) {   // only intersects top and bottom sides
-        XDrawLine(display, dPixMap, gc,
+        XDrawLine(sdisplay, dPixMap, gc,
                   (int) xTop,
 		  (int) (imageSizeV - yTop),
 		  (int) xBottom,
 		  (int) (imageSizeV - yBottom));
       } else if(left) {
         if(right) {
-          XDrawLine(display, dPixMap, gc,
+          XDrawLine(sdisplay, dPixMap, gc,
                     (int) xLeft,
 		    (int) (imageSizeV - yLeft),
 		    (int) xRight,
 		    (int) (imageSizeV - yRight));
         } else if(top) {
-          XDrawLine(display, dPixMap, gc,
+          XDrawLine(sdisplay, dPixMap, gc,
                     (int) xLeft,
 		    (int) (imageSizeV - yLeft),
 		    (int) xTop,
 		    (int) (imageSizeV-yTop));
         } else {
-          XDrawLine(display, dPixMap, gc,
+          XDrawLine(sdisplay, dPixMap, gc,
                     (int) xLeft,
 		    (int) (imageSizeV - yLeft),
 		    (int) xBottom,
@@ -2226,13 +2226,13 @@ bool AmrPicture::DrawContour(const FArrayBox &fab, Real value,
         }
       } else if(right) {
         if(top) {
-          XDrawLine(display, dPixMap, gc,
+          XDrawLine(sdisplay, dPixMap, gc,
                     (int) xRight,
 		    (int) (imageSizeV - yRight),
 		    (int) xTop,
 		    (int) (imageSizeV - yTop));
         } else {
-          XDrawLine(display, dPixMap, gc,
+          XDrawLine(sdisplay, dPixMap, gc,
                     (int) xRight,
 		    (int) (imageSizeV - yRight),
 		    (int) xBottom,
