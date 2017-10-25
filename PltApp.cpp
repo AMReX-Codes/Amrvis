@@ -435,30 +435,30 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
 // -------------------------------------------------------------------
 PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 	       const IntVect &offset,
-	       PltApp *pltParent, const string &palfile,
+	       PltApp *sPltParent, const string &palfile,
 	       bool isAnim, const string &newderived, const string &filename)
   : wTopLevel(w),
     appContext(app),
     animating2d(isAnim),
     paletteDrawn(false),
-    animFrames(pltParent->animFrames),
-    lightingFilename(pltParent->lightingFilename)
+    animFrames(sPltParent->animFrames),
+    lightingFilename(sPltParent->lightingFilename)
 {
-  dataServicesPtr = pltParent->dataServicesPtr;
-  currentFrame = pltParent->currentFrame;
+  dataServicesPtr = sPltParent->dataServicesPtr;
+  currentFrame = sPltParent->currentFrame;
   fileName = filename;
-  fileNames = pltParent->fileNames;
+  fileNames = sPltParent->fileNames;
   palFilename = palfile;
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
-  bFileRangeButtonSet = pltParent->bFileRangeButtonSet;
+  bFileRangeButtonSet = sPltParent->bFileRangeButtonSet;
 
   pltAppState = new PltAppState(animFrames, amrData.NumDeriveFunc());
-  *pltAppState = *pltParent->GetPltAppState();
+  *pltAppState = *sPltParent->GetPltAppState();
 
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   lightingWindowExists = false;
 #endif
-  contourNumString = pltParent->contourNumString.c_str();
+  contourNumString = sPltParent->contourNumString.c_str();
 
   int finestLevel(amrData.FinestLevel());
   pltAppState->SetFinestLevel(finestLevel);
@@ -502,7 +502,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   }
 
   int currentScale(max(1, min(maxAllowableScale,
-			      pltParent->GetPltAppState()->CurrentScale())));
+			      sPltParent->GetPltAppState()->CurrentScale())));
   pltAppState->SetCurrentScale(currentScale);
   
  // ------------------------------- handle commprof timeline format
@@ -698,7 +698,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   }
   for(int np(0); np < Amrvis::NPLANES; ++np) {
     amrPicturePtrArray[np] = new AmrPicture(np, gaPtr, region,
-					    pltParent, this,
+					    sPltParent, this,
 					    pltAppState,
 					    pltAppState->GetCGSmoothing());
   }
@@ -1353,9 +1353,9 @@ void PltApp::PltAppInit(bool bSubVolume) {
     XtVaGetValues(wAnimLabelFast, XmNwidth, &slw, NULL);
     XtVaSetValues(wAnimLabelFast, XmNx, wcfWidth - slw, NULL);
     
-    string fileName(AVGlobals::StripSlashes(fileNames[currentFrame]));
+    string ssFileName(AVGlobals::StripSlashes(fileNames[currentFrame]));
     XmString fileString =
-        XmStringCreateSimple(const_cast<char *>(fileName.c_str()));
+        XmStringCreateSimple(const_cast<char *>(ssFileName.c_str()));
     wWhichFileLabel = XtVaCreateManagedWidget("whichFileLabel",
 			      xmLabelWidgetClass, wControlForm,	
 			      XmNx, 0,
@@ -1378,7 +1378,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
     XmStringFree(timeString);
     
     std::ostringstream headerout;
-    headerout << fileName << "  " << tempTimeOut.str() << "  " << headerSuffix;
+    headerout << ssFileName << "  " << tempTimeOut.str() << "  " << headerSuffix;
     XtVaSetValues(wAmrVisTopLevel,
                   XmNtitle, const_cast<char *>(headerout.str().c_str()),
 		  NULL);
@@ -2069,9 +2069,9 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
     DirtyFrames();
     if(UsingFileRange(currentRangeType)) {
       Real dataMin, dataMax;
-      int coarseLevel(0);
-      int fineLevel(maxDrawnLevel);
-      for(int lev(coarseLevel); lev <= fineLevel; ++lev) {
+      int sCoarseLevel(0);
+      int sFineLevel(maxDrawnLevel);
+      for(int lev(sCoarseLevel); lev <= sFineLevel; ++lev) {
 	bool minMaxValid(false);
 	DataServices::Dispatch(DataServices::MinMaxRequest,
 			       dataServicesPtr[currentFrame],
@@ -2090,10 +2090,10 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
       PrintMessage(const_cast<char *>(outbuf.c_str()));
       
       Real dataMin, dataMax;
-      int coarseLevel(0);
-      int fineLevel(maxDrawnLevel);
+      int sCoarseLevel(0);
+      int sFineLevel(maxDrawnLevel);
       for(int iFrame(0); iFrame < animFrames; ++iFrame) {
-	for(int lev(coarseLevel); lev <= fineLevel; ++lev) {
+	for(int lev(sCoarseLevel); lev <= sFineLevel; ++lev) {
 	  bool minMaxValid(false);
 	  DataServices::Dispatch(DataServices::MinMaxRequest,
 				 dataServicesPtr[iFrame],
@@ -3461,16 +3461,16 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
     break;
 #endif
   }
-  Array<Box> trueRegion(mal + 1);
-  trueRegion[mal] = amrPicturePtrArray[V]->GetSliceBox(mal);
+  Array<Box> ssTrueRegion(mal + 1);
+  ssTrueRegion[mal] = amrPicturePtrArray[V]->GetSliceBox(mal);
 #if (BL_SPACEDIM != 1)
-  trueRegion[mal].setSmall(tdir, ivLowOffsetMAL[tdir] + ix);
-  trueRegion[mal].setBig(tdir, trueRegion[mal].smallEnd(tdir));
+  ssTrueRegion[mal].setSmall(tdir, ivLowOffsetMAL[tdir] + ix);
+  ssTrueRegion[mal].setBig(tdir, ssTrueRegion[mal].smallEnd(tdir));
 #endif
   int lev;
   for(lev = mal - 1; lev >= 0; --lev) {
-    trueRegion[lev] = trueRegion[mal];
-    trueRegion[lev].coarsen(amrex::CRRBetweenLevels(lev, mal,
+    ssTrueRegion[lev] = ssTrueRegion[mal];
+    ssTrueRegion[lev].coarsen(amrex::CRRBetweenLevels(lev, mal,
                             amrData.RefRatio()));
   }
   // Create an array of titles corresponding to the intersected line.
@@ -3490,17 +3490,17 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
     sprintf(intersectStr[lev], "X=");
     sprintf(intersectStr[lev]+2, pltAppState->GetFormatString().c_str(),
 	    gridOffset[dir1] +
-	    (0.5 + trueRegion[lev].smallEnd(dir1))*amrData.DxLevel()[lev][dir1]);
+	    (0.5 + ssTrueRegion[lev].smallEnd(dir1))*amrData.DxLevel()[lev][dir1]);
 #elif (BL_SPACEDIM == 2)
     sprintf(intersectStr[lev], ((dir1 == Amrvis::XDIR) ? "X=" : "Y="));
     sprintf(intersectStr[lev]+2, pltAppState->GetFormatString().c_str(),
 	    gridOffset[dir1] +
-	    (0.5 + trueRegion[lev].smallEnd(dir1))*amrData.DxLevel()[lev][dir1]);
+	    (0.5 + ssTrueRegion[lev].smallEnd(dir1))*amrData.DxLevel()[lev][dir1]);
 #elif (BL_SPACEDIM == 3)
     sprintf(intersectStr[lev], buffer,
-	    amrData.DxLevel()[lev][dir1] * (0.5 + trueRegion[lev].smallEnd(dir1)) +
+	    amrData.DxLevel()[lev][dir1] * (0.5 + ssTrueRegion[lev].smallEnd(dir1)) +
 	    gridOffset[dir1],
-	    amrData.DxLevel()[lev][dir2] * (0.5 + trueRegion[lev].smallEnd(dir2)) +
+	    amrData.DxLevel()[lev][dir2] * (0.5 + ssTrueRegion[lev].smallEnd(dir2)) +
 	    gridOffset[dir2]);
 #endif	    
   }
@@ -3513,7 +3513,7 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
   DataServices::Dispatch(DataServices::LineValuesRequest,
 			 dataServicesPtr[currentFrame],
 			 mal + 1,
-			 (void *) (trueRegion.dataPtr()),
+			 (void *) (ssTrueRegion.dataPtr()),
 			 sdir,
 			 (void *) derived,
 			 pltAppState->MinAllowableLevel(), mal,
@@ -3870,7 +3870,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 
 	  std::ostringstream buffout;
 	  if(goodIntersect) {
-	    double dLoc;
+	    double sDLoc;
 	    buffout << '\n';
 	    buffout << "level = " << intersectedLevel << '\n';
 	    if(bTimeline) {
@@ -3879,11 +3879,11 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	      idx = Amrvis::XDIR;
 	      buffout << "::::  amrData.Time() = " << amrData.Time() << std::endl;
 	      buffout << "::::  amrData.ProbDomain()[mal] = " << amrData.ProbDomain()[mal] << std::endl;
-	      dLoc = gridOffset[idx] + (0.5 + trueRegionArray[mal].smallEnd()[idx]) *
+	      sDLoc = gridOffset[idx] + (0.5 + trueRegionArray[mal].smallEnd()[idx]) *
 		             amrData.DxLevel()[mal][idx];
-	      dLoc = amrData.Time() * dLoc / static_cast<Real>(amrData.ProbDomain()[mal].length(idx));
+	      sDLoc = amrData.Time() * sDLoc / static_cast<Real>(amrData.ProbDomain()[mal].length(idx));
 	      char dLocStr[Amrvis::LINELENGTH];
-	      sprintf(dLocStr, pltAppState->GetFormatString().c_str(), dLoc);
+	      sprintf(dLocStr, pltAppState->GetFormatString().c_str(), sDLoc);
 	      buffout << "time   = " << dLocStr << '\n';
 	      idx = Amrvis::YDIR;
 	      int iLoc = gridOffset[idx] + trueRegionArray[mal].smallEnd()[idx];
@@ -3894,13 +3894,13 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	        XtPopup(wCallTraceTopLevel, XtGrabNone);
 		XMapRaised(XtDisplay(wCallTraceTopLevel), XtWindow(wCallTraceTopLevel));
 	        std::ostringstream traceout;
-	        DeriveCallStack(traceout, dLoc, dLoc);
+	        DeriveCallStack(traceout, sDLoc, sDLoc);
 		cMessageArea traceMessageText;
                 traceMessageText.Init(wCallTraceList);
                 bool scrollToTop(true), clear(true);
                 traceMessageText.PrintText(traceout.str().c_str(), scrollToTop, clear);
               } else {
-	        DeriveCallStack(std::cout, dLoc, dLoc);
+	        DeriveCallStack(std::cout, sDLoc, sDLoc);
 	      }
 
 	    } else {
@@ -3911,11 +3911,11 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	        if(idx != 0) {
 	          buffout << ", ";
 	        }
-	        double dLoc = gridOffset[idx] +
-		             (0.5 + trueRegionArray[mal].smallEnd()[idx]) *
-		             amrData.DxLevel()[mal][idx];
+	        double ssDLoc = gridOffset[idx] +
+		                (0.5 + trueRegionArray[mal].smallEnd()[idx]) *
+		                amrData.DxLevel()[mal][idx];
 	        char dLocStr[Amrvis::LINELENGTH];
-	        sprintf(dLocStr, pltAppState->GetFormatString().c_str(), dLoc);
+	        sprintf(dLocStr, pltAppState->GetFormatString().c_str(), ssDLoc);
 	        buffout << dLocStr;
 	      }
 	      buffout << ")\n";
@@ -3996,18 +3996,18 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 
 	  if(bTimeline) {    // ---- find the selected time range and show the call stack
 	    double dLocL, dLocH;
-	    Box trueRegion(selectionBox);
-	    trueRegion.shift(Amrvis::XDIR, ivLowOffsetMAL[Amrvis::XDIR]);
-	    trueRegion.shift(Amrvis::YDIR, ivLowOffsetMAL[Amrvis::YDIR]);
+	    Box sTrueRegion(selectionBox);
+	    sTrueRegion.shift(Amrvis::XDIR, ivLowOffsetMAL[Amrvis::XDIR]);
+	    sTrueRegion.shift(Amrvis::YDIR, ivLowOffsetMAL[Amrvis::YDIR]);
 
 	    if(bTimeline) {
-	      dLocL = gridOffset[Amrvis::XDIR] + (0.5 + trueRegion.smallEnd()[Amrvis::XDIR]) *
+	      dLocL = gridOffset[Amrvis::XDIR] + (0.5 + sTrueRegion.smallEnd()[Amrvis::XDIR]) *
 		             amrData.DxLevel()[mal][Amrvis::XDIR];
 
 	      dLocL = amrData.Time() * dLocL /
 	                      static_cast<Real>(amrData.ProbDomain()[mal].length(Amrvis::XDIR));
 
-	      dLocH = gridOffset[Amrvis::XDIR] + (0.5 + trueRegion.bigEnd()[Amrvis::XDIR]) *
+	      dLocH = gridOffset[Amrvis::XDIR] + (0.5 + sTrueRegion.bigEnd()[Amrvis::XDIR]) *
 		             amrData.DxLevel()[mal][Amrvis::XDIR];
 
 	      dLocH = amrData.Time() * dLocH /
