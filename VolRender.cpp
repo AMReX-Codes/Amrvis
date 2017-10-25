@@ -324,67 +324,67 @@ void VolRender::MakeSWFData(amrex::DataServices *dataServicesPtr,
           grefbox = goverlapdd;
           grefbox.refine(crr);
 
-          int gstartr(gbox.smallEnd(Amrvis::XDIR));
-          int gstartc(gbox.smallEnd(Amrvis::YDIR));
-          int gstartp(gbox.smallEnd(Amrvis::ZDIR));
+          int sGstartr(gbox.smallEnd(Amrvis::XDIR));
+          int sGstartc(gbox.smallEnd(Amrvis::YDIR));
+          int sGstartp(gbox.smallEnd(Amrvis::ZDIR));
 
-          int gostartr(goverlapdd.smallEnd(Amrvis::XDIR) - gstartr);
-          int gostartc(goverlapdd.smallEnd(Amrvis::YDIR) - gstartc);
-          int gostartp(goverlapdd.smallEnd(Amrvis::ZDIR) - gstartp);
-          int goendr(goverlapdd.bigEnd(Amrvis::XDIR)   - gstartr);
-          int goendc(goverlapdd.bigEnd(Amrvis::YDIR)   - gstartc);
-          int goendp(goverlapdd.bigEnd(Amrvis::ZDIR)   - gstartp);
+          int sGostartr(goverlapdd.smallEnd(Amrvis::XDIR) - sGstartr);
+          int sGostartc(goverlapdd.smallEnd(Amrvis::YDIR) - sGstartc);
+          int sGostartp(goverlapdd.smallEnd(Amrvis::ZDIR) - sGstartp);
+          int sGoendr(goverlapdd.bigEnd(Amrvis::XDIR)   - sGstartr);
+          int sGoendc(goverlapdd.bigEnd(Amrvis::YDIR)   - sGstartc);
+          int sGoendp(goverlapdd.bigEnd(Amrvis::ZDIR)   - sGstartp);
 
           grows = gbox.length(Amrvis::XDIR);
           gcols = gbox.length(Amrvis::YDIR);
 
         if(crr != 1) {
-          int gcolsgrowstmp(gcols * grows);
+          int sGcolsgrowstmp(gcols * grows);
 	  int ddsez(drawnDomain[lev].smallEnd(Amrvis::ZDIR));
 	  int ddbez(drawnDomain[lev].bigEnd(Amrvis::ZDIR));
-          for(gp = gostartp; gp <= goendp; ++gp) {
-            int gprev = ddsez + ddbez - (gp + gstartp);
-	    if(gp == gostartp || gp == goendp) {
+          for(gp = sGostartp; gp <= sGoendp; ++gp) {
+            int gprev = ddsez + ddbez - (gp + sGstartp);
+	    if(gp == sGostartp || gp == sGoendp) {
               edgep = 1;
 	    } else {
               edgep = 0;
 	    }
-            gpgcgrtmp = gp * gcolsgrowstmp;
-            for(gc = gostartc; gc <= goendc; ++gc) {
-	      if(gc == gostartc || gc == goendc) {
+            gpgcgrtmp = gp * sGcolsgrowstmp;
+            for(gc = sGostartc; gc <= sGoendc; ++gc) {
+	      if(gc == sGostartc || gc == sGoendc) {
                 edgec = 1;
 	      } else {
                 edgec = 0;
 	      }
-              for(gr = gostartr; gr <= goendr; ++gr) {
-		if(gr == gostartr || gr == goendr) {
+              for(gr = sGostartr; gr <= sGoendr; ++gr) {
+		if(gr == sGostartr || gr == sGoendr) {
                   edger = 1;
 		} else {
                   edger = 0;
 		}
-                //sindexbase = (((gp + gstartp) * crr - sstartp) * scolssrowstmp) +
+                //sindexbase = (((gp + sGstartp) * crr - sstartp) * scolssrowstmp) +
                 sindexbase = (((gprev) * crr - sstartp) * scolssrowstmp) +
-                             ((sendc - ((gc + gstartc) * crr)) * srows) +
-                             ((gr + gstartr) * crr - sstartr);
+                             ((sendc - ((gc + sGstartc) * crr)) * srows) +
+                             ((gr + sGstartr) * crr - sstartr);
 
               if((edger + edgec + edgep) > 1) {
                 // (possibly) draw boxes into dataset
                 int onEdger, onEdgec, onEdgep;
 
                 for(sp = 0; sp < crr; ++sp) {
-		  if((gp==gostartp && sp==0) || (gp==goendp && sp == (crr-1))) {
+		  if((gp==sGostartp && sp==0) || (gp==sGoendp && sp == (crr-1))) {
                     onEdgep = 1;
 		  } else {
                     onEdgep = 0;
 		  }
                   for(sc = 0; sc < crr; ++sc) {
-		    if((gc==gostartc && sc==0) || (gc==goendc && sc == (crr-1))) {
+		    if((gc==sGostartc && sc==0) || (gc==sGoendc && sc == (crr-1))) {
                       onEdgec = 1;
 		    } else {
                       onEdgec = 0;
 		    }
                     for(sr = 0; sr < crr; ++sr) {
-		      if((gr==gostartr && sr==0) || (gr==goendr && sr == (crr-1))) {
+		      if((gr==sGostartr && sr==0) || (gr==sGoendr && sr == (crr-1))) {
                         onEdger = 1;
 		      } else {
                         onEdger = 0;
@@ -406,31 +406,31 @@ void VolRender::MakeSWFData(amrex::DataServices *dataServicesPtr,
         } else {  // crr == 1
 	  int ddsez(drawnDomain[lev].smallEnd(Amrvis::ZDIR));
 	  int ddbez(drawnDomain[lev].bigEnd(Amrvis::ZDIR));
-          for(gp = gostartp; gp <= goendp; ++gp) {
-            int gprev = ddsez + ddbez - (gp + gstartp);
-	    if(gp == gostartp || gp == goendp) {
+          for(gp = sGostartp; gp <= sGoendp; ++gp) {
+            int gprev = ddsez + ddbez - (gp + sGstartp);
+	    if(gp == sGostartp || gp == sGoendp) {
               edgep = 1;
 	    } else {
               edgep = 0;
 	    }
-            for(gc = gostartc; gc <= goendc; ++gc) {
-	      if(gc == gostartc || gc == goendc) {
+            for(gc = sGostartc; gc <= sGoendc; ++gc) {
+	      if(gc == sGostartc || gc == sGoendc) {
                 edgec = 1;
 	      } else {
                 edgec = 0;
 	      }
-              for(gr = gostartr; gr <= goendr; ++gr) {
-		if(gr == gostartr || gr == goendr) {
+              for(gr = sGostartr; gr <= sGoendr; ++gr) {
+		if(gr == sGostartr || gr == sGoendr) {
                   edger = 1;
 		} else {
                   edger = 0;
 		}
                 if((edger + edgec + edgep) > 1) {
                   sindexbase =
-                      //(((gp + gstartp) - sstartp) * scolssrowstmp) +
+                      //(((gp + sGstartp) - sstartp) * scolssrowstmp) +
                       ((gprev - sstartp) * scolssrowstmp) +
-                      ((sendc - ((gc + gstartc))) * srows) +
-                      ((gr + gstartr) - sstartr);
+                      ((sendc - ((gc + sGstartc))) * srows) +
+                      ((gr + sGstartr) - sstartr);
                   swfData[sindexbase] = volumeBoxColor;
                 }
               }
@@ -447,67 +447,67 @@ void VolRender::MakeSWFData(amrex::DataServices *dataServicesPtr,
         int crr(amrex::CRRBetweenLevels(lev, maxDrawnLevel,
 	        amrData.RefRatio()));
           gbox = drawnDomain[lev];
-          Box goverlap(gbox & drawnDomain[lev]);
-          grefbox = goverlap;
+          Box sGoverlap(gbox & drawnDomain[lev]);
+          grefbox = sGoverlap;
           grefbox.refine(crr);
 
-          int gstartr(gbox.smallEnd(Amrvis::XDIR));
-          int gstartc(gbox.smallEnd(Amrvis::YDIR));
-          int gstartp(gbox.smallEnd(Amrvis::ZDIR));
+          int sGstartr(gbox.smallEnd(Amrvis::XDIR));
+          int sGstartc(gbox.smallEnd(Amrvis::YDIR));
+          int sGstartp(gbox.smallEnd(Amrvis::ZDIR));
 
-          int gostartr(goverlap.smallEnd(Amrvis::XDIR) - gstartr);
-          int gostartc(goverlap.smallEnd(Amrvis::YDIR) - gstartc);
-          int gostartp(goverlap.smallEnd(Amrvis::ZDIR) - gstartp);
-          int goendr(goverlap.bigEnd(Amrvis::XDIR)   - gstartr);
-          int goendc(goverlap.bigEnd(Amrvis::YDIR)   - gstartc);
-          int goendp(goverlap.bigEnd(Amrvis::ZDIR)   - gstartp);
+          int sGostartr(sGoverlap.smallEnd(Amrvis::XDIR) - sGstartr);
+          int sGostartc(sGoverlap.smallEnd(Amrvis::YDIR) - sGstartc);
+          int sGostartp(sGoverlap.smallEnd(Amrvis::ZDIR) - sGstartp);
+          int sGoendr(sGoverlap.bigEnd(Amrvis::XDIR)   - sGstartr);
+          int sGoendc(sGoverlap.bigEnd(Amrvis::YDIR)   - sGstartc);
+          int sGoendp(sGoverlap.bigEnd(Amrvis::ZDIR)   - sGstartp);
 
           grows = gbox.length(Amrvis::XDIR);
           gcols = gbox.length(Amrvis::YDIR);
 
         if(crr != 1) {
-          int gcolsgrowstmp(gcols * grows);
-          for(gp = gostartp; gp <= goendp; ++gp) {
-            if(gp == gostartp || gp == goendp) {
+          int sGcolsgrowstmp(gcols * grows);
+          for(gp = sGostartp; gp <= sGoendp; ++gp) {
+            if(gp == sGostartp || gp == sGoendp) {
               edgep = 1;
             } else {
               edgep = 0;
             }
-            gpgcgrtmp = gp * gcolsgrowstmp;
-            for(gc = gostartc; gc <= goendc; ++gc) {
-              if(gc == gostartc || gc == goendc) {
+            gpgcgrtmp = gp * sGcolsgrowstmp;
+            for(gc = sGostartc; gc <= sGoendc; ++gc) {
+              if(gc == sGostartc || gc == sGoendc) {
                 edgec = 1;
               } else {
                 edgec = 0;
               }
-              for(gr = gostartr; gr <= goendr; ++gr) {
-                if(gr == gostartr || gr == goendr) {
+              for(gr = sGostartr; gr <= sGoendr; ++gr) {
+                if(gr == sGostartr || gr == sGoendr) {
                   edger = 1;
                 } else {
                   edger = 0;
                 }
-                sindexbase = (((gp + gstartp) * crr - sstartp) * scolssrowstmp) +
-                             ((sendc - ((gc + gstartc) * crr)) * srows) +
-                             ((gr + gstartr) * crr - sstartr);
+                sindexbase = (((gp + sGstartp) * crr - sstartp) * scolssrowstmp) +
+                             ((sendc - ((gc + sGstartc) * crr)) * srows) +
+                             ((gr + sGstartr) * crr - sstartr);
 
               if((edger + edgec + edgep) > 1) {
                 // (possibly) draw boxes into dataset
                 int onEdger, onEdgec, onEdgep;
 
                 for(sp = 0; sp < crr; ++sp) {
-                  if((gp==gostartp && sp==0) || (gp==goendp && sp == (crr-1))) {
+                  if((gp==sGostartp && sp==0) || (gp==sGoendp && sp == (crr-1))) {
                     onEdgep = 1;
                   } else {
                     onEdgep = 0;
                   }
                   for(sc = 0; sc < crr; ++sc) {
-                    if((gc==gostartc && sc==0) || (gc==goendc && sc == (crr-1))) {
+                    if((gc==sGostartc && sc==0) || (gc==sGoendc && sc == (crr-1))) {
                       onEdgec = 1;
                     } else {
                       onEdgec = 0;
                     }
                     for(sr = 0; sr < crr; ++sr) {
-                      if((gr==gostartr && sr==0) || (gr==goendr && sr == (crr-1))) {
+                      if((gr==sGostartr && sr==0) || (gr==sGoendr && sr == (crr-1))) {
                         onEdger = 1;
                       } else {
                         onEdger = 0;
@@ -528,31 +528,31 @@ void VolRender::MakeSWFData(amrex::DataServices *dataServicesPtr,
 
         } else {  // crr == 1
 
-          int gcolsgrowstmp(gcols * grows);
-          for(gp = gostartp; gp <= goendp; ++gp) {
-            if(gp == gostartp || gp == goendp) {
+          int sGcolsgrowstmp(gcols * grows);
+          for(gp = sGostartp; gp <= sGoendp; ++gp) {
+            if(gp == sGostartp || gp == sGoendp) {
               edgep = 1;
             } else {
               edgep = 0;
             }
-            gpgcgrtmp = gp * gcolsgrowstmp;
-            for(gc = gostartc; gc <= goendc; ++gc) {
-              if(gc == gostartc || gc == goendc) {
+            gpgcgrtmp = gp * sGcolsgrowstmp;
+            for(gc = sGostartc; gc <= sGoendc; ++gc) {
+              if(gc == sGostartc || gc == sGoendc) {
                 edgec = 1;
               } else {
                 edgec = 0;
               }
-              for(gr = gostartr; gr <= goendr; ++gr) {
-                if(gr == gostartr || gr == goendr) {
+              for(gr = sGostartr; gr <= sGoendr; ++gr) {
+                if(gr == sGostartr || gr == sGoendr) {
                   edger = 1;
                 } else {
                   edger = 0;
                 }
                 if((edger + edgec + edgep) > 1) {
                   sindexbase =
-                      (((gp + gstartp) - sstartp) * scolssrowstmp) +
-                      ((sendc - ((gc + gstartc))) * srows) +
-                      ((gr + gstartr) - sstartr);
+                      (((gp + sGstartp) - sstartp) * scolssrowstmp) +
+                      ((sendc - ((gc + sGstartc))) * srows) +
+                      ((gr + sGstartr) - sstartr);
                   swfData[sindexbase] = volumeBoxColor;
                 }
               }
@@ -595,34 +595,34 @@ void VolRender::MakeSWFData(amrex::DataServices *dataServicesPtr,
       Box gbox(swfDataBox);
       Box goverlap(gbox & drawnDomain[maxDrawnLevel]);
     
-      int gstartr = gbox.smallEnd(Amrvis::XDIR);
-      int gstartc = gbox.smallEnd(Amrvis::YDIR);
-      int gstartp = gbox.smallEnd(Amrvis::ZDIR);
+      int sGstartr = gbox.smallEnd(Amrvis::XDIR);
+      int sGstartc = gbox.smallEnd(Amrvis::YDIR);
+      int sGstartp = gbox.smallEnd(Amrvis::ZDIR);
     
-      int gostartr = goverlap.smallEnd(Amrvis::XDIR) - gstartr;
-      int gostartc = goverlap.smallEnd(Amrvis::YDIR) - gstartc;
-      int gostartp = goverlap.smallEnd(Amrvis::ZDIR) - gstartp;
-      int goendr   = goverlap.bigEnd(Amrvis::XDIR)   - gstartr;
-      int goendc   = goverlap.bigEnd(Amrvis::YDIR)   - gstartc;
-      int goendp   = goverlap.bigEnd(Amrvis::ZDIR)   - gstartp;
+      int sGostartr = goverlap.smallEnd(Amrvis::XDIR) - sGstartr;
+      int sGostartc = goverlap.smallEnd(Amrvis::YDIR) - sGstartc;
+      int sGostartp = goverlap.smallEnd(Amrvis::ZDIR) - sGstartp;
+      int sGoendr   = goverlap.bigEnd(Amrvis::XDIR)   - sGstartr;
+      int sGoendc   = goverlap.bigEnd(Amrvis::YDIR)   - sGstartc;
+      int sGoendp   = goverlap.bigEnd(Amrvis::ZDIR)   - sGstartp;
     
       int grows   = gbox.length(Amrvis::XDIR);
       int gcols   = gbox.length(Amrvis::YDIR);
     
       int gcolsgrowstmp(gcols * grows);
       int gpgcgrtmp, gcgrowstmp;
-      for(int gp(gostartp); gp <= goendp; ++gp) {
+      for(int gp(sGostartp); gp <= sGoendp; ++gp) {
         gpgcgrtmp = gp*gcolsgrowstmp;
-        for(int gc(gostartc); gc <= goendc; ++gc) {
+        for(int gc(sGostartc); gc <= sGoendc; ++gc) {
           gcgrowstmp = gpgcgrtmp + gc*grows;
-          for(int gr(gostartr); gr <= goendr; ++gr) {
+          for(int gr(sGostartr); gr <= sGoendr; ++gr) {
             //dat = dataPoint[(gp*gcols*grows)+(gc*grows)+gr];  // works
             if(dataPoint[gcgrowstmp + gr] < vfeps) {  // body
-	      int gprev = gostartp + goendp - gp;
+	      int gprev = sGostartp + sGoendp - gp;
               sindexbase =
-                (((gprev+gstartp)-sstartp) * scolssrowstmp) +
-                ((sendc-((gc+gstartc))) * srows) +  // check this
-                ((gr+gstartr)-sstartr);
+                (((gprev+sGstartp)-sstartp) * scolssrowstmp) +
+                ((sendc-((gc+sGstartc))) * srows) +  // check this
+                ((gr+sGstartr)-sstartr);
           
               swfData[sindexbase] = bodyColor;
 	    }
