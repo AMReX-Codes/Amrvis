@@ -234,22 +234,22 @@ void PltApp::DoDetach(Widget, XtPointer, XtPointer) {
     XtVaSetValues(wDetachTopLevel, XmNvisual, gaPtr->PVisual(), XmNdepth, 8, NULL);
   }
 
-  Widget wDetachForm, wAttach, wDLabelAxes;
+  Widget wDetachForm, wAttachS, wDLabelAxes;
   Widget wDOrientXY, wDOrientYZ, wDOrientXZ;
 
   wDetachForm = XtVaCreateManagedWidget("detachform",
 					xmFormWidgetClass, wDetachTopLevel,
 					NULL);
 
-  wAttach = XtVaCreateManagedWidget("Attach", xmPushButtonWidgetClass,
-				    wDetachForm,
-				    XmNtopAttachment, XmATTACH_FORM,
-				    XmNtopOffset, Amrvis::WOFFSET,
-				    XmNrightAttachment, XmATTACH_FORM,
-				    XmNrightOffset, Amrvis::WOFFSET,
-				    NULL);
-  AddStaticCallback(wAttach, XmNactivateCallback, &PltApp::DoAttach);
-  XtManageChild(wAttach);
+  wAttachS = XtVaCreateManagedWidget("Attach", xmPushButtonWidgetClass,
+				     wDetachForm,
+				     XmNtopAttachment, XmATTACH_FORM,
+				     XmNtopOffset, Amrvis::WOFFSET,
+				     XmNrightAttachment, XmATTACH_FORM,
+				     XmNrightOffset, Amrvis::WOFFSET,
+				     NULL);
+  AddStaticCallback(wAttachS, XmNactivateCallback, &PltApp::DoAttach);
+  XtManageChild(wAttachS);
 
   wDOrientXY = XtVaCreateManagedWidget("XY", xmPushButtonWidgetClass,
 				     wDetachForm,

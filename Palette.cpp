@@ -250,9 +250,9 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
         iphi = (palIndex[ip] + palIndex[ip + 1]) / 2;
       }
       iphi = totalColorSlots - 1;
-      for(int i(iplo); i < iphi; ++i) {
+      for(int ssii(iplo); ssii < iphi; ++ssii) {
         XSetForeground(display, gc, makePixel(palIndex[ip]));
-        cy = ((totalColorSlots - 1) - i) + palOffsetY;
+        cy = ((totalColorSlots - 1) - ssii) + palOffsetY;
         XDrawLine(display, palPixmap, gc, 0, cy, palWidth, cy);
       }
     }
@@ -299,7 +299,7 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
         iphi = (palIndex[ip] + palIndex[ip + 1]) / 2;
       }
       iphi = totalColorSlots - 1;
-      for(int i(iplo); i < iphi; ++i) {
+      for(int ssii(iplo); ssii < iphi; ++ssii) {
         if(isProfPal) {
 	  if(ip == 0) {
 	    XSetForeground(display, gc, AVWhitePixel());
@@ -311,7 +311,7 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
 	} else {
 	  XSetForeground(display, gc, makePixel(palIndex[ip]));
 	}
-        cy = ((totalColorSlots - 1) - i) + palOffsetY;
+        cy = ((totalColorSlots - 1) - ssii) + palOffsetY;
         XDrawLine(display, palPixmap, gc, 0, cy, palWidth, cy);
       }
     }

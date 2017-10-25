@@ -132,18 +132,18 @@ ProjectionPicture::~ProjectionPicture() {
 // -------------------------------------------------------------------
 void ProjectionPicture::ResetPalette(Palette *newpally) {
   palettePtr = newpally;
-  int minDrawnLevel = pltAppPtr->GetPltAppState()->MinDrawnLevel();
-  int maxDataLevel = pltAppPtr->GetPltAppState()->MaxAllowableLevel();
-  subCutColor = palettePtr->makePixel(palettePtr->SafePaletteIndex(maxDataLevel + 1,
-                                                                  maxDataLevel));
-  sliceColor  = palettePtr->makePixel(palettePtr->SafePaletteIndex(maxDataLevel + 2,
-                                                                  maxDataLevel));
-  for(int lev(minDrawnLevel); lev <= maxDataLevel; ++lev) {
-    if(lev == minDrawnLevel) {
+  int sMinDrawnLevel = pltAppPtr->GetPltAppState()->MinDrawnLevel();
+  int sMaxDataLevel  = pltAppPtr->GetPltAppState()->MaxAllowableLevel();
+  subCutColor = palettePtr->makePixel(palettePtr->SafePaletteIndex(sMaxDataLevel + 1,
+                                                                   sMaxDataLevel));
+  sliceColor  = palettePtr->makePixel(palettePtr->SafePaletteIndex(sMaxDataLevel + 2,
+                                                                   sMaxDataLevel));
+  for(int lev(sMinDrawnLevel); lev <= sMaxDataLevel; ++lev) {
+    if(lev == sMinDrawnLevel) {
       boxColors[lev] = palettePtr->AVWhitePixel();
     } else {
       boxColors[lev] = palettePtr->makePixel(
-                                 palettePtr->SafePaletteIndex(lev, maxDataLevel));
+                                 palettePtr->SafePaletteIndex(lev, sMaxDataLevel));
     }
   }
 }
