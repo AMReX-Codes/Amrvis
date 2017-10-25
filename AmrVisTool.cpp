@@ -64,7 +64,7 @@ void CBOpenPltFile(Widget, XtPointer, XtPointer);
 XtAppContext	app;
 Widget		wTopLevel, wTextOut, wDialog;
 Widget	wMainWindow, wMenuBar;
-Arg		args[32];
+Arg		args[amrex::Amrvis::MAXARGS];
 cMessageArea	messageText;
 char		buffer[amrex::Amrvis::BUFSIZE];
 XmString	sDirectory = XmStringCreateSimple(const_cast<char *>("none"));
@@ -580,8 +580,7 @@ void QuitAll() {
  
 // ---------------------------------------------------------------
 void CBFileMenu(Widget, XtPointer client_data, XtPointer) {
-  Arg args[amrex::Amrvis::MAXARGS];
-  int i = 0;
+  int i(0);
   unsigned long item = (unsigned long) client_data;
 
   if(item == QUITITEM) {
@@ -677,13 +676,13 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
 
 
 // ---------------------------------------------------------------
-void SubregionPltApp(Widget wTopLevel, const amrex::Box &trueRegion,
+void SubregionPltApp(Widget swTopLevel, const amrex::Box &trueRegion,
 		     const amrex::IntVect &offset,
 		     PltApp *pltparent,
 		     const string &palfile, int isAnim,
 		     const string &currentderived, const string &file)
 {
-  PltApp *temp = new PltApp(app, wTopLevel, trueRegion, offset,
+  PltApp *temp = new PltApp(app, swTopLevel, trueRegion, offset,
 		    pltparent, palfile, isAnim, currentderived, file);
   if(temp == NULL) {
     cerr << "Error in SubregionPltApp:  could not make a new PltApp." << endl;
@@ -699,12 +698,12 @@ void SubregionPltApp(Widget wTopLevel, const amrex::Box &trueRegion,
 
 #ifdef BL_USE_PROFPARSER
 // ---------------------------------------------------------------
-void SubregionProfApp(Widget wTopLevel, const amrex::Box &trueRegion,
+void SubregionProfApp(Widget swTopLevel, const amrex::Box &trueRegion,
 		      const amrex::IntVect &offset,
 		      ProfApp *profparent, const string &palfile,
 		      const string &file)
 {
-  ProfApp *temp = new ProfApp(app, wTopLevel, trueRegion, offset,
+  ProfApp *temp = new ProfApp(app, swTopLevel, trueRegion, offset,
 		              profparent, palfile, file);
   cout << "_in SubregionProfApp:  offset = " << offset << endl;
   if(temp == NULL) {
