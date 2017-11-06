@@ -1,4 +1,3 @@
-// ---------------------------------------------------------------
 // ProfApp.cpp
 // ---------------------------------------------------------------
 
@@ -125,13 +124,20 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
   XtVaSetValues(wAmrVisTopLevel, XmNtitle, const_cast<char *>(headerout.str().c_str()),
 		NULL);
 
-  dataServicesPtr[0]->GetRegionsProfStats().FillRegionTimeRanges(rtr, 0);
-  for(int r(0); r < rtr.size(); ++r) {
-    for(int t(0); t < rtr[r].size(); ++t) {
-      cout << "rtr[" << r << "][" << t << "] = " << rtr[r][t] << endl;
+  rtr_all.resize(dataServicesPtr[0]->GetBLProfStats().GetNProcs());
+  for(int i=0; i<dataServicesPtr[0]->GetBLProfStats().GetNProcs(); i++)
+  {  
+    dataServicesPtr[0]->GetRegionsProfStats().FillRegionTimeRanges(rtr_all[i], i);
+  }
+  rtr = rtr_all[0];
+/*
+  for(int n(0); n < rtr_all.size(); ++n)
+  for(int r(0); r < rtr_all[n].size(); ++r) {
+    for(int t(0); t < rtr_all[n][r].size(); ++t) {
+      cout << "rtr_all[" << n << "][" << r << "] = " << "][" << t << "] = " << rtr_all[n][r][t] << endl;
     }
   }
-
+*/
   regionPicturePtr = new RegionPicture(gaPtr, dataServicesPtr[0]);
 
   ivLowOffset = IntVect::TheZeroVector();
@@ -962,9 +968,13 @@ void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data,
   cout << "_in ProfApp::DoGenerateFuncList:  r = " << r << endl;
 
   RegionsProfStats &regionsProfStats = dataServicesPtr[0]->GetRegionsProfStats();
- regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
+  regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
 for(int i(0); i < filterTimeRanges.size(); ++i) {
-  cout << "filterTimeRanges[0] = " << filterTimeRanges[0].front() << endl;
+  int jcount = 0;
+  for (list<BLProfStats::TimeRange>::iterator j=filterTimeRanges[i].begin(); j != filterTimeRanges[i].end(); ++j){
+  BLProfStats::TimeRange ttr = *j;
+  cout << "filterTimeRanges[ " << i << "][" << jcount++ << "] = " << ttr << endl;
+  }
 }
   aFuncStats.clear();
   regionsProfStats.CollectFuncStats(aFuncStats);
@@ -1283,7 +1293,7 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
 	  if(rtri < 0 || rtri >= rtr[dataValueIndex].size()) {
 	  } else {
 	    for(int i(0); i < filterTimeRanges.size(); ++i) {
-	      BLProfStats::RemovePiece(filterTimeRanges[i], rtr[dataValueIndex][rtri]);
+	      BLProfStats::RemovePiece(filterTimeRanges[i], rtr_all[i][dataValueIndex][rtri]);
 	    }
 	  }
           regionPicturePtr->DoExposePicture();
@@ -1346,7 +1356,7 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
 	  if(rtri < 0 || rtri >= rtr[dataValueIndex].size()) {
 	  } else {
 	    for(int i(0); i < filterTimeRanges.size(); ++i) {
-	      BLProfStats::AddPiece(filterTimeRanges[i], rtr[dataValueIndex][rtri]);
+	      BLProfStats::AddPiece(filterTimeRanges[i], rtr_all[i][dataValueIndex][rtri]);
 	    }
 	  }
           regionPicturePtr->DoExposePicture();

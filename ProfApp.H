@@ -109,6 +109,7 @@ private:
   int startX, startY, endX, endY;
   int sdLineXL, sdLineXH, axisLengthX, axisLengthY;
   amrex::Array<amrex::Array<BLProfStats::TimeRange>> rtr;
+  amrex::Array<amrex::Array<amrex::Array<BLProfStats::TimeRange>>> rtr_all;
   amrex::Array<std::list<BLProfStats::TimeRange>> filterTimeRanges;
   amrex::Array<std::string> funcSelectionStrings;
   amrex::Array<amrex::Array<BLProfStats::FuncStat>> aFuncStats;
