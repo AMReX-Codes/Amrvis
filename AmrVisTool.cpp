@@ -109,7 +109,9 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    amrex::BLProfiler::SetNoOutput();
+    if (!bParserProf){
+      amrex::BLProfiler::SetNoOutput();
+    }
     amrex::Finalize();
     return 0;
   }
