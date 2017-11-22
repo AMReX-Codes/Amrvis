@@ -66,6 +66,7 @@ public:
   void DoExposePicture(Widget, XtPointer, XtPointer);
   void DoFuncListClick(Widget, XtPointer, XtPointer);
   void DoGenerateFuncList(Widget, XtPointer, XtPointer);
+  void DoGenerateTimeline(Widget, XtPointer, XtPointer);
   void PopulateFuncList(bool bWriteAverage, int whichProc, bool bUseTrace);
   void DoAllOnOff(Widget, XtPointer, XtPointer);
   void ChangeScale(Widget, XtPointer, XtPointer);
@@ -85,7 +86,7 @@ private:
   Widget wInfoTopLevel;
   Widget wPlotArea;
   Widget wPlotLabel;
-  Widget wFuncListButton, wAllOnButton, wAllOffButton;
+  Widget wFuncListButton, wAllOnButton, wAllOffButton, wTimelineButton;
   Widget wFuncListScrollArea;
   Widget wFuncList, wCurrScale;
 

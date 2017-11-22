@@ -197,22 +197,22 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
     fileName(filename),
     domainBox(profparent->domainBox),
     currentScale(profparent->currentScale),
-    maxAllowableScale(profparent->maxAllowableScale)
+    maxAllowableScale(profparent->maxAllowableScale),
+    rtr_all(profparent->rtr_all)
 {
   currentFrame = 0;
   palFilename = palfile;
   fileNames.resize(1);
   fileNames[0] = fileName;
   dataServicesPtr = profparent->dataServicesPtr;
-
+/*
   cout << "----------------- rtr:" << endl;
-  rtr = profparent->rtr;
   for(int r(0); r < rtr.size(); ++r) {
     for(int t(0); t < rtr[r].size(); ++t) {
       cout << "rtr[" << r << "][" << t << "] = " << rtr[r][t] << endl;
     }
   }
-
+*/
   std::ostringstream headerout;
   headerout << AVGlobals::StripSlashes(fileNames[0]) << "   s:  bbbbbbbbbb!!!!";
 
@@ -244,6 +244,30 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
   ivLowOffset = offset;
 
   ProfAppInit(true);
+
+  // Trim down the region time ranges based on the subregion selected
+  // CalcTimeRange = entire range of data
+  // SubTimeRange = selected time range
+  BLProfStats::TimeRange subRange(regionPicturePtr->SubTimeRange());
+  for (int n(0); n < rtr_all.size(); ++n) { 
+    for (int r(0); r < rtr_all[n].size(); ++r) {
+      for (int t(0); t < rtr_all[n][r].size(); ++t) {
+
+         BLProfStats::TimeRange regionRange = rtr_all[n][r][t]; 
+         BLProfStats::TimeRange trimmedRange( std::max(subRange.startTime, regionRange.startTime),
+                                              std::min(subRange.stopTime, regionRange.stopTime));
+         if (trimmedRange.startTime > trimmedRange.stopTime)
+         {
+           rtr_all[n][r][t] = BLProfStats::TimeRange(0.0, 0.0);
+         }
+         else
+         {
+           rtr_all[n][r][t] = trimmedRange;
+         }
+      }
+    }
+  }
+  rtr = rtr_all[0];
 
 ////dataServicesPtr[0]->WriteSummary(cout, false, 0, false);
 //BLProfilerUtils::WriteHeader(cout, 10, 16, true);
@@ -556,6 +580,15 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   AddStaticCallback(wAllOffButton, XmNactivateCallback, &ProfApp::DoAllOnOff,
                           (XtPointer) RegionPicture::RP_OFF);
   //XtManageChild(wAllOffButton);
+
+  wTimelineButton = XtVaCreateManagedWidget("Generate Timeline",
+                            xmPushButtonWidgetClass, wControlForm,
+                            XmNy, 180,
+                            XmCMarginBottom, marginBottom,
+                            NULL);
+  AddStaticCallback(wTimelineButton, XmNactivateCallback, &ProfApp::DoGenerateTimeline,
+                          (XtPointer) RegionPicture::RP_OFF);
+  //XtManageChild(wGenerateTimelineButton);
 
 
   // ************************** Plot frame and area
@@ -958,7 +991,32 @@ void ProfApp::DoFuncListClick(Widget w, XtPointer client_data, XtPointer call_da
     }
   }
 }
+// -------------------------------------------------------------------
+void ProfApp::DoGenerateTimeline(Widget w, XtPointer client_data,
+                                 XtPointer call_data)
+{
+  std::map<int,string> mpiFuncNames;
+  int maxSmallImageLength(800), refRatioAll(4), nTimeSlots(25600);
+  bool statsCollected(false);
+  std::string plotfileName("buttonPltFile");
 
+
+  // Test for whether this already exists. (Put timeline in bl_prof?)
+  
+  cout << " Generating Timeline. Please wait. " << std::endl;
+
+  dataServicesPtr[0]->RunTimelinePF(mpiFuncNames, plotfileName, maxSmallImageLength,
+                                    refRatioAll, nTimeSlots, statsCollected);
+
+  cout << " Timeline completed. " << std::endl;
+
+/*
+  (if timeline doesn't exist or not ok)
+      generate it
+
+   open timelinepf
+*/
+}
 
 // -------------------------------------------------------------------
 void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data,
@@ -1005,7 +1063,6 @@ for(int i(0); i < filterTimeRanges.size(); ++i) {
   regionPicturePtr->APDraw(0,0);
   pltPaletteptr->DrawPalette(atiPaletteEntry, regNames.size() - 3, "%8.2f");
 }
-
 
 // -------------------------------------------------------------------
 void ProfApp::PopulateFuncList(bool bWriteAverage, int whichProc, bool bUseTrace) {
@@ -1405,7 +1462,16 @@ void ProfApp::DoOutput(Widget w, XtPointer data, XtPointer) {
   XtAddCallback(wGetFileName, XmNcancelCallback, (XtCallbackProc) XtDestroyWidget, NULL);
   XtSetSensitive(XmSelectionBoxGetChild(wGetFileName, XmDIALOG_HELP_BUTTON), false);
 
-  string tempfilename("CallTrace");  // ---- filename base
+  string tempfilename("");
+  switch(which) {
+    case 0:
+      tempfilename = "HTMLCallTrace";  // ---- filename base
+      break;
+    case 1:
+      tempfilename = "CallTrace";
+      break;
+  }
+   
   XmTextSetString(XmSelectionBoxGetChild(wGetFileName, XmDIALOG_TEXT),
                   const_cast<char *> (tempfilename.c_str()));
   XtManageChild(wGetFileName);
