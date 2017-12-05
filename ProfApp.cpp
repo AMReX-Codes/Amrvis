@@ -95,6 +95,7 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
     fileName(filename),
     clickHistory()
 {
+  bool isSubRegion = false;
   int displayProc = 0;
   double initTimer = amrex::ParallelDescriptor::second();
   currentFrame = 0;
@@ -133,7 +134,12 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
   ivLowOffset = IntVect::TheZeroVector();
   domainBox = regionPicturePtr->DomainBox();
 
-  ProfAppInit(false);
+  ProfAppInit(isSubRegion);
+
+  // Should be the settings for the default constructor, but
+  // repeated for consistency & guarantee desired behavior.
+  clickHistory.RestartOn();
+  clickHistory.SetSubset(false);
 
   dataServicesPtr[0]->GetRegionsProfStats().FillRegionTimeRanges(dtr, displayProc);
 //  rtr = dataServicesPtr[0]->GetRegionsProfStats().GetRegionTimeRanges();
@@ -195,8 +201,10 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
     currentScale(profparent->currentScale),
     maxAllowableScale(profparent->maxAllowableScale),
     clickHistory(profparent->clickHistory),
+    dtr(profparent->dtr),
     rtr(profparent->rtr)
 {
+  bool isSubRegion = true;
   int displayProc = 0;
   currentFrame = 0;
   palFilename = palfile;
@@ -241,40 +249,40 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
 
   ivLowOffset = offset;
 
-  ProfAppInit(true);
+  ProfAppInit(isSubRegion);
 
+  // New subregion starts with all on.
+  clickHistory.RestartOn();
+  clickHistory.SetSubset(true);
   // If not initialized get rtr so it can be properly edited.
+/*
   if (!clickHistory.IsInitialized())
   {
     amrex::DataServices::Dispatch(amrex::DataServices::InitTimeRanges, dataServicesPtr[0]); 
     rtr = dataServicesPtr[0]->GetRegionsProfStats().GetRegionTimeRanges();
     clickHistory.SetInit(true);
   }
-
-  // Trim down the region time ranges based on the subregion selected
+*/
+  // Trim down the displayed region time ranges based on the subregion selected
   // CalcTimeRange = entire range of data
   // SubTimeRange = selected time range
   BLProfStats::TimeRange subRange(regionPicturePtr->SubTimeRange());
-  for (int n(0); n < rtr.size(); ++n) { 
-    for (int r(0); r < rtr[n].size(); ++r) {
-      for (int t(0); t < rtr[n][r].size(); ++t) {
+  for (int r(0); r < dtr.size(); ++r) {
+    for (int t(0); t < dtr[r].size(); ++t) {
 
-         BLProfStats::TimeRange regionRange = rtr[n][r][t]; 
-         BLProfStats::TimeRange trimmedRange( std::max(subRange.startTime, regionRange.startTime),
-                                              std::min(subRange.stopTime, regionRange.stopTime));
-         if (trimmedRange.startTime > trimmedRange.stopTime)   // Occurs if region is outside new window.
-         {
-           rtr[n][r][t] = BLProfStats::TimeRange(0.0, 0.0);
-         }
-         else
-         {
-           rtr[n][r][t] = trimmedRange;
-         }
-      }
+       BLProfStats::TimeRange regionRange = dtr[r][t]; 
+       BLProfStats::TimeRange trimmedRange( std::max(subRange.startTime, regionRange.startTime),
+                                            std::min(subRange.stopTime, regionRange.stopTime));
+       if (trimmedRange.startTime > trimmedRange.stopTime)   // Occurs if region is outside new window.
+       {
+         dtr[r][t] = BLProfStats::TimeRange(0.0, 0.0);
+       }
+       else
+       {
+         dtr[r][t] = trimmedRange;
+       }
     }
   }
-  dtr.clear();
-  dtr = rtr[displayProc];
 
 ////dataServicesPtr[0]->WriteSummary(cout, false, 0, false);
 //BLProfilerUtils::WriteHeader(cout, 10, 16, true);
@@ -1058,13 +1066,20 @@ void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data,
   ReplayClickHistory();
   RegionsProfStats &regionsProfStats = dataServicesPtr[0]->GetRegionsProfStats();
   regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
-for(int i(0); i < filterTimeRanges.size(); ++i) {
-  int jcount = 0;
-  for (list<BLProfStats::TimeRange>::iterator j=filterTimeRanges[i].begin(); j != filterTimeRanges[i].end(); ++j){
-  BLProfStats::TimeRange ttr = *j;
-  cout << "filterTimeRanges[ " << i << "][" << jcount++ << "] = " << ttr << endl;
+  // All procs should have the same size, especially in this case. So only test 1.
+  if(filterTimeRanges[0].size() == 0) {
+    if(ParallelDescriptor::IOProcessor()) { cout << "*****Cannot generate a function list: No regions are selected" << endl; }
+    return;
   }
-}
+  for(int i(0); i < filterTimeRanges.size(); ++i) {
+    int jcount = 0;
+    for (list<BLProfStats::TimeRange>::iterator j=filterTimeRanges[i].begin(); j != filterTimeRanges[i].end(); ++j)
+    {
+      BLProfStats::TimeRange ttr = *j;
+      cout << "filterTimeRanges[ " << i << "][" << jcount++ << "] = " << ttr << endl;
+    }
+  }
+
   aFuncStats.clear();
   regionsProfStats.CollectFuncStats(aFuncStats);
   std::map<std::string, BLProfiler::ProfStats> mProfStats;  // [fname, pstats]
@@ -1621,8 +1636,8 @@ string ProfApp::GetRegionName(Real r) {
 // -------------------------------------------------------------------
 int ProfApp::FindRegionTimeRangeIndex(int whichRegion, Real time) {
   if(whichRegion < 0 || whichRegion >= dtr.size()) {
-    //amrex::Print() << "**** Error in ProfApp::FindRegionTimeRangeIndex:  "
-    //               << "whichRegion out of range." << endl;
+    amrex::Print() << "**** Error in ProfApp::FindRegionTimeRangeIndex:  "
+                   << "whichRegion out of range: " << endl;
   } else {
     for(int it(0); it < dtr[whichRegion].size(); ++it) {
       if(dtr[whichRegion][it].Contains(time)) {
@@ -1635,7 +1650,6 @@ int ProfApp::FindRegionTimeRangeIndex(int whichRegion, Real time) {
 // -------------------------------------------------------------------
 void ProfApp::ReplayClickHistory()
 {
-
   if (!clickHistory.IsInitialized())
   {
     amrex::DataServices::Dispatch(amrex::DataServices::InitTimeRanges, dataServicesPtr[0]); 
@@ -1643,7 +1657,36 @@ void ProfApp::ReplayClickHistory()
     clickHistory.SetInit(true);
   }
 
-  // If reset to AllOn or AllOff since last replay, adjust accordingly.
+  // If subset since last adjustment, change trim rtr to current window.
+  if (clickHistory.WasSubset())
+  {
+    clickHistory.SetSubset(false);
+    // Trim down the region time ranges based on the subregion selected
+    // CalcTimeRange = entire range of data
+    // SubTimeRange = selected time range
+    BLProfStats::TimeRange subRange(regionPicturePtr->SubTimeRange());
+    for (int n(0); n < rtr.size(); ++n) {             // proc #
+      for (int r(0); r < rtr[n].size(); ++r) {        // named region
+        for (int t(0); t < rtr[n][r].size(); ++t) {   // instance of the region
+
+           BLProfStats::TimeRange regionRange = rtr[n][r][t]; 
+           BLProfStats::TimeRange trimmedRange( std::max(subRange.startTime, regionRange.startTime),
+                                                std::min(subRange.stopTime, regionRange.stopTime));
+           if (trimmedRange.startTime > trimmedRange.stopTime)   // Occurs if region is outside new window.
+           {
+             rtr[n][r][t] = BLProfStats::TimeRange(0.0, 0.0);
+           }
+           else
+           {
+             rtr[n][r][t] = trimmedRange;
+           }
+        }
+      }
+    }
+    clickHistory.SetSubset(false);
+  }
+
+  // If reset to AllOn or AllOff since last replay, begin by resetting.
   if (clickHistory.IsReset())
   {
     std::cout << endl << "ClickHistory: reset" << endl;

@@ -65,18 +65,19 @@ public:
 
     // Default constructor starts with "allOn" to match behavior of a new GUI window.
     ClickHistory()
-      : timeRangesInit(false), reset(true), replayFromAllOn(true)
+      : timeRangesInit(false), reset(true), replayFromAllOn(true), wasSubset(false)
     { guiHistory.clear(); }
 
-    // If subregioned, time ranges already initialized and 
+    // Copy constructor used for subregions. 
     ClickHistory(const ClickHistory& ch)
-      : timeRangesInit(ch.timeRangesInit), reset(ch.reset), replayFromAllOn(ch.replayFromAllOn)
+      : timeRangesInit(ch.timeRangesInit), reset(ch.reset), replayFromAllOn(ch.replayFromAllOn), wasSubset(ch.wasSubset)
     { guiHistory.clear(); }
 
     // Functions to store click data
     // ----------------------------
     // Used with "allOn" and "allOff" buttons.
     void SetInit( bool init ) { timeRangesInit = init; }
+    void SetSubset( bool subset ) { wasSubset = subset; }
     void RestartOn()  { guiHistory.clear(); reset = true; replayFromAllOn = true; }
     void RestartOff() { guiHistory.clear(); reset = true; replayFromAllOn = false; }
     // Store a button click in the list. 
@@ -88,6 +89,7 @@ public:
     bool IsInitialized() { return timeRangesInit; }
     bool IsReset() { return reset; }
     bool IsOn() { return replayFromAllOn; }
+    bool WasSubset() { return wasSubset; }
     // Replay the top click from the list.
     bool Replay(int &dvi, int &ri, bool &add)
     {
@@ -108,6 +110,7 @@ public:
                                  // false if continuing from previous work.
     bool replayFromAllOn;        // True if replay starts with all regions on.
                                  // False if replay starts with all regions off.
+    bool wasSubset;              // True if subset since the last replay.
     std::list<Click> guiHistory; // List of clicks performed on the GUI. 
   };
 //------------------------------------------------------------
