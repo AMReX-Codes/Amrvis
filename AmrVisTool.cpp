@@ -267,7 +267,7 @@ int main(int argc, char *argv[]) {
           cout << endl << "FileName = " << comlineFileName << endl;
         }
 	dspArray[nPlots] = new amrex::DataServices(comlineFileName, fileType);
-      }
+      }  // end for(nPlots...)
 
       for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {
         if(amrex::ParallelDescriptor::IOProcessor()) {

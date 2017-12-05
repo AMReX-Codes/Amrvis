@@ -2,6 +2,7 @@
 // ---------------------------------------------------------------
 
 #include <ProfApp.H>
+#include <AMReX_BLBackTrace.H>
 #include <AMReX_DataServices.H>
 #include <AmrPicture.H>
 #include <PltApp.H>
@@ -91,8 +92,11 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
 	       const Array<amrex::DataServices *> &dataservicesptr)
   : wTopLevel(w),
     appContext(app),
-    fileName(filename)
+    fileName(filename),
+    clickHistory()
 {
+  int displayProc = 0;
+  double initTimer = amrex::ParallelDescriptor::second();
   currentFrame = 0;
   dataServicesPtr = dataservicesptr;
   fileNames.resize(1);
@@ -124,26 +128,15 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
   XtVaSetValues(wAmrVisTopLevel, XmNtitle, const_cast<char *>(headerout.str().c_str()),
 		NULL);
 
-  rtr_all.resize(dataServicesPtr[0]->GetBLProfStats().GetNProcs());
-  for(int i=0; i<dataServicesPtr[0]->GetBLProfStats().GetNProcs(); i++)
-  {  
-    dataServicesPtr[0]->GetRegionsProfStats().FillRegionTimeRanges(rtr_all[i], i);
-  }
-  rtr = rtr_all[0];
-/*
-  for(int n(0); n < rtr_all.size(); ++n)
-  for(int r(0); r < rtr_all[n].size(); ++r) {
-    for(int t(0); t < rtr_all[n][r].size(); ++t) {
-      cout << "rtr_all[" << n << "][" << r << "] = " << "][" << t << "] = " << rtr_all[n][r][t] << endl;
-    }
-  }
-*/
   regionPicturePtr = new RegionPicture(gaPtr, dataServicesPtr[0]);
 
   ivLowOffset = IntVect::TheZeroVector();
   domainBox = regionPicturePtr->DomainBox();
 
   ProfAppInit(false);
+
+  dataServicesPtr[0]->GetRegionsProfStats().FillRegionTimeRanges(dtr, displayProc);
+//  rtr = dataServicesPtr[0]->GetRegionsProfStats().GetRegionTimeRanges();
 
   //const amrex::Array<amrex::Array<amrex::Box>> &regionBoxes = regionPicturePtr->RegionBoxes();
   //for(int r(0); r < regionBoxes.size(); ++r) {
@@ -184,6 +177,9 @@ if(regionTimeRanges.size() > 0) {
   pltPaletteptr->DrawPalette(atiPaletteEntry, regNames.size() - 3, "%8.2f");
   regionPicturePtr->APDraw(0,0);
   cout << ">>>> rpp.SubTimeRange = " << regionPicturePtr->SubTimeRange() << endl;
+
+  initTimer = amrex::ParallelDescriptor::second() - initTimer;
+  cout << "initTimer [sec] = " << initTimer << std::endl; 
 }
 
 
@@ -198,8 +194,10 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
     domainBox(profparent->domainBox),
     currentScale(profparent->currentScale),
     maxAllowableScale(profparent->maxAllowableScale),
-    rtr_all(profparent->rtr_all)
+    clickHistory(profparent->clickHistory),
+    rtr(profparent->rtr)
 {
+  int displayProc = 0;
   currentFrame = 0;
   palFilename = palfile;
   fileNames.resize(1);
@@ -245,29 +243,38 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
 
   ProfAppInit(true);
 
+  // If not initialized get rtr so it can be properly edited.
+  if (!clickHistory.IsInitialized())
+  {
+    amrex::DataServices::Dispatch(amrex::DataServices::InitTimeRanges, dataServicesPtr[0]); 
+    rtr = dataServicesPtr[0]->GetRegionsProfStats().GetRegionTimeRanges();
+    clickHistory.SetInit(true);
+  }
+
   // Trim down the region time ranges based on the subregion selected
   // CalcTimeRange = entire range of data
   // SubTimeRange = selected time range
   BLProfStats::TimeRange subRange(regionPicturePtr->SubTimeRange());
-  for (int n(0); n < rtr_all.size(); ++n) { 
-    for (int r(0); r < rtr_all[n].size(); ++r) {
-      for (int t(0); t < rtr_all[n][r].size(); ++t) {
+  for (int n(0); n < rtr.size(); ++n) { 
+    for (int r(0); r < rtr[n].size(); ++r) {
+      for (int t(0); t < rtr[n][r].size(); ++t) {
 
-         BLProfStats::TimeRange regionRange = rtr_all[n][r][t]; 
+         BLProfStats::TimeRange regionRange = rtr[n][r][t]; 
          BLProfStats::TimeRange trimmedRange( std::max(subRange.startTime, regionRange.startTime),
                                               std::min(subRange.stopTime, regionRange.stopTime));
-         if (trimmedRange.startTime > trimmedRange.stopTime)
+         if (trimmedRange.startTime > trimmedRange.stopTime)   // Occurs if region is outside new window.
          {
-           rtr_all[n][r][t] = BLProfStats::TimeRange(0.0, 0.0);
+           rtr[n][r][t] = BLProfStats::TimeRange(0.0, 0.0);
          }
          else
          {
-           rtr_all[n][r][t] = trimmedRange;
+           rtr[n][r][t] = trimmedRange;
          }
       }
     }
   }
-  rtr = rtr_all[0];
+  dtr.clear();
+  dtr = rtr[displayProc];
 
 ////dataServicesPtr[0]->WriteSummary(cout, false, 0, false);
 //BLProfilerUtils::WriteHeader(cout, 10, 16, true);
@@ -590,6 +597,14 @@ void ProfApp::ProfAppInit(bool bSubregion) {
                           (XtPointer) RegionPicture::RP_OFF);
   //XtManageChild(wGenerateTimelineButton);
 
+  wSendRecvButton = XtVaCreateManagedWidget("Generate Send/Recv List",
+                            xmPushButtonWidgetClass, wControlForm,
+                            XmNy, 220,
+                            XmCMarginBottom, marginBottom,
+                            NULL);
+  AddStaticCallback(wSendRecvButton, XmNactivateCallback, &ProfApp::DoSendRecvList,
+                          (XtPointer) RegionPicture::RP_OFF);
+  //XtManageChild(wGenerateTimelineButton);
 
   // ************************** Plot frame and area
   wPlotFrame = XtVaCreateManagedWidget("plotframe",
@@ -749,9 +764,10 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   cout << "rpp.SubTimeRange = " << regionPicturePtr->SubTimeRange() << endl;
   cout << "rpp.CalcTimeRange = " << regionPicturePtr->CalcTimeRange() << endl;
   filterTimeRanges.resize(dataServicesPtr[0]->GetBLProfStats().GetNProcs());
+//  compareTR.resize(filterTimeRanges.size());
   for(int iii(0); iii < filterTimeRanges.size(); ++iii) {
     filterTimeRanges[iii].push_back(regionPicturePtr->SubTimeRange());
-    cout << "FTR::  iii STR = " << iii << "  " << regionPicturePtr->SubTimeRange() << endl;
+//    cout << "FTR::  iii STR = " << iii << "  " << regionPicturePtr->SubTimeRange() << endl;
   }
   //RegionsProfStats &regionsProfStats = dataServicesPtr[0]->GetRegionsProfStats();
   //regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
@@ -960,6 +976,7 @@ void ProfApp::DoFuncListClick(Widget w, XtPointer client_data, XtPointer call_da
     SHOWVAL(aFSIndex);
     SHOWVAL(aFuncStats.size());
     RegionsProfStats &regionsProfStats = dataServicesPtr[0]->GetRegionsProfStats();
+    ReplayClickHistory();
     if(aFuncStats.size() == 0) {
       regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
       regionsProfStats.CollectFuncStats(aFuncStats);
@@ -992,6 +1009,21 @@ void ProfApp::DoFuncListClick(Widget w, XtPointer client_data, XtPointer call_da
   }
 }
 // -------------------------------------------------------------------
+void ProfApp::DoSendRecvList(Widget w, XtPointer client_data,
+                                 XtPointer call_data)
+{
+
+  // Test for whether this already exists. (Put timeline in bl_prof?)
+  cout << " Generating Send/Recv List. Please wait. " << std::endl;
+
+  ReplayClickHistory();
+  dataServicesPtr[0]->RunSendRecvList();
+
+  cout << " Send/Recv List completed. " << std::endl;
+
+}
+
+// -------------------------------------------------------------------
 void ProfApp::DoGenerateTimeline(Widget w, XtPointer client_data,
                                  XtPointer call_data)
 {
@@ -1002,7 +1034,6 @@ void ProfApp::DoGenerateTimeline(Widget w, XtPointer client_data,
 
 
   // Test for whether this already exists. (Put timeline in bl_prof?)
-  
   cout << " Generating Timeline. Please wait. " << std::endl;
 
   dataServicesPtr[0]->RunTimelinePF(mpiFuncNames, plotfileName, maxSmallImageLength,
@@ -1024,7 +1055,7 @@ void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data,
 {
   unsigned long r = (unsigned long) client_data;
   cout << "_in ProfApp::DoGenerateFuncList:  r = " << r << endl;
-
+  ReplayClickHistory();
   RegionsProfStats &regionsProfStats = dataServicesPtr[0]->GetRegionsProfStats();
   regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
 for(int i(0); i < filterTimeRanges.size(); ++i) {
@@ -1068,7 +1099,7 @@ for(int i(0); i < filterTimeRanges.size(); ++i) {
 void ProfApp::PopulateFuncList(bool bWriteAverage, int whichProc, bool bUseTrace) {
   Array<std::string> funcs;
   std::ostringstream ossSummary;
-  dataServicesPtr[0]->WriteSummary(ossSummary, true, 0, true, false);
+  dataServicesPtr[0]->WriteSummary(ossSummary, bWriteAverage, 0, bUseTrace, false);
   size_t startPos(0), endPos(0);
   const std::string &ossString = ossSummary.str();
   while(startPos < ossString.length() - 1) {
@@ -1120,6 +1151,11 @@ void ProfApp::DoAllOnOff(Widget w, XtPointer client_data, XtPointer call_data)
     filterTimeRanges[i].clear();
     if(v == RegionPicture::RP_ON) {
       filterTimeRanges[i].push_back(regionPicturePtr->SubTimeRange());
+      clickHistory.RestartOn();
+    }
+    else
+    {
+      clickHistory.RestartOff();
     }
   }
 }
@@ -1258,10 +1294,10 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
           buffout << "dataValueIndex regName rtri timerange = "
                   << dataValueIndex << "  " << GetRegionName(dataValue) << "  "
 		  << rtri << "  ";
-	  if(rtri < 0 || rtri >= rtr[dataValueIndex].size()) {
+	  if(rtri < 0 || rtri >= dtr[dataValueIndex].size()) {
             buffout << "Not in a region."  << endl;
 	  } else {
-            buffout << rtr[dataValueIndex][rtri] << endl;
+            buffout << dtr[dataValueIndex][rtri] << endl;
 	  }
 
           PrintMessage(const_cast<char *>(buffout.str().c_str()));
@@ -1339,19 +1375,20 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
           buffout << "dataValueIndex regName rtri timerange = "
                   << dataValueIndex << "  " << GetRegionName(dataValue) << "  "
 		  << rtri << "  ";
-	  if(rtri < 0 || rtri >= rtr[dataValueIndex].size()) {
+	  if(rtri < 0 || rtri >= dtr[dataValueIndex].size()) {
             buffout << "Not in a region."  << endl;
 	  } else {
-            buffout << rtr[dataValueIndex][rtri] << endl;
+            buffout << dtr[dataValueIndex][rtri] << endl;
 	  }
 
           PrintMessage(const_cast<char *>(buffout.str().c_str()));
 	  regionPicturePtr->SetRegionOnOff(dataValueIndex, rtri, RegionPicture::RP_OFF);
-	  if(rtri < 0 || rtri >= rtr[dataValueIndex].size()) {
+	  if(rtri < 0 || rtri >= dtr[dataValueIndex].size()) {
 	  } else {
 	    for(int i(0); i < filterTimeRanges.size(); ++i) {
-	      BLProfStats::RemovePiece(filterTimeRanges[i], rtr_all[i][dataValueIndex][rtri]);
+	      BLProfStats::RemovePiece(filterTimeRanges[i], dtr[dataValueIndex][rtri]);
 	    }
+            clickHistory.Store(dataValueIndex, rtri, false);
 	  }
           regionPicturePtr->DoExposePicture();
 
@@ -1402,19 +1439,20 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
           buffout << "dataValueIndex regName rtri timerange = "
                   << dataValueIndex << "  " << GetRegionName(dataValue) << "  "
 		  << rtri << "  ";
-	  if(rtri < 0 || rtri >= rtr[dataValueIndex].size()) {
+	  if(rtri < 0 || rtri >= dtr[dataValueIndex].size()) {
             buffout << "Not in a region."  << endl;
 	  } else {
-            buffout << rtr[dataValueIndex][rtri] << endl;
+            buffout << dtr[dataValueIndex][rtri] << endl;
 	  }
 
           PrintMessage(const_cast<char *>(buffout.str().c_str()));
 	  regionPicturePtr->SetRegionOnOff(dataValueIndex, rtri, RegionPicture::RP_ON);
-	  if(rtri < 0 || rtri >= rtr[dataValueIndex].size()) {
+	  if(rtri < 0 || rtri >= dtr[dataValueIndex].size()) {
 	  } else {
 	    for(int i(0); i < filterTimeRanges.size(); ++i) {
-	      BLProfStats::AddPiece(filterTimeRanges[i], rtr_all[i][dataValueIndex][rtri]);
+	      BLProfStats::AddPiece(filterTimeRanges[i], dtr[dataValueIndex][rtri]);
 	    }
+            clickHistory.Store(dataValueIndex, rtri, true);
 	  }
           regionPicturePtr->DoExposePicture();
 
@@ -1582,19 +1620,75 @@ string ProfApp::GetRegionName(Real r) {
 
 // -------------------------------------------------------------------
 int ProfApp::FindRegionTimeRangeIndex(int whichRegion, Real time) {
-  if(whichRegion < 0 || whichRegion >= rtr.size()) {
+  if(whichRegion < 0 || whichRegion >= dtr.size()) {
     //amrex::Print() << "**** Error in ProfApp::FindRegionTimeRangeIndex:  "
     //               << "whichRegion out of range." << endl;
   } else {
-    for(int it(0); it < rtr[whichRegion].size(); ++it) {
-      if(rtr[whichRegion][it].Contains(time)) {
+    for(int it(0); it < dtr[whichRegion].size(); ++it) {
+      if(dtr[whichRegion][it].Contains(time)) {
         return it;
       }
     }
   }
   return -42;  // ---- bad index
 }
+// -------------------------------------------------------------------
+void ProfApp::ReplayClickHistory()
+{
 
+  if (!clickHistory.IsInitialized())
+  {
+    amrex::DataServices::Dispatch(amrex::DataServices::InitTimeRanges, dataServicesPtr[0]); 
+    rtr = dataServicesPtr[0]->GetRegionsProfStats().GetRegionTimeRanges();
+    clickHistory.SetInit(true);
+  }
+
+  // If reset to AllOn or AllOff since last replay, adjust accordingly.
+  if (clickHistory.IsReset())
+  {
+    std::cout << endl << "ClickHistory: reset" << endl;
+    for(int i(0); i < filterTimeRanges.size(); ++i) {
+      filterTimeRanges[i].clear();
+      if (clickHistory.IsOn())
+      {
+         filterTimeRanges[i].push_back(regionPicturePtr->SubTimeRange());
+      }
+    }
+  }
+
+  int dvi, rtri; 
+  bool add;
+  while( clickHistory.Replay(dvi, rtri, add) )
+  {
+    for (int i(0); i< filterTimeRanges.size(); ++i)
+      if (add)
+      {
+         if (i == 0)
+           { std::cout << endl << "ClickHistory: add" << endl; }
+         BLProfStats::AddPiece(filterTimeRanges[i], rtr[i][dvi][rtri]);
+      }
+      else
+      { 
+         if (i == 0)
+           { std::cout << endl << "ClickHistory: remove" << endl; }
+         BLProfStats::RemovePiece(filterTimeRanges[i], rtr[i][dvi][rtri]);
+      }
+  }
+
+  dataServicesPtr[0]->GetCommOutputStats().SetFilterTimeRanges(filterTimeRanges);
+
+/*
+  std::cout << "Filter Time Ranges Replay" << std::endl;
+  // Testing: compare history build time range list with on-the-fly filterTimeRanges
+  amrex::Array<std::list<BLProfStats::TimeRange>> tempfTR(filterTimeRanges);
+  for (int i(0); i<tempfTR.size(); ++i)
+  {
+      cout << tempfTR[i].front() << endl;
+      tempfTR[i].pop_front();
+  }
+  std::cout << "Filter Timer Ranges Replay End" << std::endl << endl;
+*/
+}
 
 // -------------------------------------------------------------------
 void ProfApp::AddStaticEventHandler(Widget w, EventMask mask, profMemberCB cbf, void *d)

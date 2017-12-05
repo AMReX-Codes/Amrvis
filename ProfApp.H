@@ -36,7 +36,82 @@ class ProfApp;
 typedef void (ProfApp::*profMemberCB)(Widget, XtPointer, XtPointer);
 
 class ProfApp : public AVPApp {
-    
+
+public:
+
+//------------------------------------------------------------
+  // ProfApp class to store the click history for replay.
+  // Stores region clicked on and whether added or removed.
+  // Can be replayed when corresponding feature is implmented to
+  // generate appropriate TimeRanges. Otherwise, 
+  class ClickHistory {
+
+     // Private struct that stores the clicks done by the user.
+     // Stores region clicked on and whether it is removed or added. 
+     struct Click {
+       Click()
+         : dataValueIndex(-1), rtri(-1), doAdd(1)
+       { }
+       Click(int dvi, int ri, bool add)
+         : dataValueIndex(dvi), rtri(ri), doAdd(add)
+       { }
+
+       int dataValueIndex;    // Which region type? (Y on region plot)
+       int rtri;              // Which time through that region? (X on region plot)
+       bool doAdd;            // AddPiece if true, RemovePiece if false.
+     };
+
+    public:
+
+    // Default constructor starts with "allOn" to match behavior of a new GUI window.
+    ClickHistory()
+      : timeRangesInit(false), reset(true), replayFromAllOn(true)
+    { guiHistory.clear(); }
+
+    // If subregioned, time ranges already initialized and 
+    ClickHistory(const ClickHistory& ch)
+      : timeRangesInit(ch.timeRangesInit), reset(ch.reset), replayFromAllOn(ch.replayFromAllOn)
+    { guiHistory.clear(); }
+
+    // Functions to store click data
+    // ----------------------------
+    // Used with "allOn" and "allOff" buttons.
+    void SetInit( bool init ) { timeRangesInit = init; }
+    void RestartOn()  { guiHistory.clear(); reset = true; replayFromAllOn = true; }
+    void RestartOff() { guiHistory.clear(); reset = true; replayFromAllOn = false; }
+    // Store a button click in the list. 
+    void Store(int region, int regionNum, bool bStartOn)
+    { guiHistory.push_back( Click(region, regionNum, bStartOn) ); }
+
+    // Functions to replay history
+    // ----------------------------
+    bool IsInitialized() { return timeRangesInit; }
+    bool IsReset() { return reset; }
+    bool IsOn() { return replayFromAllOn; }
+    // Replay the top click from the list.
+    bool Replay(int &dvi, int &ri, bool &add)
+    {
+      reset = false;           // If ever replaying, assume continue from this state.
+
+      if (guiHistory.empty()) { return 0; }  // Signals replay is complete (or empty).
+
+      dvi = guiHistory.front().dataValueIndex;
+      ri  = guiHistory.front().rtri;
+      add = guiHistory.front().doAdd;
+      guiHistory.pop_front();
+      return 1;
+    }
+
+    private:
+    bool timeRangesInit;         // True if timeRanges have been read and initialized.
+    bool reset;                  // True if GUI was reset to AllOn or AllOff,
+                                 // false if continuing from previous work.
+    bool replayFromAllOn;        // True if replay starts with all regions on.
+                                 // False if replay starts with all regions off.
+    std::list<Click> guiHistory; // List of clicks performed on the GUI. 
+  };
+//------------------------------------------------------------
+ 
 private:
   ProfApp();  // not defined
   
@@ -67,6 +142,7 @@ public:
   void DoFuncListClick(Widget, XtPointer, XtPointer);
   void DoGenerateFuncList(Widget, XtPointer, XtPointer);
   void DoGenerateTimeline(Widget, XtPointer, XtPointer);
+  void DoSendRecvList(Widget, XtPointer, XtPointer);
   void PopulateFuncList(bool bWriteAverage, int whichProc, bool bUseTrace);
   void DoAllOnOff(Widget, XtPointer, XtPointer);
   void ChangeScale(Widget, XtPointer, XtPointer);
@@ -78,6 +154,7 @@ public:
 
   string GetRegionName(Real r);
   int FindRegionTimeRangeIndex(int whichRegion, Real time);
+  void ReplayClickHistory();
 
 private:
   Widget wTopLevel;
@@ -86,7 +163,8 @@ private:
   Widget wInfoTopLevel;
   Widget wPlotArea;
   Widget wPlotLabel;
-  Widget wFuncListButton, wAllOnButton, wAllOffButton, wTimelineButton;
+  Widget wFuncListButton, wAllOnButton, wAllOffButton;
+  Widget wTimelineButton, wSendRecvButton;
   Widget wFuncListScrollArea;
   Widget wFuncList, wCurrScale;
 
@@ -109,8 +187,10 @@ private:
   int currentScale, maxAllowableScale;
   int startX, startY, endX, endY;
   int sdLineXL, sdLineXH, axisLengthX, axisLengthY;
-  amrex::Array<amrex::Array<BLProfStats::TimeRange>> rtr;
-  amrex::Array<amrex::Array<amrex::Array<BLProfStats::TimeRange>>> rtr_all;
+  ClickHistory clickHistory;
+  amrex::Array<amrex::Array<BLProfStats::TimeRange>> dtr;
+//  amrex::Array<std::list<BLProfStats::TimeRange>> compareTR;
+  amrex::Array<amrex::Array<amrex::Array<BLProfStats::TimeRange>>> rtr;    
   amrex::Array<std::list<BLProfStats::TimeRange>> filterTimeRanges;
   amrex::Array<std::string> funcSelectionStrings;
   amrex::Array<amrex::Array<BLProfStats::FuncStat>> aFuncStats;
