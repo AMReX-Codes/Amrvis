@@ -254,15 +254,7 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
   // New subregion starts with all on.
   clickHistory.RestartOn();
   clickHistory.SetSubset(true);
-  // If not initialized get rtr so it can be properly edited.
-/*
-  if (!clickHistory.IsInitialized())
-  {
-    amrex::DataServices::Dispatch(amrex::DataServices::InitTimeRanges, dataServicesPtr[0]); 
-    rtr = dataServicesPtr[0]->GetRegionsProfStats().GetRegionTimeRanges();
-    clickHistory.SetInit(true);
-  }
-*/
+
   // Trim down the displayed region time ranges based on the subregion selected
   // CalcTimeRange = entire range of data
   // SubTimeRange = selected time range
@@ -764,11 +756,11 @@ void ProfApp::ProfAppInit(bool bSubregion) {
     funcs.push_back(sLine);
   }
   PopulateFuncList(funcs);
-*/
+
   int whichProc(0);
   bool writeAverage(false), useTrace(false);
   PopulateFuncList(writeAverage, whichProc, useTrace);
-
+*/
   cout << "rpp.SubTimeRange = " << regionPicturePtr->SubTimeRange() << endl;
   cout << "rpp.CalcTimeRange = " << regionPicturePtr->CalcTimeRange() << endl;
   filterTimeRanges.resize(dataServicesPtr[0]->GetBLProfStats().GetNProcs());
@@ -780,6 +772,12 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   //RegionsProfStats &regionsProfStats = dataServicesPtr[0]->GetRegionsProfStats();
   //regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
   //regionPicturePtr->SetAllOnOff(RegionPicture::RP_ON);
+
+  int whichProc(0);
+  //If we have the region data from a previous operation, update with the full summary.
+  //Otherwise, use the simplifed write summary.
+  bool writeAverage(clickHistory.IsInitialized()), useTrace(clickHistory.IsInitialized());
+  PopulateFuncList(writeAverage, whichProc, useTrace);
 
   interfaceReady = true;
 }
@@ -971,48 +969,52 @@ void ProfApp::DoFuncListClick(Widget w, XtPointer client_data, XtPointer call_da
                    XmNselectedPositions, &positions,
 		   NULL);
 
-  int fSSPosition(positions[0] - 1);  // ---- the xwindow list starts at 1 not 0
-  cout << "selected function = " << funcSelectionStrings[fSSPosition] << endl;
-  if(funcSelectionStrings[fSSPosition].size() == 0) {
-    //XmListDeselectPos(w, positions[0]);
-    XmListDeselectAllItems(w);
-  } else {
-    int aFSIndex = funcNameIndex[funcSelectionStrings[fSSPosition]];
-    SHOWVAL(funcNameIndex.size());
-    SHOWVAL(fSSPosition);
-    SHOWVAL(funcSelectionStrings[fSSPosition]);
-    SHOWVAL(aFSIndex);
-    SHOWVAL(aFuncStats.size());
-    RegionsProfStats &regionsProfStats = dataServicesPtr[0]->GetRegionsProfStats();
-    ReplayClickHistory();
-    if(aFuncStats.size() == 0) {
-      regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
-      regionsProfStats.CollectFuncStats(aFuncStats);
-    }
 
-     const amrex::Array<std::string> &numbersToFNames =
-                                        regionsProfStats.NumbersToFName();
-
-  int whichFuncNameInt(-1);
-  string whichFuncName = funcSelectionStrings[fSSPosition];
-  for(int i(0); i < numbersToFNames.size(); ++i) {
-    if(numbersToFNames[i] == whichFuncName) {
-      whichFuncNameInt = i;
-    }
-  }
-
-    aFSIndex = whichFuncNameInt;
-    //Array<BLProfStats::FuncStat> &aFS = aFuncStats[aFSIndex];
-
-    XYPlotDataList *newlist = CreateLinePlot(funcSelectionStrings[fSSPosition],
-	                                           aFSIndex);
-    if(newlist) {
-      newlist->SetLevel(0);
-      if(XYplotwin[0] == nullptr) {
-        XYplotwin[0] = new XYPlotWin(const_cast<char *>("nnnn"), appContext, wAmrVisTopLevel,
-                                     this, 0, 0);
+  if(selectedItemCount > 0)
+  {
+    int fSSPosition(positions[0] - 1);  // ---- the xwindow list starts at 1 not 0
+    cout << "selected function = " << funcSelectionStrings[fSSPosition] << endl;
+    if(funcSelectionStrings[fSSPosition].size() == 0) {
+      //XmListDeselectPos(w, positions[0]);
+      XmListDeselectAllItems(w);
+    } else {
+      int aFSIndex = funcNameIndex[funcSelectionStrings[fSSPosition]];
+      SHOWVAL(funcNameIndex.size());
+      SHOWVAL(fSSPosition);
+      SHOWVAL(funcSelectionStrings[fSSPosition]);
+      SHOWVAL(aFSIndex);
+      SHOWVAL(aFuncStats.size());
+      RegionsProfStats &regionsProfStats = dataServicesPtr[0]->GetRegionsProfStats();
+      ReplayClickHistory();
+      if(aFuncStats.size() == 0) {
+        regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
+        regionsProfStats.CollectFuncStats(aFuncStats);
       }
-      XYplotwin[0]->AddDataList(newlist);
+
+       const amrex::Array<std::string> &numbersToFNames =
+                                          regionsProfStats.NumbersToFName();
+
+    int whichFuncNameInt(-1);
+    string whichFuncName = funcSelectionStrings[fSSPosition];
+    for(int i(0); i < numbersToFNames.size(); ++i) {
+      if(numbersToFNames[i] == whichFuncName) {
+        whichFuncNameInt = i;
+      }
+    }
+
+      aFSIndex = whichFuncNameInt;
+      //Array<BLProfStats::FuncStat> &aFS = aFuncStats[aFSIndex];
+
+      XYPlotDataList *newlist = CreateLinePlot(funcSelectionStrings[fSSPosition],
+    	                                           aFSIndex);
+      if(newlist) {
+        newlist->SetLevel(0);
+        if(XYplotwin[0] == nullptr) {
+          XYplotwin[0] = new XYPlotWin(const_cast<char *>("nnnn"), appContext, wAmrVisTopLevel,
+                                       this, 0, 0);
+        }
+        XYplotwin[0]->AddDataList(newlist);
+      }
     }
   }
 }
