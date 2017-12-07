@@ -316,6 +316,7 @@ void ProfApp::ProfAppInit(bool bSubregion) {
 
   currentScale = 1;
   maxAllowableScale = 8;
+  int displayProc = 0;
 
 /*
   filterTimeRanges.resize(dataServicesPtr[0]->GetBLProfStats().GetNProcs());
@@ -763,21 +764,54 @@ void ProfApp::ProfAppInit(bool bSubregion) {
 */
   cout << "rpp.SubTimeRange = " << regionPicturePtr->SubTimeRange() << endl;
   cout << "rpp.CalcTimeRange = " << regionPicturePtr->CalcTimeRange() << endl;
+
   filterTimeRanges.resize(dataServicesPtr[0]->GetBLProfStats().GetNProcs());
-//  compareTR.resize(filterTimeRanges.size());
   for(int iii(0); iii < filterTimeRanges.size(); ++iii) {
     filterTimeRanges[iii].push_back(regionPicturePtr->SubTimeRange());
 //    cout << "FTR::  iii STR = " << iii << "  " << regionPicturePtr->SubTimeRange() << endl;
   }
-  //RegionsProfStats &regionsProfStats = dataServicesPtr[0]->GetRegionsProfStats();
-  //regionsProfStats.SetFilterTimeRanges(filterTimeRanges);
+  dataServicesPtr[0]->GetRegionsProfStats().SetFilterTimeRanges(filterTimeRanges);
   //regionPicturePtr->SetAllOnOff(RegionPicture::RP_ON);
 
-  int whichProc(0);
-  //If we have the region data from a previous operation, update with the full summary.
-  //Otherwise, use the simplifed write summary.
-  bool writeAverage(clickHistory.IsInitialized()), useTrace(clickHistory.IsInitialized());
-  PopulateFuncList(writeAverage, whichProc, useTrace);
+  if (clickHistory.IsInitialized() || !bSubregion)
+  {
+    // If we have the region data from a previous operation, update with the full summary.
+    // Otherwise, this is the initial load, so use the simplifed write summary.
+    bool writeAverage(clickHistory.IsInitialized()), useTrace(clickHistory.IsInitialized());
+    PopulateFuncList(writeAverage, displayProc, useTrace);
+  }
+  else // Write a message to the user detailing why there isn't a summary.
+  {
+/*
+    int numEntries(3);
+    XmStringTable messageList = (XmStringTable) XtMalloc(numEntries*sizeof(XmString *));
+    funcSelectionStrings.resize(numEntries, "");
+    cout << "numEntries sizeof(XmString *) " << numEntries << " " << sizeof(XmString *) << endl;
+
+    amrex::Vector<std::string>message (numEntries);
+    message[0] = "0";
+    message[1] = "ONE";
+    message[2] = "TWO";
+//    message[0] = "Function list of a subregion requires trace information.";
+//    message[1] = "To generate the function list, press the 'Generate Func List' button.";
+//    message[2] = "WARNING: May take a long time to initialize the required data.";
+//    message[3] = "Is this one real?";
+
+    for(int j(0); j < message.size(); ++j) {
+      messageList[i] = XmStringCreateSimple(const_cast<char *>(message[j].c_str()));
+    }
+
+    XtVaSetValues(wFuncList,
+                  XmNitemCount, numEntries,
+                  XmNitems, messageList,
+                  nullptr);
+
+    for(int j(0); j < numEntries; ++j) {
+      XmStringFree(messageList[j]);
+    }
+    XtFree((char *) messageList);
+*/
+  }
 
   interfaceReady = true;
 }
