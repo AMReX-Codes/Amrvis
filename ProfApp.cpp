@@ -771,6 +771,7 @@ void ProfApp::ProfAppInit(bool bSubregion) {
 //    cout << "FTR::  iii STR = " << iii << "  " << regionPicturePtr->SubTimeRange() << endl;
   }
   dataServicesPtr[0]->GetRegionsProfStats().SetFilterTimeRanges(filterTimeRanges);
+  dataServicesPtr[0]->GetCommOutputStats().SetFilterTimeRanges(filterTimeRanges);
   //regionPicturePtr->SetAllOnOff(RegionPicture::RP_ON);
 
   if (clickHistory.IsInitialized() || !bSubregion)
@@ -1074,14 +1075,21 @@ void ProfApp::DoGenerateTimeline(Widget w, XtPointer client_data,
   std::map<int,string> mpiFuncNames;
   int maxSmallImageLength(800), refRatioAll(4), nTimeSlots(25600);
   bool statsCollected(false);
+  BLProfStats::TimeRange subTimeRange(regionPicturePtr->SubTimeRange());
   std::string plotfileName("buttonPltFile");
-
 
   // Test for whether this already exists. (Put timeline in bl_prof?)
   cout << " Generating Timeline. Please wait. " << std::endl;
 
-  dataServicesPtr[0]->RunTimelinePF(mpiFuncNames, plotfileName, maxSmallImageLength,
-                                    refRatioAll, nTimeSlots, statsCollected);
+  amrex::DataServices::Dispatch(amrex::DataServices::RunTimelinePFRequest,
+                                dataServicesPtr[0],
+                                (void *) &(mpiFuncNames),
+                                (void *) &(plotfileName), 
+                                (void *) &(subTimeRange),
+                                maxSmallImageLength,
+                                refRatioAll,
+                                nTimeSlots,
+                                &statsCollected);
 
   cout << " Timeline completed. " << std::endl;
 
