@@ -290,9 +290,11 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
       std::ifstream cTrace(ctFileName.c_str());
       if(cTrace.fail()) {
         cout << "**** Error:  could not open:  " << ctFileName << endl;
+        callTraceExists = false;
       } else {
 	ParseCallTraceFile(cTrace);
         cTrace.close();
+        callTraceExists = true;
       }
     }
   }
@@ -3889,37 +3891,38 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	      int iLoc = gridOffset[idx] + trueRegionArray[mal].smallEnd()[idx];
 	      iLoc *= amrex::CRRBetweenLevels(maxDrawnLevel, amrData.FinestLevel(), amrData.RefRatio());
 	      buffout << "rank   = " << iLoc << '\n';
-
-              if(callTraceShowing) {
-	        XtPopup(wCallTraceTopLevel, XtGrabNone);
-		XMapRaised(XtDisplay(wCallTraceTopLevel), XtWindow(wCallTraceTopLevel));
-	        std::ostringstream traceout;
-	        DeriveCallStack(traceout, sDLoc, sDLoc);
-		cMessageArea traceMessageText;
-                traceMessageText.Init(wCallTraceList);
-                bool scrollToTop(true), clear(true);
-                traceMessageText.PrintText(traceout.str().c_str(), scrollToTop, clear);
-              } else {
-	        DeriveCallStack(std::cout, sDLoc, sDLoc);
-	      }
+              if(callTraceExists) {
+                if(callTraceShowing) {
+   	            XtPopup(wCallTraceTopLevel, XtGrabNone);
+	    	    XMapRaised(XtDisplay(wCallTraceTopLevel), XtWindow(wCallTraceTopLevel));
+	            std::ostringstream traceout;
+	            DeriveCallStack(traceout, sDLoc, sDLoc);
+		    cMessageArea traceMessageText;
+                    traceMessageText.Init(wCallTraceList);
+                    bool scrollToTop(true), clear(true);
+                    traceMessageText.PrintText(traceout.str().c_str(), scrollToTop, clear);
+                  } else {
+	            DeriveCallStack(std::cout, sDLoc, sDLoc);
+	          }
+               }
 
 	    } else {
-	      buffout << "point = " << trueRegionArray[intersectedLevel].smallEnd() << '\n';
-	      buffout << "grid  = " << intersectedGrid << '\n';
-	      buffout << "loc   = (";
-	      for(int idx(0); idx != BL_SPACEDIM; ++idx) {
-	        if(idx != 0) {
-	          buffout << ", ";
+	        buffout << "point = " << trueRegionArray[intersectedLevel].smallEnd() << '\n';
+	        buffout << "grid  = " << intersectedGrid << '\n';
+	        buffout << "loc   = (";
+	        for(int idx(0); idx != BL_SPACEDIM; ++idx) {
+	          if(idx != 0) {
+	            buffout << ", ";
+	          }
+	          double ssDLoc = gridOffset[idx] +
+		                  (0.5 + trueRegionArray[mal].smallEnd()[idx]) *
+		                  amrData.DxLevel()[mal][idx];
+	          char dLocStr[Amrvis::LINELENGTH];
+	          sprintf(dLocStr, pltAppState->GetFormatString().c_str(), ssDLoc);
+	          buffout << dLocStr;
 	        }
-	        double ssDLoc = gridOffset[idx] +
-		                (0.5 + trueRegionArray[mal].smallEnd()[idx]) *
-		                amrData.DxLevel()[mal][idx];
-	        char dLocStr[Amrvis::LINELENGTH];
-	        sprintf(dLocStr, pltAppState->GetFormatString().c_str(), ssDLoc);
-	        buffout << dLocStr;
+	        buffout << ")\n";
 	      }
-	      buffout << ")\n";
-	    }
 	    buffout << "value = " << dataValueString << '\n';
 	  } else {
             buffout << "Bad point at mouse click" << '\n';
@@ -4012,20 +4015,20 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 
 	      dLocH = amrData.Time() * dLocH /
 	                      static_cast<Real>(amrData.ProbDomain()[mal].length(Amrvis::XDIR));
-
-              if(callTraceShowing) {
-	        XtPopup(wCallTraceTopLevel, XtGrabNone);
-		XMapRaised(XtDisplay(wCallTraceTopLevel), XtWindow(wCallTraceTopLevel));
-	        std::ostringstream traceout;
-	        DeriveCallStack(traceout, dLocL, dLocH);
-		cMessageArea traceMessageText;
-                traceMessageText.Init(wCallTraceList);
-                bool scrollToTop(true), clear(true);
-                traceMessageText.PrintText(traceout.str().c_str(), scrollToTop, clear);
-              } else {
-	        DeriveCallStack(std::cout, dLocL, dLocH);
-	      }
-
+              if(callTraceExists) {
+                if(callTraceShowing) {
+	          XtPopup(wCallTraceTopLevel, XtGrabNone);
+		  XMapRaised(XtDisplay(wCallTraceTopLevel), XtWindow(wCallTraceTopLevel));
+	          std::ostringstream traceout;
+	          DeriveCallStack(traceout, dLocL, dLocH);
+		  cMessageArea traceMessageText;
+                  traceMessageText.Init(wCallTraceList);
+                  bool scrollToTop(true), clear(true);
+                  traceMessageText.PrintText(traceout.str().c_str(), scrollToTop, clear);
+                } else {
+	          DeriveCallStack(std::cout, dLocL, dLocH);
+	        }
+              }
 	    }
 	  }
 	}

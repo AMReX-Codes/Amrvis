@@ -175,6 +175,7 @@ private:
   amrex::Amrvis::MinMaxRangeType currentRangeType;
   bool animating2d;
   bool setRangeShowing, contoursShowing, infoShowing, bFormatShowing;
+  bool callTraceExists;
   bool callTraceShowing;
   bool bSetRangeRedraw;
   bool datasetShowing, paletteDrawn, writingRGB, interfaceReady;
