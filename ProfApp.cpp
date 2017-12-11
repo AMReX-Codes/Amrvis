@@ -783,23 +783,18 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   }
   else // Write a message to the user detailing why there isn't a summary.
   {
-/*
     int numEntries(3);
-    XmStringTable messageList = (XmStringTable) XtMalloc(numEntries*sizeof(XmString *));
-    funcSelectionStrings.resize(numEntries, "");
-    cout << "numEntries sizeof(XmString *) " << numEntries << " " << sizeof(XmString *) << endl;
+    XmStringTable messageList = (XmStringTable) XtMalloc(numEntries * sizeof(XmString *));
 
-    amrex::Vector<std::string>message (numEntries);
-    message[0] = "0";
-    message[1] = "ONE";
-    message[2] = "TWO";
-//    message[0] = "Function list of a subregion requires trace information.";
-//    message[1] = "To generate the function list, press the 'Generate Func List' button.";
-//    message[2] = "WARNING: May take a long time to initialize the required data.";
-//    message[3] = "Is this one real?";
+    funcSelectionStrings.resize(numEntries, "");
+
+    amrex::Vector<std::string> message(numEntries, "");
+    message[0] = "Function list of a subregion requires trace information.";
+    message[1] = "To generate the function list, press the 'Generate Func List' button.";
+    message[2] = "WARNING: May take a long time to initialize the required data.";
 
     for(int j(0); j < message.size(); ++j) {
-      messageList[i] = XmStringCreateSimple(const_cast<char *>(message[j].c_str()));
+      messageList[j] = XmStringCreateSimple(const_cast<char *>(message[j].c_str()));
     }
 
     XtVaSetValues(wFuncList,
@@ -811,7 +806,6 @@ void ProfApp::ProfAppInit(bool bSubregion) {
       XmStringFree(messageList[j]);
     }
     XtFree((char *) messageList);
-*/
   }
 
   interfaceReady = true;
