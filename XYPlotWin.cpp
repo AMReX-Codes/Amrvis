@@ -1359,7 +1359,6 @@ void XYPlotWin::textX (Widget win, int x, int y, char *text,
     case T_BOTTOM:     rx = x - (width / 2); ry = y - height;       break;
     case T_LOWERLEFT:  rx = x;               ry = y - height;       break;
   }
-  //XSetForeground(disp, textGC, pltParent->GetPalettePtr()->makePixel(120));
   XDrawString(disp, XtWindow(win), textGC, rx, ry + bb.ascent, text, len);
 }
 
@@ -2078,6 +2077,7 @@ void XYPlotWin::SetPalette() {
   pal->SetWindowPalette(pltParent->GetPaletteName(), XtWindow(wXYPlotTopLevel));
   pal->SetWindowPalette(pltParent->GetPaletteName(), pWindow);
   char buffer[20];
+  const int palOffset(24);
   params param_temp;   // temporary parameter grabbing slot
   for(int idx(0); idx < 8; ++idx) {
     sprintf(buffer, "%d.Color", idx);
@@ -2085,6 +2085,7 @@ void XYPlotWin::SetPalette() {
     long icTempL(icTemp);
     const Array<XColor> &cCells = pal->GetColorCells();
     long ccsm1(cCells.size() - 1);
+    icTempL += palOffset;
     icTemp = std::max(0L, std::min(icTempL, ccsm1));
     AllAttrs[idx].pixelValue = cCells[icTemp].pixel;
   }
