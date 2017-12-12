@@ -923,9 +923,6 @@ amrex::XYPlotDataList *ProfApp::CreateLinePlot(const string &derived,
                                                int dIndex)
 {
   // Create an array of boxes corresponding to the intersected line.
-  SHOWVAL(dIndex);
-  SHOWVAL(aFuncStats.size());
-  SHOWVAL(aFuncStats[dIndex].size());
   Box trueRegion(IntVect(0,0), IntVect(aFuncStats[dIndex].size() - 1,0));
   FArrayBox dataFab(trueRegion, 1);
   for(int i(0); i < aFuncStats[dIndex].size(); ++i) {
@@ -1008,11 +1005,6 @@ void ProfApp::DoFuncListClick(Widget w, XtPointer client_data, XtPointer call_da
       XmListDeselectAllItems(w);
     } else {
       int aFSIndex = funcNameIndex[funcSelectionStrings[fSSPosition]];
-      SHOWVAL(funcNameIndex.size());
-      SHOWVAL(fSSPosition);
-      SHOWVAL(funcSelectionStrings[fSSPosition]);
-      SHOWVAL(aFSIndex);
-      SHOWVAL(aFuncStats.size());
       RegionsProfStats &regionsProfStats = dataServicesPtr[0]->GetRegionsProfStats();
       ReplayClickHistory();
       if(aFuncStats.size() == 0) {
@@ -1032,7 +1024,6 @@ void ProfApp::DoFuncListClick(Widget w, XtPointer client_data, XtPointer call_da
     }
 
       aFSIndex = whichFuncNameInt;
-      //Array<BLProfStats::FuncStat> &aFS = aFuncStats[aFSIndex];
 
       XYPlotDataList *newlist = CreateLinePlot(funcSelectionStrings[fSSPosition],
     	                                           aFSIndex);
