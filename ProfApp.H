@@ -146,6 +146,7 @@ public:
   void DoGenerateFuncList(Widget, XtPointer, XtPointer);
   void DoGenerateTimeline(Widget, XtPointer, XtPointer);
   void DoSendRecvList(Widget, XtPointer, XtPointer);
+  void DoRegionTimePlot(Widget, XtPointer, XtPointer);
   void PopulateFuncList(bool bWriteAverage, int whichProc, bool bUseTrace);
   void DoAllOnOff(Widget, XtPointer, XtPointer);
   void ChangeScale(Widget, XtPointer, XtPointer);
@@ -167,7 +168,7 @@ private:
   Widget wPlotArea;
   Widget wPlotLabel;
   Widget wFuncListButton, wAllOnButton, wAllOffButton;
-  Widget wTimelineButton, wSendRecvButton;
+  Widget wTimelineButton, wSendRecvButton, wRegionTimePlotButton;
   Widget wFuncListScrollArea;
   Widget wFuncList, wCurrScale;
 

@@ -79,6 +79,7 @@ class XYPlotWin {
     void PopUp() { XtPopup(wXYPlotTopLevel, XtGrabNone); }
     void SetPalette();
     void DoASCIIDump(FILE *fs, const char *plotname);
+    int  NumDrawnItems() { return numDrawnItems; }
 
   private:
     XtAppContext            appContext;

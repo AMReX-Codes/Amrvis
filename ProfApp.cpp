@@ -335,6 +335,7 @@ void ProfApp::ProfAppInit(bool bSubregion) {
 			  (XtCallbackProc) CBQuitProfApp, (XtPointer) this);
 
   XYplotwin[0] = nullptr; // No 1D plot windows initially.
+  XYplotwin[1] = nullptr;
 
   placementOffsetX += windowOffset;
   placementOffsetY += windowOffset;
@@ -606,6 +607,16 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   AddStaticCallback(wSendRecvButton, XmNactivateCallback, &ProfApp::DoSendRecvList,
                           (XtPointer) RegionPicture::RP_OFF);
   //XtManageChild(wGenerateTimelineButton);
+
+  wRegionTimePlotButton = XtVaCreateManagedWidget("Generate Region Time Plot",
+                            xmPushButtonWidgetClass, wControlForm,
+                            XmNy, 260,
+                            XmCMarginBottom, marginBottom,
+                            NULL);
+  AddStaticCallback(wRegionTimePlotButton, XmNactivateCallback, &ProfApp::DoRegionTimePlot,
+                          (XtPointer) RegionPicture::RP_OFF);
+  //XtManageChild(wGenerateTimelineButton);
+
 
   // ************************** Plot frame and area
   wPlotFrame = XtVaCreateManagedWidget("plotframe",
@@ -1030,7 +1041,7 @@ void ProfApp::DoFuncListClick(Widget w, XtPointer client_data, XtPointer call_da
       if(newlist) {
         newlist->SetLevel(0);
         if(XYplotwin[0] == nullptr) {
-          XYplotwin[0] = new XYPlotWin(const_cast<char *>("nnnn"), appContext, wAmrVisTopLevel,
+          XYplotwin[0] = new XYPlotWin(const_cast<char *>("Function Runtime per Rank  -  "), appContext, wAmrVisTopLevel,
                                        this, 0, 0);
         }
         XYplotwin[0]->AddDataList(newlist);
@@ -1085,7 +1096,76 @@ void ProfApp::DoGenerateTimeline(Widget w, XtPointer client_data,
    open timelinepf
 */
 }
+// -------------------------------------------------------------------
+void ProfApp::DoRegionTimePlot(Widget w, XtPointer client_data,
+                                 XtPointer call_data)
+{
 
+  ReplayClickHistory();
+
+  // If there are no selected regions, write that and quit.
+  // Note: all ranks should have the same number of regions, so 
+  //       check is currently only done on rank 0. Need to change
+  //       when ProfApp is fully scaled.
+  if (filterTimeRanges[0].size() == 0)
+  {
+    cout << "*** Cannot generate RegionTimePlot: No regions selected." << endl;
+    return;
+  }
+  else
+  {
+
+    string title("");
+    // Generate title for the plot.
+    if(XYplotwin[1] == nullptr) {
+      title = "Plot #1";
+    }
+    else
+    {
+      std::ostringstream titlestream;
+      titlestream << "Plot #" << XYplotwin[1]->NumDrawnItems() + 1;
+      title = titlestream.str(); 
+    }
+
+    // Create an array of boxes corresponding to the intersected line.
+    Box plotData(IntVect(0,0), IntVect(filterTimeRanges.size() - 1, 0));
+    FArrayBox dataFab(plotData, 1);
+    Real *dp = dataFab.dataPtr();
+    for (int i(0); i<filterTimeRanges.size(); ++i)
+    {
+      Real regionTime = 0.0;
+      std::list<BLProfStats::TimeRange>::iterator it;
+      for (it = filterTimeRanges[i].begin(); it != filterTimeRanges[i].end(); ++it)
+      {
+        BLProfStats::TimeRange tr = *it;
+        regionTime += tr.stopTime - tr.startTime;
+      }
+      dp[i] = regionTime; 
+    }
+
+    // Create an array of titles corresponding to the intersected line.
+    Vector<Real> XdX(1, 1.0);
+    Vector<int> refR(1, 1);
+    Vector<char *> intersectStr(1, new char[128]);
+    sprintf(intersectStr[0], "lineplot"); 
+
+    amrex::XYPlotDataList *newlist = new amrex::XYPlotDataList(title,
+                                      0, 0, 0, refR, XdX, intersectStr, 0.0);
+
+    newlist->AddFArrayBox(dataFab, 0, 0);
+
+    if(newlist) 
+    {
+      newlist->SetLevel(0);
+      if(XYplotwin[1] == nullptr) {
+        XYplotwin[1] = new XYPlotWin(const_cast<char *>("Selected Region(s) Time per Rank  -  "), appContext, wAmrVisTopLevel,
+                                     this, 1, 0);
+      }
+      XYplotwin[1]->AddDataList(newlist);
+    }
+  }
+}
+ 
 // -------------------------------------------------------------------
 void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data,
                                  XtPointer call_data)
@@ -1679,6 +1759,8 @@ int ProfApp::FindRegionTimeRangeIndex(int whichRegion, Real time) {
 // -------------------------------------------------------------------
 void ProfApp::ReplayClickHistory()
 {
+  // RegionTimeRanges initialization is expensive. 
+  // Only do it when/if needed.
   if (!clickHistory.IsInitialized())
   {
     amrex::DataServices::Dispatch(amrex::DataServices::InitTimeRanges, dataServicesPtr[0]); 
@@ -1728,6 +1810,7 @@ void ProfApp::ReplayClickHistory()
     }
   }
 
+  // Replay the current click history to get the properly filter for all procs.
   int dvi, rtri; 
   bool add;
   while( clickHistory.Replay(dvi, rtri, add) )
@@ -1749,17 +1832,6 @@ void ProfApp::ReplayClickHistory()
 
   dataServicesPtr[0]->GetCommOutputStats().SetFilterTimeRanges(filterTimeRanges);
 
-/*
-  std::cout << "Filter Time Ranges Replay" << std::endl;
-  // Testing: compare history build time range list with on-the-fly filterTimeRanges
-  amrex::Array<std::list<BLProfStats::TimeRange>> tempfTR(filterTimeRanges);
-  for (int i(0); i<tempfTR.size(); ++i)
-  {
-      cout << tempfTR[i].front() << endl;
-      tempfTR[i].pop_front();
-  }
-  std::cout << "Filter Timer Ranges Replay End" << std::endl << endl;
-*/
 }
 
 // -------------------------------------------------------------------
