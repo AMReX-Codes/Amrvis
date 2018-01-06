@@ -69,6 +69,20 @@ GraphicsAttributes::GraphicsAttributes(Widget topLevel)
   if(status != 0) {
     //cout << "***************** using TrueColor visual" << endl;
     visual = visual_info.visual;
+#ifdef AV_NX_FIX
+    int nItems(-1);
+    Visual *defaultV(XDefaultVisual(display, screennumber));
+    XVisualInfo *defaultXVI, defaultXVITemplate;
+    defaultXVITemplate.visualid = XVisualIDFromVisual(defaultV);
+    defaultXVI = XGetVisualInfo(display, VisualIDMask, &defaultXVITemplate, &nItems);
+    if(visual_info.red_mask   == defaultXVI->red_mask &&
+       visual_info.green_mask == defaultXVI->green_mask &&
+       visual_info.blue_mask  == defaultXVI->blue_mask)
+    {
+      visual = defaultV;
+    }
+    XFree(defaultXVI);
+#endif
     depth = DefaultDepth(display, screennumber);
     red_shift = buildShift(visual_info.red_mask);
     green_shift = buildShift(visual_info.green_mask);
