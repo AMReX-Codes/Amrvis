@@ -43,7 +43,7 @@ public:
   // ProfApp class to store the click history for replay.
   // Stores region clicked on and whether added or removed.
   // Can be replayed when corresponding feature is implmented to
-  // generate appropriate TimeRanges. Otherwise, 
+  // generate appropriate TimeRanges.
   class ClickHistory {
 
      // Private struct that stores the clicks done by the user.
@@ -57,7 +57,7 @@ public:
        { }
 
        int dataValueIndex;    // Which region type? (Y on region plot)
-       int rtri;              // Which time through that region? (X on region plot)
+       int rtri;              // Which time through that region? (X on region plot, RegionTimeRangeIndex)
        bool doAdd;            // AddPiece if true, RemovePiece if false.
      };
 
@@ -147,6 +147,7 @@ public:
   void DoGenerateTimeline(Widget, XtPointer, XtPointer);
   void DoSendRecvList(Widget, XtPointer, XtPointer);
   void DoRegionTimePlot(Widget, XtPointer, XtPointer);
+  void DoSendsPlotfile(Widget, XtPointer, XtPointer);
   void PopulateFuncList(bool bWriteAverage, int whichProc, bool bUseTrace);
   void DoAllOnOff(Widget, XtPointer, XtPointer);
   void ChangeScale(Widget, XtPointer, XtPointer);
@@ -169,6 +170,7 @@ private:
   Widget wPlotLabel;
   Widget wFuncListButton, wAllOnButton, wAllOffButton;
   Widget wTimelineButton, wSendRecvButton, wRegionTimePlotButton;
+  Widget wSendsPlotButton;
   Widget wFuncListScrollArea;
   Widget wFuncList, wCurrScale;
 

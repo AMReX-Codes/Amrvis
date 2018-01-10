@@ -556,7 +556,7 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   wControlForm = XtVaCreateManagedWidget("refArea",
                             xmDrawingAreaWidgetClass, wControlsFrame,
                             XmNwidth,   wcfWidth,
-                            XmNheight,  wcfHeight,
+                            XmNheight,  wcfHeight+100,
                             XmNresizePolicy, XmRESIZE_NONE,
                             NULL);
   AddStaticEventHandler(wControlForm, ExposureMask, &ProfApp::DoExposeRef);
@@ -617,7 +617,14 @@ void ProfApp::ProfAppInit(bool bSubregion) {
                           (XtPointer) RegionPicture::RP_OFF);
   //XtManageChild(wGenerateTimelineButton);
 
-
+  wSendsPlotButton = XtVaCreateManagedWidget("Generate Sends Plotfile",
+                       xmPushButtonWidgetClass, wControlForm,
+                       XmNy, 300,
+                       XmCMarginBottom, marginBottom,
+                       NULL);
+  AddStaticCallback(wSendsPlotButton, XmNactivateCallback, &ProfApp::DoSendsPlotfile,
+                          (XtPointer) RegionPicture::RP_OFF);
+ 
   // ************************** Plot frame and area
   wPlotFrame = XtVaCreateManagedWidget("plotframe",
 			    xmFrameWidgetClass,   wMainArea,
@@ -1090,10 +1097,7 @@ void ProfApp::DoGenerateTimeline(Widget w, XtPointer client_data,
   cout << " Timeline completed. " << std::endl;
 
 /*
-  (if timeline doesn't exist or not ok)
-      generate it
-
-   open timelinepf
+   ?? open timelinepf ??
 */
 }
 // -------------------------------------------------------------------
@@ -1123,7 +1127,7 @@ void ProfApp::DoRegionTimePlot(Widget w, XtPointer client_data,
     else
     {
       std::ostringstream titlestream;
-      titlestream << "Plot #" << XYplotwin[1]->NumDrawnItems() + 1;
+      titlestream << "Plot #" << XYplotwin[1]->NumItems() + 1;
       title = titlestream.str(); 
     }
 
@@ -1165,7 +1169,37 @@ void ProfApp::DoRegionTimePlot(Widget w, XtPointer client_data,
     }
   }
 }
- 
+// -------------------------------------------------------------------
+void ProfApp::DoSendsPlotfile(Widget w, XtPointer client_data,
+                                 XtPointer call_data)
+{
+  ReplayClickHistory();
+  std::string plotfileName("pltTSP2P_Button");
+  int maxSmallImageLength = 800;
+  bool proxMap = false;
+  int refRatioAll = 4;
+
+  for(int i(0); i < filterTimeRanges.size(); ++i) {
+    int jcount = 0;
+    for (list<BLProfStats::TimeRange>::iterator j=filterTimeRanges[i].begin(); j != filterTimeRanges[i].end(); ++j)
+    {
+      BLProfStats::TimeRange ttr = *j;
+      cout << "filterTimeRanges[ " << i << "][" << jcount++ << "] = " << ttr << endl;
+    }
+  }
+
+  cout << " Generating Sends Plotfile. Please wait. " << std::endl;
+
+  amrex::DataServices::Dispatch(amrex::DataServices::RunSendsPFRequest,
+                                dataServicesPtr[0],
+                                (void *) &(plotfileName),
+                                maxSmallImageLength, 
+                                &proxMap,
+                                refRatioAll);
+
+  cout << " Sends completed. " << std::endl;
+
+}
 // -------------------------------------------------------------------
 void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data,
                                  XtPointer call_data)
@@ -1759,6 +1793,7 @@ int ProfApp::FindRegionTimeRangeIndex(int whichRegion, Real time) {
 // -------------------------------------------------------------------
 void ProfApp::ReplayClickHistory()
 {
+
   // RegionTimeRanges initialization is expensive. 
   // Only do it when/if needed.
   if (!clickHistory.IsInitialized())
