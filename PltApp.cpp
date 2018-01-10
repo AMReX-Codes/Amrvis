@@ -3509,14 +3509,14 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
   Array<char *> intersectStr(mal + 1);
   
 #if (BL_SPACEDIM == 3)
-  char buffer[128];
-  sprintf(buffer, "%s%s %s%s",
+  char bufferL[128];
+  sprintf(bufferL, "%s%s %s%s",
 	  (dir1 == Amrvis::XDIR) ? "X=" : "Y=", pltAppState->GetFormatString().c_str(),
 	  (dir2 == Amrvis::YDIR) ? "Y=" : "Z=", pltAppState->GetFormatString().c_str());
 #endif
   for(lev = 0; lev <= mal; ++lev) {
     XdX[lev] = amrData.DxLevel()[lev][sdir];
-    intersectStr[lev] = new char[128];
+    intersectStr[lev] = new char[128];  // ---- these are deleted by XYPlotDataList
 #if (BL_SPACEDIM == 1)
     sprintf(intersectStr[lev], "X=");
     sprintf(intersectStr[lev]+2, pltAppState->GetFormatString().c_str(),
@@ -3528,7 +3528,7 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 	    gridOffset[dir1] +
 	    (0.5 + ssTrueRegion[lev].smallEnd(dir1))*amrData.DxLevel()[lev][dir1]);
 #elif (BL_SPACEDIM == 3)
-    sprintf(intersectStr[lev], buffer,
+    sprintf(intersectStr[lev], bufferL,
 	    amrData.DxLevel()[lev][dir1] * (0.5 + ssTrueRegion[lev].smallEnd(dir1)) +
 	    gridOffset[dir1],
 	    amrData.DxLevel()[lev][dir2] * (0.5 + ssTrueRegion[lev].smallEnd(dir2)) +
