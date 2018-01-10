@@ -215,10 +215,6 @@ private:
   int 		rWidth, rHeight, rStartX, rStartY;
   Cursor	cursor;
 
-#ifdef BL_USE_PROFPARSER
-  BLProfStats::TimeRange timeRange;  // ---- for timeline plotfiles
-#endif
-
   static string defaultPaletteString, initialDerived, initialFormatString;
   static string defaultLightingFilename;
   static int initialMaxMenuItems;

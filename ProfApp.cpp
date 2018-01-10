@@ -1075,7 +1075,7 @@ void ProfApp::DoGenerateTimeline(Widget w, XtPointer client_data,
   std::string plotfileName("buttonPltFile");
 
   // Test for whether this already exists. (Put timeline in bl_prof?)
-  cout << " Generating Timeline. Please wait. " << std::endl;
+  cout << " Generating Timeline for range:  " << subTimeRange << "\nPlease wait. " << std::endl;
 
   amrex::DataServices::Dispatch(amrex::DataServices::RunTimelinePFRequest,
                                 dataServicesPtr[0],

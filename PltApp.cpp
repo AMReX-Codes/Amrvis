@@ -297,6 +297,19 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
         callTraceExists = true;
       }
     }
+
+    {
+      string trFileName(amrData.GetFileName() + "/TimeRange.txt");
+      std::ifstream trRange(trFileName.c_str());
+      if(trRange.fail()) {
+        cout << "**** Error:  could not open:  " << trFileName << endl;
+	timelineRangeStart = 0.0;
+	timelineRangeStop  = amrData.Time();
+      } else {
+        trRange >> timelineRangeStart >> timelineRangeStop;
+        trRange.close();
+      }
+    }
   }
 
   bRegions = false;
@@ -590,6 +603,19 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
       } else {
 	ParseCallTraceFile(cTrace);
         cTrace.close();
+      }
+    }
+
+    {
+      string trFileName(amrData.GetFileName() + "/TimeRange.txt");
+      std::ifstream trRange(trFileName.c_str());
+      if(trRange.fail()) {
+        cout << "**** Error:  could not open:  " << trFileName << endl;
+	timelineRangeStart = 0.0;
+	timelineRangeStop  = amrData.Time();
+      } else {
+        trRange >> timelineRangeStart >> timelineRangeStop;
+        trRange.close();
       }
     }
   }
@@ -1760,7 +1786,7 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
     Real sdXH(subdomainBox.smallEnd(0) + subdomainBox.length(0));
     int sdLineXL = domainBox.smallEnd(0) + (static_cast<int>(axisLengthX * sdXL / dLength));
     int sdLineXH = domainBox.smallEnd(0) + (static_cast<int>(axisLengthX * sdXH / dLength));
-    Real totalTime(amrData.Time());
+    Real totalTime(timelineRangeStop - timelineRangeStart);
     Real subTimeRangeStart, subTimeRangeStop;
     if(sdLineXL > 0) {
       subTimeRangeStart = totalTime * static_cast<Real>(sdLineXL) / static_cast<Real>(axisLengthX);
@@ -1772,6 +1798,9 @@ void PltApp::DoExposeRef(Widget, XtPointer, XtPointer) {
     } else {
       subTimeRangeStop = 0.0;
     }
+    subTimeRangeStart += timelineRangeStart;
+    subTimeRangeStop  += timelineRangeStart;
+std::cout << "TRTRTRTR:  subTimeRangeStart subTimeRangeStop = " << subTimeRangeStart << "  " << subTimeRangeStop << std::endl;
     DrawTimeRange(wControlForm, sdLineXL, sdLineXH, axisLengthX, axisLengthY,
                   subTimeRangeStart, subTimeRangeStop, "mpi rank");
 

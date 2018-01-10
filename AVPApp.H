@@ -74,6 +74,7 @@ class AVPApp
     PltAppState *pltAppState;
     amrex::Array<amrex::DataServices *> dataServicesPtr;
     CallTraceData callTraceData;
+    amrex::Real timelineRangeStart, timelineRangeStop;
 };
 
 #endif
