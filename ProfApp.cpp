@@ -157,7 +157,7 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
 /*
 std::string regionsFileName("pltRegions");
 dataServicesPtr.resize(1);
-dataServicesPtr[0] = new DataServices(regionsFileName, Amrvis::NEWPLT);
+dataServicesPtr[0] = new amrex::DataServices(regionsFileName, Amrvis::NEWPLT);
 PltApp *temp = new PltApp(app, wTopLevel, regionsFileName, dataServicesPtr, false);
 pltAppList.push_back(temp);
 
