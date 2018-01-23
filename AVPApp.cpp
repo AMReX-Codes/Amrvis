@@ -51,7 +51,7 @@ void AVPApp::DrawTimeRange(Widget wCF, int sdLineXL, int sdLineXH,
 // -------------------------------------------------------------------
 void AVPApp::ParseCallTraceFile(std::ifstream &ctFile)
 {
-  amrex::Array<CallTraceLine> &cTLines = callTraceData.callTraceLines;
+  amrex::Vector<CallTraceLine> &cTLines = callTraceData.callTraceLines;
   std::map<int, std::string>  &fNNames = callTraceData.funcNumberNames;
   std::string line;
 
@@ -90,7 +90,7 @@ void AVPApp::ParseCallTraceFile(std::ifstream &ctFile)
 // -------------------------------------------------------------------
 void AVPApp::DeriveCallStack(std::ostream &os, Real startTime, Real endTime)
 {
-  amrex::Array<CallTraceLine> &cTLines = callTraceData.callTraceLines;
+  amrex::Vector<CallTraceLine> &cTLines = callTraceData.callTraceLines;
   std::map<int, std::string>  &fNNames = callTraceData.funcNumberNames;
   std::vector<CallTraceLine>::iterator lowB, highB;
 
@@ -109,7 +109,7 @@ void AVPApp::DeriveCallStack(std::ostream &os, Real startTime, Real endTime)
   amrex::Print() << "_in DeriveCallStack:  lowLine = "
                  << fNNames[cTLines[lowIndex].funcNumber] << std::endl;
 
-  amrex::Array<int> callStack;
+  amrex::Vector<int> callStack;
   for(int ci(highIndex); ci > lowIndex; --ci) {  // ---- push the range [high ,low)
     callStack.push_back(ci);
   }

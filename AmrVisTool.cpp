@@ -166,7 +166,7 @@ int main(int argc, char *argv[]) {
       bool bAmrDataOk(true);
       amrex::Amrvis::FileType fileType = AVGlobals::GetDefaultFileType();
       BL_ASSERT(fileType != amrex::Amrvis::INVALIDTYPE);
-      amrex::Array<amrex::DataServices *> dspArray(AVGlobals::GetFileCount());
+      amrex::Vector<amrex::DataServices *> dspArray(AVGlobals::GetFileCount());
       for(int nPlots = 0; nPlots < AVGlobals::GetFileCount(); ++nPlots) {
         comlineFileName = AVGlobals::GetComlineFilename(nPlots);
         dspArray[nPlots] = new amrex::DataServices(comlineFileName, fileType);
@@ -233,7 +233,7 @@ int main(int argc, char *argv[]) {
 	 string dirName(AVGlobals::GetComlineFilename(0));
 	 cout << "]]]]]]]]:  dirName = " << dirName << endl;
 
-         amrex::Array<amrex::DataServices *> pdspArray(AVGlobals::GetFileCount());
+         amrex::Vector<amrex::DataServices *> pdspArray(AVGlobals::GetFileCount());
          for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {
            comlineFileName = AVGlobals::GetComlineFilename(nPlots);
            if(amrex::ParallelDescriptor::IOProcessor()) {
@@ -260,7 +260,7 @@ int main(int argc, char *argv[]) {
 #endif
      {
 
-      amrex::Array<amrex::DataServices *> dspArray(AVGlobals::GetFileCount());
+      amrex::Vector<amrex::DataServices *> dspArray(AVGlobals::GetFileCount());
       for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {
         comlineFileName = AVGlobals::GetComlineFilename(nPlots);
         if(amrex::ParallelDescriptor::IOProcessor()) {
@@ -272,7 +272,7 @@ int main(int argc, char *argv[]) {
       for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {
         if(amrex::ParallelDescriptor::IOProcessor()) {
 	  if(dspArray[nPlots]->AmrDataOk()) {
-	    amrex::Array<amrex::DataServices *> dspArrayOne(1);
+	    amrex::Vector<amrex::DataServices *> dspArrayOne(1);
 	    dspArrayOne[0] = dspArray[nPlots];
             PltApp *temp = new PltApp(app, wTopLevel, dspArrayOne[0]->GetFileName(),
 			              dspArrayOne, AVGlobals::IsAnimation());
@@ -452,7 +452,7 @@ void BatchFunctions() {
       if(amrex::ParallelDescriptor::IOProcessor()) {
         cout << "_in BatchFunctions:  using max level = " << maxDrawnLevel << endl;
       }
-      amrex::Array<amrex::Box> drawDomain = amrData.ProbDomain();
+      amrex::Vector<amrex::Box> drawDomain = amrData.ProbDomain();
 
       if(AVGlobals::GivenBox()) {
         amrex::Box comlineBox = AVGlobals::GetBoxFromCommandLine();
@@ -568,7 +568,7 @@ void QuitAll() {
       li != pltAppList.end(); ++li)
   {
     PltApp *obj = *li;
-    amrex::Array<amrex::DataServices *> dataServicesPtr = obj->GetDataServicesPtrArray();
+    amrex::Vector<amrex::DataServices *> dataServicesPtr = obj->GetDataServicesPtrArray();
     for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
       dataServicesPtr[ids]->DecrementNumberOfUsers();
     }
@@ -660,7 +660,7 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
 
   amrex::DataServices::Dispatch(amrex::DataServices::NewRequest, dataServicesPtr, NULL);
 
-  amrex::Array<amrex::DataServices *> dspArray(1);
+  amrex::Vector<amrex::DataServices *> dspArray(1);
   dspArray[0] = dataServicesPtr;
   bool bIsAnim(false);
 
@@ -690,7 +690,7 @@ void SubregionPltApp(Widget swTopLevel, const amrex::Box &trueRegion,
     cerr << "Error in SubregionPltApp:  could not make a new PltApp." << endl;
   } else {
     pltAppList.push_back(temp);
-    amrex::Array<amrex::DataServices *> dataServicesPtr = temp->GetDataServicesPtrArray();
+    amrex::Vector<amrex::DataServices *> dataServicesPtr = temp->GetDataServicesPtrArray();
     for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
       dataServicesPtr[ids]->IncrementNumberOfUsers();
     }
@@ -712,7 +712,7 @@ void SubregionProfApp(Widget swTopLevel, const amrex::Box &trueRegion,
     cerr << "Error in SubregionProfApp:  could not make a new ProfApp." << endl;
   } else {
     profAppList.push_back(temp);
-    //amrex::Array<amrex::DataServices *> dataServicesPtr = temp->GetDataServicesPtrArray();
+    //amrex::Vector<amrex::DataServices *> dataServicesPtr = temp->GetDataServicesPtrArray();
     //for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
       //dataServicesPtr[ids]->IncrementNumberOfUsers();
     //}
@@ -726,7 +726,7 @@ void CBQuitPltApp(Widget ofPltApp, XtPointer client_data, XtPointer) {
   PltApp *obj = (PltApp *) client_data;
   pltAppList.remove(obj);
 
-  amrex::Array<amrex::DataServices *> &dataServicesPtr = obj->GetDataServicesPtrArray();
+  amrex::Vector<amrex::DataServices *> &dataServicesPtr = obj->GetDataServicesPtrArray();
   for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
     dataServicesPtr[ids]->DecrementNumberOfUsers();
     amrex::DataServices::Dispatch(amrex::DataServices::DeleteRequest, dataServicesPtr[ids], NULL);
@@ -742,7 +742,7 @@ void CBQuitProfApp(Widget ofProfApp, XtPointer client_data, XtPointer) {
   ProfApp *obj = (ProfApp *) client_data;
   profAppList.remove(obj);
 
-  amrex::Array<amrex::DataServices *> &dataServicesPtr = obj->GetDataServicesPtrArray();
+  amrex::Vector<amrex::DataServices *> &dataServicesPtr = obj->GetDataServicesPtrArray();
   for(int ids(0); ids < dataServicesPtr.size(); ++ids) {
     dataServicesPtr[ids]->DecrementNumberOfUsers();
     amrex::DataServices::Dispatch(amrex::DataServices::DeleteRequest, dataServicesPtr[ids], NULL);

@@ -32,7 +32,7 @@ Amrvis::FileType fileType;
 bool bAnimation;
 bool bAnnotated;
 bool bCacheAnimFrames;
-Array<string> comlinefilename;
+Vector<string> comlinefilename;
 string initialDerived;
 string initialFormat;
 string initialPalette;
@@ -51,7 +51,7 @@ bool sliceAllVars;
 bool givenFilename;
 Box comlinebox;
 bool verbose;
-Array< std::list<int> > dumpSliceList;
+Vector< std::list<int> > dumpSliceList;
 bool specifiedMinMax;
 Real specifiedMin;
 Real specifiedMax;
@@ -65,7 +65,7 @@ Real bodyOpacity(0.05);
 bool givenInitialPlanes(false);
 IntVect ivInitialPlanes;
 AVGlobals::ENUserVectorNames givenUserVectorNames(AVGlobals::enUserNone);
-Array<string> userVectorNames(BL_SPACEDIM);
+Vector<string> userVectorNames(BL_SPACEDIM);
 bool newPltSet(false);
 
 const char *FileTypeString[] = {
@@ -80,7 +80,7 @@ const AVGlobals::ENUserVectorNames &AVGlobals::GivenUserVectorNames() {
 
 
 // -------------------------------------------------------------------
-const Array<string> &AVGlobals::UserVectorNames() {
+const Vector<string> &AVGlobals::UserVectorNames() {
   return userVectorNames;
 }
 
@@ -1160,7 +1160,7 @@ int AVGlobals::GetSkipPltLines() { return skipPltLines; }
 void AVGlobals::SetBoxColor(int boxcolor) { boxColor = boxcolor; }
 int AVGlobals::GetBoxColor() { return boxColor; }
 
-Array< list<int> > &AVGlobals::GetDumpSlices() { return dumpSliceList; }
+Vector< list<int> > &AVGlobals::GetDumpSlices() { return dumpSliceList; }
 
 int  AVGlobals::GetFabOutFormat() { return fabIOSize;  }
 
@@ -1180,7 +1180,7 @@ IntVect AVGlobals::GetInitialPlanes() { return ivInitialPlanes; }
 
 // -------------------------------------------------------------------
 /*int AVGlobals::CRRBetweenLevels(int fromlevel, int tolevel,
-                                const Array<int> &refratios)
+                                const Vector<int> &refratios)
 {
   BL_ASSERT(fromlevel >= 0);
   BL_ASSERT(tolevel >= fromlevel);
@@ -1197,7 +1197,7 @@ IntVect AVGlobals::GetInitialPlanes() { return ivInitialPlanes; }
 int AVGlobals::DetermineMaxAllowableLevel(const Box &finestbox,
                                           int finestlevel,
                                           int maxpoints,
-					  const Array<int> &refratios)
+					  const Vector<int> &refratios)
 {
   BL_ASSERT(finestlevel >= 0);
   BL_ASSERT(maxpoints >= 0);

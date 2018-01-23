@@ -10,8 +10,8 @@ using std::map;
 using std::string;
 
 #include <AMReX_REAL.H>
-#include <AMReX_Array.H>
-#include <AMReX_Array.H>
+#include <AMReX_Vector.H>
+#include <AMReX_Vector.H>
 #include <AMReX_ParallelDescriptor.H>
 
 using amrex::Real;
@@ -34,13 +34,13 @@ class Palette {
   enum PaletteType { AV_PAL_ALPHA, AV_PAL_NON_ALPHA };
 
   protected:
-    amrex::Array<XColor> ccells;
+    amrex::Vector<XColor> ccells;
     map<Pixel, XColor> mcells;
-    amrex::Array<Pixel> pixelCache;
-    amrex::Array<Pixel> pixelCacheDim;
+    amrex::Vector<Pixel> pixelCache;
+    amrex::Vector<Pixel> pixelCacheDim;
     Pixmap 	palPixmap;
     int	  	totalPalWidth, palWidth, totalPalHeight;
-    amrex::Array<Real> dataList;
+    amrex::Vector<Real> dataList;
     Window 	palWindow;
     Colormap    colmap;
     int         totalColorSlots, colorSlots;
@@ -48,20 +48,20 @@ class Palette {
     int 	blackIndex, whiteIndex, bodyIndex;
     Real	pmin, pmax;
     string	defaultFormat;
-    amrex::Array<float>  transferArray;
+    amrex::Vector<float>  transferArray;
     unsigned char *remapTable; // for remapping to a smaller color index set
     GraphicsAttributes *gaPtr;
-    amrex::Array<XColor> sysccells;
+    amrex::Vector<XColor> sysccells;
     map<int, string> mpiFuncNames;
     map<int, string> regionNames;
     bool bReadPalette, bTimeline, bRegions;
   
     static Colormap systemColmap;
     PaletteType paletteType;
-    amrex::Array<unsigned char> abuff;
-    amrex::Array<unsigned char> rbuff;
-    amrex::Array<unsigned char> gbuff;
-    amrex::Array<unsigned char> bbuff;
+    amrex::Vector<unsigned char> abuff;
+    amrex::Vector<unsigned char> rbuff;
+    amrex::Vector<unsigned char> gbuff;
+    amrex::Vector<unsigned char> bbuff;
 
   public:
     Palette(Widget &w, int datalistlength, int width,
@@ -70,7 +70,7 @@ class Palette {
             int totalwidth, int totalheight, int reservesystemcolors);
     ~Palette();
     PaletteType GetPaletteType() { return paletteType; }
-    amrex::Array<float> GetTransferArray() { return transferArray; }
+    amrex::Vector<float> GetTransferArray() { return transferArray; }
     int   ReadSeqPalette(const string &fileName, bool bRedraw = true);
     void  DrawPalette(Real palMin, Real palMax, const string &numberFormat);
     void  SetWindow(Window drawPaletteHere);
@@ -82,7 +82,7 @@ class Palette {
     void  SetReserveSystemColors(int reservesystemcolors);
     void  SetFormat(const string &newFormat);
     Colormap GetColormap() const  { return colmap; }
-    const amrex::Array<XColor> &GetColorCells() const { return ccells; }
+    const amrex::Vector<XColor> &GetColorCells() const { return ccells; }
     const map<Pixel, XColor> &GetColorCellsMap() const { return mcells; }
     int   BlackIndex()   const    { return blackIndex; }
     int   WhiteIndex()   const    { return whiteIndex; }
@@ -99,16 +99,16 @@ class Palette {
     unsigned int SafePaletteIndex(unsigned int atlevel = 0, int mlev = 8) const;
     Real PaletteMin()    const    { return pmin; }
     Real PaletteMax()    const    { return pmax; }
-    const amrex::Array<Real> &PaletteDataList() const { return dataList; }
+    const amrex::Vector<Real> &PaletteDataList() const { return dataList; }
     string PaletteNumberFormat()  { return defaultFormat; }
     XImage *GetPictureXImage();
     Pixmap GetPixmap()   const   { return palPixmap; }
     unsigned char *RemapTable() const  { return remapTable;     }
 
-    const amrex::Array<unsigned char> &theABuff() const { return abuff; }
-    const amrex::Array<unsigned char> &theRBuff() const { return rbuff; }
-    const amrex::Array<unsigned char> &theGBuff() const { return gbuff; }
-    const amrex::Array<unsigned char> &theBBuff() const { return bbuff; }
+    const amrex::Vector<unsigned char> &theABuff() const { return abuff; }
+    const amrex::Vector<unsigned char> &theRBuff() const { return rbuff; }
+    const amrex::Vector<unsigned char> &theGBuff() const { return gbuff; }
+    const amrex::Vector<unsigned char> &theBBuff() const { return bbuff; }
 
     unsigned char theABuff(int i) const { return abuff[i]; }
     unsigned char theRBuff(int i) const { return rbuff[i]; }

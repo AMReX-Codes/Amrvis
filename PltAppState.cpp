@@ -95,7 +95,7 @@ PltAppState &PltAppState::operator=(const PltAppState &rhs) {
   currentMinMaxType = rhs.currentMinMaxType;
 
   // mins and maxes
-  //Array<Array<Array<CMinMax> > > minMax;   // minMax [frame] [derived] [RangeType]
+  //Array<Vector<Array<CMinMax> > > minMax;   // minMax [frame] [derived] [RangeType]
   minMax = rhs.minMax;   // minMax [frame] [derived] [RangeType]
 
   //Array<Box> subDomains;

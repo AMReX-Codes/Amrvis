@@ -68,8 +68,8 @@ const int funcListHeight(600);
 const int funcListWidth(850);
 
 void CollectMProfStats(std::map<std::string, BLProfiler::ProfStats> &mProfStats,
-                       const Array<Array<BLProfStats::FuncStat> > &funcStats,
-                       const Array<std::string> &fNames,
+                       const Vector<Vector<BLProfStats::FuncStat> > &funcStats,
+                       const Vector<std::string> &fNames,
                        Real runTime, int whichProc);
 
 
@@ -89,7 +89,7 @@ ProfApp::~ProfApp() {
 
 // -------------------------------------------------------------------
 ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
-	       const Array<amrex::DataServices *> &dataservicesptr)
+	       const Vector<amrex::DataServices *> &dataservicesptr)
   : wTopLevel(w),
     appContext(app),
     fileName(filename),
@@ -144,7 +144,7 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const string &filename,
   dataServicesPtr[0]->GetRegionsProfStats().FillRegionTimeRanges(dtr, displayProc);
 //  rtr = dataServicesPtr[0]->GetRegionsProfStats().GetRegionTimeRanges();
 
-  //const amrex::Array<amrex::Array<amrex::Box>> &regionBoxes = regionPicturePtr->RegionBoxes();
+  //const amrex::Vector<amrex::Vector<amrex::Box>> &regionBoxes = regionPicturePtr->RegionBoxes();
   //for(int r(0); r < regionBoxes.size(); ++r) {
     //for(int t(0); t < regionBoxes[r].size(); ++t) {
       //cout << "regionBoxes[" << r << "][" << t << "] = " << regionBoxes[r][t] << endl;
@@ -161,7 +161,7 @@ dataServicesPtr[0] = new amrex::DataServices(regionsFileName, Amrvis::NEWPLT);
 PltApp *temp = new PltApp(app, wTopLevel, regionsFileName, dataServicesPtr, false);
 pltAppList.push_back(temp);
 
-const amrex::Array<amrex::Array<amrex::Array<BLProfStats::TimeRange> > > &regionTimeRanges =
+const amrex::Vector<amrex::Vector<amrex::Vector<BLProfStats::TimeRange> > > &regionTimeRanges =
         dataServicesPtr[0]->GetRegionsProfStats().GetRegionTimeRanges();
 if(dataServicesPtr[0]->RegionDataAvailable()) {
 cout << "regionTimeRanges:  size = " << regionTimeRanges.size() << endl;
@@ -286,7 +286,7 @@ dataServicesPtr[0] = new DataServices(regionsFileName, Amrvis::NEWPLT);
 PltApp *temp = new PltApp(app, wTopLevel, regionsFileName, dataServicesPtr, false);
 pltAppList.push_back(temp);
 
-const amrex::Array<amrex::Array<amrex::Array<BLProfStats::TimeRange> > > &regionTimeRanges =
+const amrex::Vector<amrex::Vector<amrex::Vector<BLProfStats::TimeRange> > > &regionTimeRanges =
         dataServicesPtr[0]->GetRegionsProfStats().GetRegionTimeRanges();
 if(dataServicesPtr[0]->RegionDataAvailable()) {
 cout << "regionTimeRanges:  size = " << regionTimeRanges.size() << endl;
@@ -763,7 +763,7 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   subdomainBox = regionPicturePtr->DomainBox();
 
 /*
-  Array<std::string> funcs;
+  Vector<std::string> funcs;
   std::ostringstream ossSummary;
   dataServicesPtr[0]->WriteSummary(ossSummary, false, 0, false);
   size_t startPos(0), endPos(0);
@@ -950,11 +950,11 @@ amrex::XYPlotDataList *ProfApp::CreateLinePlot(const string &derived,
   }
 
   // Create an array of titles corresponding to the intersected line.
-  Array<Real> XdX(1);
+  Vector<Real> XdX(1);
   XdX[0] = 1.0;
-  Array<int> refR(1);
+  Vector<int> refR(1);
   refR[0] = 1;
-  Array<char *> intersectStr(1);
+  Vector<char *> intersectStr(1);
   intersectStr[0] = new char[128];
   sprintf(intersectStr[0], "lineplot");
 
@@ -1030,7 +1030,7 @@ void ProfApp::DoFuncListClick(Widget w, XtPointer client_data, XtPointer call_da
         regionsProfStats.CollectFuncStats(aFuncStats);
       }
 
-       const amrex::Array<std::string> &numbersToFNames =
+       const amrex::Vector<std::string> &numbersToFNames =
                                           regionsProfStats.NumbersToFName();
 
     int whichFuncNameInt(-1);
@@ -1226,7 +1226,7 @@ void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data,
   aFuncStats.clear();
   regionsProfStats.CollectFuncStats(aFuncStats);
   std::map<std::string, BLProfiler::ProfStats> mProfStats;  // [fname, pstats]
-  const Array<string> &blpFNames = regionsProfStats.BLPFNames();
+  const Vector<string> &blpFNames = regionsProfStats.BLPFNames();
 
   Real calcRunTime(1.0);
   int whichProc(0);
@@ -1255,7 +1255,7 @@ void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data,
 
 // -------------------------------------------------------------------
 void ProfApp::PopulateFuncList(bool bWriteAverage, int whichProc, bool bUseTrace) {
-  Array<std::string> funcs;
+  Vector<std::string> funcs;
   std::ostringstream ossSummary;
   dataServicesPtr[0]->WriteSummary(ossSummary, bWriteAverage, 0, bUseTrace, false);
   size_t startPos(0), endPos(0);
@@ -1269,7 +1269,7 @@ void ProfApp::PopulateFuncList(bool bWriteAverage, int whichProc, bool bUseTrace
 
 
   RegionsProfStats &regionsProfStats = dataServicesPtr[0]->GetRegionsProfStats();
-  const Array<string> &blpFNames = regionsProfStats.BLPFNames();
+  const Vector<string> &blpFNames = regionsProfStats.BLPFNames();
 
   funcSelectionStrings.resize(funcs.size(), "");
   for(int i(0); i < funcs.size(); ++i) {

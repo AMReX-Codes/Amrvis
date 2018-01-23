@@ -75,7 +75,7 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
                                      // the data colors start here
   }
   
-  remapTable = new unsigned char[totalColorSlots];  // this is faster than Array<uc>
+  remapTable = new unsigned char[totalColorSlots];  // this is faster than Vector<uc>
   float sizeRatio(((float) colorSlots) / ((float) totalColorSlots));
   float mapLow(((float) paletteStart) + 0.5);
   for(int itab(0); itab < totalColorSlots; ++itab) {
@@ -120,7 +120,7 @@ Palette::Palette(int datalistlength, int width, int totalwidth,
   paletteStart = colorOffset + 3;  // skip 3 for black, white, and body
 				   // the data colors start here
 
-  remapTable = new unsigned char[totalColorSlots];  // this is faster than Array<uc>
+  remapTable = new unsigned char[totalColorSlots];  // this is faster than Vector<uc>
   float sizeRatio(((float) colorSlots) / ((float) totalColorSlots));
   float mapLow(((float) paletteStart) + 0.5);
   for(int itab(0); itab < totalColorSlots; ++itab) {
@@ -217,7 +217,7 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
   if(bTimeline) {
     int nPalVals(mpiFuncNames.size()), count(0), cftRange(palMax - palMin);
     int nameLocation, palLocation, cftIndex, noffX(18);
-    Array<int> palIndex(mpiFuncNames.size(), 0);
+    Vector<int> palIndex(mpiFuncNames.size(), 0);
     XSetForeground(display, gc, AVWhitePixel());
 
     for(std::map<int, string>::const_iterator it = mpiFuncNames.begin();
@@ -260,7 +260,7 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
   } else if(bRegions) {
     int nPalVals(regionNames.size()), count(0), cftRange(palMax - palMin);
     int nameLocation, palLocation, cftIndex, noffX(18);
-    Array<int> palIndex(regionNames.size(), 0);
+    Vector<int> palIndex(regionNames.size(), 0);
     XSetForeground(display, gc, AVWhitePixel());
 
     bool isProfPal(regionNames.find(-2) != regionNames.end());
@@ -375,7 +375,7 @@ void Palette::ReadPalette(const string &palName, bool bRedraw) {
 // -------------------------------------------------------------------
 int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
   const int iSeqPalSize(256);  // this must be 256 (size of sequential palettes).
-  Array<int> indexArray(iSeqPalSize);
+  Vector<int> indexArray(iSeqPalSize);
   int i, fd;
 
   bool bTrueColor;

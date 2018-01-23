@@ -525,7 +525,7 @@ void AmrPicture::SetSlice(int view, int here) {
          << numberOfLevels << "  " << maxAllowableLevel << endl;
     numberOfLevels = maxAllowableLevel + 1;
   }
-  Array<int> nGrids(numberOfLevels);
+  Vector<int> nGrids(numberOfLevels);
   for(lev = minDrawnLevel; lev <= maxAllowableLevel; ++lev) {
     nGrids[lev] = amrData.NIntersectingGrids(lev, sliceBox[lev]);
     gpArray[lev].resize(nGrids[lev]);
@@ -614,7 +614,7 @@ void AmrPicture::APChangeContour(Amrvis::ContourType prevCType) {
 
 
 // ---------------------------------------------------------------------
-void AmrPicture::DrawBoxes(Array< Array<GridPicture> > &gp, Drawable &drawable) {
+void AmrPicture::DrawBoxes(Vector< Vector<GridPicture> > &gp, Drawable &drawable) {
   short xbox, ybox;
   unsigned short wbox, hbox;
   bool bIsWindow(true);
@@ -1010,14 +1010,14 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
     Real *vfracPoint = vfSliceFab[level]->dataPtr();
     Real vfp, omvfe = 1.0 - vfeps;
     int vidx, svidx;
-    Array<Real> stencil(9, -3.0);
+    Vector<Real> stencil(9, -3.0);
     int nBodyCells, nScaledImageCells;
 
     rrcs = scale;
     nScaledImageCells = rrcs*rrcs;
 
-    Array<Real> sumH(3, 0.0), sumV(3, 0.0);
-    Array<Real> diffAvgV(3, 0.0), diffAvgH(3, 0.0);
+    Vector<Real> sumH(3, 0.0), sumV(3, 0.0);
+    Vector<Real> diffAvgV(3, 0.0), diffAvgH(3, 0.0);
     Real smallValue(0.000001);
     Real avgV, avgH;
     Real normV, normH;
@@ -1029,7 +1029,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
     int iCurrent, jCurrent, jBody;
     int isIndex;
 
-    Array<int> imageStencil(nScaledImageCells, -5000);
+    Vector<int> imageStencil(nScaledImageCells, -5000);
 
     int dataSizeHMDL(datasizeh), dataSizeVMDL(datasizev);
 
@@ -1538,7 +1538,7 @@ XImage *AmrPicture::GetPictureXImage(const bool bdrawboxesintoimage) {
 
 
 // ---------------------------------------------------------------------
-void AmrPicture::GetGridBoxes(Array< Array<GridBoxes> > &gb,
+void AmrPicture::GetGridBoxes(Vector< Vector<GridBoxes> > &gb,
                               const int minlev, const int maxlev)
 {
   gb.resize(maxlev + 1);  // resize from zero
@@ -1571,7 +1571,7 @@ void AmrPicture::CreateFrames(Amrvis::AnimDirection direction) {
   char buffer[Amrvis::BUFSIZE];
   bool cancelled(false);
   int islice(0), i, j, lev, gridNumber;
-  Array<int> intersectGrids;
+  Vector<int> intersectGrids;
   int maxLevelWithGridsHere;
   int posneg(1);
   if(direction == Amrvis::ANIMNEGDIR) {
@@ -1583,7 +1583,7 @@ void AmrPicture::CreateFrames(Amrvis::AnimDirection direction) {
 
   sprintf(buffer, "Creating frames..."); 
   PrintMessage(buffer);
-  Array<Box> interBox(numberOfLevels);
+  Vector<Box> interBox(numberOfLevels);
   interBox[maxAllowableLevel] = subDomain[maxAllowableLevel];
   int start = subDomain[maxAllowableLevel].smallEnd(sliceDir);
   int length = subDomain[maxAllowableLevel].length(sliceDir);
@@ -1933,7 +1933,7 @@ void AmrPicture::ShowFrameImage(int iSlice) {
 
 
 // ---------------------------------------------------------------------
-void AmrPicture::DrawContour(Array<FArrayBox *> passedSliceFab,
+void AmrPicture::DrawContour(Vector<FArrayBox *> passedSliceFab,
                              Display *passed_display, 
                              Drawable &passedPixMap, 
                              const GC &passedGC)
@@ -1960,8 +1960,8 @@ void AmrPicture::DrawContour(Array<FArrayBox *> passedSliceFab,
   
   const AmrData &amrData = dataServicesPtr->AmrDataRef();
 
-  Array<Real> pos_low(BL_SPACEDIM);
-  Array<Real> pos_high(BL_SPACEDIM);
+  Vector<Real> pos_low(BL_SPACEDIM);
+  Vector<Real> pos_high(BL_SPACEDIM);
   int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
   int maxDrawnLevel(pltAppStatePtr->MaxDrawnLevel());
   amrData.LoNodeLoc(maxDrawnLevel, passedSliceFab[maxDrawnLevel]->smallEnd(), 
@@ -2247,7 +2247,7 @@ bool AmrPicture::DrawContour(const FArrayBox &fab, Real value,
 
 
 // ---------------------------------------------------------------------
-VectorDerived AmrPicture::FindVectorDerived(Array<string> &aVectorDeriveNames) {
+VectorDerived AmrPicture::FindVectorDerived(Vector<string> &aVectorDeriveNames) {
   // use the user specified names if available, otherwise try to
   // guess some common names
   
@@ -2340,7 +2340,7 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
   FArrayBox hVelocity(DVFSliceBox);
   FArrayBox vVelocity(DVFSliceBox);
   VectorDerived whichVectorDerived;
-  Array<string> choice(BL_SPACEDIM);
+  Vector<string> choice(BL_SPACEDIM);
 
   whichVectorDerived = FindVectorDerived(choice);
 

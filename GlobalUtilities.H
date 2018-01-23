@@ -6,7 +6,7 @@
 
 #include <AMReX_AmrvisConstants.H>
 #include <AMReX_Box.H>
-#include <AMReX_Array.H>
+#include <AMReX_Vector.H>
 
 #include <list>
 #include <string>
@@ -21,7 +21,7 @@ namespace AVGlobals {
   enum ENUserVectorNames { enUserVelocities, enUserMomentums, enUserNone };
 
   const ENUserVectorNames &GivenUserVectorNames();
-  const amrex::Array<string> &UserVectorNames();
+  const amrex::Vector<string> &UserVectorNames();
 
   amrex::Box GetBoxFromCommandLine();
   void SetMaxPictureSize(int size);
@@ -65,7 +65,7 @@ namespace AVGlobals {
   void SetSpecifiedMinMax(Real  specifiedmin, Real  specifiedmax);
   void GetSpecifiedMinMax(Real &specifiedmin, Real &specifiedmax);
   int DetermineMaxAllowableLevel(const amrex::Box &finebox, int finestlevel,
-			         int maxpoints, const amrex::Array<int> &refratios);
+			         int maxpoints, const amrex::Vector<int> &refratios);
 
   void SetBoundaryWidth(int width);
   int  GetBoundaryWidth();
@@ -83,7 +83,7 @@ namespace AVGlobals {
 
   bool DumpSlices();
   bool SliceAllVars();
-  amrex::Array< list<int> > &GetDumpSlices();
+  amrex::Vector< list<int> > &GetDumpSlices();
   int  GetFabOutFormat();
   bool GivenInitialPlanes();
   amrex::IntVect GetInitialPlanes();

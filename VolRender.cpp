@@ -35,7 +35,7 @@ extern Real DegToRad(Real angle);
 
 
 // -------------------------------------------------------------------
-VolRender::VolRender(const Array<Box> &drawdomain, int mindrawnlevel,
+VolRender::VolRender(const Vector<Box> &drawdomain, int mindrawnlevel,
 		     int maxdrawnlevel, Palette *paletteptr,
                      const string &asLightFileName)
 {

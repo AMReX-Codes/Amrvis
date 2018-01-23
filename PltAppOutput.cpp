@@ -105,7 +105,7 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   sprintf(psfilename, "%s_XY_new.ps", fileNameBase);
   bool bDrawBoxesIntoImage(false);
   printImage = amrPicturePtrArray[Amrvis::ZPLANE]->GetPictureXImage(bDrawBoxesIntoImage);
-  Array< Array<GridBoxes> > gridBoxes;
+  Vector< Vector<GridBoxes> > gridBoxes;
   amrPicturePtrArray[Amrvis::ZPLANE]->GetGridBoxes(gridBoxes, minDrawnLevel, maxDrawnLevel);
   WriteNewPSFile(psfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr,
 		 amrData, minDrawnLevel, maxDrawnLevel, gridBoxes);
@@ -151,7 +151,7 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   printImage = pltPaletteptr->GetPictureXImage();
   imageSizeX = pltPaletteptr->PaletteWidth();
   imageSizeY = pltPaletteptr->PaletteHeight();
-  const Array<Real> &pValueList = pltPaletteptr->PaletteDataList();
+  const Vector<Real> &pValueList = pltPaletteptr->PaletteDataList();
   string pNumFormat(pltPaletteptr->PaletteNumberFormat());
   WritePSPaletteFile(psfilename, printImage, imageSizeX, imageSizeY, 
                      pValueList, pNumFormat, *pltPaletteptr);
@@ -267,7 +267,7 @@ void PltApp::DoCreateFABFile(Widget w, XtPointer, XtPointer call_data) {
   int maxDrawnLevel(pltAppState->MaxDrawnLevel());
         
   string derivedQuantity(pltAppState->CurrentDerived());
-  Array<Box> bx = amrPicturePtrArray[0]->GetSubDomain();
+  Vector<Box> bx = amrPicturePtrArray[0]->GetSubDomain();
   DataServices::Dispatch(DataServices::WriteFabOneVar,
 			 dataServicesPtr[currentFrame],
                          (void *) &fabFileName,

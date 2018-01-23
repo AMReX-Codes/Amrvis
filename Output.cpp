@@ -50,12 +50,12 @@ void WriteNewPSFile(const char *filename, XImage *image,
 		 int imagesizehoriz, int imagesizevert,
 		 const Palette &palette, const AmrData &amrdata,
 		 const int minlev, const int maxlev,
-		 Array< Array<GridBoxes> > &gridBoxes)
+		 Vector< Vector<GridBoxes> > &gridBoxes)
 {
   clock_t time0 = clock();
   unsigned char r, g, b;
 
-  Array<Real> rgb(256);
+  Vector<Real> rgb(256);
   for(int ii(0); ii < rgb.size(); ++ii) {
     rgb[ii] = (Real) ii / 255.0;
   }
@@ -188,7 +188,7 @@ void WritePSFile(const char *filename, XImage *image,
 // -------------------------------------------------------------------
 void WritePSPaletteFile(const char *filename, XImage *image,
                         int imagesizehoriz, int imagesizevert,
-                        const Array<Real> &palValueList,
+                        const Vector<Real> &palValueList,
 			const string &palNumFormat, const Palette &palette)
 {
     ofstream fout(filename);

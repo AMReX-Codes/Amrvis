@@ -493,8 +493,8 @@ void XYPlotWin::InitializeAnimation(int curr_frame, int num_frames) {
 					    &((*ptr)->XYPLIlist->DerivedName()));
       delete tempList;
     }
-    (*ptr)->anim_lists = new Array<::XYPlotDataList *>(numFrames);
-    (*ptr)->ready_list = new Array<char>(numFrames, 0);
+    (*ptr)->anim_lists = new Vector<::XYPlotDataList *>(numFrames);
+    (*ptr)->ready_list = new Vector<char>(numFrames, 0);
 
 // =================
     string sDerName = (*ptr)->XYPLIlist->DerivedName();
@@ -1234,8 +1234,8 @@ void XYPlotWin::drawData() {
     if((*item)->XYPLIlist->NumPoints() == 0) {
       continue;
     }
-    Array<double> &xvals = (*item)->XYPLIlist->XVal((*item)->XYPLIlist->CurLevel());
-    Array<double> &yvals = (*item)->XYPLIlist->YVal((*item)->XYPLIlist->CurLevel());
+    Vector<double> &xvals = (*item)->XYPLIlist->XVal((*item)->XYPLIlist->CurLevel());
+    Vector<double> &yvals = (*item)->XYPLIlist->YVal((*item)->XYPLIlist->CurLevel());
     X_idx = 0;
     style = (*item)->style;
     color = (*item)->pixel;
@@ -1580,8 +1580,8 @@ void XYPlotWin::DoASCIIDump(FILE *fs, const char *plotname) {
 	    xypdList->DerivedName().c_str(),
 	    xypdList->IntersectPoint(xypdList->CurLevel()),
 	    xypdList->CurLevel(), xypdList->MaxLevel());
-    Array<double> &xvals = xypdList->XVal(xypdList->CurLevel());
-    Array<double> &yvals = xypdList->YVal(xypdList->CurLevel());
+    Vector<double> &xvals = xypdList->XVal(xypdList->CurLevel());
+    Vector<double> &yvals = xypdList->YVal(xypdList->CurLevel());
     for(int ii(0); ii < xvals.size(); ++ii) {
       fprintf(fs, format, xvals[ii], yvals[ii]);
     }
@@ -2083,7 +2083,7 @@ void XYPlotWin::SetPalette() {
     sprintf(buffer, "%d.Color", idx);
     int icTemp(PM_INT(buffer));
     long icTempL(icTemp);
-    const Array<XColor> &cCells = pal->GetColorCells();
+    const Vector<XColor> &cCells = pal->GetColorCells();
     long ccsm1(cCells.size() - 1);
     icTempL += palOffset;
     icTemp = std::max(0L, std::min(icTempL, ccsm1));

@@ -54,8 +54,8 @@ typedef struct {
   int style, color;
   Pixel pixel;
 #if (BL_SPACEDIM != 3)
-  amrex::Array<::XYPlotDataList *> *anim_lists;
-  amrex::Array<char> *ready_list;
+  amrex::Vector<::XYPlotDataList *> *anim_lists;
+  amrex::Vector<char> *ready_list;
 #endif
 } XYPlotLegendItem;
 
@@ -198,7 +198,7 @@ class XYPlotWin {
         void *data;
         memberXYCB cbFunc;
       };
-    amrex::Array<XYCBData *> xycbdPtrs;
+    amrex::Vector<XYCBData *> xycbdPtrs;
 
     class XYMenuCBData {
       public:
@@ -208,7 +208,7 @@ class XYPlotWin {
         XYPlotLegendItem *item;
         int which;
     };
-    amrex::Array<XYMenuCBData *> xymenucbdPtrs;
+    amrex::Vector<XYMenuCBData *> xymenucbdPtrs;
 };
 
 void CBcloseXYPlotWin(Widget, XtPointer, XtPointer);

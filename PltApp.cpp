@@ -106,7 +106,7 @@ PltApp::~PltApp() {
 
 // -------------------------------------------------------------------
 PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
-	       const Array<DataServices *> &dataservicesptr, bool isAnim)
+	       const Vector<DataServices *> &dataservicesptr, bool isAnim)
   : wTopLevel(w),
     appContext(app),
     currentRangeType(Amrvis::GLOBALMINMAX),
@@ -354,7 +354,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   int iCDerNum(pltAppState->CurrentDerivedNumber());
   string asCDer(pltAppState->CurrentDerived());
   int fineLevel(amrData.FinestLevel());
-  const Array<Box> &onBox(amrData.ProbDomain());
+  const Vector<Box> &onBox(amrData.ProbDomain());
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
     Real rFileMin, rFileMax;
 
@@ -654,7 +654,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   }
 
 // ---------------
-  Array<Box> onBox(pltAppState->MaxAllowableLevel() + 1);
+  Vector<Box> onBox(pltAppState->MaxAllowableLevel() + 1);
   onBox[pltAppState->MaxAllowableLevel()] = maxDomain;
   for(int ilev(pltAppState->MaxAllowableLevel() - 1); ilev >= 0; --ilev) {
     Box tempbox(maxDomain);
@@ -1091,7 +1091,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   // ------------------------------- derived menu
   int maxMenuItems(initialMaxMenuItems);  // arbitrarily
   int numberOfDerived(dataServicesPtr[currentFrame]->NumDeriveFunc());
-  const Array<string> &derivedStrings =
+  const Vector<string> &derivedStrings =
 	     dataServicesPtr[currentFrame]->PlotVarNames();
 
   wMenuPulldown = XmCreatePulldownMenu(wMenuBar, const_cast<char *>("DerivedPulldown"), NULL, 0);
@@ -1730,7 +1730,7 @@ void PltApp::FindAndSetMinMax(const Amrvis::MinMaxRangeType mmrangetype,
 			      const int framenumber,
 		              const string &currentderived,
 			      const int derivednumber,
-		              const Array<Box> &onBox,
+		              const Vector<Box> &onBox,
 		              const int coarselevel, const int finelevel,
 		              const bool resetIfSet)
 {
@@ -2022,8 +2022,8 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
 
   // possibly set all six minmax types here
-  const Array<Box> &onSubregionBox = amrPicturePtrArray[Amrvis::ZPLANE]->GetSubDomain();
-  const Array<Box> &onBox(amrData.ProbDomain());
+  const Vector<Box> &onSubregionBox = amrPicturePtrArray[Amrvis::ZPLANE]->GetSubDomain();
+  const Vector<Box> &onBox(amrData.ProbDomain());
   int iCDerNum(pltAppState->CurrentDerivedNumber());
   int levelZero(0);
   int coarseLevel(pltAppState->MinAllowableLevel());
@@ -3492,7 +3492,7 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
     break;
 #endif
   }
-  Array<Box> ssTrueRegion(mal + 1);
+  Vector<Box> ssTrueRegion(mal + 1);
   ssTrueRegion[mal] = amrPicturePtrArray[V]->GetSliceBox(mal);
 #if (BL_SPACEDIM != 1)
   ssTrueRegion[mal].setSmall(tdir, ivLowOffsetMAL[tdir] + ix);
@@ -3505,8 +3505,8 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
                             amrData.RefRatio()));
   }
   // Create an array of titles corresponding to the intersected line.
-  Array<Real> XdX(mal + 1);
-  Array<char *> intersectStr(mal + 1);
+  Vector<Real> XdX(mal + 1);
+  Vector<char *> intersectStr(mal + 1);
   
 #if (BL_SPACEDIM == 3)
   char bufferL[128];
@@ -3804,7 +3804,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  // data at click
 	  int y, intersectedLevel(-1);
 	  Box intersectedGrid;
-	  Array<Box> trueRegionArray(mal+1);
+	  Vector<Box> trueRegionArray(mal+1);
 	  int plane(amrPicturePtrArray[V]->GetSlice());
 	  
 	  trueRegionArray[mal] = selectionBox;
@@ -4892,7 +4892,7 @@ void PltApp::ShowFrame() {
   {
 #if (BL_SPACEDIM != 3)
     AmrPicture *tempapSF = amrPicturePtrArray[Amrvis::ZPLANE];
-    Array<Box> domain = amrPicturePtrArray[Amrvis::ZPLANE]->GetSubDomain();
+    Vector<Box> domain = amrPicturePtrArray[Amrvis::ZPLANE]->GetSubDomain();
     XtRemoveEventHandler(wPlotPlane[Amrvis::ZPLANE], ExposureMask, false, 
 			 (XtEventHandler) &PltApp::StaticEvent,
 			 (XtPointer) tempapSF);

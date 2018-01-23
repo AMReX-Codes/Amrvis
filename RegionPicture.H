@@ -11,7 +11,7 @@
 #include <AMReX_AmrvisConstants.H>
 #include <AMReX_DataServices.H>
 #include <GlobalUtilities.H>
-#include <AMReX_Array.H>
+#include <AMReX_Vector.H>
 #include <AMReX_FArrayBox.H>
 #include <AMReX_BLProfStats.H>
 
@@ -50,7 +50,7 @@ class RegionPicture {
   XImage *GetPictureXImage();
   void	APChangeSlice(int here);
   amrex::Box DomainBox() { return subRegion; }
-  const amrex::Array<amrex::Array<amrex::Box>> &RegionBoxes() const { return regionBoxes; }
+  const amrex::Vector<amrex::Vector<amrex::Box>> &RegionBoxes() const { return regionBoxes; }
   const BLProfStats::TimeRange &CalcTimeRange() const { return calcTimeRange; }
   const BLProfStats::TimeRange &SubTimeRange()  const { return subTimeRange; }
   Real DataValue(int i, int j, bool &outOfRange);
@@ -90,8 +90,8 @@ class RegionPicture {
   int regionX, regionY, region2ndX, region2ndY;
   int subcutX, subcutY, subcut2ndX, subcut2ndY;
   BLProfStats::TimeRange calcTimeRange, subTimeRange;
-  amrex::Array<amrex::Array<amrex::Box>> regionBoxes;  // ---- [region][box]
-  amrex::Array<amrex::Array<int>> regionsOnOff;        // ---- [region][onoff]
+  amrex::Vector<amrex::Vector<amrex::Box>> regionBoxes;  // ---- [region][box]
+  amrex::Vector<amrex::Vector<int>> regionsOnOff;        // ---- [region][onoff]
   amrex::BoxDomain timeSpanOff;                          // ---- time spans that are off
   
   void SetSlice(int view, int here);

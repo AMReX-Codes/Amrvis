@@ -14,7 +14,7 @@
 #define _PLTAPPSTATE_H_
 
 #include <AMReX_AmrvisConstants.H>
-#include <AMReX_Array.H>
+#include <AMReX_Vector.H>
 #include <AMReX_Box.H>
 
 #include <string>
@@ -145,9 +145,9 @@ private:
   string formatString;
 
   // mins and maxes
-  amrex::Array<amrex::Array<amrex::Array<CMinMax> > > minMax;   // minMax [frame] [derived] [RangeType]
+  amrex::Vector<amrex::Vector<amrex::Vector<CMinMax> > > minMax;   // minMax [frame] [derived] [RangeType]
 
-  amrex::Array<amrex::Box> subDomains;
+  amrex::Vector<amrex::Box> subDomains;
   int minDrawnLevel, maxDrawnLevel, minAllowableLevel, maxAllowableLevel;
   int finestLevel;
 

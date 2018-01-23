@@ -11,7 +11,7 @@
 #include <AMReX_AmrvisConstants.H>
 #include <GlobalUtilities.H>
 #include <GridPicture.H>
-#include <AMReX_Array.H>
+#include <AMReX_Vector.H>
 #include <AMReX_FArrayBox.H>
 #include <AMReX_DataServices.H>
 
@@ -83,41 +83,41 @@ class AmrPicture {
   void	SetVColor(int c)          { vColor = c; }
   const amrex::Box &GetSliceBox(int level) const { return sliceBox[level]; }
   int	GetMyView() const         { return myView; }
-  const amrex::Array<amrex::Box> &GetSubDomain() const { return subDomain; }
+  const amrex::Vector<amrex::Box> &GetSubDomain() const { return subDomain; }
   void	SetFrameSpeed(int toThis) { frameSpeed = toThis; }
   Window PictureWindow()          { return pictureWindow; }
   void  SetCartGridSmoothing(bool tf) { bCartGridSmoothing = tf; }
   void APChangeContour(amrex::Amrvis::ContourType prevCType);
-  void GetGridBoxes(amrex::Array< amrex::Array<GridBoxes> > &gb,
+  void GetGridBoxes(amrex::Vector< amrex::Vector<GridBoxes> > &gb,
 		    const int minlev, const int maxlev);
 
  private:
   Window 		pictureWindow;
   int			numberOfLevels;
-  amrex::Array<unsigned long>  dataSize, dataSizeH, dataSizeV;
+  amrex::Vector<unsigned long>  dataSize, dataSizeH, dataSizeV;
   unsigned int   	imageSize, imageSizeH, imageSizeV;
   int			hdspoint, vdspoint, dsBoxSize;
   int			datasetPointShowing, datasetPointColor;
   Pixmap 		pixMap;
-  amrex::Array< amrex::Array<GridPicture> > gpArray;
-  amrex::Array< amrex::Array< amrex::Array<GridPicture> > > frameGrids;
+  amrex::Vector< amrex::Vector<GridPicture> > gpArray;
+  amrex::Vector< amrex::Vector< amrex::Vector<GridPicture> > > frameGrids;
   int			regionX, regionY, region2ndX, region2ndY;
   int			subCutShowing;
   int			subcutX, subcutY, subcut2ndX, subcut2ndY;
-  amrex::Array<amrex::Box> subDomain;
-  amrex::Array<amrex::Box> sliceBox;
-  amrex::Array<XImage *>   frameBuffer;
+  amrex::Vector<amrex::Box> subDomain;
+  amrex::Vector<amrex::Box> sliceBox;
+  amrex::Vector<XImage *>   frameBuffer;
   bool			framesMade;
   int			frameSpeed;
   amrex::Amrvis::AnimDirection sweepDirection;
   XtIntervalId		pendingTimeOut;
   Palette		*palPtr;
-  amrex::Array<amrex::FArrayBox *> sliceFab;
-  amrex::Array<amrex::FArrayBox *> vfSliceFab;
-  amrex::Array<unsigned char *>  imageData, scaledImageData;
-  amrex::Array<unsigned char> scaledImageDataBodyMask;
-  amrex::Array<XImage *>       xImageArray;
-  amrex::Array<bool>           xImageCreated;
+  amrex::Vector<amrex::FArrayBox *> sliceFab;
+  amrex::Vector<amrex::FArrayBox *> vfSliceFab;
+  amrex::Vector<unsigned char *>  imageData, scaledImageData;
+  amrex::Vector<unsigned char> scaledImageDataBodyMask;
+  amrex::Vector<XImage *>       xImageArray;
+  amrex::Vector<bool>           xImageCreated;
   GraphicsAttributes	*gaPtr;
   PltApp	        *pltAppPtr;
   PltAppState	        *pltAppStatePtr;
@@ -129,7 +129,7 @@ class AmrPicture {
   int			hColor, vColor, myColor, slice, sliceDir;
   bool                  bCartGridSmoothing;
   bool                  pixMapCreated, isSubDomain, findSubRange;
-  amrex::Array< amrex::Array<string> > vecNames;
+  amrex::Vector< amrex::Vector<string> > vecNames;
   
   
   // private functions
@@ -138,7 +138,7 @@ class AmrPicture {
   void ShowFrameImage(int iSlice);
   void CreateFrames(amrex::Amrvis::AnimDirection direction);
   void AmrPictureInit();
-  void DrawBoxes(amrex::Array< amrex::Array<GridPicture> > &gp, Drawable &drawable);
+  void DrawBoxes(amrex::Vector< amrex::Vector<GridPicture> > &gp, Drawable &drawable);
   void DrawTerrBoxes(int level, bool bIsWindow, bool bIsPixmap);
   void CreateImage(const amrex::FArrayBox &fab, unsigned char *imagedata,
                    int datasizeh, int datasizev,
@@ -150,7 +150,7 @@ class AmrPicture {
                          int datasizeh, int datasizev,
                          int imagesizeh, int imagesizev, int level,
 		         bool bCreateMask);
-  void DrawContour(amrex::Array<amrex::FArrayBox *> slicefab, Display *display,
+  void DrawContour(amrex::Vector<amrex::FArrayBox *> slicefab, Display *display,
 		   Drawable &drawable, const GC &gc);
   bool DrawContour(const amrex::FArrayBox &fab, Real value,
                    bool has_mask, const bool *mask,
@@ -167,7 +167,7 @@ class AmrPicture {
                        const Real *hdat, const Real *vdat,
 		       const Real velocityMax,
 		       const amrex::Box &dvfSliceBox, int dvfFactor);
-  VectorDerived FindVectorDerived(amrex::Array<string> &aVectorDeriveNames);
+  VectorDerived FindVectorDerived(amrex::Vector<string> &aVectorDeriveNames);
 
   static void CBFrameTimeOut(XtPointer, XtIntervalId *);
   static void CBContourSweep(XtPointer, XtIntervalId *);

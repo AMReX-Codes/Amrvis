@@ -120,7 +120,7 @@ private:
   
 public:
   ProfApp(XtAppContext app, Widget w, const string &filename, 
-         const amrex::Array<amrex::DataServices *> &profdataservicesptr);
+         const amrex::Vector<amrex::DataServices *> &profdataservicesptr);
   
   // ---- for subregions
   ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
@@ -194,12 +194,12 @@ private:
   int startX, startY, endX, endY;
   int sdLineXL, sdLineXH, axisLengthX, axisLengthY;
   ClickHistory clickHistory;
-  amrex::Array<amrex::Array<BLProfStats::TimeRange>> dtr;
-//  amrex::Array<std::list<BLProfStats::TimeRange>> compareTR;
-  amrex::Array<amrex::Array<amrex::Array<BLProfStats::TimeRange>>> rtr;    
-  amrex::Array<std::list<BLProfStats::TimeRange>> filterTimeRanges;
-  amrex::Array<std::string> funcSelectionStrings;
-  amrex::Array<amrex::Array<BLProfStats::FuncStat>> aFuncStats;
+  amrex::Vector<amrex::Vector<BLProfStats::TimeRange>> dtr;
+//  amrex::Vector<std::list<BLProfStats::TimeRange>> compareTR;
+  amrex::Vector<amrex::Vector<amrex::Vector<BLProfStats::TimeRange>>> rtr;    
+  amrex::Vector<std::list<BLProfStats::TimeRange>> filterTimeRanges;
+  amrex::Vector<std::string> funcSelectionStrings;
+  amrex::Vector<amrex::Vector<BLProfStats::FuncStat>> aFuncStats;
   map<string, int> funcNameIndex;
     
   // ---- baggage for fast rubber banding
@@ -232,7 +232,7 @@ private:
       XtPointer data;
       profMemberCB cbFunc;
   };
-  amrex::Array<CBData *> cbdPtrs;  // ---- save these so we can delete them later
+  amrex::Vector<CBData *> cbdPtrs;  // ---- save these so we can delete them later
 };
 
 

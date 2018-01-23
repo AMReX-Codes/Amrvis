@@ -8,7 +8,7 @@
 #undef index
 
 #include <AMReX_REAL.H>
-#include <AMReX_Array.H>
+#include <AMReX_Vector.H>
 #include <Palette.H>
 #include <AMReX_AmrData.H>
 #include <AmrPicture.H>
@@ -72,11 +72,11 @@ void WriteNewPSFile(const char *filename, XImage *image,
                  int imagesizehoriz, int imagesizevert,
                  const Palette &palette, const amrex::AmrData &amrdata,
 		 const int minlev, const int maxlev,
-		 amrex::Array< amrex::Array<GridBoxes> > &gridBoxes);
+		 amrex::Vector< amrex::Vector<GridBoxes> > &gridBoxes);
 
 void WritePSPaletteFile(const char *filename, XImage *image,
                         int imagesizehoriz, int imagesizevert,
-                        const amrex::Array<Real> &palValuesList,
+                        const amrex::Vector<Real> &palValuesList,
 			const string &palNumFormat, const Palette& palette);
 
 void WriteRGBFile(const char *filename, XImage *image,

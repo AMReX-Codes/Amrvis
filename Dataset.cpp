@@ -333,7 +333,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   
   // datasetRegion is now an array of Boxes that encloses the selected region
   
-  Array<FArrayBox *> dataFab(maxAllowableLevel + 1);
+  Vector<FArrayBox *> dataFab(maxAllowableLevel + 1);
   for(i = 0; i <= maxAllowableLevel; ++i) {
     dataFab[i] = new FArrayBox(datasetRegion[i], 1);
   }

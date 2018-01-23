@@ -76,7 +76,7 @@ private:
 public:
   // created when opening a new file
   PltApp(XtAppContext, Widget, const string &filename, 
-         const amrex::Array<amrex::DataServices *> &dataservicesptr, bool isAnim);
+         const amrex::Vector<amrex::DataServices *> &dataservicesptr, bool isAnim);
   
   // for subregion
   PltApp(XtAppContext app, Widget w, const amrex::Box &region,
@@ -140,7 +140,7 @@ public:
 private:
   Widget wTopLevel;
   Widget wScrollArea[amrex::Amrvis::NPLANES], wPlotPlane[amrex::Amrvis::NPLANES];
-  amrex::Array<Widget> wRangeRadioButton;
+  amrex::Vector<Widget> wRangeRadioButton;
   Widget wFileRangeCheckBox;
   Widget wUserMin, wUserMax;
   Widget wWhichFileLabel, wWhichFileScale, wWhichTimeLabel;
@@ -196,7 +196,7 @@ private:
   amrex::Box trueRegion, selectionBox;
   Dataset *datasetPtr;
   GraphicsAttributes	*gaPtr;
-  amrex::Array<XImage *> frameBuffer;
+  amrex::Vector<XImage *> frameBuffer;
   vector<bool>	readyFrames;
   amrex::Amrvis::AnimDirection	animDirection;
   XtIntervalId	animationIId, multiclickIId;
@@ -319,7 +319,7 @@ private:
 
   void FindAndSetMinMax(const amrex::Amrvis::MinMaxRangeType mmrangetype, const int framenumber,
 		        const string &currentderived, const int derivednumber,
-		        const amrex::Array<amrex::Box> &onBox,
+		        const amrex::Vector<amrex::Box> &onBox,
 		        const int coarselevel, const int finelevel,
 		        const bool resetIfSet);
 
@@ -339,7 +339,7 @@ private:
       XtPointer data;
       memberCB cbFunc;
   };
-  amrex::Array<CBData *> cbdPtrs;  // save these so we can delete them later
+  amrex::Vector<CBData *> cbdPtrs;  // save these so we can delete them later
 };
 
 

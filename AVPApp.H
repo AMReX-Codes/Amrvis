@@ -39,7 +39,7 @@ class AVPApp
     const std::string &GetPaletteName() const { return palFilename; }
     int CurrentFrame()  const        { return currentFrame; }
     amrex::DataServices *GetDataServicesPtr() { return dataServicesPtr[currentFrame]; }
-    amrex::Array<amrex::DataServices *> &GetDataServicesPtrArray() { return dataServicesPtr; }
+    amrex::Vector<amrex::DataServices *> &GetDataServicesPtrArray() { return dataServicesPtr; }
 
     void DrawTimeRange(Widget wCF, int sdLineXL, int sdLineXH,
                        int axisLengthX, int axisLengthY,
@@ -55,7 +55,7 @@ class AVPApp
     };
 
     struct CallTraceData {
-      amrex::Array<CallTraceLine> callTraceLines;
+      amrex::Vector<CallTraceLine> callTraceLines;
       std::map<int, std::string> funcNumberNames;  // ---- <fnumber, fname>
     };
 
@@ -70,9 +70,9 @@ class AVPApp
     XYPlotWin *XYplotwin[BL_SPACEDIM];
     bool paletteCBQ;
     int currentFrame;
-    amrex::Array<std::string> fileNames;
+    amrex::Vector<std::string> fileNames;
     PltAppState *pltAppState;
-    amrex::Array<amrex::DataServices *> dataServicesPtr;
+    amrex::Vector<amrex::DataServices *> dataServicesPtr;
     CallTraceData callTraceData;
     amrex::Real timelineRangeStart, timelineRangeStop;
 };

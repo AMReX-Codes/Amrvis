@@ -114,8 +114,8 @@ private:
   Widget	  drawingArea;
   AmrPicture     *amrPicturePtr;
   ViewTransform  *viewTransformPtr;
-  amrex::Array<amrex::Array<AVRealBox> > boxReal;
-  amrex::Array<amrex::Array<TransBox> > boxTrans;
+  amrex::Vector<amrex::Vector<AVRealBox> > boxReal;
+  amrex::Vector<amrex::Vector<TransBox> > boxTrans;
   Real longestBoxSide;
   
   AVRealBox realBoundingBox;
@@ -127,8 +127,8 @@ private:
   RealSlice realSlice[3];
   TransSlice transSlice[3];
   
-  amrex::Array<int> boxPoints;
-  amrex::Array<Pixel> boxColors;
+  amrex::Vector<int> boxPoints;
+  amrex::Vector<Pixel> boxColors;
   int daWidth, daHeight;
   Pixel subCutColor, sliceColor;
   bool showSubCut, pixCreated;
@@ -138,7 +138,7 @@ private:
   Palette *palettePtr;
   unsigned char *imageData, *volpackImageData;
   XImage *PPXImage;
-  amrex::Array<amrex::Box> theDomain;
+  amrex::Vector<amrex::Box> theDomain;
   char buffer[BUFSIZ];
   PltApp *pltAppPtr;
   Real scale[3];
