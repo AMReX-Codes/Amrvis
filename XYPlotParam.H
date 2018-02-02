@@ -218,12 +218,13 @@ private:
   int strihash(register char *xypstring) {
     register int val = 0;
     register int c;
+    register int i = 0;
     
     while ((c = *xypstring++) != '\0') {
       if(isupper(c)) {
         c = tolower(c);
       }
-      val = val * 997 + c;
+      val = (val - ++i) + 997 * c;
     }
     
     return ((val < 0) ? -val : val) % param_table.num_bins;
