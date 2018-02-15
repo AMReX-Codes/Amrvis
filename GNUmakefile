@@ -25,7 +25,7 @@ ifeq ($(COMP), gnu)
 endif
 
 DEBUG     = FALSE
-DEBUG     = TRUE
+#DEBUG     = TRUE
 
 DIM       = 1
 DIM       = 3
