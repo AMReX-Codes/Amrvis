@@ -13,17 +13,6 @@ COMM_PROFILE  = FALSE
 COMP      = intel
 COMP      = gnu
 
-# On Mac OS X, the default gcc is outdated. So this is a work-around:
-# 	- Install homebrew, then using homebrew:
-# 		- brew install gcc@7
-# this will install the latest gcc version 7.
-ifeq ($(COMP), gnu)
-	UNAME_S := $(shell uname -s)
-	ifeq ($(UNAME_S), Darwin)
-		COMP = gnu-7
-	endif
-endif
-
 DEBUG     = FALSE
 #DEBUG     = TRUE
 
@@ -129,7 +118,7 @@ endif
 # JFG: this line is needed on hive
 # LIBRARY_LOCATIONS += /usr/X11R6/lib64
 
-UNAME_S := $(shell uname -s)
+UNAME_S = $(shell uname -s)
 ifeq ($(UNAME_S), Darwin)
 	INCLUDE_LOCATIONS += /opt/X11/include
 	LIBRARY_LOCATIONS += /opt/X11/lib
