@@ -41,7 +41,7 @@ No need to compile.
 git clone https://user-name@bitbucket.org/berkeleylab/volpack.git
 ```
 
-which does not rely on autotools. Please contact the AMReX team for an access to the volpack account.
+which does not rely on autotools. Please contact the AMReX team for access to the volpack account. Run `make` from the volpack directory to build the volpack library.
 
 ## Building
 
@@ -64,6 +64,8 @@ F90 = gfortran-7
 ```
 
 in your AMReX's `Make.local`.
+
+3. Build by running `make` from the Amrvis directory. For 3D-Amrvis run `make DIM=3`.
 
 
 ## Configuring
