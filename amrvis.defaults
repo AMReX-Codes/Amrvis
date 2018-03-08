@@ -24,5 +24,6 @@ windowwidth           800
 windowheight          750
 windowwidth           900
 filetype              newplt
+datasetinitialcolor   true
 lowblack
 cliptoppalette

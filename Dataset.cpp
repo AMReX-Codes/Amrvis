@@ -125,7 +125,7 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
   XtAddCallback(wColorButton, XmNvalueChangedCallback,
 		(XtCallbackProc) &Dataset::CBColorButton,
 		(XtPointer) this);
-  XmToggleButtonSetState(wColorButton, true, false);
+  XmToggleButtonSetState(wColorButton, Dataset::GetInitialColor(), false);
   Dimension bHeight;
   XtVaGetValues(wColorButton, XmNheight, &bHeight, NULL);
 
@@ -1310,4 +1310,10 @@ void Dataset::CBEndScrolling(Widget, XtPointer client_data, XtPointer) {
   dset->DoExpose(false);
 }
 // -------------------------------------------------------------------
+bool Dataset::initialColor = true;
+
+bool Dataset::GetInitialColor() { return initialColor; }
+void Dataset::SetInitialColor( const bool bColor ) {
+  Dataset::initialColor = bColor;
+}
 // -------------------------------------------------------------------
