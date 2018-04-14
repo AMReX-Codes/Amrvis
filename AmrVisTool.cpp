@@ -83,10 +83,11 @@ void PrintMessage(const char *message) {
 
 //--------------------------------------------------------------
 int main(int argc, char *argv[]) {
+
   amrex::Box    comlineBox;
   string	comlineFileName;
-
   bool useParmParse(false);
+
   amrex::Initialize(argc, argv, useParmParse);
 
   AVGlobals::GetDefaults("amrvis.defaults");
@@ -210,13 +211,12 @@ int main(int argc, char *argv[]) {
 		}
               }
 	  }
-	} else {
-          if(amrex::ParallelDescriptor::IOProcessor()) {
-            for(int nPlots = 0; nPlots < AVGlobals::GetFileCount(); ++nPlots) {
-              dspArray[nPlots]->DecrementNumberOfUsers();
-	    }
-	  }
 	}
+        else {
+          for(int nPlots = 0; nPlots < AVGlobals::GetFileCount(); ++nPlots) {
+             dspArray[nPlots]->DecrementNumberOfUsers();
+	  }
+        }
       }
     } else {
       // loop through the command line list of plot files
@@ -234,14 +234,22 @@ int main(int argc, char *argv[]) {
 	 cout << "]]]]]]]]:  dirName = " << dirName << endl;
 
          amrex::Vector<amrex::DataServices *> pdspArray(AVGlobals::GetFileCount());
+
+// Note: these for loops currently do nothing. (See previous if statement)
+// Left here for future opening of multiple ProfApps. 
+// Reorganized to allow dispatchable function calls during ProfApp init.
+// (This way: Non-IOProcessor procs should go to Dispatch call below.) 
+
          for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {
            comlineFileName = AVGlobals::GetComlineFilename(nPlots);
            if(amrex::ParallelDescriptor::IOProcessor()) {
              cout << endl << "FileName = " << comlineFileName << endl;
            }
 	   pdspArray[nPlots] = new amrex::DataServices(comlineFileName, fileType);
+         }
 
-           if(amrex::ParallelDescriptor::IOProcessor()) {
+         if(amrex::ParallelDescriptor::IOProcessor()) {
+           for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {
              pdspArray[nPlots]->IncrementNumberOfUsers();
              ProfApp *temp = new ProfApp(app, wTopLevel, comlineFileName,
 		                         pdspArray);
@@ -269,8 +277,8 @@ int main(int argc, char *argv[]) {
 	dspArray[nPlots] = new amrex::DataServices(comlineFileName, fileType);
       }  // end for(nPlots...)
 
-      for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {
-        if(amrex::ParallelDescriptor::IOProcessor()) {
+      if(amrex::ParallelDescriptor::IOProcessor()) {
+        for(int nPlots(0); nPlots < AVGlobals::GetFileCount(); ++nPlots) {
 	  if(dspArray[nPlots]->AmrDataOk()) {
 	    amrex::Vector<amrex::DataServices *> dspArrayOne(1);
 	    dspArrayOne[0] = dspArray[nPlots];
@@ -302,8 +310,8 @@ int main(int argc, char *argv[]) {
               }
 	    }
 	  }
-        }
-      }  // end for(nPlots...)
+        } // end for(nPlots...)
+      } 
 
      }
 
