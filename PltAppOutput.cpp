@@ -96,7 +96,7 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   imageSizeY = amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV();
   WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
 
-#ifndef NDEBUG
+#ifdef AMREX_DEBUG
 /*
   {
   int minDrawnLevel(pltAppState->MinDrawnLevel());
