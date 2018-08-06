@@ -1,7 +1,7 @@
 ### ------------------------------------------------------
 ### GNUmakefile for Amrvis
 ### ------------------------------------------------------
-AMREX_HOME = ../amrex
+AMREX_HOME ?= ../amrex
 
 PRECISION = FLOAT
 PRECISION = DOUBLE
