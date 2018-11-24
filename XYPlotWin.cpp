@@ -43,8 +43,6 @@ using std::setw;
 using std::cout;
 using std::cerr;
 using std::endl;
-using std::min;
-using std::max;
 
 using namespace amrex;
 
@@ -476,8 +474,8 @@ void XYPlotWin::InitializeAnimation(int curr_frame, int num_frames) {
     return;
   }
   PltAppState *pas = pltParent->GetPltAppState();
-  Real gmin( std::numeric_limits<Real>::max());
-  Real gmax(-std::numeric_limits<Real>::max());
+  Real gmin(std::numeric_limits<Real>::max());
+  Real gmax(std::numeric_limits<Real>::lowest());
   Real fmin, fmax;
   animatingQ = true;
   currFrame = curr_frame;
@@ -503,8 +501,8 @@ void XYPlotWin::InitializeAnimation(int curr_frame, int num_frames) {
     Amrvis::MinMaxRangeType mmrt = pas->GetMinMaxRangeType();
     for(int iframe(0); iframe < numFrames; ++iframe) {
       pas->GetMinMax(mmrt, iframe, snum, fmin, fmax);
-      gmin = min(gmin, fmin);
-      gmax = max(gmax, fmax);
+      gmin = std::min(gmin, fmin);
+      gmax = std::max(gmax, fmax);
     }
 // =================
   }
@@ -528,8 +526,8 @@ void XYPlotWin::UpdateFrame(int frame) {
 	  whichType + 'X');
   XtVaSetValues(wXYPlotTopLevel, XmNtitle, buffer, NULL);
   if( ! animatingQ && zoomedInQ == false) {
-    lloY =  std::numeric_limits<Real>::max();
-    hhiY = -std::numeric_limits<Real>::max();
+    lloY = std::numeric_limits<Real>::max();
+    hhiY = std::numeric_limits<Real>::lowest();
   }
   for(list<XYPlotLegendItem *>::iterator ptr = legendList.begin();
       ptr != legendList.end(); ++ptr)
@@ -605,8 +603,8 @@ void XYPlotWin::StopAnimation() {
     delete (*ptr)->ready_list;
     delete (*ptr)->anim_lists;
   }
-  lloY =  std::numeric_limits<Real>::max();
-  hhiY = -std::numeric_limits<Real>::max();
+  lloY = std::numeric_limits<Real>::max();
+  hhiY = std::numeric_limits<Real>::lowest();
   for(list<XYPlotLegendItem *>::iterator ptr = legendList.begin();
       ptr != legendList.end(); ++ptr)
   {
@@ -652,8 +650,8 @@ void XYPlotWin::SetBoundingBox(double lowXIn,  double lowYIn,
       hiY =  1.0;
       lloX =  std::numeric_limits<Real>::max();
       lloY =  std::numeric_limits<Real>::max();
-      hhiX = -std::numeric_limits<Real>::max();
-      hhiY = -std::numeric_limits<Real>::max();
+      hhiX =  std::numeric_limits<Real>::lowest();
+      hhiY =  std::numeric_limits<Real>::lowest();
       return;
     }
     loX = lloX;
@@ -669,12 +667,12 @@ void XYPlotWin::SetBoundingBox(double lowXIn,  double lowYIn,
   
   // Increase the padding for aesthetics
   if(hiX - loX == 0.0) {
-    pad = max(0.5, fabs(hiX * 0.5));
+    pad = std::max(0.5, fabs(hiX * 0.5));
     hiX += pad;
     loX -= pad;
   }
   if(hiY - loY == 0.0) {
-    pad = max(0.5, fabs(hiY * 0.5));
+    pad = std::max(0.5, fabs(hiY * 0.5));
     hiY += pad;
     loY -= pad;
   }
@@ -1916,8 +1914,8 @@ void XYPlotWin::CBdoSelectDataList(Widget, XtPointer data,
       if( ! animatingQ) {
 	lloX =  std::numeric_limits<Real>::max();
 	lloY =  std::numeric_limits<Real>::max();
-	hhiX = -std::numeric_limits<Real>::max();
-	hhiY = -std::numeric_limits<Real>::max();
+	hhiX =  std::numeric_limits<Real>::lowest();
+	hhiY =  std::numeric_limits<Real>::lowest();
         for(list<XYPlotLegendItem *>::iterator liitem = legendList.begin();
             liitem != legendList.end(); ++liitem)
         {
@@ -2007,8 +2005,8 @@ void XYPlotWin::CBdoRemoveDataList(Widget, XtPointer client_data,
     --numDrawnItems;
     lloX =  std::numeric_limits<Real>::max();
     lloY =  std::numeric_limits<Real>::max();
-    hhiX = -std::numeric_limits<Real>::max();
-    hhiY = -std::numeric_limits<Real>::max();
+    hhiX =  std::numeric_limits<Real>::lowest();
+    hhiY =  std::numeric_limits<Real>::lowest();
     for(list<XYPlotLegendItem *>::iterator liptr = legendList.begin();
         liptr != legendList.end(); ++liptr)
     {
@@ -2054,8 +2052,8 @@ void XYPlotWin::CBdoSetListLevel(Widget, XtPointer data, XtPointer) {
   if(item->drawQ == true) {
     lloX =  std::numeric_limits<Real>::max();
     lloY =  std::numeric_limits<Real>::max();
-    hhiX = -std::numeric_limits<Real>::max();
-    hhiY = -std::numeric_limits<Real>::max();
+    hhiX =  std::numeric_limits<Real>::lowest();
+    hhiY =  std::numeric_limits<Real>::lowest();
     for(list<XYPlotLegendItem *>::iterator liitem = legendList.begin();
         liitem != legendList.end(); ++liitem)
     {
@@ -2181,8 +2179,8 @@ void XYPlotWin::CBdoDeselectAllData(Widget, XtPointer, XtPointer) {
   if( ! animatingQ) {
     lloX =  std::numeric_limits<Real>::max();
     lloY =  std::numeric_limits<Real>::max();
-    hhiX = -std::numeric_limits<Real>::max();
-    hhiY = -std::numeric_limits<Real>::max();
+    hhiX =  std::numeric_limits<Real>::lowest();
+    hhiY =  std::numeric_limits<Real>::lowest();
   }
   CBdoRedrawPlot(None, NULL, NULL);
 
@@ -2283,8 +2281,8 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
       return;
     }
 
-    oldX = newX = anchorX = max(0, cbs->event->xbutton.x);
-    oldY = newY = anchorY = max(0, cbs->event->xbutton.y);
+    oldX = newX = anchorX = std::max(0, cbs->event->xbutton.x);
+    oldY = newY = anchorY = std::max(0, cbs->event->xbutton.y);
     rectDrawn = false;
     // grab server and draw box(es)
     XChangeActivePointerGrab(disp,

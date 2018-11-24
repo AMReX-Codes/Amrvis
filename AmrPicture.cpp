@@ -13,8 +13,6 @@
 using std::cout;
 using std::cerr;
 using std::endl;
-using std::max;
-using std::min;
 
 using namespace amrex;
 
@@ -112,10 +110,10 @@ AmrPicture::AmrPicture(GraphicsAttributes *gaptr,
     tempSliceV /= coarsenCRR;
     tempSliceH /= coarsenCRR;
     tempSliceH = subDomain[maxAllowableLevel].bigEnd(Amrvis::YDIR) - tempSliceH;
-    vLine = max(min(tempSliceV,
+    vLine = amrex::max(std::min(tempSliceV,
                     subDomain[maxAllowableLevel].bigEnd(Amrvis::XDIR)), 
                     subDomain[maxAllowableLevel].smallEnd(Amrvis::XDIR));
-    hLine = max(min(tempSliceH,
+    hLine = amrex::max(std::min(tempSliceH,
                     subDomain[maxAllowableLevel].bigEnd(Amrvis::YDIR)), 
                     subDomain[maxAllowableLevel].smallEnd(Amrvis::YDIR));
     vLine *= pltAppStatePtr->CurrentScale();
@@ -125,7 +123,7 @@ AmrPicture::AmrPicture(GraphicsAttributes *gaptr,
 
     int tempSlice = AVGlobals::GetInitialPlanes()[Amrvis::YZ - myView];  // at finest lev
     tempSlice /= coarsenCRR;
-    slice = max(min(tempSlice,
+    slice = amrex::max(std::min(tempSlice,
                     subDomain[maxAllowableLevel].bigEnd(Amrvis::YZ-myView)), 
                     subDomain[maxAllowableLevel].smallEnd(Amrvis::YZ-myView));
   } else {
@@ -240,7 +238,7 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
 				    MaxDrawnLevel(), 
                                     pltAppStatePtr->MaxDrawnLevel(),
                                     amrData.RefRatio());
-      slice = max(min(tempSlice,
+      slice = amrex::max(std::min(tempSlice,
                       subDomain[maxAllowableLevel].bigEnd(Amrvis::YZ-myView)), 
                       subDomain[maxAllowableLevel].smallEnd(Amrvis::YZ-myView));
     } else {
@@ -250,7 +248,7 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
                                                      pltAppStatePtr->FinestLevel(),
                                                      amrData.RefRatio());
         tempSlice /= coarsenCRR;
-        slice = max(min(tempSlice,
+        slice = amrex::max(std::min(tempSlice,
                         subDomain[maxAllowableLevel].bigEnd(Amrvis::YZ-myView)), 
                         subDomain[maxAllowableLevel].smallEnd(Amrvis::YZ-myView));
 
@@ -261,10 +259,10 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
           tempSliceV /= coarsenCRR;
           tempSliceH /= coarsenCRR;
           tempSliceH = subDomain[maxAllowableLevel].bigEnd(Amrvis::YDIR) - tempSliceH;
-          vLine = max(min(tempSliceV,
+          vLine = amrex::max(std::min(tempSliceV,
                           subDomain[maxAllowableLevel].bigEnd(Amrvis::XDIR)), 
                           subDomain[maxAllowableLevel].smallEnd(Amrvis::XDIR));
-          hLine = max(min(tempSliceH,
+          hLine = amrex::max(std::min(tempSliceH,
                           subDomain[maxAllowableLevel].bigEnd(Amrvis::YDIR)), 
                           subDomain[maxAllowableLevel].smallEnd(Amrvis::YDIR));
         } else if(myView==Amrvis::XZ) {
@@ -273,10 +271,10 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
           tempSliceV /= coarsenCRR;
           tempSliceH /= coarsenCRR;
           tempSliceH = subDomain[maxAllowableLevel].bigEnd(Amrvis::ZDIR) - tempSliceH;
-          vLine = max(min(tempSliceV,
+          vLine = amrex::max(std::min(tempSliceV,
                           subDomain[maxAllowableLevel].bigEnd(Amrvis::XDIR)), 
                           subDomain[maxAllowableLevel].smallEnd(Amrvis::XDIR));
-          hLine = max(min(tempSliceH,
+          hLine = amrex::max(std::min(tempSliceH,
                           subDomain[maxAllowableLevel].bigEnd(Amrvis::ZDIR)), 
                           subDomain[maxAllowableLevel].smallEnd(Amrvis::ZDIR));
         } else {
@@ -285,10 +283,10 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
           tempSliceV /= coarsenCRR;
           tempSliceH /= coarsenCRR;
           tempSliceH = subDomain[maxAllowableLevel].bigEnd(Amrvis::ZDIR) - tempSliceH;
-          vLine = max(min(tempSliceV,
+          vLine = amrex::max(std::min(tempSliceV,
                           subDomain[maxAllowableLevel].bigEnd(Amrvis::YDIR)), 
                           subDomain[maxAllowableLevel].smallEnd(Amrvis::YDIR));
-          hLine = max(min(tempSliceH,
+          hLine = amrex::max(std::min(tempSliceH,
                           subDomain[maxAllowableLevel].bigEnd(Amrvis::ZDIR)), 
                           subDomain[maxAllowableLevel].smallEnd(Amrvis::ZDIR));
         }
@@ -1192,12 +1190,12 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
           }
 
           //for(isum=nStartV; isum< nEndV; ++isum) {
-            //minDAV = min(diffAvgV[isum], diffAvgV[isum+1]);
-            //maxDAV = max(diffAvgV[isum], diffAvgV[isum+1]);
+            //minDAV = std::min(diffAvgV[isum], diffAvgV[isum+1]);
+            //maxDAV = std::max(diffAvgV[isum], diffAvgV[isum+1]);
           //}
           //for(isum=nStartH; isum<=nEndH; ++isum) {
-            //minDAH = min(diffAvgH[isum], diffAvgH[isum+1]);
-            //maxDAH = max(diffAvgH[isum], diffAvgH[isum+1]);
+            //minDAH = std::min(diffAvgH[isum], diffAvgH[isum+1]);
+            //maxDAH = std::max(diffAvgH[isum], diffAvgH[isum+1]);
           //}
           normH =  ((diffAvgV[nEndV] - diffAvgV[nStartV]) * ((Real) nH));
                                                   // nH is correct here
@@ -1228,7 +1226,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
               }
               for(ii = 0; ii < iCurrent; ++ii) {
                 yBody = (slope * ((iCurrent-ii)*cellDx)) + (jCurrent*cellDy);
-                jBody = min(rrcs-1, (int) (yBody/cellDy));
+                jBody = std::min(rrcs-1, (int) (yBody/cellDy));
                 for(jj = 0; jj <= jBody; ++jj) {
                   isIndex = ii + ((rrcs - (jj + 1)) * rrcs);
                   imageStencil[isIndex] = bodyCell;  // yflip
@@ -1260,7 +1258,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
               for(ii = rrcs; ii > iCurrent; --ii) {
                 yBody = (slope * ((ii - iCurrent) * cellDx)) +
                         ((rrcs - jCurrent) * cellDy);
-                jBody = max(0, (int) (rrcs - (yBody / cellDy)));
+                jBody = amrex::max(0, (int) (rrcs - (yBody / cellDy)));
                 for(jj = jBody; jj < rrcs; ++jj) {
                   isIndex = (ii - 1) + ((rrcs - (jj + 1)) * rrcs);
                   imageStencil[isIndex] = bodyCell;  // yflip
@@ -1288,7 +1286,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
               }
               for(ii=rrcs; ii>iCurrent; --ii) {
                 yBody = (-slope * ((ii - iCurrent) * cellDx)) + (jCurrent * cellDy);
-                jBody = min(rrcs - 1, (int) (yBody / cellDy));
+                jBody = std::min(rrcs - 1, (int) (yBody / cellDy));
                 for(jj = 0; jj <= jBody; ++jj) {
                   isIndex = (ii - 1) + ((rrcs - (jj + 1)) * rrcs);
                   imageStencil[isIndex] = bodyCell;  // yflip
@@ -1317,7 +1315,7 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
               for(ii = 0; ii < iCurrent; ++ii) {
                 yBody = (-slope * ((iCurrent - ii) * cellDx)) +
                         ((rrcs - jCurrent) * cellDy);
-                jBody = max(0, (int) (rrcs - (yBody / cellDy)));
+                jBody = amrex::max(0, (int) (rrcs - (yBody / cellDy)));
                 for(jj = jBody; jj < rrcs; ++jj) {
                   isIndex = ii + ((rrcs - (jj + 1)) * rrcs);  // yflip
                   imageStencil[isIndex] = bodyCell;
@@ -2408,7 +2406,7 @@ void AmrPicture::DrawVectorField(Display *pDisplay,
 
   for(int k(0); k < npts; ++k) {
     Real s(sqrt(hdat[k] * hdat[k] + vdat[k] * vdat[k]));
-    smax = max(smax,s);
+    smax = amrex::max(smax,s);
   }
   
   

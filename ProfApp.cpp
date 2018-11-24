@@ -43,8 +43,6 @@
 using std::cout;
 using std::cerr;
 using std::endl;
-using std::min;
-using std::max;
 
 #ifndef FALSE
 #define FALSE false

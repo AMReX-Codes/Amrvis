@@ -12,8 +12,6 @@
 using std::cerr;
 using std::cout;
 using std::endl;
-using std::max;
-using std::min;
 #include <ctime>
 
 #include <unistd.h>

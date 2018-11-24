@@ -23,11 +23,9 @@ const unsigned long savingLW(101);
 const Real oo64(1.0 / 64.0);
 Widget wTempLabel;
 
-using std::max;
 using std::cout;
 using std::cerr;
 using std::endl;
-using std::max;
 
 using namespace amrex;
 
