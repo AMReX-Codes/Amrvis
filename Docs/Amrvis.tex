@@ -1,5 +1,7 @@
 \documentclass{article}
 
+\usepackage{hyperref}
+
 \title{Amrvis User's Guide}
 \date{February 2, 2018}
 
@@ -33,6 +35,15 @@ data from the original plot file and quantities derived from data in
 the original plot file.  This creates a new plot file which can be
 viewed with {\em Amrvis}.
 
+\subsection{Installing Amrvis}
+
+VolPack is an external volume rendering package which is necessary for the 3D version of Amrvis.
+You can download VolPack using git by typing the following command.\\ \\
+{\tt git clone https://ccse.lbl.gov/pub/Downloads/volpack.git}\\ \\
+Note that the VolPack software was developed elsewhere and is governed by the license found at\\ \\
+\url{http://graphics.stanford.edu/software/bsd-license.html}\\ \\
+We release it here for use with the 3D Amrvis software as a convenience. You can find more information about VolPack at \\ \\
+\url{http://graphics.stanford.edu/software/volpack}
 \subsection{Using Amrvis}
 
 \subsubsection{Command Line Interface and Utility Files}
