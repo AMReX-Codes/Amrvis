@@ -39,10 +39,11 @@ viewed with {\em Amrvis}.
 
 For 2D Amrvis, in the {\tt Amrvis} directory, simply type {\tt make}.
 For both 2D and 3D, make sure the {\bf AMReX} github repo is at the same level as {\tt Amrvis}.
-For 3D, you'll have to download VolPack and place it at the same level as {\tt Amrvis/}.
+For 3D, type {\tt make DIM=3}, but beforehand you'll have to download and build VolPack (place it at the same level as {\tt Amrvis}).
 VolPack is an external volume rendering package which is necessary for the 3D version of Amrvis.
 You can download VolPack using git by typing the following command.\\ \\
 {\tt git clone https://ccse.lbl.gov/pub/Downloads/volpack.git}\\ \\
+Then, run {\tt make} in the VolPack directory.
 Note that the VolPack software was developed elsewhere and is governed by the license found at\\ \\
 \url{http://graphics.stanford.edu/software/bsd-license.html}\\ \\
 We release it here for use with the 3D Amrvis software as a convenience. You can find more information about VolPack at \\ \\
