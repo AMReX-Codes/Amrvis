@@ -116,7 +116,12 @@ ifeq ($(which_site), unknown)
     # everything into the /usr/local tree.
     INCLUDE_LOCATIONS += /usr/local/include
     LIBRARY_LOCATIONS += /usr/local/lib
-
+    
+    # if dependencies installed via macport, everything symlinks
+    # to /opt/local/
+    INCLUDE_LOCATIONS += /opt/local/include
+    LIBRARY_LOCATIONS += /opt/local/lib
+    
     # on macOS X11 is installed into the /opt tree
     INCLUDE_LOCATIONS += /opt/X11/include
     LIBRARY_LOCATIONS += /opt/X11/lib
