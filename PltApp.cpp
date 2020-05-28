@@ -42,6 +42,8 @@
 
 #include <cctype>
 #include <sstream>
+#include <cmath>
+#include <cstdlib>
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -3618,8 +3620,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
       case MotionNotify:
 	
 	if(rectDrawn) {   // undraw the old rectangle(s)
-	  rWidth  = abs(oldX-anchorX);
-	  rHeight = abs(oldY-anchorY);
+	  rWidth  = std::abs(oldX-anchorX);
+	  rHeight = std::abs(oldY-anchorY);
 	  rStartX = (anchorX < oldX) ? anchorX : oldX;
 	  rStartY = (anchorY < oldY) ? anchorY : oldY;
 	  XDrawRectangle(display, amrPicturePtrArray[V]->PictureWindow(),
@@ -3630,30 +3632,30 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  case Amrvis::ZPLANE:
 	    XDrawRectangle(display, amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(),
 			   rbgc, rStartX, startcutY[Amrvis::YPLANE], rWidth,
-			   abs(finishcutY[Amrvis::YPLANE]-startcutY[Amrvis::YPLANE]));
+			   std::abs(finishcutY[Amrvis::YPLANE]-startcutY[Amrvis::YPLANE]));
 	    rStartPlane = (anchorY < oldY) ? oldY : anchorY;
 	    XDrawRectangle(display, amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(),
 			   rbgc, imageHeight-rStartPlane, startcutY[Amrvis::XPLANE],
 			   rHeight,
-			   abs(finishcutY[Amrvis::XPLANE]-startcutY[Amrvis::XPLANE]));
+			   std::abs(finishcutY[Amrvis::XPLANE]-startcutY[Amrvis::XPLANE]));
 	    break;
 	  case Amrvis::YPLANE:
 	    XDrawRectangle(display, amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(),
 			   rbgc, rStartX, startcutY[Amrvis::ZPLANE], rWidth,
-			   abs(finishcutY[Amrvis::ZPLANE]-startcutY[Amrvis::ZPLANE]));
+			   std::abs(finishcutY[Amrvis::ZPLANE]-startcutY[Amrvis::ZPLANE]));
 	    XDrawRectangle(display, amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(),
 			   rbgc, startcutX[Amrvis::XPLANE], rStartY,
-			   abs(finishcutX[Amrvis::XPLANE]-startcutX[Amrvis::XPLANE]),
+			   std::abs(finishcutX[Amrvis::XPLANE]-startcutX[Amrvis::XPLANE]),
 			   rHeight);
 	    break;
 	  default: // Amrvis::XPLANE
 	    rStartPlane = (anchorX < oldX) ? oldX : anchorX;
 	    XDrawRectangle(display, amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(),
 			   rbgc, startcutX[Amrvis::ZPLANE], imageWidth-rStartPlane,
-			   abs(finishcutX[Amrvis::ZPLANE]-startcutX[Amrvis::ZPLANE]), rWidth);
+			   std::abs(finishcutX[Amrvis::ZPLANE]-startcutX[Amrvis::ZPLANE]), rWidth);
 	    XDrawRectangle(display, amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(),
 			   rbgc, startcutX[Amrvis::YPLANE], rStartY,
-			   abs(finishcutX[Amrvis::YPLANE]-startcutX[Amrvis::YPLANE]),
+			   std::abs(finishcutX[Amrvis::YPLANE]-startcutX[Amrvis::YPLANE]),
 			   rHeight);
 	  }
 #endif
@@ -3677,8 +3679,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	}
 	newX = max(0, min(imageWidth,  newX));
 	newY = max(0, min(imageHeight, newY));
-	rWidth  = abs(newX-anchorX);   // draw the new rectangle
-	rHeight = abs(newY-anchorY);
+	rWidth  = std::abs(newX-anchorX);   // draw the new rectangle
+	rHeight = std::abs(newY-anchorY);
 	rStartX = (anchorX < newX) ? anchorX : newX;
 	rStartY = (anchorY < newY) ? anchorY : newY;
 	XDrawRectangle(display, amrPicturePtrArray[V]->PictureWindow(),
@@ -3703,12 +3705,12 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  // draw in other planes
 	  XDrawRectangle(display, amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(),
 			 rbgc, rStartX, startcutY[Amrvis::YPLANE], rWidth,
-			 abs(finishcutY[Amrvis::YPLANE]-startcutY[Amrvis::YPLANE]));
+			 std::abs(finishcutY[Amrvis::YPLANE]-startcutY[Amrvis::YPLANE]));
 	  rStartPlane = (anchorY < newY) ? newY : anchorY;
 	  XDrawRectangle(display, amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(),
 			 rbgc, imageHeight-rStartPlane, startcutY[Amrvis::XPLANE],
 			 rHeight,
-			 abs(finishcutY[Amrvis::XPLANE]-startcutY[Amrvis::XPLANE]));
+			 std::abs(finishcutY[Amrvis::XPLANE]-startcutY[Amrvis::XPLANE]));
 	  break;
 	case Amrvis::YPLANE:
 	  startcutX[Amrvis::ZPLANE] = startcutX[V];
@@ -3717,10 +3719,10 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  finishcutY[Amrvis::XPLANE] = finishcutY[V];
 	  XDrawRectangle(display, amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(),
 			 rbgc, rStartX, startcutY[Amrvis::ZPLANE], rWidth,
-			 abs(finishcutY[Amrvis::ZPLANE]-startcutY[Amrvis::ZPLANE]));
+			 std::abs(finishcutY[Amrvis::ZPLANE]-startcutY[Amrvis::ZPLANE]));
 	  XDrawRectangle(display, amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(),
 			 rbgc, startcutX[Amrvis::XPLANE], rStartY,
-			 abs(finishcutX[Amrvis::XPLANE]-startcutX[Amrvis::XPLANE]), rHeight);
+			 std::abs(finishcutX[Amrvis::XPLANE]-startcutX[Amrvis::XPLANE]), rHeight);
 	  break;
 	default: // Amrvis::XPLANE
 	  startcutY[Amrvis::YPLANE] = startcutY[V];
@@ -3730,10 +3732,10 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  rStartPlane = (anchorX < newX) ? newX : anchorX;
 	  XDrawRectangle(display, amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(),
 			 rbgc, startcutX[Amrvis::ZPLANE], imageWidth-rStartPlane,
-			 abs(finishcutX[Amrvis::ZPLANE]-startcutX[Amrvis::ZPLANE]), rWidth);
+			 std::abs(finishcutX[Amrvis::ZPLANE]-startcutX[Amrvis::ZPLANE]), rWidth);
 	  XDrawRectangle(display, amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(),
 			 rbgc, startcutX[Amrvis::YPLANE], rStartY,
-			 abs(finishcutX[Amrvis::YPLANE]-startcutX[Amrvis::YPLANE]), rHeight);
+			 std::abs(finishcutX[Amrvis::YPLANE]-startcutX[Amrvis::YPLANE]), rHeight);
 	}
 	
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)

@@ -39,6 +39,8 @@
 #include <iostream>
 #include <iomanip>
 #include <limits>
+#include <cmath>
+#include <cstdlib>
 using std::setw;
 using std::cout;
 using std::cerr;
@@ -667,12 +669,12 @@ void XYPlotWin::SetBoundingBox(double lowXIn,  double lowYIn,
   
   // Increase the padding for aesthetics
   if(hiX - loX == 0.0) {
-    pad = std::max(0.5, fabs(hiX * 0.5));
+    pad = std::max(0.5, std::fabs(hiX * 0.5));
     hiX += pad;
     loX -= pad;
   }
   if(hiY - loY == 0.0) {
-    pad = std::max(0.5, fabs(hiY * 0.5));
+    pad = std::max(0.5, std::fabs(hiY * 0.5));
     hiY += pad;
     loY -= pad;
   }
@@ -1070,16 +1072,16 @@ void XYPlotWin::drawGridAndAxis() {
   
   // Grid display powers are computed by taking the log of the largest
   // numbers and rounding down to the nearest multiple of 3.
-  if(fabs(dUsrOrgX) > fabs(dUsrOppX)) {
-    dLarger = fabs(dUsrOrgX);
+  if(std::fabs(dUsrOrgX) > std::fabs(dUsrOppX)) {
+    dLarger = std::fabs(dUsrOrgX);
   } else {
-    dLarger = fabs(dUsrOppX);
+    dLarger = std::fabs(dUsrOppX);
   }
   expX = ((int) floor(nlog10(dLarger) / 3.0)) * 3;
-  if(fabs(dUsrOrgY) > fabs(dUsrOppY)) {
-    dLarger = fabs(dUsrOrgY);
+  if(std::fabs(dUsrOrgY) > std::fabs(dUsrOppY)) {
+    dLarger = std::fabs(dUsrOrgY);
   } else {
-    dLarger = fabs(dUsrOppY);
+    dLarger = std::fabs(dUsrOppY);
   }
   expY = ((int) floor(nlog10(dLarger) / 3.0)) * 3;
   
@@ -2317,8 +2319,8 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
       case MotionNotify:
 	
 	if(rectDrawn) {   // undraw the old rectangle(s)
-	  rWidth  = abs(oldX-anchorX);
-	  rHeight = abs(oldY-anchorY);
+	  rWidth  = std::abs(oldX-anchorX);
+	  rHeight = std::abs(oldY-anchorY);
 	  rStartX = (anchorX < oldX) ? anchorX : oldX;
 	  rStartY = (anchorY < oldY) ? anchorY : oldY;
 	  XDrawRectangle(disp, pWindow, rbGC, rStartX, rStartY,
@@ -2333,8 +2335,8 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 	XQueryPointer(disp, pWindow, &whichRoot, &whichChild,
 		      &rootX, &rootY, &newX, &newY, &inputMask);
 
-	rWidth  = abs(newX-anchorX);   // draw the new rectangle
-	rHeight = abs(newY-anchorY);
+	rWidth  = std::abs(newX-anchorX);   // draw the new rectangle
+	rHeight = std::abs(newY-anchorY);
 	rStartX = (anchorX < newX) ? anchorX : newX;
 	rStartY = (anchorY < newY) ? anchorY : newY;
 	XDrawRectangle(disp, pWindow, rbGC, rStartX, rStartY,
@@ -2350,8 +2352,8 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 	avxGrab.ExplicitUngrab();  // giveitawaynow
 	
 	// undraw rectangle
-	rWidth  = abs(oldX-anchorX);
-	rHeight = abs(oldY-anchorY);
+	rWidth  = std::abs(oldX-anchorX);
+	rHeight = std::abs(oldY-anchorY);
 	rStartX = (anchorX < oldX) ? anchorX : oldX;
 	rStartY = (anchorY < oldY) ? anchorY : oldY;
 	XDrawRectangle(disp, pWindow, rbGC, rStartX, rStartY,
