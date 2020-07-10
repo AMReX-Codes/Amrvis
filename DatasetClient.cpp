@@ -29,13 +29,14 @@ const int PORTOFFSET  = 5000;
 const char *defaultFormat = "%7.5e";
 const char *defaultLabel = " ";
 
+using namespace amrex;
 
 // -------------------------------------------------------------------
 bool CreateSocket(int &newsocket) {
-  int                         sockfd;
+  int                       sockfd;
   struct sockaddr_in        serveraddr;
-  char                       *serverhost = "localhost";
-  struct hostent       *serverhostp;
+  char const               *serverhost = "localhost";
+  struct hostent           *serverhostp;
 
   int GETUID_SERVER_PORT = getuid() + PORTOFFSET;  // use to contact the server
 
@@ -196,19 +197,19 @@ bool SendRealArray(int sockfd, Real *data[], int nvar,    // size nvar
 // pointer to fab interface
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
-bool ArrayView(FArrayBox *debugFab) {
+bool ArrayView(amrex::FArrayBox *debugFab) {
   return(ArrayViewFab(debugFab));
 }
 
 
 // -------------------------------------------------------------------
-bool ArrayViewFab(FArrayBox *debugFab) {
+bool ArrayViewFab(amrex::FArrayBox *debugFab) {
   return( ArrayViewFabFormatLabel(debugFab, defaultFormat, "Fab") );
 }
 
 
 // -------------------------------------------------------------------
-bool ArrayViewFabFormatLabel(FArrayBox *debugFab, const char *format,
+bool ArrayViewFabFormatLabel(amrex::FArrayBox *debugFab, const char *format,
                              const char *label)
 {
   bool returnValue;
@@ -240,20 +241,20 @@ bool ArrayViewFabFormatLabel(FArrayBox *debugFab, const char *format,
 // pointer to MultiFab interface
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------
-bool ArrayViewMultiFab(MultiFab *debugMultiFab) {
+bool ArrayViewMultiFab(amrex::MultiFab *debugMultiFab) {
   return (ArrayViewMultiFabFormatLabel(debugMultiFab, defaultFormat, "MultiFab"));
 }
 
 
 // -------------------------------------------------------------------
-bool ArrayViewMultiFabElement(MultiFab *debugMultiFab, int element) {
+bool ArrayViewMultiFabElement(amrex::MultiFab *debugMultiFab, int element) {
   return( ArrayViewMultiFabElementFormatLabel(debugMultiFab, element,
                                               defaultFormat, "MultiFab element") );
 }
 
 
 // -------------------------------------------------------------------
-bool ArrayViewMultiFabElementFormatLabel(MultiFab *debugMultiFab, int element,
+bool ArrayViewMultiFabElementFormatLabel(amrex::MultiFab *debugMultiFab, int element,
                                          const char *format, const char *label)
 {
   if( ! debugMultiFab->ok()) {
@@ -583,7 +584,7 @@ bool ArrayViewRealPtrArrayNVarDims(Real *data[], int nvar,    // size nvar
 
 
 // -------------------------------------------------------------------
-bool ArrayViewMultiFabFormatLabel(MultiFab *multifab, const char *format,
+bool ArrayViewMultiFabFormatLabel(amrex::MultiFab *multifab, const char *format,
                                   const char *label)
 {
   int  sockfd;
