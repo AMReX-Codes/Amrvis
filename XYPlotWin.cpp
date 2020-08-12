@@ -692,7 +692,7 @@ void XYPlotWin::SetBoundingBox(double lowXIn,  double lowYIn,
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::CBdoRedrawPlot(Widget w, XtPointer, XtPointer) {
+void XYPlotWin::CBdoRedrawPlot(Widget /*w*/, XtPointer, XtPointer) {
   XClearWindow(disp, pWindow);
   CBdoDrawPlot(None, NULL, NULL);
 }
@@ -1512,7 +1512,7 @@ void XYPlotWin::CBdoExportFile(Widget, XtPointer client_data, XtPointer data) {
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::CBdoASCIIDump(Widget, XtPointer client_data, XtPointer data) {
+void XYPlotWin::CBdoASCIIDump(Widget, XtPointer client_data, XtPointer /*data*/) {
   char *filename = (char *) client_data;
   FILE *fs = fopen(filename, "w");
 
@@ -1956,7 +1956,7 @@ void XYPlotWin::CBdoSelectDataList(Widget, XtPointer data,
 
 // -------------------------------------------------------------------
 void XYPlotWin::CBdoRemoveDataList(Widget, XtPointer client_data,
-				   XtPointer call_data)
+				   XtPointer /*call_data*/)
 {
   if(animatingQ) {
     return;
@@ -2097,7 +2097,7 @@ void XYPlotWin::SetPalette() {
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::CBdoInitializeListColorChange(Widget w, XtPointer data, XtPointer)
+void XYPlotWin::CBdoInitializeListColorChange(Widget /*w*/, XtPointer data, XtPointer)
 {
   XYPlotLegendItem *item = (XYPlotLegendItem *) data;
   Widget wPalArea = pltParent->GetPalArea();
@@ -2317,8 +2317,8 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
       case MotionNotify:
 	
 	if(rectDrawn) {   // undraw the old rectangle(s)
-	  rWidth  = abs(oldX-anchorX);
-	  rHeight = abs(oldY-anchorY);
+	  rWidth  = std::abs(oldX-anchorX);
+	  rHeight = std::abs(oldY-anchorY);
 	  rStartX = (anchorX < oldX) ? anchorX : oldX;
 	  rStartY = (anchorY < oldY) ? anchorY : oldY;
 	  XDrawRectangle(disp, pWindow, rbGC, rStartX, rStartY,
@@ -2333,8 +2333,8 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 	XQueryPointer(disp, pWindow, &whichRoot, &whichChild,
 		      &rootX, &rootY, &newX, &newY, &inputMask);
 
-	rWidth  = abs(newX-anchorX);   // draw the new rectangle
-	rHeight = abs(newY-anchorY);
+	rWidth  = std::abs(newX-anchorX);   // draw the new rectangle
+	rHeight = std::abs(newY-anchorY);
 	rStartX = (anchorX < newX) ? anchorX : newX;
 	rStartY = (anchorY < newY) ? anchorY : newY;
 	XDrawRectangle(disp, pWindow, rbGC, rStartX, rStartY,
@@ -2350,8 +2350,8 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 	avxGrab.ExplicitUngrab();  // giveitawaynow
 	
 	// undraw rectangle
-	rWidth  = abs(oldX-anchorX);
-	rHeight = abs(oldY-anchorY);
+	rWidth  = std::abs(oldX-anchorX);
+	rHeight = std::abs(oldY-anchorY);
 	rStartX = (anchorX < oldX) ? anchorX : oldX;
 	rStartY = (anchorY < oldY) ? anchorY : oldY;
 	XDrawRectangle(disp, pWindow, rbGC, rStartX, rStartY,
@@ -2524,7 +2524,7 @@ void XYPlotWin::StaticEvent(Widget w, XtPointer client_data,
 
 
 // -------------------------------------------------------------------
-void CBcloseXYPlotWin(Widget w, XtPointer client_data, XtPointer) {
+void CBcloseXYPlotWin(Widget /*w*/, XtPointer client_data, XtPointer) {
   XYPlotWin *win = (XYPlotWin *) client_data;
   delete win;
 }

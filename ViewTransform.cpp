@@ -49,7 +49,7 @@ AmrQuaternion ViewTransform::Screen2Quat(int startX, int startY,
 
 //--------------------------------------------------------------------
 void ViewTransform::MakeTranslation(int start_X, int start_Y, 
-                                    int end_X, int end_Y, Real box_size)
+                                    int end_X, int end_Y, Real /*box_size*/)
 {
   // norm coord. onto [-1,1] by [-1,1] grid
   Real xWorldStart((Real)(start_X) / (screenPositionX));
@@ -66,7 +66,7 @@ void ViewTransform::MakeTranslation(int start_X, int start_Y,
 
 // -------------------------------------------------------------------
 void ViewTransform::TransformPoint(Real x, Real y, Real z,
-				   Real &pX, Real &pY, Real &pZ)
+				   Real &pX, Real &pY, Real &/*pZ*/)
 {
   //apply rotation to (x, y, z, 1);
   Real scaleVector[4] = {scale, scale, scale, 1.};

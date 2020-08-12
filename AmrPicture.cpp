@@ -169,6 +169,9 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
              isSubDomain(true)
 {
   BL_ASSERT(pltappptr != NULL);
+
+  amrex::ignore_unused(parentPltAppPtr);
+
   int ilev;
 
   dataServicesPtr = pltAppPtr->GetDataServicesPtr();
@@ -471,6 +474,7 @@ AmrPicture::~AmrPicture() {
 
 // ---------------------------------------------------------------------
 void AmrPicture::SetSlice(int view, int here) {
+  amrex::ignore_unused(here);
   int lev;
   int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
   int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
@@ -649,7 +653,7 @@ void AmrPicture::DrawBoxes(Vector< Vector<GridPicture> > &gp, Drawable &drawable
 
 
 // ---------------------------------------------------------------------
-void AmrPicture::DrawTerrBoxes(int level, bool bIsWindow, bool bIsPixmap) {
+void AmrPicture::DrawTerrBoxes(int /*level*/, bool /*bIsWindow*/, bool /*bIsPixmap*/) {
   cerr << endl;
   cerr << "***** Error:  should not be in AmrPicture::DrawTerrBoxes." << endl;
   cerr << "Continuing..." << endl;
@@ -658,7 +662,7 @@ void AmrPicture::DrawTerrBoxes(int level, bool bIsWindow, bool bIsPixmap) {
 
 
 // ---------------------------------------------------------------------
-void AmrPicture::APDraw(int fromLevel, int toLevel) {
+void AmrPicture::APDraw(int /*fromLevel*/, int toLevel) {
   if( ! pixMapCreated) {
     pixMap = XCreatePixmap(display, pictureWindow,
 			   imageSizeH, imageSizeV, gaPtr->PDepth());
@@ -1173,12 +1177,12 @@ void AmrPicture::CreateScaledImage(XImage **ximage, int scale,
 
           tempSum = 0;
           for(isum=nStartV; isum<=nEndV; ++isum) {
-            tempSum += sumV[isum];
+            tempSum += int( sumV[isum] );
           }
           avgV = tempSum / ((Real) nV);
           tempSum = 0;
           for(isum=nStartH; isum<=nEndH; ++isum) {
-            tempSum += sumH[isum];
+            tempSum += int( sumH[isum] );
           }
           avgH = tempSum / ((Real) nH);
 
@@ -1862,7 +1866,7 @@ void AmrPicture::Sweep(Amrvis::AnimDirection direction) {
 
 
 // ---------------------------------------------------------------------
-void AmrPicture::DrawSlice(int iSlice) {
+void AmrPicture::DrawSlice(int /*iSlice*/) {
   XDrawLine(display, pictureWindow, pltAppPtr->GetRbgc(),
             0, 30, imageSizeH, 30);
 }
