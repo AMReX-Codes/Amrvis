@@ -2169,7 +2169,7 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void PltApp::ChangeContour(Widget w, XtPointer input_data, XtPointer) {
+void PltApp::ChangeContour(Widget /*w*/, XtPointer input_data, XtPointer) {
   Amrvis::ContourType prevCType(pltAppState->GetContourType());
   Amrvis::ContourType newCType = Amrvis::ContourType((unsigned long) input_data);
   if(newCType == prevCType) {
@@ -2232,7 +2232,7 @@ void PltApp::ReadContourString(Widget w, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void PltApp::ToggleRange(Widget w, XtPointer client_data, XtPointer call_data) {
+void PltApp::ToggleRange(Widget /*w*/, XtPointer client_data, XtPointer call_data) {
   unsigned long r = (unsigned long) client_data;
   XmToggleButtonCallbackStruct *state = (XmToggleButtonCallbackStruct *) call_data;
   if(state->set == true) {
@@ -2527,7 +2527,7 @@ void PltApp::DoCallTraceButton(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void PltApp::DestroyCallTraceWindow(Widget, XtPointer xp, XtPointer) {
+void PltApp::DestroyCallTraceWindow(Widget, XtPointer /*xp*/, XtPointer) {
   callTraceShowing = false;
 }
 
@@ -2540,7 +2540,7 @@ void PltApp::CloseCallTraceWindow(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void PltApp::DestroyInfoWindow(Widget, XtPointer xp, XtPointer) {
+void PltApp::DestroyInfoWindow(Widget, XtPointer /*xp*/, XtPointer) {
   infoShowing = false;
 }
 
@@ -2780,8 +2780,8 @@ void PltApp::CloseContoursWindow(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void PltApp::DoToggleFileRangeButton(Widget w, XtPointer client_data,
-				     XtPointer call_data)
+void PltApp::DoToggleFileRangeButton(Widget /*w*/, XtPointer /*client_data*/,
+				     XtPointer /*call_data*/)
 {
   bFileRangeButtonSet = XmToggleButtonGetState(wFileRangeCheckBox);
   if(bFileRangeButtonSet) {
@@ -3917,7 +3917,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	      sprintf(dLocStr, pltAppState->GetFormatString().c_str(), sDLoc);
 	      buffout << "time   = " << dLocStr << '\n';
 	      idx = Amrvis::YDIR;
-	      int iLoc = gridOffset[idx] + trueRegionArray[mal].smallEnd()[idx];
+	      int iLoc = int( gridOffset[idx] + trueRegionArray[mal].smallEnd()[idx] );
 	      iLoc *= amrex::CRRBetweenLevels(maxDrawnLevel, amrData.FinestLevel(), amrData.RefRatio());
 	      buffout << "rank   = " << iLoc << '\n';
               if(callTraceExists) {
@@ -4421,7 +4421,7 @@ void PltApp::DoExposePalette(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void PltApp::PADoExposePicture(Widget w, XtPointer client_data, XtPointer) {
+void PltApp::PADoExposePicture(Widget /*w*/, XtPointer client_data, XtPointer) {
   unsigned long np = (unsigned long) client_data;
 //cout << "==%%%%%%%%%%%%=== _in PADoExposePicture:  currentFrame = " << currentFrame << endl;
   

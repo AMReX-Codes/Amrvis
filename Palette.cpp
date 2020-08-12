@@ -75,7 +75,7 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
   
   remapTable = new unsigned char[totalColorSlots];  // this is faster than Vector<uc>
   float sizeRatio(((float) colorSlots) / ((float) totalColorSlots));
-  float mapLow(((float) paletteStart) + 0.5);
+  float mapLow((float) paletteStart + (float) 0.5);
   for(int itab(0); itab < totalColorSlots; ++itab) {
     remapTable[itab] = (int) ((((float) itab) * sizeRatio) + mapLow);
   }
@@ -120,7 +120,7 @@ Palette::Palette(int datalistlength, int width, int totalwidth,
 
   remapTable = new unsigned char[totalColorSlots];  // this is faster than Vector<uc>
   float sizeRatio(((float) colorSlots) / ((float) totalColorSlots));
-  float mapLow(((float) paletteStart) + 0.5);
+  float mapLow( (float) paletteStart + (float) 0.5);
   for(int itab(0); itab < totalColorSlots; ++itab) {
     remapTable[itab] = (int) ((((float) itab) * sizeRatio) + mapLow);
   }
@@ -213,7 +213,7 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
 #endif
 
   if(bTimeline) {
-    int nPalVals(mpiFuncNames.size()), count(0), cftRange(palMax - palMin);
+    int nPalVals(mpiFuncNames.size()), count(0), cftRange(int(palMax - palMin));
     int nameLocation, palLocation, cftIndex, noffX(18);
     Vector<int> palIndex(mpiFuncNames.size(), 0);
     XSetForeground(display, gc, AVWhitePixel());
@@ -225,13 +225,13 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
       string fname(it->second);
       nameLocation = (totalColorSlots - 1) -
                      (count * totalColorSlots / (nPalVals - 1)) + palOffsetY;
-      palLocation  = (totalColorSlots - 1) -
-                     (totalColorSlots * (cftIndex - palMin) / cftRange) + palOffsetY;
+      palLocation  = int( (totalColorSlots - 1) -
+                          (totalColorSlots * (cftIndex - palMin) / cftRange) + palOffsetY );
       XDrawString(display, palPixmap, gc, palWidth + noffX,
 		  nameLocation, fname.c_str(), strlen(fname.c_str()));
       XDrawLine(display, palPixmap, gc,
                 palWidth + 2, palLocation, palWidth + noffX - 4, nameLocation - 4);
-      palIndex[count] = paletteStart + (((cftIndex - palMin) / cftRange) * colorSlots);
+      palIndex[count] = int( paletteStart + (((cftIndex - palMin) / cftRange) * colorSlots) );
       ++count;
     }
 
@@ -256,7 +256,7 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
     }
 
   } else if(bRegions) {
-    int nPalVals(regionNames.size()), count(0), cftRange(palMax - palMin);
+    int nPalVals(regionNames.size()), count(0), cftRange(int(palMax - palMin));
     int nameLocation, palLocation, cftIndex, noffX(18);
     Vector<int> palIndex(regionNames.size(), 0);
     XSetForeground(display, gc, AVWhitePixel());
@@ -269,8 +269,8 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
       string fname(it->second);
       nameLocation = (totalColorSlots - 1) -
                      (count * totalColorSlots / (nPalVals - 1)) + palOffsetY;
-      palLocation  = (totalColorSlots - 1) -
-                     (totalColorSlots * (cftIndex - palMin) / cftRange) + palOffsetY;
+      palLocation  = int( (totalColorSlots - 1) -
+                          (totalColorSlots * (cftIndex - palMin) / cftRange) + palOffsetY );
       XDrawString(display, palPixmap, gc, palWidth + noffX,
 		  nameLocation, fname.c_str(), strlen(fname.c_str()));
       if(cftIndex == -2) {
@@ -280,7 +280,7 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
         XDrawLine(display, palPixmap, gc,
                   palWidth + 2, palLocation, palWidth + noffX - 4, nameLocation - 4);
       }
-      palIndex[count] = paletteStart + (((cftIndex - palMin) / cftRange) * colorSlots);
+      palIndex[count] = int( paletteStart + (((cftIndex - palMin) / cftRange) * colorSlots) );
       ++count;
     }
 
@@ -350,7 +350,7 @@ void Palette::SetWindowPalette(const string &palName, Window newPalWindow,
 
 
 // -------------------------------------------------------------------
-void Palette::ChangeWindowPalette(const string &palName, Window newPalWindow)
+void Palette::ChangeWindowPalette(const string &palName, Window /*newPalWindow*/)
 {
   bReadPalette = true;
   ReadPalette(palName);
@@ -669,7 +669,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
     for(int j(0); j < iSeqPalSize; ++j) {
       indexArray[j] = j; 
       int tmp = (unsigned short) abuff[j];
-      transferArray[j] = (float) tmp / 100.0;
+      transferArray[j] = (float) tmp / (float) 100.0;
     }
   }
 

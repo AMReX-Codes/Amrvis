@@ -27,6 +27,7 @@ using namespace amrex;
 
 // -------------------------------------------------------------------
 void PltApp::DoOutput(Widget w, XtPointer data, XtPointer) {
+  amrex::ignore_unused(w);
   int i;
   static Widget wGetFileName;
   XmString sMessage;

@@ -137,7 +137,12 @@ public:
   XtAppContext GetAppContext()     { return appContext; }
   GraphicsAttributes *GetGAptr() const  { return gaPtr; }
   int GetCurrentScale() const      { return currentScale; }
-  
+ 
+  amrex::XYPlotDataList *CreateLinePlot(int /*V*/, int /*sdir*/, int /*mal*/,
+                                        int /*ixY*/, const std::string * /*derived*/)
+                                        { amrex::Abort("AVPApp not implemented."); 
+                                          return nullptr; }
+ 
   amrex::XYPlotDataList *CreateLinePlot(const string &derived, int dIndex);
   void DoExposeRef(Widget = None, XtPointer = nullptr, XtPointer = nullptr);
   void DoExposePalette(Widget, XtPointer, XtPointer);

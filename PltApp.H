@@ -60,7 +60,7 @@ const int NFRAMES = 19;
 const int OXY(0);
 const int OYZ(1);
 const int OXZ(2);
-};
+}
 
 
 class PltApp;

@@ -694,7 +694,7 @@ void XYPlotWin::SetBoundingBox(double lowXIn,  double lowYIn,
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::CBdoRedrawPlot(Widget w, XtPointer, XtPointer) {
+void XYPlotWin::CBdoRedrawPlot(Widget /*w*/, XtPointer, XtPointer) {
   XClearWindow(disp, pWindow);
   CBdoDrawPlot(None, NULL, NULL);
 }
@@ -1514,7 +1514,7 @@ void XYPlotWin::CBdoExportFile(Widget, XtPointer client_data, XtPointer data) {
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::CBdoASCIIDump(Widget, XtPointer client_data, XtPointer data) {
+void XYPlotWin::CBdoASCIIDump(Widget, XtPointer client_data, XtPointer /*data*/) {
   char *filename = (char *) client_data;
   FILE *fs = fopen(filename, "w");
 
@@ -1958,7 +1958,7 @@ void XYPlotWin::CBdoSelectDataList(Widget, XtPointer data,
 
 // -------------------------------------------------------------------
 void XYPlotWin::CBdoRemoveDataList(Widget, XtPointer client_data,
-				   XtPointer call_data)
+				   XtPointer /*call_data*/)
 {
   if(animatingQ) {
     return;
@@ -2099,7 +2099,7 @@ void XYPlotWin::SetPalette() {
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::CBdoInitializeListColorChange(Widget w, XtPointer data, XtPointer)
+void XYPlotWin::CBdoInitializeListColorChange(Widget /*w*/, XtPointer data, XtPointer)
 {
   XYPlotLegendItem *item = (XYPlotLegendItem *) data;
   Widget wPalArea = pltParent->GetPalArea();
@@ -2526,7 +2526,7 @@ void XYPlotWin::StaticEvent(Widget w, XtPointer client_data,
 
 
 // -------------------------------------------------------------------
-void CBcloseXYPlotWin(Widget w, XtPointer client_data, XtPointer) {
+void CBcloseXYPlotWin(Widget /*w*/, XtPointer client_data, XtPointer) {
   XYPlotWin *win = (XYPlotWin *) client_data;
   delete win;
 }

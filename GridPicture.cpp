@@ -15,7 +15,7 @@ GridPicture::GridPicture() {
 
 
 // -------------------------------------------------------------------
-void GridPicture::GridPictureInit(int level,
+void GridPicture::GridPictureInit(int /*level*/,
 			int rratio, int scale, int picSizeH, int picSizeV,
 			const Box &overlapbox,
 			const Box &boxWithData, int slicedir)
