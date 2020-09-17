@@ -2317,8 +2317,8 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
       case MotionNotify:
 	
 	if(rectDrawn) {   // undraw the old rectangle(s)
-	  rWidth  = abs(oldX-anchorX);
-	  rHeight = abs(oldY-anchorY);
+	  rWidth  = std::abs(oldX-anchorX);
+	  rHeight = std::abs(oldY-anchorY);
 	  rStartX = (anchorX < oldX) ? anchorX : oldX;
 	  rStartY = (anchorY < oldY) ? anchorY : oldY;
 	  XDrawRectangle(disp, pWindow, rbGC, rStartX, rStartY,
@@ -2333,8 +2333,8 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 	XQueryPointer(disp, pWindow, &whichRoot, &whichChild,
 		      &rootX, &rootY, &newX, &newY, &inputMask);
 
-	rWidth  = abs(newX-anchorX);   // draw the new rectangle
-	rHeight = abs(newY-anchorY);
+	rWidth  = std::abs(newX-anchorX);   // draw the new rectangle
+	rHeight = std::abs(newY-anchorY);
 	rStartX = (anchorX < newX) ? anchorX : newX;
 	rStartY = (anchorY < newY) ? anchorY : newY;
 	XDrawRectangle(disp, pWindow, rbGC, rStartX, rStartY,
@@ -2350,8 +2350,8 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 	avxGrab.ExplicitUngrab();  // giveitawaynow
 	
 	// undraw rectangle
-	rWidth  = abs(oldX-anchorX);
-	rHeight = abs(oldY-anchorY);
+	rWidth  = std::abs(oldX-anchorX);
+	rHeight = std::abs(oldY-anchorY);
 	rStartX = (anchorX < oldX) ? anchorX : oldX;
 	rStartY = (anchorY < oldY) ? anchorY : oldY;
 	XDrawRectangle(disp, pWindow, rbGC, rStartX, rStartY,
