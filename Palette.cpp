@@ -27,7 +27,7 @@ static Pixel make_pixel (unsigned char r, unsigned char g, unsigned char b,
         g >>= (8 - bprgb);
         b >>= (8 - bprgb);
     }
-    return (r << rs) | (g << gs) | (b << bs);
+    return (r << 16) | (g << 8) | (b << 0);
 }
 
 // -------------------------------------------------------------------
@@ -396,7 +396,11 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
     bTrueColor = gaPtr->IsTrueColor();
     bprgb = gaPtr->PBitsPerRGB();
   } 
- 
+
+  unsigned long rs(gaPtr->PRedShift());
+  unsigned long gs(gaPtr->PGreenShift());
+  unsigned long bs(gaPtr->PBlueShift());
+
   if(bReadPalette) {
     bReadPalette = false;
     rbuff.resize(iSeqPalSize);
@@ -408,7 +412,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
       cout << "Can't open colormap file:  " << fileName << endl;
       for(i = 0; i < totalColorSlots; ++i) {  // make a default grayscale colormap.
         if(bTrueColor) {
-          ccells[i].pixel = make_pixel(rbuff[i], gbuff[i], bbuff[i], bprgb, 2*bprgb, bprgb, 0);
+          ccells[i].pixel = make_pixel(rbuff[i], gbuff[i], bbuff[i], bprgb, rs, gs, bs);
         } else {
 	  ccells[i].pixel = i;
         }
@@ -497,7 +501,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
       cout << "making a CCPal colormap" << endl;
       for(i = 0; i < totalColorSlots; ++i) {
         if(bTrueColor) {
-	  ccells[i].pixel = make_pixel(rbuff[i], gbuff[i], bbuff[i], bprgb, 2*bprgb, bprgb, 0);
+	  ccells[i].pixel = make_pixel(rbuff[i], gbuff[i], bbuff[i], bprgb, rs, gs, bs);
         } else {
 	  ccells[i].pixel = i;
         }
@@ -626,9 +630,6 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
 
   Real dimValue(0.4);
   if(bTrueColor) {
-    unsigned long rs(gaPtr->PRedShift());
-    unsigned long gs(gaPtr->PGreenShift());
-    unsigned long bs(gaPtr->PBlueShift());
     for(i = 0; i < iSeqPalSize; ++i) {
       pixelCache[i] = make_pixel(rbuff[i], gbuff[i], bbuff[i], bprgb, rs, gs, bs);
       pixelCacheDim[i] = make_pixel(static_cast<unsigned char>(rbuff[i] * dimValue),
@@ -645,7 +646,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
 
   for(i = 0; i < totalColorSlots; ++i) {
     if(bTrueColor) {
-      ccells[i].pixel = make_pixel(rbuff[i], gbuff[i], bbuff[i], bprgb, 2*bprgb, bprgb, 0);
+      ccells[i].pixel = make_pixel(rbuff[i], gbuff[i], bbuff[i], bprgb, rs, gs, bs);
     } else {
       ccells[i].pixel = i;
     }
