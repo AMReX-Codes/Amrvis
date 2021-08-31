@@ -18,6 +18,17 @@ using namespace amrex;
 
 Colormap Palette::systemColmap;
 
+static Pixel make_pixel (unsigned char r, unsigned char g, unsigned char b,
+                         unsigned long bprgb, unsigned long rs, unsigned long gs,
+                         unsigned long bs)
+{
+    if (bprgb < 8) {
+        r >>= (8 - bprgb);
+        g >>= (8 - bprgb);
+        b >>= (8 - bprgb);
+    }
+    return (r << rs) | (g << gs) | (b << bs);
+}
 
 // -------------------------------------------------------------------
 Palette::Palette(Widget &w,  int datalistlength, int width,
@@ -397,10 +408,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
       cout << "Can't open colormap file:  " << fileName << endl;
       for(i = 0; i < totalColorSlots; ++i) {  // make a default grayscale colormap.
         if(bTrueColor) {
-	  // FIXME: not 24 bit!
-	  ccells[i].pixel = (((rbuff[i] >> (8 - bprgb)) << 2 * bprgb)
-			   | ((gbuff[i] >> (8 - bprgb)) << bprgb)
-			   | ((bbuff[i] >> (8 - bprgb)) << 0) );
+          ccells[i].pixel = make_pixel(rbuff[i], gbuff[i], bbuff[i], bprgb, 2*bprgb, bprgb, 0);
         } else {
 	  ccells[i].pixel = i;
         }
@@ -489,9 +497,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
       cout << "making a CCPal colormap" << endl;
       for(i = 0; i < totalColorSlots; ++i) {
         if(bTrueColor) {
-	  ccells[i].pixel = (((rbuff[i] >> (8 - bprgb)) << 2 * bprgb)
-			   | ((gbuff[i] >> (8 - bprgb)) << bprgb)
-			   | ((bbuff[i] >> (8 - bprgb)) << 0) );
+	  ccells[i].pixel = make_pixel(rbuff[i], gbuff[i], bbuff[i], bprgb, 2*bprgb, bprgb, 0);
         } else {
 	  ccells[i].pixel = i;
         }
@@ -617,22 +623,18 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
 
   pixelCache.resize(iSeqPalSize);
   pixelCacheDim.resize(iSeqPalSize);
-  assert( gaPtr->PBitsPerRGB() <= 8 );
+
   Real dimValue(0.4);
   if(bTrueColor) {
-    Pixel r, g, b;
     unsigned long rs(gaPtr->PRedShift());
     unsigned long gs(gaPtr->PGreenShift());
     unsigned long bs(gaPtr->PBlueShift());
     for(i = 0; i < iSeqPalSize; ++i) {
-      r = rbuff[i] >> (8 - bprgb);
-      g = gbuff[i] >> (8 - bprgb);
-      b = bbuff[i] >> (8 - bprgb);
-      pixelCache[i] = ( (r << rs) | (g << gs) | (b << bs) );
-      r = static_cast<unsigned char>(rbuff[i] * dimValue) >> (8 - bprgb);
-      g = static_cast<unsigned char>(gbuff[i] * dimValue) >> (8 - bprgb);
-      b = static_cast<unsigned char>(bbuff[i] * dimValue) >> (8 - bprgb);
-      pixelCacheDim[i] = ( (r << rs) | (g << gs) | (b << bs) );
+      pixelCache[i] = make_pixel(rbuff[i], gbuff[i], bbuff[i], bprgb, rs, gs, bs);
+      pixelCacheDim[i] = make_pixel(static_cast<unsigned char>(rbuff[i] * dimValue),
+                                    static_cast<unsigned char>(gbuff[i] * dimValue),
+                                    static_cast<unsigned char>(bbuff[i] * dimValue),
+                                    bprgb, rs, gs, bs);
     }
   } else {
     for(i = 0; i < iSeqPalSize; ++i) {
@@ -641,13 +643,9 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
     }
   }
 
-
   for(i = 0; i < totalColorSlots; ++i) {
     if(bTrueColor) {
-      // FIXME: not 24 bit!
-      ccells[i].pixel = (((rbuff[i] >> (8 - bprgb)) << 2 * bprgb)
-		       | ((gbuff[i] >> (8 - bprgb)) << bprgb)
-		       | ((bbuff[i] >> (8 - bprgb)) << 0));
+      ccells[i].pixel = make_pixel(rbuff[i], gbuff[i], bbuff[i], bprgb, 2*bprgb, bprgb, 0);
     } else {
       ccells[i].pixel = i;
     }
