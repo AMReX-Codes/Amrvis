@@ -46,7 +46,7 @@ class XYPlotWin;
 typedef void (XYPlotWin::*memberXYCB)(Widget, XtPointer, XtPointer);
 
 typedef struct {
-  ::XYPlotDataList *XYPLIlist;
+  amrex::XYPlotDataList *XYPLIlist;
   Widget wid;                     // For legend item drawingarea
   Widget frame;                   // For drawingarea frame
   Widget menu;                    // Popup menu for this item
@@ -54,7 +54,7 @@ typedef struct {
   int style, color;
   Pixel pixel;
 #if (BL_SPACEDIM != 3)
-  amrex::Vector<::XYPlotDataList *> *anim_lists;
+  amrex::Vector<amrex::XYPlotDataList *> *anim_lists;
   amrex::Vector<char> *ready_list;
 #endif
 } XYPlotLegendItem;
@@ -67,7 +67,7 @@ class XYPlotWin {
 	      AVPApp *parent, int type, int curr_frame = 0);
     ~XYPlotWin();
   
-    void AddDataList(::XYPlotDataList *new_list,
+    void AddDataList(amrex::XYPlotDataList *new_list,
 		     XYPlotLegendItem *insert_after = NULL);
 
 #if (BL_SPACEDIM != 3)
@@ -154,7 +154,7 @@ class XYPlotWin {
 
     void SetBoundingBox(double lowX  = 1.0, double lowY  = 1.0,
 		        double highX = 0.0, double highY = 0.0);
-    void UpdateBoundingBox(::XYPlotDataList *list);
+    void UpdateBoundingBox(amrex::XYPlotDataList *list);
     void textX (Widget win, int x, int y, char *text, int just, int style);
     void segX(Widget win, int ns, XSegment *segs, int width,
 	      int style, int lappr, Pixel color);
