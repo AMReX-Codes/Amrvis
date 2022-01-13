@@ -14,15 +14,9 @@
 
 #include <cmath>
 #include <ctime>
-using std::min;
-using std::max;
-using std::cout;
-using std::endl;
 
 using std::cout;
 using std::endl;
-using std::min;
-using std::max;
 
 using namespace amrex;
 

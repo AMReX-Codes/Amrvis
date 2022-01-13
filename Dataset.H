@@ -55,6 +55,9 @@ class Dataset {
 
   AmrPicture *GetAmrPicturePtr() { return amrPicturePtr; }
 
+  static bool GetInitialColor();
+  static void SetInitialColor(const bool bColor);
+
  private:
   Widget	wDatasetTopLevel, wDatasetForm;
   Widget	wDatasetTools, wScrollArea, wPixArea;
@@ -87,6 +90,7 @@ class Dataset {
   Atom          WM_DELETE_WINDOW;
   bool          bTimeline, bRegions;
 
+  static bool   initialColor;
   
   Pixel blackIndex, whiteIndex;
   

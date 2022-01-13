@@ -13,13 +13,22 @@
 using std::cout;
 using std::cerr;
 using std::endl;
-using std::min;
-using std::max;
 
 using namespace amrex;
 
 Colormap Palette::systemColmap;
 
+static Pixel make_pixel (unsigned char r, unsigned char g, unsigned char b,
+                         unsigned long bprgb, unsigned long rs, unsigned long gs,
+                         unsigned long bs)
+{
+    if (bprgb < 8) {
+        r >>= (8 - bprgb);
+        g >>= (8 - bprgb);
+        b >>= (8 - bprgb);
+    }
+    return (r << 16) | (g << 8) | (b << 0);
+}
 
 // -------------------------------------------------------------------
 Palette::Palette(Widget &w,  int datalistlength, int width,
@@ -77,7 +86,7 @@ Palette::Palette(Widget &w,  int datalistlength, int width,
   
   remapTable = new unsigned char[totalColorSlots];  // this is faster than Vector<uc>
   float sizeRatio(((float) colorSlots) / ((float) totalColorSlots));
-  float mapLow(((float) paletteStart) + 0.5);
+  float mapLow((float) paletteStart + (float) 0.5);
   for(int itab(0); itab < totalColorSlots; ++itab) {
     remapTable[itab] = (int) ((((float) itab) * sizeRatio) + mapLow);
   }
@@ -122,7 +131,7 @@ Palette::Palette(int datalistlength, int width, int totalwidth,
 
   remapTable = new unsigned char[totalColorSlots];  // this is faster than Vector<uc>
   float sizeRatio(((float) colorSlots) / ((float) totalColorSlots));
-  float mapLow(((float) paletteStart) + 0.5);
+  float mapLow( (float) paletteStart + (float) 0.5);
   for(int itab(0); itab < totalColorSlots; ++itab) {
     remapTable[itab] = (int) ((((float) itab) * sizeRatio) + mapLow);
   }
@@ -215,7 +224,7 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
 #endif
 
   if(bTimeline) {
-    int nPalVals(mpiFuncNames.size()), count(0), cftRange(palMax - palMin);
+    int nPalVals(mpiFuncNames.size()), count(0), cftRange(int(palMax - palMin));
     int nameLocation, palLocation, cftIndex, noffX(18);
     Vector<int> palIndex(mpiFuncNames.size(), 0);
     XSetForeground(display, gc, AVWhitePixel());
@@ -227,13 +236,13 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
       string fname(it->second);
       nameLocation = (totalColorSlots - 1) -
                      (count * totalColorSlots / (nPalVals - 1)) + palOffsetY;
-      palLocation  = (totalColorSlots - 1) -
-                     (totalColorSlots * (cftIndex - palMin) / cftRange) + palOffsetY;
+      palLocation  = int( (totalColorSlots - 1) -
+                          (totalColorSlots * (cftIndex - palMin) / cftRange) + palOffsetY );
       XDrawString(display, palPixmap, gc, palWidth + noffX,
 		  nameLocation, fname.c_str(), strlen(fname.c_str()));
       XDrawLine(display, palPixmap, gc,
                 palWidth + 2, palLocation, palWidth + noffX - 4, nameLocation - 4);
-      palIndex[count] = paletteStart + (((cftIndex - palMin) / cftRange) * colorSlots);
+      palIndex[count] = int( paletteStart + (((cftIndex - palMin) / cftRange) * colorSlots) );
       ++count;
     }
 
@@ -258,7 +267,7 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
     }
 
   } else if(bRegions) {
-    int nPalVals(regionNames.size()), count(0), cftRange(palMax - palMin);
+    int nPalVals(regionNames.size()), count(0), cftRange(int(palMax - palMin));
     int nameLocation, palLocation, cftIndex, noffX(18);
     Vector<int> palIndex(regionNames.size(), 0);
     XSetForeground(display, gc, AVWhitePixel());
@@ -271,8 +280,8 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
       string fname(it->second);
       nameLocation = (totalColorSlots - 1) -
                      (count * totalColorSlots / (nPalVals - 1)) + palOffsetY;
-      palLocation  = (totalColorSlots - 1) -
-                     (totalColorSlots * (cftIndex - palMin) / cftRange) + palOffsetY;
+      palLocation  = int( (totalColorSlots - 1) -
+                          (totalColorSlots * (cftIndex - palMin) / cftRange) + palOffsetY );
       XDrawString(display, palPixmap, gc, palWidth + noffX,
 		  nameLocation, fname.c_str(), strlen(fname.c_str()));
       if(cftIndex == -2) {
@@ -282,7 +291,7 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
         XDrawLine(display, palPixmap, gc,
                   palWidth + 2, palLocation, palWidth + noffX - 4, nameLocation - 4);
       }
-      palIndex[count] = paletteStart + (((cftIndex - palMin) / cftRange) * colorSlots);
+      palIndex[count] = int( paletteStart + (((cftIndex - palMin) / cftRange) * colorSlots) );
       ++count;
     }
 
@@ -352,7 +361,7 @@ void Palette::SetWindowPalette(const string &palName, Window newPalWindow,
 
 
 // -------------------------------------------------------------------
-void Palette::ChangeWindowPalette(const string &palName, Window newPalWindow)
+void Palette::ChangeWindowPalette(const string &palName, Window /*newPalWindow*/)
 {
   bReadPalette = true;
   ReadPalette(palName);
@@ -387,7 +396,11 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
     bTrueColor = gaPtr->IsTrueColor();
     bprgb = gaPtr->PBitsPerRGB();
   } 
- 
+
+  unsigned long rs(gaPtr->PRedShift());
+  unsigned long gs(gaPtr->PGreenShift());
+  unsigned long bs(gaPtr->PBlueShift());
+
   if(bReadPalette) {
     bReadPalette = false;
     rbuff.resize(iSeqPalSize);
@@ -399,10 +412,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
       cout << "Can't open colormap file:  " << fileName << endl;
       for(i = 0; i < totalColorSlots; ++i) {  // make a default grayscale colormap.
         if(bTrueColor) {
-	  // FIXME: not 24 bit!
-	  ccells[i].pixel = (((rbuff[i] >> (8 - bprgb)) << 2 * bprgb)
-			   | ((gbuff[i] >> (8 - bprgb)) << bprgb)
-			   | ((bbuff[i] >> (8 - bprgb)) << 0) );
+          ccells[i].pixel = make_pixel(rbuff[i], gbuff[i], bbuff[i], bprgb, rs, gs, bs);
         } else {
 	  ccells[i].pixel = i;
         }
@@ -491,9 +501,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
       cout << "making a CCPal colormap" << endl;
       for(i = 0; i < totalColorSlots; ++i) {
         if(bTrueColor) {
-	  ccells[i].pixel = (((rbuff[i] >> (8 - bprgb)) << 2 * bprgb)
-			   | ((gbuff[i] >> (8 - bprgb)) << bprgb)
-			   | ((bbuff[i] >> (8 - bprgb)) << 0) );
+	  ccells[i].pixel = make_pixel(rbuff[i], gbuff[i], bbuff[i], bprgb, rs, gs, bs);
         } else {
 	  ccells[i].pixel = i;
         }
@@ -619,22 +627,15 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
 
   pixelCache.resize(iSeqPalSize);
   pixelCacheDim.resize(iSeqPalSize);
-  assert( gaPtr->PBitsPerRGB() <= 8 );
+
   Real dimValue(0.4);
   if(bTrueColor) {
-    Pixel r, g, b;
-    unsigned long rs(gaPtr->PRedShift());
-    unsigned long gs(gaPtr->PGreenShift());
-    unsigned long bs(gaPtr->PBlueShift());
     for(i = 0; i < iSeqPalSize; ++i) {
-      r = rbuff[i] >> (8 - bprgb);
-      g = gbuff[i] >> (8 - bprgb);
-      b = bbuff[i] >> (8 - bprgb);
-      pixelCache[i] = ( (r << rs) | (g << gs) | (b << bs) );
-      r = static_cast<unsigned char>(rbuff[i] * dimValue) >> (8 - bprgb);
-      g = static_cast<unsigned char>(gbuff[i] * dimValue) >> (8 - bprgb);
-      b = static_cast<unsigned char>(bbuff[i] * dimValue) >> (8 - bprgb);
-      pixelCacheDim[i] = ( (r << rs) | (g << gs) | (b << bs) );
+      pixelCache[i] = make_pixel(rbuff[i], gbuff[i], bbuff[i], bprgb, rs, gs, bs);
+      pixelCacheDim[i] = make_pixel(static_cast<unsigned char>(rbuff[i] * dimValue),
+                                    static_cast<unsigned char>(gbuff[i] * dimValue),
+                                    static_cast<unsigned char>(bbuff[i] * dimValue),
+                                    bprgb, rs, gs, bs);
     }
   } else {
     for(i = 0; i < iSeqPalSize; ++i) {
@@ -643,13 +644,9 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
     }
   }
 
-
   for(i = 0; i < totalColorSlots; ++i) {
     if(bTrueColor) {
-      // FIXME: not 24 bit!
-      ccells[i].pixel = (((rbuff[i] >> (8 - bprgb)) << 2 * bprgb)
-		       | ((gbuff[i] >> (8 - bprgb)) << bprgb)
-		       | ((bbuff[i] >> (8 - bprgb)) << 0));
+      ccells[i].pixel = make_pixel(rbuff[i], gbuff[i], bbuff[i], bprgb, rs, gs, bs);
     } else {
       ccells[i].pixel = i;
     }
@@ -671,7 +668,7 @@ int Palette::ReadSeqPalette(const string &fileName, bool bRedraw) {
     for(int j(0); j < iSeqPalSize; ++j) {
       indexArray[j] = j; 
       int tmp = (unsigned short) abuff[j];
-      transferArray[j] = (float) tmp / 100.0;
+      transferArray[j] = (float) tmp / (float) 100.0;
     }
   }
 

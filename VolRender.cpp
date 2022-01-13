@@ -12,8 +12,6 @@
 using std::cerr;
 using std::cout;
 using std::endl;
-using std::max;
-using std::min;
 #include <ctime>
 
 #include <unistd.h>
@@ -54,8 +52,8 @@ VolRender::VolRender(const Vector<Box> &drawdomain, int mindrawnlevel,
   diffuseMat = 0.35;
   specularMat = 0.39;
   shinyMat = 10.0;
-  minRayOpacity = 0.05;
-  maxRayOpacity = 0.95;
+  minRayOpacity = (float) 0.05;
+  maxRayOpacity = (float) 0.95;
 
   Real ambient, diffuse, specular, shiny, minray, maxray;
   bool bFileOk = AVGlobals::ReadLightingFile(asLightFileName, ambient, diffuse,
@@ -83,12 +81,12 @@ VolRender::VolRender(const Vector<Box> &drawdomain, int mindrawnlevel,
     if(0.0 > minray || minray > 1.0) {
       cerr << "Error:  minray value must be in the range (0.0, 1.0)." << endl;
     } else {
-      minRayOpacity = minray;
+      minRayOpacity = (float) minray;
     }
     if(0.0 > maxray || maxray > 1.0) {
       cerr << "Error:  maxray value must be in the range (0.0, 1.0)." << endl;
     } else {
-      maxRayOpacity = maxray;
+      maxRayOpacity = (float) maxray;
     }
   }
 
@@ -191,7 +189,9 @@ void VolRender::MakeSWFData(amrex::DataServices *dataServicesPtr,
 			    int iColorSlots, const bool bdrawboxes)
 {
   BL_ASSERT(bVolRenderDefined);
-  
+ 
+  amrex::ignore_unused(iPaletteEnd, iBlackIndex, iWhiteIndex);
+ 
   if(swfDataValid) {
     return;
   }
@@ -990,8 +990,8 @@ void VolRender::MakeDefaultTransProperties() {
     gradientRampX[0] = 0;    gradientRampX[1] = 255;
     gradientRampY[0] = 0.0;  gradientRampY[1] = 1.0;
 
-    minRayOpacity = 0.05;
-    maxRayOpacity = 0.95;
+    minRayOpacity = (float) 0.05;
+    maxRayOpacity = (float) 0.95;
 }
 
 
@@ -1000,7 +1000,7 @@ void VolRender::SetTransferProperties() {
   BL_ASSERT(palettePtr != NULL);
   density_ramp = palettePtr->GetTransferArray();
   //density_ramp[palettePtr->BodyIndex()] = 0.08;
-  density_ramp[palettePtr->BodyIndex()] = AVGlobals::GetBodyOpacity();
+  density_ramp[palettePtr->BodyIndex()] = (float) AVGlobals::GetBodyOpacity();
   vpSetClassifierTable(vpc, DENSITY_PARAM, densityField,
                        density_ramp.dataPtr(),
 		       density_ramp.size() * sizeof(float));
@@ -1053,8 +1053,8 @@ void VolRender::SetLighting(Real ambient, Real diffuse,
   diffuseMat = diffuse;
   specularMat = specular;
   shinyMat = shiny;
-  minRayOpacity = minRay;
-  maxRayOpacity = maxRay;
+  minRayOpacity = (float) minRay;
+  maxRayOpacity = (float) maxRay;
 }
 // -------------------------------------------------------------------
 // -------------------------------------------------------------------

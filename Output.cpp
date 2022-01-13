@@ -27,8 +27,6 @@ using std::ofstream;
 using std::cout;
 using std::cerr;
 using std::endl;
-using std::min;
-using std::max;
 
 using namespace amrex;
 
@@ -52,6 +50,8 @@ void WriteNewPSFile(const char *filename, XImage *image,
 		 const int minlev, const int maxlev,
 		 Vector< Vector<GridBoxes> > &gridBoxes)
 {
+  amrex::ignore_unused(amrdata);
+
   clock_t time0 = clock();
   unsigned char r, g, b;
 

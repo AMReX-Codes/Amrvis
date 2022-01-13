@@ -124,7 +124,7 @@ RegionPicture::~RegionPicture() {
 
 
 // ---------------------------------------------------------------------
-void RegionPicture::APDraw(int fromLevel, int toLevel) {
+void RegionPicture::APDraw(int /*fromLevel*/, int /*toLevel*/) {
   if( ! pixMapCreated) {
     pixMap = XCreatePixmap(display, pictureWindow,
 			   imageSizeH, imageSizeV,
@@ -328,7 +328,7 @@ void RegionPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
 void RegionPicture::CreateScaledImage(XImage **ximage, int scale,
 				      unsigned char *imagedata,
 				      unsigned char *scaledimagedata,
-				      int datasizeh, int datasizev,
+				      int datasizeh, int /*datasizev*/,
 				      int imagesizeh, int imagesizev,
 				      bool dim)
 { 
@@ -362,7 +362,7 @@ void RegionPicture::CreateScaledImage(XImage **ximage, int scale,
 
 
 // ---------------------------------------------------------------------
-void RegionPicture::APChangeScale(int newScale, int previousScale) { 
+void RegionPicture::APChangeScale(int newScale, int /*previousScale*/) { 
   currentScale = newScale;
   imageSizeH = currentScale * dataSizeH;
   imageSizeV = currentScale * dataSizeV;

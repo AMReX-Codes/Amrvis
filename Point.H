@@ -165,8 +165,8 @@ inline AmrVector operator *(Real r, AmrVector v)  { return AmrVector( r*v.x, r*v
 
 inline Real mag(const AmrVector &v)	{ return hypot(v.x,v.y,v.z); }
 inline Real mag2(const AmrVector &v)	{ return hypot2(v.x,v.y,v.z); }
-inline Real mag(const AmrSpherePoint &v)	{ return 1.; }
-inline Real mag2(const AmrSpherePoint &v)	{ return 1.; }
+inline Real mag(const AmrSpherePoint & /*v*/)	{ return 1.; }
+inline Real mag2(const AmrSpherePoint & /*v*/)	{ return 1.; }
 
 inline Real dist(const AmrVector &p, const AmrVector &q)
 	{ return hypot(p.x-q.x,p.y-q.y,p.z-q.z); }

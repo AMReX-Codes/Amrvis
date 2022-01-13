@@ -20,8 +20,6 @@
 using std::cout;
 using std::cerr;
 using std::endl;
-using std::min;
-using std::max;
 using std::strcpy;
 
 using namespace amrex;
@@ -29,6 +27,7 @@ using namespace amrex;
 
 // -------------------------------------------------------------------
 void PltApp::DoOutput(Widget w, XtPointer data, XtPointer) {
+  amrex::ignore_unused(w);
   int i;
   static Widget wGetFileName;
   XmString sMessage;
@@ -96,7 +95,7 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   imageSizeY = amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV();
   WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
 
-#ifndef NDEBUG
+#ifdef AMREX_DEBUG
 /*
   {
   int minDrawnLevel(pltAppState->MinDrawnLevel());

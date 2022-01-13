@@ -42,8 +42,6 @@
 using std::cout;
 using std::cerr;
 using std::endl;
-using std::min;
-using std::max;
 
 using namespace amrex;
 
@@ -730,7 +728,7 @@ void SubregionProfApp(Widget swTopLevel, const amrex::Box &trueRegion,
 
 
 // ---------------------------------------------------------------
-void CBQuitPltApp(Widget ofPltApp, XtPointer client_data, XtPointer) {
+void CBQuitPltApp(Widget /*ofPltApp*/, XtPointer client_data, XtPointer) {
   PltApp *obj = (PltApp *) client_data;
   pltAppList.remove(obj);
 
@@ -746,7 +744,7 @@ void CBQuitPltApp(Widget ofPltApp, XtPointer client_data, XtPointer) {
 
 #ifdef BL_USE_PROFPARSER
 // ---------------------------------------------------------------
-void CBQuitProfApp(Widget ofProfApp, XtPointer client_data, XtPointer) {
+void CBQuitProfApp(Widget /*ofProfApp*/, XtPointer client_data, XtPointer) {
   ProfApp *obj = (ProfApp *) client_data;
   profAppList.remove(obj);
 

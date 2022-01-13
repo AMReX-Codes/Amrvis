@@ -23,11 +23,9 @@ const unsigned long savingLW(101);
 const Real oo64(1.0 / 64.0);
 Widget wTempLabel;
 
-using std::max;
 using std::cout;
 using std::cerr;
 using std::endl;
-using std::max;
 
 using namespace amrex;
 
@@ -60,7 +58,7 @@ void PltApp::DoExposeTransDA(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void PltApp::DoTransInput(Widget w, XtPointer, XtPointer call_data) {
+void PltApp::DoTransInput(Widget /*w*/, XtPointer, XtPointer call_data) {
   Real temp, scaledLBS(projPicturePtr->LongestBoxSide() * oo64);
   AmrQuaternion quatRotation, quatRotation2;
   AmrQuaternion newRotation, newRotation2;
@@ -431,7 +429,7 @@ void PltApp::DoDoneLightingWindow(Widget w, XtPointer xp1, XtPointer xp2) {
 
 
 // -------------------------------------------------------------------
-void PltApp::DestroyLightingWindow(Widget w, XtPointer xp, XtPointer) {
+void PltApp::DestroyLightingWindow(Widget /*w*/, XtPointer /*xp*/, XtPointer) {
   lightingWindowExists = false;
 }
 
@@ -443,7 +441,7 @@ void PltApp::DoCancelLightingWindow(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void PltApp::DoOpenFileLightingWindow(Widget w, XtPointer oos, XtPointer call_data)
+void PltApp::DoOpenFileLightingWindow(Widget /*w*/, XtPointer oos, XtPointer /*call_data*/)
 {
   static Widget wOpenLWDialog;
   wOpenLWDialog = XmCreateFileSelectionDialog(wAmrVisTopLevel,
@@ -786,7 +784,7 @@ void PltApp::DoAutoDraw(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void PltApp::DoRenderModeMenu(Widget w, XtPointer item_no, XtPointer client_data) {
+void PltApp::DoRenderModeMenu(Widget w, XtPointer item_no, XtPointer /*client_data*/) {
   if(wCurrentRenderMode == w) {
     XtVaSetValues(w, XmNset, true, NULL);
     return;
@@ -810,7 +808,7 @@ void PltApp::DoRenderModeMenu(Widget w, XtPointer item_no, XtPointer client_data
 
 
 // -------------------------------------------------------------------
-void PltApp::DoClassifyMenu(Widget w, XtPointer item_no, XtPointer client_data) {
+void PltApp::DoClassifyMenu(Widget w, XtPointer item_no, XtPointer /*client_data*/) {
   if(wCurrentClassify == w) {
     XtVaSetValues(w, XmNset, true, NULL);
     return;
@@ -907,7 +905,7 @@ void PltApp::Clear() {
 
 
 // -------------------------------------------------------------------
-void PltApp::DoOrient(Widget w, XtPointer client_data, XtPointer) {
+void PltApp::DoOrient(Widget /*w*/, XtPointer client_data, XtPointer) {
   Real rW(1.0), rX(0.0), rY(0.0), rZ(0.0);
   Real rW2(1.0), rX2(0.0), rY2(0.0), rZ2(0.0);
   //int iOrientation((int) client_data);

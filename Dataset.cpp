@@ -35,8 +35,6 @@ using std::ostringstream;
 using std::cout;
 using std::cerr;
 using std::endl;
-using std::min;
-using std::max;
 
 using namespace amrex;
 
@@ -125,7 +123,7 @@ Dataset::Dataset(const Box &alignedRegion, AmrPicture *apptr,
   XtAddCallback(wColorButton, XmNvalueChangedCallback,
 		(XtCallbackProc) &Dataset::CBColorButton,
 		(XtPointer) this);
-  XmToggleButtonSetState(wColorButton, true, false);
+  XmToggleButtonSetState(wColorButton, Dataset::GetInitialColor(), false);
   Dimension bHeight;
   XtVaGetValues(wColorButton, XmNheight, &bHeight, NULL);
 
@@ -374,8 +372,8 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
 			   lev, &levMin, &levMax, &minMaxValid);
 
     if(minMaxValid) {
-      rMin = min(rMin, levMin);
-      rMax = max(rMax, levMax);
+      rMin = std::min(rMin, levMin);
+      rMax = std::max(rMax, levMax);
     }
 
     for(int iBox(0); iBox < amrData.boxArray(lev).size(); ++iBox) {
@@ -402,7 +400,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
           ddl = d * dataBox.length(hDIR);
           for(c = 0; c < dataBox.length(hDIR); ++c) {
             sprintf(dataString, fstring, dataPoint[c+ddl]);
-            largestWidth = max((int) strlen(dataString), largestWidth);
+            largestWidth = std::max((int) strlen(dataString), largestWidth);
           }
         }
       }
@@ -414,12 +412,12 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   bool bShowBody(AVGlobals::GetShowBody());
   const string vfDerived("vfrac");
   if(bCartGrid && pltAppStatePtr->CurrentDerived() != vfDerived && bShowBody) {
-    largestWidth = max(5, largestWidth);  // for body string
+    largestWidth = std::max(5, largestWidth);  // for body string
   }
 
   bool bIsMF(dataServicesPtr->GetFileType() == Amrvis::MULTIFAB);
   if(bIsMF) {  // fix level zero data
-    largestWidth = max(8, largestWidth);  // for no data string
+    largestWidth = std::max(8, largestWidth);  // for no data string
   }
 
   char levelInfo[Amrvis::LINELENGTH], maxInfo[Amrvis::LINELENGTH], minInfo[Amrvis::LINELENGTH];
@@ -477,8 +475,8 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   Real hItemCount((Real) (datasetRegion[maxDrawnLevel].bigEnd(hDIR)));
   int hIndicesWidth((int) (ceil(log10(hItemCount + 1))));
 
-  largestWidth = max(largestWidth, hIndicesWidth);  
-  indexWidth = max(MAXINDEXCHARS, vIndicesWidth + 1) * CHARACTERWIDTH;
+  largestWidth = std::max(largestWidth, hIndicesWidth);  
+  indexWidth = std::max(MAXINDEXCHARS, vIndicesWidth + 1) * CHARACTERWIDTH;
 
   // determine size of data area
   dataItemWidth = largestWidth * CHARACTERWIDTH;
@@ -1040,11 +1038,11 @@ void Dataset::DoExpose(int fromExpose) {
         
         
         hIndexAreaHeight = indexHeight;
-        hIndexAreaEnd    = min((int) pixSizeY,
+        hIndexAreaEnd    = std::min((int) pixSizeY,
 			       vScrollBarPos + height - hScrollBarBuffer);
         hIndexAreaStart  = hIndexAreaEnd + 1 - hIndexAreaHeight;
         vIndexAreaWidth  = indexWidth;
-        vIndexAreaEnd    = min((int) pixSizeX,
+        vIndexAreaEnd    = std::min((int) pixSizeX,
 			       hScrollBarPos + width - vScrollBarBuffer);
         vIndexAreaStart  = vIndexAreaEnd + 1 - vIndexAreaWidth;
         
@@ -1175,13 +1173,13 @@ void Dataset::DrawIndices() {
     // horizontal
     XFillRectangle(display, dataWindow, gc, hScrollBarPos,
                    hIndexAreaStart-(hIndexAreaHeight*count), 
-                   min((unsigned int) width,  pixSizeX),
+                   std::min((unsigned int) width,  pixSizeX),
                    hIndexAreaHeight);
     // vertical
     XFillRectangle(display, dataWindow, gc, 
                    vIndexAreaStart-(vIndexAreaWidth*count),
                    vScrollBarPos, vIndexAreaWidth,
-                   min((unsigned int) height, pixSizeY));
+                   std::min((unsigned int) height, pixSizeY));
     }
     const AmrData &amrData = dataServicesPtr->AmrDataRef();
 
@@ -1310,4 +1308,10 @@ void Dataset::CBEndScrolling(Widget, XtPointer client_data, XtPointer) {
   dset->DoExpose(false);
 }
 // -------------------------------------------------------------------
+bool Dataset::initialColor = true;
+
+bool Dataset::GetInitialColor() { return initialColor; }
+void Dataset::SetInitialColor( const bool bColor ) {
+  Dataset::initialColor = bColor;
+}
 // -------------------------------------------------------------------

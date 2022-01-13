@@ -26,9 +26,10 @@ class AVPApp
     PltAppState *GetPltAppState() const { return pltAppState; }
     virtual XYPlotWin *GetXYPlotWin(int dir) const { return XYplotwin[dir]; }
     virtual void DetachXYPlotWin(int dir) { XYplotwin[dir] = NULL; }
-    virtual amrex::XYPlotDataList *CreateLinePlot(int V, int sdir, int mal, int ixY,
-                                     const std::string *derived)
-				       { amrex::Abort("AVPApp not implemented."); return nullptr; }
+    virtual amrex::XYPlotDataList *CreateLinePlot(int /*V*/, int /*sdir*/, int /*mal*/,
+                                     int /*ixY*/, const std::string * /*derived*/)
+				       { amrex::Abort("AVPApp not implemented."); 
+                                         return nullptr; }
     virtual Widget GetPalArea() { return wPalArea; }
     virtual bool PaletteCBQ() { return paletteCBQ; }
     virtual void SetPaletteCBQ(bool tf = true) { paletteCBQ = tf; }

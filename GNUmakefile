@@ -1,14 +1,14 @@
 ### ------------------------------------------------------
 ### GNUmakefile for Amrvis
 ### ------------------------------------------------------
-AMREX_HOME = ../amrex
+AMREX_HOME ?= ../amrex
 
 PRECISION = FLOAT
 PRECISION = DOUBLE
 
-PROFILE       = FALSE 
+PROFILE       = FALSE
 TRACE_PROFILE = FALSE
-COMM_PROFILE  = FALSE 
+COMM_PROFILE  = FALSE
 
 COMP      = intel
 COMP      = gnu
@@ -34,8 +34,8 @@ USE_VOLRENDER = TRUE
 USE_PARALLELVOLRENDER = TRUE
 USE_PARALLELVOLRENDER = FALSE
 
-USE_PROFPARSER = TRUE 
-USE_PROFPARSER = FALSE 
+USE_PROFPARSER = TRUE
+USE_PROFPARSER = FALSE
 
 ifeq ($(DIM), 1)
   USE_PROFPARSER = FALSE
@@ -69,7 +69,7 @@ endif
 
 ifeq ($(WHICHLINUX), ATLAS)
   LIBRARY_LOCATIONS += /usr/X11R6/lib64
-endif 
+endif
 
 ifneq ($(which_site), unknown)
   LIBRARY_LOCATIONS += /usr/lib64
@@ -107,9 +107,30 @@ endif
 
 # last chance catch-all
 ifeq ($(which_site), unknown)
-  LIBRARY_LOCATIONS += /usr/lib64
-  INCLUDE_LOCATIONS += /usr/include/Xm
   INCLUDE_LOCATIONS += /usr/include/
+
+  # check if running on macOS (as there are some subtle differences to linux).
+  UNAME_S = $(shell uname -s)
+  ifeq ($(UNAME_S), Darwin)
+	# these assume that dependencies are installed via homebrew, which symlinks
+    # everything into the /usr/local tree.
+    INCLUDE_LOCATIONS += /usr/local/include
+    LIBRARY_LOCATIONS += /usr/local/lib
+    
+    # if dependencies installed via macport, everything symlinks
+    # to /opt/local/
+    INCLUDE_LOCATIONS += /opt/local/include
+    LIBRARY_LOCATIONS += /opt/local/lib
+    
+    # on macOS X11 is installed into the /opt tree
+    INCLUDE_LOCATIONS += /opt/X11/include
+    LIBRARY_LOCATIONS += /opt/X11/lib
+  else
+	# if not running macOS, then assume we are looking at a standard
+    # ubuntu-like linux.
+    INCLUDE_LOCATIONS += /usr/include/Xm
+    LIBRARY_LOCATIONS += /usr/lib64
+  endif
 
   LIBRARIES += -lXm -lXt -lXext -lSM -lICE -lXpm -lX11
 endif
@@ -117,6 +138,8 @@ endif
 
 # JFG: this line is needed on hive
 # LIBRARY_LOCATIONS += /usr/X11R6/lib64
+
+
 
 ############################################### arrayview
 ifeq ($(USE_ARRAYVIEW), TRUE)
@@ -161,7 +184,7 @@ endif
 # if we are using float override FOPTF which sets -real_size 64
 ifeq ($(PRECISION), FLOAT)
   ifeq ($(MACHINE), OSF1)
-    FDEBF += -C 
+    FDEBF += -C
     FDEBF += -fpe2
     FOPTF  = -fast -O5 -tune ev5
   endif
@@ -169,7 +192,7 @@ endif
 
 include $(HERE)/Make.package
 include $(AMREX_HOME)/Src/Base/Make.package
-#include $(AMREX_HOME)/Src/Extern/ProfParser/Make.package 
+#include $(AMREX_HOME)/Src/Extern/ProfParser/Make.package
 include $(AMREX_HOME)/Src/Extern/amrdata/Make.package
 
 #INCLUDE_LOCATIONS += $(AMREX_HOME)/Src/Extern/ProfParser

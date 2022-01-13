@@ -35,13 +35,13 @@ extern "C" {
 // pointer to MultiFab interface
 
   // view a single fab from the multifab
-  bool ArrayViewMultiFabElement(MultiFab *multifab, int element);
-  bool ArrayViewMultiFabElementFormatLabel(MultiFab *multifab, int element,
+  bool ArrayViewMultiFabElement(amrex::MultiFab *multifab, int element);
+  bool ArrayViewMultiFabElementFormatLabel(amrex::MultiFab *multifab, int element,
                             const char *format,  const char *label);
 
   // view the entire multifab
-  bool ArrayViewMultiFab(MultiFab *multifab);
-  bool ArrayViewMultiFabFormatLabel(MultiFab *multifab, const char *format,
+  bool ArrayViewMultiFab(amrex::MultiFab *multifab);
+  bool ArrayViewMultiFabFormatLabel(amrex::MultiFab *multifab, const char *format,
                                     const char *label);
 
 // -------------------------------------------------------------

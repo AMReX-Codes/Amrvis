@@ -43,8 +43,6 @@
 using std::cout;
 using std::cerr;
 using std::endl;
-using std::min;
-using std::max;
 
 #ifndef FALSE
 #define FALSE false
@@ -205,7 +203,7 @@ ProfApp::ProfApp(XtAppContext app, Widget w, const amrex::Box &region,
     rtr(profparent->rtr)
 {
   bool isSubRegion = true;
-  int displayProc = 0;
+//  int displayProc = 0;
   currentFrame = 0;
   palFilename = palfile;
   fileNames.resize(1);
@@ -831,7 +829,7 @@ void ProfApp::ProfAppInit(bool bSubregion) {
 
 
 // -------------------------------------------------------------------
-void ProfApp::DestroyInfoWindow(Widget, XtPointer xp, XtPointer) {
+void ProfApp::DestroyInfoWindow(Widget, XtPointer /*xp*/, XtPointer) {
   infoShowing = false;
 }
 
@@ -974,7 +972,7 @@ void ProfApp::DoExposePalette(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void ProfApp::DoExposePicture(Widget w, XtPointer, XtPointer) {
+void ProfApp::DoExposePicture(Widget /*w*/, XtPointer, XtPointer) {
   regionPicturePtr->DoExposePicture();
 }
 
@@ -1000,7 +998,7 @@ void ProfApp::DoExposeRef(Widget, XtPointer, XtPointer) {
 
 
 // -------------------------------------------------------------------
-void ProfApp::DoFuncListClick(Widget w, XtPointer client_data, XtPointer call_data)
+void ProfApp::DoFuncListClick(Widget w, XtPointer /*client_data*/, XtPointer call_data)
 {
   XmListCallbackStruct *cbs = (XmListCallbackStruct *) call_data;
 
@@ -1057,8 +1055,8 @@ void ProfApp::DoFuncListClick(Widget w, XtPointer client_data, XtPointer call_da
   }
 }
 // -------------------------------------------------------------------
-void ProfApp::DoSendRecvList(Widget w, XtPointer client_data,
-                                 XtPointer call_data)
+void ProfApp::DoSendRecvList(Widget /*w*/, XtPointer /*client_data*/,
+                                 XtPointer /*call_data*/)
 {
 
   // Test for whether this already exists. (Put timeline in bl_prof?)
@@ -1072,8 +1070,8 @@ void ProfApp::DoSendRecvList(Widget w, XtPointer client_data,
 }
 
 // -------------------------------------------------------------------
-void ProfApp::DoGenerateTimeline(Widget w, XtPointer client_data,
-                                 XtPointer call_data)
+void ProfApp::DoGenerateTimeline(Widget /*w*/, XtPointer /*client_data*/,
+                                 XtPointer /*call_data*/)
 {
   std::map<int,string> mpiFuncNames;
   int maxSmallImageLength(800), refRatioAll(4), nTimeSlots(25600);
@@ -1101,8 +1099,8 @@ void ProfApp::DoGenerateTimeline(Widget w, XtPointer client_data,
 */
 }
 // -------------------------------------------------------------------
-void ProfApp::DoRegionTimePlot(Widget w, XtPointer client_data,
-                                 XtPointer call_data)
+void ProfApp::DoRegionTimePlot(Widget /*w*/, XtPointer /*client_data*/,
+                                 XtPointer /*call_data*/)
 {
 
   ReplayClickHistory();
@@ -1170,8 +1168,8 @@ void ProfApp::DoRegionTimePlot(Widget w, XtPointer client_data,
   }
 }
 // -------------------------------------------------------------------
-void ProfApp::DoSendsPlotfile(Widget w, XtPointer client_data,
-                                 XtPointer call_data)
+void ProfApp::DoSendsPlotfile(Widget /*w*/, XtPointer /*client_data*/,
+                                 XtPointer /*call_data*/)
 {
   ReplayClickHistory();
   std::string plotfileName("pltTSP2P_Button");
@@ -1201,8 +1199,8 @@ void ProfApp::DoSendsPlotfile(Widget w, XtPointer client_data,
 
 }
 // -------------------------------------------------------------------
-void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data,
-                                 XtPointer call_data)
+void ProfApp::DoGenerateFuncList(Widget /*w*/, XtPointer client_data,
+                                 XtPointer /*call_data*/)
 {
   unsigned long r = (unsigned long) client_data;
   cout << "_in ProfApp::DoGenerateFuncList:  r = " << r << endl;
@@ -1255,6 +1253,7 @@ void ProfApp::DoGenerateFuncList(Widget w, XtPointer client_data,
 
 // -------------------------------------------------------------------
 void ProfApp::PopulateFuncList(bool bWriteAverage, int whichProc, bool bUseTrace) {
+  amrex::ignore_unused(whichProc);
   Vector<std::string> funcs;
   std::ostringstream ossSummary;
   dataServicesPtr[0]->WriteSummary(ossSummary, bWriteAverage, 0, bUseTrace, false);
@@ -1301,7 +1300,7 @@ void ProfApp::PopulateFuncList(bool bWriteAverage, int whichProc, bool bUseTrace
 
 
 // -------------------------------------------------------------------
-void ProfApp::DoAllOnOff(Widget w, XtPointer client_data, XtPointer call_data)
+void ProfApp::DoAllOnOff(Widget /*w*/, XtPointer client_data, XtPointer /*call_data*/)
 {
   unsigned long v = (unsigned long) client_data;
   regionPicturePtr->SetAllOnOff(v);
@@ -1322,6 +1321,8 @@ void ProfApp::DoAllOnOff(Widget w, XtPointer client_data, XtPointer call_data)
 // -------------------------------------------------------------------
 void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 {
+  amrex::ignore_unused(client_data);
+
   XmDrawingAreaCallbackStruct *cbs = (XmDrawingAreaCallbackStruct *) call_data;
 
   if(cbs->event->xany.type != ButtonPress) {
@@ -1369,8 +1370,8 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
       case MotionNotify:
 
         if(rectDrawn) {   // undraw the old rectangle(s)
-          rWidth  = abs(oldX-anchorX);
-          rHeight = abs(oldY-anchorY);
+          rWidth  = std::abs(oldX-anchorX);
+          rHeight = std::abs(oldY-anchorY);
           rStartX = (anchorX < oldX) ? anchorX : oldX;
           rStartY = (anchorY < oldY) ? anchorY : oldY;
           XDrawRectangle(display, regionPicturePtr->PictureWindow(),
@@ -1393,8 +1394,8 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
         }
         newX = max(0, min(imageWidth,  newX));
         newY = max(0, min(imageHeight, newY));
-        rWidth  = abs(newX-anchorX);   // draw the new rectangle
-        rHeight = abs(newY-anchorY);
+        rWidth  = std::abs(newX-anchorX);   // draw the new rectangle
+        rHeight = std::abs(newY-anchorY);
         rStartX = (anchorX < newX) ? anchorX : newX;
         rStartY = (anchorY < newY) ? anchorY : newY;
         XDrawRectangle(display, regionPicturePtr->PictureWindow(),
@@ -1629,7 +1630,7 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
 
 
 // -------------------------------------------------------------------
-void ProfApp::DoOutput(Widget w, XtPointer data, XtPointer) {
+void ProfApp::DoOutput(Widget /*w*/, XtPointer data, XtPointer) {
   int i;
   static Widget wGetFileName;
   XmString sMessage;
@@ -1766,7 +1767,7 @@ void ProfApp::AddStaticCallback(Widget w, String cbtype, profMemberCB cbf, void 
 
 // -------------------------------------------------------------------
 string ProfApp::GetRegionName(Real r) {
-  int i(r);
+  int i = int(r);
   std::map<int, std::string>::iterator regIter = regNames.find(i);
   if(regIter != regNames.end()) {
     return(regIter->second);

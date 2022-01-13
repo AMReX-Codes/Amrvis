@@ -12,8 +12,6 @@ using std::ofstream;
 using std::cout;
 using std::cerr;
 using std::endl;
-using std::min;
-using std::max;
 
 #include <PltApp.H>
 #include <AMReX_ParallelDescriptor.H>
@@ -264,6 +262,7 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
   PltApp::SetInitialWindowHeight(500);
   PltApp::SetInitialWindowWidth(850);
   PltApp::SetReserveSystemColors(24);
+  Dataset::SetInitialColor(true);
   maxPictureSize = DEFAULTMAXPICTURESIZE;
   boundaryWidth = 0;
   skipPltLines = 0;
@@ -421,7 +420,16 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
         sscanf(buffer, "%s%d", defaultString, &tempInt);
         boxColor = tempInt;
       }
-      else if(strcmp(defaultString, "filetype") == 0) {
+      else if(strcmp(defaultString, "datasetinitialcolor") == 0) {
+        sscanf(buffer, "%s%s", defaultString, tempString);
+        if(*tempString == 't' || *tempString == 'T') {
+          Dataset::SetInitialColor(true);
+        } else {
+          Dataset::SetInitialColor(false);
+	}
+	VisMF::SetUsePersistentIFStreams(usePerStreams);
+      }
+     else if(strcmp(defaultString, "filetype") == 0) {
         sscanf(buffer, "%s%s", defaultString, tempString);
 	if(strcmp(tempString, "fab") == 0) {
           fileType = Amrvis::FAB;
