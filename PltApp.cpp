@@ -2832,6 +2832,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			 rtMin, rtMax);
   sprintf(fMin, format, rtMin);
   sprintf(fMax, format, rtMax);
+  // warning: '%s' directive writing up to 159 bytes into a region of size 155 [-Wformat-overflow=]
   sprintf(range, "Min: %s  Max: %s", fMin, fMax);
   strcpy(saveRangeString, range);
   
@@ -2964,9 +2965,11 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			 pltAppState->CurrentDerivedNumber(), rtMin, rtMax);
   sprintf(fMin, format, rtMin);
   sprintf(fMax, format, rtMax);
+  // warning: '%s' directive writing up to 159 bytes into a region of size 155 [-Wformat-overflow=]
   sprintf(range, "Min: %s", fMin);
   XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
   //XtVaSetValues(wid, XmNleftOffset, 20, NULL);
+  // warning: '%s' directive writing up to 159 bytes into a region of size 155 [-Wformat-overflow=]
   sprintf(range, "Max: %s", fMax);
   XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
 
@@ -2975,8 +2978,10 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			 rtMin, rtMax);
   sprintf(fMin, format, rtMin);
   sprintf(fMax, format, rtMax);
+  // warning: '%s' directive writing up to 159 bytes into a region of size 155 [-Wformat-overflow=]
   sprintf(range, "Min: %s", fMin);
   XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
+  // warning: '%s' directive writing up to 159 bytes into a region of size 155 [-Wformat-overflow=]
   sprintf(range, "Max: %s", fMax);
   XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
 

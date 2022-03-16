@@ -431,12 +431,14 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   XmStringFree(sNewLevel);
   
   sprintf(minInfoV, fstring, rMin);
+  // warning: '%s' directive writing up to 159 bytes into a region of size 156 [-Wformat-overflow=]
   sprintf(minInfo, "Min:%s", minInfoV);
   XmString sNewMin = XmStringCreateSimple(minInfo);
   XtVaSetValues(wMinValue, XmNlabelString, sNewMin, NULL);
   XmStringFree(sNewMin);
 
   sprintf(maxInfoV, fstring, rMax);
+  // warning: '%s' directive writing up to 159 bytes into a region of size 156 [-Wformat-overflow=]
   sprintf(maxInfo, "Max:%s", maxInfoV);
   XmString sNewMax = XmStringCreateSimple(maxInfo);
   XtVaSetValues(wMaxValue, XmNlabelString, sNewMax, NULL);
