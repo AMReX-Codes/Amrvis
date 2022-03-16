@@ -65,6 +65,8 @@ const int plotAreaHeight(342);
 const int funcListHeight(600);
 const int funcListWidth(850);
 
+using namespace amrex;
+
 void CollectMProfStats(std::map<std::string, BLProfiler::ProfStats> &mProfStats,
                        const Vector<Vector<BLProfStats::FuncStat> > &funcStats,
                        const Vector<std::string> &fNames,
