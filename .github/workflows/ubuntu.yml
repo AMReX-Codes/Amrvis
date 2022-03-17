@@ -13,10 +13,6 @@ jobs:
     if: github.event.pull_request.draft == false
     steps:
     - uses: actions/checkout@v3
-    - uses: actions/checkout@v3
-      with:
-        repository: 'AMReX-Codes/amrex'
-        path: 'amrex'
 
     - name: install dependencies
       run: |
@@ -25,5 +21,4 @@ jobs:
     - name: build
       run: |
         make -j 2             \
-          AMREX_HOME=./amrex  \
           USE_PROFPARSER=TRUE
