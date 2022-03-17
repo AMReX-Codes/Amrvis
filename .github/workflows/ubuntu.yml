@@ -12,7 +12,9 @@ jobs:
     runs-on: ubuntu-20.04
     if: github.event.pull_request.draft == false
     env:
-      CXXFLAGS: "-Werror"
+      # FIXME: -Wstringop-overflow
+      #   https://github.com/AMReX-Codes/amrex/pull/2660
+      CXXFLAGS: "-Werror -Wno-error=stringop-overflow"
     steps:
     - uses: actions/checkout@v3
     - uses: actions/checkout@v3
