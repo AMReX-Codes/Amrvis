@@ -1,0 +1,29 @@
+name: 🐧 Ubuntu
+
+on: [push, pull_request]
+
+concurrency:
+  group: ${{ github.ref }}-${{ github.head_ref }}-ubuntu
+  cancel-in-progress: true
+
+jobs:
+  build_gcc:
+    name: GCC DP 2D Profiling
+    runs-on: ubuntu-20.04
+    if: github.event.pull_request.draft == false
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/checkout@v3
+      with:
+        repository: 'AMReX-Codes/amrex'
+        path: 'amrex'
+
+    - name: install dependencies
+      run: |
+        .github/workflows/dependencies/gcc.sh
+
+    - name: build
+      run: |
+        make -j 2             \
+          AMREX_HOME=./amrex  \
+          USE_PROFPARSER=TRUE
