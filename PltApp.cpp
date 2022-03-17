@@ -2995,12 +2995,13 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			    NULL);
   XtVaCreateManagedWidget("Min:", xmLabelGadgetClass, wid, NULL);
   //XtVaSetValues(wid, XmNmarginWidth, 0, NULL);
-  sprintf(range, format, rtMin);
+  char rangec[Amrvis::LINELENGTH];
+  sprintf(rangec, format, rtMin);
   wUserMin = XtVaCreateManagedWidget("local range",
 			    xmTextFieldWidgetClass, wid,
-			    XmNvalue,		range,
+			    XmNvalue,		rangec,
 			    XmNeditable,	true,
-			    XmNcolumns,		strlen(range)+2,
+			    XmNcolumns,		strlen(rangec)+2,
 			    NULL);
   AddStaticCallback(wUserMin, XmNactivateCallback, &PltApp::DoUserMin);
   
@@ -3010,12 +3011,12 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			    //XmNborderWidth,      0,
 			    NULL);
   XtVaCreateManagedWidget("Max:", xmLabelGadgetClass, wid, NULL);
-  sprintf(range, format, rtMax);
+  sprintf(rangec, format, rtMax);
   wUserMax = XtVaCreateManagedWidget("local range",
 			    xmTextFieldWidgetClass, wid,
-			    XmNvalue,		range,
+			    XmNvalue,		rangec,
 			    XmNeditable,	true,
-			    XmNcolumns,		strlen(range)+2,
+			    XmNcolumns,		strlen(rangec)+2,
 			    NULL);
   AddStaticCallback(wUserMax, XmNactivateCallback, &PltApp::DoUserMax);
   
