@@ -434,14 +434,14 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   sprintf(minInfoV, fstring, rMin);
   std::string minInfo("Min:");
   minInfo.append(minInfoV);
-  XmString sNewMin = XmStringCreateSimple(minInfo.c_str());
+  XmString sNewMin = XmStringCreateSimple(&minInfo[0]);
   XtVaSetValues(wMinValue, XmNlabelString, sNewMin, NULL);
   XmStringFree(sNewMin);
 
   sprintf(maxInfoV, fstring, rMax);
   std::string maxInfo("Max:");
   maxInfo.append(maxInfoV);
-  XmString sNewMax = XmStringCreateSimple(maxInfo.c_str());
+  XmString sNewMax = XmStringCreateSimple(&maxInfo[0]);
   XtVaSetValues(wMaxValue, XmNlabelString, sNewMax, NULL);
   XmStringFree(sNewMax);
 
