@@ -29,6 +29,7 @@ const int MAXINDEXCHARS   = 4;
 #include <AMReX_DataServices.H>
 
 #include <sstream>
+#include <string>
 #include <cfloat>
 #include <cmath>
 using std::ostringstream;
@@ -420,7 +421,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
     largestWidth = std::max(8, largestWidth);  // for no data string
   }
 
-  char levelInfo[Amrvis::LINELENGTH], maxInfo[Amrvis::LINELENGTH], minInfo[Amrvis::LINELENGTH];
+  char levelInfo[Amrvis::LINELENGTH];
   char maxInfoV[Amrvis::LINELENGTH],  minInfoV[Amrvis::LINELENGTH];
   sprintf(levelInfo, "Level: %i", maxDrawnLevel);
 
@@ -431,16 +432,16 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   XmStringFree(sNewLevel);
   
   sprintf(minInfoV, fstring, rMin);
-  // warning: '%s' directive writing up to 159 bytes into a region of size 156 [-Wformat-overflow=]
-  sprintf(minInfo, "Min:%s", minInfoV);
-  XmString sNewMin = XmStringCreateSimple(minInfo);
+  std::string minInfo("Min:");
+  minInfo.append(minInfoV);
+  XmString sNewMin = XmStringCreateSimple(minInfo.c_str());
   XtVaSetValues(wMinValue, XmNlabelString, sNewMin, NULL);
   XmStringFree(sNewMin);
 
   sprintf(maxInfoV, fstring, rMax);
-  // warning: '%s' directive writing up to 159 bytes into a region of size 156 [-Wformat-overflow=]
-  sprintf(maxInfo, "Max:%s", maxInfoV);
-  XmString sNewMax = XmStringCreateSimple(maxInfo);
+  std::string maxInfo("Max:");
+  maxInfo.append(maxInfoV);
+  XmString sNewMax = XmStringCreateSimple(maxInfo.c_str());
   XtVaSetValues(wMaxValue, XmNlabelString, sNewMax, NULL);
   XmStringFree(sNewMax);
 
