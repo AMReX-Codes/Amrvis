@@ -11,6 +11,8 @@ jobs:
     name: GCC DP 2D Profiling
     runs-on: ubuntu-20.04
     if: github.event.pull_request.draft == false
+    env:
+      CXXFLAGS: "-Werror"
     steps:
     - uses: actions/checkout@v3
     - uses: actions/checkout@v3
@@ -26,4 +28,5 @@ jobs:
       run: |
         make -j 2             \
           AMREX_HOME=./amrex  \
-          USE_PROFPARSER=TRUE
+          USE_PROFPARSER=TRUE \
+          EXTRACXXFLAGS="${CXXFLAGS}"
