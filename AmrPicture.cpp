@@ -100,13 +100,22 @@ AmrPicture::AmrPicture(GraphicsAttributes *gaptr,
     dataSize[ilev]  = dataSizeH[ilev] * dataSizeV[ilev];  // for a picture (slice).
   }
 
-  if(AVGlobals::GivenInitialPlanes()) {
+  if(AVGlobals::GivenInitialPlanes() || AVGlobals::GivenInitialPlanesReal()) {
     BL_ASSERT(BL_SPACEDIM == 3);
+    IntVect initialplanes;
+    if (AVGlobals::GivenInitialPlanes()) {
+        initialplanes = AVGlobals::GetInitialPlanes();
+    } else if (AVGlobals::GivenInitialPlanesReal()) {
+        auto const location = AVGlobals::GetInitialPlanesReal();
+        IntVect ivLoc;
+        int ivLevel;
+        amrData.IntVectFromLocation(pltAppStatePtr->FinestLevel(), location, ivLoc, ivLevel, initialplanes);
+    }
     int coarsenCRR = amrex::CRRBetweenLevels(maxAllowableLevel,
                                                  pltAppStatePtr->FinestLevel(),
                                                  amrData.RefRatio());
-    int tempSliceV = AVGlobals::GetInitialPlanes()[Amrvis::XDIR];  // at finest lev
-    int tempSliceH = AVGlobals::GetInitialPlanes()[Amrvis::YDIR];  // at finest lev
+    int tempSliceV = initialplanes[Amrvis::XDIR];  // at finest lev
+    int tempSliceH = initialplanes[Amrvis::YDIR];  // at finest lev
     tempSliceV /= coarsenCRR;
     tempSliceH /= coarsenCRR;
     tempSliceH = subDomain[maxAllowableLevel].bigEnd(Amrvis::YDIR) - tempSliceH;
@@ -121,7 +130,7 @@ AmrPicture::AmrPicture(GraphicsAttributes *gaptr,
     subcutY = hLine;
     subcut2ndY = hLine;
 
-    int tempSlice = AVGlobals::GetInitialPlanes()[Amrvis::YZ - myView];  // at finest lev
+    int tempSlice = initialplanes[Amrvis::YZ - myView];  // at finest lev
     tempSlice /= coarsenCRR;
     slice = amrex::max(std::min(tempSlice,
                     subDomain[maxAllowableLevel].bigEnd(Amrvis::YZ-myView)), 
@@ -245,8 +254,17 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
                       subDomain[maxAllowableLevel].bigEnd(Amrvis::YZ-myView)), 
                       subDomain[maxAllowableLevel].smallEnd(Amrvis::YZ-myView));
     } else {
-      if(AVGlobals::GivenInitialPlanes()) {
-	int tempSlice = AVGlobals::GetInitialPlanes()[Amrvis::YZ - myView];  // finest lev
+      if(AVGlobals::GivenInitialPlanes() || AVGlobals::GivenInitialPlanesReal()) {
+        IntVect initialplanes;
+        if (AVGlobals::GivenInitialPlanes()) {
+            initialplanes = AVGlobals::GetInitialPlanes();
+        } else if (AVGlobals::GivenInitialPlanesReal()) {
+            auto const location = AVGlobals::GetInitialPlanesReal();
+            IntVect ivLoc;
+            int ivLevel;
+            amrData.IntVectFromLocation(pltAppStatePtr->FinestLevel(), location, ivLoc, ivLevel, initialplanes);
+        }
+        int tempSlice = initialplanes[Amrvis::YZ - myView];  // finest lev
         int coarsenCRR = amrex::CRRBetweenLevels(maxAllowableLevel,
                                                      pltAppStatePtr->FinestLevel(),
                                                      amrData.RefRatio());
@@ -257,8 +275,8 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
 
         int tempSliceV, tempSliceH;
         if(myView==Amrvis::XY) {
-          tempSliceV = AVGlobals::GetInitialPlanes()[Amrvis::XDIR];  // at finest lev
-          tempSliceH = AVGlobals::GetInitialPlanes()[Amrvis::YDIR];  // at finest lev
+          tempSliceV = initialplanes[Amrvis::XDIR];  // at finest lev
+          tempSliceH = initialplanes[Amrvis::YDIR];  // at finest lev
           tempSliceV /= coarsenCRR;
           tempSliceH /= coarsenCRR;
           tempSliceH = subDomain[maxAllowableLevel].bigEnd(Amrvis::YDIR) - tempSliceH;
@@ -269,8 +287,8 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
                           subDomain[maxAllowableLevel].bigEnd(Amrvis::YDIR)), 
                           subDomain[maxAllowableLevel].smallEnd(Amrvis::YDIR));
         } else if(myView==Amrvis::XZ) {
-          tempSliceV = AVGlobals::GetInitialPlanes()[Amrvis::XDIR];  // at finest lev
-          tempSliceH = AVGlobals::GetInitialPlanes()[Amrvis::ZDIR];  // at finest lev
+          tempSliceV = initialplanes[Amrvis::XDIR];  // at finest lev
+          tempSliceH = initialplanes[Amrvis::ZDIR];  // at finest lev
           tempSliceV /= coarsenCRR;
           tempSliceH /= coarsenCRR;
           tempSliceH = subDomain[maxAllowableLevel].bigEnd(Amrvis::ZDIR) - tempSliceH;
@@ -281,8 +299,8 @@ AmrPicture::AmrPicture(int view, GraphicsAttributes *gaptr,
                           subDomain[maxAllowableLevel].bigEnd(Amrvis::ZDIR)), 
                           subDomain[maxAllowableLevel].smallEnd(Amrvis::ZDIR));
         } else {
-          tempSliceV = AVGlobals::GetInitialPlanes()[Amrvis::YDIR];  // at finest lev
-          tempSliceH = AVGlobals::GetInitialPlanes()[Amrvis::ZDIR];  // at finest lev
+          tempSliceV = initialplanes[Amrvis::YDIR];  // at finest lev
+          tempSliceH = initialplanes[Amrvis::ZDIR];  // at finest lev
           tempSliceV /= coarsenCRR;
           tempSliceH /= coarsenCRR;
           tempSliceH = subDomain[maxAllowableLevel].bigEnd(Amrvis::ZDIR) - tempSliceH;

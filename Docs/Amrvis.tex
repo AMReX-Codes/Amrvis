@@ -83,6 +83,7 @@ amrvis3d [-help]
        [-makeswf_value]
        [-valuemodel]
        [-initplanes xp yp zp]
+       [-initplanesreal xp yp zp]
        [-useminmax min max]
        [<filename(s)>]
 
@@ -128,7 +129,8 @@ amrvis3d [-help]
                      note:  works in batch mode.
   -makeswf_value     same as above, with value model rendering.
   -valuemodel        start with the value model for rendering.
-  -initplanes xp yp zp     set initial planes
+  -initplanes xp yp zp     set initial planes in finest level grid cells
+  -initplanesreal xp yp zp set initial planes in real units
   -useminmax min max       use min and max as the global min max values
   <filename(s)>      must be included if box is specified.
 \end{verbatim}

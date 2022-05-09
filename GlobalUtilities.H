@@ -87,6 +87,8 @@ namespace AVGlobals {
   int  GetFabOutFormat();
   bool GivenInitialPlanes();
   amrex::IntVect GetInitialPlanes();
+  bool GivenInitialPlanesReal();
+  amrex::Vector< Real > GetInitialPlanesReal();
   bool IsProfDirName(const std::string &pdname);
 
   // -------------------- cartGrid functions
