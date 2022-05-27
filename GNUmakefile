@@ -116,12 +116,12 @@ ifeq ($(which_site), unknown)
     # everything into the /usr/local tree.
     INCLUDE_LOCATIONS += /usr/local/include
     LIBRARY_LOCATIONS += /usr/local/lib
-    
+
     # if dependencies installed via macport, everything symlinks
     # to /opt/local/
     INCLUDE_LOCATIONS += /opt/local/include
     LIBRARY_LOCATIONS += /opt/local/lib
-    
+
     # on macOS X11 is installed into the /opt tree
     INCLUDE_LOCATIONS += /opt/X11/include
     LIBRARY_LOCATIONS += /opt/X11/lib
@@ -180,6 +180,9 @@ endif
 #DEFINES += -DSCROLLBARERROR
 #DEFINES += -DFIXDENORMALS
 
+ifdef CONFIG_FILEPATH
+  DEFINES += -DAMRVIS_CONFIG_FILEPATH='"${CONFIG_FILEPATH}"'
+endif
 ############################################### float fix
 # if we are using float override FOPTF which sets -real_size 64
 ifeq ($(PRECISION), FLOAT)
