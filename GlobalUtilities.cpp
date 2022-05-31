@@ -62,6 +62,8 @@ bool bShowBody(true);
 Real bodyOpacity(0.05);
 bool givenInitialPlanes(false);
 IntVect ivInitialPlanes;
+bool givenInitialPlanesReal(false);
+Vector< Real > ivInitialPlanesReal;
 AVGlobals::ENUserVectorNames givenUserVectorNames(AVGlobals::enUserNone);
 Vector<string> userVectorNames(BL_SPACEDIM);
 bool newPltSet(false);
@@ -487,6 +489,15 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
         ivInitialPlanes.setVal(Amrvis::ZDIR, tempZ);
         givenInitialPlanes = true;
       }
+      else if(strcmp(defaultString, "initplanesreal") == 0) {
+        float tempX, tempY, tempZ;
+        sscanf(buffer, "%s%e%e%e", defaultString, &tempX, &tempY, &tempZ);
+        ivInitialPlanesReal.resize(BL_SPACEDIM);
+        ivInitialPlanesReal[Amrvis::XDIR] = tempX;
+        ivInitialPlanesReal[Amrvis::YDIR] = tempY;
+        ivInitialPlanesReal[Amrvis::ZDIR] = tempZ;
+        givenInitialPlanesReal = true;
+      }
 #endif
       else if(strcmp(defaultString, "setvelnames") == 0) {
 #if (BL_SPACEDIM == 2)
@@ -642,6 +653,8 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
   char clbz[32];
   char clPlaneX[32], clPlaneY[32], clPlaneZ[32];
   bool givenInitialPlanesOnComline(false);
+  char clPlaneXReal[32], clPlaneYReal[32], clPlaneZReal[32];
+  bool givenInitialPlanesRealOnComline(false);
 #endif
 
   givenFilename = false;
@@ -940,6 +953,19 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       i += 3;
       givenInitialPlanes = true;
       givenInitialPlanesOnComline = true;
+    } else if(strcmp(argv[i], "-initplanesreal") == 0) {
+      if(argc-1<i+1 || ! strcpy(clPlaneXReal, argv[i+1])) {
+        PrintUsage(argv[0]);
+      }
+      if(argc-1<i+2 || ! strcpy(clPlaneYReal, argv[i+2])) {
+        PrintUsage(argv[0]);
+      }
+      if(argc-1<i+3 || ! strcpy(clPlaneZReal, argv[i+3])) {
+        PrintUsage(argv[0]);
+      }
+      i += 3;
+      givenInitialPlanesReal = true;
+      givenInitialPlanesRealOnComline = true;
 #endif
     } else if(strcmp(argv[i],"-palette") == 0) {
       PltApp::SetDefaultPalette(argv[i+1]);
@@ -1104,6 +1130,12 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
     ivInitialPlanes.setVal(Amrvis::YDIR, atoi(clPlaneY));
     ivInitialPlanes.setVal(Amrvis::ZDIR, atoi(clPlaneZ));
   }
+  if(givenInitialPlanesRealOnComline) {
+    ivInitialPlanesReal.resize(BL_SPACEDIM);
+    ivInitialPlanesReal[Amrvis::XDIR] = atof(clPlaneXReal);
+    ivInitialPlanesReal[Amrvis::YDIR] = atof(clPlaneYReal);
+    ivInitialPlanesReal[Amrvis::ZDIR] = atof(clPlaneZReal);
+  }
 #endif
 
 
@@ -1194,6 +1226,9 @@ void AVGlobals::GetSpecifiedMinMax(Real &specifiedmin, Real &specifiedmax) {
 
 bool AVGlobals::GivenInitialPlanes() { return givenInitialPlanes; }
 IntVect AVGlobals::GetInitialPlanes() { return ivInitialPlanes; }
+
+bool AVGlobals::GivenInitialPlanesReal() { return givenInitialPlanesReal; }
+Vector <Real>  AVGlobals::GetInitialPlanesReal() { return ivInitialPlanesReal; }
 
 // -------------------------------------------------------------------
 /*int AVGlobals::CRRBetweenLevels(int fromlevel, int tolevel,
