@@ -42,6 +42,7 @@
 
 #include <cctype>
 #include <sstream>
+#include <string>
 #include <cmath>
 #include <cstdlib>
 using std::cout;
@@ -2815,7 +2816,6 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
     return;
   }
 
-  char range[Amrvis::LINELENGTH];
   char saveRangeString[Amrvis::LINELENGTH];
   char format[Amrvis::LINELENGTH];
   char fMin[Amrvis::LINELENGTH];
@@ -2832,8 +2832,9 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			 rtMin, rtMax);
   sprintf(fMin, format, rtMin);
   sprintf(fMax, format, rtMax);
-  sprintf(range, "Min: %s  Max: %s", fMin, fMax);
-  strcpy(saveRangeString, range);
+  std::string range("Min: ");
+  range.append(fMin).append("  Max: ").append(fMax);
+  strcpy(saveRangeString, range.c_str());
   
   XtVaGetValues(wAmrVisTopLevel,
 		XmNx, &xpos,
@@ -2964,21 +2965,25 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			 pltAppState->CurrentDerivedNumber(), rtMin, rtMax);
   sprintf(fMin, format, rtMin);
   sprintf(fMax, format, rtMax);
-  sprintf(range, "Min: %s", fMin);
-  XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
+  range = "Min: ";
+  range.append(fMin);
+  XtVaCreateManagedWidget(range.c_str(), xmLabelGadgetClass, wRangeRC, NULL);
   //XtVaSetValues(wid, XmNleftOffset, 20, NULL);
-  sprintf(range, "Max: %s", fMax);
-  XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
+  range = "Max: ";
+  range.append(fMax);
+  XtVaCreateManagedWidget(range.c_str(), xmLabelGadgetClass, wRangeRC, NULL);
 
   pltAppState->GetMinMax(Amrvis::SUBREGIONMINMAX, currentFrame,
 			 pltAppState->CurrentDerivedNumber(),
 			 rtMin, rtMax);
   sprintf(fMin, format, rtMin);
   sprintf(fMax, format, rtMax);
-  sprintf(range, "Min: %s", fMin);
-  XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
-  sprintf(range, "Max: %s", fMax);
-  XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
+  range = "Min: ";
+  range.append(fMin);
+  XtVaCreateManagedWidget(range.c_str(), xmLabelGadgetClass, wRangeRC, NULL);
+  range = "Max: ";
+  range.append(fMax);
+  XtVaCreateManagedWidget(range.c_str(), xmLabelGadgetClass, wRangeRC, NULL);
 
   pltAppState->GetMinMax(Amrvis::USERMINMAX, currentFrame,
 			 pltAppState->CurrentDerivedNumber(),
@@ -2990,12 +2995,13 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			    NULL);
   XtVaCreateManagedWidget("Min:", xmLabelGadgetClass, wid, NULL);
   //XtVaSetValues(wid, XmNmarginWidth, 0, NULL);
-  sprintf(range, format, rtMin);
+  char rangec[Amrvis::LINELENGTH];
+  sprintf(rangec, format, rtMin);
   wUserMin = XtVaCreateManagedWidget("local range",
 			    xmTextFieldWidgetClass, wid,
-			    XmNvalue,		range,
+			    XmNvalue,		rangec,
 			    XmNeditable,	true,
-			    XmNcolumns,		strlen(range)+2,
+			    XmNcolumns,		strlen(rangec)+2,
 			    NULL);
   AddStaticCallback(wUserMin, XmNactivateCallback, &PltApp::DoUserMin);
   
@@ -3005,12 +3011,12 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			    //XmNborderWidth,      0,
 			    NULL);
   XtVaCreateManagedWidget("Max:", xmLabelGadgetClass, wid, NULL);
-  sprintf(range, format, rtMax);
+  sprintf(rangec, format, rtMax);
   wUserMax = XtVaCreateManagedWidget("local range",
 			    xmTextFieldWidgetClass, wid,
-			    XmNvalue,		range,
+			    XmNvalue,		rangec,
 			    XmNeditable,	true,
-			    XmNcolumns,		strlen(range)+2,
+			    XmNcolumns,		strlen(rangec)+2,
 			    NULL);
   AddStaticCallback(wUserMax, XmNactivateCallback, &PltApp::DoUserMax);
   
