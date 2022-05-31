@@ -176,10 +176,10 @@ bool AVGlobals::ReadLightingFile(const string &lightdefaultsFile,
 
     ws(defs);
     defs.getline(buffer, Amrvis::BUFSIZE, '\n');
-  
+
     while( ! defs.eof()) {
       sscanf(buffer,"%s", defaultString);
-    
+
       if(defaultString[0] != '#') {  // a comment starts with #
         if(strcmp(defaultString,"ambient") == 0) {
           sscanf(buffer, "%s%s", defaultString, cRealIn);
@@ -275,50 +275,59 @@ void AVGlobals::GetDefaults(const string &defaultsFile) {
   bShowBody = true;
   startWithValueModel = false;
 
+
   // try to find the defaultsFile
+
   string fullDefaultsFile;
+  const string homePath = getenv("HOME");
 
-  fullDefaultsFile = "./" + defaultsFile;     // try dot first
+  std::vector<string> fullDefaultsFileList;
+#ifdef AMRVIS_CONFIG_FILEPATH
+  string configFilepath(AMRVIS_CONFIG_FILEPATH);
+  fullDefaultsFileList.push_back(configFilepath + "/" + defaultsFile);
+#endif
+  fullDefaultsFileList.push_back("./" + defaultsFile);
+  fullDefaultsFileList.push_back(homePath + "/" + defaultsFile);
+  fullDefaultsFileList.push_back(homePath + "/." + defaultsFile);
+
   ifstream defs;
-  defs.open(fullDefaultsFile.c_str());
 
-  if(defs.fail()) {  // try ~ (tilde)
-    if(ParallelDescriptor::IOProcessor()) {
-      cout << "Cannot find amrvis defaults file:  " << fullDefaultsFile << endl;
-    }
-    fullDefaultsFile  = getenv("HOME");
-    fullDefaultsFile += "/";
-    fullDefaultsFile += defaultsFile;
-    defs.clear();  // must do this to clear the fail bit
-    defs.open(fullDefaultsFile.c_str());
-    if(defs.fail()) {  // try ~/.  (hidden file)
-      if(ParallelDescriptor::IOProcessor()) {
-        cout << "Cannot find amrvis defaults file:  " << fullDefaultsFile << endl;
-      }
-      fullDefaultsFile  = getenv("HOME");
-      fullDefaultsFile += "/.";
-      fullDefaultsFile += defaultsFile;
+  bool fileFound = false;
+
+  for (string const& fileLoc : fullDefaultsFileList){
+
       defs.clear();  // must do this to clear the fail bit
-      defs.open(fullDefaultsFile.c_str());
-      if(defs.fail()) {  // punt
+      defs.open(fileLoc.c_str());
+      if(defs.fail()) {
         if(ParallelDescriptor::IOProcessor()) {
-          cout << "Cannot find amrvis defaults file:  " << fullDefaultsFile << endl;
-          cout << "Using standard defaults." << endl;
-	}
-        return;
+          cout << "Cannot find amrvis defaults file:  " << fileLoc << endl;
+        }
+      } else {
+        fullDefaultsFile = fileLoc;
+        fileFound = true;
+        break;
       }
-    }
   }
+
+  if (!fileFound) {
+    if(ParallelDescriptor::IOProcessor()) {
+        cout << "Cannot find amrvis defaults file:  " << fullDefaultsFile << endl;
+        cout << "Using standard defaults." << endl;
+    }
+    return;
+  }
+
   if(ParallelDescriptor::IOProcessor()) {
     cout << "Reading defaults from:  " << fullDefaultsFile << endl;
   }
 
+
   ws(defs);
   defs.getline(buffer, Amrvis::BUFSIZE, '\n');
-  
+
   while( ! defs.eof()) {
     sscanf(buffer,"%s", defaultString);
-    
+
     if(defaultString[0] != '#') {  // a comment starts with #
       if(strcmp(defaultString,"palette") == 0) {
         sscanf(buffer, "%s%s",defaultString, tempString);
@@ -541,19 +550,19 @@ void PrintUsage(char *exname) {
   cout << '\n';
 
 
-  cout << "  -help              print help and exit." << '\n'; 
+  cout << "  -help              print help and exit." << '\n';
   cout << "  file type flags:   -fab [-fb], -multifab [-mf], -profdata, -newplt (default)" << '\n';
-  cout << "  -v                 verbose." << '\n'; 
+  cout << "  -v                 verbose." << '\n';
   cout << "  -maxpixmapsize n   specify maximum allowed picture size in pixels."
        << '\n';
   cout << "  -subdomain _box_   specify subdomain box (on finest level)." << '\n';
   cout << "                     _box_ format:  lox loy loz hix hiy hiz." << '\n';
-  cout << "  -skippltlines n    skip n lines at head of the plt file." << '\n'; 
-  cout << "  -boxcolor n        set volumetric box color value [0,255]." << '\n'; 
+  cout << "  -skippltlines n    skip n lines at head of the plt file." << '\n';
+  cout << "  -boxcolor n        set volumetric box color value [0,255]." << '\n';
 #if(BL_SPACEDIM != 3)
-  cout << "  -a                 load files as an animation." << '\n'; 
-  cout << "  -aa                load files as an animation with annotations." << '\n'; 
-  cout << "  -anc               load files as an animation, dont cache frames." << '\n'; 
+  cout << "  -a                 load files as an animation." << '\n';
+  cout << "  -aa                load files as an animation with annotations." << '\n';
+  cout << "  -anc               load files as an animation, dont cache frames." << '\n';
 #endif
   //cout << "  -sleep  n          specify sleep time (for attaching parallel debuggers)." << '\n';
   cout << "  -setvelnames xname yname (zname)   specify velocity names for" << '\n';
@@ -563,14 +572,14 @@ void PrintUsage(char *exname) {
   cout << "  -fabiosize nbits   write fabs with nbits (valid values are 1 (ascii), 8 or 32." << '\n';
   cout << "                     the default is native (usually 64)." << '\n';
   cout << "  -maxlev n          specify the maximum drawn level." << '\n';
-  cout << "  -palette palname   set the initial palette." << '\n'; 
-  cout << "  -lightingfile name set the initial lighting parameter file." << '\n'; 
-  cout << "  -maxmenuitems n    set the max menu items per column to n." << '\n'; 
-  cout << "  -initialderived dername   set the initial derived to dername." << '\n'; 
-  cout << "  -initialscale n    set the initial scale to n." << '\n'; 
-  cout << "  -showboxes tf      show boxes (the value of tf is true or false)." << '\n'; 
-  cout << "  -showbody tf       show cartGrid body as body cells (def is true)." << '\n'; 
-  cout << "  -numberformat fmt  set the initial format to fmt (ex:  %4.2f)." << '\n'; 
+  cout << "  -palette palname   set the initial palette." << '\n';
+  cout << "  -lightingfile name set the initial lighting parameter file." << '\n';
+  cout << "  -maxmenuitems n    set the max menu items per column to n." << '\n';
+  cout << "  -initialderived dername   set the initial derived to dername." << '\n';
+  cout << "  -initialscale n    set the initial scale to n." << '\n';
+  cout << "  -showboxes tf      show boxes (the value of tf is true or false)." << '\n';
+  cout << "  -showbody tf       show cartGrid body as body cells (def is true)." << '\n';
+  cout << "  -numberformat fmt  set the initial format to fmt (ex:  %4.2f)." << '\n';
   cout << "  -lowblack          sets the lowest color in the palette to black." << '\n';
 #ifdef BL_OPTIO
   cout << "  -useperstreams tf  use vismf persistent streams." << '\n';
@@ -590,11 +599,11 @@ void PrintUsage(char *exname) {
 
   cout << '\n';
   cout << "-------------------------------------------------------- batch functions" << '\n';
-  cout << "  -xslice n          write a fab slice at x = n (n at the finest level)." << '\n'; 
-  cout << "  -yslice n          write a fab slice at y = n (n at the finest level)." << '\n'; 
-  cout << "  -zslice n          write a fab slice at z = n (n at the finest level)." << '\n'; 
-  cout << "  -sliceallvars      write all fab variables instead of just initialderived." << '\n'; 
-  cout << "  -boxslice _box_    write a fab on the box (box at the finest level)." << '\n'; 
+  cout << "  -xslice n          write a fab slice at x = n (n at the finest level)." << '\n';
+  cout << "  -yslice n          write a fab slice at y = n (n at the finest level)." << '\n';
+  cout << "  -zslice n          write a fab slice at z = n (n at the finest level)." << '\n';
+  cout << "  -sliceallvars      write all fab variables instead of just initialderived." << '\n';
+  cout << "  -boxslice _box_    write a fab on the box (box at the finest level)." << '\n';
   cout << "                     _box_ format:  lox loy (loz) hix hiy (hiz)." << '\n';
   cout << "                     example:  -boxslice 0 0 0 120 42 200." << '\n';
 #ifdef BL_VOLUMERENDER
@@ -710,15 +719,15 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       ++i;
 #    if (BL_SPACEDIM != 3)
     } else if(strcmp(argv[i],"-a") == 0) {
-      bAnimation = true; 
+      bAnimation = true;
       bAnnotated = false;
       bCacheAnimFrames = true;
     } else if(strcmp(argv[i],"-aa") == 0) {
-      bAnimation = true; 
+      bAnimation = true;
       bAnnotated = true;
       bCacheAnimFrames = true;
     } else if(strcmp(argv[i],"-anc") == 0) {
-      bAnimation = true; 
+      bAnimation = true;
       bCacheAnimFrames = false;
       bAnnotated = false;
 #   endif
@@ -1071,7 +1080,7 @@ void AVGlobals::ParseCommandLine(int argc, char *argv[]) {
       comlinebox.setBig(Amrvis::XDIR, atoi(clbx));
       comlinebox.setBig(Amrvis::YDIR, atoi(clby));
 #else
-      if(atoi(clsx) > atoi(clbx) || atoi(clsy) > atoi(clby) || 
+      if(atoi(clsx) > atoi(clbx) || atoi(clsy) > atoi(clby) ||
 	 atoi(clsz) > atoi(clbz))
       {
         if(ParallelDescriptor::IOProcessor()) {
