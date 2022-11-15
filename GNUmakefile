@@ -116,6 +116,9 @@ ifeq ($(which_site), unknown)
     # everything into the /usr/local tree.
     INCLUDE_LOCATIONS += /usr/local/include
     LIBRARY_LOCATIONS += /usr/local/lib
+	# newer versions of Homebrew install into /opt/homebrew instead
+    INCLUDE_LOCATIONS += /opt/homebrew/include
+    LIBRARY_LOCATIONS += /opt/homebrew/lib
 
     # if dependencies installed via macport, everything symlinks
     # to /opt/local/
