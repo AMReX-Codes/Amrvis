@@ -111,14 +111,20 @@ ifeq ($(which_site), unknown)
 
   # check if running on macOS (as there are some subtle differences to linux).
   UNAME_S = $(shell uname -s)
+  UNAME_M = $(shell uname -m)
   ifeq ($(UNAME_S), Darwin)
-	# these assume that dependencies are installed via homebrew, which symlinks
-    # everything into the /usr/local tree.
-    INCLUDE_LOCATIONS += /usr/local/include
-    LIBRARY_LOCATIONS += /usr/local/lib
-	# newer versions of Homebrew install into /opt/homebrew instead
-    INCLUDE_LOCATIONS += /opt/homebrew/include
-    LIBRARY_LOCATIONS += /opt/homebrew/lib
+    ifeq ($(UNAME_M), x86_64)
+      # these assume that dependencies are installed via homebrew, which symlinks
+      # everything into the /usr/local tree on Intel Macs, and into /opt/homebrew on Apple Silicon
+      INCLUDE_LOCATIONS += /usr/local/include
+      LIBRARY_LOCATIONS += /usr/local/lib
+    endif
+
+    ifeq ($(UNAME_M), arm64)
+      # on Apple Silicon, Homebrew installs into /opt/homebrew instead
+      INCLUDE_LOCATIONS += /opt/homebrew/include
+      LIBRARY_LOCATIONS += /opt/homebrew/lib
+    endif
 
     # if dependencies installed via macport, everything symlinks
     # to /opt/local/
@@ -129,7 +135,7 @@ ifeq ($(which_site), unknown)
     INCLUDE_LOCATIONS += /opt/X11/include
     LIBRARY_LOCATIONS += /opt/X11/lib
   else
-	# if not running macOS, then assume we are looking at a standard
+    # if not running macOS, then assume we are looking at a standard
     # ubuntu-like linux.
     INCLUDE_LOCATIONS += /usr/include/Xm
     LIBRARY_LOCATIONS += /usr/lib64
