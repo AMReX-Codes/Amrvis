@@ -510,8 +510,8 @@ void XYPlotParameters::WriteToFile(char *filename) {
 //
 //
 // -------------------------------------------------------------------
-param_full *XYPlotParameters::st_lookup(register char *key) {
-  register st_table_entry *ptr;
+param_full *XYPlotParameters::st_lookup(char *key) {
+  st_table_entry *ptr;
   
   // find entry.
   ptr = param_table.bins[strihash(key)];
@@ -532,7 +532,7 @@ param_full *XYPlotParameters::st_lookup(register char *key) {
 int XYPlotParameters::st_insert(char *key, param_full *value) {
   int hash_val;
   st_table_entry *newentry;
-  register st_table_entry *ptr, **last;
+  st_table_entry *ptr, **last;
   
   hash_val = strihash(key);
 

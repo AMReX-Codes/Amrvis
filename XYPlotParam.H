@@ -198,7 +198,7 @@ private:
   //
   // Look up item in table -- return zero if not found
   //
-  param_full * st_lookup(register char *key);
+  param_full * st_lookup(char *key);
 
   //
   // Insert an item into the table - replacing if it already exists
@@ -215,10 +215,10 @@ private:
   //
   void rehash(void);
 
-  int strihash(register char *xypstring) {
-    register int val = 0;
-    register int c;
-    register int i = 0;
+  int strihash(char *xypstring) {
+    int val = 0;
+    int c;
+    int i = 0;
     
     while ((c = *xypstring++) != '\0') {
       if(isupper(c)) {
