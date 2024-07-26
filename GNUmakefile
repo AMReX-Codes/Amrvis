@@ -3,6 +3,8 @@
 ### ------------------------------------------------------
 AMREX_HOME ?= ../amrex
 
+BL_NO_FORT = TRUE
+
 PRECISION = FLOAT
 PRECISION = DOUBLE
 
