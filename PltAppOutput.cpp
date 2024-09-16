@@ -17,6 +17,8 @@
 #include <Output.H>
 #include <XYPlotWin.H>
 
+#include <string>
+
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -61,14 +63,15 @@ void PltApp::DoOutput(Widget w, XtPointer data, XtPointer) {
   XtSetSensitive(XmSelectionBoxGetChild(wGetFileName,
   		XmDIALOG_HELP_BUTTON), false);
 
-  char tempstr[Amrvis::BUFSIZE], tempfilename[Amrvis::BUFSIZE];
+  char tempfilename[Amrvis::BUFSIZE];
   if(animating2d) {
     strcpy(tempfilename, AVGlobals::StripSlashes(fileNames[currentFrame]).c_str());
   } else {
     strcpy(tempfilename, AVGlobals::StripSlashes(fileNames[0]).c_str());
   }
-  sprintf(tempstr, "%s_%s", pltAppState->CurrentDerived().c_str(), tempfilename);
-  XmTextSetString(XmSelectionBoxGetChild(wGetFileName, XmDIALOG_TEXT), tempstr);
+  std::string tempstr(pltAppState->CurrentDerived().c_str());
+  tempstr.append("_").append(tempfilename);
+  XmTextSetString(XmSelectionBoxGetChild(wGetFileName, XmDIALOG_TEXT), &tempstr[0]);
   XtManageChild(wGetFileName);
   XtPopup(XtParent(wGetFileName), XtGrabNone);
 }  // end DoOutput
