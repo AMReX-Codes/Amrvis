@@ -46,6 +46,9 @@ endif
 ifeq ($(USE_PROFPARSER), TRUE)
   PROFILE       = TRUE
   TRACE_PROFILE = TRUE
+  BL_NO_FORT = FALSE
+else
+  BL_NO_FORT = TRUE
 endif
 
 #DEFINES += -DAV_CGS_FIXSLNC
