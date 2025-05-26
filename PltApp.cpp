@@ -95,6 +95,15 @@ PltApp::~PltApp() {
   if(datasetShowing) {
     delete datasetPtr;
   }
+  
+  // Cleanup double buffering resources
+  if(rubberBandBackup != None) {
+    XFreePixmap(XtDisplay(wTopLevel), rubberBandBackup);
+  }
+  if(rubberBandBuffer != None) {
+    XFreePixmap(XtDisplay(wTopLevel), rubberBandBuffer);
+  }
+  
   XtDestroyWidget(wAmrVisTopLevel);
 
   // delete all the call back parameter structs
@@ -832,6 +841,10 @@ void PltApp::PltAppInit(bool bSubVolume) {
   rbgc = XCreateGC(display, gaPtr->PRoot(), 0, NULL);
   XSetFunction(display, rbgc, GXxor);
   cursor = XCreateFontCursor(display, XC_left_ptr);
+  
+  // Initialize double buffering variables
+  rubberBandBackup = None;
+  rubberBandBuffer = None;
 
   // No need to store these widgets in the class after this function is called.
   Widget wMainArea, wPalFrame, wPlotFrame, wPalForm;
@@ -3598,7 +3611,24 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
   XChangeActivePointerGrab(display, PointerMotionHintMask |
 			   ButtonMotionMask | ButtonReleaseMask |
 			   OwnerGrabButtonMask, cursor, CurrentTime);
-  AVXGrab avxGrab(display);
+  XSync(display, False);
+
+  // Setup double buffering for rubber band
+  Window activeWindow = amrPicturePtrArray[V]->PictureWindow();
+  int bufferWidth = amrPicturePtrArray[V]->ImageSizeH();
+  int bufferHeight = amrPicturePtrArray[V]->ImageSizeV();
+  
+  rubberBandBackup = XCreatePixmap(display, activeWindow, bufferWidth, bufferHeight,
+                                   DefaultDepth(display, DefaultScreen(display)));
+  rubberBandBuffer = XCreatePixmap(display, activeWindow, bufferWidth, bufferHeight,
+                                   DefaultDepth(display, DefaultScreen(display)));
+  
+  // Create GC for copying (always create fresh for this operation)
+  GC copyGC = XCreateGC(display, activeWindow, 0, NULL);
+  
+  // Copy original window contents to backup
+  XCopyArea(display, activeWindow, rubberBandBackup, copyGC, 
+            0, 0, bufferWidth, bufferHeight, 0, 0);
 
   if(servingButton == 1) {
     if(bShiftDown) {
@@ -3619,47 +3649,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	
       case MotionNotify:
 	
-	if(rectDrawn) {   // undraw the old rectangle(s)
-	  rWidth  = std::abs(oldX-anchorX);
-	  rHeight = std::abs(oldY-anchorY);
-	  rStartX = (anchorX < oldX) ? anchorX : oldX;
-	  rStartY = (anchorY < oldY) ? anchorY : oldY;
-	  XDrawRectangle(display, amrPicturePtrArray[V]->PictureWindow(),
-			 rbgc, rStartX, rStartY, rWidth, rHeight);
-#if (BL_SPACEDIM == 3)
-	  // 3D sub domain selecting
-	  switch (V) {
-	  case Amrvis::ZPLANE:
-	    XDrawRectangle(display, amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(),
-			   rbgc, rStartX, startcutY[Amrvis::YPLANE], rWidth,
-			   std::abs(finishcutY[Amrvis::YPLANE]-startcutY[Amrvis::YPLANE]));
-	    rStartPlane = (anchorY < oldY) ? oldY : anchorY;
-	    XDrawRectangle(display, amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(),
-			   rbgc, imageHeight-rStartPlane, startcutY[Amrvis::XPLANE],
-			   rHeight,
-			   std::abs(finishcutY[Amrvis::XPLANE]-startcutY[Amrvis::XPLANE]));
-	    break;
-	  case Amrvis::YPLANE:
-	    XDrawRectangle(display, amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(),
-			   rbgc, rStartX, startcutY[Amrvis::ZPLANE], rWidth,
-			   std::abs(finishcutY[Amrvis::ZPLANE]-startcutY[Amrvis::ZPLANE]));
-	    XDrawRectangle(display, amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(),
-			   rbgc, startcutX[Amrvis::XPLANE], rStartY,
-			   std::abs(finishcutX[Amrvis::XPLANE]-startcutX[Amrvis::XPLANE]),
-			   rHeight);
-	    break;
-	  default: // Amrvis::XPLANE
-	    rStartPlane = (anchorX < oldX) ? oldX : anchorX;
-	    XDrawRectangle(display, amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(),
-			   rbgc, startcutX[Amrvis::ZPLANE], imageWidth-rStartPlane,
-			   std::abs(finishcutX[Amrvis::ZPLANE]-startcutX[Amrvis::ZPLANE]), rWidth);
-	    XDrawRectangle(display, amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(),
-			   rbgc, startcutX[Amrvis::YPLANE], rStartY,
-			   std::abs(finishcutX[Amrvis::YPLANE]-startcutX[Amrvis::YPLANE]),
-			   rHeight);
-	  }
-#endif
-	}
+	// Double buffering approach - no need to "undraw" old rectangles
 
 	DoDrawPointerLocation(None, (XtPointer) static_cast<long>(V), &nextEvent);
 
@@ -3683,8 +3673,14 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	rHeight = std::abs(newY-anchorY);
 	rStartX = (anchorX < newX) ? anchorX : newX;
 	rStartY = (anchorY < newY) ? anchorY : newY;
-	XDrawRectangle(display, amrPicturePtrArray[V]->PictureWindow(),
-		       rbgc, rStartX, rStartY, rWidth, rHeight);
+	
+	// Double buffering: restore original, draw rectangle, copy to window
+	XCopyArea(display, rubberBandBackup, rubberBandBuffer, copyGC, 
+	          0, 0, bufferWidth, bufferHeight, 0, 0);
+	XSetForeground(display, copyGC, pltPaletteptr->makePixel(120));
+	XDrawRectangle(display, rubberBandBuffer, copyGC, rStartX, rStartY, rWidth, rHeight);
+	XCopyArea(display, rubberBandBuffer, amrPicturePtrArray[V]->PictureWindow(), copyGC, 
+	          0, 0, bufferWidth, bufferHeight, 0, 0);
 	rectDrawn = true;
 	
 	oldX = newX;
@@ -3702,41 +3698,24 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  finishcutX[Amrvis::YPLANE] = finishcutX[V];
 	  startcutX[Amrvis::XPLANE] = imageHeight - startcutY[V];
 	  finishcutX[Amrvis::XPLANE] = imageHeight - finishcutY[V];
-	  // draw in other planes
-	  XDrawRectangle(display, amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(),
-			 rbgc, rStartX, startcutY[Amrvis::YPLANE], rWidth,
-			 std::abs(finishcutY[Amrvis::YPLANE]-startcutY[Amrvis::YPLANE]));
-	  rStartPlane = (anchorY < newY) ? newY : anchorY;
-	  XDrawRectangle(display, amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(),
-			 rbgc, imageHeight-rStartPlane, startcutY[Amrvis::XPLANE],
-			 rHeight,
-			 std::abs(finishcutY[Amrvis::XPLANE]-startcutY[Amrvis::XPLANE]));
+	  // 3D planes handled by double buffering now
+	  // XDrawRectangle calls removed - double buffering handles all drawing
 	  break;
 	case Amrvis::YPLANE:
 	  startcutX[Amrvis::ZPLANE] = startcutX[V];
 	  finishcutX[Amrvis::ZPLANE] = finishcutX[V];
 	  startcutY[Amrvis::XPLANE] = startcutY[V];
 	  finishcutY[Amrvis::XPLANE] = finishcutY[V];
-	  XDrawRectangle(display, amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(),
-			 rbgc, rStartX, startcutY[Amrvis::ZPLANE], rWidth,
-			 std::abs(finishcutY[Amrvis::ZPLANE]-startcutY[Amrvis::ZPLANE]));
-	  XDrawRectangle(display, amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(),
-			 rbgc, startcutX[Amrvis::XPLANE], rStartY,
-			 std::abs(finishcutX[Amrvis::XPLANE]-startcutX[Amrvis::XPLANE]), rHeight);
+	  // 3D planes handled by double buffering now
 	  break;
 	default: // Amrvis::XPLANE
 	  startcutY[Amrvis::YPLANE] = startcutY[V];
 	  finishcutY[Amrvis::YPLANE] = finishcutY[V];
 	  startcutY[Amrvis::ZPLANE] = imageWidth - startcutX[V];
 	  finishcutY[Amrvis::ZPLANE] = imageWidth - finishcutX[V];
-	  rStartPlane = (anchorX < newX) ? newX : anchorX;
-	  XDrawRectangle(display, amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(),
-			 rbgc, startcutX[Amrvis::ZPLANE], imageWidth-rStartPlane,
-			 std::abs(finishcutX[Amrvis::ZPLANE]-startcutX[Amrvis::ZPLANE]), rWidth);
-	  XDrawRectangle(display, amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(),
-			 rbgc, startcutX[Amrvis::YPLANE], rStartY,
-			 std::abs(finishcutX[Amrvis::YPLANE]-startcutX[Amrvis::YPLANE]), rHeight);
+	  // 3D planes handled by double buffering now
 	}
+	XSync(display, False);
 	
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
 	if( ! XmToggleButtonGetState(wAutoDraw))
@@ -3769,7 +3748,6 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	break;
 	
       case ButtonRelease: {
-        avxGrab.ExplicitUngrab();
 	
 	startX = (max(0, min(imageWidth,  anchorX))) / scale;
 	startY = (max(0, min(imageHeight, anchorY))) / scale;
@@ -4072,6 +4050,19 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	break;
       }  // end switch
     }  // end while(true)
+    
+    // Cleanup double buffering resources
+    if(rubberBandBackup != None) {
+      XFreePixmap(display, rubberBandBackup);
+      rubberBandBackup = None;
+    }
+    if(rubberBandBuffer != None) {
+      XFreePixmap(display, rubberBandBuffer);
+      rubberBandBuffer = None;
+    }
+    XFreeGC(display, copyGC);
+    
+    XSync(display, False);
   }
 
 
@@ -4152,7 +4143,6 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	break;
 	
       case ButtonRelease:
-        avxGrab.ExplicitUngrab();
 	tempi = max(0, min(imageHeight, nextEvent.xbutton.y));
 	amrPicturePtrArray[V]->SetHLine(tempi);
 #if (BL_SPACEDIM == 3)
@@ -4319,7 +4309,6 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	break;
 	
       case ButtonRelease:
-        avxGrab.ExplicitUngrab();
 	tempi = max(0, min(imageWidth, nextEvent.xbutton.x));
 	amrPicturePtrArray[V]->SetVLine(tempi);
 #if (BL_SPACEDIM == 3)

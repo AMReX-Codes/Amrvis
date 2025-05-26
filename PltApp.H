@@ -214,6 +214,10 @@ private:
   XEvent	nextEvent;
   int 		rWidth, rHeight, rStartX, rStartY;
   Cursor	cursor;
+  
+  // double buffering for rubber band
+  Pixmap	rubberBandBackup;
+  Pixmap	rubberBandBuffer;
 
   static string defaultPaletteString, initialDerived, initialFormatString;
   static string defaultLightingFilename;
@@ -343,40 +347,6 @@ private:
 };
 
 
-// -------------------------------------------------------------------
-class AVXGrab {
-  public:
-    AVXGrab(Display *display) : bIsGrabbed(true), cachedDisplay(display) {
-      XSync(cachedDisplay, False);
-      XGrabServer(display);
-      XSync(cachedDisplay, False);
-    }
-
-    ~AVXGrab() {
-      if(bIsGrabbed) {
-        std::cout << "_______in ~AVXGrab:  implicit ungrab." << std::endl;
-      }
-      XUngrabServer(cachedDisplay);
-      XSync(cachedDisplay, False);
-      bIsGrabbed = false;
-    }
-
-    void ExplicitUngrab() {
-      if(bIsGrabbed == false) {
-        std::cout << "_______in AVXGrab::ExplicitUngrab:  server not grabbed."
-                  << std::endl;
-      }
-      XUngrabServer(cachedDisplay);
-      XSync(cachedDisplay, False);
-      bIsGrabbed = false;
-    }
-
-  private:
-    AVXGrab();  // not implemented
-    bool bIsGrabbed;
-    Display *cachedDisplay;
-};
-// -------------------------------------------------------------------
 
 
 void	SubregionPltApp(Widget toplevel, const amrex::Box &region, const amrex::IntVect &offset,
