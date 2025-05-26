@@ -3613,11 +3613,12 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 			   OwnerGrabButtonMask, cursor, CurrentTime);
   XSync(display, False);
 
-  // Setup double buffering for rubber band
+  // Setup double buffering for rubber band - handle all 3D planes
   Window activeWindow = amrPicturePtrArray[V]->PictureWindow();
   int bufferWidth = amrPicturePtrArray[V]->ImageSizeH();
   int bufferHeight = amrPicturePtrArray[V]->ImageSizeV();
   
+  // Create double buffering for main active plane
   rubberBandBackup = XCreatePixmap(display, activeWindow, bufferWidth, bufferHeight,
                                    DefaultDepth(display, DefaultScreen(display)));
   rubberBandBuffer = XCreatePixmap(display, activeWindow, bufferWidth, bufferHeight,
@@ -3629,6 +3630,33 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
   // Copy original window contents to backup
   XCopyArea(display, activeWindow, rubberBandBackup, copyGC, 
             0, 0, bufferWidth, bufferHeight, 0, 0);
+
+  // Declare 3D plane variables (needed for cleanup scope)
+  Pixmap planeBackup[amrex::Amrvis::NPLANES] = {None, None, None};
+  Pixmap planeBuffer[amrex::Amrvis::NPLANES] = {None, None, None}; 
+  GC planeGC[amrex::Amrvis::NPLANES] = {None, None, None};
+  
+#if (BL_SPACEDIM == 3)
+  // Create double buffering for additional 3D planes
+  
+  for(int plane = 0; plane < amrex::Amrvis::NPLANES; ++plane) {
+    if(plane != V) {  // Skip the main plane, already handled above
+      Window planeWindow = amrPicturePtrArray[plane]->PictureWindow();
+      int planeWidth = amrPicturePtrArray[plane]->ImageSizeH();
+      int planeHeight = amrPicturePtrArray[plane]->ImageSizeV();
+      
+      planeBackup[plane] = XCreatePixmap(display, planeWindow, planeWidth, planeHeight,
+                                        DefaultDepth(display, DefaultScreen(display)));
+      planeBuffer[plane] = XCreatePixmap(display, planeWindow, planeWidth, planeHeight,
+                                        DefaultDepth(display, DefaultScreen(display)));
+      planeGC[plane] = XCreateGC(display, planeWindow, 0, NULL);
+      
+      // Copy original contents to backup
+      XCopyArea(display, planeWindow, planeBackup[plane], planeGC[plane], 
+                0, 0, planeWidth, planeHeight, 0, 0);
+    }
+  }
+#endif
 
   if(servingButton == 1) {
     if(bShiftDown) {
@@ -3681,6 +3709,78 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	XDrawRectangle(display, rubberBandBuffer, copyGC, rStartX, rStartY, rWidth, rHeight);
 	XCopyArea(display, rubberBandBuffer, amrPicturePtrArray[V]->PictureWindow(), copyGC, 
 	          0, 0, bufferWidth, bufferHeight, 0, 0);
+
+#if (BL_SPACEDIM == 3)
+	// Double buffering for additional 3D planes
+	switch (V) {
+	case Amrvis::ZPLANE:
+	  // Update YPLANE
+	  XCopyArea(display, planeBackup[Amrvis::YPLANE], planeBuffer[Amrvis::YPLANE], planeGC[Amrvis::YPLANE], 
+	            0, 0, amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeH(), amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeV(), 0, 0);
+	  XSetForeground(display, planeGC[Amrvis::YPLANE], pltPaletteptr->makePixel(120));
+	  XDrawRectangle(display, planeBuffer[Amrvis::YPLANE], planeGC[Amrvis::YPLANE], 
+	                rStartX, startcutY[Amrvis::YPLANE], rWidth,
+	                std::abs(finishcutY[Amrvis::YPLANE]-startcutY[Amrvis::YPLANE]));
+	  XCopyArea(display, planeBuffer[Amrvis::YPLANE], amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(), planeGC[Amrvis::YPLANE], 
+	            0, 0, amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeH(), amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeV(), 0, 0);
+	  
+	  // Update XPLANE  
+	  int rStartPlane = (anchorY < newY) ? newY : anchorY;
+	  XCopyArea(display, planeBackup[Amrvis::XPLANE], planeBuffer[Amrvis::XPLANE], planeGC[Amrvis::XPLANE], 
+	            0, 0, amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeH(), amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeV(), 0, 0);
+	  XSetForeground(display, planeGC[Amrvis::XPLANE], pltPaletteptr->makePixel(120));
+	  XDrawRectangle(display, planeBuffer[Amrvis::XPLANE], planeGC[Amrvis::XPLANE],
+	                imageHeight-rStartPlane, startcutY[Amrvis::XPLANE], rHeight,
+	                std::abs(finishcutY[Amrvis::XPLANE]-startcutY[Amrvis::XPLANE]));
+	  XCopyArea(display, planeBuffer[Amrvis::XPLANE], amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(), planeGC[Amrvis::XPLANE], 
+	            0, 0, amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeH(), amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeV(), 0, 0);
+	  break;
+	  
+	case Amrvis::YPLANE:
+	  // Update ZPLANE
+	  XCopyArea(display, planeBackup[Amrvis::ZPLANE], planeBuffer[Amrvis::ZPLANE], planeGC[Amrvis::ZPLANE], 
+	            0, 0, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH(), amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV(), 0, 0);
+	  XSetForeground(display, planeGC[Amrvis::ZPLANE], pltPaletteptr->makePixel(120));
+	  XDrawRectangle(display, planeBuffer[Amrvis::ZPLANE], planeGC[Amrvis::ZPLANE],
+	                rStartX, startcutY[Amrvis::ZPLANE], rWidth,
+	                std::abs(finishcutY[Amrvis::ZPLANE]-startcutY[Amrvis::ZPLANE]));
+	  XCopyArea(display, planeBuffer[Amrvis::ZPLANE], amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(), planeGC[Amrvis::ZPLANE], 
+	            0, 0, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH(), amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV(), 0, 0);
+	  
+	  // Update XPLANE
+	  XCopyArea(display, planeBackup[Amrvis::XPLANE], planeBuffer[Amrvis::XPLANE], planeGC[Amrvis::XPLANE], 
+	            0, 0, amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeH(), amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeV(), 0, 0);
+	  XSetForeground(display, planeGC[Amrvis::XPLANE], pltPaletteptr->makePixel(120));
+	  XDrawRectangle(display, planeBuffer[Amrvis::XPLANE], planeGC[Amrvis::XPLANE],
+	                startcutX[Amrvis::XPLANE], rStartY,
+	                std::abs(finishcutX[Amrvis::XPLANE]-startcutX[Amrvis::XPLANE]), rHeight);
+	  XCopyArea(display, planeBuffer[Amrvis::XPLANE], amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(), planeGC[Amrvis::XPLANE], 
+	            0, 0, amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeH(), amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeV(), 0, 0);
+	  break;
+	  
+	default: // Amrvis::XPLANE
+	  // Update ZPLANE
+	  rStartPlane = (anchorX < newX) ? newX : anchorX;
+	  XCopyArea(display, planeBackup[Amrvis::ZPLANE], planeBuffer[Amrvis::ZPLANE], planeGC[Amrvis::ZPLANE], 
+	            0, 0, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH(), amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV(), 0, 0);
+	  XSetForeground(display, planeGC[Amrvis::ZPLANE], pltPaletteptr->makePixel(120));
+	  XDrawRectangle(display, planeBuffer[Amrvis::ZPLANE], planeGC[Amrvis::ZPLANE],
+	                startcutX[Amrvis::ZPLANE], imageWidth-rStartPlane,
+	                std::abs(finishcutX[Amrvis::ZPLANE]-startcutX[Amrvis::ZPLANE]), rWidth);
+	  XCopyArea(display, planeBuffer[Amrvis::ZPLANE], amrPicturePtrArray[Amrvis::ZPLANE]->PictureWindow(), planeGC[Amrvis::ZPLANE], 
+	            0, 0, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH(), amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV(), 0, 0);
+	  
+	  // Update YPLANE
+	  XCopyArea(display, planeBackup[Amrvis::YPLANE], planeBuffer[Amrvis::YPLANE], planeGC[Amrvis::YPLANE], 
+	            0, 0, amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeH(), amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeV(), 0, 0);
+	  XSetForeground(display, planeGC[Amrvis::YPLANE], pltPaletteptr->makePixel(120));
+	  XDrawRectangle(display, planeBuffer[Amrvis::YPLANE], planeGC[Amrvis::YPLANE],
+	                startcutX[Amrvis::YPLANE], rStartY,
+	                std::abs(finishcutX[Amrvis::YPLANE]-startcutX[Amrvis::YPLANE]), rHeight);
+	  XCopyArea(display, planeBuffer[Amrvis::YPLANE], amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(), planeGC[Amrvis::YPLANE], 
+	            0, 0, amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeH(), amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeV(), 0, 0);
+	}
+#endif
 	rectDrawn = true;
 	
 	oldX = newX;
@@ -4061,6 +4161,19 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
       rubberBandBuffer = None;
     }
     XFreeGC(display, copyGC);
+
+    // Cleanup additional 3D plane resources  
+    for(int plane = 0; plane < amrex::Amrvis::NPLANES; ++plane) {
+      if(planeBackup[plane] != None) {
+        XFreePixmap(display, planeBackup[plane]);
+      }
+      if(planeBuffer[plane] != None) {
+        XFreePixmap(display, planeBuffer[plane]);
+      }
+      if(planeGC[plane] != None) {
+        XFreeGC(display, planeGC[plane]);
+      }
+    }
     
     XSync(display, False);
   }
