@@ -3632,9 +3632,16 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
             0, 0, bufferWidth, bufferHeight, 0, 0);
 
   // Declare 3D plane variables (needed for cleanup scope)
-  Pixmap planeBackup[amrex::Amrvis::NPLANES] = {None, None, None};
-  Pixmap planeBuffer[amrex::Amrvis::NPLANES] = {None, None, None}; 
-  GC planeGC[amrex::Amrvis::NPLANES] = {None, None, None};
+  Pixmap planeBackup[amrex::Amrvis::NPLANES];
+  Pixmap planeBuffer[amrex::Amrvis::NPLANES]; 
+  GC planeGC[amrex::Amrvis::NPLANES];
+  
+  // Initialize arrays to None
+  for(int i = 0; i < amrex::Amrvis::NPLANES; ++i) {
+    planeBackup[i] = None;
+    planeBuffer[i] = None;
+    planeGC[i] = None;
+  }
   
 #if (BL_SPACEDIM == 3)
   // Create double buffering for additional 3D planes
