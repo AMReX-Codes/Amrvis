@@ -3720,7 +3720,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 #if (BL_SPACEDIM == 3)
 	// Double buffering for additional 3D planes
 	switch (V) {
-	case Amrvis::ZPLANE:
+	case Amrvis::ZPLANE: {
 	  // Update YPLANE
 	  XCopyArea(display, planeBackup[Amrvis::YPLANE], planeBuffer[Amrvis::YPLANE], planeGC[Amrvis::YPLANE], 
 	            0, 0, amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeH(), amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeV(), 0, 0);
@@ -3742,8 +3742,9 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  XCopyArea(display, planeBuffer[Amrvis::XPLANE], amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(), planeGC[Amrvis::XPLANE], 
 	            0, 0, amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeH(), amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeV(), 0, 0);
 	  break;
+	}
 	  
-	case Amrvis::YPLANE:
+	case Amrvis::YPLANE: {
 	  // Update ZPLANE
 	  XCopyArea(display, planeBackup[Amrvis::ZPLANE], planeBuffer[Amrvis::ZPLANE], planeGC[Amrvis::ZPLANE], 
 	            0, 0, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH(), amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV(), 0, 0);
@@ -3764,10 +3765,11 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  XCopyArea(display, planeBuffer[Amrvis::XPLANE], amrPicturePtrArray[Amrvis::XPLANE]->PictureWindow(), planeGC[Amrvis::XPLANE], 
 	            0, 0, amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeH(), amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeV(), 0, 0);
 	  break;
+	}
 	  
-	default: // Amrvis::XPLANE
+	default: { // Amrvis::XPLANE
 	  // Update ZPLANE
-	  rStartPlane = (anchorX < newX) ? newX : anchorX;
+	  int rStartPlane = (anchorX < newX) ? newX : anchorX;
 	  XCopyArea(display, planeBackup[Amrvis::ZPLANE], planeBuffer[Amrvis::ZPLANE], planeGC[Amrvis::ZPLANE], 
 	            0, 0, amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH(), amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV(), 0, 0);
 	  XSetForeground(display, planeGC[Amrvis::ZPLANE], pltPaletteptr->makePixel(120));
@@ -3786,6 +3788,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	                std::abs(finishcutX[Amrvis::YPLANE]-startcutX[Amrvis::YPLANE]), rHeight);
 	  XCopyArea(display, planeBuffer[Amrvis::YPLANE], amrPicturePtrArray[Amrvis::YPLANE]->PictureWindow(), planeGC[Amrvis::YPLANE], 
 	            0, 0, amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeH(), amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeV(), 0, 0);
+	  break;
+	}
 	}
 #endif
 	rectDrawn = true;
