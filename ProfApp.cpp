@@ -1350,7 +1350,7 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
   XChangeActivePointerGrab(display, PointerMotionHintMask |
                            ButtonMotionMask | ButtonReleaseMask |
                            OwnerGrabButtonMask, cursor, CurrentTime);
-  AVXGrab avxGrab(display);
+  XSync(display, False);
 
   if(servingButton == 1) {
     if(bShiftDown) {
@@ -1378,6 +1378,7 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
           rStartY = (anchorY < oldY) ? anchorY : oldY;
           XDrawRectangle(display, regionPicturePtr->PictureWindow(),
                          rbgc, rStartX, rStartY, rWidth, rHeight);
+          XSync(display, False);
         }
 
         while(XCheckTypedEvent(display, MotionNotify, &nextEvent)) {
@@ -1402,6 +1403,7 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
         rStartY = (anchorY < newY) ? anchorY : newY;
         XDrawRectangle(display, regionPicturePtr->PictureWindow(),
                        rbgc, rStartX, rStartY, rWidth, rHeight);
+        XSync(display, False);
         rectDrawn = true;
 
         oldX = newX;
@@ -1410,7 +1412,6 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
         break;
 
       case ButtonRelease: {
-        avxGrab.ExplicitUngrab();
 
         startX = (max(0, min(imageWidth,  anchorX))) / scale;
         startY = (max(0, min(imageHeight, anchorY))) / scale;
@@ -1512,7 +1513,6 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
       break;
 
       case ButtonRelease:
-        avxGrab.ExplicitUngrab();
 
         if(saveOldX == nextEvent.xbutton.x && saveOldY == nextEvent.xbutton.y) {
           // ---- turn region off
@@ -1576,7 +1576,6 @@ void ProfApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data
       break;
 
       case ButtonRelease:
-        avxGrab.ExplicitUngrab();
 
         if(saveOldX == nextEvent.xbutton.x && saveOldY == nextEvent.xbutton.y) {
           // ---- turn region on
