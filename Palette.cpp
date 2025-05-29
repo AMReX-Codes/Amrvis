@@ -10,6 +10,7 @@
 
 #include <cassert>
 #include <cstdio>
+#include <cmath>
 using std::cout;
 using std::cerr;
 using std::endl;
@@ -173,9 +174,14 @@ void Palette::RedrawPalette() {
   DrawPalette(pmin, pmax, defaultFormat);  // use defaults
 }
 
+// -------------------------------------------------------------------
+void Palette::RedrawPalette(bool logScale) {
+  DrawPalette(pmin, pmax, defaultFormat, logScale);  // use defaults with log scale
+}
+
 
 // -------------------------------------------------------------------
-void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) {
+void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat, bool logScale) {
   int i, cy, palOffsetY(14);
   XWindowAttributes winAttribs;
   Display *display(gaPtr->PDisplay());
@@ -329,10 +335,23 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
     char palString[128];
     for(i = 0; i < dataList.size(); ++i) {
       XSetForeground(display, gc, AVWhitePixel());
-      dataList[i] = palMin + (dataList.size() - 1 - i) *
-			     (palMax - palMin) / (dataList.size() - 1);
-      if(i == 0) {
-        dataList[i] = palMax;  // to avoid roundoff
+      if(logScale && palMin > 0.0 && palMax > 0.0) {
+        // Log scale: interpolate in log space
+        Real logMin = std::log10(palMin);
+        Real logMax = std::log10(palMax);
+        Real logVal = logMin + (dataList.size() - 1 - i) *
+                               (logMax - logMin) / (dataList.size() - 1);
+        dataList[i] = std::pow(10.0, logVal);
+        if(i == 0) {
+          dataList[i] = palMax;  // to avoid roundoff
+        }
+      } else {
+        // Linear scale (original behavior)
+        dataList[i] = palMin + (dataList.size() - 1 - i) *
+                               (palMax - palMin) / (dataList.size() - 1);
+        if(i == 0) {
+          dataList[i] = palMax;  // to avoid roundoff
+        }
       }
       sprintf(palString, numberFormat.c_str(), dataList[i]);
       XDrawString(display, palPixmap, gc, palWidth + 4,
