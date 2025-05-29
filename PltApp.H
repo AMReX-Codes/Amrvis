@@ -349,7 +349,7 @@ class AVXGrab {
   public:
     AVXGrab(Display *display) : bIsGrabbed(true), cachedDisplay(display) {
       XSync(cachedDisplay, False);
-      XGrabServer(display);
+      //XGrabServer(display);
       XSync(cachedDisplay, False);
     }
 
