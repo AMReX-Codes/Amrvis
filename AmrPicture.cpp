@@ -614,7 +614,7 @@ void AmrPicture::APChangeContour(Amrvis::ContourType prevCType) {
       CreateImage(*(sliceFab[iLevel]), imageData[iLevel],
  		  dataSizeH[iLevel], dataSizeV[iLevel],
  	          minUsing, maxUsing, palPtr,
-		  vffp, vfeps);
+		  vffp, vfeps, pltAppStatePtr->GetLogScale());
       bool bCreateMask(iLevel == minDrawnLevel);
       CreateScaledImage(&(xImageArray[iLevel]), pltAppStatePtr->CurrentScale() *
                  amrex::CRRBetweenLevels(iLevel, maxAllowableLevel,
@@ -880,7 +880,7 @@ void AmrPicture::APMakeImages(Palette *palptr) {
     }
     CreateImage(*(sliceFab[iLevel]), imageData[iLevel],
  		dataSizeH[iLevel], dataSizeV[iLevel],
- 	        minUsing, maxUsing, palPtr, vffp, vfeps);
+ 	        minUsing, maxUsing, palPtr, vffp, vfeps, pltAppStatePtr->GetLogScale());
     bool bCreateMask(iLevel == minDrawnLevel);
     CreateScaledImage(&(xImageArray[iLevel]), pltAppStatePtr->CurrentScale() *
                 amrex::CRRBetweenLevels(iLevel, maxAllowableLevel,
@@ -904,15 +904,29 @@ void AmrPicture::APMakeImages(Palette *palptr) {
 void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
 			     int datasizeh, int datasizev,
 			     Real globalMin, Real globalMax, Palette *palptr,
-			     const FArrayBox *vfracFab, const Real vfeps)
+			     const FArrayBox *vfracFab, const Real vfeps,
+			     bool logScale)
 {
   int jdsh, jtmp1;
   int dIndex, iIndex;
   Real oneOverGDiff;
-  if((globalMax - globalMin) < FLT_MIN) {
-    oneOverGDiff = 0.0;
+  Real logGlobalMin, logGlobalMax;
+  bool useLogScale = logScale && globalMin > 0.0 && globalMax > 0.0;
+  
+  if(useLogScale) {
+    logGlobalMin = std::log10(globalMin);
+    logGlobalMax = std::log10(globalMax);
+    if((logGlobalMax - logGlobalMin) < FLT_MIN) {
+      oneOverGDiff = 0.0;
+    } else {
+      oneOverGDiff = 1.0 / (logGlobalMax - logGlobalMin);
+    }
   } else {
-    oneOverGDiff = 1.0 / (globalMax - globalMin);
+    if((globalMax - globalMin) < FLT_MIN) {
+      oneOverGDiff = 0.0;
+    } else {
+      oneOverGDiff = 1.0 / (globalMax - globalMin);
+    }
   }
   const Real *dataPoint = fab.dataPtr();
   bool bCartGrid(dataServicesPtr->AmrDataRef().CartGrid());
@@ -943,9 +957,14 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
           } else if(dPoint < globalMin) {  // clip
             imagedata[iIndex] = paletteStart;
           } else {
-            imagedata[iIndex] = (unsigned char)
-              ((((dPoint - globalMin) * oneOverGDiff) * csm1) );
-              //  ^^^^^^^^^^^^^^^^^^ Real data
+            if(useLogScale && dPoint > 0.0) {
+              Real logDPoint = std::log10(dPoint);
+              imagedata[iIndex] = (unsigned char)
+                ((((logDPoint - logGlobalMin) * oneOverGDiff) * csm1) );
+            } else {
+              imagedata[iIndex] = (unsigned char)
+                ((((dPoint - globalMin) * oneOverGDiff) * csm1) );
+            }
             imagedata[iIndex] += paletteStart;
           } 
         }
@@ -966,9 +985,14 @@ void AmrPicture::CreateImage(const FArrayBox &fab, unsigned char *imagedata,
           } else if(dPoint < globalMin) {  // clip
             imagedata[iIndex] = paletteStart;
           } else {
-            imagedata[iIndex] = (unsigned char)
-              ((((dPoint - globalMin) * oneOverGDiff) * csm1) );
-              //  ^^^^^^^^^^^^^^^^^^ Real data
+            if(useLogScale && dPoint > 0.0) {
+              Real logDPoint = std::log10(dPoint);
+              imagedata[iIndex] = (unsigned char)
+                ((((logDPoint - logGlobalMin) * oneOverGDiff) * csm1) );
+            } else {
+              imagedata[iIndex] = (unsigned char)
+                ((((dPoint - globalMin) * oneOverGDiff) * csm1) );
+            }
             imagedata[iIndex] += paletteStart;
           } 
           if(dVFPoint < vfeps) {  // set to body color
@@ -1686,7 +1710,7 @@ void AmrPicture::CreateFrames(Amrvis::AnimDirection direction) {
     }
     CreateImage(imageFab, frameImageData,
 		dataSizeH[maxDrawnLevel], dataSizeV[maxDrawnLevel],
-                minUsing, maxUsing, palPtr, vffp, vfeps);
+                minUsing, maxUsing, palPtr, vffp, vfeps, pltAppStatePtr->GetLogScale());
 
     // this cannot be deleted because it belongs to the XImage
     unsigned char *frameScaledImageData;
