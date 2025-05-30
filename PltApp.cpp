@@ -1668,6 +1668,9 @@ void PltApp::PltAppInit(bool bSubVolume) {
   XtManageChild(wPlotArea);
   XtPopup(wAmrVisTopLevel, XtGrabNone);
   
+  // Add global ESC key handler
+  AddStaticEventHandler(wAmrVisTopLevel, KeyPressMask, &PltApp::DoGlobalKeyPress);
+  
   pltPaletteptr->SetWindow(XtWindow(wPalArea));
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPalArea), false);
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPlotArea), false);
@@ -2363,7 +2366,39 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
 #endif
 }  // end DoSubregion
 
+
+// -------------------------------------------------------------------
+void PltApp::ClearSelection() {
+  // Clear the selection by setting the selectionBox to an empty state
+  selectionBox.setSmall(Amrvis::XDIR, 0);
+  selectionBox.setBig(Amrvis::XDIR, 0);
+#if (BL_SPACEDIM != 1)
+  selectionBox.setSmall(Amrvis::YDIR, 0);
+  selectionBox.setBig(Amrvis::YDIR, 0);
+#endif
+#if (BL_SPACEDIM == 3)
+  selectionBox.setSmall(Amrvis::ZDIR, 0);
+  selectionBox.setBig(Amrvis::ZDIR, 0);
   
+  // Clear the 3D cutting coordinates
+  for(int np = 0; np < Amrvis::NPLANES; ++np) {
+    startcutX[np] = 0;
+    startcutY[np] = 0;
+    finishcutX[np] = 0;
+    finishcutY[np] = 0;
+    // Clear subcut by setting all coordinates to 0 (invalid region)
+    amrPicturePtrArray[np]->SetSubCut(0, 0, 0, 0);
+  }
+#endif
+
+  // Clear the 2D selection region for all planes by setting invalid coordinates
+  for(int np = 0; np < Amrvis::NPLANES; ++np) {
+    amrPicturePtrArray[np]->SetRegion(0, 0, 0, 0);
+    amrPicturePtrArray[np]->DoExposePicture();
+  }
+}
+
+
 // -------------------------------------------------------------------
 void PltApp::DoDatasetButton(Widget, XtPointer, XtPointer) {
 #if (BL_SPACEDIM == 1)
@@ -4095,6 +4130,17 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
       case NoExpose:
       break;
 
+      case KeyPress: {
+        KeySym keysym = XLookupKeysym(&nextEvent.xkey, 0);
+        if(keysym == XK_Escape) {
+          // ESC key pressed - clear selection and exit rubber banding
+          avxGrab.ExplicitUngrab();
+          ClearSelection();
+          return;
+        }
+      }
+      break;
+
       default:
 	break;
       }  // end switch
@@ -4439,6 +4485,17 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 
 
 }  // end DoRubberBanding
+
+
+// -------------------------------------------------------------------
+void PltApp::DoGlobalKeyPress(Widget, XtPointer, XtPointer call_data) {
+  XKeyPressedEvent *event = (XKeyPressedEvent *) call_data;
+  KeySym keysym = XLookupKeysym(event, 0);
+  if(keysym == XK_Escape) {
+    // ESC key pressed - clear any existing selection
+    ClearSelection();
+  }
+}
 
 
 // -------------------------------------------------------------------
