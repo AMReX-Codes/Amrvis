@@ -139,6 +139,7 @@ public:
 
 private:
   Widget wTopLevel;
+  Widget wMainArea;
   Widget wScrollArea[amrex::Amrvis::NPLANES], wPlotPlane[amrex::Amrvis::NPLANES];
   amrex::Vector<Widget> wRangeRadioButton;
   Widget wFileRangeCheckBox;

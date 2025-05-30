@@ -835,11 +835,15 @@ void PltApp::PltAppInit(bool bSubVolume) {
   cursor = XCreateFontCursor(display, XC_left_ptr);
 
   // No need to store these widgets in the class after this function is called.
-  Widget wMainArea, wPalFrame, wPlotFrame, wPalForm;
+  Widget wPalFrame, wPlotFrame, wPalForm;
 
   wMainArea = XtVaCreateManagedWidget("MainArea", xmFormWidgetClass,
 				      wAmrVisTopLevel,
+				      XmNkeyboardFocusPolicy, XmPOINTER,
 				      NULL);
+  
+  // Add global ESC key handler to main area which can receive keyboard focus
+  AddStaticEventHandler(wMainArea, KeyPressMask, &PltApp::DoGlobalKeyPress);
 
   // ------------------------------- menu bar
   Widget wMenuBar, wMenuPulldown, wid, wCascade;
@@ -1667,9 +1671,6 @@ void PltApp::PltAppInit(bool bSubVolume) {
   XtManageChild(wPalArea);
   XtManageChild(wPlotArea);
   XtPopup(wAmrVisTopLevel, XtGrabNone);
-  
-  // Add global ESC key handler
-  AddStaticEventHandler(wAmrVisTopLevel, KeyPressMask, &PltApp::DoGlobalKeyPress);
   
   pltPaletteptr->SetWindow(XtWindow(wPalArea));
   pltPaletteptr->SetWindowPalette(palFilename, XtWindow(wPalArea), false);
