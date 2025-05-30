@@ -3392,7 +3392,7 @@ void PltApp::DoLogScaleButton(Widget, XtPointer, XtPointer) {
   pltAppState->SetLogScale( ! pltAppState->GetLogScale());
   pltPaletteptr->RedrawPalette(pltAppState->GetLogScale());
   for(int np(0); np < Amrvis::NPLANES; ++np) {
-    amrPicturePtrArray[np]->DoExposePicture();
+    amrPicturePtrArray[np]->APMakeImages(pltPaletteptr);
   }
 }
 
