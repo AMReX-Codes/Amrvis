@@ -139,7 +139,6 @@ public:
 
 private:
   Widget wTopLevel;
-  Widget wMainArea;
   Widget wScrollArea[amrex::Amrvis::NPLANES], wPlotPlane[amrex::Amrvis::NPLANES];
   amrex::Vector<Widget> wRangeRadioButton;
   Widget wFileRangeCheckBox;
@@ -249,7 +248,6 @@ private:
   void ShowFrame();
   void DirtyFrames();
   void DoRubberBanding(Widget, XtPointer, XtPointer);
-  void DoGlobalKeyPress(Widget, XtPointer, XtPointer);
   void DoBoxesButton(Widget, XtPointer, XtPointer);
   void DoLogScaleButton(Widget, XtPointer, XtPointer);
   void DoCGSmoothing(Widget, XtPointer, XtPointer);
@@ -277,7 +275,6 @@ private:
   void DoUserMax(Widget, XtPointer, XtPointer);
   void DoOpenPalFile(Widget, XtPointer, XtPointer);
   void DoSubregion(Widget, XtPointer, XtPointer);
-  void ClearSelection();
   void DoInfoButton(Widget, XtPointer, XtPointer);
   void DoOutput(Widget, XtPointer, XtPointer);
   void DoCreatePSFile(Widget, XtPointer, XtPointer);
