@@ -72,13 +72,14 @@ class Palette {
     PaletteType GetPaletteType() { return paletteType; }
     amrex::Vector<float> GetTransferArray() { return transferArray; }
     int   ReadSeqPalette(const string &fileName, bool bRedraw = true);
-    void  DrawPalette(Real palMin, Real palMax, const string &numberFormat);
+    void  DrawPalette(Real palMin, Real palMax, const string &numberFormat, bool logScale = false);
     void  SetWindow(Window drawPaletteHere);
     void  SetWindowPalette(const string &palName, Window newPalWindow,
 			   bool bRedraw = true);
     void  ChangeWindowPalette(const string &palName, Window newPalWindow);
     void  ExposePalette();
     void  RedrawPalette();
+    void  RedrawPalette(bool logScale);
     void  SetReserveSystemColors(int reservesystemcolors);
     void  SetFormat(const string &newFormat);
     Colormap GetColormap() const  { return colmap; }

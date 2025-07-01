@@ -249,6 +249,7 @@ private:
   void DirtyFrames();
   void DoRubberBanding(Widget, XtPointer, XtPointer);
   void DoBoxesButton(Widget, XtPointer, XtPointer);
+  void DoLogScaleButton(Widget, XtPointer, XtPointer);
   void DoCGSmoothing(Widget, XtPointer, XtPointer);
   void DoCGShowBody(Widget, XtPointer, XtPointer);
   void DoAnimBackStep();
@@ -348,7 +349,7 @@ class AVXGrab {
   public:
     AVXGrab(Display *display) : bIsGrabbed(true), cachedDisplay(display) {
       XSync(cachedDisplay, False);
-      XGrabServer(display);
+      //XGrabServer(display);
       XSync(cachedDisplay, False);
     }
 

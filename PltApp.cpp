@@ -26,6 +26,7 @@
 #include <Xm/CascadeB.h>
 
 #include <X11/cursorfont.h>
+#include <X11/keysym.h>
 
 
 #include <PltApp.H>
@@ -1059,6 +1060,18 @@ void PltApp::PltAppInit(bool bSubVolume) {
 				NULL);
   XmStringFree(label_str);
   AddStaticCallback(wid, XmNvalueChangedCallback, &PltApp::DoBoxesButton);
+
+  // Toggle log scale colorbar
+  label_str = XmStringCreateSimple(const_cast<char *>("l"));
+  wid = XtVaCreateManagedWidget("Log Scale",
+				xmToggleButtonGadgetClass, wMenuPulldown,
+				XmNmnemonic, 'L',
+				XmNset, pltAppState->GetLogScale(),
+				XmNaccelerator, "<Key>L",
+				XmNacceleratorText, label_str,
+				NULL);
+  XmStringFree(label_str);
+  AddStaticCallback(wid, XmNvalueChangedCallback, &PltApp::DoLogScaleButton);
 
   if(amrData.CartGrid()) {
     // cart grid smoothing
@@ -3367,6 +3380,20 @@ void PltApp::DoBoxesButton(Widget, XtPointer, XtPointer) {
   XDrawLine(display, XtWindow(wPlotPlane[Amrvis::ZPLANE]), xgc,
             imageSizeX, 0, imageSizeX, imageSizeY);
   */
+}
+
+
+// -------------------------------------------------------------------
+void PltApp::DoLogScaleButton(Widget, XtPointer, XtPointer) {
+  if(animating2d) {
+    ResetAnimation();
+    DirtyFrames(); 
+  }
+  pltAppState->SetLogScale( ! pltAppState->GetLogScale());
+  pltPaletteptr->RedrawPalette(pltAppState->GetLogScale());
+  for(int np(0); np < Amrvis::NPLANES; ++np) {
+    amrPicturePtrArray[np]->APMakeImages(pltPaletteptr);
+  }
 }
 
 

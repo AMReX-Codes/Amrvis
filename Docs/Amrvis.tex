@@ -197,6 +197,13 @@ clicks on a data point in the Dataset window, a box will be
 drawn around the corresponding data point in the Data Image Area
 (the color data image).
 
+\item[XY Plot Window]  This window displays 1D line plots of data values
+and is created when holding shift while using the middle or right mouse buttons
+to draw lines across the data view. The plot shows the variation of the selected
+quantity along the line. Multiple line plots can be overlaid in the same
+window for comparison. The window includes controls for animation through
+time steps, displaying the plots from multiple files at the same position.
+
 \item[Animation Control Area]  This area contains controls for animating
 through data files and through planes in 3D.  It is in the lower right
 part of the Data View Window below the Palette Area.  It also shows
@@ -316,11 +323,15 @@ drawing subregions in a view for datasets and subvolumes, spinning the image
 in the isometric view, translating the image in the isometric view (with the
 shift button pressed), and clicking a point for its data value.
 
-\item [Middle Button]  Placing horizontal planar cutting lines in the
-orthogonal image views and rotating around the eye point in the isometric view.
+\item [Middle Button]  Creating horizontal 1D line plots by holding shift while clicking
+and dragging to draw a horizontal line across the data view. When the button is released,
+a separate XY plot window opens showing the data values along that line (X-direction plot
+at the selected Y position). In 3D, this also rotates around the eye point in the isometric view.
 
-\item [Right Button]   Placing vertical planar cutting lines in the
-orthogonal image views and zooming the isometric view (pull or push the mouse).
+\item [Right Button]   Creating vertical 1D line plots by holding shift while clicking
+and dragging to draw a vertical line across the data view. When the button is released,
+a separate XY plot window opens showing the data values along that line (Y-direction plot
+at the selected X position). In 3D, this also zooms the isometric view (pull or push the mouse).
 
 \end{description}
 
