@@ -162,6 +162,7 @@ private:
   Widget wAttach, wDetachTopLevel;
 #if defined(BL_VOLUMERENDER) || defined(BL_PARALLELVOLUMERENDER)
   Widget wAutoDraw;
+  Widget wInvertOpacity;
   Widget wLWambient, wLWdiffuse, wLWspecular, wLWshiny;
   Widget wLWminOpacity, wLWmaxOpacity;
   Widget wCurrentRenderMode, wCurrentClassify;
@@ -229,7 +230,7 @@ private:
   ProjectionPicture *projPicturePtr;
   ViewTransform	viewTrans;
   bool lightingModel, showing3dRender, preClassify, lightingWindowExists;
-
+  bool invert_opacity = false;
 #endif
   
   void PltAppInit(bool bSubVolume = false);           // called by constructors
@@ -308,6 +309,7 @@ private:
   void DoRenderModeMenu(Widget, XtPointer, XtPointer);
   void DoClassifyMenu(Widget, XtPointer, XtPointer);
   void DoAutoDraw(Widget, XtPointer, XtPointer);
+  void SetInvertOpacity(Widget, XtPointer, XtPointer);
   void DoCreateLightingWindow(Widget, XtPointer, XtPointer);
   void DoDoneLightingWindow(Widget, XtPointer, XtPointer);
   void DoApplyLightingWindow(Widget, XtPointer, XtPointer);

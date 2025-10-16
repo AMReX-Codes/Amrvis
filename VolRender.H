@@ -92,6 +92,8 @@ class VolRender {
     void SetTransferProperties();
     void SetLighting(Real ambient, Real diffuse, Real specular, Real shiny,
 		     Real minRay, Real maxRay);
+    void SetInvertOpacity(bool a_invert_opacity) { invert_opacity = a_invert_opacity; }
+    bool GetInvertOpacity() { return invert_opacity; }
     Real GetDiffuse() { return diffuseMat; }
     Real GetAmbient() { return ambientMat; }
     Real GetSpecular() { return specularMat; }
@@ -102,6 +104,7 @@ class VolRender {
   private:
     Real diffuseMat, shinyMat, specularMat, ambientMat;
     Real vpLen, vpAspect;
+    bool invert_opacity = false;
     bool lightingModel, preClassify;
     bool bDrawAllBoxes;
     int  voxelFields;

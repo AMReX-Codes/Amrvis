@@ -273,7 +273,7 @@ void VolRender::MakeSWFData(amrex::DataServices *dataServicesPtr,
     int grows   = gbox.length(Amrvis::XDIR);
     int gcols   = gbox.length(Amrvis::YDIR);
     //int gplanes = gbox.length(Amrvis::ZDIR);
-    
+
     int gcolsgrowstmp(gcols * grows);
     int gpgcgrtmp, gcgrowstmp;
     for(int gp(gostartp); gp <= goendp; ++gp) {
@@ -285,6 +285,9 @@ void VolRender::MakeSWFData(amrex::DataServices *dataServicesPtr,
           dat = dataPoint[gcgrowstmp + gr];
           dat = max(dat,gmin); // clip data if out of range
           dat = min(dat,gmax);
+          if (invert_opacity) {
+            dat = gmax - (dat-gmin);
+          }
           chardat = (char) (((dat - gmin) * oneOverGDiff) * cSlotsAvail);
           chardat += (char) iPaletteStart;
 	  int gprev = gostartp + goendp - gp;
