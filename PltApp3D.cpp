@@ -782,6 +782,20 @@ void PltApp::DoAutoDraw(Widget, XtPointer, XtPointer) {
   DoExposeTransDA();
 }
 
+// -------------------------------------------------------------------
+void PltApp::SetInvertOpacity(Widget, XtPointer, XtPointer) {
+  if(XmToggleButtonGetState(wInvertOpacity)) {
+    invert_opacity = true;
+  } else {
+    invert_opacity = false;
+  }
+  VolRender *volRenderPtr = projPicturePtr->GetVolRenderPtr();
+  if (volRenderPtr && volRenderPtr->GetInvertOpacity() != invert_opacity) {
+    volRenderPtr->SetInvertOpacity(invert_opacity);
+    volRenderPtr->SetTransferProperties();
+    volRenderPtr->InvalidateVPData();
+  }
+}
 
 // -------------------------------------------------------------------
 void PltApp::DoRenderModeMenu(Widget w, XtPointer item_no, XtPointer /*client_data*/) {

@@ -1133,6 +1133,11 @@ void PltApp::PltAppInit(bool bSubVolume) {
     XtVaCreateManagedWidget("Autodraw", xmToggleButtonGadgetClass, wMenuPulldown,
 			    XmNmnemonic, 'A', XmNset, false, NULL);
   AddStaticCallback(wAutoDraw, XmNvalueChangedCallback, &PltApp::DoAutoDraw);
+
+  wInvertOpacity =
+    XtVaCreateManagedWidget("Invert Opacity", xmToggleButtonGadgetClass, wMenuPulldown,
+			    XmNmnemonic, 'I', XmNset, false, NULL);
+  AddStaticCallback(wInvertOpacity, XmNvalueChangedCallback, &PltApp::SetInvertOpacity);
   
   wid = XtVaCreateManagedWidget("Lighting...",
 				xmPushButtonGadgetClass, wMenuPulldown,

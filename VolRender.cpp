@@ -273,7 +273,7 @@ void VolRender::MakeSWFData(amrex::DataServices *dataServicesPtr,
     int grows   = gbox.length(Amrvis::XDIR);
     int gcols   = gbox.length(Amrvis::YDIR);
     //int gplanes = gbox.length(Amrvis::ZDIR);
-    
+
     int gcolsgrowstmp(gcols * grows);
     int gpgcgrtmp, gcgrowstmp;
     for(int gp(gostartp); gp <= goendp; ++gp) {
@@ -999,6 +999,11 @@ void VolRender::MakeDefaultTransProperties() {
 void VolRender::SetTransferProperties() {
   BL_ASSERT(palettePtr != NULL);
   density_ramp = palettePtr->GetTransferArray();
+  if (invert_opacity) {
+      for (auto& op : density_ramp) {
+	  op = float(1) - op;
+      }
+  }
   //density_ramp[palettePtr->BodyIndex()] = 0.08;
   density_ramp[palettePtr->BodyIndex()] = (float) AVGlobals::GetBodyOpacity();
   vpSetClassifierTable(vpc, DENSITY_PARAM, densityField,
