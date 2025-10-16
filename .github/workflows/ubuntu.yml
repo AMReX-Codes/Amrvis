@@ -9,11 +9,11 @@ concurrency:
 jobs:
   build_gcc:
     name: GCC DP 2D Profiling
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     if: github.event.pull_request.draft == false
     steps:
-    - uses: actions/checkout@v3
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v5
+    - uses: actions/checkout@v5
       with:
         repository: 'AMReX-Codes/amrex'
         path: 'amrex'
