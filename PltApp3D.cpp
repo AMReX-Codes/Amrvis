@@ -792,7 +792,7 @@ void PltApp::SetInvertOpacity(Widget, XtPointer, XtPointer) {
   VolRender *volRenderPtr = projPicturePtr->GetVolRenderPtr();
   if (volRenderPtr && volRenderPtr->GetInvertOpacity() != invert_opacity) {
     volRenderPtr->SetInvertOpacity(invert_opacity);
-    volRenderPtr->InvalidateSWFData();
+    volRenderPtr->SetTransferProperties();
     volRenderPtr->InvalidateVPData();
   }
 }
