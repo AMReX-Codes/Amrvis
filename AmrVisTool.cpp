@@ -23,6 +23,9 @@
 #include <Palette.H>
 #include <PltApp.H>
 #include <GlobalUtilities.H>
+
+// X11 defines None as 0, which conflicts with AMReX's QuoteType::None enum.
+#undef None
 #include <AMReX_ParmParse.H>
 #include <AMReX_DataServices.H>
 #include <PltAppState.H>
