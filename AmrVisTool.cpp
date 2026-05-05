@@ -4,6 +4,13 @@
 
 #include <AMReX_ParallelDescriptor.H>
 #include <AMReX_BLProfiler.H>
+#include <AMReX_ParmParse.H>
+#include <AMReX_DataServices.H>
+#include <PltAppState.H>
+#ifdef BL_USE_PROFPARSER
+#include <ProfApp.H>
+#include <AMReX_DataServices.H>
+#endif
 
 #include <stdio.h>
 #if ! (defined(BL_OSF1) || defined(BL_Darwin) || defined(BL_AIX) || defined(BL_IRIX64) || defined(BL_CYGWIN_NT) || defined(BL_CRAYX1))
@@ -23,13 +30,6 @@
 #include <Palette.H>
 #include <PltApp.H>
 #include <GlobalUtilities.H>
-#include <AMReX_ParmParse.H>
-#include <AMReX_DataServices.H>
-#include <PltAppState.H>
-#ifdef BL_USE_PROFPARSER
-#include <ProfApp.H>
-#include <AMReX_DataServices.H>
-#endif
 
 #ifdef BL_VOLUMERENDER
 #include <VolRender.H>
