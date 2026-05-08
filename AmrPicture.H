@@ -143,7 +143,8 @@ class AmrPicture {
   void CreateImage(const amrex::FArrayBox &fab, unsigned char *imagedata,
                    int datasizeh, int datasizev,
                    Real globalMin, Real globalMax, Palette *palptr,
-		   const amrex::FArrayBox *vfracFab, const Real vfeps);
+		   const amrex::FArrayBox *vfracFab, const Real vfeps,
+		   bool logScale = false);
   void CreateScaledImage(XImage **ximage, int scale,
                          unsigned char *imagedata,
                          unsigned char *scaledimagedata,

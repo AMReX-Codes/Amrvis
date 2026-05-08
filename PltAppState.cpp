@@ -68,6 +68,7 @@ PltAppState::PltAppState(int numFrames, int numDerived)
     }
   }
   cgSmoothing = false;
+  logScale = false;
 }
 
 
@@ -88,6 +89,7 @@ PltAppState &PltAppState::operator=(const PltAppState &rhs) {
   currentDerivedNumber = rhs.currentDerivedNumber;
   showBoxes = rhs.showBoxes;
   cgSmoothing = rhs.cgSmoothing;
+  logScale = rhs.logScale;
   currentContourType = rhs.currentContourType;
   nContours = rhs.nContours;
   currentMinMaxType = rhs.currentMinMaxType;

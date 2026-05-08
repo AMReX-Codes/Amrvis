@@ -81,6 +81,10 @@ public:
   bool GetCGSmoothing() const        { return cgSmoothing; }
   void SetCGSmoothing(bool smoothing)  { cgSmoothing = smoothing; }
 
+  // ------------------------ log scale
+  bool GetLogScale() const         { return logScale; }
+  void SetLogScale(bool useLogScale) { logScale = useLogScale; }
+
   // ------------------------ number format
   string GetFormatString() const                 { return formatString;      }
   void SetFormatString(const string &newformat)  { formatString = newformat; }
@@ -139,6 +143,7 @@ private:
   int currentDerivedNumber;
   bool showBoxes;
   bool cgSmoothing;
+  bool logScale;
   amrex::Amrvis::ContourType currentContourType;
   int nContours;
   amrex::Amrvis::MinMaxRangeType currentMinMaxType;
