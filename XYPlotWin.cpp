@@ -2292,7 +2292,7 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 			     ButtonPressMask | ButtonReleaseMask |
 			     PointerMotionMask | PointerMotionHintMask,
 			     zoomCursor, CurrentTime);
-    AVXGrab avxGrab(disp);
+    XSync(disp, False);
     lowX = TRANX(anchorX);
     lowY = TRANY(anchorY);
     
@@ -2325,6 +2325,7 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 	  rStartY = (anchorY < oldY) ? anchorY : oldY;
 	  XDrawRectangle(disp, pWindow, rbGC, rStartX, rStartY,
 			 rWidth, rHeight);
+	  XSync(disp, False);
 	}
 	
 	// get rid of those pesky extra MotionNotify events
@@ -2341,6 +2342,7 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 	rStartY = (anchorY < newY) ? anchorY : newY;
 	XDrawRectangle(disp, pWindow, rbGC, rStartX, rStartY,
 		       rWidth, rHeight);
+	XSync(disp, False);
 	rectDrawn = true;
 	
 	oldX = newX;
@@ -2349,7 +2351,6 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 	break;
 	
       case ButtonRelease:
-	avxGrab.ExplicitUngrab();  // giveitawaynow
 	
 	// undraw rectangle
 	rWidth  = std::abs(oldX-anchorX);
@@ -2358,6 +2359,7 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 	rStartY = (anchorY < oldY) ? anchorY : oldY;
 	XDrawRectangle(disp, pWindow, rbGC, rStartX, rStartY,
 		       rWidth, rHeight);
+	XSync(disp, False);
 	
 	highX = TRANX(newX);
 	highY = TRANY(newY);
