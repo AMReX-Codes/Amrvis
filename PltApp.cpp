@@ -40,6 +40,7 @@
 #include <PVolRender.H>
 #endif
 
+#include <algorithm>
 #include <cctype>
 #include <sstream>
 #include <cmath>
@@ -177,18 +178,34 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   pltAppState->SetCurrentDerived(PltApp::initialDerived,
 				 amrData.StateNumber(initialDerived));
   pltAppState->SetShowingBoxes(GetDefaultShowBoxes());
+  // ---- frames of an animation may have differing numbers of levels
+  // ---- (regrid), so scan all frames and use the deepest one to define
+  // ---- the level structure.  frames with fewer levels are displayed
+  // ---- at the anticipated finest level.
   int finestLevel(amrData.FinestLevel());
+  int iDeepestFrame(currentFrame);
+  if(animating2d) {
+    for(int i(0); i < animFrames; ++i) {
+      int iFrameFinestLevel(dataServicesPtr[i]->AmrDataRef().FinestLevel());
+      if(iFrameFinestLevel > finestLevel) {
+        finestLevel = iFrameFinestLevel;
+        iDeepestFrame = i;
+      }
+    }
+  }
+  const AmrData &deepAmrData = dataServicesPtr[iDeepestFrame]->AmrDataRef();
   pltAppState->SetFinestLevel(finestLevel);
+  pltAppState->SetRefRatios(deepAmrData.RefRatio());
   int maxlev =
-        AVGlobals::DetermineMaxAllowableLevel(amrData.ProbDomain()[finestLevel],
+        AVGlobals::DetermineMaxAllowableLevel(deepAmrData.ProbDomain()[finestLevel],
 			       finestLevel, AVGlobals::MaxPictureSize(),
-			       amrData.RefRatio());
+			       deepAmrData.RefRatio());
   int minAllowableLevel(0);
   pltAppState->SetMinAllowableLevel(minAllowableLevel);
   pltAppState->SetMaxAllowableLevel(maxlev);
   pltAppState->SetMinDrawnLevel(minAllowableLevel);
   pltAppState->SetMaxDrawnLevel(maxlev);
-  Box maxDomain(amrData.ProbDomain()[maxlev]);
+  Box maxDomain(deepAmrData.ProbDomain()[maxlev]);
 #if (BL_SPACEDIM == 1)
   unsigned long dataSize(static_cast<unsigned long>(maxDomain.length(Amrvis::XDIR)));
 #else
@@ -353,10 +370,14 @@ PltApp::PltApp(XtAppContext app, Widget w, const string &filename,
   int coarseLevel(0);
   int iCDerNum(pltAppState->CurrentDerivedNumber());
   string asCDer(pltAppState->CurrentDerived());
-  int fineLevel(amrData.FinestLevel());
-  const Vector<Box> &onBox(amrData.ProbDomain());
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
     Real rFileMin, rFileMax;
+
+    // ---- use each frame's own finest level and prob domains here:
+    // ---- frames may have differing numbers of levels.
+    const AmrData &frameAmrData = dataServicesPtr[iFrame]->AmrDataRef();
+    int fineLevel(frameAmrData.FinestLevel());
+    const Vector<Box> &onBox(frameAmrData.ProbDomain());
 
     FindAndSetMinMax(Amrvis::FILEGLOBALMINMAX, iFrame, asCDer, iCDerNum,
 		     onBox, coarseLevel, fineLevel, false);  // dont reset if set
@@ -475,12 +496,20 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
 #endif
   contourNumString = sPltParent->contourNumString.c_str();
 
-  int finestLevel(amrData.FinestLevel());
-  pltAppState->SetFinestLevel(finestLevel);
+  // ---- use the animation-wide finest level and ref ratios (copied from
+  // ---- the parent state above); the current frame may have fewer levels.
+  int finestLevel(pltAppState->FinestLevel());
   int maxlev = AVGlobals::DetermineMaxAllowableLevel(region, finestLevel,
 					             AVGlobals::MaxPictureSize(),
-					             amrData.RefRatio());
-  int minAllowableLevel = amrData.FinestContainingLevel(region, finestLevel);
+					             pltAppState->RefRatios());
+  int frameFinestLevel(amrData.FinestLevel());
+  Box regionAtFrameFinest(region);   // region is at finestLevel
+  if(finestLevel > frameFinestLevel) {
+    regionAtFrameFinest.coarsen(amrex::CRRBetweenLevels(frameFinestLevel,
+			         finestLevel, pltAppState->RefRatios()));
+  }
+  int minAllowableLevel = amrData.FinestContainingLevel(regionAtFrameFinest,
+                                                        frameFinestLevel);
 
   if(minAllowableLevel > maxlev) {
     //maxlev = minAllowableLevel;
@@ -496,7 +525,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   Box maxDomain(region);
   if(maxlev < finestLevel) {
     maxDomain.coarsen(amrex::CRRBetweenLevels(maxlev, finestLevel,
-                      amrData.RefRatio()));
+                      pltAppState->RefRatios()));
   }
 
 #if (BL_SPACEDIM == 1)
@@ -659,7 +688,7 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
   for(int ilev(pltAppState->MaxAllowableLevel() - 1); ilev >= 0; --ilev) {
     Box tempbox(maxDomain);
     tempbox.coarsen(amrex::CRRBetweenLevels(ilev, finestLevel,
-                    amrData.RefRatio()));
+                    pltAppState->RefRatios()));
     onBox[ilev] = tempbox;
   }
   int iCDerNum(pltAppState->CurrentDerivedNumber());
@@ -677,8 +706,12 @@ PltApp::PltApp(XtAppContext app, Widget w, const Box &region,
     // these do not change for a subregion
 
     // set FILESUBREGIONMINMAX
+    // ---- clamp the fine level to this frame's finest level (frames may
+    // ---- have differing numbers of levels)
+    int frameFineLevel(std::min(fineLevel,
+                       dataServicesPtr[iFrame]->AmrDataRef().FinestLevel()));
     FindAndSetMinMax(Amrvis::FILESUBREGIONMINMAX, iFrame, asCDer, iCDerNum, onBox,
-	             coarseLevel, fineLevel, true);  // reset if already set
+	             coarseLevel, frameFineLevel, true);  // reset if already set
 
     Real rTempMin, rTempMax;
     pltAppState->GetMinMax(Amrvis::FILESUBREGIONMINMAX, iFrame, iCDerNum,
@@ -755,13 +788,19 @@ void PltApp::PltAppInit(bool bSubVolume) {
 			  XmInternAtom(display, const_cast<char *>("WM_DELETE_WINDOW"), false),
 			  (XtCallbackProc) CBQuitPltApp, (XtPointer) this);
 
+  // ---- this frame may have fewer levels than maxAllowableLevel (frames
+  // ---- of an animation may have differing numbers of levels), so derive
+  // ---- dx at maxAllowableLevel from the finest dx this frame contains.
+  int frameMaxLevel(std::min(maxAllowableLevel, amrData.FinestLevel()));
+  Real dxLevelScale(static_cast<Real>(amrex::CRRBetweenLevels(frameMaxLevel,
+                          maxAllowableLevel, pltAppState->RefRatios())));
   for(np = 0; np != BL_SPACEDIM; ++np) {
     XYplotwin[np] = NULL; // No 1D plot windows initially.
 
     // For speed (and clarity) we store the values of the finest value of h of
     // each dimension, as well as the low value of the problem domain in simple
     // arrays.  These are both in problem space.
-    finestDx[np] = amrData.DxLevel()[maxAllowableLevel][np];
+    finestDx[np] = amrData.DxLevel()[frameMaxLevel][np] / dxLevelScale;
     gridOffset[np] = amrData.ProbLo()[np];
   }
   bSyncFrame = false;
@@ -966,7 +1005,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
   wCurrLevel = NULL;
   BL_ASSERT(minAllowableLevel <= maxDrawnLevel);
   for(int menuLevel(minAllowableLevel); menuLevel <= maxDrawnLevel; ++menuLevel) {
-    sprintf(selectText, "%i/%i", menuLevel, amrData.FinestLevel());
+    sprintf(selectText, "%i/%i", menuLevel, pltAppState->FinestLevel());
     wid = XtVaCreateManagedWidget(selectText, xmToggleButtonGadgetClass, wCascade,
 				  XmNset, false, NULL);
     if(menuLevel <= 10) {
@@ -1814,9 +1853,8 @@ std::cout << "TRTRTRTR:  subTimeRangeStart subTimeRangeStop = " << subTimeRangeS
 #if (BL_SPACEDIM == 3)
   int maxAllowLev(pltAppState->MaxAllowableLevel());
   int maxDrawnLev(pltAppState->MaxDrawnLevel());
-  const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   int crrDiff(amrex::CRRBetweenLevels(maxDrawnLev, maxAllowLev,
-              amrData.RefRatio()));
+              pltAppState->RefRatios()));
   int axisLength(20);
   int ypColor(whiteColor), xpColor(whiteColor);
   int xyzAxisLength(50);
@@ -2258,8 +2296,9 @@ void PltApp::ToggleRange(Widget /*w*/, XtPointer client_data, XtPointer call_dat
 // -------------------------------------------------------------------
 void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
   Box subregionBox;
-  const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
-  int finestLevel(amrData.FinestLevel());
+  // ---- use the animation-wide finest level and ref ratios; the current
+  // ---- frame may have fewer levels than other frames.
+  int finestLevel(pltAppState->FinestLevel());
   int maxAllowableLevel(pltAppState->MaxAllowableLevel());
   int newMinAllowableLevel;
   
@@ -2313,27 +2352,27 @@ void PltApp::DoSubregion(Widget, XtPointer, XtPointer) {
   
   Box tempRefinedBox(subregionBox);
   tempRefinedBox.refine(amrex::CRRBetweenLevels(maxAllowableLevel, finestLevel,
-					            amrData.RefRatio()));
+					            pltAppState->RefRatios()));
   // this puts tempRefinedBox in terms of the finest level
   newMinAllowableLevel = pltAppState->MinAllowableLevel();
   //newMinAllowableLevel = min(newMinAllowableLevel, maxAllowableLevel);
   
   // coarsen to the newMinAllowableLevel to align grids
   subregionBox.coarsen(amrex::CRRBetweenLevels(newMinAllowableLevel,
-					maxAllowableLevel, amrData.RefRatio()));
+					maxAllowableLevel, pltAppState->RefRatios()));
   
   Box subregionBoxMAL(subregionBox);
   
   // refine to the finestLevel
   subregionBox.refine(amrex::CRRBetweenLevels(newMinAllowableLevel, finestLevel,
-				       amrData.RefRatio()));
+				       pltAppState->RefRatios()));
   
   maxAllowableLevel = AVGlobals::DetermineMaxAllowableLevel(subregionBox,
                                                  finestLevel,
 						 AVGlobals::MaxPictureSize(),
-						 amrData.RefRatio());
+						 pltAppState->RefRatios());
   subregionBoxMAL.refine(amrex::CRRBetweenLevels(newMinAllowableLevel,
-					  maxAllowableLevel, amrData.RefRatio()));
+					  maxAllowableLevel, pltAppState->RefRatios()));
   
   IntVect ivOffset(subregionBoxMAL.smallEnd());
   
@@ -3507,12 +3546,19 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
   for(lev = mal - 1; lev >= 0; --lev) {
     ssTrueRegion[lev] = ssTrueRegion[mal];
     ssTrueRegion[lev].coarsen(amrex::CRRBetweenLevels(lev, mal,
-                            amrData.RefRatio()));
+                            pltAppState->RefRatios()));
   }
+  // ---- only request data for levels this frame actually contains
+  // ---- (frames of an animation may have differing numbers of levels).
+  // ---- the data list is still declared with maxLevel = mal so that
+  // ---- MaxLevel() is preserved when animation code recreates lists for
+  // ---- other (possibly deeper) frames; XYPlotDataList composites the
+  // ---- missing fine levels from the coarser data.
+  int malData(std::min(mal, amrData.FinestLevel()));
   // Create an array of titles corresponding to the intersected line.
   Vector<Real> XdX(mal + 1);
   Vector<char *> intersectStr(mal + 1);
-  
+
 #if (BL_SPACEDIM == 3)
   char bufferL[128];
   sprintf(bufferL, "%s%s %s%s",
@@ -3520,39 +3566,46 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 	  (dir2 == Amrvis::YDIR) ? "Y=" : "Z=", pltAppState->GetFormatString().c_str());
 #endif
   for(lev = 0; lev <= mal; ++lev) {
-    XdX[lev] = amrData.DxLevel()[lev][sdir];
+    // ---- for levels above this frame's finest, derive dx by scaling
+    // ---- the finest dx this frame contains
+    int levData(std::min(lev, malData));
+    Real dxLevScale(static_cast<Real>(amrex::CRRBetweenLevels(levData, lev,
+                                          pltAppState->RefRatios())));
+    XdX[lev] = amrData.DxLevel()[levData][sdir] / dxLevScale;
     intersectStr[lev] = new char[128];  // ---- these are deleted by XYPlotDataList
 #if (BL_SPACEDIM == 1)
     sprintf(intersectStr[lev], "X=");
     sprintf(intersectStr[lev]+2, pltAppState->GetFormatString().c_str(),
 	    gridOffset[dir1] +
-	    (0.5 + ssTrueRegion[lev].smallEnd(dir1))*amrData.DxLevel()[lev][dir1]);
+	    (0.5 + ssTrueRegion[lev].smallEnd(dir1)) *
+	    (amrData.DxLevel()[levData][dir1] / dxLevScale));
 #elif (BL_SPACEDIM == 2)
     sprintf(intersectStr[lev], ((dir1 == Amrvis::XDIR) ? "X=" : "Y="));
     sprintf(intersectStr[lev]+2, pltAppState->GetFormatString().c_str(),
 	    gridOffset[dir1] +
-	    (0.5 + ssTrueRegion[lev].smallEnd(dir1))*amrData.DxLevel()[lev][dir1]);
+	    (0.5 + ssTrueRegion[lev].smallEnd(dir1)) *
+	    (amrData.DxLevel()[levData][dir1] / dxLevScale));
 #elif (BL_SPACEDIM == 3)
     sprintf(intersectStr[lev], bufferL,
-	    amrData.DxLevel()[lev][dir1] * (0.5 + ssTrueRegion[lev].smallEnd(dir1)) +
-	    gridOffset[dir1],
-	    amrData.DxLevel()[lev][dir2] * (0.5 + ssTrueRegion[lev].smallEnd(dir2)) +
-	    gridOffset[dir2]);
-#endif	    
+	    (amrData.DxLevel()[levData][dir1] / dxLevScale) *
+	    (0.5 + ssTrueRegion[lev].smallEnd(dir1)) + gridOffset[dir1],
+	    (amrData.DxLevel()[levData][dir2] / dxLevScale) *
+	    (0.5 + ssTrueRegion[lev].smallEnd(dir2)) + gridOffset[dir2]);
+#endif
   }
   XYPlotDataList *newlist = new XYPlotDataList(*derived,
                                      pltAppState->MinDrawnLevel(), mal,
-				     ix, amrData.RefRatio(),
+				     ix, pltAppState->RefRatios(),
 		                     XdX, intersectStr, gridOffset[sdir]);
 
   bool lineOK;
   DataServices::Dispatch(DataServices::LineValuesRequest,
 			 dataServicesPtr[currentFrame],
-			 mal + 1,
+			 malData + 1,
 			 (void *) (ssTrueRegion.dataPtr()),
 			 sdir,
 			 (void *) derived,
-			 pltAppState->MinAllowableLevel(), mal,
+			 pltAppState->MinAllowableLevel(), malData,
 			 (void *) newlist, &lineOK);
   if(lineOK) {
     return newlist;
@@ -3852,7 +3905,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	  for(y = mal - 1; y >= 0; --y) {
 	    trueRegionArray[y] = trueRegionArray[mal];
 	    trueRegionArray[y].coarsen(amrex::CRRBetweenLevels(y, mal,
-	                          amrData.RefRatio()));
+	                          pltAppState->RefRatios()));
 	    trueRegionArray[y].setBig(Amrvis::XDIR, trueRegionArray[y].smallEnd(Amrvis::XDIR));
 #if (BL_SPACEDIM != 1)
 	    trueRegionArray[y].setBig(Amrvis::YDIR, trueRegionArray[y].smallEnd(Amrvis::YDIR));
@@ -3865,7 +3918,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 				 trueRegionArray.size(),
 				 (void *) (trueRegionArray.dataPtr()),
 				 (void *) &pltAppState->CurrentDerived(),
-				 minDrawnLevel, maxDrawnLevel,
+				 minDrawnLevel,
+				 std::min(maxDrawnLevel, amrData.FinestLevel()),
 				 &intersectedLevel, &intersectedGrid,
 				 &dataValue, &goodIntersect);
 	  char dataValueCharString[Amrvis::LINELENGTH];
@@ -3883,7 +3937,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 				   trueRegionArray.size(),
 				   (void *) (trueRegionArray.dataPtr()),
 				   (void *) &vfDerived,
-				   minDrawnLevel, maxDrawnLevel,
+				   minDrawnLevel,
+				   std::min(maxDrawnLevel, amrData.FinestLevel()),
 				   &intersectedLevel, &intersectedGrid,
 				   &dataValue, &goodIntersect);
 	    Real vfeps(amrData.VfEps(intersectedLevel));
@@ -3923,7 +3978,8 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 	      buffout << "time   = " << dLocStr << '\n';
 	      idx = Amrvis::YDIR;
 	      int iLoc = int( gridOffset[idx] + trueRegionArray[mal].smallEnd()[idx] );
-	      iLoc *= amrex::CRRBetweenLevels(maxDrawnLevel, amrData.FinestLevel(), amrData.RefRatio());
+	      iLoc *= amrex::CRRBetweenLevels(std::min(maxDrawnLevel, amrData.FinestLevel()),
+	                                      amrData.FinestLevel(), amrData.RefRatio());
 	      buffout << "rank   = " << iLoc << '\n';
               if(callTraceExists) {
                 if(callTraceShowing) {
@@ -4540,9 +4596,8 @@ void PltApp::DoBackStep(int plane) {
   int currentScale(pltAppState->CurrentScale());
   int maxAllowLev(pltAppState->MaxAllowableLevel());
   int maxDrawnLev(pltAppState->MaxDrawnLevel());
-  const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   int crrDiff(amrex::CRRBetweenLevels(maxDrawnLev, maxAllowLev,
-              amrData.RefRatio()));
+              pltAppState->RefRatios()));
   AmrPicture *appX = amrPicturePtrArray[Amrvis::XPLANE];
   AmrPicture *appY = amrPicturePtrArray[Amrvis::YPLANE];
   AmrPicture *appZ = amrPicturePtrArray[Amrvis::ZPLANE];
@@ -4619,9 +4674,8 @@ void PltApp::DoForwardStep(int plane) {
   int currentScale(pltAppState->CurrentScale());
   int maxAllowLev(pltAppState->MaxAllowableLevel());
   int maxDrawnLev(pltAppState->MaxDrawnLevel());
-  const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
   int crrDiff(amrex::CRRBetweenLevels(maxDrawnLev, maxAllowLev,
-              amrData.RefRatio()));
+              pltAppState->RefRatios()));
   AmrPicture *appX = amrPicturePtrArray[Amrvis::XPLANE];
   AmrPicture *appY = amrPicturePtrArray[Amrvis::YPLANE];
   AmrPicture *appZ = amrPicturePtrArray[Amrvis::ZPLANE];
@@ -4797,10 +4851,12 @@ void PltApp::ResetAnimation() {
 			 (XtPointer) Tempap);
     Box fineDomain(amrPicturePtrArray[Amrvis::ZPLANE]->GetSubDomain()[maLev]);
     delete Tempap;
-    
-    const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
-    fineDomain.refine(amrex::CRRBetweenLevels(maLev, amrData.FinestLevel(),
-                                                  amrData.RefRatio()));
+
+    // ---- use the animation-wide finest level and ref ratios so that the
+    // ---- geometry is identical for every frame (frames may have differing
+    // ---- numbers of levels)
+    fineDomain.refine(amrex::CRRBetweenLevels(maLev, pltAppState->FinestLevel(),
+                                                  pltAppState->RefRatios()));
     amrPicturePtrArray[Amrvis::ZPLANE] = new AmrPicture(Amrvis::ZPLANE, gaPtr, fineDomain, 
 						NULL, this,
 						pltAppState,
@@ -4904,9 +4960,12 @@ void PltApp::ShowFrame() {
     delete tempapSF;
     
     Box fineDomain(domain[pltAppState->MaxAllowableLevel()]);
+    // ---- use the animation-wide finest level and ref ratios so that the
+    // ---- geometry is identical for every frame (frames may have differing
+    // ---- numbers of levels)
     fineDomain.refine(amrex::CRRBetweenLevels(pltAppState->MaxAllowableLevel(),
-				                  amrData.FinestLevel(),
-						  amrData.RefRatio()));
+				                  pltAppState->FinestLevel(),
+						  pltAppState->RefRatios()));
     amrPicturePtrArray[Amrvis::ZPLANE] = new AmrPicture(Amrvis::ZPLANE, gaPtr, fineDomain, 
 						NULL, this,
 						pltAppState,

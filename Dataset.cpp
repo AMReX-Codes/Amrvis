@@ -29,6 +29,7 @@ const int MAXINDEXCHARS   = 4;
 #include <AMReX_DataServices.H>
 
 #include <sstream>
+#include <algorithm>
 #include <cfloat>
 #include <cmath>
 using std::ostringstream;
@@ -287,6 +288,10 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   pltAppStatePtr = pltappstateptr;
   maxDrawnLevel = pltAppStatePtr->MaxDrawnLevel(); 
   minDrawnLevel = pltAppStatePtr->MinDrawnLevel();
+  // ---- levels above this frame's finest level have no data (frames of
+  // ---- an animation may have differing numbers of levels)
+  maxDrawnLevel = std::min(maxDrawnLevel,
+             pltAppPtr->GetDataServicesPtr()->AmrDataRef().FinestLevel());
  
   bTimeline = pltAppPtr->IsTimeline();
  
@@ -326,7 +331,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   for(i = maxAllowableLevel - 1; i >= 0; --i) {
     datasetRegion[i] = datasetRegion[maxAllowableLevel];
     datasetRegion[i].coarsen(
-         amrex::CRRBetweenLevels(i, maxAllowableLevel, amrData.RefRatio()));
+         amrex::CRRBetweenLevels(i, maxAllowableLevel, pltAppStatePtr->RefRatios()));
   }
   
   // datasetRegion is now an array of Boxes that encloses the selected region
@@ -357,8 +362,13 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   rMax = -std::numeric_limits<Real>::max();
   stringCount = 0;
   myStringCount = new int[maxAllowableLevel + 1];
+  // ---- levels above this frame's finest level have no data (frames of
+  // ---- an animation may have differing numbers of levels)
+  int maxDataLevel(std::min(maxAllowableLevel, amrData.FinestLevel()));
   for(int lev(0); lev <= maxAllowableLevel; ++lev) {
     myStringCount[lev] = 0;
+  }
+  for(int lev(0); lev <= maxDataLevel; ++lev) {
     DataServices::Dispatch(DataServices::FillVarOneFab, dataServicesPtr,
                            (void *) dataFab[lev],
 			   (void *) &(dataFab[lev]->box()),
@@ -527,7 +537,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
           boxTemp &= datasetRegion[lev];
           dataBox = boxTemp;
           boxTemp.refine(amrex::CRRBetweenLevels(lev, maxDrawnLevel,
-	              amrData.RefRatio()));
+	              pltAppStatePtr->RefRatios()));
           boxTemp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
 #if (BL_SPACEDIM != 1)
           boxTemp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
@@ -537,7 +547,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
           dataPoint = dataFabTemp.dataPtr();
           int ddl;
           int crr = amrex::CRRBetweenLevels(lev, maxDrawnLevel,
-	                                        amrData.RefRatio());
+	                                        pltAppStatePtr->RefRatios());
 	  Real amrmin(datamin), amrmax(datamax);
           
 	  int highD(1);
@@ -623,7 +633,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
 			     (void *) &vfDerived);
 
       int crr = amrex::CRRBetweenLevels(lev, maxDrawnLevel,
-	                                    amrData.RefRatio());
+	                                    pltAppStatePtr->RefRatios());
       for(int iBox(0); iBox < amrData.boxArray(lev).size(); ++iBox) {
         Box sBoxTemp = amrData.boxArray(lev)[iBox];
         if(datasetRegion[lev].intersects(sBoxTemp)) {
@@ -694,14 +704,14 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
       Box temp(datasetRegion[sLevel]);
       
       temp.refine(amrex::CRRBetweenLevels(sLevel, maxDrawnLevel,
-                  amrData.RefRatio()));
+                  pltAppStatePtr->RefRatios()));
       temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
 #if (BL_SPACEDIM != 1)
       temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR)); 
 #endif
       
       double dBoxSize((double) amrex::CRRBetweenLevels(sLevel, maxDrawnLevel,
-						           amrData.RefRatio()));
+						           pltAppStatePtr->RefRatios()));
       int boxSize(((int) (ceil(dBoxSize)-dBoxSize >= 0.5 ?
                      floor(dBoxSize): ceil(dBoxSize))));
 #if (BL_SPACEDIM == 1)
@@ -906,7 +916,7 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
 
       const AmrData &amrData = dataServicesPtr->AmrDataRef();
       int baseRatio = amrex::CRRBetweenLevels(maxDrawnLevel, maxAllowableLevel, 
-                                                  amrData.RefRatio());
+                                                  pltAppStatePtr->RefRatios());
 
       int boxCoor[BL_SPACEDIM];
       boxCoor[hDir] = hplot;
@@ -927,9 +937,9 @@ void Dataset::DoPixInput(XmDrawingAreaCallbackStruct *cbs) {
       finestCLevel = 
         ( finestCLevel >= minDrawnLevel ? finestCLevel : minDrawnLevel );
       int boxSize(amrex::CRRBetweenLevels(finestCLevel, maxAllowableLevel, 
-                                              amrData.RefRatio()));
+                                              pltAppStatePtr->RefRatios()));
       int modBy(amrex::CRRBetweenLevels(finestCLevel, maxDrawnLevel,
-                                            amrData.RefRatio()));
+                                            pltAppStatePtr->RefRatios()));
       hplot -= pictureBox.smallEnd(hDir);
       hplot -= (int) fmod(double(hplot), double(modBy));
 # if (BL_SPACEDIM != 1)
@@ -1062,7 +1072,7 @@ void Dataset::DoExpose(int fromExpose) {
                     temp &= datasetRegion[lev];
                     dataBox = temp;
                     temp.refine(amrex::CRRBetweenLevels(lev,
-                                            maxDrawnLevel, amrData.RefRatio()));
+                                            maxDrawnLevel, pltAppStatePtr->RefRatios()));
                     temp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
 #if (BL_SPACEDIM != 1)
                     temp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR));
@@ -1075,7 +1085,7 @@ void Dataset::DoExpose(int fromExpose) {
                            (pixSizeY-1 - 0 * CHARACTERHEIGHT)
                            -((level_diff+1)*hIndexAreaHeight),
                            amrex::CRRBetweenLevels(lev, maxDrawnLevel,
-			                               amrData.RefRatio()),
+			                               pltAppStatePtr->RefRatios()),
                            whiteIndex, blackIndex);
 #else
                     DrawGrid(temp.smallEnd(hDIR) * dataItemWidth,
@@ -1085,7 +1095,7 @@ void Dataset::DoExpose(int fromExpose) {
                            (pixSizeY-1 - temp.smallEnd(vDIR) * CHARACTERHEIGHT)
                            -((level_diff+1)*hIndexAreaHeight),
                            amrex::CRRBetweenLevels(lev, maxDrawnLevel,
-			                               amrData.RefRatio()),
+			                               pltAppStatePtr->RefRatios()),
                            whiteIndex, blackIndex);
 #endif
                 }
@@ -1188,14 +1198,14 @@ void Dataset::DrawIndices() {
        int count(level - minDrawnLevel);
 
        boxTemp.refine(amrex::CRRBetweenLevels(level, maxDrawnLevel,
-                   amrData.RefRatio()));
+                   pltAppStatePtr->RefRatios()));
        boxTemp.shift(hDIR, -datasetRegion[maxDrawnLevel].smallEnd(hDIR)); 
 #if (BL_SPACEDIM != 1)
        boxTemp.shift(vDIR, -datasetRegion[maxDrawnLevel].smallEnd(vDIR));
 #endif
 
        double dBoxSize((double) amrex::CRRBetweenLevels(level, maxDrawnLevel,
-						            amrData.RefRatio()));
+						            pltAppStatePtr->RefRatios()));
        int boxSize((ceil(dBoxSize)-dBoxSize >= 0.5 ?
                       (int) floor(dBoxSize): (int) ceil(dBoxSize)));
 

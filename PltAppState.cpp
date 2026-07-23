@@ -104,6 +104,7 @@ PltAppState &PltAppState::operator=(const PltAppState &rhs) {
   minAllowableLevel = rhs.minAllowableLevel;
   maxAllowableLevel = rhs.maxAllowableLevel;
   finestLevel = rhs.finestLevel;
+  refRatios = rhs.refRatios;
   contourNumString = rhs.contourNumString;
   formatString = rhs.formatString;
   fileName = rhs.fileName;

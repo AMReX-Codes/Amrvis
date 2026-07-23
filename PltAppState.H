@@ -126,6 +126,13 @@ public:
   int MaxDrawnLevel() const { Cnsy(maxDrawnLevel);  return maxDrawnLevel; }
   int FinestLevel()   const { Cnsy(finestLevel);    return finestLevel; }
 
+  // ------------------------ ref ratios
+  // these cover levels [0, finestLevel] and are taken from the frame with
+  // the most levels (frames of an animation may have differing numbers of
+  // levels, so an individual frame's AmrData::RefRatio() may be shorter).
+  void SetRefRatios(const amrex::Vector<int> &rr) { refRatios = rr; }
+  const amrex::Vector<int> &RefRatios() const { return refRatios; }
+
 
   //GraphicsAttributes *GetGAptr() const  { return gaPtr; }
 
@@ -150,6 +157,7 @@ private:
   amrex::Vector<amrex::Box> subDomains;
   int minDrawnLevel, maxDrawnLevel, minAllowableLevel, maxAllowableLevel;
   int finestLevel;
+  amrex::Vector<int> refRatios;
 
 
   //bool datasetShowing, paletteDrawn, writingRGB, interfaceReady;
