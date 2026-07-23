@@ -148,7 +148,7 @@ public:
 //----------------------------------------------------------------------------
 
 inline Real hypot2(Real x, Real y, Real z)	{ return x*x + y*y + z*z; }
-inline Real hypot(Real x, Real y, Real z)	{ return sqrt(hypot2(x,y,z)); }
+//inline Real hypot(Real x, Real y, Real z)	{ return sqrt(hypot2(x,y,z)); }
 
 inline AmrVector::AmrVector()	{ x = y = z = 0.; }
 inline AmrSpherePoint::AmrSpherePoint()	{ x = y = z = 0.; }

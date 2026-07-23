@@ -52,6 +52,7 @@ else
 endif
 
 #DEFINES += -DAV_CGS_FIXSLNC
+DEFINES += -Dregister=
 
 include $(AMREX_HOME)/Tools/GNUMake/Make.defs
 
@@ -115,19 +116,25 @@ ifeq ($(which_site), unknown)
   # check if running on macOS (as there are some subtle differences to linux).
   UNAME_S = $(shell uname -s)
   ifeq ($(UNAME_S), Darwin)
-	# these assume that dependencies are installed via homebrew, which symlinks
-    # everything into the /usr/local tree.
-    INCLUDE_LOCATIONS += /usr/local/include
-    LIBRARY_LOCATIONS += /usr/local/lib
-
-    # if dependencies installed via macport, everything symlinks
-    # to /opt/local/
-    INCLUDE_LOCATIONS += /opt/local/include
-    LIBRARY_LOCATIONS += /opt/local/lib
-
-    # on macOS X11 is installed into the /opt tree
-    INCLUDE_LOCATIONS += /opt/X11/include
-    LIBRARY_LOCATIONS += /opt/X11/lib
+    # IMPORTANT: all X11/Motif client libraries must come from a single
+    # package manager. Homebrew's openmotif (libXm) is built against
+    # Homebrew's libXt/libX11; if the executable additionally links
+    # libXt/libX11 from XQuartz (/opt/X11/lib), dyld loads two copies of
+    # Xt at runtime and Motif segfaults at startup in _XmInitModifiers
+    # (first XmCreateSimpleMenuBar call). XQuartz is still the X *server*
+    # at runtime, but /opt/X11 must NOT appear on the link line.
+    # Verify with: otool -L amrvis?d.*.ex   (no /opt/X11 entries allowed)
+    BREW_PREFIX := $(shell brew --prefix 2>/dev/null)
+    ifneq ($(BREW_PREFIX),)
+      # Homebrew. Requires: brew install openmotif libxpm
+      # (libx11, libxt, libxext, libsm, libice come in as openmotif deps)
+      INCLUDE_LOCATIONS += $(BREW_PREFIX)/include
+      LIBRARY_LOCATIONS += $(BREW_PREFIX)/lib
+    else
+      # MacPorts. Requires: port install openmotif xorg-libXpm
+      INCLUDE_LOCATIONS += /opt/local/include
+      LIBRARY_LOCATIONS += /opt/local/lib
+    endif
   else
 	# if not running macOS, then assume we are looking at a standard
     # ubuntu-like linux.
