@@ -148,7 +148,8 @@ public:
 //----------------------------------------------------------------------------
 
 inline Real hypot2(Real x, Real y, Real z)	{ return x*x + y*y + z*z; }
-inline Real hypot(Real x, Real y, Real z)	{ return sqrt(hypot2(x,y,z)); }
+// ---- use std::hypot(x,y,z) (C++17); a local 3-arg hypot conflicts with
+// ---- it on some platforms and is missing at global scope on others
 
 inline AmrVector::AmrVector()	{ x = y = z = 0.; }
 inline AmrSpherePoint::AmrSpherePoint()	{ x = y = z = 0.; }
@@ -163,17 +164,17 @@ inline int isnull(const AmrSpherePoint &P)  { return P.x==0. && P.y==0. && P.z==
 
 inline AmrVector operator *(Real r, AmrVector v)  { return AmrVector( r*v.x, r*v.y, r*v.z );}
 
-inline Real mag(const AmrVector &v)	{ return hypot(v.x,v.y,v.z); }
+inline Real mag(const AmrVector &v)	{ return std::hypot(v.x,v.y,v.z); }
 inline Real mag2(const AmrVector &v)	{ return hypot2(v.x,v.y,v.z); }
 inline Real mag(const AmrSpherePoint & /*v*/)	{ return 1.; }
 inline Real mag2(const AmrSpherePoint & /*v*/)	{ return 1.; }
 
 inline Real dist(const AmrVector &p, const AmrVector &q)
-	{ return hypot(p.x-q.x,p.y-q.y,p.z-q.z); }
+	{ return std::hypot(p.x-q.x,p.y-q.y,p.z-q.z); }
 inline Real dist2(const AmrVector &p, const AmrVector &q)
 	{ return hypot2(p.x-q.x,p.y-q.y,p.z-q.z); }
 inline Real dist(const AmrSpherePoint &p, const AmrSpherePoint &q)
-	{ return hypot(p.x-q.x,p.y-q.y,p.z-q.z); }
+	{ return std::hypot(p.x-q.x,p.y-q.y,p.z-q.z); }
 inline Real dist2(const AmrSpherePoint &p, const AmrSpherePoint &q)
 	{ return hypot2(p.x-q.x,p.y-q.y,p.z-q.z); }
 
