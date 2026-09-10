@@ -1781,16 +1781,13 @@ void PltApp::FindAndSetMinMax(const Amrvis::MinMaxRangeType mmrangetype,
   Real rMin, rMax, levMin, levMax;
   bool isSet(pltAppState->IsSet(mmrangetype, framenumber, derivednumber));
   if(isSet == false || resetIfSet) {  // find and set the mins and maxes
+    const int frameFineLevel(dataServicesPtr[framenumber]->AmrDataRef().FinestLevel());
+    const int startLevel(min(coarselevel, frameFineLevel));
+    const int endLevel(min(finelevel, frameFineLevel));
+    bool minMaxFound(false);
     rMin =  std::numeric_limits<Real>::max();
     rMax = -std::numeric_limits<Real>::max();
-    // ---- frames of an animation may have differing numbers of levels:
-    // ---- never request a level this frame does not contain, and never
-    // ---- index past the end of onBox.
-    const int frameFinestLevel(dataServicesPtr[framenumber]->AmrDataRef().FinestLevel());
-    const int frameFineLevel(std::min({finelevel, frameFinestLevel,
-                                       static_cast<int>(onBox.size()) - 1}));
-    const int frameCoarseLevel(std::max(0, std::min(coarselevel, frameFineLevel)));
-    for(int lev(frameCoarseLevel); lev <= frameFineLevel; ++lev) {
+    for(int lev(startLevel); lev <= endLevel; ++lev) {
       bool minMaxValid(false);
       DataServices::Dispatch(DataServices::MinMaxRequest,
                              dataServicesPtr[framenumber],
@@ -1798,15 +1795,19 @@ void PltApp::FindAndSetMinMax(const Amrvis::MinMaxRangeType mmrangetype,
                              (void *) &(currentderived),
                              lev, &levMin, &levMax, &minMaxValid);
       if(minMaxValid) {
+        minMaxFound = true;
         rMin = min(rMin, levMin);
         rMax = max(rMax, levMax);
       }
     }
     if(bTimeline) {
+      minMaxFound = true;
       rMin = timelineMin;
       rMax = timelineMax;
     }
-    pltAppState->SetMinMax(mmrangetype, framenumber, derivednumber, rMin, rMax);
+    if(minMaxFound) {
+      pltAppState->SetMinMax(mmrangetype, framenumber, derivednumber, rMin, rMax);
+    }
   }
 }
 

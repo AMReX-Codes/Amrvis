@@ -7,6 +7,7 @@
 #include <Xm/Xm.h>
 #undef index
 
+#include <cstddef>
 #include <list>
 using std::list;
 
@@ -161,7 +162,7 @@ class XYPlotWin {
     void dotX(Widget win, int x, int y, int style, int color);
     double InitGrid(double low, double high, double step);
     double roundUp(double val);
-    void writeValue(char *str, size_t strLen, char *fmt, double val, int expv);
+    void writeValue(char *str, std::size_t strSize, char *fmt, double val, int expv);
     void CalculateBox();
     void drawGridAndAxis();
     void clearData();
@@ -214,4 +215,3 @@ class XYPlotWin {
 void CBcloseXYPlotWin(Widget, XtPointer, XtPointer);
 
 #endif
-

@@ -40,6 +40,7 @@
 #include <iomanip>
 #include <limits>
 #include <cmath>
+#include <cstdio>
 #include <cstdlib>
 using std::setw;
 using std::cout;
@@ -715,7 +716,7 @@ void XYPlotWin::CalculateBox() {
 
   // Here we make an arbitrary label to find out how big an offset we need
   char buff[128];
-  snprintf(buff, sizeof(buff), formatY, -200.0);
+  writeValue(buff, sizeof(buff), formatY, -200.0, 0);
   XCharStruct bb;
   int dir, ascent, descent;
   XTextExtents(labeltextFont, buff, strlen(buff), &dir, &ascent, &descent, &bb);
@@ -1033,7 +1034,96 @@ double XYPlotWin::roundUp(double val) {
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::writeValue(char *str, size_t strLen, char *fmt, double val, int expv) {
+namespace {
+enum AxisFormatType {
+  AFTInvalid,
+  AFTSignedInt,
+  AFTUnsignedInt,
+  AFTFloat
+};
+
+AxisFormatType ValidAxisFormat(const char *fmt) {
+  AxisFormatType formatType(AFTInvalid);
+  bool sawConversion(false);
+  for(const char *cp = fmt; *cp != '\0'; ++cp) {
+    if(*cp != '%') {
+      continue;
+    }
+    ++cp;
+    if(*cp == '%') {
+      continue;
+    }
+    if(sawConversion) {
+      return AFTInvalid;
+    }
+    while(*cp != '\0' && strchr("-+ #0", *cp) != 0) {
+      ++cp;
+    }
+    if(*cp == '*') {
+      return AFTInvalid;
+    }
+    while(*cp != '\0' && std::isdigit(static_cast<unsigned char>(*cp))) {
+      ++cp;
+    }
+    if(*cp == '.') {
+      ++cp;
+      if(*cp == '*') {
+        return AFTInvalid;
+      }
+      while(*cp != '\0' && std::isdigit(static_cast<unsigned char>(*cp))) {
+        ++cp;
+      }
+    }
+    bool hasLength(false);
+    bool doubleLength(false);
+    if(*cp == 'l') {
+      hasLength = true;
+      ++cp;
+      if(*cp == 'l') {
+        doubleLength = true;
+      }
+    } else if(*cp == 'h' || *cp == 'L' || *cp == 'j' || *cp == 'z' || *cp == 't') {
+      return AFTInvalid;
+    }
+    if(*cp == '\0') {
+      return AFTInvalid;
+    }
+    if(strchr("di", *cp) != 0) {
+      if(hasLength) {
+        return AFTInvalid;
+      }
+      formatType = AFTSignedInt;
+      sawConversion = true;
+      continue;
+    }
+    if(strchr("ouxX", *cp) != 0) {
+      if(hasLength) {
+        return AFTInvalid;
+      }
+      formatType = AFTUnsignedInt;
+      sawConversion = true;
+      continue;
+    }
+    if(strchr("aAeEfFgG", *cp) != 0) {
+      if(doubleLength) {
+        return AFTInvalid;
+      }
+      formatType = AFTFloat;
+      sawConversion = true;
+      continue;
+    }
+    return AFTInvalid;
+  }
+  if( ! sawConversion) {
+    return AFTInvalid;
+  }
+  return formatType;
+}
+}
+
+
+// -------------------------------------------------------------------
+void XYPlotWin::writeValue(char *str, std::size_t strSize, char *fmt, double val, int expv) {
   if(expv < 0) {
     for(int idx(expv); idx < 0; ++idx) {
       val *= 10.0;
@@ -1043,10 +1133,19 @@ void XYPlotWin::writeValue(char *str, size_t strLen, char *fmt, double val, int 
       val *= 0.10;
     }
   }
-  if(strchr(fmt, 'd') || strchr(fmt, 'x')) {
-    snprintf(str, strLen, fmt, (int) val);
-  } else {
-    snprintf(str, strLen, fmt, val);
+  switch(ValidAxisFormat(fmt)) {
+    case AFTSignedInt:
+      snprintf(str, strSize, fmt, static_cast<int>(val));
+    break;
+    case AFTUnsignedInt:
+      snprintf(str, strSize, fmt, static_cast<unsigned int>(val));
+    break;
+    case AFTFloat:
+      snprintf(str, strSize, fmt, val);
+    break;
+    default:
+      snprintf(str, strSize, "%.15g", val);
+    break;
   }
 }
 
@@ -1066,7 +1165,7 @@ void XYPlotWin::writeValue(char *str, size_t strLen, char *fmt, double val, int 
 void XYPlotWin::drawGridAndAxis() {
   int expX, expY; // Engineering powers
   int Yspot, Xspot;
-  char value[10], final[Amrvis::BUFSIZE + 10];
+  char value[Amrvis::LINELENGTH], final[Amrvis::BUFSIZE + 10];
   double dXIncr, dYIncr, dXStart, dYStart, dYIndex, dXIndex, dLarger;
   XSegment segs[2];
   
