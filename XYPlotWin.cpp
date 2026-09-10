@@ -1035,8 +1035,15 @@ double XYPlotWin::roundUp(double val) {
 
 // -------------------------------------------------------------------
 namespace {
-bool ValidAxisFormat(const char *fmt, bool &integerFormat) {
-  integerFormat = false;
+enum AxisFormatType {
+  AFTInvalid,
+  AFTSignedInt,
+  AFTUnsignedInt,
+  AFTFloat
+};
+
+AxisFormatType ValidAxisFormat(const char *fmt) {
+  AxisFormatType formatType(AFTInvalid);
   bool sawConversion(false);
   for(const char *cp = fmt; *cp != '\0'; ++cp) {
     if(*cp != '%') {
@@ -1047,13 +1054,13 @@ bool ValidAxisFormat(const char *fmt, bool &integerFormat) {
       continue;
     }
     if(sawConversion) {
-      return false;
+      return AFTInvalid;
     }
     while(*cp != '\0' && strchr("-+ #0", *cp) != 0) {
       ++cp;
     }
     if(*cp == '*') {
-      return false;
+      return AFTInvalid;
     }
     while(*cp != '\0' && std::isdigit(static_cast<unsigned char>(*cp))) {
       ++cp;
@@ -1061,27 +1068,56 @@ bool ValidAxisFormat(const char *fmt, bool &integerFormat) {
     if(*cp == '.') {
       ++cp;
       if(*cp == '*') {
-        return false;
+        return AFTInvalid;
       }
       while(*cp != '\0' && std::isdigit(static_cast<unsigned char>(*cp))) {
         ++cp;
       }
     }
-    if(*cp == 'h' || *cp == 'l' || *cp == 'L' || *cp == 'j' || *cp == 'z' || *cp == 't') {
-      return false;
+    bool hasLength(false);
+    bool doubleLength(false);
+    if(*cp == 'l') {
+      hasLength = true;
+      ++cp;
+      if(*cp == 'l') {
+        doubleLength = true;
+      }
+    } else if(*cp == 'h' || *cp == 'L' || *cp == 'j' || *cp == 'z' || *cp == 't') {
+      return AFTInvalid;
     }
-    if(strchr("diouxX", *cp) != 0) {
-      integerFormat = true;
+    if(*cp == '\0') {
+      return AFTInvalid;
+    }
+    if(strchr("di", *cp) != 0) {
+      if(hasLength) {
+        return AFTInvalid;
+      }
+      formatType = AFTSignedInt;
+      sawConversion = true;
+      continue;
+    }
+    if(strchr("ouxX", *cp) != 0) {
+      if(hasLength) {
+        return AFTInvalid;
+      }
+      formatType = AFTUnsignedInt;
       sawConversion = true;
       continue;
     }
     if(strchr("aAeEfFgG", *cp) != 0) {
+      if(doubleLength) {
+        return AFTInvalid;
+      }
+      formatType = AFTFloat;
       sawConversion = true;
       continue;
     }
-    return false;
+    return AFTInvalid;
   }
-  return sawConversion;
+  if( ! sawConversion) {
+    return AFTInvalid;
+  }
+  return formatType;
 }
 }
 
@@ -1097,16 +1133,19 @@ void XYPlotWin::writeValue(char *str, std::size_t strSize, char *fmt, double val
       val *= 0.10;
     }
   }
-  bool integerFormat(strchr(fmt, 'd') || strchr(fmt, 'i') || strchr(fmt, 'o') ||
-                     strchr(fmt, 'u') || strchr(fmt, 'x') || strchr(fmt, 'X'));
-  const char *safeFormat(integerFormat ? "%d" : "%.15g");
-  if(ValidAxisFormat(fmt, integerFormat)) {
-    safeFormat = fmt;
-  }
-  if(integerFormat) {
-    snprintf(str, strSize, safeFormat, (int) val);
-  } else {
-    snprintf(str, strSize, safeFormat, val);
+  switch(ValidAxisFormat(fmt)) {
+    case AFTSignedInt:
+      snprintf(str, strSize, fmt, static_cast<int>(val));
+    break;
+    case AFTUnsignedInt:
+      snprintf(str, strSize, fmt, static_cast<unsigned int>(val));
+    break;
+    case AFTFloat:
+      snprintf(str, strSize, fmt, val);
+    break;
+    default:
+      snprintf(str, strSize, "%.15g", val);
+    break;
   }
 }
 
