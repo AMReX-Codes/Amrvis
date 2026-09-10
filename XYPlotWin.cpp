@@ -1034,7 +1034,7 @@ double XYPlotWin::roundUp(double val) {
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::writeValue(char *str, int strSize, char *fmt, double val, int expv) {
+void XYPlotWin::writeValue(char *str, std::size_t strSize, char *fmt, double val, int expv) {
   if(expv < 0) {
     for(int idx(expv); idx < 0; ++idx) {
       val *= 10.0;
