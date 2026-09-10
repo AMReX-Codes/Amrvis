@@ -191,7 +191,7 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, AVPApp *parent,
     winOffsetY = PM_INT("InitialZWindowOffsetY");
   }
 
-  sprintf(buffer, "%s %c Value 1D plot", pltTitle, whichType + 'X');
+  snprintf(buffer, sizeof(buffer), "%s %c Value 1D plot", pltTitle, whichType + 'X');
 
   wXYPlotTopLevel =  XtVaCreatePopupShell(buffer, topLevelShellWidgetClass,
 					  wTopLevel,
@@ -440,7 +440,7 @@ XYPlotWin::XYPlotWin(char *title, XtAppContext app, Widget w, AVPApp *parent,
   gridStyle = PM_STYLE("GridStyle");
 
   for(idx = 0; idx < 8; ++idx) {
-    sprintf(buffer, "%d.Style", idx);
+    snprintf(buffer, sizeof(buffer), "%d.Style", idx);
     parameters->Get_Parameter(buffer, &param_temp);
     AllAttrs[idx].lineStyleLen = param_temp.stylev.len;
     strncpy(AllAttrs[idx].lineStyle, param_temp.stylev.dash_list,
@@ -524,7 +524,7 @@ void XYPlotWin::UpdateFrame(int frame) {
   ::XYPlotDataList *tempList;
   int num_lists_changed(0);
   char buffer[Amrvis::BUFSIZE];
-  sprintf(buffer, "%s %c Value 1D plot",
+  snprintf(buffer, sizeof(buffer), "%s %c Value 1D plot",
           AVGlobals::StripSlashes(pltParent->GetFileName()).c_str(),
 	  whichType + 'X');
   XtVaSetValues(wXYPlotTopLevel, XmNtitle, buffer, NULL);
@@ -840,7 +840,7 @@ void XYPlotWin::AddDataList(::XYPlotDataList *new_list,
     XmStringFree(label_str);
     
     for(int ii(0); ii <= new_list->MaxLevel(); ++ii) {
-      sprintf(buffer, "%d/%d", ii, new_list->MaxLevel());
+      snprintf(buffer, sizeof(buffer), "%d/%d", ii, new_list->MaxLevel());
       wid = XtVaCreateManagedWidget(buffer, xmPushButtonGadgetClass,
 				    levelmenu, NULL);
       if(ii < 10) {
@@ -1188,7 +1188,7 @@ void XYPlotWin::drawGridAndAxis() {
   Xspot = devInfo.bdrPad + (2 * devInfo.axisW);
   Yspot = 2 * devInfo.bdrPad;
   if(expY != 0) {
-    sprintf(final, "%s x 10^%d", YUnitText, expY);
+    snprintf(final, sizeof(final), "%s x 10^%d", YUnitText, expY);
     textX(wPlotWin, Xspot, Yspot, final, T_LEFT, T_AXIS);
   } else {
     textX(wPlotWin, Xspot, Yspot, YUnitText, T_LEFT, T_AXIS);
@@ -1197,7 +1197,7 @@ void XYPlotWin::drawGridAndAxis() {
   Xspot = devInfo.areaW - devInfo.bdrPad;
   Yspot = devInfo.areaH - (2*devInfo.bdrPad);
   if(expX != 0) {
-    sprintf(final, "%s x 10^%d", XUnitText, expX);
+    snprintf(final, sizeof(final), "%s x 10^%d", XUnitText, expX);
     textX(wPlotWin, Xspot, Yspot, final, T_RIGHT, T_AXIS);
   } else {
     textX(wPlotWin, Xspot, Yspot, XUnitText, T_RIGHT, T_AXIS);
@@ -1647,7 +1647,7 @@ void XYPlotWin::DoASCIIDump(FILE *fs, const char *plotname) {
   }
   PltAppState *pas = pltParent->GetPltAppState();
   char format[Amrvis::LINELENGTH];
-  sprintf(format, "%s %s\n", pas->GetFormatString().c_str(),
+  snprintf(format, sizeof(format), "%s %s\n", pas->GetFormatString().c_str(),
                              pas->GetFormatString().c_str());
   fprintf(fs, "TitleText: %s\n", plotname);
   fprintf(fs, "YUnitText: %s\n", YUnitText);
@@ -1744,12 +1744,12 @@ void XYPlotWin::CBdoOptions(Widget, XtPointer, XtPointer) {
     for(ii = 0; ii < 6; ++ii) {
       switch(ii) {
         case 0:
-	  sprintf(buffer, "%d", gridW);
+	  snprintf(buffer, sizeof(buffer), "%d", gridW);
 	  str = buffer;
 	break;
 
         case 1:
-	  sprintf(buffer, "%d", lineW);
+	  snprintf(buffer, sizeof(buffer), "%d", lineW);
 	  str = buffer;
 	break;
 
@@ -1944,16 +1944,16 @@ void XYPlotWin::CBdoOptionsOKButton(Widget, XtPointer data, XtPointer) {
 		    XmNheight,  &winY,
 		    NULL);
       char buf[20], buf2[20];
-      sprintf(buf, "%d", winX);
+      snprintf(buf, sizeof(buf), "%d", winX);
       parameters->Set_Parameter("InitialWindowWidth", INT, buf);
-      sprintf(buf, "%d", winY);
+      snprintf(buf, sizeof(buf), "%d", winY);
       parameters->Set_Parameter("InitialWindowHeight", INT, buf);
       XtVaGetValues(wXYPlotTopLevel,
 		    XmNx,       &winX,
 		    XmNy,       &winY,
 		    NULL);
-      sprintf(buf, "%d", winX);
-      sprintf(buf2, "%d", winY);
+      snprintf(buf, sizeof(buf), "%d", winX);
+      snprintf(buf2, sizeof(buf2), "%d", winY);
       if(whichType == Amrvis::XDIR) {
 	parameters->Set_Parameter("InitialXWindowOffsetX", INT, buf);
 	parameters->Set_Parameter("InitialXWindowOffsetY", INT, buf2);
@@ -1985,9 +1985,9 @@ void XYPlotWin::CBdoOptionsOKButton(Widget, XtPointer data, XtPointer) {
     XmTextSetString(wOptionsWidgets[11], formatY);
   }
   char buffer[20];
-  sprintf(buffer, "%d", gridW);
+  snprintf(buffer, sizeof(buffer), "%d", gridW);
   XmTextSetString(wOptionsWidgets[7], buffer);
-  sprintf(buffer, "%d", lineW);
+  snprintf(buffer, sizeof(buffer), "%d", lineW);
   XmTextSetString(wOptionsWidgets[8], buffer);
 
   XtDestroyWidget(wOptionsDialog);
@@ -2179,7 +2179,7 @@ void XYPlotWin::SetPalette() {
   const int palOffset(24);
   params param_temp;   // temporary parameter grabbing slot
   for(int idx(0); idx < 8; ++idx) {
-    sprintf(buffer, "%d.Color", idx);
+    snprintf(buffer, sizeof(buffer), "%d.Color", idx);
     int icTemp(PM_INT(buffer));
     long icTempL(icTemp);
     const Vector<XColor> &cCells = pal->GetColorCells();
@@ -2343,7 +2343,7 @@ void XYPlotWin::CBdoDrawLocation(Widget, XtPointer, XtPointer data) {
 		  &rootX, &rootY, &newX, &newY, &inputMask);
     if(newX <= iXOppX && newX >= iXOrgX && newY <= iXOppY && newY >= iXOrgY) {
       char locText[40];
-      sprintf(locText, "(%.4E, %.4E)", TRANX(newX), TRANY(newY));
+      snprintf(locText, sizeof(locText), "(%.4E, %.4E)", TRANX(newX), TRANY(newY));
       XClearArea(disp, pWindow, 0, iXLocWinY, iXLocWinX, 0, false);
       textX(wPlotWin, devInfo.bdrPad, devInfo.areaH - devInfo.bdrPad,
 	    locText, T_LOWERLEFT, T_AXIS);
@@ -2396,7 +2396,7 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
     lowY = TRANY(anchorY);
     
     if(devInfo.areaW >= 2 * iXLocWinX + 15 * devInfo.axisW) {
-      sprintf(locText, "(%.4E, %.4E)", lowX, lowY);
+      snprintf(locText, sizeof(locText), "(%.4E, %.4E)", lowX, lowY);
       XClearArea(disp, pWindow, iXLocWinX, iXLocWinY, iXLocWinX, 0, false);
       textX(wPlotWin, iXLocWinX + devInfo.bdrPad,
 	    devInfo.areaH - devInfo.bdrPad,
@@ -2405,7 +2405,7 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
     
     while(true) {
       if(devInfo.areaW >= iXLocWinX + 15 * devInfo.axisW) {
-	sprintf(locText, "(%.4E, %.4E)", TRANX(newX), TRANX(newY));
+	snprintf(locText, sizeof(locText), "(%.4E, %.4E)", TRANX(newX), TRANX(newY));
 	XClearArea(disp, pWindow, 0, iXLocWinY, iXLocWinX, 0, false);
 	textX(wPlotWin, devInfo.bdrPad, devInfo.areaH - devInfo.bdrPad,
 	      locText, T_LOWERLEFT, T_AXIS);
@@ -2495,7 +2495,7 @@ void XYPlotWin::CBdoRubberBanding(Widget, XtPointer, XtPointer call_data) {
 	  } else {
 	    XClearArea(disp, pWindow, 0, iXLocWinY, iXLocWinX, 0, false);
 	  }
-	  sprintf(locText, "(%.4E, %.4E)", TRANX(newX), TRANY(newY));	    
+	  snprintf(locText, sizeof(locText), "(%.4E, %.4E)", TRANX(newX), TRANY(newY));	    
 	  textX(wPlotWin, devInfo.bdrPad, devInfo.areaH - devInfo.bdrPad,
 		locText, T_LOWERLEFT, T_AXIS);
 	}
@@ -2518,13 +2518,13 @@ void XYPlotWin::CBdoDrawLegendItem(Widget, XtPointer data, XtPointer) {
   char legendText[1024];
 
 #if (BL_SPACEDIM == 3)
-  sprintf(legendText, "%d/%d %s", dataList->CurLevel(), dataList->MaxLevel(),
+  snprintf(legendText, sizeof(legendText), "%d/%d %s", dataList->CurLevel(), dataList->MaxLevel(),
 	  dataList->DerivedName().c_str());
   textX(item->wid, 5, 10, legendText, T_UPPERLEFT, T_AXIS);
   textX(item->wid, 5, 10 + devInfo.axisH,
 	dataList->IntersectPoint(dataList->CurLevel()), T_UPPERLEFT, T_AXIS);
 #else
-  sprintf(legendText, "%d/%d %s %s", dataList->CurLevel(), dataList->MaxLevel(),
+  snprintf(legendText, sizeof(legendText), "%d/%d %s %s", dataList->CurLevel(), dataList->MaxLevel(),
 	  dataList->DerivedName().c_str(),
 	  dataList->IntersectPoint(dataList->CurLevel()));
   textX(item->wid, 5, 10, legendText, T_UPPERLEFT, T_AXIS);

@@ -125,7 +125,7 @@ bool SendRealArray(int sockfd, Real *data[], int nvar,    // size nvar
 
   // --------------------------------------------------- send nComp
   //cout << ">>> sending nComp." << std::endl;
-  sprintf(buffer, "%d", nvar);
+  snprintf(buffer, sizeof(buffer), "%d", nvar);
   if(send(sockfd, buffer, strlen(buffer), 0) < 0) {
     perror("Bad client nComp send");
     return false;
@@ -611,7 +611,7 @@ bool ArrayViewMultiFabFormatLabel(amrex::MultiFab *multifab, const char *format,
 
   // --------------------------------------------------- send nElements
   //cout << ">>> sending nElements." << std::endl;
-  sprintf(buffer, "%d", multifab->size());
+  snprintf(buffer, sizeof(buffer), "%d", multifab->size());
   if( ! SendString(sockfd, buffer)) {
     return false;
   }

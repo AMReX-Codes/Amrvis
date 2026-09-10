@@ -61,7 +61,7 @@ void WriteNewPSFile(const char *filename, XImage *image,
   }
 
   char newfilename[BUFSIZ];
-  sprintf(newfilename, "%s.new.ps", filename);
+  snprintf(newfilename, sizeof(newfilename), "%s.new.ps", filename);
   ofstream fout(newfilename);
   if( ! fout) {
     cerr << "*** Error:  cannot create file:  " << newfilename << endl;
@@ -156,7 +156,8 @@ void WritePSFile(const char *filename, XImage *image,
   fout << "colorimage";   // no << '\n';
 
   fout << hex;
-  char *buf = new char[8 * imagesizehoriz + 1];
+  const size_t bufSize(8 * imagesizehoriz + 1);
+  char *buf = new char[bufSize];
   unsigned char r, g, b;
   int charindex;
   for(int j(0); j < imagesizevert; ++j) {
@@ -165,13 +166,13 @@ void WritePSFile(const char *filename, XImage *image,
       //BL_ASSERT(charindex>8*imagesizehoriz+1);
       palette.unpixelate(XGetPixel(image, i, j), r, g, b);
       if(i % 10 == 0) {
-        sprintf(buf+charindex, "\n");
+        snprintf(buf+charindex, bufSize - charindex, "\n");
         ++charindex;
       }
       //fout << setw(2) << setfill('0') << (color.red >> 8);
       //fout << setw(2) << setfill('0') << (color.green >> 8);
       //fout << setw(2) << setfill('0') << (color.blue >> 8) << ' ';
-      sprintf(buf+charindex, "%02x%02x%02x ", r, g, b);
+      snprintf(buf+charindex, bufSize - charindex, "%02x%02x%02x ", r, g, b);
       charindex += 7;
     }
     fout << buf;
@@ -210,7 +211,8 @@ void WritePSPaletteFile(const char *filename, XImage *image,
     fout << "colorimage";   // no << '\n';
     
     fout << hex;
-    char *buf = new char[8*imagesizehoriz+1];
+    const size_t bufSize(8 * imagesizehoriz + 1);
+    char *buf = new char[bufSize];
     for(int j(0); j < imagesizevert; ++j) {
       int charindex(0);
         for(int i(0); i < imagesizehoriz; ++i) {
@@ -219,10 +221,10 @@ void WritePSPaletteFile(const char *filename, XImage *image,
 	    unsigned char r, g, b;
 	    palette.unpixelate(index, r, g, b);
             if(i % 10 == 0) {
-                sprintf(buf+charindex, "\n");
+                snprintf(buf+charindex, bufSize - charindex, "\n");
                 ++charindex;
             }
-            sprintf(buf+charindex, "%02x%02x%02x ", r, g, b);
+            snprintf(buf+charindex, bufSize - charindex, "%02x%02x%02x ", r, g, b);
             charindex += 7;
         }
         fout << buf;
@@ -243,7 +245,7 @@ void WritePSPaletteFile(const char *filename, XImage *image,
         fout << "40 " << topOfPalette - ( j * palSpacing) << " moveto" << '\n';
         fout << "(";
         char dummyString[50];//should be big enough
-        sprintf(dummyString, palNumFormat.c_str(), palValueList[j]);
+        snprintf(dummyString, sizeof(dummyString), palNumFormat.c_str(), palValueList[j]);
         fout << dummyString << ") show" << '\n';
     }
 

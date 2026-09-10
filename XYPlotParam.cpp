@@ -80,11 +80,11 @@ void XYPlotParameters::ResetPalette(Palette *newPalPtr) {
     char buf[20];
     int ici;
     for(unsigned int idx(0); idx < 8; ++idx) {
-      sprintf(buf, "%d.Color", idx);
+      snprintf(buf, sizeof(buf), "%d.Color", idx);
       ici = (idx * colorindex) + param_palette->PaletteStart();
       ici = std::min(ici, param_palette->PaletteEnd());
       ici = std::max(ici, param_palette->PaletteStart() + 1);  // for lowblack
-      sprintf(colorstr, "%u", ici);
+      snprintf(colorstr, sizeof(colorstr), "%u", ici);
       Set_Parameter(buf, INT, colorstr);
     }
   }
@@ -163,13 +163,13 @@ void XYPlotParameters::GetHardWiredDefaults() {
   char colorstr[10];
   int ici;
   for(unsigned int idx(0); idx < 8; ++idx) {
-    sprintf(buf, "%d.Style", idx);
+    snprintf(buf, sizeof(buf), "%d.Style", idx);
     Set_Parameter(buf, STYLE, defStyle[idx]);
-    sprintf(buf, "%d.Color", idx);
+    snprintf(buf, sizeof(buf), "%d.Color", idx);
     ici = (idx * colorindex) + param_palette->PaletteStart();
     ici = std::min(ici, param_palette->PaletteEnd());
     ici = std::max(ici, param_palette->PaletteStart() + 1);  // for lowblack
-    sprintf(colorstr, "%u", ici);
+    snprintf(colorstr, sizeof(colorstr), "%u", ici);
     Set_Parameter(buf, INT, colorstr);
   }
 }
@@ -361,7 +361,7 @@ int XYPlotParameters::do_font(const char *name, XFontStruct **font_info) {
     font_size_value = atoi(font_size);
     if(font_size_value > 0) {
       // Still a little iffy -- what about weight and roman vs. other
-      sprintf(query_spec, ISO_FONT, font_family, font_size_value * 10);
+      snprintf(query_spec, sizeof(query_spec), ISO_FONT, font_family, font_size_value * 10);
       font_list = XListFonts(gaPtr->PDisplay(), query_spec,
 			     DEF_MAX_NAMES, &font_count);
       

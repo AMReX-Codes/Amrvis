@@ -334,7 +334,7 @@ void Palette::DrawPalette(Real palMin, Real palMax, const string &numberFormat) 
       if(i == 0) {
         dataList[i] = palMax;  // to avoid roundoff
       }
-      sprintf(palString, numberFormat.c_str(), dataList[i]);
+      snprintf(palString, sizeof(palString), numberFormat.c_str(), dataList[i]);
       XDrawString(display, palPixmap, gc, palWidth + 4,
 		  (i * colorSlots / (dataList.size() - 1)) + 20,
 		  palString, strlen(palString));

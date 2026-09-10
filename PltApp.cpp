@@ -964,13 +964,13 @@ void PltApp::PltAppInit(bool bSubVolume) {
   XtVaCreateManagedWidget("Scale", xmCascadeButtonWidgetClass, wMenuPulldown,
 			  XmNmnemonic, 'S', XmNsubMenuId, wCascade, NULL);
   for(int scale(1); scale <= maxallow; ++scale) {
-    sprintf(selectText, "%ix", scale);
+    snprintf(selectText, sizeof(selectText), "%ix", scale);
     wid = XtVaCreateManagedWidget(selectText, xmToggleButtonGadgetClass, wCascade,
 				  XmNset, false, NULL);
     if(scale <= 10) {
       // scale values <= 10 are shortcutted by pressing the number 1-0
-      sprintf(accel, "<Key>%i", scale % 10);
-      sprintf(accelText, "%i", scale % 10);
+      snprintf(accel, sizeof(accel), "<Key>%i", scale % 10);
+      snprintf(accelText, sizeof(accelText), "%i", scale % 10);
       label_str = XmStringCreateSimple(accelText);
       XtVaSetValues(wid, XmNmnemonic, scale + 'O',
 		    XmNaccelerator, accel,
@@ -979,8 +979,8 @@ void PltApp::PltAppInit(bool bSubVolume) {
       XmStringFree(label_str);
     } else if(scale <= 20) {
       // scale values <= 20 can be obtained by holding down ALT and pressing 1-0
-      sprintf(accel, "Alt<Key>%i", scale % 10);
-      sprintf(accelText, "Alt+%i", scale % 10);
+      snprintf(accel, sizeof(accel), "Alt<Key>%i", scale % 10);
+      snprintf(accelText, sizeof(accelText), "Alt+%i", scale % 10);
       label_str = XmStringCreateSimple(accelText);
       XtVaSetValues(wid,
 		    XmNaccelerator, accel,
@@ -1005,13 +1005,13 @@ void PltApp::PltAppInit(bool bSubVolume) {
   wCurrLevel = NULL;
   BL_ASSERT(minAllowableLevel <= maxDrawnLevel);
   for(int menuLevel(minAllowableLevel); menuLevel <= maxDrawnLevel; ++menuLevel) {
-    sprintf(selectText, "%i/%i", menuLevel, pltAppState->FinestLevel());
+    snprintf(selectText, sizeof(selectText), "%i/%i", menuLevel, pltAppState->FinestLevel());
     wid = XtVaCreateManagedWidget(selectText, xmToggleButtonGadgetClass, wCascade,
 				  XmNset, false, NULL);
     if(menuLevel <= 10) {
       // Levels <= 10 are shortcutted by holding down the CTRL key and pressing 1-0
-      sprintf(accel, "Ctrl<Key>%i", menuLevel % 10);
-      sprintf(accelText, "Ctrl+%i", menuLevel % 10);
+      snprintf(accel, sizeof(accel), "Ctrl<Key>%i", menuLevel % 10);
+      snprintf(accelText, sizeof(accelText), "Ctrl+%i", menuLevel % 10);
       label_str = XmStringCreateSimple(accelText);
       XtVaSetValues(wid, XmNmnemonic, menuLevel + '0',
 		    XmNaccelerator, accel,
@@ -1725,7 +1725,7 @@ void PltApp::PltAppInit(bool bSubVolume) {
 #endif
 
   char plottertitle[50];
-  sprintf(plottertitle, "XYPlot%dd", BL_SPACEDIM);
+  snprintf(plottertitle, sizeof(plottertitle), "XYPlot%dd", BL_SPACEDIM);
   XYplotparameters = new XYPlotParameters(pltPaletteptr, gaPtr, plottertitle);
 
   for(np = 0; np < Amrvis::NPLANES; ++np) {
@@ -1879,19 +1879,19 @@ std::cout << "TRTRTRTR:  subTimeRangeStart subTimeRangeStop = " << subTimeRangeS
   DrawAxes(wControlForm, yPlanePosX, yPlanePosY, 0, sX, sZ, ypColor);
   DrawAxes(wControlForm, xPlanePosX, xPlanePosY, 0, sY, sZ, xpColor);
   
-  sprintf(temp, "Z=%i", amrPicturePtrArray[Amrvis::ZPLANE]->GetSlice() / crrDiff);
+  snprintf(temp, sizeof(temp), "Z=%i", amrPicturePtrArray[Amrvis::ZPLANE]->GetSlice() / crrDiff);
   XSetForeground(display, xgc, pltPaletteptr->makePixel(zpColor));
   XDrawString(display, XtWindow(wControlForm), xgc,
 	      centerX-xyzAxisLength+12, centerY+xyzAxisLength+4,
 	      temp, strlen(temp));
   
-  sprintf(temp, "Y=%i", amrPicturePtrArray[Amrvis::YPLANE]->GetSlice() / crrDiff);
+  snprintf(temp, sizeof(temp), "Y=%i", amrPicturePtrArray[Amrvis::YPLANE]->GetSlice() / crrDiff);
   XSetForeground(display, xgc, pltPaletteptr->makePixel(ypColor));
   XDrawString(display, XtWindow(wControlForm), xgc,
 	      centerX+stringOffsetX, centerY-xyzAxisLength+4,
 	      temp, strlen(temp));
   
-  sprintf(temp, "X=%i", amrPicturePtrArray[Amrvis::XPLANE]->GetSlice() / crrDiff);
+  snprintf(temp, sizeof(temp), "X=%i", amrPicturePtrArray[Amrvis::XPLANE]->GetSlice() / crrDiff);
   XSetForeground(display, xgc, pltPaletteptr->makePixel(xpColor));
   XDrawString(display, XtWindow(wControlForm), xgc,
 	      centerX+4*stringOffsetX, centerY+stringOffsetY+2,
@@ -2074,7 +2074,6 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
 
   // possibly set all six minmax types here
   const Vector<Box> &onSubregionBox = amrPicturePtrArray[Amrvis::ZPLANE]->GetSubDomain();
-  const Vector<Box> &onBox(amrData.ProbDomain());
   int iCDerNum(pltAppState->CurrentDerivedNumber());
   int levelZero(0);
   int coarseLevel(pltAppState->MinAllowableLevel());
@@ -2087,14 +2086,19 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
   rSubregionMax = -std::numeric_limits<Real>::max();
   const string asCDer(pltAppState->CurrentDerived());
   for(int iFrame(0); iFrame < animFrames; ++iFrame) {
+    // ---- use each frame's own finest level and prob domains here:
+    // ---- frames may have differing numbers of levels.
+    const AmrData &frameAmrData = dataServicesPtr[iFrame]->AmrDataRef();
+    const Vector<Box> &onFrameBox(frameAmrData.ProbDomain());
+    int frameFineLevel(std::min(fineLevel, frameAmrData.FinestLevel()));
+
     // set FILEGLOBALMINMAX  dont reset if already set
-    FindAndSetMinMax(Amrvis::FILEGLOBALMINMAX, iFrame, asCDer, iCDerNum, onBox,
-	             //levelZero, pltAppState->FinestLevel(), false);
-	             levelZero, amrData.FinestLevel(), resetMinMax);
+    FindAndSetMinMax(Amrvis::FILEGLOBALMINMAX, iFrame, asCDer, iCDerNum, onFrameBox,
+	             levelZero, frameAmrData.FinestLevel(), resetMinMax);
 
     // set FILESUBREGIONMINMAX  dont reset if already set
     FindAndSetMinMax(Amrvis::FILESUBREGIONMINMAX, iFrame, asCDer, iCDerNum, onSubregionBox,
-	             coarseLevel, fineLevel, resetMinMax);
+	             coarseLevel, frameFineLevel, resetMinMax);
 
     // collect file values
     Real rTempMin, rTempMax;
@@ -2152,7 +2156,7 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
     if(UsingFileRange(currentRangeType)) {
       Real dataMin, dataMax;
       int sCoarseLevel(0);
-      int sFineLevel(maxDrawnLevel);
+      int sFineLevel(std::min(maxDrawnLevel, amrData.FinestLevel()));
       for(int lev(sCoarseLevel); lev <= sFineLevel; ++lev) {
 	bool minMaxValid(false);
 	DataServices::Dispatch(DataServices::MinMaxRequest,
@@ -2173,13 +2177,16 @@ void PltApp::ChangeDerived(Widget w, XtPointer client_data, XtPointer) {
       
       Real dataMin, dataMax;
       int sCoarseLevel(0);
-      int sFineLevel(maxDrawnLevel);
       for(int iFrame(0); iFrame < animFrames; ++iFrame) {
+	// ---- frames may have differing numbers of levels: use this
+	// ---- frame's own domains and clamp to its finest level
+	const AmrData &frameAmrData = dataServicesPtr[iFrame]->AmrDataRef();
+	int sFineLevel(std::min(maxDrawnLevel, frameAmrData.FinestLevel()));
 	for(int lev(sCoarseLevel); lev <= sFineLevel; ++lev) {
 	  bool minMaxValid(false);
 	  DataServices::Dispatch(DataServices::MinMaxRequest,
 				 dataServicesPtr[iFrame],
-				 (void *) &(amrData.ProbDomain()[lev]),
+				 (void *) &(frameAmrData.ProbDomain()[lev]),
 				 (void *) &(pltAppState->CurrentDerived()),
 				 lev, &dataMin, &dataMax, &minMaxValid);
 	  if( ! minMaxValid) {
@@ -2434,6 +2441,7 @@ void PltApp::DoDatasetButton(Widget, XtPointer, XtPointer) {
 #endif
     sdir = Amrvis::ZDIR;
     break;
+#if (BL_SPACEDIM == 3)
   case Amrvis::YPLANE:
     trueRegion.setSmall(Amrvis::ZDIR, trueRegion.smallEnd(Amrvis::YDIR)); 
     trueRegion.setBig(Amrvis::ZDIR, trueRegion.bigEnd(Amrvis::YDIR)); 
@@ -2453,6 +2461,7 @@ void PltApp::DoDatasetButton(Widget, XtPointer, XtPointer) {
     trueRegion.shift(Amrvis::YDIR, ivLowOffsetMAL[Amrvis::YDIR]);
     trueRegion.shift(Amrvis::ZDIR, ivLowOffsetMAL[Amrvis::ZDIR]);
     sdir = Amrvis::XDIR;
+#endif
   }
   
   if(datasetShowing) {
@@ -2882,9 +2891,9 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   pltAppState->GetMinMax(Amrvis::GLOBALMINMAX, currentFrame,
 			 pltAppState->CurrentDerivedNumber(),
 			 rtMin, rtMax);
-  sprintf(fMin, format, rtMin);
-  sprintf(fMax, format, rtMax);
-  sprintf(range, "Min: %s  Max: %s", fMin, fMax);
+  snprintf(fMin, sizeof(fMin), format, rtMin);
+  snprintf(fMax, sizeof(fMax), format, rtMax);
+  snprintf(range, sizeof(range), "Min: %s  Max: %s", fMin, fMax);
   strcpy(saveRangeString, range);
   
   XtVaGetValues(wAmrVisTopLevel,
@@ -3014,22 +3023,22 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
   // make the strings representing data min and maxes
   pltAppState->GetMinMax(Amrvis::GLOBALMINMAX, currentFrame,
 			 pltAppState->CurrentDerivedNumber(), rtMin, rtMax);
-  sprintf(fMin, format, rtMin);
-  sprintf(fMax, format, rtMax);
-  sprintf(range, "Min: %s", fMin);
+  snprintf(fMin, sizeof(fMin), format, rtMin);
+  snprintf(fMax, sizeof(fMax), format, rtMax);
+  snprintf(range, sizeof(range), "Min: %s", fMin);
   XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
   //XtVaSetValues(wid, XmNleftOffset, 20, NULL);
-  sprintf(range, "Max: %s", fMax);
+  snprintf(range, sizeof(range), "Max: %s", fMax);
   XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
 
   pltAppState->GetMinMax(Amrvis::SUBREGIONMINMAX, currentFrame,
 			 pltAppState->CurrentDerivedNumber(),
 			 rtMin, rtMax);
-  sprintf(fMin, format, rtMin);
-  sprintf(fMax, format, rtMax);
-  sprintf(range, "Min: %s", fMin);
+  snprintf(fMin, sizeof(fMin), format, rtMin);
+  snprintf(fMax, sizeof(fMax), format, rtMax);
+  snprintf(range, sizeof(range), "Min: %s", fMin);
   XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
-  sprintf(range, "Max: %s", fMax);
+  snprintf(range, sizeof(range), "Max: %s", fMax);
   XtVaCreateManagedWidget(range, xmLabelGadgetClass, wRangeRC, NULL);
 
   pltAppState->GetMinMax(Amrvis::USERMINMAX, currentFrame,
@@ -3042,7 +3051,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			    NULL);
   XtVaCreateManagedWidget("Min:", xmLabelGadgetClass, wid, NULL);
   //XtVaSetValues(wid, XmNmarginWidth, 0, NULL);
-  sprintf(range, format, rtMin);
+  snprintf(range, sizeof(range), format, rtMin);
   wUserMin = XtVaCreateManagedWidget("local range",
 			    xmTextFieldWidgetClass, wid,
 			    XmNvalue,		range,
@@ -3057,7 +3066,7 @@ void PltApp::DoSetRangeButton(Widget, XtPointer, XtPointer) {
 			    //XmNborderWidth,      0,
 			    NULL);
   XtVaCreateManagedWidget("Max:", xmLabelGadgetClass, wid, NULL);
-  sprintf(range, format, rtMax);
+  snprintf(range, sizeof(range), format, rtMax);
   wUserMax = XtVaCreateManagedWidget("local range",
 			    xmTextFieldWidgetClass, wid,
 			    XmNvalue,		range,
@@ -3569,7 +3578,7 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
 
 #if (BL_SPACEDIM == 3)
   char bufferL[128];
-  sprintf(bufferL, "%s%s %s%s",
+  snprintf(bufferL, sizeof(bufferL), "%s%s %s%s",
 	  (dir1 == Amrvis::XDIR) ? "X=" : "Y=", pltAppState->GetFormatString().c_str(),
 	  (dir2 == Amrvis::YDIR) ? "Y=" : "Z=", pltAppState->GetFormatString().c_str());
 #endif
@@ -3580,21 +3589,22 @@ XYPlotDataList *PltApp::CreateLinePlot(int V, int sdir, int mal, int ix,
     Real dxLevScale(static_cast<Real>(amrex::CRRBetweenLevels(levData, lev,
                                           pltAppState->RefRatios())));
     XdX[lev] = amrData.DxLevel()[levData][sdir] / dxLevScale;
-    intersectStr[lev] = new char[128];  // ---- these are deleted by XYPlotDataList
+    const size_t intersectStrLen(128);
+    intersectStr[lev] = new char[intersectStrLen];  // ---- these are deleted by XYPlotDataList
 #if (BL_SPACEDIM == 1)
-    sprintf(intersectStr[lev], "X=");
-    sprintf(intersectStr[lev]+2, pltAppState->GetFormatString().c_str(),
+    snprintf(intersectStr[lev], intersectStrLen, "X=");
+    snprintf(intersectStr[lev]+2, intersectStrLen - 2, pltAppState->GetFormatString().c_str(),
 	    gridOffset[dir1] +
 	    (0.5 + ssTrueRegion[lev].smallEnd(dir1)) *
 	    (amrData.DxLevel()[levData][dir1] / dxLevScale));
 #elif (BL_SPACEDIM == 2)
-    sprintf(intersectStr[lev], ((dir1 == Amrvis::XDIR) ? "X=" : "Y="));
-    sprintf(intersectStr[lev]+2, pltAppState->GetFormatString().c_str(),
+    snprintf(intersectStr[lev], intersectStrLen, ((dir1 == Amrvis::XDIR) ? "X=" : "Y="));
+    snprintf(intersectStr[lev]+2, intersectStrLen - 2, pltAppState->GetFormatString().c_str(),
 	    gridOffset[dir1] +
 	    (0.5 + ssTrueRegion[lev].smallEnd(dir1)) *
 	    (amrData.DxLevel()[levData][dir1] / dxLevScale));
 #elif (BL_SPACEDIM == 3)
-    sprintf(intersectStr[lev], bufferL,
+    snprintf(intersectStr[lev], intersectStrLen, bufferL,
 	    (amrData.DxLevel()[levData][dir1] / dxLevScale) *
 	    (0.5 + ssTrueRegion[lev].smallEnd(dir1)) + gridOffset[dir1],
 	    (amrData.DxLevel()[levData][dir2] / dxLevScale) *
@@ -3931,7 +3941,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 				 &intersectedLevel, &intersectedGrid,
 				 &dataValue, &goodIntersect);
 	  char dataValueCharString[Amrvis::LINELENGTH];
-	  sprintf(dataValueCharString, pltAppState->GetFormatString().c_str(),
+	  snprintf(dataValueCharString, sizeof(dataValueCharString), pltAppState->GetFormatString().c_str(),
 	          dataValue);
 	  string dataValueString(dataValueCharString);
 
@@ -3982,7 +3992,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 		             amrData.DxLevel()[mal][idx];
 	      sDLoc = amrData.Time() * sDLoc / static_cast<Real>(amrData.ProbDomain()[mal].length(idx));
 	      char dLocStr[Amrvis::LINELENGTH];
-	      sprintf(dLocStr, pltAppState->GetFormatString().c_str(), sDLoc);
+	      snprintf(dLocStr, sizeof(dLocStr), pltAppState->GetFormatString().c_str(), sDLoc);
 	      buffout << "time   = " << dLocStr << '\n';
 	      idx = Amrvis::YDIR;
 	      int iLoc = int( gridOffset[idx] + trueRegionArray[mal].smallEnd()[idx] );
@@ -4016,7 +4026,7 @@ void PltApp::DoRubberBanding(Widget, XtPointer client_data, XtPointer call_data)
 		                  (0.5 + trueRegionArray[mal].smallEnd()[idx]) *
 		                  amrData.DxLevel()[mal][idx];
 	          char dLocStr[Amrvis::LINELENGTH];
-	          sprintf(dLocStr, pltAppState->GetFormatString().c_str(), ssDLoc);
+	          snprintf(dLocStr, sizeof(dLocStr), pltAppState->GetFormatString().c_str(), ssDLoc);
 	          buffout << dLocStr;
 	        }
 	        buffout << ")\n";
@@ -4562,8 +4572,8 @@ void PltApp::DoDrawPointerLocation(Widget, XtPointer data, XtPointer cbe) {
     break;
   }
   string fstr = pltAppState->GetFormatString();
-  sprintf(locTextFormat, "(%s, %s, %s)", fstr.c_str(), fstr.c_str(), fstr.c_str());
-  sprintf(locText, locTextFormat, Xloc, Yloc, Zloc);
+  snprintf(locTextFormat, sizeof(locTextFormat), "(%s, %s, %s)", fstr.c_str(), fstr.c_str(), fstr.c_str());
+  snprintf(locText, sizeof(locText), locTextFormat, Xloc, Yloc, Zloc);
 #elif (BL_SPACEDIM == 2)
   iVertLoc = ((amrPicturePtrArray[V]->ImageSizeV())/currentScale) -
              1 - (newY / currentScale) + ivLowOffsetMAL[Amrvis::YDIR];
@@ -4571,14 +4581,14 @@ void PltApp::DoDrawPointerLocation(Widget, XtPointer data, XtPointer cbe) {
   double Xloc(gridOffset[Amrvis::XDIR] + (0.5 + iHorizLoc) * finestDx[Amrvis::XDIR]);
   double Yloc(gridOffset[Amrvis::YDIR] + (0.5 + iVertLoc) * finestDx[Amrvis::YDIR]);
   string fstr = pltAppState->GetFormatString();
-  sprintf(locTextFormat, "(%s, %s)", fstr.c_str(), fstr.c_str());
-  sprintf(locText, locTextFormat, Xloc, Yloc);
+  snprintf(locTextFormat, sizeof(locTextFormat), "(%s, %s)", fstr.c_str(), fstr.c_str());
+  snprintf(locText, sizeof(locText), locTextFormat, Xloc, Yloc);
 #elif (BL_SPACEDIM == 1)
   iHorizLoc = newX / currentScale + ivLowOffsetMAL[Amrvis::XDIR];
   double Xloc(gridOffset[Amrvis::XDIR] + (0.5 + iHorizLoc) * finestDx[Amrvis::XDIR]);
   string fstr = pltAppState->GetFormatString();
-  sprintf(locTextFormat, "(%s)", fstr.c_str());
-  sprintf(locText, locTextFormat, Xloc);
+  snprintf(locTextFormat, sizeof(locTextFormat), "(%s)", fstr.c_str());
+  snprintf(locText, sizeof(locText), locTextFormat, Xloc);
 #endif
 
   XSetForeground(display, xgc, pltPaletteptr->WhiteIndex());
@@ -4601,6 +4611,9 @@ void PltApp::DoSpeedScale(Widget, XtPointer, XtPointer call_data) {
 
 // -------------------------------------------------------------------
 void PltApp::DoBackStep(int plane) {
+#if (BL_SPACEDIM == 3)
+  // ---- slice stepping only exists in 3d: the x and y planes are not
+  // ---- allocated in 1d/2d builds (NPLANES == 1)
   int currentScale(pltAppState->CurrentScale());
   int maxAllowLev(pltAppState->MaxAllowableLevel());
   int maxDrawnLev(pltAppState->MaxDrawnLevel());
@@ -4674,11 +4687,13 @@ void PltApp::DoBackStep(int plane) {
   }
 #endif
   DoExposeRef();
+#endif
 }
 
 
 // -------------------------------------------------------------------
 void PltApp::DoForwardStep(int plane) {
+#if (BL_SPACEDIM == 3)
   int currentScale(pltAppState->CurrentScale());
   int maxAllowLev(pltAppState->MaxAllowableLevel());
   int maxDrawnLev(pltAppState->MaxDrawnLevel());
@@ -4751,6 +4766,7 @@ void PltApp::DoForwardStep(int plane) {
   }
 #endif
   DoExposeRef();
+#endif
 }
 
 

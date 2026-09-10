@@ -455,13 +455,13 @@ void ProfApp::ProfAppInit(bool bSubregion) {
   XtVaCreateManagedWidget("Scale", xmCascadeButtonWidgetClass, wMenuPulldown,
                           XmNmnemonic, 'S', XmNsubMenuId, wCascade, NULL);
   for(int scale(1); scale <= maxAllowableScale; ++scale) {
-    sprintf(selectText, "%ix", scale);
+    snprintf(selectText, sizeof(selectText), "%ix", scale);
     wid = XtVaCreateManagedWidget(selectText, xmToggleButtonGadgetClass, wCascade,
                                   XmNset, false, NULL);
     if(scale <= 10) {
       // scale values <= 10 are shortcutted by pressing the number 1-0
-      sprintf(accel, "<Key>%i", scale % 10);
-      sprintf(accelText, "%i", scale % 10);
+      snprintf(accel, sizeof(accel), "<Key>%i", scale % 10);
+      snprintf(accelText, sizeof(accelText), "%i", scale % 10);
       label_str = XmStringCreateSimple(accelText);
       XtVaSetValues(wid, XmNmnemonic, scale + 'O',
                     XmNaccelerator, accel,
@@ -470,8 +470,8 @@ void ProfApp::ProfAppInit(bool bSubregion) {
       XmStringFree(label_str);
     } else if(scale <= 20) {
       // scale values <= 20 can be obtained by holding down ALT and pressing 1-0
-      sprintf(accel, "Alt<Key>%i", scale % 10);
-      sprintf(accelText, "Alt+%i", scale % 10);
+      snprintf(accel, sizeof(accel), "Alt<Key>%i", scale % 10);
+      snprintf(accelText, sizeof(accelText), "Alt+%i", scale % 10);
       label_str = XmStringCreateSimple(accelText);
       XtVaSetValues(wid,
                     XmNaccelerator, accel,
@@ -747,7 +747,7 @@ void ProfApp::ProfAppInit(bool bSubregion) {
 
   
   char plottertitle[50];
-  sprintf(plottertitle, "XYPlot%dd", BL_SPACEDIM);
+  snprintf(plottertitle, sizeof(plottertitle), "XYPlot%dd", BL_SPACEDIM);
   XYplotparameters = new XYPlotParameters(pltPaletteptr, gaPtr, plottertitle);
 
   regionPicturePtr->CreatePicture(XtWindow(wPlotPlane), pltPaletteptr);
@@ -956,7 +956,7 @@ amrex::XYPlotDataList *ProfApp::CreateLinePlot(const string &derived,
   refR[0] = 1;
   Vector<char *> intersectStr(1);
   intersectStr[0] = new char[128];
-  sprintf(intersectStr[0], "lineplot");
+  snprintf(intersectStr[0], 128, "lineplot");
 
   amrex::XYPlotDataList *newlist = new amrex::XYPlotDataList(derived,
                                      0, 0, 0, refR, XdX, intersectStr, 0.0);
@@ -1151,7 +1151,7 @@ void ProfApp::DoRegionTimePlot(Widget /*w*/, XtPointer /*client_data*/,
     Vector<Real> XdX(1, 1.0);
     Vector<int> refR(1, 1);
     Vector<char *> intersectStr(1, new char[128]);
-    sprintf(intersectStr[0], "lineplot"); 
+    snprintf(intersectStr[0], 128, "lineplot"); 
 
     amrex::XYPlotDataList *newlist = new amrex::XYPlotDataList(title,
                                       0, 0, 0, refR, XdX, intersectStr, 0.0);
@@ -1684,7 +1684,7 @@ void ProfApp::DoCreateHTMLTrace(Widget w, XtPointer, XtPointer call_data) {
   char htmlfilename[Amrvis::BUFSIZE];
   char *fileNameBase;
   XmStringGetLtoR(cbs->value, XmSTRING_DEFAULT_CHARSET, &fileNameBase);
-  sprintf(htmlfilename, "%s.html", fileNameBase);
+  snprintf(htmlfilename, sizeof(htmlfilename), "%s.html", fileNameBase);
   string htmlFileName(htmlfilename);
 
   //DataServices::Dispatch(DataServices::WriteFabOneVar,
@@ -1704,7 +1704,7 @@ void ProfApp::DoCreateTextTrace(Widget w, XtPointer, XtPointer call_data) {
   char textfilename[Amrvis::BUFSIZE];
   char *fileNameBase;
   XmStringGetLtoR(cbs->value, XmSTRING_DEFAULT_CHARSET, &fileNameBase);
-  sprintf(textfilename, "%s.txt", fileNameBase);
+  snprintf(textfilename, sizeof(textfilename), "%s.txt", fileNameBase);
   string textFileName(textfilename);
 
   //DataServices::Dispatch(DataServices::WriteFabOneVar,

@@ -1643,7 +1643,7 @@ void AmrPicture::CreateFrames(Amrvis::AnimDirection direction) {
   int minDrawnLevel(pltAppStatePtr->MinDrawnLevel());
   int maxAllowableLevel(pltAppStatePtr->MaxAllowableLevel());
 
-  sprintf(buffer, "Creating frames..."); 
+  snprintf(buffer, sizeof(buffer), "Creating frames..."); 
   PrintMessage(buffer);
   Vector<Box> interBox(numberOfLevels);
   interBox[maxAllowableLevel] = subDomain[maxAllowableLevel];
@@ -1776,7 +1776,7 @@ void AmrPicture::CreateFrames(Amrvis::AnimDirection direction) {
       XDestroyImage(frameBuffer[iDestroySlice]);
     }
     framesMade = false;
-    sprintf(buffer, "Cancelled.\n"); 
+    snprintf(buffer, sizeof(buffer), "Cancelled.\n"); 
     PrintMessage(buffer);
     APChangeSlice(start+islice);
     AmrPicture *apXY = pltAppPtr->GetAmrPicturePtr(Amrvis::XY);
@@ -1812,7 +1812,7 @@ void AmrPicture::CreateFrames(Amrvis::AnimDirection direction) {
 
   } else {
     framesMade = true;
-    sprintf(buffer, "Done.\n"); 
+    snprintf(buffer, sizeof(buffer), "Done.\n"); 
     PrintMessage(buffer);
   }
   DoExposePicture();
