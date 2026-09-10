@@ -1789,7 +1789,8 @@ void PltApp::FindAndSetMinMax(const Amrvis::MinMaxRangeType mmrangetype,
     const int frameFinestLevel(dataServicesPtr[framenumber]->AmrDataRef().FinestLevel());
     const int frameFineLevel(std::min({finelevel, frameFinestLevel,
                                        static_cast<int>(onBox.size()) - 1}));
-    for(int lev(coarselevel); lev <= frameFineLevel; ++lev) {
+    const int frameCoarseLevel(std::max(0, std::min(coarselevel, frameFineLevel)));
+    for(int lev(frameCoarseLevel); lev <= frameFineLevel; ++lev) {
       bool minMaxValid(false);
       DataServices::Dispatch(DataServices::MinMaxRequest,
                              dataServicesPtr[framenumber],
