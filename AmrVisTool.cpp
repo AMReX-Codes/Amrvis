@@ -77,7 +77,7 @@ list<PltApp *>  pltAppList;
 
 //--------------------------------------------------------------
 void PrintMessage(const char *message) {
-  sprintf(buffer, "%s", message);
+  snprintf(buffer, sizeof(buffer), "%s", message);
   messageText.PrintText(buffer);
 }
 
@@ -653,7 +653,7 @@ void CBOpenPltFile(Widget w, XtPointer, XtPointer call_data) {
   path[pathPos + 1] = '\0';
   sDirectory = XmStringCreateSimple(path);
 
-  sprintf(buffer, "Selected file = %s\n", filename);
+  snprintf(buffer, sizeof(buffer), "Selected file = %s\n", filename);
   messageText.PrintText(buffer);
 
   amrex::DataServices *dataServicesPtr = new amrex::DataServices();

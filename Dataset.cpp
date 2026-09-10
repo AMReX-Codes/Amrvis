@@ -409,7 +409,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
         for(d = 0; d < highD; ++d) {
           ddl = d * dataBox.length(hDIR);
           for(c = 0; c < dataBox.length(hDIR); ++c) {
-            sprintf(dataString, fstring, dataPoint[c+ddl]);
+            snprintf(dataString, sizeof(dataString), fstring, dataPoint[c+ddl]);
             largestWidth = std::max((int) strlen(dataString), largestWidth);
           }
         }
@@ -432,7 +432,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
 
   char levelInfo[Amrvis::LINELENGTH], maxInfo[Amrvis::LINELENGTH], minInfo[Amrvis::LINELENGTH];
   char maxInfoV[Amrvis::LINELENGTH],  minInfoV[Amrvis::LINELENGTH];
-  sprintf(levelInfo, "Level: %i", maxDrawnLevel);
+  snprintf(levelInfo, sizeof(levelInfo), "Level: %i", maxDrawnLevel);
 
   XmString sNewLevel = XmStringCreateSimple(levelInfo);
   XtVaSetValues(wLevels, 
@@ -440,14 +440,14 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
                 NULL);
   XmStringFree(sNewLevel);
   
-  sprintf(minInfoV, fstring, rMin);
-  sprintf(minInfo, "Min:%s", minInfoV);
+  snprintf(minInfoV, sizeof(minInfoV), fstring, rMin);
+  snprintf(minInfo, sizeof(minInfo), "Min:%s", minInfoV);
   XmString sNewMin = XmStringCreateSimple(minInfo);
   XtVaSetValues(wMinValue, XmNlabelString, sNewMin, NULL);
   XmStringFree(sNewMin);
 
-  sprintf(maxInfoV, fstring, rMax);
-  sprintf(maxInfo, "Max:%s", maxInfoV);
+  snprintf(maxInfoV, sizeof(maxInfoV), fstring, rMax);
+  snprintf(maxInfo, sizeof(maxInfo), "Max:%s", maxInfoV);
   XmString sNewMax = XmStringCreateSimple(maxInfo);
   XtVaSetValues(wMaxValue, XmNlabelString, sNewMax, NULL);
   XmStringFree(sNewMax);
@@ -503,7 +503,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
   // create StringLoc array and define color scheme 
   if(pixSizeX == 0 || pixSizeY == 0) {
     noData = true;
-    sprintf (dataString, "No intersection.");
+    snprintf(dataString, sizeof(dataString), "No intersection.");
     pixSizeX = strlen(dataString) * CHARACTERWIDTH;
     pixSizeY = CHARACTERHEIGHT+5;
     XtVaSetValues(wPixArea,
@@ -557,7 +557,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
           for(d = 0; d < highD; ++d) {
             ddl = d * dataBox.length(hDIR);
             for(c = 0; c < dataBox.length(hDIR); ++c) {
-              sprintf(dataString, fstring, dataPoint[c+ddl]);
+              snprintf(dataString, sizeof(dataString), fstring, dataPoint[c+ddl]);
               if(dataPoint[c+ddl] > amrmax) {
                 dataStringArray[stringCount].color = paletteEnd;    // clip
               } else if(dataPoint[c+ddl] < amrmin) {
@@ -734,7 +734,7 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
       
       // horizontal
       for(d = 0; d < iABox.length(hDIR); ++d) {
-        sprintf(dataString, "%d", d + iABox.smallEnd(hDIR));
+        snprintf(dataString, sizeof(dataString), "%d", d + iABox.smallEnd(hDIR));
         hIndexArray[sLevel][d].color = blackIndex;
         hIndexArray[sLevel][d].xloc =(temp.smallEnd(hDIR)+d*boxSize)*dataItemWidth
           +hStringOffset;
@@ -751,9 +751,9 @@ void Dataset::DatasetRender(const Box &alignedRegion, AmrPicture *apptr,
       }
       for(d = 0; d < highD; ++d) {
 #if (BL_SPACEDIM == 1)
-        sprintf(dataString, "%d", d + 0);
+        snprintf(dataString, sizeof(dataString), "%d", d + 0);
 #else
-        sprintf(dataString, "%d", d + iABox.smallEnd(vDIR));
+        snprintf(dataString, sizeof(dataString), "%d", d + iABox.smallEnd(vDIR));
 #endif
         vIndexArray[sLevel][d].color = blackIndex;
         vIndexArray[sLevel][d].xloc = 0;// find this dynamically when drawing

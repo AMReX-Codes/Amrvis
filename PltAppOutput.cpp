@@ -3,6 +3,8 @@
 // ---------------------------------------------------------------
 
 
+#include <algorithm>
+
 #include <AMReX_ParallelDescriptor.H>
 
 #include <Xm/Xm.h>
@@ -67,7 +69,7 @@ void PltApp::DoOutput(Widget w, XtPointer data, XtPointer) {
   } else {
     strcpy(tempfilename, AVGlobals::StripSlashes(fileNames[0]).c_str());
   }
-  sprintf(tempstr, "%s_%s", pltAppState->CurrentDerived().c_str(), tempfilename);
+  snprintf(tempstr, sizeof(tempstr), "%s_%s", pltAppState->CurrentDerived().c_str(), tempfilename);
   XmTextSetString(XmSelectionBoxGetChild(wGetFileName, XmDIALOG_TEXT), tempstr);
   XtManageChild(wGetFileName);
   XtPopup(XtParent(wGetFileName), XtGrabNone);
@@ -89,7 +91,7 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   XmStringGetLtoR(cbs->value, XmSTRING_DEFAULT_CHARSET, &fileNameBase);
 
   // write the Amrvis::ZPLANE picture
-  sprintf(psfilename, "%s_XY.ps", fileNameBase);
+  snprintf(psfilename, sizeof(psfilename), "%s_XY.ps", fileNameBase);
   printImage = amrPicturePtrArray[Amrvis::ZPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV();
@@ -101,7 +103,7 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   int minDrawnLevel(pltAppState->MinDrawnLevel());
   int maxDrawnLevel(pltAppState->MaxDrawnLevel());
   const AmrData &amrData = dataServicesPtr[currentFrame]->AmrDataRef();
-  sprintf(psfilename, "%s_XY_new.ps", fileNameBase);
+  snprintf(psfilename, sizeof(psfilename), "%s_XY_new.ps", fileNameBase);
   bool bDrawBoxesIntoImage(false);
   printImage = amrPicturePtrArray[Amrvis::ZPLANE]->GetPictureXImage(bDrawBoxesIntoImage);
   Vector< Vector<GridBoxes> > gridBoxes;
@@ -116,14 +118,14 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
   int minDrawnLevel(pltAppState->MinDrawnLevel());
   int maxDrawnLevel(pltAppState->MaxDrawnLevel());
   // write the Amrvis::YPLANE picture
-  sprintf(psfilename, "%s_XZ.ps", fileNameBase);
+  snprintf(psfilename, sizeof(psfilename), "%s_XZ.ps", fileNameBase);
   printImage = amrPicturePtrArray[Amrvis::YPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeV();
   WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
 
   // write the Amrvis::XPLANE picture
-  sprintf(psfilename, "%s_YZ.ps", fileNameBase);
+  snprintf(psfilename, sizeof(psfilename), "%s_YZ.ps", fileNameBase);
   printImage = amrPicturePtrArray[Amrvis::XPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeV();
@@ -139,14 +141,14 @@ void PltApp::DoCreatePSFile(Widget w, XtPointer, XtPointer call_data) {
 #else
   printImage = projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
 #endif
-  sprintf(psfilename, "%s_XYZ.ps", fileNameBase);
+  snprintf(psfilename, sizeof(psfilename), "%s_XYZ.ps", fileNameBase);
   imageSizeX = projPicturePtr->ImageSizeH();
   imageSizeY = projPicturePtr->ImageSizeV();
   WritePSFile(psfilename, printImage, imageSizeX, imageSizeY, *pltPaletteptr);
 # endif
 
   // write the palette
-  sprintf(psfilename, "%s_pal.ps", fileNameBase);
+  snprintf(psfilename, sizeof(psfilename), "%s_pal.ps", fileNameBase);
   printImage = pltPaletteptr->GetPictureXImage();
   imageSizeX = pltPaletteptr->PaletteWidth();
   imageSizeY = pltPaletteptr->PaletteHeight();
@@ -182,7 +184,7 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
   } else {
     strcpy(suffix, "ppm");
   }
-  sprintf(rgbfilename, "%s_XY.%s", fileNameBase,suffix);
+  snprintf(rgbfilename, sizeof(rgbfilename), "%s_XY.%s", fileNameBase,suffix);
   printImage = amrPicturePtrArray[Amrvis::ZPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[Amrvis::ZPLANE]->ImageSizeV();
@@ -195,7 +197,7 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
 
 #if (BL_SPACEDIM==3)
   // write the Amrvis::YPLANE picture
-  sprintf(rgbfilename, "%s_XZ.%s", fileNameBase, suffix);
+  snprintf(rgbfilename, sizeof(rgbfilename), "%s_XZ.%s", fileNameBase, suffix);
   printImage = amrPicturePtrArray[Amrvis::YPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[Amrvis::YPLANE]->ImageSizeV();
@@ -206,7 +208,7 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
   }
 
   // write the Amrvis::XPLANE picture
-  sprintf(rgbfilename, "%s_YZ.%s", fileNameBase, suffix);
+  snprintf(rgbfilename, sizeof(rgbfilename), "%s_YZ.%s", fileNameBase, suffix);
   printImage = amrPicturePtrArray[Amrvis::XPLANE]->GetPictureXImage();
   imageSizeX = amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeH();
   imageSizeY = amrPicturePtrArray[Amrvis::XPLANE]->ImageSizeV();
@@ -228,7 +230,7 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
 #else
   printImage = projPicturePtr->DrawBoxesIntoPixmap(minDrawnLevel, maxDrawnLevel);
 #endif
-  sprintf(rgbfilename, "%s_XYZ.%s", fileNameBase, suffix);
+  snprintf(rgbfilename, sizeof(rgbfilename), "%s_XYZ.%s", fileNameBase, suffix);
   imageSizeX = projPicturePtr->ImageSizeH();
   imageSizeY = projPicturePtr->ImageSizeV();
   if(AVGlobals::IsSGIrgbFile()) {
@@ -239,7 +241,7 @@ void PltApp::DoCreateRGBFile(Widget w, XtPointer, XtPointer call_data) {
 # endif
 
   // write the palette
-  sprintf(rgbfilename, "%s_pal.%s", fileNameBase, suffix);
+  snprintf(rgbfilename, sizeof(rgbfilename), "%s_pal.%s", fileNameBase, suffix);
   printImage = pltPaletteptr->GetPictureXImage();
   imageSizeX = pltPaletteptr->PaletteWidth();
   imageSizeY = pltPaletteptr->PaletteHeight();
@@ -261,9 +263,12 @@ void PltApp::DoCreateFABFile(Widget w, XtPointer, XtPointer call_data) {
   char fabfilename[Amrvis::BUFSIZE];
   char *fileNameBase;
   XmStringGetLtoR(cbs->value, XmSTRING_DEFAULT_CHARSET, &fileNameBase);
-  sprintf(fabfilename, "%s.fab", fileNameBase);
+  snprintf(fabfilename, sizeof(fabfilename), "%s.fab", fileNameBase);
   string fabFileName(fabfilename);
-  int maxDrawnLevel(pltAppState->MaxDrawnLevel());
+  // ---- frames may have differing numbers of levels: clamp to what this
+  // ---- frame actually contains
+  int maxDrawnLevel(std::min(pltAppState->MaxDrawnLevel(),
+                             dataServicesPtr[currentFrame]->AmrDataRef().FinestLevel()));
         
   string derivedQuantity(pltAppState->CurrentDerived());
   Vector<Box> bx = amrPicturePtrArray[0]->GetSubDomain();
@@ -293,7 +298,7 @@ void PltApp::DoCreateAnimRGBFile() {
   } else {
     strcpy(suffix, "ppm");
   }
-  sprintf(outFileName, "%s_%s.F%05i.%s", pltAppState->CurrentDerived().c_str(),
+  snprintf(outFileName, sizeof(outFileName), "%s_%s.F%05i.%s", pltAppState->CurrentDerived().c_str(),
 	  AVGlobals::StripSlashes(fileNames[currentFrame]).c_str(),
 	  currentFrame, suffix);
 
@@ -326,7 +331,7 @@ void PltApp::DoCreateAnimRGBFile() {
       } else {
         strcpy(suffix, "Y.dat");
       }
-      sprintf(outFileName, "%s_%s.%s", pltAppState->CurrentDerived().c_str(),
+      snprintf(outFileName, sizeof(outFileName), "%s_%s.%s", pltAppState->CurrentDerived().c_str(),
 	      AVGlobals::StripSlashes(fileNames[currentFrame]).c_str(),
 	      suffix);
       cout << "******* Creating xyline file:  " << outFileName << endl;

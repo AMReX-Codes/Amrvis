@@ -483,17 +483,17 @@ void PltApp::DoOpenLightingFile(Widget w, XtPointer oos, XtPointer call_data)
 			                  shiny, minray, maxray);
     if(bFileOk) {
       char cTempReal[32];
-      sprintf(cTempReal, "%3.2f", ambient);
+      snprintf(cTempReal, sizeof(cTempReal), "%3.2f", ambient);
       XmTextFieldSetString(wLWambient, cTempReal);
-      sprintf(cTempReal, "%3.2f", diffuse);
+      snprintf(cTempReal, sizeof(cTempReal), "%3.2f", diffuse);
       XmTextFieldSetString(wLWdiffuse, cTempReal);
-      sprintf(cTempReal, "%3.2f", specular);
+      snprintf(cTempReal, sizeof(cTempReal), "%3.2f", specular);
       XmTextFieldSetString(wLWspecular, cTempReal);
-      sprintf(cTempReal, "%3.2f", shiny);
+      snprintf(cTempReal, sizeof(cTempReal), "%3.2f", shiny);
       XmTextFieldSetString(wLWshiny, cTempReal);
-      sprintf(cTempReal, "%3.2f", minray);
+      snprintf(cTempReal, sizeof(cTempReal), "%3.2f", minray);
       XmTextFieldSetString(wLWminOpacity, cTempReal);
-      sprintf(cTempReal, "%3.2f", maxray);
+      snprintf(cTempReal, sizeof(cTempReal), "%3.2f", maxray);
       XmTextFieldSetString(wLWmaxOpacity, cTempReal);
 
       DoApplyLightingWindow(NULL, NULL, NULL);
@@ -616,7 +616,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    NULL);
   
   char cNbuff[64];
-  sprintf(cNbuff, "%3.2f", volRenderPtr->GetAmbient());
+  snprintf(cNbuff, sizeof(cNbuff), "%3.2f", volRenderPtr->GetAmbient());
   wLWambient = XtVaCreateManagedWidget("variable",
 			    xmTextFieldWidgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_FORM,
@@ -639,7 +639,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftOffset, Amrvis::WOFFSET,
 			    NULL);
   
-  sprintf(cNbuff, "%3.2f", volRenderPtr->GetDiffuse());
+  snprintf(cNbuff, sizeof(cNbuff), "%3.2f", volRenderPtr->GetDiffuse());
   wLWdiffuse = XtVaCreateManagedWidget("variable",
 			    xmTextFieldWidgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
@@ -663,7 +663,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftOffset, Amrvis::WOFFSET,
 			    NULL);
   
-  sprintf(cNbuff, "%3.2f", volRenderPtr->GetSpecular());
+  snprintf(cNbuff, sizeof(cNbuff), "%3.2f", volRenderPtr->GetSpecular());
   wLWspecular = XtVaCreateManagedWidget("variable",
 			    xmTextFieldWidgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
@@ -687,7 +687,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftOffset, Amrvis::WOFFSET,
 			    NULL);
   
-  sprintf(cNbuff, "%3.2f", volRenderPtr->GetShiny());
+  snprintf(cNbuff, sizeof(cNbuff), "%3.2f", volRenderPtr->GetShiny());
   wLWshiny = XtVaCreateManagedWidget("variable",
 			    xmTextFieldWidgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
@@ -713,7 +713,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftOffset, Amrvis::WOFFSET,
 			    NULL);
   
-  sprintf(cNbuff, "%3.2f", volRenderPtr->GetMinRayOpacity());
+  snprintf(cNbuff, sizeof(cNbuff), "%3.2f", volRenderPtr->GetMinRayOpacity());
   wLWminOpacity = XtVaCreateManagedWidget("minray",
 			    xmTextFieldWidgetClass, wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
@@ -738,7 +738,7 @@ void PltApp::DoCreateLightingWindow(Widget, XtPointer, XtPointer) {
 			    XmNleftOffset, Amrvis::WOFFSET,
 			    NULL);
   
-  sprintf(cNbuff, "%3.2f", volRenderPtr->GetMaxRayOpacity());
+  snprintf(cNbuff, sizeof(cNbuff), "%3.2f", volRenderPtr->GetMaxRayOpacity());
   wLWmaxOpacity = XtVaCreateManagedWidget("variable", xmTextFieldWidgetClass,
 			    wLWForm,
 			    XmNtopAttachment, XmATTACH_WIDGET,
