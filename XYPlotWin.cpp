@@ -40,6 +40,7 @@
 #include <iomanip>
 #include <limits>
 #include <cmath>
+#include <cstdio>
 #include <cstdlib>
 using std::setw;
 using std::cout;
@@ -1033,7 +1034,7 @@ double XYPlotWin::roundUp(double val) {
 
 
 // -------------------------------------------------------------------
-void XYPlotWin::writeValue(char *str, char *fmt, double val, int expv) {
+void XYPlotWin::writeValue(char *str, int strSize, char *fmt, double val, int expv) {
   if(expv < 0) {
     for(int idx(expv); idx < 0; ++idx) {
       val *= 10.0;
@@ -1044,9 +1045,9 @@ void XYPlotWin::writeValue(char *str, char *fmt, double val, int expv) {
     }
   }
   if(strchr(fmt, 'd') || strchr(fmt, 'x')) {
-    sprintf(str, fmt, (int) val);
+    snprintf(str, strSize, fmt, (int) val);
   } else {
-    sprintf(str, fmt, val);
+    snprintf(str, strSize, fmt, val);
   }
 }
 
@@ -1066,7 +1067,7 @@ void XYPlotWin::writeValue(char *str, char *fmt, double val, int expv) {
 void XYPlotWin::drawGridAndAxis() {
   int expX, expY; // Engineering powers
   int Yspot, Xspot;
-  char value[10], final[Amrvis::BUFSIZE + 10];
+  char value[Amrvis::LINELENGTH], final[Amrvis::BUFSIZE + 10];
   double dXIncr, dYIncr, dXStart, dYStart, dYIndex, dXIndex, dLarger;
   XSegment segs[2];
   
@@ -1121,7 +1122,7 @@ VSHOWVAL(Yspot);
 cout << endl;
 */
     // Write the axis label
-    writeValue(value, formatY, (dYIndex + dYStart), expY);
+    writeValue(value, sizeof(value), formatY, (dYIndex + dYStart), expY);
     textX(wPlotWin, iXOrgX - devInfo.bdrPad, Yspot, value, T_RIGHT, T_AXIS);
     ++iLoopCheck;
     if(iLoopCheck > ((int) ((dUsrOppY - dYStart)/dGridStep))) {
@@ -1135,7 +1136,7 @@ cout << endl;
   for(dXIndex = 0.0; dXIndex < (dUsrOppX - dXStart); dXIndex += dGridStep) {
     Xspot = SCREENX(dXIndex + dXStart);
     // Write the axis label
-    writeValue(value, formatX, (dXIndex + dXStart), expX);
+    writeValue(value, sizeof(value), formatX, (dXIndex + dXStart), expX);
     textX(wPlotWin, Xspot, devInfo.areaH-devInfo.bdrPad-devInfo.axisH,
 	  value, T_BOTTOM, T_AXIS);
     ++iLoopCheck;

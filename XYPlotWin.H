@@ -161,7 +161,7 @@ class XYPlotWin {
     void dotX(Widget win, int x, int y, int style, int color);
     double InitGrid(double low, double high, double step);
     double roundUp(double val);
-    void writeValue(char *str, char *fmt, double val, int expv);
+    void writeValue(char *str, int strSize, char *fmt, double val, int expv);
     void CalculateBox();
     void drawGridAndAxis();
     void clearData();
@@ -214,4 +214,3 @@ class XYPlotWin {
 void CBcloseXYPlotWin(Widget, XtPointer, XtPointer);
 
 #endif
-
