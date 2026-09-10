@@ -716,7 +716,7 @@ void XYPlotWin::CalculateBox() {
 
   // Here we make an arbitrary label to find out how big an offset we need
   char buff[128];
-  sprintf(buff, formatY, -200.0);
+  writeValue(buff, sizeof(buff), formatY, -200.0, 0);
   XCharStruct bb;
   int dir, ascent, descent;
   XTextExtents(labeltextFont, buff, strlen(buff), &dir, &ascent, &descent, &bb);
@@ -1034,6 +1034,59 @@ double XYPlotWin::roundUp(double val) {
 
 
 // -------------------------------------------------------------------
+namespace {
+bool ValidAxisFormat(const char *fmt, bool &integerFormat) {
+  integerFormat = false;
+  bool sawConversion(false);
+  for(const char *cp = fmt; *cp != '\0'; ++cp) {
+    if(*cp != '%') {
+      continue;
+    }
+    ++cp;
+    if(*cp == '%') {
+      continue;
+    }
+    if(sawConversion) {
+      return false;
+    }
+    while(*cp != '\0' && strchr("-+ #0", *cp) != 0) {
+      ++cp;
+    }
+    if(*cp == '*') {
+      return false;
+    }
+    while(*cp != '\0' && std::isdigit(static_cast<unsigned char>(*cp))) {
+      ++cp;
+    }
+    if(*cp == '.') {
+      ++cp;
+      if(*cp == '*') {
+        return false;
+      }
+      while(*cp != '\0' && std::isdigit(static_cast<unsigned char>(*cp))) {
+        ++cp;
+      }
+    }
+    if(*cp == 'h' || *cp == 'l' || *cp == 'L' || *cp == 'j' || *cp == 'z' || *cp == 't') {
+      return false;
+    }
+    if(strchr("diouxX", *cp) != 0) {
+      integerFormat = true;
+      sawConversion = true;
+      continue;
+    }
+    if(strchr("aAeEfFgG", *cp) != 0) {
+      sawConversion = true;
+      continue;
+    }
+    return false;
+  }
+  return sawConversion;
+}
+}
+
+
+// -------------------------------------------------------------------
 void XYPlotWin::writeValue(char *str, std::size_t strSize, char *fmt, double val, int expv) {
   if(expv < 0) {
     for(int idx(expv); idx < 0; ++idx) {
@@ -1044,10 +1097,16 @@ void XYPlotWin::writeValue(char *str, std::size_t strSize, char *fmt, double val
       val *= 0.10;
     }
   }
-  if(strchr(fmt, 'd') || strchr(fmt, 'x')) {
-    snprintf(str, strSize, fmt, (int) val);
+  bool integerFormat(strchr(fmt, 'd') || strchr(fmt, 'i') || strchr(fmt, 'o') ||
+                     strchr(fmt, 'u') || strchr(fmt, 'x') || strchr(fmt, 'X'));
+  const char *safeFormat(integerFormat ? "%d" : "%.15g");
+  if(ValidAxisFormat(fmt, integerFormat)) {
+    safeFormat = fmt;
+  }
+  if(integerFormat) {
+    snprintf(str, strSize, safeFormat, (int) val);
   } else {
-    snprintf(str, strSize, fmt, val);
+    snprintf(str, strSize, safeFormat, val);
   }
 }
 
